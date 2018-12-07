@@ -76,7 +76,7 @@ namespace Microsoft.ML.Runtime.Api
             return pipe;
         }
 
-        public sealed class InputRow<TRow> : InputRowBase<TRow>, IRowBackedBy<TRow>
+        public sealed class InputRow<TRow> : InputRowBase<TRow>
             where TRow : class
         {
             private TRow _value;
@@ -416,7 +416,12 @@ namespace Microsoft.ML.Runtime.Api
                 public override long Batch => _toWrap.Batch;
                 public override Schema Schema => _toWrap.Schema;
 
-                public override void Dispose() => _toWrap.Dispose();
+                protected override void Dispose(bool disposing)
+                {
+                    if (disposing)
+                        _toWrap.Dispose();
+                }
+
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     => _toWrap.GetGetter<TValue>(col);
                 public override ValueGetter<UInt128> GetIdGetter() => _toWrap.GetIdGetter();
@@ -434,8 +439,8 @@ namespace Microsoft.ML.Runtime.Api
 
                 protected readonly DataViewBase<TRow> DataView;
                 protected readonly IChannel Ch;
-
                 private long _position;
+
                 /// <summary>
                 /// Zero-based position of the cursor.
                 /// </summary>
@@ -462,14 +467,14 @@ namespace Microsoft.ML.Runtime.Api
                 /// </summary>
                 protected bool IsGood => State == CursorState.Good;
 
-                public virtual void Dispose()
+                protected sealed override void Dispose(bool disposing)
                 {
-                    if (State != CursorState.Done)
-                    {
-                        Ch.Dispose();
-                        _position = -1;
-                        State = CursorState.Done;
-                    }
+                    if (State == CursorState.Done)
+                        return;
+                    Ch.Dispose();
+                    _position = -1;
+                    base.Dispose(disposing);
+                    State = CursorState.Done;
                 }
 
                 public bool MoveNext()

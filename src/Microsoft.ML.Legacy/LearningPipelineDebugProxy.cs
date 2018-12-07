@@ -147,8 +147,9 @@ namespace Microsoft.ML.Legacy
                     catch (Exception e)
                     {
                         _pipelineExecutionException = e;
-                        var fakeColumn = new KeyValuePair<string, ColumnType>("Blank", TextType.Instance);
-                        _preview = new EmptyDataView(_environment, Schema.Create(new SimpleSchema(_environment, fakeColumn)));
+                        var builder = new SchemaBuilder();
+                        builder.AddColumn("Blank", TextType.Instance);
+                        _preview = new EmptyDataView(_environment, builder.GetSchema());
                     }
                 }
             }

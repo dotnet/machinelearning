@@ -25,17 +25,14 @@ namespace Microsoft.ML.Scenarios
 
             var env = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env,
-                new TextLoader.Arguments()
+            var loader = env.Data.ReadFromTextFile(dataPath,
+                columns: new[]
                 {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
-                    {
-                        new TextLoader.Column("Label", DataKind.Num, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                    }
-                }, new MultiFileSource(dataPath));
+                    new TextLoader.Column("Label", DataKind.Num, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                },
+                hasHeader: true
+            );
 
             var trans = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
             {
@@ -86,17 +83,14 @@ namespace Microsoft.ML.Scenarios
 
             var env = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env,
-                new TextLoader.Arguments()
+            var loader = env.Data.ReadFromTextFile(dataPath,
+                columns: new[]
                 {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
-                    {
-                        new TextLoader.Column("Label", DataKind.Num, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                    }
-                }, new MultiFileSource(dataPath));
+                    new TextLoader.Column("Label", DataKind.Num, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                },
+                hasHeader: true 
+            );
 
             var text = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
             {

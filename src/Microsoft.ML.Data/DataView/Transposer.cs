@@ -1086,28 +1086,20 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 #endregion
 
-                private abstract class RowBase<TSplitter> : Row
+                private abstract class RowBase<TSplitter> : WrappingRow
                     where TSplitter : Splitter
                 {
                     protected readonly TSplitter Parent;
-                    protected readonly Row Input;
 
                     public sealed override Schema Schema => Parent.AsSchema;
-                    public sealed override long Position => Input.Position;
-                    public sealed override long Batch => Input.Batch;
 
                     public RowBase(TSplitter parent, Row input)
+                        : base(input)
                     {
                         Contracts.AssertValue(parent);
                         Contracts.AssertValue(input);
                         Contracts.Assert(input.IsColumnActive(parent.SrcCol));
                         Parent = parent;
-                        Input = input;
-                    }
-
-                    public sealed override ValueGetter<UInt128> GetIdGetter()
-                    {
-                        return Input.GetIdGetter();
                     }
                 }
 
@@ -1511,7 +1503,7 @@ namespace Microsoft.ML.Runtime.Data
                 _col = col;
 
                 var builder = new SchemaBuilder();
-                builder.AddColumn(_data.Schema[_col].Name, _type, null);
+                builder.AddColumn(_data.Schema[_col].Name, _type);
                 Schema = builder.GetSchema();
             }
 
@@ -1606,7 +1598,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 _slotCursor = cursor;
                 var builder = new SchemaBuilder();
-                builder.AddColumn("Waffles", cursor.GetSlotType(), null);
+                builder.AddColumn("Waffles", cursor.GetSlotType());
                 Schema = builder.GetSchema();
             }
 

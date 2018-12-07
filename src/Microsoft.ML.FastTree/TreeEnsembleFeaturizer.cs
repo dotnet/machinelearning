@@ -208,11 +208,10 @@ namespace Microsoft.ML.Runtime.Data
                 OutputSchema = Schema.Create(new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType));
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 _ectx.CheckValue(input, nameof(input));
                 _ectx.CheckValue(predicate, nameof(predicate));
-                disposer = null;
                 return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
             }
 

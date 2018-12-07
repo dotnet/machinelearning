@@ -39,6 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(ML, "text", "bag_of_words")
+                .AppendCacheCheckpoint(ML)
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("bag_of_words", "bag_of_words_count", 10)
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("bag_of_words", "bag_of_words_mi", labelColumn: "label")));
 
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Tests.Transformers
                 VectorDouble: ctx.LoadDouble(4, 8)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+            var data = ML.Data.Cache(reader.Read(new MultiFileSource(dataPath)).AsDynamic);
 
             var columns = new[] {
                 new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "FeatureSelectDouble", minCount: 1),

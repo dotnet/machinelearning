@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Learners
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : IPredictor
     {
-        public StochasticTrainerBase(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = null)
+        public StochasticTrainerBase(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = default)
             : base(host, feature, label, weight)
         {
         }

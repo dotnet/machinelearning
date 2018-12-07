@@ -495,6 +495,7 @@ namespace Microsoft.ML.Transforms
             private Exception _producerTaskException;
 
             private readonly int[] _colToActivesIndex;
+            private bool _disposed;
 
             public override Schema Schema => _input.Schema;
 
@@ -554,14 +555,17 @@ namespace Microsoft.ML.Transforms
                 _producerTask = LoopProducerWorker();
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (_producerTask.Status == TaskStatus.Running)
+                if (_disposed)
+                    return;
+                if (disposing && _producerTask.Status == TaskStatus.Running)
                 {
                     _toProduce.Post(0);
                     _producerTask.Wait();
                 }
-                base.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public static void PostAssert<T>(ITargetBlock<T> target, T item)

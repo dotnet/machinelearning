@@ -1068,10 +1068,8 @@ namespace Microsoft.ML.Transforms.Text
             return columnMappings;
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
-        {
-            return new Mapper(this, schema);
-        }
+        private protected override IRowMapper MakeRowMapper(Schema schema)
+            => new Mapper(this, schema);
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
@@ -1145,7 +1143,7 @@ namespace Microsoft.ML.Transforms.Text
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

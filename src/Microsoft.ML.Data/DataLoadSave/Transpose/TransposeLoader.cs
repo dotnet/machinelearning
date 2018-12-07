@@ -824,15 +824,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Init(_actives[i]);
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (!_disposed)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    _disposed = true;
                     for (int i = 0; i < _transCursors.Length; ++i)
                         _transCursors[i].Dispose();
-                    base.Dispose();
                 }
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             /// <summary>

@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
             int j = 0;
             for (int i = 0; i < n; i++)
             {
-                for (;;)
+                for (; ; )
                 {
                     string name = string.IsNullOrWhiteSpace(tag) ?
                         string.Format("temp_{0:000}", j) :
@@ -1056,23 +1056,21 @@ namespace Microsoft.ML.Runtime.Data
                     _quitAction = quitAction;
                 }
 
-                public override void Dispose()
+                protected override void Dispose(bool disposing)
                 {
-                    if (!_disposed)
+                    if (_disposed)
+                        return;
+                    if (disposing)
                     {
                         foreach (var pipe in _pipes)
                             pipe.Unset();
-                        _disposed = true;
-                        if (_quitAction != null)
-                            _quitAction();
+                        _quitAction?.Invoke();
                     }
-                    base.Dispose();
+                    _disposed = true;
+                    base.Dispose(disposing);
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
-                {
-                    return _idGetter;
-                }
+                public override ValueGetter<UInt128> GetIdGetter() => _idGetter;
 
                 protected override bool MoveNextCore()
                 {
@@ -1203,11 +1201,12 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (!_disposed)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    _disposed = true;
                     _batch = -1;
                     _icursor = -1;
                     _currentCursor = null;
@@ -1215,7 +1214,8 @@ namespace Microsoft.ML.Runtime.Data
                     foreach (var cursor in _cursors)
                         cursor.Dispose();
                 }
-                base.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public override ValueGetter<UInt128> GetIdGetter()

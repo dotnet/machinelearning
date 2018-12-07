@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.RunTests
         // REVIEW: Remove the three above setting strings once conversion work is complete.
         public string loaderSettings;
         public string[] mamlExtraSettings;
-        public Func<TextLoader.Arguments> GetLoaderArgs;
+        public Func<TextLoader.Column[]> GetLoaderColumns;
 
         public TestDataset Clone()
         {
@@ -180,18 +180,16 @@ namespace Microsoft.ML.Runtime.RunTests
             name = "sentiment",
             trainFilename = "wikipedia-detox-250-line-data.tsv",
             testFilename = "wikipedia-detox-250-line-test.tsv",
-            GetLoaderArgs= () =>
+            GetLoaderColumns= () =>
             {
-                return new TextLoader.Arguments()
+                return new[]
                 {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
-                {
-                    new TextLoader.Column("Label", DataKind.BL, 0),
-                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                }
-                };
+                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
+                    new TextLoader.Column("PetalWidth",DataKind.R4, 3),
+                    new TextLoader.Column("Label", DataKind.Text, 4)
+                }; ;
             }
         };
 
@@ -373,19 +371,15 @@ namespace Microsoft.ML.Runtime.RunTests
             name = "iris",
             trainFilename = @"iris.data",
             loaderSettings = "loader=Text{col=Label:TX:4 col=Features:0-3}",
-            GetLoaderArgs = () =>
+            GetLoaderColumns = () =>
             {
-                return new TextLoader.Arguments()
-                {
-                    Separator = "comma",
-                    Column = new[]
+                return new[]
                 {
                     new TextLoader.Column("SepalLength", DataKind.R4, 0),
                     new TextLoader.Column("SepalWidth", DataKind.R4, 1),
                     new TextLoader.Column("PetalLength", DataKind.R4, 2),
                     new TextLoader.Column("PetalWidth",DataKind.R4, 3),
                     new TextLoader.Column("Label", DataKind.Text, 4)
-                }
                 };
             }
         };

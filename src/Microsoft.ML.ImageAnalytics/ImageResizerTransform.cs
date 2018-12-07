@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -411,7 +411,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             destWidth = (int)(sourceWidth * aspect);
                             destHeight = (int)(sourceHeight * aspect);
                         }
-                        dst = new Bitmap(info.Width, info.Height);
+                        dst = new Bitmap(info.Width, info.Height, src.PixelFormat);
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
                         using (var g = Graphics.FromImage(dst))
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

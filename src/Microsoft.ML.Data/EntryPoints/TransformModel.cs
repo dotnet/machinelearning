@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             public Schema InputSchema => _rootSchema;
 
-            public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
                 _ectx.AssertValue(input);
@@ -244,7 +244,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                 _ectx.Check(input.Schema == InputSchema, "Schema of input row must be the same as the schema the mapper is bound to");
 
-                disposer = null;
                 var mappers = new List<IRowToRowMapper>();
                 var actives = new List<Func<int, bool>>();
                 var transform = _chain as IDataTransform;
@@ -262,11 +261,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 actives.Reverse();
                 var row = input;
                 for (int i = 0; i < mappers.Count; i++)
-                {
-                    Action disp;
-                    row = mappers[i].GetRow(row, actives[i], out disp);
-                    disposer += disp;
-                }
+                    row = mappers[i].GetRow(row, actives[i]);
 
                 return row;
             }
