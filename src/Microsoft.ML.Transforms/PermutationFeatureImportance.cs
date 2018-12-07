@@ -15,23 +15,22 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms
 {
-    internal static class PermutationFeatureImportance<TResult, TResultDelta>
+    internal static class PermutationFeatureImportance<TMetric, TResult> where TResult : MetricsStatisticsBase<TMetric>, new()
     {
-        public static ImmutableArray<TResultDelta>
+        public static ImmutableArray<TResult>
             GetImportanceMetricsMatrix(
                 IHostEnvironment env,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
-                Func<IDataView, TResult> evaluationFunc,
-                Func<TResult, TResult, TResultDelta> deltaFunc,
-                Func<IEnumerable<TResultDelta>, TResultDelta> averagingFunc,
+                Func<IDataView, TMetric> evaluationFunc,
+                Func<TMetric, TMetric, TMetric> deltaFunc,
                 string features,
+                int numPermutations,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null,
-                int numPermutations = 1)
+                int? topExamples = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(PermutationFeatureImportance<TResult, TResultDelta>));
+            var host = env.Register(nameof(PermutationFeatureImportance<TMetric, TResult>));
             host.CheckValue(model, nameof(model));
             host.CheckValue(data, nameof(data));
             host.CheckNonEmpty(features, nameof(features));
@@ -40,7 +39,7 @@ namespace Microsoft.ML.Transforms
             host.Check(topExamples > 0, "Provide how many examples to use (positive number) or set to null to use whole dataset.");
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            var metricsDelta = new List<TResultDelta>();
+            var metricsDelta = new List<TResult>();
 
             using (var ch = host.Start("GetImportanceMetrics"))
             {
@@ -193,7 +192,7 @@ namespace Microsoft.ML.Transforms
                         output[0].ColumnType = featuresColumn.Type;
 
                         // Perform multiple permutations for one feature to build a confidence interval
-                        var metricsDeltaForFeature = new List<TResultDelta>();
+                        var metricsDeltaForFeature = new TResult();
                         for (int permutationIteration = 0; permutationIteration < numPermutations; permutationIteration++)
                         {
                             Utils.Shuffle<float>(shuffleRand, featureValuesBuffer);
@@ -229,8 +228,8 @@ namespace Microsoft.ML.Transforms
                             metricsDeltaForFeature.Add(delta);
                         }
 
-                        // Compute the summary statistics
-                        metricsDelta.Add(averagingFunc(metricsDeltaForFeature));
+                        // Add the metrics delta to the list
+                        metricsDelta.Add(metricsDeltaForFeature);
 
                         // Swap values for next iteration of permutation.
                         Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);

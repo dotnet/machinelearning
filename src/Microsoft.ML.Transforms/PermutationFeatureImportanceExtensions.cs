@@ -7,7 +7,6 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.ML
@@ -53,8 +52,9 @@ namespace Microsoft.ML
         /// <param name="features">Feature column names.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="numPermutations">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<RegressionMetricsDelta>
+        public static ImmutableArray<RegressionMetricsStatistics>
             PermutationFeatureImportance(
                 this RegressionContext ctx,
                 IPredictionTransformer<IPredictor> model,
@@ -62,60 +62,30 @@ namespace Microsoft.ML
                 string label = DefaultColumnNames.Label,
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null)
+                int? topExamples = null,
+                int numPermutations = 1)
         {
-            return PermutationFeatureImportance<RegressionMetrics, RegressionMetricsDelta>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
                             model,
                             data,
                             idv => ctx.Evaluate(idv, label),
                             RegressionDelta,
-                            AverageRegressionMetrics,
                             features,
+                            numPermutations,
                             useFeatureWeightFilter,
                             topExamples);
         }
 
-        private static RegressionMetricsDelta RegressionDelta(
+        private static RegressionMetrics RegressionDelta(
             RegressionMetrics a, RegressionMetrics b)
         {
-            return new RegressionMetricsDelta(
+            return new RegressionMetrics(
                 l1: a.L1 - b.L1,
                 l2: a.L2 - b.L2,
                 rms: a.Rms - b.Rms,
                 lossFunction: a.LossFn - b.LossFn,
                 rSquared: a.RSquared - b.RSquared);
-        }
-
-        private static RegressionMetricsDelta AverageRegressionMetrics(
-            IEnumerable<RegressionMetricsDelta> metricsDeltas)
-        {
-            var l1 = new SummaryStatistics();
-            var l2 = new SummaryStatistics();
-            var rms = new SummaryStatistics();
-            var lossFunction = new SummaryStatistics();
-            var rsquared = new SummaryStatistics();
-
-            foreach (var delta in metricsDeltas)
-            {
-                l1.Add(delta.L1);
-                l2.Add(delta.L2);
-                rms.Add(delta.Rms);
-                lossFunction.Add(delta.LossFn);
-                rsquared.Add(delta.RSquared);
-            }
-
-            return new RegressionMetricsDelta(
-                l1: l1.Mean,
-                l1Std: l1.SampleStdDev,
-                l2: l2.Mean,
-                l2Std: l2.SampleStdDev,
-                rms: rms.Mean,
-                rmsStd: rms.SampleStdDev,
-                lossFunction: lossFunction.Mean,
-                lossFunctionStd: lossFunction.SampleStdDev,
-                rSquared: rsquared.Mean,
-                rSquaredStd: rsquared.SampleStdDev);
         }
 
         /// <summary>
@@ -157,8 +127,9 @@ namespace Microsoft.ML
         /// <param name="features">Feature column names.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="numPermutations">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<BinaryClassificationMetrics>
+        public static ImmutableArray<BinaryClassificationMetricsStatistics>
             PermutationFeatureImportance(
                 this BinaryClassificationContext ctx,
                 IPredictionTransformer<IPredictor> model,
@@ -166,16 +137,17 @@ namespace Microsoft.ML
                 string label = DefaultColumnNames.Label,
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null)
+                int? topExamples = null,
+                int numPermutations = 1)
         {
-            return PermutationFeatureImportance<BinaryClassificationMetrics, BinaryClassificationMetrics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
                             model,
                             data,
                             idv => ctx.Evaluate(idv, label),
                             BinaryClassifierDelta,
-                            AverageMetrics,
                             features,
+                            numPermutations,
                             useFeatureWeightFilter,
                             topExamples);
         }
@@ -193,93 +165,172 @@ namespace Microsoft.ML
                 f1Score: a.F1Score - b.F1Score,
                 auprc: a.Auprc - b.Auprc);
         }
+    }
 
-        private static BinaryClassificationMetrics AverageMetrics(
-            IEnumerable<BinaryClassificationMetrics> metricsDeltas)
+    public sealed class SimpleStatistics
+    {
+        public readonly double Mean;
+        public readonly double StandardDeviation;
+
+        public SimpleStatistics(double mean, double standardDeviation)
         {
-            return new BinaryClassificationMetrics(
-                auc: 0,
-                accuracy: 0,
-                positivePrecision: 0,
-                positiveRecall: 0,
-                negativePrecision: 0,
-                negativeRecall: 0,
-                f1Score: 0,
-                auprc: 0);
+            Mean = mean;
+            StandardDeviation = standardDeviation;
         }
     }
 
-    public sealed class RegressionMetricsDelta
+    public abstract class MetricsStatisticsBase<T>{
+        internal MetricsStatisticsBase()
+        {
+        }
+
+        public abstract void Add(T metrics);
+
+        internal SimpleStatistics GetStatistics(SummaryStatistics summaryStatistics)
+        {
+            double standardDeviation = 0;
+            // Protect against a divid-by-zero
+            if (summaryStatistics.RawCount > 2)
+                standardDeviation = summaryStatistics.SampleStdDev;
+
+            return new SimpleStatistics(summaryStatistics.Mean, standardDeviation);
+        }
+    }
+
+    public sealed class RegressionMetricsStatistics : MetricsStatisticsBase<RegressionMetrics>
     {
         /// <summary>
-        /// Gets the difference of the absolute loss of the model.
+        /// Summary Statistics for L1
         /// </summary>
-        /// <remarks>
-        /// The absolute loss is defined as
-        /// L1 = (1/m) * sum( abs( yi - y&apos;i))
-        /// where m is the number of instances in the test set.
-        /// y'i are the predicted labels for each instance.
-        /// yi are the correct labels of each instance.
-        /// </remarks>
-        public double L1 { get; }
-
-        public double L1Std { get;  }
+        public SimpleStatistics L1 => GetStatistics(_l1);
+        private SummaryStatistics _l1;
 
         /// <summary>
-        /// Gets the squared loss of the model.
+        /// Summary Statistics for L2
         /// </summary>
-        /// <remarks>
-        /// The squared loss is defined as
-        /// L2 = (1/m) * sum(( yi - y&apos;i)^2)
-        /// where m is the number of instances in the test set.
-        /// y'i are the predicted labels for each instance.
-        /// yi are the correct labels of each instance.
-        /// </remarks>
-        public double L2 { get; }
+        public SimpleStatistics L2 => GetStatistics(_l2);
 
-        public double L2Std { get; }
+        private SummaryStatistics _l2;
 
         /// <summary>
-        /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss.
+        /// Summary statistics for the root mean square loss (or RMS).
         /// </summary>
-        public double Rms { get; }
+        public SimpleStatistics Rms => GetStatistics(_rms);
 
-        public double RmsStd { get; }
+        private SummaryStatistics _rms;
 
         /// <summary>
-        /// Gets the result of user defined loss function.
+        /// Summary statistics for the user-supplied loss function.
         /// </summary>
-        /// <remarks>
-        /// This is the average of a loss function defined by the user,
-        /// computed over all the instances in the test set.
-        /// </remarks>
-        public double LossFn { get; }
+        public SimpleStatistics LossFn => GetStatistics(_lossFn);
 
-        public double LossFnStd { get; }
+        private SummaryStatistics _lossFn;
 
         /// <summary>
-        /// Gets the R squared value of the model, which is also known as
-        /// the coefficient of determination​.
+        /// Summary statistics for the R squared value.
         /// </summary>
-        public double RSquared { get; }
+        public SimpleStatistics RSquared => GetStatistics(_rSquared);
 
-        public double RSquaredsStd { get; }
+        private SummaryStatistics _rSquared;
 
-        [BestFriend]
-        internal RegressionMetricsDelta(double l1, double l2, double rms, double lossFunction, double rSquared,
-            double l1Std = 0, double l2Std = 0, double rmsStd = 0,
-            double lossFunctionStd = 0, double rSquaredStd = 0)
+        public RegressionMetricsStatistics()
         {
-            L1 = l1;
-            L1Std = l1Std;
-            L2 = l2;
-            L2Std = l2Std;
-            Rms = rms;
-            RmsStd = rmsStd;
-            LossFn = lossFunction;
-            LossFnStd = lossFunctionStd;
-            RSquared = rSquared;
-            RSquaredsStd = rSquaredStd;
+            _l1 = new SummaryStatistics();
+            _l2 = new SummaryStatistics();
+            _rms = new SummaryStatistics();
+            _lossFn = new SummaryStatistics();
+            _rSquared = new SummaryStatistics();
+        }
+
+        public override void Add(RegressionMetrics metrics)
+        {
+            _l1.Add(metrics.L1);
+            _l2.Add(metrics.L2);
+            _rms.Add(metrics.Rms);
+            _lossFn.Add(metrics.LossFn);
+            _rSquared.Add(metrics.RSquared);
+        }
+    }
+
+    public sealed class BinaryClassificationMetricsStatistics : MetricsStatisticsBase<BinaryClassificationMetrics>
+    {
+        /// <summary>
+        /// Summary Statistics for L1
+        /// </summary>
+        public SimpleStatistics Auc => GetStatistics(_auc);
+        private SummaryStatistics _auc;
+
+        /// <summary>
+        /// Summary Statistics for L2
+        /// </summary>
+        public SimpleStatistics Accuracy => GetStatistics(_accuracy);
+
+        private SummaryStatistics _accuracy;
+
+        /// <summary>
+        /// Summary statistics for the root mean square loss (or RMS).
+        /// </summary>
+        public SimpleStatistics PositivePrecision => GetStatistics(_positivePrecision);
+
+        private SummaryStatistics _positivePrecision;
+
+        /// <summary>
+        /// Summary statistics for the user-supplied loss function.
+        /// </summary>
+        public SimpleStatistics PositiveRecall => GetStatistics(_positiveRecall);
+
+        private SummaryStatistics _positiveRecall;
+
+        /// <summary>
+        /// Summary statistics for the R squared value.
+        /// </summary>
+        public SimpleStatistics NegativePrecision => GetStatistics(_negativePrecision);
+
+        private SummaryStatistics _negativePrecision;
+
+        /// <summary>
+        /// Summary statistics for the R squared value.
+        /// </summary>
+        public SimpleStatistics NegativeRecall => GetStatistics(_negativeRecall);
+
+        private SummaryStatistics _negativeRecall;
+
+        /// <summary>
+        /// Summary statistics for the R squared value.
+        /// </summary>
+        public SimpleStatistics F1Score => GetStatistics(_f1Score);
+
+        private SummaryStatistics _f1Score;
+
+        /// <summary>
+        /// Summary statistics for the R squared value.
+        /// </summary>
+        public SimpleStatistics Auprc => GetStatistics(_auprc);
+
+        private SummaryStatistics _auprc;
+
+        public BinaryClassificationMetricsStatistics()
+        {
+            _auc = new SummaryStatistics();
+            _accuracy = new SummaryStatistics();
+            _positivePrecision = new SummaryStatistics();
+            _positiveRecall = new SummaryStatistics();
+            _negativePrecision = new SummaryStatistics();
+            _negativeRecall = new SummaryStatistics();
+            _f1Score = new SummaryStatistics();
+            _auprc = new SummaryStatistics();
+        }
+
+        public override void Add(BinaryClassificationMetrics metrics)
+        {
+            _auc.Add(metrics.Auc);
+            _accuracy.Add(metrics.Accuracy);
+            _positivePrecision.Add(metrics.PositivePrecision);
+            _positiveRecall.Add(metrics.PositiveRecall);
+            _negativePrecision.Add(metrics.NegativePrecision);
+            _negativeRecall.Add(metrics.NegativeRecall);
+            _f1Score.Add(metrics.F1Score);
+            _auprc.Add(metrics.Auprc);
         }
     }
 }

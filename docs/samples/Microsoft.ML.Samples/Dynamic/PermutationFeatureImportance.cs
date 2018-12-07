@@ -68,7 +68,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Compute the permutation metrics using the properly-featurized data.
             var transformedData = model.Transform(data);
             var permutationMetrics = mlContext.Regression.PermutationFeatureImportance(
-                linearPredictor, transformedData, label: labelName, features: "Features");
+                linearPredictor, transformedData, label: labelName, features: "Features", numPermutations: 3);
 
             // Now let's look at which features are most important to the model overall
             // First, we have to prepare the data:
@@ -80,23 +80,27 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get the feature indices sorted by their impact on R-Squared
             var sortedIndices = permutationMetrics.Select((metrics, index) => new { index, metrics.RSquared })
-                .OrderByDescending(feature => Math.Abs(feature.RSquared))
+                .OrderByDescending(feature => Math.Abs(feature.RSquared.Mean))
                 .Select(feature => feature.index);
 
             // Print out the permutation results, with the model weights, in order of their impact:
             // Expected console output:
-            //    Feature            Model Weight    Change in R - Squared
-            //    RoomsPerDwelling      50.80 -0.3695
-            //    EmploymentDistance   -17.79 -0.2238
-            //    TeacherRatio         -19.83 -0.1228
-            //    TaxRate              -8.60  -0.1042
-            //    NitricOxides         -15.95 -0.1025
-            //    HighwayDistance        5.37 -0.09345
-            //    CrimesPerCapita      -15.05 -0.05797
-            //    PercentPre40s         -4.64 -0.0385
-            //    PercentResidental      3.98 -0.02184
-            //    CharlesRiver           3.38 -0.01487
-            //    PercentNonRetail      -1.94 -0.007231
+            //    Feature             Model Weight     Change in R-Squared     95% Confidence
+            //    RoomsPerDwelling       50.96          -0.4094                 0.04344
+            //    EmploymentDistance    -17.55          -0.235                  0.02501
+            //    TeacherRatio          -19.99          -0.1042                 0.02287
+            //    NitricOxides          -15.75          -0.1017                 0.006257
+            //    HighwayDistance         5.44          -0.09583                0.01006
+            //    TaxRate                -8.55          -0.08898                0.03211
+            //    CrimesPerCapita       -14.97          -0.05299                0.01215
+            //    PercentPre40s          -4.64          -0.04206                0.008414
+            //    PercentResidental       4.06          -0.02143                0.008526
+            //    CharlesRiver            3.71          -0.01802                0.004324
+            //    PercentNonRetail       -1.91          -0.007466               0.001664
+            //
+            // HEY 
+            // DO NOT MERGE UNLESS THIS IS UPDATED
+            // /HEY
             //
             // Let's dig into these results a little bit. First, if you look at the weights of the model, they generally correlate
             // with the results of PFI, but there are some significant misorderings. For example, "Tax Rate" is weighted lower than
@@ -110,12 +114,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // variables in this dataset. The reason why the linear model weights don't reflect the same feature importance as PFI
             // is that the solution to the linear model redistributes weights between correlated variables in unpredictable ways, so
             // that the weights themselves are no longer a good measure of feature importance.
-            Console.WriteLine("Feature\tModel Weight\tChange in R-Squared");
+            Console.WriteLine("Feature\tModel Weight\tChange in R-Squared\t95% Confidence");
             var rSquared = permutationMetrics.Select(x => x.RSquared).ToArray(); // Fetch r-squared as an array
             foreach (int i in sortedIndices)
             {
-                Console.WriteLine($"{featureNames[i]}\t{weights[i]:0.00}\t{rSquared[i]:G4}");
+                Console.WriteLine($"{featureNames[i]}\t{weights[i]:0.00}\t{rSquared[i].Mean:G4}\t{1.96 * rSquared[i].StandardDeviation:G4}");
             }
+
+            throw new NotImplementedException("Haven't completed the documentation!");
         }
 
         private static float[] GetLinearModelWeights(LinearRegressionPredictor linearModel)
