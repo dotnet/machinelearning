@@ -714,11 +714,12 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
             __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
             __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + ((4 - misalignment) * 4));
 
-            __m128 temp = _mm_and_ps(result, leadingMask);
-            result = _mm_and_ps(result, trailingMask);
+            __m128 temp = _mm_and_ps(result, trailingMask);
+            result = _mm_mul_ps(result, x1);
 
-            temp = _mm_mul_ps(temp, x1);
-            result = _mm_or_ps(temp, result);
+            // Masking operation is done at the end to avoid doing an Or operation with negative Zero.
+            result = _mm_and_ps(result, leadingMask);
+            result = _mm_or_ps(result, temp);
 
             _mm_storeu_ps(pd, result);
 
@@ -757,10 +758,11 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
         __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
         __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + ((4 - remainder) * 4));
 
-        __m128 temp = _mm_and_ps(result, trailingMask);
-        result = _mm_and_ps(result, leadingMask);
+        __m128 temp = _mm_and_ps(result, leadingMask);
+        result = _mm_mul_ps(result, x1);
 
-        temp = _mm_mul_ps(temp, x1);
+        // Masking operation is done at the end to avoid doing an Or operation with negative Zero.
+        result = _mm_and_ps(result, trailingMask);
         result = _mm_or_ps(temp, result);
 
         _mm_storeu_ps(pd, result);

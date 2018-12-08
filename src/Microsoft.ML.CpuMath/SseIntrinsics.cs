@@ -824,11 +824,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + (misalignment * 4));
                         Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + ((4 - misalignment) * 4));
 
-                        Vector128<float> temp = Sse.And(result, leadingMask);
-                        result = Sse.And(result, trailingMask);
+                        Vector128<float> temp = Sse.And(result, trailingMask);
+                        result = Sse.Multiply(scaleVector128, result);
 
-                        temp = Sse.Multiply(scaleVector128, temp);
-                        result = Sse.Or(temp, result);
+                        // Masking operation is done at the end to avoid doing an Or operation with negative Zero.
+                        result = Sse.And(result, leadingMask);
+                        result = Sse.Or(result, temp);
 
                         Sse.Store(pDstCurrent, result);
 
@@ -872,13 +873,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + (remainder * 4));
                     Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + ((4 - remainder) * 4));
 
-                    Vector128<float> temp = Sse.And(result, trailingMask);
-                    result = Sse.And(result, leadingMask);
+                    Vector128<float> temp = Sse.And(result, leadingMask);
+                    result = Sse.Multiply(scaleVector128, result);
 
-                    temp = Sse.Multiply(scaleVector128, temp);
-                    temp = Sse.Or(temp, result);
+                    // Masking operation is done at the end to avoid doing an Or operation with negative Zero.
+                    result = Sse.And(result, trailingMask);
+                    result = Sse.Or(result, temp);
 
-                    Sse.Store(pDstCurrent, temp);
+                    Sse.Store(pDstCurrent, result);
                 }
             }
         }
