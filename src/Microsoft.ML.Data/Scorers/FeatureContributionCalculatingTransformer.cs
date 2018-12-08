@@ -15,7 +15,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Numeric;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculatingTransformer.BindableMapper), typeof(FeatureContributionCalculatingTransformer.BindableMapper.Arguments),
     typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
@@ -35,12 +34,11 @@ using Microsoft.ML.Runtime.Numeric;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// Feature Contribution Calculation Transform.
+    /// The FeatureContributionCalculationTransformer scores the model on an input dataset and
+    /// computes model-specific contribution scores for each feature.
     /// </summary>
     /// <remarks>
-    /// The Feature Contribution Calculation Transform scores the model on an input dataset and
-    /// computes model-specific contribution scores for each feature. See the sample below for
-    /// an example of how to compute feature importance using the Feature Contribution Calculation Transform.
+    /// See the sample below for an example of how to compute feature importance using the FeatureContributionCalculatingTransformer.
     /// </remarks>
     /// <example>
     /// <format type="text/markdown">
@@ -70,23 +68,30 @@ namespace Microsoft.ML.Runtime.Data
                 loaderAssemblyName: typeof(FeatureContributionCalculatingTransformer).Assembly.FullName);
         }
 
-        // TODO documentation
-        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IPredictor predictor, string featureColumn,
+        /// <summary>
+        /// The Feature Contribution Calculation Transform scores the model on an input dataset and
+        /// computes model-specific contribution scores for each feature.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="predictor">A trained model that supports Feature Contribution Calculation, and which will be used for scoring.</param>
+        /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
+        /// <param name="top">The number of top contributing features for each data sample that will be retained in the FeatureContribution column.</param>
+        /// <param name="bottom">The number of least contributing features for each data sample that will be retained in the FeatureContribution column.</param>
+        /// <param name="normalize">Whether the feature contributions should be normalized.</param>
+        /// <param name="stringify">Whether to output feature contributions in string key-value format.</param>
+        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IFeatureContributionMapper predictor, string featureColumn,
             int top = FeatureContributionCalculatingEstimator.Defaults.Top,
             int bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom,
             bool normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize,
             bool stringify = FeatureContributionCalculatingEstimator.Defaults.Stringify)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)))
         {
+            // Other Parameters are checked in the constructor of the BindableMapper.
             Host.CheckValue(predictor, nameof(predictor));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
 
-            var pred = predictor as IFeatureContributionMapper;
-            Host.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
-
-            // TODO check that the featues column is not empty.
             _featureColumn = featureColumn;
-            _mapper = new BindableMapper(Host, pred, top, bottom, normalize, stringify);
+            _mapper = new BindableMapper(Host, predictor, top, bottom, normalize, stringify);
         }
 
         // Factory method for SignatureLoadModel
@@ -139,6 +144,13 @@ namespace Microsoft.ML.Runtime.Data
                 _parent = parent;
                 _bindableMapper = _parent._mapper;
 
+                // Check that the featureColumn is present and has the expected type.
+                if (!schema.TryGetColumnIndex(_parent._featureColumn, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent._featureColumn);
+                var colType = schema.GetColumnType(col);
+                if ( colType.ItemType != NumberType.R4 || !colType.IsVector)
+                    throw Host.ExceptUserArg(nameof(schema), "Column '{0}' does not have compatible type. Expected type is vector of float.", _parent._featureColumn);
+
                 var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
                 roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, _parent._featureColumn));
                 _roleMappedSchema = new RoleMappedSchema(InputSchema, roles);
@@ -168,13 +180,13 @@ namespace Microsoft.ML.Runtime.Data
             public override void Save(ModelSaveContext ctx)
                 => _parent.Save(ctx);
 
-            // The FeatureContributionCalculatingTransformer produces two columns: Score and FeatureContribution.
+            // The FeatureContributionCalculatingTransformer produces two sets of columns: the columns obtained from scoring and the FeatureContribution column.
             // If the argument stringify is true, the type of the FeatureContribution column is string, otherwise it is a vector of float.
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
                 var result = new List<Schema.DetachedColumn>();
 
-                // Add Score Column.
+                // Add columns obtained by scoring the model. Note that the number and type will vary based on which PredictionKind the predictor belongs to.
                 result.AddRange(_outputGenericSchema.GetColumns().Select(pair => new Schema.DetachedColumn(pair.column)));
 
                 // Add FeatureContributions column.
@@ -186,7 +198,6 @@ namespace Microsoft.ML.Runtime.Data
                     builder.Add(InputSchema[_roleMappedSchema.Feature.Index].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
                     result.Add(new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _roleMappedSchema.Feature.Type.AsVector), builder.GetMetadata()));
                 }
-
                 return result.ToArray();
             }
 
@@ -217,7 +228,9 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        // TODO documentation
+        /// <summary>
+        /// Holds the definition of the getters for the FeatureContribution column. It also contains the generic mapper that is used to score the Predictor.
+        /// </summary>
         internal sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
         {
             public sealed class Arguments : ScorerArgumentsBase
@@ -247,7 +260,6 @@ namespace Microsoft.ML.Runtime.Data
             public readonly bool Stringify;
 
             internal const string MapperLoaderSignature = "WTFBindable";
-            private const int MaxTopBottom = 1000;
 
             private static VersionInfo GetVersionInfo()
             {
@@ -267,10 +279,10 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.CheckValue(env, nameof(env));
                 _env = env;
                 _env.CheckValue(predictor, nameof(predictor));
-                if (topContributionsCount <= 0 || topContributionsCount > MaxTopBottom)
-                    throw env.Except($"Number of top contribution must be in range (0,{MaxTopBottom}]");
-                if (bottomContributionsCount <= 0 || bottomContributionsCount > MaxTopBottom)
-                    throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
+                if (topContributionsCount < 0)
+                    throw env.Except($"Number of top contribution must be positive");
+                if (bottomContributionsCount < 0)
+                    throw env.Except($"Number of bottom contribution must be positive");
 
                 _topContributionsCount = topContributionsCount;
                 _bottomContributionsCount = bottomContributionsCount;
@@ -290,6 +302,7 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.CheckAtModel(GetVersionInfo());
 
                 // *** Binary format ***
+                // IFeatureContributionMapper: Predictor
                 // int: topContributionsCount
                 // int: bottomContributionsCount
                 // bool: normalize
@@ -297,9 +310,9 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.LoadModel<IFeatureContributionMapper, SignatureLoadModel>(env, out Predictor, ModelFileUtils.DirPredictor);
                 GenericMapper = ScoreUtils.GetSchemaBindableMapper(_env, Predictor, null);
                 _topContributionsCount = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(0 < _topContributionsCount && _topContributionsCount <= MaxTopBottom);
+                Contracts.CheckDecode(0 <= _topContributionsCount);
                 _bottomContributionsCount = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(0 < _bottomContributionsCount && _bottomContributionsCount <= MaxTopBottom);
+                Contracts.CheckDecode(0 <= _bottomContributionsCount);
                 _normalize = ctx.Reader.ReadBoolByte();
                 Stringify = ctx.Reader.ReadBoolByte();
             }
@@ -343,15 +356,15 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.SetVersionInfo(GetVersionInfo());
 
                 // *** Binary format ***
+                // IFeatureContributionMapper: Predictor
                 // int: topContributionsCount
                 // int: bottomContributionsCount
                 // bool: normalize
                 // bool: stringify
                 ctx.SaveModel(Predictor, ModelFileUtils.DirPredictor);
-
-                Contracts.Assert(0 < _topContributionsCount && _topContributionsCount <= MaxTopBottom);
+                Contracts.Assert(0 <= _topContributionsCount);
                 ctx.Writer.Write(_topContributionsCount);
-                Contracts.Assert(0 < _bottomContributionsCount && _bottomContributionsCount <= MaxTopBottom);
+                Contracts.Assert(0 <= _bottomContributionsCount);
                 ctx.Writer.Write(_bottomContributionsCount);
                 ctx.Writer.WriteBoolByte(_normalize);
                 ctx.Writer.WriteBoolByte(Stringify);
@@ -464,6 +477,9 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        /// <summary>
+        /// Maps a schema from input columns to output columns. Keeps track of the input columns that are needed for the mapping.
+        /// </summary>
         private sealed class BoundMapper : ISchemaBoundMapper
         {
             private readonly IHostEnvironment _env;
@@ -504,6 +520,9 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        /// <summary>
+        /// Specifies the schema of the FeatureContribution column, needed by the BoundMapper.
+        /// </summary>
         private sealed class FeatureContributionSchema : ISchema
         {
             private readonly Schema _parentSchema;
@@ -577,7 +596,10 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    // TODO DOcumentation
+    /// <summary>
+    /// Estimator producing a FeatureContributionCalculatingTransformer which scores the model on an input dataset and
+    /// computes model-specific contribution scores for each feature.
+    /// </summary>
     public sealed class FeatureContributionCalculatingEstimator : TrivialEstimator<FeatureContributionCalculatingTransformer>
     {
         private readonly string _featureColumn;
@@ -592,9 +614,19 @@ namespace Microsoft.ML.Runtime.Data
             public const bool Stringify = false;
         }
 
-        // TODO Documentation
-        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IPredictor predictor, string featureColumn,
-            int top = Defaults.Top,
+        /// <summary>
+        /// The Feature Contribution Calculation Transform scores the model on an input dataset and
+        /// computes model-specific contribution scores for each feature.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="predictor">A trained model that supports Feature Contribution Calculation, and which will be used for scoring.</param>
+        /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
+        /// <param name="top">The number of top contributing features for each data sample that will be retained in the FeatureContribution column.</param>
+        /// <param name="bottom">The number of least contributing features for each data sample that will be retained in the FeatureContribution column.</param>
+        /// <param name="normalize">Whether the feature contributions should be normalized.</param>
+        /// <param name="stringify">Whether to output feature contributions in string key-value format.</param>
+        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IFeatureContributionMapper predictor, string featureColumn,
+        int top = Defaults.Top,
             int bottom = Defaults.Bottom,
             bool normalize = Defaults.Normalize,
             bool stringify = Defaults.Stringify)
@@ -625,10 +657,10 @@ namespace Microsoft.ML.Runtime.Data
             // Add FeatureContributions column.
             if (!inputSchema.TryFindColumn(_featureColumn, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
-            var featContributionMetadata = new List<SchemaShape.Column>();
-            if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
-                featContributionMetadata.Add(slotMeta);
-            // TODO: check type of feature column.
+            // Check that the feature column is a vector of float.
+            if (col.ItemType != NumberType.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
+                throw Host.ExceptUserArg(nameof(inputSchema), "Column '{0}' does not have compatible type. Expected type is vector of float.", _featureColumn);
+
             if (_stringify)
             {
                 result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, SchemaShape.Column.VectorKind.Scalar,
@@ -636,6 +668,9 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
+                var featContributionMetadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    featContributionMetadata.Add(slotMeta);
                 result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
                     col.ItemType, false, new SchemaShape(featContributionMetadata));
             }

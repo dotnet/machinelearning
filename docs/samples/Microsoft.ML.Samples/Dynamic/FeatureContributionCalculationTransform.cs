@@ -58,8 +58,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a Feature Contribution Calculator
             // Calculate the feature contributions for all features
             // And don't normalize the contribution scores
-            var featureContributionCalculator = new FeatureContributionCalculatingEstimator(mlContext, model.Model, model.FeatureColumn, top: 11, normalize: false, stringify: true);
-            var outputData = featureContributionCalculator.Fit(transformedData).Transform(transformedData);
+            var featureContributionCalculator = new FeatureContributionCalculatingTransformer(mlContext, model.Model, model.FeatureColumn, top: 11, normalize: false);
+            var outputData = featureContributionCalculator.Transform(transformedData);
 
             // Let's extract the weights from the linear model to use as a comparison
             var weights = new VBuffer<float>();
@@ -75,32 +75,27 @@ namespace Microsoft.ML.Samples.Dynamic
                 var row = scoringEnumerator.Current;
 
                 // Get the feature index with the biggest contribution
-                //var featureOfInterest = GetMostContributingFeature(row.FeatureContributions);
+                var featureOfInterest = GetMostContributingFeature(row.FeatureContributions);
 
                 // And the corresponding information about the feature
-                //var value = row.Features[featureOfInterest];
-                //var contribution = row.FeatureContributions[featureOfInterest];
-                //var percentContribution = 100 * contribution / row.Score;
-                //var name = data.Schema.GetColumnName(featureOfInterest + 1);
-                //var weight = weights.GetValues()[featureOfInterest];
+                var value = row.Features[featureOfInterest];
+                var contribution = row.FeatureContributions[featureOfInterest];
+                var percentContribution = 100 * contribution / row.Score;
+                var name = data.Schema.GetColumnName(featureOfInterest + 1);
+                var weight = weights.GetValues()[featureOfInterest];
 
-                //Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}\t{6:0.00}",
-                //    row.MedianHomeValue,
-                //    row.Score,
-                //    name,
-                //    value,
-                //    weight,
-                //    contribution,
-                //    percentContribution
-                //    );
-                Console.WriteLine(row.FeatureContributions);
+                Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}\t{6:0.00}",
+                    row.MedianHomeValue,
+                    row.Score,
+                    name,
+                    value,
+                    weight,
+                    contribution,
+                    percentContribution
+                    );
 
                 index++;
             }
-
-            //// For bulk scoring, the ApplyToData API can also be used
-            //var scoredData = featureContributionCalculator.(mlContext, transformedData);
-            //var preview = scoredData.Preview(100);
             Console.ReadLine();
         }
 
@@ -126,7 +121,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             public float Score { get; set; }
 
-            public string FeatureContributions { get; set; }
+            [VectorType(4)]
+            public float[] FeatureContributions { get; set; }
         }
     }
 }
