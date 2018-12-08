@@ -167,8 +167,13 @@ namespace Microsoft.ML
         }
     }
 
+    /// <summary>
+    /// The MetricsStatistics class computes summary statistics over multiple observations of a metric.
+    /// </summary>
     public sealed class MetricStatistics
     {
+        private readonly SummaryStatistics _statistic;
+
         /// <summary>
         /// Get the mean value for the metric
         /// </summary>
@@ -177,14 +182,12 @@ namespace Microsoft.ML
         /// <summary>
         /// Get the standard deviation for the metric
         /// </summary>
-        public double StandardDeviation => ComputeStandardDeviation();
+        public double StandardDeviation => (_statistic.RawCount <= 2) ? 0 : _statistic.SampleStdDev;
 
         /// <summary>
         /// Get the standard error of the mean for the metric
         /// </summary>
-        public double StandardError => ComputeStandardError();
-
-        private SummaryStatistics _statistic;
+        public double StandardError => (_statistic.RawCount <= 2) ? 0 : _statistic.StandardErrorMean;
 
         internal MetricStatistics()
         {
@@ -192,35 +195,20 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Add another metric
+        /// Add another metric to the set of observations
         /// </summary>
         /// <param name="metric">The metric being accumulated</param>
         internal void Add(double metric)
         {
             _statistic.Add(metric);
         }
-
-        private double ComputeStandardDeviation()
-        {
-            double standardDeviation = 0;
-            // Protect against a divid-by-zero
-            if (_statistic.RawCount > 2)
-                standardDeviation = _statistic.SampleStdDev;
-
-            return standardDeviation;
-        }
-
-        private double ComputeStandardError()
-        {
-            double standardError = 0;
-            // Protect against a divid-by-zero
-            if (_statistic.RawCount > 2)
-                standardError = _statistic.StandardErrorMean;
-
-            return standardError;
-        }
     }
 
+    /// <summary>
+    /// The MetricsStatisticsBase class is the base class for computing summary
+    /// statistics over multiple observations of model evaluation metrics.
+    /// </summary>
+    /// <typeparam name="T">The EvaluationMetric type, such as RegressionMetrics</typeparam>
     public abstract class MetricsStatisticsBase<T>{
         internal MetricsStatisticsBase()
         {
@@ -229,6 +217,10 @@ namespace Microsoft.ML
         public abstract void Add(T metrics);
     }
 
+    /// <summary>
+    /// The RegressionMetricsStatistics class is computes summary
+    /// statistics over multiple observations of regression evaluation metrics.
+    /// </summary>
     public sealed class RegressionMetricsStatistics : MetricsStatisticsBase<RegressionMetrics>
     {
         /// <summary>
@@ -265,6 +257,10 @@ namespace Microsoft.ML
             RSquared = new MetricStatistics();
         }
 
+        /// <summary>
+        /// Add a set of evaluation metrics to the set of observations.
+        /// </summary>
+        /// <param name="metrics">The observed regression evaluation metric</param>
         public override void Add(RegressionMetrics metrics)
         {
             L1.Add(metrics.L1);
@@ -275,45 +271,49 @@ namespace Microsoft.ML
         }
     }
 
+    /// <summary>
+    /// The BinaryClassificationMetricsStatistics class is computes summary
+    /// statistics over multiple observations of binary classification evaluation metrics.
+    /// </summary>
     public sealed class BinaryClassificationMetricsStatistics : MetricsStatisticsBase<BinaryClassificationMetrics>
     {
         /// <summary>
-        /// Summary Statistics for L1
+        /// Summary Statistics for AUC
         /// </summary>
         public MetricStatistics Auc { get; }
 
         /// <summary>
-        /// Summary Statistics for L2
+        /// Summary Statistics for Accuracy
         /// </summary>
         public MetricStatistics Accuracy { get; }
 
         /// <summary>
-        /// Summary statistics for the root mean square loss (or RMS).
+        /// Summary statistics for Positive Precision
         /// </summary>
         public MetricStatistics PositivePrecision { get; }
 
         /// <summary>
-        /// Summary statistics for the user-supplied loss function.
+        /// Summary statistics for Positive Recall
         /// </summary>
         public MetricStatistics PositiveRecall { get; }
 
         /// <summary>
-        /// Summary statistics for the R squared value.
+        /// Summary statistics for Negative Precision.
         /// </summary>
         public MetricStatistics NegativePrecision { get; }
 
         /// <summary>
-        /// Summary statistics for the R squared value.
+        /// Summary statistics for Negative Recall.
         /// </summary>
         public MetricStatistics NegativeRecall { get; }
 
         /// <summary>
-        /// Summary statistics for the R squared value.
+        /// Summary statistics for F1Score.
         /// </summary>
         public MetricStatistics F1Score { get; }
 
         /// <summary>
-        /// Summary statistics for the R squared value.
+        /// Summary statistics for AUPRC.
         /// </summary>
         public MetricStatistics Auprc { get; }
 
@@ -329,6 +329,10 @@ namespace Microsoft.ML
             Auprc = new MetricStatistics();
         }
 
+        /// <summary>
+        /// Add a set of evaluation metrics to the set of observations.
+        /// </summary>
+        /// <param name="metrics">The observed binary classification evaluation metric</param>
         public override void Add(BinaryClassificationMetrics metrics)
         {
             Auc.Add(metrics.Auc);
