@@ -13,24 +13,24 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     internal static partial class CpuMathUtils
     {
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
-        private const int CbAlign = 16;
+        private const int Vector128Alignment = 16;
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         public static int GetVectorAlignment()
-            => CbAlign;
+            => Vector128Alignment;
 
         private static bool Compat(AlignedArray a)
         {
             Contracts.AssertValue(a);
             Contracts.Assert(a.Size > 0);
-            return a.CbAlign == CbAlign;
+            return a.CbAlign == Vector128Alignment;
         }
 
         private static unsafe float* Ptr(AlignedArray a, float* p)
         {
             Contracts.AssertValue(a);
             float* q = p + a.GetBase((long)p);
-            Contracts.Assert(((long)q & (CbAlign - 1)) == 0);
+            Contracts.Assert(((long)q & (Vector128Alignment - 1)) == 0);
             return q;
         }
 
