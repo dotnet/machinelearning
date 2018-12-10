@@ -1070,14 +1070,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
             // We need to use dense value of features, b/c the feature contributions could be significant
             // even for features with value 0.
-
             var featureIndex = 0;
             foreach (var featureValue in features.DenseValues())
             {
                 float contribution = 0;
                 if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
                     contribution = (float)GetBinEffect(j, featureValue);
-
                 editor.Values[featureIndex] = contribution;
                 featureIndex++;
             }
