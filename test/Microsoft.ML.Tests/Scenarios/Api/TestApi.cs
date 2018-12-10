@@ -187,90 +187,84 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void MetadataSupportInDataViewConstruction()
         {
             var data = ReadBreastCancerExamples();
-            using (var env = new ConsoleEnvironment(0))
+            var autoSchema = SchemaDefinition.Create(typeof(BreastCancerExample));
+
+            var mlContext = new MLContext(0);
+
+            // Create Metadata.
+            var kindFloat = "Testing float as metadata.";
+            var valueFloat = 10;
+            var coltypeFloat = NumberType.Float;
+            var kindString = "Testing string as metadata.";
+            var valueString = "Strings have value.";
+            var kindStringArray = "Testing string array as metadata.";
+            var valueStringArray = "I really have no idea what these features entail.".Split(' ');
+            var kindFloatArray = "Testing float array as metadata.";
+            var valueFloatArray = new float[] { 1, 17, 7, 19, 25, 0 };
+            var kindVBuffer = "Testing VBuffer as metadata.";
+            var valueVBuffer = new VBuffer<float>(4, new float[] { 4, 6, 89, 5 });
+
+            var metaFloat = new Microsoft.ML.Runtime.Api.MetadataInfo<float>(kindFloat, valueFloat, coltypeFloat);
+            var metaString = new Microsoft.ML.Runtime.Api.MetadataInfo<string>(kindString, valueString);
+
+            // Add Metadata.
+            var labelColumn = autoSchema[0];
+            var labelColumnWithMetadata = new SchemaDefinition.Column(mlContext, labelColumn.MemberName, labelColumn.ColumnType,
+                metadataInfos: new Microsoft.ML.Runtime.Api.MetadataInfo[] { metaFloat, metaString });
+
+            var featureColumnWithMetadata = autoSchema[1];
+            featureColumnWithMetadata.AddMetadata(kindStringArray, valueStringArray);
+            featureColumnWithMetadata.AddMetadata(kindFloatArray, valueFloatArray);
+            featureColumnWithMetadata.AddMetadata(kindVBuffer, valueVBuffer);
+
+            var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
+            var idv = mlContext.CreateDataView(data, mySchema);
+
+            Assert.True(idv.Schema[0].Metadata.Schema[kindFloat].Type == coltypeFloat);
+            Assert.True(idv.Schema[0].Metadata.Schema[kindString].Type == TextType.Instance);
+            Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
+            Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
+            Assert.True(idv.Schema[1].Metadata.Schema[0].Type.IsVector && idv.Schema[1].Metadata.Schema[0].Type.ItemType.IsText);
+            var thrown = false;
+            try
             {
-                var autoSchema = SchemaDefinition.Create(typeof(BreastCancerExample));
+                var schema = idv.Schema[1].Metadata.Schema[kindFloat];
+            }
+            catch
+            {
+                thrown = true;
+            }
+            Assert.True(thrown);
 
-                // Create Metadata.
-                var kindFloat = "Testing float as metadata.";
-                var valueFloat = 10;
-                var coltypeFloat = NumberType.Float;
-                var kindString = "Testing string as metadata.";
-                var valueString = "Strings have value.";
-                var kindStringArray = "Testing string array as metadata.";
-                var valueStringArray = "I really have no idea what these features entail.".Split(' ');
-                var kindFloatArray = "Testing float array as metadata.";
-                var valueFloatArray = new float[] { 1, 17, 7, 19, 25, 0 };
-                var kindVBuffer = "Testing VBuffer as metadata.";
-                var valueVBuffer = new VBuffer<float>(4, new float[] { 4, 6, 89, 5 });
+            float retrievedFloat = 0;
+            idv.Schema[0].Metadata.GetValue(kindFloat, ref retrievedFloat);
+            Assert.True(Math.Abs(retrievedFloat - valueFloat) < .000001);
 
-                var metaFloat = new Microsoft.ML.Runtime.Api.MetadataInfo<float>(kindFloat, valueFloat, coltypeFloat);
-                var metaString = new Microsoft.ML.Runtime.Api.MetadataInfo<string>(kindString, valueString);
+            ReadOnlyMemory<char> retrievedReadOnlyMemory = new ReadOnlyMemory<char>();
+            idv.Schema[0].Metadata.GetValue(kindString, ref retrievedReadOnlyMemory);
+            Assert.True(retrievedReadOnlyMemory.Span.SequenceEqual(valueString.AsMemory().Span));
 
-                // Add Metadata.
-                var labelColumn = autoSchema[0];
-                var labelColumnWithMetadata = new SchemaDefinition.Column(env, labelColumn.MemberName, labelColumn.ColumnType,
-                    metadataInfos: new Microsoft.ML.Runtime.Api.MetadataInfo[] { metaFloat, metaString });
+            VBuffer<ReadOnlyMemory<char>> retrievedReadOnlyMemoryVBuffer = new VBuffer<ReadOnlyMemory<char>>();
+            idv.Schema[1].Metadata.GetValue(kindStringArray, ref retrievedReadOnlyMemoryVBuffer);
+            Assert.True(retrievedReadOnlyMemoryVBuffer.DenseValues().Select((s, i) => s.ToString() == valueStringArray[i]).All(b => b));
 
-                var featureColumnWithMetadata = autoSchema[1];
-                featureColumnWithMetadata.AddMetadata(kindStringArray, valueStringArray);
-                featureColumnWithMetadata.AddMetadata(kindFloatArray, valueFloatArray);
-                featureColumnWithMetadata.AddMetadata(kindVBuffer, valueVBuffer);
+            VBuffer<float> retrievedFloatVBuffer = new VBuffer<float>(1, new float[] { 2 });
+            idv.Schema[1].Metadata.GetValue(kindFloatArray, ref retrievedFloatVBuffer);
+            VBuffer<float> valueFloatVBuffer = new VBuffer<float>(valueFloatArray.Length, valueFloatArray);
+            Assert.True(retrievedFloatVBuffer.Items().SequenceEqual(valueFloatVBuffer.Items()));
 
-                var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
-                var idv = env.CreateDataView(data, mySchema);
+            VBuffer<float> retrievedVBuffer = new VBuffer<float>();
+            idv.Schema[1].Metadata.GetValue(kindVBuffer, ref retrievedVBuffer);
+            Assert.True(retrievedVBuffer.Items().SequenceEqual(valueVBuffer.Items()));
 
-                Assert.True(idv.Schema[0].Metadata.Schema[kindFloat].Type == coltypeFloat);
-                Assert.True(idv.Schema[0].Metadata.Schema[kindString].Type == TextType.Instance);
-
-                Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
-                Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
-                Assert.True(idv.Schema[1].Metadata.Schema[0].Type.IsVector && idv.Schema[1].Metadata.Schema[0].Type.ItemType.IsText);
-
-                Assert.Null(idv.Schema.GetMetadataTypeOrNull(kindFloat, 1));
-                Assert.True(idv.Schema[0].Metadata.Schema[kindFloat].Type == coltypeFloat);
-
-                var thrown = false;
-                try
-                {
-                    var schema = idv.Schema[1].Metadata.Schema[kindFloat];
-                }
-                catch
-                {
-                    thrown = true;
-                }
-                Assert.True(thrown);
-
-                float retrievedFloat = 0;
-                idv.Schema[0].Metadata.GetValue(kindFloat, ref retrievedFloat);
-                Assert.True(Math.Abs(retrievedFloat - valueFloat) < .000001);
-
-                ReadOnlyMemory<char> retrievedReadOnlyMemory = new ReadOnlyMemory<char>();
-                idv.Schema[0].Metadata.GetValue(kindString, ref retrievedReadOnlyMemory);
-                Assert.True(retrievedReadOnlyMemory.Span.SequenceEqual(valueString.AsMemory().Span));
-
-                VBuffer<ReadOnlyMemory<char>> retrievedReadOnlyMemoryVBuffer = new VBuffer<ReadOnlyMemory<char>>();
-                idv.Schema[1].Metadata.GetValue(kindStringArray, ref retrievedReadOnlyMemoryVBuffer);
-                Assert.True(retrievedReadOnlyMemoryVBuffer.DenseValues().Select((s, i) => s.ToString() == valueStringArray[i]).All(b => b));
-
-                VBuffer<float> retrievedFloatVBuffer = new VBuffer<float>(1, new float[] { 2 });
-                idv.Schema[1].Metadata.GetValue(kindFloatArray, ref retrievedFloatVBuffer);
-                VBuffer<float> valueFloatVBuffer = new VBuffer<float>(valueFloatArray.Length, valueFloatArray);
-                Assert.True(retrievedFloatVBuffer.Items().SequenceEqual(valueFloatVBuffer.Items()));
-
-                VBuffer<float> retrievedVBuffer = new VBuffer<float>();
-                idv.Schema[1].Metadata.GetValue(kindVBuffer, ref retrievedVBuffer);
-                Assert.True(retrievedVBuffer.Items().SequenceEqual(valueVBuffer.Items()));
-
-                try
-                {
-                    idv.Schema[1].Metadata.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer);
-                    Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
-                }
-                catch (Exception ex)
-                {
-                    Assert.True(ex.IsMarked());
-                }
+            try
+            {
+                idv.Schema[1].Metadata.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer);
+                Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
+            }
+            catch (Exception ex)
+            {
+                Assert.True(ex.IsMarked());
             }
         }
 
