@@ -180,14 +180,14 @@ namespace Microsoft.ML.Runtime.RunTests
             name = "sentiment",
             trainFilename = "wikipedia-detox-250-line-data.tsv",
             testFilename = "wikipedia-detox-250-line-test.tsv",
-            GetLoaderColumns= () =>
-            {
-                return new[]
-                {
+            GetLoaderColumns = () =>
+             {
+                 return new[]
+                 {
                     new TextLoader.Column("Label", DataKind.BL, 0),
                     new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                }; ;
-            }
+                 };
+             }
         };
 
         public static TestDataset generatedRegressionDataset = new TestDataset
