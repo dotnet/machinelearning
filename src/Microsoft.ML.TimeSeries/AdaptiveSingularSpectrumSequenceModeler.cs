@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Numerics;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
@@ -290,8 +288,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             _alpha = new Single[windowSize - 1];
             _state = new Single[windowSize - 1];
-            _x = new CpuAlignedVector(windowSize, SseUtils.CbAlign);
-            _xSmooth = new CpuAlignedVector(windowSize, SseUtils.CbAlign);
+            _x = new CpuAlignedVector(windowSize, CpuMathUtils.GetVectorAlignment());
+            _xSmooth = new CpuAlignedVector(windowSize, CpuMathUtils.GetVectorAlignment());
             ShouldComputeForecastIntervals = shouldComputeForecastIntervals;
 
             _observationNoiseVariance = 0;
@@ -345,13 +343,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _state = new Single[_windowSize - 1];
             Array.Copy(model._state, _state, _windowSize - 1);
 
-            _x = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
-            _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
+            _x = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
+            _xSmooth = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
 
             if (model._wTrans != null)
             {
-                _y = new CpuAlignedVector(_rank, SseUtils.CbAlign);
-                _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, SseUtils.CbAlign);
+                _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
+                _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
                 _wTrans.CopyFrom(model._wTrans);
             }
         }
@@ -452,18 +450,18 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 var tempArray = ctx.Reader.ReadFloatArray();
                 _host.CheckDecode(Utils.Size(tempArray) == _rank * _windowSize);
-                _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, SseUtils.CbAlign);
+                _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
                 int i = 0;
                 _wTrans.CopyFrom(tempArray, ref i);
                 tempArray = ctx.Reader.ReadFloatArray();
                 i = 0;
-                _y = new CpuAlignedVector(_rank, SseUtils.CbAlign);
+                _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
                 _y.CopyFrom(tempArray, ref i);
             }
 
             _buffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, _host);
-            _x = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
-            _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
+            _x = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
+            _xSmooth = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -1130,8 +1128,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             if (_wTrans == null)
             {
-                _y = new CpuAlignedVector(_rank, SseUtils.CbAlign);
-                _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, SseUtils.CbAlign);
+                _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
+                _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
                 Single[] vecs = new Single[_rank * _windowSize];
 
                 for (i = 0; i < _rank; ++i)
@@ -1311,8 +1309,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                             _maxRank = _windowSize / 2;
                             _alpha = new Single[_windowSize - 1];
                             _state = new Single[_windowSize - 1];
-                            _x = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
-                            _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
+                            _x = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
+                            _xSmooth = new CpuAlignedVector(_windowSize, CpuMathUtils.GetVectorAlignment());
 
                             TrainCore(dataArray, originalSeriesLength);
                             return;
@@ -1349,10 +1347,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             // Setting the the y vector
-            _y = new CpuAlignedVector(_rank, SseUtils.CbAlign);
+            _y = new CpuAlignedVector(_rank, CpuMathUtils.GetVectorAlignment());
 
             // Setting the weight matrix
-            _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, SseUtils.CbAlign);
+            _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, CpuMathUtils.GetVectorAlignment());
             i = 0;
             _wTrans.CopyFrom(leftSingularVecs, ref i);
 

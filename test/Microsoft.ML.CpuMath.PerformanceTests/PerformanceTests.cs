@@ -15,14 +15,14 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private const int ExponentMin = 0;
         private const int ExponentRange = ExponentMax / 8;
 
-        protected const int IndexLength = 1000000;
-        protected const int Length = 1048576;
-        protected const int MatrixIndexLength = 1024;
+        protected const int IndexLength = 1000003;
+        protected const int Length = 1000003;
+        protected const int MatrixIndexLength = 1000;
 
         private const int DefaultSeed = 253421;
         protected const float DefaultScale = 1.11f;
-        protected int matrixLength = 1024;
-        protected virtual int allign { get; set; } = 16;
+        protected int matrixLength = 1000;
+        protected virtual int align { get; set; } = 16;
 
         internal AlignedArray testMatrixAligned;
         internal AlignedArray testSrcVectorAligned;
@@ -100,13 +100,13 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 matrixIdx[i] = rand.Next(0, 1000);
             }
 
-            testMatrixAligned = new AlignedArray(matrixLength * matrixLength, allign);
-            testMatrixAligned.CopyFrom(src.AsSpan(0, matrixLength * matrixLength));
+            testMatrixAligned = new AlignedArray(matrixLength * matrixLength, align);
+            testMatrixAligned.CopyFrom(src.AsSpan(0, (matrixLength - 1) * ( matrixLength - 1)));
 
-            testSrcVectorAligned = new AlignedArray(matrixLength, allign);
-            testSrcVectorAligned.CopyFrom(src1.AsSpan(0, matrixLength));
+            testSrcVectorAligned = new AlignedArray(matrixLength, align);
+            testSrcVectorAligned.CopyFrom(src1.AsSpan(0, matrixLength - 1)); // odd input
 
-            testDstVectorAligned = new AlignedArray(matrixLength, allign);
+            testDstVectorAligned = new AlignedArray(matrixLength, align);
             testDstVectorAligned.CopyFrom(dst.AsSpan(0, matrixLength));
         }
 

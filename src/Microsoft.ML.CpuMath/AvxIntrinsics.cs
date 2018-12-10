@@ -202,12 +202,19 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     while (pSrcCurrent < pSrcEnd)
                     {
                         float* pMatTemp = pMatCurrent;
+                        Contracts.Assert(((nuint)(pMatTemp) % 32) == 0);
+                        Contracts.Assert(((nuint)(pSrcCurrent) % 32) == 0);
 
-                        Vector256<float> x01 = Avx.LoadAlignedVector256(pMatTemp);
-                        Vector256<float> x11 = Avx.LoadAlignedVector256(pMatTemp += ccol);
-                        Vector256<float> x21 = Avx.LoadAlignedVector256(pMatTemp += ccol);
-                        Vector256<float> x31 = Avx.LoadAlignedVector256(pMatTemp += ccol);
-                        Vector256<float> x02 = Avx.LoadAlignedVector256(pSrcCurrent);
+                        // The JIT will only fold away unaligned loads due to the semantics behind
+                        // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
+                        // modern hardware has unaligned loads that are as fast as aligned loads,
+                        // when it doesn't cross a cache-line/page boundary, we will just assert
+                        // that the alignment is correct and allow for the more-efficient codegen.
+                        Vector256<float> x01 = Avx.LoadVector256(pMatTemp);
+                        Vector256<float> x11 = Avx.LoadVector256(pMatTemp += ccol);
+                        Vector256<float> x21 = Avx.LoadVector256(pMatTemp += ccol);
+                        Vector256<float> x31 = Avx.LoadVector256(pMatTemp += ccol);
+                        Vector256<float> x02 = Avx.LoadVector256(pSrcCurrent);
 
                         res0 = MultiplyAdd(x01, x02, res0);
                         res1 = MultiplyAdd(x11, x02, res1);
@@ -326,20 +333,25 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 while (pDstCurrent < pDstEnd)
                 {
                     float* pMatTemp = pMatCurrent;
-                    Vector256<float> x02 = Avx.LoadAlignedVector256(pMatTemp);
-                    Vector256<float> x12 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                    Vector256<float> x22 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                    Vector256<float> x32 = Avx.LoadAlignedVector256(pMatTemp += crow);
+                    Contracts.Assert(((nuint)(pMatTemp) % 32) == 0);
+
+                    // The JIT will only fold away unaligned loads due to the semantics behind
+                    // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
+                    // modern hardware has unaligned loads that are as fast as aligned loads,
+                    // when it doesn't cross a cache-line/page boundary, we will just assert
+                    // that the alignment is correct and allow for the more-efficient codegen.
+                    Vector256<float> x02 = Avx.LoadVector256(pMatTemp);
+                    Vector256<float> x12 = Avx.LoadVector256(pMatTemp += crow);
+                    Vector256<float> x22 = Avx.LoadVector256(pMatTemp += crow);
+                    Vector256<float> x32 = Avx.LoadVector256(pMatTemp += crow);
 
                     x02 = Avx.Multiply(x01, x02);
-                    x12 = Avx.Multiply(x11, x12);
+                    x02 = MultiplyAdd(x11, x12, x02);
+
                     x22 = Avx.Multiply(x21, x22);
-                    x32 = Avx.Multiply(x31, x32);
+                    x22 = MultiplyAdd(x31, x32, x22);
 
-                    x02 = Avx.Add(x02, x12);
-                    x22 = Avx.Add(x22, x32);
                     x02 = Avx.Add(x02, x22);
-
                     Avx.StoreAligned(pDstCurrent, x02);
 
                     pDstCurrent += 8;
@@ -368,22 +380,28 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     {
                         float* pMatTemp = pMatCurrent;
 
-                        Vector256<float> x02 = Avx.LoadAlignedVector256(pMatTemp);
-                        Vector256<float> x12 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                        Vector256<float> x22 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                        Vector256<float> x32 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                        Vector256<float> x3 = Avx.LoadAlignedVector256(pDstCurrent);
+                        Contracts.Assert(((nuint)(pMatTemp) % 32) == 0);
+                        Contracts.Assert(((nuint)(pDstCurrent) % 32) == 0);
+
+                        // The JIT will only fold away unaligned loads due to the semantics behind
+                        // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
+                        // modern hardware has unaligned loads that are as fast as aligned loads,
+                        // when it doesn't cross a cache-line/page boundary, we will just assert
+                        // that the alignment is correct and allow for the more-efficient codegen.
+                        Vector256<float> x02 = Avx.LoadVector256(pMatTemp);
+                        Vector256<float> x12 = Avx.LoadVector256(pMatTemp += crow);
+                        Vector256<float> x22 = Avx.LoadVector256(pMatTemp += crow);
+                        Vector256<float> x32 = Avx.LoadVector256(pMatTemp += crow);
+                        Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
 
                         x02 = Avx.Multiply(x01, x02);
-                        x12 = Avx.Multiply(x11, x12);
-                        x22 = Avx.Multiply(x21, x22);
-                        x32 = Avx.Multiply(x31, x32);
+                        x02 = MultiplyAdd(x11, x12, x02);
 
-                        x02 = Avx.Add(x02, x12);
-                        x22 = Avx.Add(x22, x32);
+                        x22 = Avx.Multiply(x21, x22);
+                        x22 = MultiplyAdd(x31, x32, x22);
+
                         x02 = Avx.Add(x02, x22);
                         x3 = Avx.Add(x02, x3);
-
                         Avx.StoreAligned(pDstCurrent, x3);
 
                         pDstCurrent += 8;

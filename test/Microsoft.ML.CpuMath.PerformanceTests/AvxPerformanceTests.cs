@@ -11,7 +11,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 {
     public class AvxPerformanceTests : PerformanceTests
     {
-        protected override int allign { get; set; } = 32;
+        protected override int align { get; set; } = 32;
 
         [Benchmark]
         public void AddScalarU()

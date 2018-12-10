@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // data is not properly alligned for netcoreapp3.0
+        [Fact]
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // data is not properly alligned for netcoreapp3.0
+        [Fact]
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;
