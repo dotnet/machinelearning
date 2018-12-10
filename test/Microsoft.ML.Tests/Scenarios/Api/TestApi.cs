@@ -220,47 +220,51 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
                 var idv = env.CreateDataView(data, mySchema);
 
-                // Test GetMetadataTypes.
-                var internalSchemaLabelMetadataTypes = idv.Schema.GetMetadataTypes(0).ToArray();
-                var internalSchemaFeatureMetadataTypes = idv.Schema.GetMetadataTypes(1).ToArray();
+                Assert.True(idv.Schema[0].Metadata.Schema[kindFloat].Type == coltypeFloat);
+                Assert.True(idv.Schema[0].Metadata.Schema[kindString].Type == TextType.Instance);
 
-                Assert.True(internalSchemaLabelMetadataTypes.SequenceEqual(
-                    new[] { new KeyValuePair<string, ColumnType>(kindFloat, coltypeFloat) ,
-                            new KeyValuePair<string, ColumnType>(kindString, TextType.Instance)}));
+                Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
+                Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
+                Assert.True(idv.Schema[1].Metadata.Schema[0].Type.IsVector && idv.Schema[1].Metadata.Schema[0].Type.ItemType.IsText);
 
-                Assert.True(internalSchemaFeatureMetadataTypes.Length == 3);
-                Assert.Equal(internalSchemaFeatureMetadataTypes[0].Key, kindStringArray);
-                Assert.True(internalSchemaFeatureMetadataTypes[0].Value.IsVector && internalSchemaFeatureMetadataTypes[0].Value.ItemType.IsText);
-
-                // Test GetMetaDataTypeOrNull.
-                Assert.True(idv.Schema.GetMetadataTypeOrNull(kindFloat, 0) == coltypeFloat);
                 Assert.Null(idv.Schema.GetMetadataTypeOrNull(kindFloat, 1));
+                Assert.True(idv.Schema[0].Metadata.Schema[kindFloat].Type == coltypeFloat);
 
-                // Test GetMetadata.
+                var thrown = false;
+                try
+                {
+                    var schema = idv.Schema[1].Metadata.Schema[kindFloat];
+                }
+                catch
+                {
+                    thrown = true;
+                }
+                Assert.True(thrown);
+
                 float retrievedFloat = 0;
-                idv.Schema.GetMetadata(kindFloat, 0, ref retrievedFloat);
+                idv.Schema[0].Metadata.GetValue(kindFloat, ref retrievedFloat);
                 Assert.True(Math.Abs(retrievedFloat - valueFloat) < .000001);
 
                 ReadOnlyMemory<char> retrievedReadOnlyMemory = new ReadOnlyMemory<char>();
-                idv.Schema.GetMetadata(kindString, 0, ref retrievedReadOnlyMemory);
+                idv.Schema[0].Metadata.GetValue(kindString, ref retrievedReadOnlyMemory);
                 Assert.True(retrievedReadOnlyMemory.Span.SequenceEqual(valueString.AsMemory().Span));
 
                 VBuffer<ReadOnlyMemory<char>> retrievedReadOnlyMemoryVBuffer = new VBuffer<ReadOnlyMemory<char>>();
-                idv.Schema.GetMetadata(kindStringArray, 1, ref retrievedReadOnlyMemoryVBuffer);
+                idv.Schema[1].Metadata.GetValue(kindStringArray, ref retrievedReadOnlyMemoryVBuffer);
                 Assert.True(retrievedReadOnlyMemoryVBuffer.DenseValues().Select((s, i) => s.ToString() == valueStringArray[i]).All(b => b));
 
                 VBuffer<float> retrievedFloatVBuffer = new VBuffer<float>(1, new float[] { 2 });
-                idv.Schema.GetMetadata(kindFloatArray, 1, ref retrievedFloatVBuffer);
+                idv.Schema[1].Metadata.GetValue(kindFloatArray, ref retrievedFloatVBuffer);
                 VBuffer<float> valueFloatVBuffer = new VBuffer<float>(valueFloatArray.Length, valueFloatArray);
                 Assert.True(retrievedFloatVBuffer.Items().SequenceEqual(valueFloatVBuffer.Items()));
 
                 VBuffer<float> retrievedVBuffer = new VBuffer<float>();
-                idv.Schema.GetMetadata(kindVBuffer, 1, ref retrievedVBuffer);
+                idv.Schema[1].Metadata.GetValue(kindVBuffer, ref retrievedVBuffer);
                 Assert.True(retrievedVBuffer.Items().SequenceEqual(valueVBuffer.Items()));
 
                 try
                 {
-                    idv.Schema.GetMetadata(kindFloat, 1, ref retrievedReadOnlyMemoryVBuffer);
+                    idv.Schema[1].Metadata.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer);
                     Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
                 }
                 catch (Exception ex)
