@@ -109,8 +109,8 @@ namespace Microsoft.ML.Tests
             // Get predictions
             var enumerator = output.AsDynamic.AsEnumerable<ChangePointPrediction>(env, true).GetEnumerator();
             ChangePointPrediction row = null;
-            List<double> expectedValues = new List<double>() { 0, -3.31410574913025, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
-                    0.0124145469301252, 0, 1.28543198108673, 0.28810801662678009, 0.02038940454467935, 0, -1.09506177902222, 0.366638972828078, 0.0269564305396698};
+            List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
+                    0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
 
             int index = 0;
             while (enumerator.MoveNext() && index < expectedValues.Count)
