@@ -11,6 +11,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Runtime.EntryPoints;
 
 namespace Microsoft.ML.TestFramework
 {
@@ -30,6 +31,7 @@ namespace Microsoft.ML.TestFramework
             env.ComponentCatalog.RegisterAssembly(typeof(Experiment).Assembly); // ML.Legacy
 #pragma warning restore 612
             env.ComponentCatalog.RegisterAssembly(typeof(ComponentCreation).Assembly); // ML.Api
+            env.ComponentCatalog.RegisterAssembly(typeof(CVSplit).Assembly); //ML.Entrypoints
             return env;
         }
     }
