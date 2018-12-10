@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void New_MetacomponentsFeaturesRenamed()
         {
-            var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns())
+            var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
             var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Vars", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
