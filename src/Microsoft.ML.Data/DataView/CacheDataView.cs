@@ -565,10 +565,6 @@ namespace Microsoft.ML.Data
             public override long Batch => _internal.Batch;
             public override Schema Schema => _internal.Schema;
 
-            public override void Dispose()
-            {
-            }
-
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _internal.GetGetter<TValue>(col);
             public override ValueGetter<UInt128> GetIdGetter() => _internal.GetIdGetter();
             public override bool IsColumnActive(int col) => _internal.IsColumnActive(col);
@@ -1291,15 +1287,18 @@ namespace Microsoft.ML.Data
                 return _colToActivesIndex[col] >= 0;
             }
 
-            public sealed override void Dispose()
+            protected sealed override void Dispose(bool disposing)
             {
-                if (!_disposed)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
                     DisposeCore();
                     PositionCore = -1;
                     Ch.Dispose();
-                    _disposed = true;
                 }
+                base.Dispose(disposing);
+                _disposed = true;
             }
 
             public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)

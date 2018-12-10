@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             var newColumns = new[]
             {
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             var newColumns = new[]
             {

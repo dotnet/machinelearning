@@ -436,7 +436,7 @@ namespace Microsoft.ML.Trainers
             CheckColumnsCompatible(matrixRowIndexColumn, MatrixRowIndexName);
 
             // Input columns just pass through so that output column dictionary contains all input columns.
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             // Add columns produced by this estimator.
             foreach (var col in GetOutputColumnsCore(inputSchema))

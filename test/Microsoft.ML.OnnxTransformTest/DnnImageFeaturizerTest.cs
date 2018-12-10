@@ -133,7 +133,7 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(512, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 

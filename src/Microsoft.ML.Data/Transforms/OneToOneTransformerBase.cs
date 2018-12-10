@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 var active = new bool[InputSchema.ColumnCount];
                 foreach (var pair in ColMapNewToOld)

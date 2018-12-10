@@ -33,7 +33,8 @@ namespace Microsoft.ML.Runtime.Data
             return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);
         }
 
-        protected abstract IRowMapper MakeRowMapper(Schema schema);
+        [BestFriend]
+        private protected abstract IRowMapper MakeRowMapper(Schema schema);
 
         public Schema GetOutputSchema(Schema inputSchema)
         {
@@ -67,9 +68,9 @@ namespace Microsoft.ML.Runtime.Data
 
             protected abstract Schema.DetachedColumn[] GetOutputColumnsCore();
 
-            public Schema.DetachedColumn[] GetOutputColumns() => _outputColumns.Value;
+            Schema.DetachedColumn[] IRowMapper.GetOutputColumns() => _outputColumns.Value;
 
-            public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
+            Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
                 // of the input row.
@@ -100,7 +101,11 @@ namespace Microsoft.ML.Runtime.Data
 
             protected abstract Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer);
 
-            public abstract Func<int, bool> GetDependencies(Func<int, bool> activeOutput);
+            Func<int, bool> IRowMapper.GetDependencies(Func<int, bool> activeOutput)
+                => GetDependenciesCore(activeOutput);
+
+            [BestFriend]
+            private protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput);
 
             public abstract void Save(ModelSaveContext ctx);
         }

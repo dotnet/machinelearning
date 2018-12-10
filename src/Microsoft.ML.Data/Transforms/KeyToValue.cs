@@ -153,7 +153,7 @@ namespace Microsoft.ML.Transforms.Conversions
             SaveColumns(ctx);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsPfa
         {
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Transforms.Conversions
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.input, out var col))

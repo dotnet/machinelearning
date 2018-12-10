@@ -160,13 +160,15 @@ namespace Microsoft.ML.Runtime
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public abstract class PredictionEngineBase<TSrc, TDst>
+    public abstract class PredictionEngineBase<TSrc, TDst> : IDisposable
         where TSrc : class
         where TDst : class, new()
     {
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
         private readonly IRowReadableAs<TDst> _outputRow;
         private readonly Action _disposer;
+        private bool _disposed;
+
         [BestFriend]
         private protected ITransformer Transformer { get; }
 
@@ -196,12 +198,14 @@ namespace Microsoft.ML.Runtime
             PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, out _disposer, out _outputRow);
         }
 
-        internal virtual void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
+        [BestFriend]
+        private protected virtual void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
-            var outputRowLocal = mapper.GetRow(_inputRow, col => true, out disposer);
+            var outputRowLocal = mapper.GetRow(inputRow, col => true);
             outputRow = cursorable.GetRow(outputRowLocal);
+            disposer = inputRow.Dispose;
         }
 
         protected virtual Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
@@ -211,9 +215,20 @@ namespace Microsoft.ML.Runtime
             return transformer.GetRowToRowMapper;
         }
 
-        ~PredictionEngineBase()
+        public void Dispose()
         {
-            _disposer?.Invoke();
+            Disposing(true);
+            GC.SuppressFinalize(this);
+        }
+
+        [BestFriend]
+        private protected void Disposing(bool disposing)
+        {
+            if (_disposed)
+                return;
+            if (disposing)
+                _disposer?.Invoke();
+            _disposed = true;
         }
 
         /// <summary>

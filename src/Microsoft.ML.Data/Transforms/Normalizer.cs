@@ -213,7 +213,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
 
             foreach (var colInfo in _columns)
             {
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         public new IDataTransform MakeDataTransform(IDataView input)
             => base.MakeDataTransform(input);
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {

@@ -16,7 +16,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var dataPath = GetDataPath("breast-cancer.txt");
 
             var data = TextLoader.CreateReader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
-                .Read(dataPath);
+                .Read(dataPath).Cache();
+
             var binaryTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => s.ConvergenceTolerance = 1e-2f);
             TestEstimatorCore(binaryTrainer, data.AsDynamic);
 

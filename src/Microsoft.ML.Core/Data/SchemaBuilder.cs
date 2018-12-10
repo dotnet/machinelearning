@@ -31,7 +31,7 @@ namespace Microsoft.ML.Data
         /// <param name="name">The column name.</param>
         /// <param name="type">The column type.</param>
         /// <param name="metadata">The column metadata.</param>
-        public void AddColumn(string name, ColumnType type, Schema.Metadata metadata)
+        public void AddColumn(string name, ColumnType type, Schema.Metadata metadata = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             Contracts.CheckValue(type, nameof(type));

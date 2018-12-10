@@ -150,9 +150,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
         {
-            Assert.True(promised.Columns.Length == delivered.Columns.Length);
-            var sortedCols1 = promised.Columns.OrderBy(x => x.Name);
-            var sortedCols2 = delivered.Columns.OrderBy(x => x.Name);
+            Assert.True(promised.Count == delivered.Count);
+            var sortedCols1 = promised.OrderBy(x => x.Name);
+            var sortedCols2 = delivered.OrderBy(x => x.Name);
 
             foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
             {
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loadedData = TextLoader.ReadFile(env, new TextLoader.Arguments(), new MultiFileSource(pathData));
+            var loadedData = ML.Data.ReadFromTextFile(pathData);
             if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 
@@ -773,6 +773,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
     public abstract partial class TestDataViewBase : BaseTestBaseline
     {
+
         public class SentimentData
         {
             [ColumnName("Label")]
@@ -932,7 +933,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     var comp = comps[col];
                     if (comp != null && !comp())
                     {
-                        Fail($"Different values in column {col} of row {curs1.Position}");
+                        Fail("Different values in column {0} of row {1}", col, curs1.Position);
                         return Failed();
                     }
                     if (idComp != null && !idComp())
@@ -1156,10 +1157,12 @@ namespace Microsoft.ML.Runtime.RunTests
             throw Contracts.Except("Unknown type in GetColumnComparer: '{0}'", type);
         }
 
-        private bool EqualWithEpsDouble(Double x, Double y)
+        private const Double DoubleEps = 1e-9;
+
+        private static bool EqualWithEpsDouble(Double x, Double y)
         {
             // bitwise comparison is needed because Abs(Inf-Inf) and Abs(NaN-NaN) are not 0s.
-            return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || CompareNumbersWithTolerance(x, y, null, 3);
+            return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < DoubleEps;
         }
 
         private const float SingleEps = 1e-6f;

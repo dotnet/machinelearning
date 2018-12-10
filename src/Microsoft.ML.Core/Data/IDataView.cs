@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.Data
     /// A logical row. May be a row of an <see cref="IDataView"/> or a stand-alone row. If/when its contents
     /// change, its <see cref="Position"/> value is changed.
     /// </summary>
-    public abstract class Row
+    public abstract class Row : IDisposable
     {
         /// <summary>
         /// This is incremented when the underlying contents changes, giving clients a way to detect change.
@@ -202,6 +202,25 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public abstract Schema Schema { get; }
 
+        /// <summary>
+        /// Implementation of dispose. Calls <see cref="Dispose(bool)"/> with <see langword="true"/>.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// The disposable method for the disposable pattern. This default implementation does nothing.
+        /// </summary>
+        /// <param name="disposing">Whether this was called from <see cref="IDisposable.Dispose"/>.
+        /// Subclasses that implement <see cref="object.Finalize"/> should call this method with
+        /// <see langword="false"/>, but I hasten to add that implementing finalizers should be
+        /// avoided if at all possible.</param>.
+        protected virtual void Dispose(bool disposing)
+        {
+        }
     }
 
     /// <summary>
@@ -221,7 +240,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <see cref="CursorState.Done"/>, <see cref="Row.Position"/> is <c>-1</c>. Otherwise,
     /// <see cref="Row.Position"/> >= 0.
     /// </summary>
-    public abstract class RowCursor : Row, IDisposable
+    public abstract class RowCursor : Row
     {
         /// <summary>
         /// Returns the state of the cursor. Before the first call to <see cref="MoveNext"/> or
@@ -252,6 +271,5 @@ namespace Microsoft.ML.Runtime.Data
         /// values from <see cref="Row.GetIdGetter"/>.
         /// </summary>
         public abstract RowCursor GetRootCursor();
-        public abstract void Dispose();
     }
 }

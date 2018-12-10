@@ -483,13 +483,10 @@ namespace Microsoft.ML.Transforms.Conversions
                             "{0} should not be specified when default loader is TextLoader. Ignoring {0}={1}",
                             nameof(Arguments.TermsColumn), src);
                     }
-                    termData = TextLoader.ReadFile(env,
-                        new TextLoader.Arguments()
-                        {
-                            Separator = "tab",
-                            Column = new[] { new TextLoader.Column("Term", DataKind.TX, 0) }
-                        },
-                        fileSource);
+                    termData = new TextLoader(env,
+                        columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
+                        dataSample: fileSource)
+                        .Read(fileSource);
                     src = "Term";
                     autoConvert = true;
                 }
@@ -713,7 +710,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return _unboundMaps[iinfo];
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(Schema schema)
           => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa

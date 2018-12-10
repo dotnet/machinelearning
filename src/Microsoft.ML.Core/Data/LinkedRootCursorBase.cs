@@ -32,12 +32,15 @@ namespace Microsoft.ML.Runtime.Data
             Root = Input.GetRootCursor();
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (State != CursorState.Done)
+            if (State == CursorState.Done)
+                return;
+            if (disposing)
             {
                 Input.Dispose();
-                base.Dispose();
+                // The base class should set the state to done under these circumstances.
+                base.Dispose(true);
             }
         }
     }

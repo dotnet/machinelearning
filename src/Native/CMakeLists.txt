@@ -37,6 +37,10 @@ if(WIN32)
     add_compile_options(/fp:precise)
     add_compile_options(/EHsc)
 
+    if ($ENV{__BuildArch} STREQUAL "x86")
+        add_compile_options(/Gz)
+    endif ()
+
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LARGEADDRESSAWARE") # can handle addresses larger than 2 gigabytes
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DEBUG")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /INCREMENTAL:NO")

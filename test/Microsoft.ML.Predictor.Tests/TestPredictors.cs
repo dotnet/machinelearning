@@ -606,12 +606,12 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -628,13 +628,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var cat = new OneHotEncodingEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
+            var cat = new OneHotEncodingEstimator(ML, "Categories", "Features").Fit(dataView).Transform(dataView);
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -729,11 +729,11 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
             var predictors = new IPredictorModel[]
             {
-                FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -741,7 +741,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     LabelColumn = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                AveragedPerceptronTrainer.TrainBinary(Env, new AveragedPerceptronTrainer.Arguments()
+                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Arguments()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -775,7 +775,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestMultiClassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
             var predictors = new IPredictorModel[]
             {

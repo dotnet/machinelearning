@@ -1363,60 +1363,65 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _pipeTask = SetupDecompressTask();
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (!_disposed && _readerThread != null)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    // We should reach this block only in the event of a dispose
-                    // before all rows have been iterated upon.
-
-                    // First set the flag on the cursor. The stream-reader and the
-                    // pipe-decompressor workers will detect this, stop their work,
-                    // and do whatever "cleanup" is natural for them to perform.
-                    _disposed = true;
-
-                    // In the disk read -> decompress -> codec read pipeline, we
-                    // clean up in reverse order.
-                    // 1. First we clear out any pending codec readers, for each pipe.
-                    // 2. Then we join the pipe worker threads, which in turn should
-                    // have cleared out all of the pending blocks to decompress.
-                    // 3. Then finally we join against the reader thread.
-
-                    // This code is analogous to the stuff in MoveNextCore, except
-                    // nothing is actually done with the resulting blocks.
-
-                    try
+                    if (_readerThread != null)
                     {
-                        for (; ; )
+                        // We should reach this block only in the event of a dispose
+                        // before all rows have been iterated upon.
+
+                        // First set the flag on the cursor. The stream-reader and the
+                        // pipe-decompressor workers will detect this, stop their work,
+                        // and do whatever "cleanup" is natural for them to perform.
+                        _disposed = true;
+
+                        // In the disk read -> decompress -> codec read pipeline, we
+                        // clean up in reverse order.
+                        // 1. First we clear out any pending codec readers, for each pipe.
+                        // 2. Then we join the pipe worker threads, which in turn should
+                        // have cleared out all of the pending blocks to decompress.
+                        // 3. Then finally we join against the reader thread.
+
+                        // This code is analogous to the stuff in MoveNextCore, except
+                        // nothing is actually done with the resulting blocks.
+
+                        try
                         {
-                            // This cross-block-index access pattern is deliberate, as
-                            // by having a consistent access pattern everywhere we can
-                            // have much greater confidence this will never deadlock.
-                            bool anyTrue = false;
-                            for (int c = 0; c < _pipes.Length; ++c)
-                                anyTrue |= _pipes[c].MoveNextCleanup();
-                            if (!anyTrue)
-                                break;
+                            for (; ; )
+                            {
+                                // This cross-block-index access pattern is deliberate, as
+                                // by having a consistent access pattern everywhere we can
+                                // have much greater confidence this will never deadlock.
+                                bool anyTrue = false;
+                                for (int c = 0; c < _pipes.Length; ++c)
+                                    anyTrue |= _pipes[c].MoveNextCleanup();
+                                if (!anyTrue)
+                                    break;
+                            }
+                        }
+                        catch (OperationCanceledException ex)
+                        {
+                            // REVIEW: Encountering this here means that we did not encounter
+                            // the exception during normal cursoring, but at some later point. I feel
+                            // we should not be tolerant of this, and should throw, though it might be
+                            // an ambiguous point.
+                            Contracts.Assert(ex.CancellationToken == _exMarshaller.Token);
+                            _exMarshaller.ThrowIfSet(Ch);
+                            Contracts.Assert(false);
+                        }
+                        finally
+                        {
+                            _pipeTask.Wait();
+                            _readerThread.Join();
                         }
                     }
-                    catch (OperationCanceledException ex)
-                    {
-                        // REVIEW: Encountering this here means that we did not encounter
-                        // the exception during normal cursoring, but at some later point. I feel
-                        // we should not be tolerant of this, and should throw, though it might be
-                        // an ambiguous point.
-                        Contracts.Assert(ex.CancellationToken == _exMarshaller.Token);
-                        _exMarshaller.ThrowIfSet(Ch);
-                        Contracts.Assert(false);
-                    }
-                    finally
-                    {
-                        _pipeTask.Wait();
-                        _readerThread.Join();
-                    }
                 }
-
-                base.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             private Task SetupDecompressTask()
