@@ -17,11 +17,10 @@ The datasets are provided under the original terms that Microsoft received such 
 >Original readme: https://meta.wikimedia.org/wiki/Research:Detox
 
 ### Digits
-> This dataset is provided under [Scikit](https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/datasets/data/digits.csv.gz). Redistributing the dataset "digits.csv" with attribution:
+> This dataset is provided under http://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits.
 >
-> Intermediate source: http://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits
->
-> Original Source: C. Kaynak (1995) Methods of Combining Multiple Classifiers and Their Applications to Handwritten Digit Recognition, MSc Thesis, Institute of Graduate Studies in Science and Engineering, Bogazici University.
+> References: C. Kaynak (1995) Methods of Combining Multiple Classifiers and Their Applications to Handwritten Digit Recognition, MSc Thesis, Institute of Graduate Studies in Science and Engineering, Bogazici University.
+> E. Alpaydin, C. Kaynak (1998) Cascading Classifiers, Kybernetika.
 
 ### UCI Adult Dataset 
 
