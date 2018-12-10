@@ -43,8 +43,21 @@ namespace Microsoft.ML.Tests
                 new float[4] { 0.024050576F, 0.99999994F, 0.31106182F, 8.456762E-06F }, };
 
             TestFeatureImportance(ML.Regression.Trainers.OrdinaryLeastSquares(), expectedValues);
+        }
 
-//            var model = ML.Regression.Trainers.GeneralizedAdditiveModels().Fit(data);
+        [Fact]
+        public void TestGam()
+        {
+            // Index 1: Most important feature
+            // Index 3: Random feature
+            var expectedValues = new List<float[]> {
+                new float[4] { 0.08439296F, 1F, 0.1442171F, -0.001832674F },
+                new float[4] { -0.07902145F, -1F, -0.01937493F, 0.02314214F },
+                new float[4] { 0.04072217F, -1F, 0.01370963F, -0.00197823F },
+                new float[4] { -0.02197981F, -1F, -0.1051985F, -0.004131221F },
+                new float[4] { -0.1072952F, -1F, 0.1284171F, -0.002337188F }, };
+
+            TestFeatureImportance(ML.Regression.Trainers.GeneralizedAdditiveModels(), expectedValues, 5);
         }
 
         /// <summary>
@@ -53,7 +66,8 @@ namespace Microsoft.ML.Tests
         /// </summary>
         private void TestFeatureImportance(
             ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
-            List<float[]> expectedValues)
+            List<float[]> expectedValues,
+            int precision = 6)
         {
             // Setup synthetic dataset.
             const int numberOfInstances = 1000;
@@ -102,15 +116,13 @@ namespace Microsoft.ML.Tests
             };
             var output = FeatureContributionCalculationTransform.Create(Env, args, data, model.Model, model.FeatureColumn);
 
-            // Get prediction scores and contributions
             var transformedOutput = output.AsEnumerable<ScoreAndContribution>(Env, true);
             int rowIndex = 0;
             foreach (var row in transformedOutput.Take(expectedValues.Count))
             {
                 var expectedValue = expectedValues[rowIndex++];
                 for (int i = 0; i < numFeatures; i++)
-                    // We set predicion to 6 because the limit of floating-point numbers is 7.
-                    Assert.Equal(expectedValue[i], row.FeatureContributions[i], 6);
+                    Assert.Equal(expectedValue[i], row.FeatureContributions[i], precision);
             }
 
             Done();
