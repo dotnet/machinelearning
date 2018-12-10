@@ -220,8 +220,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
             var idv = mlContext.CreateDataView(data, mySchema);
 
-            Assert.True(idv.Schema[0].Metadata.Schema[kindFloat].Type == coltypeFloat);
-            Assert.True(idv.Schema[0].Metadata.Schema[kindString].Type == TextType.Instance);
+            Assert.True(idv.Schema[0].Metadata.Schema.Count == 2);
+            Assert.True(idv.Schema[0].Metadata.Schema[0].Name == kindFloat);
+            Assert.True(idv.Schema[0].Metadata.Schema[0].Type == coltypeFloat);
+            Assert.True(idv.Schema[0].Metadata.Schema[1].Name == kindString);
+            Assert.True(idv.Schema[0].Metadata.Schema[1].Type == TextType.Instance);
+
             Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
             Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
             Assert.True(idv.Schema[1].Metadata.Schema[0].Type.IsVector && idv.Schema[1].Metadata.Schema[0].Type.ItemType.IsText);
