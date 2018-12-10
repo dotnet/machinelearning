@@ -640,41 +640,31 @@ namespace Microsoft.ML.Runtime.Data
 
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
+            // Check that the featureColumn is present.
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.ToDictionary(x => x.Name);
-
-            // TODO: handle other predictionkind: binary, multiclass, ranking...
-            // Add Score column.
-            var scoreMetadata = new List<SchemaShape.Column>();
-            // If multiclass, there could be a SlotNames metadata column, so it is added to the score column metadata in case.
-            if (_predictor.PredictionKind == PredictionKind.MultiClassClassification)
-                scoreMetadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-            // For some trainers the output could be normalized, but it cannot be known it given the information available here, so it is added in case.
-            scoreMetadata.AddRange(MetadataUtils.GetTrainerOutputMetadata(isNormalized: true));
-            result[DefaultColumnNames.Score] = new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4,
-                false, new SchemaShape(scoreMetadata));
-
-            // Add FeatureContributions column.
             if (!inputSchema.TryFindColumn(_featureColumn, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
-            // Check that the feature column is a vector of float.
+            // Check that the feature column is of the correct type: a vector of float.
             if (col.ItemType != NumberType.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
                 throw Host.ExceptUserArg(nameof(inputSchema), "Column '{0}' does not have compatible type. Expected type is vector of float.", _featureColumn);
 
+            // Build output schemaShape.
+            var result = inputSchema.ToDictionary(x => x.Name);
+
+            // Add columns produced by scorer.
+            foreach (var column in ScoringUtils.GetPrdictorOutputColumns(_predictor.PredictionKind))
+                result[column.Name] = column;
+
+            // Add FeatureContributions column.
             if (_stringify)
-            {
-                result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, SchemaShape.Column.VectorKind.Scalar,
-                    TextType.Instance, false);
-            }
+                result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false);
             else
             {
                 var featContributionMetadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     featContributionMetadata.Add(slotMeta);
-                result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
-                    col.ItemType, false, new SchemaShape(featContributionMetadata));
+                result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind, col.ItemType, false, new SchemaShape(featContributionMetadata));
             }
-
             return new SchemaShape(result.Values);
         }
     }
