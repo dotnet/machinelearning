@@ -649,7 +649,8 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     public abstract class GamPredictorBase : PredictorBase<float>,
-        IValueMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
+        IValueMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary,
+        IFeatureContributionMapper
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
@@ -1046,6 +1047,42 @@ namespace Microsoft.ML.Trainers.FastTree
         public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
+        }
+
+        public ValueMapper<TSrc, VBuffer<float>> GetFeatureContributionMapper<TSrc, TDstContributions>
+            (int top, int bottom, bool normalize)
+        {
+            Contracts.Check(typeof(TSrc) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<float>));
+
+            ValueMapper<VBuffer<float>, VBuffer<float>> del =
+                (in VBuffer<float> srcFeatures, ref VBuffer<float> dstContributions) =>
+                {
+                    GetFeatureContributions(in srcFeatures, ref dstContributions, top, bottom, normalize);
+                };
+            return (ValueMapper<TSrc, VBuffer<float>>)(Delegate)del;
+        }
+
+        private void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contributions,
+                        int top, int bottom, bool normalize)
+        {
+            var editor = VBufferEditor.Create(ref contributions, features.Length);
+
+            // We need to use dense value of features, b/c the feature contributions could be significant
+            // even for features with value 0.
+
+            var featureIndex = 0;
+            foreach (var featureValue in features.DenseValues())
+            {
+                float contribution = 0;
+                if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+                    contribution = (float)GetBinEffect(j, featureValue);
+
+                editor.Values[featureIndex] = contribution;
+                featureIndex++;
+            }
+            contributions = editor.Commit();
+            Runtime.Numeric.VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
         }
 
         /// <summary>
