@@ -137,6 +137,12 @@ namespace Microsoft.ML.Runtime.RunTests
             loaderSettings = "xf=expr{col=Features expr=x:float(x>4?1:0)}"
         };
 
+        public static TestDataset Digits = new TestDataset
+        {
+            name = "Digits",
+            trainFilename = @"external/digits.csv",
+        };
+
         public static TestDataset vw = new TestDataset
         {
             name = "vw",
