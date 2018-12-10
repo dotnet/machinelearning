@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Trainers.FastTree;
@@ -40,7 +41,7 @@ namespace Microsoft.ML.Runtime
             Assembly dataAssembly = typeof(TextLoader).Assembly; // ML.Data
             AssemblyName dataAssemblyName = dataAssembly.GetName();
 
-            //_ = typeof(EnsemblePredictor).Assembly); // ML.Ensemble BUG https://github.com/dotnet/machinelearning/issues/1078 Ensemble isn't in a NuGet package
+            _ = typeof(EnsemblePredictor).Assembly; // ML.Ensemble
             _ = typeof(FastTreeBinaryPredictor).Assembly; // ML.FastTree
             _ = typeof(KMeansModelParameters).Assembly; // ML.KMeansClustering
             _ = typeof(Maml).Assembly; // ML.Maml
@@ -53,7 +54,7 @@ namespace Microsoft.ML.Runtime
             _ = Assembly.Load(new AssemblyName()
             {
                 Name = "Microsoft.ML.StandardLearners",
-                Version = dataAssemblyName.Version, //assume the same version as ML.Api
+                Version = dataAssemblyName.Version, //assume the same version as ML.Data
             });
 
             return true;
