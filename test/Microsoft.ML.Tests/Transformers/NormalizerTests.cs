@@ -248,6 +248,7 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
                 Column = new[] {
+                    new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
                 }
             });
@@ -262,7 +263,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data2 = est2.Fit(data).Transform(data);
             var data3 = est3.Fit(data).Transform(data);
 
-            var est4 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var est4 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumn("float4"));
+            var trans4 = est4.Fit(data);
+            var data4 = trans4.Transform(data);
+
+            //var est5 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
+            //var data5 = est5.Fit(data).Transform(data);
         }
 
         [Fact]

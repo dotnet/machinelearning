@@ -54,7 +54,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             /// <summary>
             /// Bucketize and then rescale to between -1 and 1.
             /// </summary>
-            Binning = 3
+            Binning = 3,
+            /// <summary>
+            /// Bucketize and then rescale to between -1 and 1.
+            /// </summary>
+            SupervisedBinning = 4
         }
 
         public abstract class ColumnBase
@@ -88,6 +92,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                         return new LogMeanVarColumn(input, output);
                     case NormalizerMode.Binning:
                         return new BinningColumn(input, output);
+                    case NormalizerMode.SupervisedBinning:
+                        return new SupervisedBinningColumn(input, output);
                     default:
                         throw Contracts.ExceptParam(nameof(mode), "Unknown normalizer mode");
                 }
@@ -164,17 +170,20 @@ namespace Microsoft.ML.Transforms.Normalizers
         public sealed class SupervisedBinningColumn : FixZeroColumnBase
         {
             public readonly int NumBins;
-            public string LabelColumn;
+            public readonly string LabelColumn;
+            public readonly int MinBinSize;
 
             public SupervisedBinningColumn(string input, string output = null,
                 long maxTrainingExamples = Defaults.MaxTrainingExamples,
                 bool fixZero = true,
                 int numBins = Defaults.NumBins,
-                string labelColumn = "Label")
+                string labelColumn = "Label",
+                int minBinSize = Defaults.MinBinSize)
                 : base(input, output ?? input, maxTrainingExamples, fixZero)
             {
                 NumBins = numBins;
                 LabelColumn = labelColumn;
+                MinBinSize = minBinSize;
             }
 
             internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
