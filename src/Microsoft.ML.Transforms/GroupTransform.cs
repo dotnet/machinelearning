@@ -287,8 +287,9 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < ids.Length; i++)
                 {
                     var srcType = input.GetColumnType(ids[i]);
-                    Contracts.Assert(srcType.IsPrimitive);
-                    types[i] = new VectorType(srcType.AsPrimitive, size: 0);
+                    var primitiveType = srcType as PrimitiveType;
+                    Contracts.Assert(primitiveType != null);
+                    types[i] = new VectorType(primitiveType, size: 0);
                 }
                 return types;
             }

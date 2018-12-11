@@ -518,7 +518,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     Host.Assert(typeSrc.IsKnownSizeVector);
                     var dstLength = slotDropper.DstLength;
                     var hasSlotNames = input.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
-                    type = new VectorType(typeSrc.ItemType.AsPrimitive, Math.Max(dstLength, 1));
+                    type = new VectorType((PrimitiveType)typeSrc.ItemType, Math.Max(dstLength, 1));
                     suppressed = dstLength == 0;
                 }
             }
@@ -822,7 +822,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     {
                         var dstLength = _slotDropper[iinfo].DstLength;
                         var hasSlotNames = InputSchema.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
-                        var type = new VectorType(_srcTypes[iinfo].ItemType.AsPrimitive, Math.Max(dstLength, 1));
+                        var type = new VectorType((PrimitiveType)_srcTypes[iinfo].ItemType, Math.Max(dstLength, 1));
 
                         if (hasSlotNames && dstLength > 0)
                         {

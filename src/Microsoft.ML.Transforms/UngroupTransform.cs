@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms
                     if (!colType.IsVector || !colType.ItemType.IsPrimitive)
                         throw ectx.ExceptUserArg(nameof(Arguments.Column),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, colType);
-                    infos[i] = new PivotColumnInfo(name, col, colType.VectorSize, colType.ItemType.AsPrimitive);
+                    infos[i] = new PivotColumnInfo(name, col, colType.VectorSize, (PrimitiveType)colType.ItemType);
                 }
             }
 

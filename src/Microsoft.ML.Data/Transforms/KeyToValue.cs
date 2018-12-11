@@ -235,7 +235,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (!(typeSrc is VectorType vectorType))
                         types[iinfo] = typeVals.ItemType;
                     else
-                        types[iinfo] = new VectorType(typeVals.ItemType.AsPrimitive, vectorType);
+                        types[iinfo] = new VectorType((PrimitiveType)typeVals.ItemType, vectorType);
 
                     // MarshalInvoke with two generic params.
                     Func<int, ColumnType, ColumnType, KeyToValueMap> func = GetKeyMetadata<int, int>;
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Check(keyMetadata.Length == typeKey.ItemType.KeyCount);
 
                 VBufferUtils.Densify(ref keyMetadata);
-                return new KeyToValueMap<TKey, TValue>(this, typeKey.ItemType.AsKey, typeVal.ItemType.AsPrimitive, keyMetadata, iinfo);
+                return new KeyToValueMap<TKey, TValue>(this, typeKey.ItemType.AsKey, (PrimitiveType)typeVal.ItemType, keyMetadata, iinfo);
             }
             /// <summary>
             /// A map is an object capable of creating the association from an input type, to an output

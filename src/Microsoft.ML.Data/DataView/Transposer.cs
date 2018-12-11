@@ -306,8 +306,9 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     ColumnInfo srcInfo = _parent._cols[c];
                     var ctype = srcInfo.Type.ItemType;
-                    _ectx.Assert(ctype.IsPrimitive);
-                    _slotTypes[c] = new VectorType(ctype.AsPrimitive, _parent.RowCount);
+                    var primitiveType = ctype as PrimitiveType;
+                    _ectx.Assert(primitiveType != null);
+                    _slotTypes[c] = new VectorType(primitiveType, _parent.RowCount);
                 }
 
                 AsSchema = Schema.Create(this);

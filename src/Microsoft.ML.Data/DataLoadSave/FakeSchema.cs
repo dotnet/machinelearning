@@ -55,11 +55,11 @@ namespace Microsoft.ML.Data.DataLoadSave
         {
             ColumnType curType = inputCol.ItemType;
             if (inputCol.IsKey)
-                curType = new KeyType(curType.AsPrimitive.RawKind, 0, AllKeySizes);
+                curType = new KeyType(((PrimitiveType)curType).RawKind, 0, AllKeySizes);
             if (inputCol.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                curType = new VectorType(curType.AsPrimitive, 0);
+                curType = new VectorType((PrimitiveType)curType, 0);
             else if (inputCol.Kind == SchemaShape.Column.VectorKind.Vector)
-                curType = new VectorType(curType.AsPrimitive, AllVectorSizes);
+                curType = new VectorType((PrimitiveType)curType, AllVectorSizes);
             return curType;
         }
 

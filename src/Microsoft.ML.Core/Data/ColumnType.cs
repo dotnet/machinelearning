@@ -81,12 +81,6 @@ namespace Microsoft.ML.Runtime.Data
         internal bool IsPrimitive { get; }
 
         /// <summary>
-        /// Equivalent to <c>as <see cref="PrimitiveType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal PrimitiveType AsPrimitive => IsPrimitive ? (PrimitiveType)this : null;
-
-        /// <summary>
         /// Whether this type is a standard numeric type. External code should use <c>is <see cref="NumberType"/></c>.
         /// </summary>
         [BestFriend]

@@ -911,7 +911,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _parent._keyValues[i].CopyTo(ref dst);
                 };
-                builder.AddKeyValues(_parent._kvTypes[i].VectorSize, _parent._kvTypes[i].ItemType.AsPrimitive, getter);
+                builder.AddKeyValues(_parent._kvTypes[i].VectorSize, (PrimitiveType)_parent._kvTypes[i].ItemType, getter);
             }
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);

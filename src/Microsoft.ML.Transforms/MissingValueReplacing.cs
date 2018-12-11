@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms
                 sources[iinfo] = colSrc;
                 var type = input.Schema.GetColumnType(colSrc);
                 if (type is VectorType vectorType)
-                     type = new VectorType(type.ItemType.AsPrimitive, vectorType);
+                     type = new VectorType((PrimitiveType)type.ItemType, vectorType);
                 Delegate isNa = GetIsNADelegate(type);
                 types[iinfo] = type;
                 var kind = (ReplacementKind)columns[iinfo].Replacement;
@@ -594,7 +594,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var type = _infos[i].TypeSrc;
                     if (type is VectorType vectorType)
-                        type = new VectorType(type.ItemType.AsPrimitive, vectorType);
+                        type = new VectorType((PrimitiveType)type.ItemType, vectorType);
                     var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].ItemType;
                     if (!type.ItemType.Equals(repType.ItemType))
                         throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
@@ -967,7 +967,7 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(normalized);
                 var type = !(col.ItemType is VectorType vectorType) ?
                     col.ItemType :
-                    new VectorType(col.ItemType.ItemType.AsPrimitive, vectorType);
+                    new VectorType((PrimitiveType)col.ItemType.ItemType, vectorType);
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

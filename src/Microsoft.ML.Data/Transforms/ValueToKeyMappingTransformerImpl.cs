@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(sortOrder == SortOrder.Occurrence || sortOrder == SortOrder.Value);
                 bool sorted = sortOrder == SortOrder.Value;
 
-                PrimitiveType itemType = type.ItemType.AsPrimitive;
+                PrimitiveType itemType = type.ItemType as PrimitiveType;
                 Contracts.AssertValue(itemType);
                 if (itemType.IsText)
                     return new TextImpl(sorted);
@@ -568,7 +568,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                return new HashArrayImpl<T>(codec.Type.AsPrimitive, values);
+                return new HashArrayImpl<T>((PrimitiveType)codec.Type, values);
             }
 
             internal abstract void WriteTextTerms(TextWriter writer);
@@ -1156,7 +1156,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                 getter(ref dst);
                                 _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, srcMetaType.ItemType.AsPrimitive, mgetter);
+                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, (PrimitiveType)srcMetaType.ItemType, mgetter);
                     }
                     return true;
                 }
