@@ -60,6 +60,7 @@ open Microsoft.ML.Legacy.Data
 open Microsoft.ML.Legacy.Transforms
 open Microsoft.ML.Legacy.Trainers
 open Microsoft.ML.Runtime.Api
+open Microsoft.ML.Runtime.EntryPoints
 open Xunit
 
 module SmokeTest1 = 
