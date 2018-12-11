@@ -738,7 +738,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             return new OlsLinearRegressionPredictor(env, ctx);
         }
 
-        private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        internal override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);

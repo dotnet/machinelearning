@@ -354,7 +354,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         [BestFriend]
-        private protected abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
+        internal abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
 
         void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema) => SaveSummary(writer, schema);
 
@@ -499,7 +499,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new LinearBinaryPredictor(Host, in weights, bias);
         }
 
-        private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        internal override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
 
@@ -629,7 +629,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        internal override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
@@ -710,7 +710,7 @@ namespace Microsoft.ML.Runtime.Learners
             return MathUtils.ExpSlow(base.Score(in src));
         }
 
-        private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        internal override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
