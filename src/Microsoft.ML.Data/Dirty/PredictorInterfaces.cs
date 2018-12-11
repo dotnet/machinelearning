@@ -38,7 +38,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// Predictor that can specialize for quantile regression. It will produce a <see cref="ISchemaBindableMapper"/>, given
     /// an array of quantiles.
     /// </summary>
-    public interface IQuantileRegressionPredictor
+    [BestFriend]
+    internal interface IQuantileRegressionPredictor
     {
         ISchemaBindableMapper CreateMapper(Double[] quantiles);
     }
@@ -59,7 +60,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     }
 
     // REVIEW: How should this quantile stuff work?
-    public interface IQuantileValueMapper
+    [BestFriend]
+    internal interface IQuantileValueMapper
     {
         ValueMapper<VBuffer<Float>, VBuffer<Float>> GetMapper(Float[] quantiles);
     }
@@ -101,7 +103,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// Predictors that can output themselves in the Bing ini format.
     /// </summary>
-    public interface ICanSaveInIniFormat
+    [BestFriend]
+    internal interface ICanSaveInIniFormat
     {
         void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
     }
@@ -109,7 +112,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// Predictors that can output Summary.
     /// </summary>
-    public interface ICanSaveSummary
+    [BestFriend]
+    internal interface ICanSaveSummary
     {
         void SaveSummary(TextWriter writer, RoleMappedSchema schema);
     }
@@ -119,7 +123,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// The content of value 'object' can be any type such as integer, float, string or an array of them.
     /// It is up the caller to check and decide how to consume the values.
     /// </summary>
-    public interface ICanGetSummaryInKeyValuePairs
+    [BestFriend]
+    internal interface ICanGetSummaryInKeyValuePairs
     {
         /// <summary>
         /// Gets model summary including model statistics (if exists) in key value pairs.
@@ -127,7 +132,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema);
     }
 
-    public interface ICanGetSummaryAsIRow
+    [BestFriend]
+    internal interface ICanGetSummaryAsIRow
     {
         Row GetSummaryIRowOrNull(RoleMappedSchema schema);
 
@@ -142,7 +148,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// Predictors that can output themselves in C#/C++ code.
     /// </summary>
-    public interface ICanSaveInSourceCode
+    [BestFriend]
+    internal interface ICanSaveInSourceCode
     {
         void SaveAsCode(TextWriter writer, RoleMappedSchema schema);
     }
@@ -178,7 +185,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// Interface for mapping input values to corresponding feature contributions.
     /// This interface is commonly implemented by predictors.
     /// </summary>
-    public interface IFeatureContributionMapper : IPredictor
+    [BestFriend]
+    internal interface IFeatureContributionMapper : IPredictor
     {
         /// <summary>
         /// Get a delegate for mapping Contributions to Features.

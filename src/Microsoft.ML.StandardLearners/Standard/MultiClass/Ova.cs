@@ -365,7 +365,7 @@ namespace Microsoft.ML.Trainers
             return (ValueMapper<TIn, TOut>)(Delegate)_impl.GetMapper();
         }
 
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));

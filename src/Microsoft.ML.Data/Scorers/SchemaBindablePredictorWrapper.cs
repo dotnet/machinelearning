@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             var summarySaver = Predictor as ICanSaveSummary;
             if (summarySaver == null)

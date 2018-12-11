@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Static
             var data = reader.Read(dataFile);
 
             // The predictor that gets produced out of training
-            FastTreeRegressionPredictor pred = null;
+            FastTreeRegressionModelParameters pred = null;
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()

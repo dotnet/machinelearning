@@ -152,7 +152,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             Calibrator = calibrator;
         }
 
-        public void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
+        void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.Check(calibrator == null, "Too many calibrators.");
             var saver = SubPredictor as ICanSaveInIniFormat;
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 saver.SaveAsText(writer, schema);
         }
 
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
             var saver = SubPredictor as ICanSaveInSourceCode;
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 saver.SaveAsCode(writer, schema);
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
             var saver = SubPredictor as ICanSaveSummary;
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
 
         ///<inheritdoc/>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
             var saver = SubPredictor as ICanGetSummaryInKeyValuePairs;
@@ -221,9 +221,9 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         private readonly IValueMapper _mapper;
         private readonly IFeatureContributionMapper _featureContribution;
 
-        public ColumnType InputType => _mapper.InputType;
-        public ColumnType OutputType => _mapper.OutputType;
-        public ColumnType DistType => NumberType.Float;
+        ColumnType IValueMapper.InputType => _mapper.InputType;
+        ColumnType IValueMapper.OutputType => _mapper.OutputType;
+        ColumnType IValueMapperDist.DistType => NumberType.Float;
         bool ICanSavePfa.CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
@@ -239,16 +239,16 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             _featureContribution = predictor as IFeatureContributionMapper;
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             return _mapper.GetMapper<TIn, TOut>();
         }
 
-        public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
+        ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
             Host.Check(typeof(TOut) == typeof(Float));
             Host.Check(typeof(TDist) == typeof(Float));
-            var map = GetMapper<TIn, Float>();
+            var map = ((IValueMapper)this).GetMapper<TIn, Float>();
             ValueMapper<TIn, Float, Float> del =
                 (in TIn src, ref Float score, ref Float prob) =>
                 {
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        ValueMapper<TSrc, VBuffer<Float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             // REVIEW: checking this a bit too late.
             Host.Check(_featureContribution != null, "Predictor does not implement IFeatureContributionMapper");
@@ -682,7 +682,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return new Bound(Host, this, schema);
         }
 
-        public ValueMapper<TSrc, VBuffer<float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             // REVIEW: checking this a bit too late.
             Host.Check(_featureContribution != null, "Predictor does not implement " + nameof(IFeatureContributionMapper));

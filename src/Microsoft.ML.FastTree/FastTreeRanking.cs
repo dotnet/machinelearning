@@ -34,9 +34,9 @@ using System.Text;
     "frrank",
     "btrank")]
 
-[assembly: LoadableClass(typeof(FastTreeRankingPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(FastTreeRankingModelParameters), null, typeof(SignatureLoadModel),
     "FastTree Ranking Executor",
-    FastTreeRankingPredictor.LoaderSignature)]
+    FastTreeRankingModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(FastTree), null, typeof(SignatureEntryPointModule), "FastTree")]
 
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRankingTrainer
-        : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, RankingPredictionTransformer<FastTreeRankingPredictor>, FastTreeRankingPredictor>
+        : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, RankingPredictionTransformer<FastTreeRankingModelParameters>, FastTreeRankingModelParameters>
     {
         internal const string LoadNameValue = "FastTreeRanking";
         internal const string UserNameValue = "FastTree (Boosted Trees) Ranking";
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return GetLabelGains().Length - 1;
         }
 
-        private protected override FastTreeRankingPredictor TrainModelCore(TrainContext context)
+        private protected override FastTreeRankingModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 TrainCore(ch);
                 FeatureCount = trainData.Schema.Feature.Type.ValueCount;
             }
-            return new FastTreeRankingPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            return new FastTreeRankingModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 
         private Double[] GetLabelGains()
@@ -455,10 +455,10 @@ namespace Microsoft.ML.Trainers.FastTree
             return headerBuilder.ToString();
         }
 
-        protected override RankingPredictionTransformer<FastTreeRankingPredictor> MakeTransformer(FastTreeRankingPredictor model, Schema trainSchema)
-        => new RankingPredictionTransformer<FastTreeRankingPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override RankingPredictionTransformer<FastTreeRankingModelParameters> MakeTransformer(FastTreeRankingModelParameters model, Schema trainSchema)
+        => new RankingPredictionTransformer<FastTreeRankingModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RankingPredictionTransformer<FastTreeRankingPredictor> Train(IDataView trainData, IDataView validationData = null)
+        public RankingPredictionTransformer<FastTreeRankingModelParameters> Train(IDataView trainData, IDataView validationData = null)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -1105,10 +1105,10 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastTreeRankingPredictor : FastTreePredictionWrapper
+    public sealed class FastTreeRankingModelParameters : TreeEnsembleModelParameters
     {
-        public const string LoaderSignature = "FastTreeRankerExec";
-        public const string RegistrationName = "FastTreeRankingPredictor";
+        internal const string LoaderSignature = "FastTreeRankerExec";
+        internal const string RegistrationName = "FastTreeRankingPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -1122,7 +1122,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(FastTreeRankingPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(FastTreeRankingModelParameters).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;
@@ -1131,12 +1131,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        internal FastTreeRankingPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        public FastTreeRankingModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
 
-        private FastTreeRankingPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private FastTreeRankingModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
         {
         }
@@ -1147,9 +1147,9 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public static FastTreeRankingPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static FastTreeRankingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            return new FastTreeRankingPredictor(env, ctx);
+            return new FastTreeRankingModelParameters(env, ctx);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
