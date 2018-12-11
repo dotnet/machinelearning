@@ -3,20 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.ImageAnalytics;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
-using System.Reflection;
-using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Tests
 {

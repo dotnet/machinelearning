@@ -4,9 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.RunTests;
 using System.IO;
 using System.Linq;

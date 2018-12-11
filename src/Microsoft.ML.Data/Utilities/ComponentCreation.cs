@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This class defines extension methods for an <see cref="IHostEnvironment"/> to facilitate creating
@@ -118,7 +119,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
         /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
         /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
-        public static BatchPredictionEngine<TSrc, TDst> CreateBatchPredictionEngine<TSrc, TDst>(this IHostEnvironment env, Stream modelStream,
+        internal static BatchPredictionEngine<TSrc, TDst> CreateBatchPredictionEngine<TSrc, TDst>(this IHostEnvironment env, Stream modelStream,
             bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
             where TDst : class, new()
@@ -138,7 +139,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
         /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
         /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
-        public static BatchPredictionEngine<TSrc, TDst> CreateBatchPredictionEngine<TSrc, TDst>(this IHostEnvironment env, IDataView dataPipe,
+        internal static BatchPredictionEngine<TSrc, TDst> CreateBatchPredictionEngine<TSrc, TDst>(this IHostEnvironment env, IDataView dataPipe,
             bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
             where TDst : class, new()
@@ -264,7 +265,7 @@ namespace Microsoft.ML.Runtime.Api
         /// extracted.</param>
         /// <returns>The scored data.</returns>
         public static IDataScorerTransform CreateScorer(this IHostEnvironment env, string settings,
-            RoleMappedData data, Predictor predictor, RoleMappedSchema trainSchema = null)
+            RoleMappedData data, IPredictor predictor, RoleMappedSchema trainSchema = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
@@ -279,7 +280,7 @@ namespace Microsoft.ML.Runtime.Api
                 signatureType,
                 settings);
 
-            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor.Pred, scorerFactorySettings: scorerFactorySettings);
+            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor, scorerFactorySettings: scorerFactorySettings);
             var mapper = bindable.Bind(env, data.Schema);
             return CreateCore<IDataScorerTransform>(env, factoryType, signatureType, settings, data.Data, mapper, trainSchema);
         }
@@ -295,14 +296,14 @@ namespace Microsoft.ML.Runtime.Api
         /// extracted.</param>
         /// <returns>The scored data.</returns>
         public static IDataScorerTransform CreateDefaultScorer(this IHostEnvironment env, RoleMappedData data,
-            Predictor predictor, RoleMappedSchema trainSchema = null)
+            IPredictor predictor, RoleMappedSchema trainSchema = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
             env.CheckValue(predictor, nameof(predictor));
             env.CheckValueOrNull(trainSchema);
 
-            return ScoreUtils.GetScorer(predictor.Pred, data, env, trainSchema);
+            return ScoreUtils.GetScorer(predictor, data, env, trainSchema);
         }
 
         public static IEvaluator CreateEvaluator(this IHostEnvironment env, string settings)
@@ -317,11 +318,10 @@ namespace Microsoft.ML.Runtime.Api
         /// </summary>
         /// <param name="env">The host environment to use.</param>
         /// <param name="modelStream">The model stream.</param>
-        public static Predictor LoadPredictorOrNull(this IHostEnvironment env, Stream modelStream)
+        public static IPredictor LoadPredictorOrNull(this IHostEnvironment env, Stream modelStream)
         {
             Contracts.CheckValue(modelStream, nameof(modelStream));
-            var p = ModelFileUtils.LoadPredictorOrNull(env, modelStream);
-            return p == null ? null : new Predictor(p);
+            return ModelFileUtils.LoadPredictorOrNull(env, modelStream);
         }
 
         internal static ITrainer CreateTrainer<TArgs>(this IHostEnvironment env, TArgs arguments, out string loadName)

@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// A helper class to create data views based on the user-provided types.
@@ -797,6 +797,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
+        [BestFriend]
         internal static Schema.DetachedColumn[] GetSchemaColumns(InternalSchemaDefinition schemaDefn)
         {
             Contracts.AssertValue(schemaDefn);
