@@ -1189,7 +1189,7 @@ namespace Microsoft.ML.Runtime.Data
                     public ColumnSplitter(IDataView view, int col, int[] lims)
                         : base(view, col)
                     {
-                        var type = _view.Schema.GetColumnType(SrcCol).AsVector;
+                        var type = _view.Schema.GetColumnType(SrcCol) as VectorType;
                         // Only valid use is for two or more slices.
                         Contracts.Assert(Utils.Size(lims) >= 2);
                         Contracts.AssertValue(type);

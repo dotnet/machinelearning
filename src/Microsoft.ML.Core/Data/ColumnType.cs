@@ -167,12 +167,6 @@ namespace Microsoft.ML.Runtime.Data
         internal bool IsVector { get; }
 
         /// <summary>
-        /// Equivalent to <c>as <see cref="VectorType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal VectorType AsVector => IsVector ? (VectorType)this : null;
-
-        /// <summary>
         /// For non-vector types, this returns the column type itself (i.e., return <c>this</c>).
         /// </summary>
         [BestFriend]

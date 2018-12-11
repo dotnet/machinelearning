@@ -659,7 +659,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 var view = _parent._entries[col].GetViewOrNull();
                 if (view == null)
                     return null;
-                return view.Schema.GetColumnType(0).AsVector;
+                return view.Schema.GetColumnType(0) as VectorType;
             }
         }
 

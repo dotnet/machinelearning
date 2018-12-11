@@ -182,10 +182,10 @@ namespace Microsoft.ML.Transforms
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
                     var inType = inputSchema.GetColumnType(colSrc);
                     ColumnType outType;
-                    if (!inType.IsVector)
+                    if (!(inType is VectorType vectorType))
                         outType = BoolType.Instance;
                     else
-                        outType = new VectorType(BoolType.Instance, inType.AsVector);
+                        outType = new VectorType(BoolType.Instance, vectorType);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].input, _parent.ColumnPairs[i].output, inType, outType);
                 }
                 return infos;
@@ -469,7 +469,9 @@ namespace Microsoft.ML.Transforms
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
                 metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
-                ColumnType type = !col.ItemType.IsVector ? (ColumnType)BoolType.Instance : new VectorType(BoolType.Instance, col.ItemType.AsVector);
+                ColumnType type = !(col.ItemType is VectorType vectorType) ?
+                    (ColumnType)BoolType.Instance :
+                    new VectorType(BoolType.Instance, vectorType);
                 result[colPair.output] = new SchemaShape.Column(colPair.output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

@@ -436,8 +436,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     return false;
 
                 typeDst = itemType;
-                if (srcType.IsVector)
-                    typeDst = new VectorType(itemType, srcType.AsVector);
+                if (srcType is VectorType vectorType)
+                    typeDst = new VectorType(itemType, vectorType);
 
                 return true;
             }
@@ -473,9 +473,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
-                if (!_types[iinfo].IsVector)
+                if (!(_types[iinfo] is VectorType vectorType))
                     return RowCursorUtils.GetGetterAs(_types[iinfo], input, _srcCols[iinfo]);
-                return RowCursorUtils.GetVecGetterAs(_types[iinfo].AsVector.ItemType, input, _srcCols[iinfo]);
+                return RowCursorUtils.GetVecGetterAs(vectorType.ItemType, input, _srcCols[iinfo]);
             }
 
             public void SaveAsOnnx(OnnxContext ctx)

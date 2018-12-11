@@ -130,9 +130,9 @@ namespace Microsoft.ML.Runtime.Data
                 ColumnType type;
                 object value;
                 _host.CheckDecode(saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out type, out value));
-                _host.CheckDecode(type.IsVector);
+                _type = type as VectorType;
+                _host.CheckDecode(_type != null);
                 _host.CheckDecode(value != null);
-                _type = type.AsVector;
                 _getter = Utils.MarshalInvoke(DecodeInit<int>, _type.ItemType.RawType, value);
                 _metadataKind = ctx.Header.ModelVerReadable >= VersionAddedMetadataKind ?
                     ctx.LoadNonEmptyString() : MetadataUtils.Kinds.SlotNames;
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Runtime.Data
                         trainSchema.Label.Index, ref value);
                 };
 
-            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type.AsVector, getter, MetadataUtils.Kinds.SlotNames, CanWrap);
+            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.SlotNames, CanWrap);
         }
 
         public MultiClassClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)

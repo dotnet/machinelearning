@@ -232,10 +232,10 @@ namespace Microsoft.ML.Transforms.Conversions
                     var typeVals = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, ColMapNewToOld[iinfo]);
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
                     Host.Check(typeVals.VectorSize == typeSrc.ItemType.KeyCount, "KeyValues metadata size does not match column type key count");
-                    if (!typeSrc.IsVector)
+                    if (!(typeSrc is VectorType vectorType))
                         types[iinfo] = typeVals.ItemType;
                     else
-                        types[iinfo] = new VectorType(typeVals.ItemType.AsPrimitive, typeSrc.AsVector);
+                        types[iinfo] = new VectorType(typeVals.ItemType.AsPrimitive, vectorType);
 
                     // MarshalInvoke with two generic params.
                     Func<int, ColumnType, ColumnType, KeyToValueMap> func = GetKeyMetadata<int, int>;
