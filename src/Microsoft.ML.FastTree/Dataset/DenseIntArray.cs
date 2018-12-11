@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
@@ -70,13 +71,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
 #if USE_FASTTREENATIVE
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
+        internal const string NativePath = "FastTreeNative";
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static extern unsafe int C_Sumup_float(
             int numBits, byte* pData, int* pIndices, float* pSampleOutputs, double* pSampleOutputWeights,
             FloatType* pSumTargetsByBin, double* pSumTargets2ByBin, int* pCountByBin,
             int totalCount, double totalSampleOutputs, double totalSampleOutputWeights);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static extern unsafe int C_Sumup_double(
             int numBits, byte* pData, int* pIndices, double* pSampleOutputs, double* pSampleOutputWeights,
             FloatType* pSumTargetsByBin, double* pSumTargets2ByBin, int* pCountByBin,
@@ -154,7 +156,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         {
         }
 
-        public override MD5Hash MD5Hash {
+        public override MD5Hash MD5Hash
+        {
             get { return MD5Hasher.Hash(Length); }
         }
 
@@ -178,13 +181,16 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Length.ToByteArray(buffer, ref position);
         }
 
-        public override int this[int index] {
-            get {
+        public override int this[int index]
+        {
+            get
+            {
                 Contracts.Assert(0 <= index && index < Length);
                 return 0;
             }
 
-            set {
+            set
+            {
                 Contracts.Assert(0 <= index && index < Length);
                 Contracts.Assert(value == 0);
             }
@@ -266,7 +272,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _data[major + 1] = (_data[major + 1] & ~major1Mask) | (uint)(val >> 32);
         }
 
-        public override MD5Hash MD5Hash {
+        public override MD5Hash MD5Hash
+        {
             get { return MD5Hasher.Hash(_data); }
         }
 
@@ -291,8 +298,10 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _data.ToByteArray(buffer, ref position);
         }
 
-        public sealed override unsafe int this[int index] {
-            get {
+        public sealed override unsafe int this[int index]
+        {
+            get
+            {
                 long offset = index;
                 offset = (offset << 3) + (offset << 1);
                 int minor = (int)(offset & 0x1f);
@@ -301,7 +310,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                     return (int)(((*(ulong*)(pData + major)) >> minor) & _mask);
             }
 
-            set {
+            set
+            {
                 Contracts.Assert(0 <= value && value < (1 << 10));
                 Set(((long)index) * 10, _mask, value);
             }
@@ -436,10 +446,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        public override unsafe int this[int index] {
+        public override unsafe int this[int index]
+        {
             get { return _data[index]; }
 
-            set {
+            set
+            {
                 Contracts.Assert(0 <= value && value <= byte.MaxValue);
                 _data[index] = (byte)value;
             }
@@ -471,7 +483,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         public override IntArrayBits BitsPerItem { get { return IntArrayBits.Bits4; } }
 
-        public override MD5Hash MD5Hash {
+        public override MD5Hash MD5Hash
+        {
             get { return MD5Hasher.Hash(_data); }
         }
 
@@ -532,8 +545,10 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _data.ToByteArray(buffer, ref position);
         }
 
-        public override unsafe int this[int index] {
-            get {
+        public override unsafe int this[int index]
+        {
+            get
+            {
                 int dataIndex = index / 2;
                 bool highBits = (index % 2 == 0);
 
@@ -546,7 +561,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 return v;
             }
 
-            set {
+            set
+            {
                 Contracts.Assert(0 <= value && value < (1 << 4));
                 byte v;
                 v = (byte)value;
@@ -607,7 +623,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _data = buffer.ToUShortArray(ref position);
         }
 
-        public override MD5Hash MD5Hash {
+        public override MD5Hash MD5Hash
+        {
             get { return MD5Hasher.Hash(_data); }
         }
 
@@ -640,12 +657,15 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _data.ToByteArray(buffer, ref position);
         }
 
-        public override unsafe int this[int index] {
-            get {
+        public override unsafe int this[int index]
+        {
+            get
+            {
                 return _data[index];
             }
 
-            set {
+            set
+            {
                 Contracts.Assert(0 <= value && value <= ushort.MaxValue);
                 _data[index] = (ushort)value;
             }
@@ -700,7 +720,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        public override MD5Hash MD5Hash {
+        public override MD5Hash MD5Hash
+        {
             get { return MD5Hasher.Hash(_data); }
         }
 
@@ -725,12 +746,15 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             _data.ToByteArray(buffer, ref position);
         }
 
-        public override int this[int index] {
-            get {
+        public override int this[int index]
+        {
+            get
+            {
                 return _data[index];
             }
 
-            set {
+            set
+            {
                 Contracts.Assert(value >= 0);
                 _data[index] = value;
             }

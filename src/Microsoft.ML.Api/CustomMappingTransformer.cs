@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Transforms
                 _typedSrc = TypedCursorable<TSrc>.Create(_host, emptyDataView, false, _parent.InputSchemaDefinition);
             }
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 // If no outputs are active, we short-circuit to empty array of getters.
@@ -146,7 +147,7 @@ namespace Microsoft.ML.Transforms
                 return result;
             }
 
-            private Delegate GetDstGetter<T>(IRow input, int colIndex, Action refreshAction)
+            private Delegate GetDstGetter<T>(Row input, int colIndex, Action refreshAction)
             {
                 var getter = input.GetGetter<T>(colIndex);
                 ValueGetter<T> combinedGetter = (ref T dst) =>
@@ -157,7 +158,7 @@ namespace Microsoft.ML.Transforms
                 return combinedGetter;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            Func<int, bool> IRowMapper.GetDependencies(Func<int, bool> activeOutput)
             {
                 if (Enumerable.Range(0, _parent.AddedSchema.Columns.Length).Any(activeOutput))
                 {
@@ -168,11 +169,11 @@ namespace Microsoft.ML.Transforms
                 return col => false;
             }
 
-            public Schema.Column[] GetOutputColumns()
+            Schema.DetachedColumn[] IRowMapper.GetOutputColumns()
             {
                 var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent.AddedSchema);
                 // All the output columns of dstRow are our outputs.
-                return Enumerable.Range(0, dstRow.Schema.ColumnCount).Select(x => dstRow.Schema[x]).ToArray();
+                return Enumerable.Range(0, dstRow.Schema.ColumnCount).Select(x => new Schema.DetachedColumn(dstRow.Schema[x])).ToArray();
             }
 
             public void Save(ModelSaveContext ctx)
@@ -202,9 +203,9 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             var addedCols = DataViewConstructionUtils.GetSchemaColumns(Transformer.AddedSchema);
-            var addedSchemaShape = SchemaShape.Create(new Schema(addedCols));
+            var addedSchemaShape = SchemaShape.Create(SchemaBuilder.MakeSchema(addedCols));
 
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             var inputDef = InternalSchemaDefinition.Create(typeof(TSrc), Transformer.InputSchemaDefinition);
             foreach (var col in inputDef.Columns)
             {
@@ -222,7 +223,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            foreach (var addedCol in addedSchemaShape.Columns)
+            foreach (var addedCol in addedSchemaShape)
                 result[addedCol.Name] = addedCol;
 
             return new SchemaShape(result.Values);

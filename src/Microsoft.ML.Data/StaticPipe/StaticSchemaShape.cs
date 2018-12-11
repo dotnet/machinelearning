@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
@@ -51,7 +52,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// </summary>
         /// <param name="ectx">The context on which to throw exceptions</param>
         /// <param name="schema">The schema to check</param>
-        public void Check(IExceptionContext ectx, ISchema schema)
+        public void Check(IExceptionContext ectx, Schema schema)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(schema);
@@ -60,7 +61,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             {
                 if (!schema.TryGetColumnIndex(pair.Key, out int colIdx))
                     throw ectx.ExceptParam(nameof(schema), $"Column named '{pair.Key}' was not found");
-                var col = RowColumnUtils.GetColumn(schema, colIdx);
+                var col = schema[colIdx];
                 var type = GetTypeOrNull(col);
                 if ((type != null && !pair.Value.IsAssignableFromStaticPipeline(type)) || (type == null && IsStandard(ectx, pair.Value)))
                 {
@@ -112,7 +113,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
         private static Type GetTypeOrNull(SchemaShape.Column col)
         {
-            Contracts.AssertValue(col);
+            Contracts.Assert(col.IsValid);
 
             Type vecType = null;
 
@@ -234,9 +235,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// <param name="col">The column</param>
         /// <returns>The .NET type for the static pipelines that should be used to reflect this type, given
         /// both the characteristics of the <see cref="ColumnType"/> as well as one or two crucial pieces of metadata</returns>
-        private static Type GetTypeOrNull(IColumn col)
+        private static Type GetTypeOrNull(Schema.Column col)
         {
-            Contracts.AssertValue(col);
             var t = col.Type;
 
             Type vecType = null;
@@ -278,13 +278,14 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 {
                     // Check to see if we have key value metadata of the appropriate type, size, and whatnot.
                     var meta = col.Metadata;
-                    if (meta.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out int kvcol))
+                    if (meta.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out int kvcolIndex))
                     {
-                        var kvType = meta.Schema.GetColumnType(kvcol);
-                        if (kvType.VectorSize == kt.Count)
+                        var kvcol = meta.Schema[kvcolIndex];
+                        var kvType = kvcol.Type;
+                        if (kvType is VectorType kvVecType && kvVecType.Size == kt.Count)
                         {
                             Contracts.Assert(kt.Count > 0);
-                            var subtype = GetTypeOrNull(RowColumnUtils.GetColumn(meta, kvcol));
+                            var subtype = GetTypeOrNull(kvcol);
                             if (subtype != null && subtype.IsGenericType)
                             {
                                 var sgtype = subtype.GetGenericTypeDefinition();

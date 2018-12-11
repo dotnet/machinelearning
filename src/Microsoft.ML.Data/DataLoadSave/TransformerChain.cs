@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -16,7 +17,7 @@ using System.Linq;
 [assembly: LoadableClass(typeof(TransformerChain<ITransformer>), typeof(TransformerChain), null, typeof(SignatureLoadModel),
     "Transformer chain", TransformerChain.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This enum allows for 'tagging' the estimators (and subsequently transformers) in the chain to be used
@@ -36,10 +37,21 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
+    /// Used to determine if <see cref="ITransformer"/> object is of type <see cref="TransformerChain"/>
+    /// so that its internal fields can be accessed.
+    /// </summary>
+    [BestFriend]
+    internal interface ITransformerChainAccessor
+    {
+        ITransformer[] Transformers { get; }
+        TransformerScope[] Scopes { get; }
+    }
+
+    /// <summary>
     /// A chain of transformers (possibly empty) that end with a <typeparamref name="TLastTransformer"/>.
     /// For an empty chain, <typeparamref name="TLastTransformer"/> is always <see cref="ITransformer"/>.
     /// </summary>
-    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel, IEnumerable<ITransformer>
+    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel, IEnumerable<ITransformer>, ITransformerChainAccessor
     where TLastTransformer : class, ITransformer
     {
         private readonly ITransformer[] _transformers;
@@ -49,6 +61,10 @@ namespace Microsoft.ML.Runtime.Data
         private const string TransformDirTemplate = "Transform_{0:000}";
 
         public bool IsRowToRowMapper => _transformers.All(t => t.IsRowToRowMapper);
+
+        ITransformer[] ITransformerChainAccessor.Transformers => _transformers;
+
+        TransformerScope[] ITransformerChainAccessor.Scopes => _scopes;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -211,7 +227,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < mappers.Length; ++i)
             {
                 mappers[i] = _transformers[i].GetRowToRowMapper(schema);
-                schema = mappers[i].Schema;
+                schema = mappers[i].OutputSchema;
             }
             return new CompositeRowToRowMapper(inputSchema, mappers);
         }

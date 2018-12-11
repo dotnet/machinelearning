@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(typeof(NgramHashingTransformer), typeof(NgramHashingTransformer.Arguments), typeof(SignatureDataTransform),
     "Ngram Hash Transform", "NgramHashTransform", "NgramHash")]
@@ -115,37 +116,49 @@ namespace Microsoft.ML.Transforms.Text
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram", SortOrder = 3)]
-            public int NgramLength = 2;
+            public int NgramLength = ArgumentDefaults.NgramLength;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 ShortName = "all", SortOrder = 4)]
-            public bool AllLengths = true;
+            public bool AllLengths = ArgumentDefaults.AllLengths;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Maximum number of tokens to skip when constructing an ngram",
                 ShortName = "skips", SortOrder = 3)]
-            public int SkipLength = 0;
+            public int SkipLength = ArgumentDefaults.SkipLength;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = 16;
+            public int HashBits = ArgumentDefaults.HashBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
-            public uint Seed = 314489979;
+            public uint Seed = ArgumentDefaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to rehash unigrams", ShortName = "rehash")]
-            public bool RehashUnigrams;
+            public bool RehashUnigrams = ArgumentDefaults.RehashUnigrams;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether the position of each source column should be included in the hash (when there are multiple source columns).",
                 ShortName = "ord", SortOrder = 6)]
-            public bool Ordered = true;
+            public bool Ordered = ArgumentDefaults.Ordered;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash;
+            public int InvertHash = ArgumentDefaults.InvertHash;
+        }
+
+        internal static class ArgumentDefaults
+        {
+            internal const int NgramLength = 2;
+            internal const bool AllLengths = true;
+            internal const int SkipLength = 0;
+            internal const int HashBits = 16;
+            internal const uint Seed = 314489979;
+            internal const bool RehashUnigrams = false;
+            internal const bool Ordered = true;
+            internal const int InvertHash = 0;
         }
 
         private sealed class Bindings : ManyToOneColumnBindingsBase
@@ -365,8 +378,8 @@ namespace Microsoft.ML.Transforms.Text
                 string[][] friendlyNames = args.Column.Select(c => c.FriendlyNames).ToArray();
                 var helper = new InvertHashHelper(this, friendlyNames, inputPred, invertHashMaxCounts);
 
-                using (IRowCursor srcCursor = input.GetRowCursor(inputPred))
-                using (var dstCursor = new RowCursor(this, srcCursor, active, helper.Decorate))
+                using (RowCursor srcCursor = input.GetRowCursor(inputPred))
+                using (var dstCursor = new Cursor(this, srcCursor, active, helper.Decorate))
                 {
                     var allGetters = InvertHashHelper.CallAllGetters(dstCursor);
                     while (dstCursor.MoveNext())
@@ -603,7 +616,7 @@ namespace Microsoft.ML.Transforms.Text
             Host.Assert(icol >= 0);
         }
 
-        public override Schema Schema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -615,7 +628,7 @@ namespace Microsoft.ML.Transforms.Text
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -623,11 +636,11 @@ namespace Microsoft.ML.Transforms.Text
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
             var input = Source.GetRowCursor(inputPred, rand);
-            return new RowCursor(this, input, active);
+            return new Cursor(this, input, active);
         }
 
-        public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public sealed override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -641,9 +654,9 @@ namespace Microsoft.ML.Transforms.Text
                 inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(this, inputs[i], active);
+                cursors[i] = new Cursor(this, inputs[i], active);
             return cursors;
         }
 
@@ -652,7 +665,7 @@ namespace Microsoft.ML.Transforms.Text
             return _bindings.GetDependencies(predicate);
         }
 
-        protected override Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disp)
+        protected override Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disp)
         {
             Func<int, bool> activeInfos =
                 iinfo =>
@@ -680,7 +693,7 @@ namespace Microsoft.ML.Transforms.Text
             return _bindings.MapColumnIndex(out isSrc, col);
         }
 
-        private Delegate MakeGetter(IChannel ch, IRow input, int iinfo, FinderDecorator decorator = null)
+        private Delegate MakeGetter(IChannel ch, Row input, int iinfo, FinderDecorator decorator = null)
         {
             ch.Assert(_bindings.Infos[iinfo].SrcTypes.All(t => t.IsVector && t.ItemType.IsKey));
 
@@ -715,15 +728,15 @@ namespace Microsoft.ML.Transforms.Text
 
         private delegate NgramIdFinder FinderDecorator(int iinfo, NgramIdFinder finder);
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
-            public RowCursor(NgramHashingTransformer parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
+            public Cursor(NgramHashingTransformer parent, RowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(parent);
@@ -747,13 +760,13 @@ namespace Microsoft.ML.Transforms.Text
                 return _active == null || _active[_bindings.MapIinfoToCol(iinfo)];
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.ColumnCount);
                 return _active == null || _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -814,7 +827,7 @@ namespace Microsoft.ML.Transforms.Text
             /// Construct an action that calls all the getters for a row, so as to easily force computation
             /// of lazily computed values. This will have the side effect of calling the decorator.
             /// </summary>
-            public static Action CallAllGetters(IRow row)
+            public static Action CallAllGetters(Row row)
             {
                 var colCount = row.Schema.ColumnCount;
                 List<Action> getters = new List<Action>();
@@ -832,14 +845,14 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            private static Action GetNoOpGetter(IRow row, int col)
+            private static Action GetNoOpGetter(Row row, int col)
             {
-                Func<IRow, int, Action> func = GetNoOpGetter<int>;
+                Func<Row, int, Action> func = GetNoOpGetter<int>;
                 var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(row.Schema.GetColumnType(col).RawType);
                 return (Action)meth.Invoke(null, new object[] { row, col });
             }
 
-            private static Action GetNoOpGetter<T>(IRow row, int col)
+            private static Action GetNoOpGetter<T>(Row row, int col)
             {
                 T value = default(T);
                 var getter = row.GetGetter<T>(col);

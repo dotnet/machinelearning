@@ -14,6 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
+#pragma warning disable 612, 618
     public sealed class TextLoaderTestPipe : TestDataPipeBase
     {
         public TextLoaderTestPipe(ITestOutputHelper output)
@@ -151,7 +152,6 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<InputWithUnderscore>());
         }
-
 
         [Fact]
         public void CanSuccessfullyApplyATransform()
@@ -409,4 +409,5 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string String_3;
         }
     }
+#pragma warning restore 612, 618
 }

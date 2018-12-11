@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -273,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
             var saver = new BinarySaver(_host, saverArgs);
             using (var strm = new MemoryStream())
             {
-                var allColumns = Enumerable.Range(0, Schema.ColumnCount).ToArray();
+                var allColumns = Enumerable.Range(0, Schema.Count).ToArray();
                 saver.SaveData(strm, noRows, allColumns);
                 ctx.SaveBinaryStream(SchemaCtxName, w => w.WriteByteArray(strm.ToArray()));
             }
@@ -292,16 +293,16 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             return new Cursor(_host, this, _files, needCol, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, IRandom rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
         {
             consolidator = null;
             var cursor = new Cursor(_host, this, _files, needCol, rand);
-            return new IRowCursor[] { cursor };
+            return new RowCursor[] { cursor };
         }
 
         /// <summary>
@@ -316,11 +317,13 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(cols);
             Contracts.AssertValue(subLoader);
 
-            var colSchema = new Schema(cols.Select(c => new Schema.Column(c.Name, PrimitiveType.FromKind(c.Type.Value), null)));
+            var builder = new SchemaBuilder();
+            builder.AddColumns(cols.Select(c => new Schema.DetachedColumn(c.Name, PrimitiveType.FromKind(c.Type.Value), null)));
+            var colSchema = builder.GetSchema();
 
             var subSchema = subLoader.Schema;
 
-            if (subSchema.ColumnCount == 0)
+            if (subSchema.Count == 0)
             {
                 return colSchema;
             }
@@ -359,7 +362,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private PartitionedFileLoader _parent;
 
@@ -369,11 +372,11 @@ namespace Microsoft.ML.Runtime.Data
             private Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
             private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
-            private IRowCursor _subCursor; // Sub cursor of the current file.
+            private RowCursor _subCursor; // Sub cursor of the current file.
 
             private IEnumerator<int> _fileOrder;
 
-            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, Func<int, bool> predicate, IRandom rand)
+            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, Func<int, bool> predicate, Random rand)
                 : base(provider)
             {
                 Contracts.AssertValue(parent);
@@ -382,9 +385,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 _parent = parent;
 
-                _active = Utils.BuildArray(Schema.ColumnCount, predicate);
+                _active = Utils.BuildArray(Schema.Count, predicate);
                 _subActive = _active.Take(SubColumnCount).ToArray();
-                _colValues = new ReadOnlyMemory<char>[Schema.ColumnCount - SubColumnCount];
+                _colValues = new ReadOnlyMemory<char>[Schema.Count - SubColumnCount];
 
                 _subGetters = new Delegate[SubColumnCount];
                 _getters = CreateGetters();
@@ -394,9 +397,9 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch => 0;
 
-            public Schema Schema => _parent.Schema;
+            public override Schema Schema => _parent.Schema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -420,9 +423,9 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount);
+                Ch.Check(0 <= col && col < Schema.Count);
                 return _active[col];
             }
 
@@ -550,7 +553,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private Delegate[] CreateGetters()
             {
-                Delegate[] getters = new Delegate[Schema.ColumnCount];
+                Delegate[] getters = new Delegate[Schema.Count];
                 for (int i = 0; i < getters.Length; i++)
                 {
                     if (!_active[i])
@@ -619,9 +622,9 @@ namespace Microsoft.ML.Runtime.Data
                 return col < SubColumnCount;
             }
 
-            private int SubColumnCount => Schema.ColumnCount - _parent._srcDirIndex.Length;
+            private int SubColumnCount => Schema.Count - _parent._srcDirIndex.Length;
 
-            private IEnumerable<int> CreateFileOrder(IRandom rand)
+            private IEnumerable<int> CreateFileOrder(Random rand)
             {
                 if (rand == null)
                 {

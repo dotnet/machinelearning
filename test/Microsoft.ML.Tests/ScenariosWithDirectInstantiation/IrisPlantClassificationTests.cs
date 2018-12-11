@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
+#pragma warning disable 612
     public partial class ScenariosTests
     {
         [Fact]
@@ -25,10 +26,7 @@ namespace Microsoft.ML.Scenarios
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments()
-            {
-                HasHeader = false,
-                Column = new[]
+            var reader = mlContext.Data.CreateTextReader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column("SepalLength", DataKind.R4, 1),
@@ -36,10 +34,11 @@ namespace Microsoft.ML.Scenarios
                     new TextLoader.Column("PetalLength", DataKind.R4, 3),
                     new TextLoader.Column("PetalWidth", DataKind.R4, 4)
                 }
-            });
+            );
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(mlContext.Transforms.Normalize("Features"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
 
             // Read training and test data sets
@@ -98,7 +97,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
 
-        private void CompareMatrics(MultiClassClassifierEvaluator.Result metrics)
+        private void CompareMatrics(MultiClassClassifierMetrics metrics)
         {
             Assert.Equal(.98, metrics.AccuracyMacro);
             Assert.Equal(.98, metrics.AccuracyMicro, 2);
@@ -144,4 +143,5 @@ namespace Microsoft.ML.Scenarios
             }
         }
     }
+#pragma warning restore 612
 }

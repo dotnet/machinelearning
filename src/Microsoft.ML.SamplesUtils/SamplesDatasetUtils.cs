@@ -12,22 +12,28 @@ namespace Microsoft.ML.SamplesUtils
     public static class DatasetUtils
     {
         /// <summary>
-        /// Downloads the housing dataset from the ML.Net repo.
+        /// Downloads the housing dataset from the ML.NET repo.
         /// </summary>
         public static string DownloadHousingRegressionDataset()
         => Download("https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/housing.txt", "housing.txt");
 
         /// <summary>
-        /// Downloads the wikipedia detox dataset from the ML.NET repo
+        /// Downloads the wikipedia detox dataset from the ML.NET repo.
         /// </summary>
         public static string DownloadSentimentDataset()
         => Download("https://github.com/dotnet/machinelearning/blob/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");
 
         /// <summary>
-        /// Downloads the adult dataset from the ML.NET repo
+        /// Downloads the adult dataset from the ML.NET repo.
         /// </summary>
         public static string DownloadAdultDataset()
             => Download("https://raw.githubusercontent.com/dotnet/machinelearning/244a8c2ac832657af282aa312d568211698790aa/test/data/adult.train", "adult.txt");
+
+        /// <summary>
+        /// Downloads the breast cancer dataset from the ML.NET repo.
+        /// </summary>
+        public static string DownloadBreastCancerDataset()
+            => Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/breast-cancer.txt", "breast-cancer.txt");
 
         private static string Download(string baseGitPath, string dataFile)
         {

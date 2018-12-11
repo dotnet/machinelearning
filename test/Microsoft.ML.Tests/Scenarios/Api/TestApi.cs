@@ -177,7 +177,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 (i, s) => true,
                 s => { globalCounter++; });
 
-            new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).Fit(xf).Transform(xf);
+            // The baseline result of this was generated with everything cached in memory. As auto-cache is removed,
+            // an explicit step of caching is required to make this test ok.
+            var cached = env.Data.Cache(xf);
+
+            new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).Fit(cached).Transform(cached);
 
             // Make sure there were 2 cursoring events.
             Assert.Equal(1, globalCounter);

@@ -4,7 +4,9 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 using System;
@@ -285,7 +287,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.MulticlassLogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="ctx">The multiclass classification context trainer object.</param>
+        /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumn">The labelColumn, or dependent variable.</param>
         /// <param name="featureColumn">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -309,6 +311,108 @@ namespace Microsoft.ML
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
             return new MulticlassLogisticRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity, advancedSettings);
+        }
+
+        /// <summary>
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="MultiClassNaiveBayesTrainer"/>.
+        /// The <see cref="MultiClassNaiveBayesTrainer"/> trains a multiclass Naive Bayes predictor that supports binary feature values.
+        /// </summary>
+        /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        public static MultiClassNaiveBayesTrainer NaiveBayes(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            return new MultiClassNaiveBayesTrainer(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn);
+        }
+
+        /// <summary>
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="Ova"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In <see cref="Ova"/> In this strategy, a binary classification algorithm is used to train one classifier for each class,
+        /// which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers,
+        /// and choosing the prediction with the highest confidence score.
+        /// </para>
+        /// </remarks>
+        /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
+        /// <param name="labelColumn">The name of the label colum.</param>
+        /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
+        /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
+        public static Ova OneVersusAll(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> binaryEstimator,
+            string labelColumn = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            ICalibratorTrainer calibrator = null,
+            int maxCalibrationExamples = 1000000000,
+            bool useProbabilities = true)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            return new Ova(CatalogUtils.GetEnvironment(ctx), binaryEstimator, labelColumn, imputeMissingLabelsAsNegative, calibrator, maxCalibrationExamples, useProbabilities);
+        }
+
+        /// <summary>
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="Pkpd"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In the Pairwise coupling (PKPD) strategy, a binary classification algorithm is used to train one classifier for each pair of classes.
+        /// Prediction is then performed by running these binary classifiers, and computing a score for each class by counting how many of the binary
+        /// classifiers predicted it. The prediction is the class with the highest score.
+        /// </para>
+        /// </remarks>
+        /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
+        /// <param name="labelColumn">The name of the label colum.</param>
+        /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
+        public static Pkpd PairwiseCoupling(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>> binaryEstimator,
+            string labelColumn = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            ICalibratorTrainer calibrator = null,
+            int maxCalibrationExamples = 1000000000)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            return new Pkpd(CatalogUtils.GetEnvironment(ctx), binaryEstimator, labelColumn, imputeMissingLabelsAsNegative, calibrator, maxCalibrationExamples);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvm"/> trainer.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The idea behind support vector machines, is to map instances into a high dimensional space
+        /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
+        /// and all the negative examples are on the other.
+        /// </para>
+        /// <para>
+        /// After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the
+        /// margin, i.e., the minimal distance between it and the instances.
+        /// </para>
+        /// </remarks>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="labelColumn">The name of the label column. </param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightsColumn">The optional name of the weights column.</param>
+        /// <param name="numIterations">The number of training iteraitons.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public static LinearSvm LinearSupportVectorMachines(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weightsColumn = DefaultColumnNames.Weight,
+            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
+            Action<LinearSvm.Arguments> advancedSettings = null)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            return new LinearSvm(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, weightsColumn, numIterations, advancedSettings);
         }
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -12,8 +13,8 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
@@ -172,7 +173,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             _args.FeatureColumn = featureColumn;
             _args.LabelColumn = labelColumn;
 
-            Info = new TrainerInfo();
+            Info = new TrainerInfo(supportIncrementalTrain:true);
         }
 
         /// <summary>
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         {
             args.Check(Host);
             _args = args;
-            Info = new TrainerInfo();
+            Info = new TrainerInfo(supportIncrementalTrain: true);
         }
 
         private TPredictor CreatePredictor(VBuffer<float> weights, float bias)
@@ -201,8 +202,8 @@ namespace Microsoft.ML.Trainers.SymSgd
         protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, Schema trainSchema)
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<TPredictor> Train(IDataView trainData, IDataView validationData = null, TPredictor initialPredictor = null)
-            => TrainTransformer(trainData, validationData, initialPredictor);
+        public BinaryPredictionTransformer<TPredictor> Train(IDataView trainData, TPredictor initialPredictor = null)
+            => TrainTransformer(trainData,  initPredictor: initialPredictor);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
@@ -759,9 +760,9 @@ namespace Microsoft.ML.Trainers.SymSgd
             //To triger the loading of MKL library since SymSGD native library depends on it.
             static Native() => ErrorMessage(0);
 
-            internal const string DllName = "SymSgdNative";
-
-            [DllImport(DllName), SuppressUnmanagedCodeSecurity]
+            internal const string NativePath = "SymSgdNative";
+            internal const string MklPath = "MklImports";
+            [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
                 float** instValues, float* labels, bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
                 int numFeatres, int numPasses, int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize, State* state);
@@ -832,7 +833,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                 }
             }
 
-            [DllImport(DllName), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void MapBackWeightVector(float* weightVector, State* state);
 
             /// <summary>
@@ -846,7 +847,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                     MapBackWeightVector(pweightVector, (State*)stateGCHandle.AddrOfPinnedObject());
             }
 
-            [DllImport(DllName), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void DeallocateSequentially(State* state);
 
             public static void DeallocateSequentially(GCHandle stateGCHandle)
@@ -855,8 +856,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             }
 
             // See: https://software.intel.com/en-us/node/521990
-            [System.Security.SuppressUnmanagedCodeSecurity]
-            [DllImport("MklImports", EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+            [DllImport(MklPath, EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
             private static extern IntPtr ErrorMessage(int status);
         }
 

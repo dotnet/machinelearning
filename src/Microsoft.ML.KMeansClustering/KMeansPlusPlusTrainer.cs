@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -10,9 +11,9 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.KMeans;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ using System.Threading.Tasks;
 namespace Microsoft.ML.Trainers.KMeans
 {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
-    public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansPredictor>, KMeansPredictor>
+    public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
         public const string LoadNameValue = "KMeansPlusPlus";
         internal const string UserNameValue = "KMeans++ Clustering";
@@ -120,7 +121,7 @@ namespace Microsoft.ML.Trainers.KMeans
         }
 
         private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, Action<Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
 
@@ -150,7 +151,7 @@ namespace Microsoft.ML.Trainers.KMeans
             Info = new TrainerInfo();
         }
 
-        private protected override KMeansPredictor TrainModelCore(TrainContext context)
+        private protected override KMeansModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -164,7 +165,7 @@ namespace Microsoft.ML.Trainers.KMeans
             }
         }
 
-        private KMeansPredictor TrainCore(IChannel ch, RoleMappedData data, int dimensionality)
+        private KMeansModelParameters TrainCore(IChannel ch, RoleMappedData data, int dimensionality)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -220,7 +221,7 @@ namespace Microsoft.ML.Trainers.KMeans
                     "{0} instances with missing features detected and ignored. Consider using MissingHandler.",
                     missingFeatureCount);
             }
-            return new KMeansPredictor(Host, _k, centroids, copyIn: true);
+            return new KMeansModelParameters(Host, _k, centroids, copyIn: true);
         }
 
         private static int ComputeNumThreads(IHost host, int? argNumThreads)
@@ -277,8 +278,8 @@ namespace Microsoft.ML.Trainers.KMeans
             };
         }
 
-        protected override ClusteringPredictionTransformer<KMeansPredictor> MakeTransformer(KMeansPredictor model, Schema trainSchema)
-        => new ClusteringPredictionTransformer<KMeansPredictor>(Host, model, trainSchema, _featureColumn);
+        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, Schema trainSchema)
+        => new ClusteringPredictionTransformer<KMeansModelParameters>(Host, model, trainSchema, _featureColumn);
     }
 
     internal static class KMeansPlusPlusInit
@@ -874,7 +875,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 KMeansUtils.ParallelMapReduce<float[], float[]>(
                     numThreads, host, cursorFactory, initializationState.RowIndexGetter,
                     (ref float[] weights) => weights = new float[totalSamples],
-                    (ref VBuffer<float> point, int pointRowIndex, float[] weights, IRandom rand) =>
+                    (ref VBuffer<float> point, int pointRowIndex, float[] weights, Random rand) =>
                     {
                         int bestCluster;
                         float discardBestWeight;
@@ -886,7 +887,7 @@ namespace Microsoft.ML.Trainers.KMeans
 #endif
                         weights[bestCluster]++;
                     },
-                    (float[][] workStateWeights, IRandom rand, ref float[] weights) =>
+                    (float[][] workStateWeights, Random rand, ref float[] weights) =>
                     {
                         weights = new float[totalSamples];
                         for (int i = 0; i < workStateWeights.Length; i++)
@@ -901,8 +902,8 @@ namespace Microsoft.ML.Trainers.KMeans
                 KMeansUtils.ParallelMapReduce<float[], float[]>(
                     numThreads, host, cursorFactory, (FeatureFloatVectorCursor cur) => -1,
                     (ref float[] weights) => weights = new float[totalSamples],
-                    (ref VBuffer<float> point, int discard, float[] weights, IRandom rand) => weights[KMeansUtils.FindBestCluster(in point, clusters, clustersL2s)]++,
-                    (float[][] workStateWeights, IRandom rand, ref float[] weights) =>
+                    (ref VBuffer<float> point, int discard, float[] weights, Random rand) => weights[KMeansUtils.FindBestCluster(in point, clusters, clustersL2s)]++,
+                    (float[][] workStateWeights, Random rand, ref float[] weights) =>
                     {
                         weights = new float[totalSamples];
                         for (int i = 0; i < workStateWeights.Length; i++)
@@ -1571,7 +1572,7 @@ namespace Microsoft.ML.Trainers.KMeans
                     else
                         heap.Clear();
                 },
-                (ref VBuffer<float> point, int pointRowIndex, Heap<WeightedPoint> heap, IRandom rand) =>
+                (ref VBuffer<float> point, int pointRowIndex, Heap<WeightedPoint> heap, Random rand) =>
                 {
                     // We use distance as a proxy for 'is the same point'. By excluding
                     // all points that lie within a very small distance of our current set of
@@ -1607,7 +1608,7 @@ namespace Microsoft.ML.Trainers.KMeans
                     Utils.Swap(ref wRow.Point, ref point);
                     heap.Add(wRow);
                 },
-                (Heap<WeightedPoint>[] heaps, IRandom rand, ref Heap<WeightedPoint> finalHeap) =>
+                (Heap<WeightedPoint>[] heaps, Random rand, ref Heap<WeightedPoint> finalHeap) =>
                 {
                     host.Assert(finalHeap == null);
                     finalHeap = new Heap<WeightedPoint>((x, y) => x.Weight > y.Weight, numSamples);
@@ -1646,13 +1647,13 @@ namespace Microsoft.ML.Trainers.KMeans
 
         public delegate void InitAction<TPartitionState>(ref TPartitionState val);
         public delegate int RowIndexGetter(FeatureFloatVectorCursor cur);
-        public delegate void MapAction<TPartitionState>(ref VBuffer<float> point, int rowIndex, TPartitionState state, IRandom rand);
-        public delegate void ReduceAction<TPartitionState, TGlobalState>(TPartitionState[] intermediates, IRandom rand, ref TGlobalState result);
+        public delegate void MapAction<TPartitionState>(ref VBuffer<float> point, int rowIndex, TPartitionState state, Random rand);
+        public delegate void ReduceAction<TPartitionState, TGlobalState>(TPartitionState[] intermediates, Random rand, ref TGlobalState result);
 
         /// <summary>
         /// Takes a data cursor and perform an in-memory parallel aggregation operation on it. This
         /// helper wraps some of the behavior common to parallel operations over a IRowCursor set,
-        /// including building the set, creating separate IRandom instances, and IRowCursor disposal.
+        /// including building the set, creating separate Random instances, and IRowCursor disposal.
         /// </summary>
         /// <typeparam name="TPartitionState">The type that each parallel cursor will be expected to aggregate to.</typeparam>
         /// <typeparam name="TGlobalState">The type of the final output from combining each per-thread instance of TInterAgg.</typeparam>
@@ -1687,7 +1688,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 var cur = set[i];
                 initChunk(ref buffer[i]);
                 var innerWorkState = buffer[i];
-                IRandom rand = RandomUtils.Create(baseHost.Rand);
+                Random rand = RandomUtils.Create(baseHost.Rand);
                 workArr[i] = () =>
                 {
                     using (cur)

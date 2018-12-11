@@ -17,9 +17,21 @@
   OneInd: Key<U4, 0-1023>
   OneInd: Vec<R4, 1024>
     Metadata 'IsNormalized': Bool: '1'
----- DropSlotsTransform ----
-6 columns:
+---- RowToRowMapperTransform ----
+7 columns:
   One: Text
+  One: Text
+  Num: Vec<R4, 8>
+  Num: Vec<R4, 8>
+  Key: Key<U1, 1-10>
+  OneInd: Key<U4, 0-1023>
+  OneInd: Vec<R4, 1024>
+    Metadata 'IsNormalized': Bool: '1'
+---- RowToRowMapperTransform ----
+8 columns:
+  One: Text
+  One: Text
+  Num: Vec<R4, 8>
   Num: Vec<R4, 8>
   Key: Key<U1, 1-10>
   OneInd: Key<U4, 0-1023>
@@ -28,8 +40,28 @@
   OneInd: Vec<R4, 10>
     Metadata 'IsNormalized': Bool: '1'
 ---- RowToRowMapperTransform ----
-7 columns:
+11 columns:
   One: Text
+  One: Text
+  One: Text
+  Num: Vec<R4, 8>
+  Num: Vec<R4, 8>
+  Num: Vec<R4, 8>
+  Key: Key<U1, 1-10>
+  OneInd: Key<U4, 0-1023>
+  OneInd: Vec<R4, 1024>
+    Metadata 'IsNormalized': Bool: '1'
+  OneInd: Vec<R4, 10>
+    Metadata 'IsNormalized': Bool: '1'
+  OneInd: Vec<R4, 10>
+    Metadata 'IsNormalized': Bool: '1'
+---- RowToRowMapperTransform ----
+12 columns:
+  One: Text
+  One: Text
+  One: Text
+  Num: Vec<R4, 8>
+  Num: Vec<R4, 8>
   Num: Vec<R4, 8>
   Key: Key<U1, 1-10>
   Key: Vec<R4, 10>
@@ -41,9 +73,15 @@
     Metadata 'IsNormalized': Bool: '1'
   OneInd: Vec<R4, 10>
     Metadata 'IsNormalized': Bool: '1'
----- DropSlotsTransform ----
-8 columns:
+  OneInd: Vec<R4, 10>
+    Metadata 'IsNormalized': Bool: '1'
+---- RowToRowMapperTransform ----
+13 columns:
   One: Text
+  One: Text
+  One: Text
+  Num: Vec<R4, 8>
+  Num: Vec<R4, 8>
   Num: Vec<R4, 8>
   Key: Key<U1, 1-10>
   Key: Vec<R4, 10>
@@ -56,6 +94,8 @@
     Metadata 'IsNormalized': Bool: '1'
   OneInd: Key<U4, 0-1023>
   OneInd: Vec<R4, 1024>
+    Metadata 'IsNormalized': Bool: '1'
+  OneInd: Vec<R4, 10>
     Metadata 'IsNormalized': Bool: '1'
   OneInd: Vec<R4, 10>
     Metadata 'IsNormalized': Bool: '1'

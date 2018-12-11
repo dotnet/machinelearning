@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -11,7 +12,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.ML.Transforms.Categorical
+namespace Microsoft.ML.Transforms.Conversions
 {
     public sealed partial class ValueToKeyMappingTransformer
     {
@@ -279,7 +280,7 @@ namespace Microsoft.ML.Transforms.Categorical
             /// the input type to the desired type</param>
             /// <param name="bldr">The builder we add items to</param>
             /// <returns>An associated training pipe</returns>
-            public static Trainer Create(IRow row, int col, bool autoConvert, int count, Builder bldr)
+            public static Trainer Create(Row row, int col, bool autoConvert, int count, Builder bldr)
             {
                 Contracts.AssertValue(row);
                 var schema = row.Schema;
@@ -296,7 +297,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 return Utils.MarshalInvoke(CreateOne<int>, bldr.ItemType.RawType, row, col, autoConvert, count, bldr);
             }
 
-            private static Trainer CreateOne<T>(IRow row, int col, bool autoConvert, int count, Builder bldr)
+            private static Trainer CreateOne<T>(Row row, int col, bool autoConvert, int count, Builder bldr)
             {
                 Contracts.AssertValue(row);
                 Contracts.AssertValue(bldr);
@@ -312,7 +313,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 return new ImplOne<T>(inputGetter, count, bldrT);
             }
 
-            private static Trainer CreateVec<T>(IRow row, int col, int count, Builder bldr)
+            private static Trainer CreateVec<T>(Row row, int col, int count, Builder bldr)
             {
                 Contracts.AssertValue(row);
                 Contracts.AssertValue(bldr);
@@ -848,13 +849,13 @@ namespace Microsoft.ML.Transforms.Categorical
                 return new Impl<T>(env, schema, mapT, infos, textMetadata, iinfo);
             }
 
-            public abstract Delegate GetMappingGetter(IRow row);
+            public abstract Delegate GetMappingGetter(Row row);
 
             /// <summary>
             /// Allows us to optionally register metadata. It is also perfectly legal for
             /// this to do nothing, which corresponds to there being no metadata.
             /// </summary>
-            public abstract void AddMetadata(Schema.Metadata.Builder builder);
+            public abstract void AddMetadata(MetadataBuilder builder);
 
             /// <summary>
             /// Writes out all terms we map to a text writer, with one line per mapped term.
@@ -889,7 +890,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     return dst;
                 }
 
-                public override Delegate GetMappingGetter(IRow input)
+                public override Delegate GetMappingGetter(Row input)
                 {
                     // When constructing the getter, there are a few cases we have to consider:
                     // If scalar then it's just a straightforward mapping.
@@ -1037,7 +1038,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     }
                 }
 
-                public override void AddMetadata(Schema.Metadata.Builder builder)
+                public override void AddMetadata(MetadataBuilder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1080,7 +1081,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     _host.Assert(TypedMap.ItemType.IsKey);
                 }
 
-                public override void AddMetadata(Schema.Metadata.Builder builder)
+                public override void AddMetadata(MetadataBuilder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1095,7 +1096,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     }
                 }
 
-                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, Schema.Metadata.Builder builder)
+                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, MetadataBuilder builder)
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));

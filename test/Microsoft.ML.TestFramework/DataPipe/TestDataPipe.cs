@@ -165,19 +165,19 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             string pathTerms = DeleteOutputPath("SavePipe", "Terms.txt");
             File.WriteAllLines(pathTerms, new string[] {
-                "Amer-Indian-Eskimo",
+                "Amer-Indian-Inuit",
                 "Black",
                 "Asian-Pac-Islander",
                 "White",
             });
 
-            string pathData = GetDataPath("adult.train");
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
             TestCore(pathData, false,
                 new[] {
-                    "loader=Text{header+ sep=comma col=Label:14 col=Age:0 col=Gender:TX:9 col=Mar:TX:5 col=Race:TX:8 col=Num:2,4,10-12 col=Txt:TX:~}",
+                    "loader=Text{header+ col=Label:0 col=Age:9 col=Gender:TX:7 col=Mar:TX:3 col=Race:TX:6 col=Num:10-14 col=Txt:TX:~}",
                     "xf=Cat{col=Race2:Key:Race data={" + pathTerms + "} termCol=Whatever}",
                     "xf=Cat{col=Gender2:Gender terms=Male,Female}",
-                    "xf=Cat{col=Mar2:Mar col={name=Race3 src=Race terms=Other,White,Black,Asian-Pac-Islander,Amer-Indian-Eskimo}}",
+                    "xf=Cat{col=Mar2:Mar col={name=Race3 src=Race terms=Other,White,Black,Asian-Pac-Islander,Amer-Indian-Inuit}}",
                 });
 
             Done();
@@ -194,10 +194,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 "Female"
             });
 
-            string pathData = GetDataPath("adult.test");
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{header+ sep=comma col=Mar:TX:5 col=Race:TX:8 col=Gen:TX:8~9}",
+                    "loader=Text{header+ col=Mar:TX:3 col=Race:TX:6 col=Gen:TX:7~8}",
                     "xf=Concat{col=Comb:Race,Gen,Race}",
                     "xf=Cat{kind=Key col=MarKey:Mar}",
                     "xf=Cat{kind=Key col={name=CombKey src=Comb} data={" + pathTerms + "}}",
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=CatHash{col=OneInd:One bits=10}",
                     // One is for the non-vector case and OneInd is reduced to a small size.
                     "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
-                    // This tests the path where a no-op transform is created.
+                    // This tests the path where a copycolumn transform is created.
                     "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
                     // This tests counts greater than 1
                     "xf=KeyToVector{col=Key}",
@@ -676,10 +676,10 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void SavePipeDropColumns()
         {
-            string pathData = GetDataPath("adult.train");
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
             TestCore(pathData, false,
                 new[] {
-                    "loader=Text{header+ sep=, col=One:TX:0 col=Num:R4:0,2,4,10-12 col=Cat:TX:0~*}",
+                    "loader=Text{header+ col=One:TX:9 col=Num:R4:9-14 col=Cat:TX:0~*}",
                     "xf=MinMax{col=Num}",
                     "xf=NAHandle{col=NumSparse:Num}",
                     "xf=MinMax{col=NumSparse}",
@@ -781,6 +781,35 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Token{col=SourceTokens:Source}",
                     "xf=StopWords{langscol=Lang col=Output:SourceTokens}"
                 }, roundTripText: false);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeDropNAs()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "DropNAs.txt");
+            File.WriteAllLines(pathData,
+                new[]
+                {
+                    "2,0,|,Hello World!",
+                    "3,4,|,",
+                    "0,nan,|,Bye all",
+                    "7,8,|,Good bye",
+                    "?,nan,|,this is a"
+                });
+
+            TestCore(pathData, false,
+                new[]
+                {
+                    "loader=Text{header- sep=, col=Num:R4:0-1 col=Sep:TX:2 col=Text:TX:3}",
+                    "xf=NADrop{col=NumNAsDropped:Num}",
+                    "xf=Token{col=Text}",
+                    "xf=Term{col=Text2:Text terms=Hello,all,Good,Bye}",
+                    "xf=NADrop{col=TextNAsDropped:Text2}",
+                    "xf=Copy{col=Sep2:Sep col=Sep3:Sep}",
+                    "xf=Select{keepcol=Num keepcol=Sep keepcol=NumNAsDropped keepcol=Sep2 keepcol=Text keepcol=Sep3 keepcol=TextNAsDropped}"
+                }, baselineSchema: false, roundTripText: false);
 
             Done();
         }

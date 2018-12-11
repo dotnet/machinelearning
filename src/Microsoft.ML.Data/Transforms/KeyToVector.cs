@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -228,7 +229,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {
@@ -280,21 +281,21 @@ namespace Microsoft.ML.Transforms.Conversions
                 return infos;
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new Schema.Metadata.Builder();
+                    var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
+            private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
                 InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
                 var inputMetadata = InputSchema[srcCol].Metadata;
@@ -329,7 +330,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             GetSlotNames(iinfo, ref dst);
                         };
                         var slotNamesType = new VectorType(TextType.Instance, _types[iinfo]);
-                        builder.Add(new Schema.Column(MetadataUtils.Kinds.SlotNames, slotNamesType, null), getter);
+                        builder.Add(MetadataUtils.Kinds.SlotNames, slotNamesType, getter);
                     }
                 }
 
@@ -339,7 +340,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         GetCategoricalSlotRanges(iinfo, ref dst);
                     };
-                    builder.Add(new Schema.Column(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(_infos[iinfo].TypeSrc.ValueCount), null), getter);
+                    builder.Add(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(_infos[iinfo].TypeSrc.ValueCount), getter);
                 }
 
                 if (!_parent._columns[iinfo].Bag || srcType.ValueCount == 1)
@@ -348,7 +349,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         dst = true;
                     };
-                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
+                    builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
                 }
             }
 
@@ -437,7 +438,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 dst = new VBuffer<int>(ranges.Length, ranges);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -455,7 +456,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// This is for the singleton case. This should be equivalent to both Bag and Ord over
             /// a vector of size one.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterOne(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> MakeGetterOne(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc.IsKey);
@@ -477,7 +478,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             return;
                         }
 
-                        var editor = VBufferEditor.Create(ref dst, size, 1);
+                        var editor = VBufferEditor.Create(ref dst, size, 1, requireIndicesOnDense: true);
                         editor.Values[0] = 1;
                         editor.Indices[0] = (int)src - 1;
 
@@ -488,7 +489,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// This is for the bagging case - vector input and outputs should be added.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterBag(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> MakeGetterBag(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc.IsVector);
@@ -532,7 +533,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// This is for the indicator (non-bagging) case - vector input and outputs should be concatenated.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterInd(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> MakeGetterInd(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc.IsVector);
@@ -745,7 +746,7 @@ namespace Microsoft.ML.Transforms.Conversions
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

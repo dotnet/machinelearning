@@ -298,7 +298,8 @@ namespace Microsoft.ML.Runtime.Numeric
             editor = VBufferEditor.Create(ref dst,
                 dst.Length,
                 dstValues.Length + gapCount,
-                keepOldOnResize: true);
+                keepOldOnResize: true,
+                requireIndicesOnDense: true);
             var indices = editor.Indices;
             values = editor.Values;
             if (gapCount > 0)

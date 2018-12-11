@@ -54,12 +54,12 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCustomTransformer()
         {
-            string dataPath = GetDataPath("adult.test");
+            string dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var source = new MultiFileSource(dataPath);
-            var loader = ML.Data.TextReader(new[] {
-                    new TextLoader.Column("Float1", DataKind.R4, 0),
-                    new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) })
-            }, s => { s.Separator = ","; s.HasHeader = true; });
+            var loader = ML.Data.CreateTextReader(new[] {
+                    new TextLoader.Column("Float1", DataKind.R4, 9),
+                    new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) })
+            }, hasHeader: true);
 
             var data = loader.Read(source);
 
@@ -95,11 +95,11 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dataPath = GetDataPath("adult.test");
             var source = new MultiFileSource(dataPath);
-            var loader = ML.Data.TextReader(new[] {
+            var loader = ML.Data.CreateTextReader(new[] {
                     new TextLoader.Column("Float1", DataKind.R4, 0),
                     new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
                     new TextLoader.Column("Text1", DataKind.Text, 0)
-            }, s => { s.Separator = ","; s.HasHeader = true; });
+            }, hasHeader: true, separatorChar: ',' );
 
             var data = loader.Read(source);
 
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
             catch (Exception) { }
 
-            var badData2 = ML.Transforms.KeepColumns(new[] { "Float1" }).Fit(data).Transform(data);
+            var badData2 = ML.Transforms.SelectColumns(new[] { "Float1" }).Fit(data).Transform(data);
             try
             {
                 est.GetOutputSchema(SchemaShape.Create(badData2.Schema));

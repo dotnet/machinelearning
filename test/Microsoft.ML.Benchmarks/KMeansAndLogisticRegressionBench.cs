@@ -10,7 +10,7 @@ namespace Microsoft.ML.Benchmarks
 {
     public class KMeansAndLogisticRegressionBench
     {
-        private readonly string _dataPath = Program.GetInvariantCultureDataPath("adult.train");
+        private readonly string _dataPath = Program.GetInvariantCultureDataPath("adult.tiny.with-schema.txt");
 
         [Benchmark]
         public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
@@ -18,27 +18,17 @@ namespace Microsoft.ML.Benchmarks
             var ml = new MLContext(seed: 1);
             // Pipeline
 
-            var input = ml.Data.ReadFromTextFile(new[] {
-                            new TextLoader.Column("Label", DataKind.R4, 14),
+            var input = ml.Data.ReadFromTextFile(_dataPath, new[] {
+                            new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("CatFeatures", DataKind.TX,
                                 new [] {
-                                    new TextLoader.Range() { Min = 1, Max = 1 },
-                                    new TextLoader.Range() { Min = 3, Max = 3 },
-                                    new TextLoader.Range() { Min = 5, Max = 9 },
-                                    new TextLoader.Range() { Min = 13, Max = 13 }
+                                    new TextLoader.Range() { Min = 1, Max = 8 },
                                 }),
                             new TextLoader.Column("NumFeatures", DataKind.R4,
                                 new [] {
-                                    new TextLoader.Range() { Min = 0, Max = 0 },
-                                    new TextLoader.Range() { Min = 2, Max = 2 },
-                                    new TextLoader.Range() { Min = 4, Max = 4 },
-                                    new TextLoader.Range() { Min = 10, Max = 12 }
+                                    new TextLoader.Range() { Min = 9, Max = 14 },
                                 }),
-            }, _dataPath, s =>
-            {
-                s.HasHeader = true;
-                s.Separator = ",";
-            });
+            }, hasHeader: true);
 
             var estimatorPipeline = ml.Transforms.Categorical.OneHotEncoding("CatFeatures")
                 .Append(ml.Transforms.Normalize("NumFeatures"))

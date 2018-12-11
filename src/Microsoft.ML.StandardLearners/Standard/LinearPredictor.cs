@@ -20,6 +20,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Numeric;
 using Newtonsoft.Json.Linq;
+using Microsoft.ML.Data;
 
 // This is for deserialization from a model repository.
 [assembly: LoadableClass(typeof(IPredictorProducing<Float>), typeof(LinearBinaryPredictor), null, typeof(SignatureLoadModel),
@@ -47,7 +48,7 @@ namespace Microsoft.ML.Runtime.Learners
         ICanGetSummaryAsIRow,
         ICanSaveSummary,
         IPredictorWithFeatureWeights<Float>,
-        IWhatTheFeatureValueMapper,
+        IFeatureContributionMapper,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
@@ -97,9 +98,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary> The predictor's bias term.</summary>
         public Float Bias { get; protected set; }
 
-        public ColumnType InputType { get; }
-
-        public ColumnType OutputType => NumberType.Float;
+        private readonly ColumnType _inputType;
 
         bool ICanSavePfa.CanSavePfa => true;
 
@@ -121,7 +120,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             Weight = weights;
             Bias = bias;
-            InputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberType.Float, Weight.Length);
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -176,7 +175,7 @@ namespace Microsoft.ML.Runtime.Learners
             else
                 Weight = new VBuffer<Float>(len, Utils.Size(weights), weights, indices);
 
-            InputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberType.Float, Weight.Length);
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
             if (Weight.IsDense)
@@ -185,7 +184,8 @@ namespace Microsoft.ML.Runtime.Learners
                 _weightsDenseLock = new object();
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        [BestFriend]
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
 
@@ -283,7 +283,17 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ColumnType IValueMapper.InputType
+        {
+            get { return _inputType; }
+        }
+
+        ColumnType IValueMapper.OutputType
+        {
+            get { return NumberType.Float; }
+        }
+
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
             Contracts.Check(typeof(TOut) == typeof(Float));
@@ -326,7 +336,7 @@ namespace Microsoft.ML.Runtime.Learners
             bias /= models.Count;
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
@@ -345,29 +355,20 @@ namespace Microsoft.ML.Runtime.Learners
 
         public abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
 
-        public virtual IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        public virtual Row GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
-            var cols = new List<IColumn>();
-
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, Weight.Length), ref names);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
+            var subBuilder = new MetadataBuilder();
+            subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
             var colType = new VectorType(NumberType.R4, Weight.Length);
-
-            // Add the bias and the weight columns.
-            var bias = Bias;
-            cols.Add(RowColumnUtils.GetColumn("Bias", NumberType.R4, ref bias));
-            var weights = Weight;
-            cols.Add(RowColumnUtils.GetColumn("Weights", colType, ref weights, slotNamesRow));
-            return RowColumnUtils.GetRow(null, cols.ToArray());
+            var builder = new MetadataBuilder();
+            builder.AddPrimitiveValue("Bias", NumberType.R4, Bias);
+            builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.GetMetadata());
+            return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        public virtual IRow GetStatsIRowOrNull(RoleMappedSchema schema)
-        {
-            return null;
-        }
+        public virtual Row GetStatsIRowOrNull(RoleMappedSchema schema) => null;
 
         public abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
 
@@ -376,7 +377,7 @@ namespace Microsoft.ML.Runtime.Learners
             Weight.CopyTo(ref weights);
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
+        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
         {
             Contracts.Check(typeof(TSrc) == typeof(VBuffer<Float>));
             Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<Float>));
@@ -459,7 +460,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // (Base class)
@@ -510,17 +511,14 @@ namespace Microsoft.ML.Runtime.Learners
             return results;
         }
 
-        public override IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        public override Row GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;
-            var cols = new List<IColumn>();
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-
-            // Add the stat columns.
-            _stats.AddStatsColumns(cols, this, schema, in names);
-            return RowColumnUtils.GetRow(null, cols.ToArray());
+            var meta = _stats.MakeStatisticsMetadata(this, schema, in names);
+            return MetadataUtils.MetadataAsRow(meta);
         }
 
         public override void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
@@ -613,7 +611,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new LinearRegressionPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -689,7 +687,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new PoissonRegressionPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

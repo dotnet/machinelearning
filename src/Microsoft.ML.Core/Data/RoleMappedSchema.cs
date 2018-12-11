@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -466,7 +467,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Encapsulates an <see cref="IDataView"/> plus a corresponding <see cref="RoleMappedSchema"/>.
     /// Note that the schema of <see cref="RoleMappedSchema.Schema"/> of <see cref="Schema"/> is
-    /// guaranteed to equal the the <see cref="ISchematized.Schema"/> of <see cref="Data"/>.
+    /// guaranteed to equal the the <see cref="IDataView.Schema"/> of <see cref="Data"/>.
     /// </summary>
     public sealed class RoleMappedData
     {
@@ -477,7 +478,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// The role mapped schema. Note that <see cref="Schema"/>'s <see cref="RoleMappedSchema.Schema"/> is
-        /// guaranteed to be the same as <see cref="Data"/>'s <see cref="ISchematized.Schema"/>.
+        /// guaranteed to be the same as <see cref="Data"/>'s <see cref="IDataView.Schema"/>.
         /// </summary>
         public RoleMappedSchema Schema { get; }
 

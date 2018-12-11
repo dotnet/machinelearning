@@ -41,17 +41,17 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             context.RegisterSemanticModelAction(Analyze);
         }
 
-        private void Analyze(SemanticModelAnalysisContext context)
+        private void AnalyzeCore(SemanticModelAnalysisContext context, string attributeName, string assemblyAttributeName)
         {
             var model = context.SemanticModel;
             var comp = model.Compilation;
 
             // Get the symbols of the key types we are analyzing. If we can't find either
             // of them there is no point in going further.
-            var bestFriendAttributeType = comp.GetTypeByMetadataName(AttributeName);
+            var bestFriendAttributeType = comp.GetTypeByMetadataName(attributeName);
             if (bestFriendAttributeType == null)
                 return;
-            var wantsToBeBestFriendsAttributeType = comp.GetTypeByMetadataName(AssemblyAttributeName);
+            var wantsToBeBestFriendsAttributeType = comp.GetTypeByMetadataName(assemblyAttributeName);
             if (wantsToBeBestFriendsAttributeType == null)
                 return;
 
@@ -89,6 +89,9 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 // further.
                 if (!assemblyHasAttrMap.TryGetValue(symbolAssembly, out bool assemblyWantsBestFriends))
                 {
+                    // It's the first of seeing the assembly containing symbol. A key-value pair is added into assemblyHasAttrMap to
+                    // indicate if that assembly includes an attribute WantsToBeBestFriends. If an assembly has WantsToBeBestFriends then
+                    // its associated value would be true.
                     assemblyWantsBestFriends = symbolAssembly.GetAttributes().Any(a => a.AttributeClass == wantsToBeBestFriendsAttributeType);
                     assemblyHasAttrMap[symbolAssembly] = assemblyWantsBestFriends;
                 }
@@ -103,6 +106,12 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 var diagnostic = Diagnostic.Create(Rule, node.GetLocation(), symbol.Name);
                 context.ReportDiagnostic(diagnostic);
             }
+        }
+
+        private void Analyze(SemanticModelAnalysisContext context)
+        {
+            AnalyzeCore(context, "Microsoft.ML.BestFriendAttribute", "Microsoft.ML.WantsToBeBestFriendsAttribute");
+            AnalyzeCore(context, "Microsoft.ML.Runtime.Internal.CpuMath.Core.BestFriendAttribute", "Microsoft.ML.Runtime.Internal.CpuMath.Core.WantsToBeBestFriendsAttribute");
         }
     }
 }

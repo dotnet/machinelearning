@@ -41,10 +41,10 @@ namespace Microsoft.ML.Runtime.Numeric
         }
     }
 
-    internal partial class GenericSpanSortHelper<TKey, TValue>
+    internal partial class GenericSpanSortHelper<TKey>
         where TKey : IComparable<TKey>
     {
-        public static void Sort(Span<TKey> keys, Span<TValue> values, int index, int length)
+        public static void Sort<TValue>(Span<TKey> keys, Span<TValue> values, int index, int length)
         {
             Contracts.Assert(keys != null, "Check the arguments in the caller!");
             Contracts.Assert(index >= 0 && length >= 0 && (keys.Length - index >= length), "Check the arguments in the caller!");
@@ -52,38 +52,41 @@ namespace Microsoft.ML.Runtime.Numeric
             IntrospectiveSort(keys, values, index, length);
         }
 
-        private static void SwapIfGreaterWithItems(Span<TKey> keys, Span<TValue> values, int a, int b)
+        public static void Sort(Span<TKey> keys, int index, int length)
+        {
+            Sort(keys, keys, index, length);
+        }
+
+        private static void SwapIfGreaterWithItems<TValue>(Span<TKey> keys, Span<TValue> values, int a, int b)
         {
             if (a != b)
             {
                 if (keys[a] != null && keys[a].CompareTo(keys[b]) > 0)
                 {
                     TKey key = keys[a];
-                    keys[a] = keys[b];
-                    keys[b] = key;
-
                     TValue value = values[a];
+                    keys[a] = keys[b];
                     values[a] = values[b];
+                    keys[b] = key;
                     values[b] = value;
                 }
             }
         }
 
-        private static void Swap(Span<TKey> keys, Span<TValue> values, int i, int j)
+        private static void Swap<TValue>(Span<TKey> keys, Span<TValue> values, int i, int j)
         {
             if (i != j)
             {
                 TKey k = keys[i];
-                keys[i] = keys[j];
-                keys[j] = k;
-
                 TValue v = values[i];
+                keys[i] = keys[j];
                 values[i] = values[j];
+                keys[j] = k;
                 values[j] = v;
             }
         }
 
-        internal static void IntrospectiveSort(Span<TKey> keys, Span<TValue> values, int left, int length)
+        internal static void IntrospectiveSort<TValue>(Span<TKey> keys, Span<TValue> values, int left, int length)
         {
             Contracts.Assert(keys != null);
             Contracts.Assert(values != null);
@@ -99,7 +102,7 @@ namespace Microsoft.ML.Runtime.Numeric
             IntroSort(keys, values, left, length + left - 1, 2 * IntrospectiveSortUtilities.FloorLog2PlusOne(length));
         }
 
-        private static void IntroSort(Span<TKey> keys, Span<TValue> values, int lo, int hi, int depthLimit)
+        private static void IntroSort<TValue>(Span<TKey> keys, Span<TValue> values, int lo, int hi, int depthLimit)
         {
             Contracts.Assert(keys != null);
             Contracts.Assert(values != null);
@@ -146,7 +149,7 @@ namespace Microsoft.ML.Runtime.Numeric
             }
         }
 
-        private static int PickPivotAndPartition(Span<TKey> keys, Span<TValue> values, int lo, int hi)
+        private static int PickPivotAndPartition<TValue>(Span<TKey> keys, Span<TValue> values, int lo, int hi)
         {
             Contracts.Assert(keys != null);
             Contracts.Assert(values != null);
@@ -191,7 +194,7 @@ namespace Microsoft.ML.Runtime.Numeric
             return left;
         }
 
-        private static void Heapsort(Span<TKey> keys, Span<TValue> values, int lo, int hi)
+        private static void Heapsort<TValue>(Span<TKey> keys, Span<TValue> values, int lo, int hi)
         {
             Contracts.Assert(keys != null);
             Contracts.Assert(values != null);
@@ -211,7 +214,7 @@ namespace Microsoft.ML.Runtime.Numeric
             }
         }
 
-        private static void DownHeap(Span<TKey> keys, Span<TValue> values, int i, int n, int lo)
+        private static void DownHeap<TValue>(Span<TKey> keys, Span<TValue> values, int i, int n, int lo)
         {
             Contracts.Assert(keys != null);
             Contracts.Assert(lo >= 0);
@@ -237,7 +240,7 @@ namespace Microsoft.ML.Runtime.Numeric
             values[lo + i - 1] = dValue;
         }
 
-        private static void InsertionSort(Span<TKey> keys, Span<TValue> values, int lo, int hi)
+        private static void InsertionSort<TValue>(Span<TKey> keys, Span<TValue> values, int lo, int hi)
         {
             Contracts.Assert(keys != null);
             Contracts.Assert(values != null);
@@ -265,5 +268,4 @@ namespace Microsoft.ML.Runtime.Numeric
             }
         }
     }
-
 }

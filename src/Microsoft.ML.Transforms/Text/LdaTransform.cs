@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -708,18 +709,18 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var info = _parent._columns[i];
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, new VectorType(NumberType.Float, info.NumTopic), null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, new VectorType(NumberType.Float, info.NumTopic), null);
                 }
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -728,7 +729,7 @@ namespace Microsoft.ML.Transforms.Text
                 return GetTopic(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<float>> GetTopic(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetTopic(Row input, int iinfo)
             {
                 var getSrc = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, input, _srcCols[iinfo]);
                 var src = default(VBuffer<Double>);
@@ -1067,10 +1068,8 @@ namespace Microsoft.ML.Transforms.Text
             return columnMappings;
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
-        {
-            return new Mapper(this, schema);
-        }
+        private protected override IRowMapper MakeRowMapper(Schema schema)
+            => new Mapper(this, schema);
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
@@ -1144,7 +1143,7 @@ namespace Microsoft.ML.Transforms.Text
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

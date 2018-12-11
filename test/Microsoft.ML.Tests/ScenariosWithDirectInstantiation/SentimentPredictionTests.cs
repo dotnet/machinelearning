@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
+#pragma warning disable 612
     public partial class ScenariosTests
     {
         [Fact]
@@ -24,17 +25,14 @@ namespace Microsoft.ML.Scenarios
 
             var env = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env,
-                new TextLoader.Arguments()
+            var loader = env.Data.ReadFromTextFile(dataPath,
+                columns: new[]
                 {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
-                    {
-                        new TextLoader.Column("Label", DataKind.Num, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                    }
-                }, new MultiFileSource(dataPath));
+                    new TextLoader.Column("Label", DataKind.Num, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                },
+                hasHeader: true
+            );
 
             var trans = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
             {
@@ -45,10 +43,10 @@ namespace Microsoft.ML.Scenarios
                 },
                 OutputTokens = true,
                 KeepPunctuations = false,
-                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L2,
-                CharFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
-                WordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
+                CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
+                WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
             },
             loader);
 
@@ -85,17 +83,14 @@ namespace Microsoft.ML.Scenarios
 
             var env = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env,
-                new TextLoader.Arguments()
+            var loader = env.Data.ReadFromTextFile(dataPath,
+                columns: new[]
                 {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
-                    {
-                        new TextLoader.Column("Label", DataKind.Num, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                    }
-                }, new MultiFileSource(dataPath));
+                    new TextLoader.Column("Label", DataKind.Num, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                },
+                hasHeader: true 
+            );
 
             var text = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
             {
@@ -106,7 +101,7 @@ namespace Microsoft.ML.Scenarios
                 },
                 OutputTokens = true,
                 KeepPunctuations = false,
-                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,
@@ -151,7 +146,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(1.0, (double)summary[0].Value, 1);
         }
 
-        private BinaryClassificationMetrics EvaluateBinary(IHostEnvironment env, IDataView scoredData)
+        private Microsoft.ML.Legacy.Models.BinaryClassificationMetrics EvaluateBinary(IHostEnvironment env, IDataView scoredData)
         {
             var dataEval = new RoleMappedData(scoredData, label: "Label", feature: "Features", opt: true);
 
@@ -162,7 +157,9 @@ namespace Microsoft.ML.Scenarios
             var evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
             var metricsDic = evaluator.Evaluate(dataEval);
 
-            return BinaryClassificationMetrics.FromMetrics(env, metricsDic["OverallMetrics"], metricsDic["ConfusionMatrix"])[0];
+            return Microsoft.ML.Legacy.Models.BinaryClassificationMetrics
+                    .FromMetrics(env, metricsDic["OverallMetrics"], metricsDic["ConfusionMatrix"])[0];
         }
     }
+#pragma warning restore 612
 }

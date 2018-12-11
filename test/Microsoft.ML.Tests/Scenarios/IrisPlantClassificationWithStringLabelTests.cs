@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
+#pragma warning disable 612, 618
     public partial class ScenariosTests
     {
         [Fact]
@@ -142,4 +143,5 @@ namespace Microsoft.ML.Scenarios
             public string IrisPlantType;
         }
     }
+#pragma warning restore 612, 618
 }

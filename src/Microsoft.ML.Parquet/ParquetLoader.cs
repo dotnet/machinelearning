@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -310,12 +311,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="ectx">The exception context.</param>
         /// <param name="cols">The columns.</param>
         /// <returns>The resulting schema.</returns>
-        private Schema CreateSchema(IExceptionContext ectx, Column[] cols)
+        private ML.Data.Schema CreateSchema(IExceptionContext ectx, Column[] cols)
         {
             Contracts.AssertValue(ectx);
             Contracts.AssertValue(cols);
-
-            return new Schema(cols.Select(c => new Schema.Column(c.Name, c.ColType, null)));
+            var builder = new SchemaBuilder();
+            builder.AddColumns(cols.Select(c => new ML.Data.Schema.DetachedColumn(c.Name, c.ColType, null)));
+            return builder.GetSchema();
         }
 
         /// <summary>
@@ -382,26 +384,26 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle => true;
 
-        public Schema Schema { get; }
+        public ML.Data.Schema Schema { get; }
 
         public long? GetRowCount()
         {
             return _rowCount;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
             return new Cursor(this, predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
         public void Save(ModelSaveContext ctx)
@@ -431,7 +433,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly ParquetLoader _loader;
             private readonly Stream _fileStream;
@@ -444,9 +446,9 @@ namespace Microsoft.ML.Runtime.Data
             private IEnumerator<int> _dataSetEnumerator;
             private IEnumerator<int> _blockEnumerator;
             private IList[] _columnValues;
-            private IRandom _rand;
+            private Random _rand;
 
-            public Cursor(ParquetLoader parent, Func<int, bool> predicate, IRandom rand)
+            public Cursor(ParquetLoader parent, Func<int, bool> predicate, Random rand)
                : base(parent._host)
             {
                 Ch.AssertValue(predicate);
@@ -584,11 +586,11 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            public Schema Schema => _loader.Schema;
+            public override ML.Data.Schema Schema => _loader.Schema;
 
             public override long Batch => 0;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
 
@@ -610,7 +612,7 @@ namespace Microsoft.ML.Runtime.Data
                    };
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;

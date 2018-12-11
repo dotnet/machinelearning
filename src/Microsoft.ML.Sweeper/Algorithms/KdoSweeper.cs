@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
                     else
                     {
                         // If Beta flag set, sample from independent Beta distributions instead.
-                        SysRandom rng = new SysRandom();
+                        Random rng = new Random();
                         double alpha = 1 + 15 * fitness;
                         foreach (int index in numericParamIndices)
                         {
