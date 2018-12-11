@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
     using U2 = UInt16;
     using U4 = UInt32;
     using U8 = UInt64;
-    using UG = UInt128;
+    using UG = RowId;
 
     public delegate bool TryParseMapper<T>(in TX src, out T dst);
 
@@ -1060,7 +1060,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         }
 
         /// <summary>
-        /// A parse method that transforms a 34-length string into a <see cref="UInt128"/>.
+        /// A parse method that transforms a 34-length string into a <see cref="RowId"/>.
         /// </summary>
         /// <param name="src">What should be a 34-length hexadecimal representation, including a 0x prefix,
         /// of the 128-bit number</param>

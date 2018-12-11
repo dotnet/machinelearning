@@ -278,10 +278,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             public long Position => 0;
             public long Batch => 0;
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
                 => IdGetter;
 
-            private static void IdGetter(ref UInt128 id)
+            private static void IdGetter(ref RowId id)
                 => id = default;
         }
 
@@ -343,10 +343,10 @@ namespace Microsoft.ML.Runtime.Data
 
             long ICounted.Position => 0;
             long ICounted.Batch => 0;
-            ValueGetter<UInt128> ICounted.GetIdGetter()
+            ValueGetter<RowId> ICounted.GetIdGetter()
                 => IdGetter;
 
-            private static void IdGetter(ref UInt128 id)
+            private static void IdGetter(ref RowId id)
                 => id = default;
 
             private sealed class SchemaImpl : ISchema
@@ -580,7 +580,7 @@ namespace Microsoft.ML.Runtime.Data
                 return _columns[col].IsActive;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return _counted.GetIdGetter();
             }

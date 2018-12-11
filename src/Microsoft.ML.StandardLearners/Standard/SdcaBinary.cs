@@ -346,7 +346,7 @@ namespace Microsoft.ML.Trainers
                 pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, count));
                 while (cursor.MoveNext())
                 {
-                    UInt128 id = cursor.Id;
+                    RowId id = cursor.Id;
                     if (id.Hi > 0 || id.Lo >= (ulong)maxTrainingExamples)
                     {
                         needLookup = true;
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Trainers
             if (invariants != null)
             {
                 Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
-                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 int invariantCoeff = weightSetCount == 1 ? 1 : 2;
                 using (var cursor = cursorFactory.Create())
                 using (var pch = Host.StartProgressChannel("SDCA invariants initialization"))
@@ -768,7 +768,7 @@ namespace Microsoft.ML.Trainers
                 if (pch != null)
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, rowCount));
 
-                Func<UInt128, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
+                Func<RowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
@@ -930,7 +930,7 @@ namespace Microsoft.ML.Trainers
             using (var cursor = cursorFactory.Create())
             {
                 long row = 0;
-                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
@@ -1065,13 +1065,13 @@ namespace Microsoft.ML.Trainers
         /// Returns a function delegate to retrieve index from id.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<UInt128, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
+        protected Func<RowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
-                return (UInt128 id) =>
+                return (RowId id) =>
                 {
                     Contracts.Assert(id.Hi == 0);
                     Contracts.Assert((long)id.Lo < maxTrainingExamples);
@@ -1080,7 +1080,7 @@ namespace Microsoft.ML.Trainers
             }
             else
             {
-                return (UInt128 id) =>
+                return (RowId id) =>
                 {
                     long idx;
                     bool found = idToIdx.TryGetIndex(id, out idx);
@@ -1096,13 +1096,13 @@ namespace Microsoft.ML.Trainers
         /// Only works if the cursor is not shuffled.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<UInt128, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
+        protected Func<RowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
-                return (UInt128 id, long row) =>
+                return (RowId id, long row) =>
                 {
                     Contracts.Assert(id.Hi == 0);
                     Contracts.Assert((long)id.Lo < maxTrainingExamples);
@@ -1111,7 +1111,7 @@ namespace Microsoft.ML.Trainers
             }
             else
             {
-                return (UInt128 id, long row) =>
+                return (RowId id, long row) =>
                 {
 #if DEBUG
                     long idx;
@@ -1130,7 +1130,7 @@ namespace Microsoft.ML.Trainers
         // This class can also be made to accommodate generic type, as long as the type implements a
         // good 64-bit hash function.
         /// <summary>
-        /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Runtime.Data.UInt128"/>,
+        /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Runtime.Data.RowId"/>,
         /// and accommodates size larger than 2 billion. This class is an extension based on BCL.
         /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity.
         /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than
@@ -1144,9 +1144,9 @@ namespace Microsoft.ML.Trainers
             private readonly struct Entry
             {
                 public readonly long ItNext;
-                public readonly UInt128 Value;
+                public readonly RowId Value;
 
-                public Entry(long itNext, UInt128 value)
+                public Entry(long itNext, RowId value)
                 {
                     ItNext = itNext;
                     Value = value;
@@ -1183,7 +1183,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Make sure the given id is in this lookup table and return the index of the id.
             /// </summary>
-            public long Add(UInt128 id)
+            public long Add(RowId id)
             {
                 long iit = GetIit(Get64BitHashCode(id));
                 long index = GetIndexCore(id, iit);
@@ -1198,7 +1198,7 @@ namespace Microsoft.ML.Trainers
             /// Returns a bool representing if id is present.
             /// Index outputs the index that the id, -1 otherwise.
             /// </summary>
-            public bool TryGetIndex(UInt128 id, out long index)
+            public bool TryGetIndex(RowId id, out long index)
             {
                 AssertValid();
                 index = GetIndexCore(id, GetIit(Get64BitHashCode(id)));
@@ -1213,7 +1213,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Return the index of value, -1 if it is not present.
             /// </summary>
-            private long GetIndexCore(UInt128 val, long iit)
+            private long GetIndexCore(RowId val, long iit)
             {
                 Contracts.Assert(0 <= iit & iit < _rgit.Length);
                 long it = _rgit[iit];
@@ -1234,7 +1234,7 @@ namespace Microsoft.ML.Trainers
             /// Adds the value as a TItem. Does not check whether the TItem is already present.
             /// Returns the index of the added value.
             /// </summary>
-            private long AddCore(UInt128 val, long iit)
+            private long AddCore(RowId val, long iit)
             {
                 AssertValid();
                 Contracts.Assert(0 <= iit && iit < _rgit.Length);
@@ -1282,7 +1282,7 @@ namespace Microsoft.ML.Trainers
                 _entries.ApplyRange(0, _count,
                     (long it, ref Entry entry) =>
                     {
-                        UInt128 value = entry.Value;
+                        RowId value = entry.Value;
                         long iit = GetIit(Get64BitHashCode(entry.Value));
                         entry = new Entry(_rgit[iit], value);
                         _rgit[iit] = it;
@@ -1309,7 +1309,7 @@ namespace Microsoft.ML.Trainers
                 Console.WriteLine("Table: {0} out of {1}", c, _rgit.Length);
             }
 
-            private static long Get64BitHashCode(UInt128 value)
+            private static long Get64BitHashCode(RowId value)
             {
                 // REVIEW: Is this a good way to compute hash?
                 ulong lo = value.Lo;

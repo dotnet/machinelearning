@@ -416,7 +416,7 @@ namespace Microsoft.ML.Runtime.Data
                         return _row.GetGetter<TValue>(col);
                     }
 
-                    public ValueGetter<UInt128> GetIdGetter()
+                    public ValueGetter<RowId> GetIdGetter()
                     {
                         return _row.GetIdGetter();
                     }

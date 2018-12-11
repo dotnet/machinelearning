@@ -194,7 +194,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return a;
         }
 
-        // UInt128
+        // RowId
 
         public static MD5Hash ToUInt128(this byte[] buffer, ref int position)
         {
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return a;
         }
 
-        // UInt128[]
+        // RowId[]
 
         public static int SizeInBytes(this MD5Hash[] array)
         {

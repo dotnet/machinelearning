@@ -171,12 +171,12 @@ namespace Microsoft.ML.Transforms
         private abstract class StatAggregatorAcrossSlots<TItem, TStat> : StatAggregator<VBuffer<TItem>, TStat>
         {
             // The number of values that have been processed.
-            private UInt128 _valueCount;
+            private RowId _valueCount;
 
             /// <summary>
             /// Returns the number of values that have been processed so far.
             /// </summary>
-            public UInt128 ValueCount { get { return _valueCount; } }
+            public RowId ValueCount { get { return _valueCount; } }
 
             protected StatAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col)
                 : base(ch, cursor, col)
@@ -388,7 +388,7 @@ namespace Microsoft.ML.Transforms
                 return stat;
             }
 
-            public Double GetCurrentValue(IChannel ch, UInt128 count)
+            public Double GetCurrentValue(IChannel ch, RowId count)
             {
                 Contracts.Assert(Double.MinValue <= _cur && _cur <= Double.MaxValue);
                 Contracts.Assert(_cnz >= 0 && _cna >= 0);
@@ -489,7 +489,7 @@ namespace Microsoft.ML.Transforms
                 return neg ? -(long)res : (long)res;
             }
 
-            public long GetCurrentValue(IChannel ch, UInt128 count, long valMax)
+            public long GetCurrentValue(IChannel ch, RowId count, long valMax)
             {
                 AssertValid(valMax);
                 Contracts.Assert(count >= (ulong)_cna);

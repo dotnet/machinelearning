@@ -11,14 +11,14 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// A sixteen-byte unsigned integer.
     /// </summary>
-    public readonly struct UInt128 : IComparable<UInt128>, IEquatable<UInt128>
+    public readonly struct RowId : IComparable<RowId>, IEquatable<RowId>
     {
         // The low order bits. Corresponds to H1 in the Murmur algorithms.
         public readonly ulong Lo;
         // The high order bits. Corresponds to H2 in the Murmur algorithms.
         public readonly ulong Hi;
 
-        public UInt128(ulong lo, ulong hi)
+        public RowId(ulong lo, ulong hi)
         {
             Lo = lo;
             Hi = hi;
@@ -30,76 +30,76 @@ namespace Microsoft.ML.Runtime.Data
             return string.Format("{0:x16}{1:x16}", Hi, Lo);
         }
 
-        public int CompareTo(UInt128 other)
+        public int CompareTo(RowId other)
         {
             int result = Hi.CompareTo(other.Hi);
             return result == 0 ? Lo.CompareTo(other.Lo) : result;
         }
 
-        public bool Equals(UInt128 other)
+        public bool Equals(RowId other)
         {
             return Lo == other.Lo && Hi == other.Hi;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj != null && obj is UInt128)
+            if (obj != null && obj is RowId)
             {
-                var item = (UInt128)obj;
+                var item = (RowId)obj;
                 return Equals(item);
             }
             return false;
         }
 
-        public static UInt128 operator +(UInt128 first, ulong second)
+        public static RowId operator +(RowId first, ulong second)
         {
             ulong resHi = first.Hi;
             ulong resLo = first.Lo + second;
             if (resLo < second)
                 resHi++;
-            return new UInt128(resLo, resHi);
+            return new RowId(resLo, resHi);
         }
 
-        public static UInt128 operator -(UInt128 first, ulong second)
+        public static RowId operator -(RowId first, ulong second)
         {
             ulong resHi = first.Hi;
             ulong resLo = first.Lo - second;
             if (resLo > first.Lo)
                 resHi--;
-            return new UInt128(resLo, resHi);
+            return new RowId(resLo, resHi);
         }
 
-        public static bool operator ==(UInt128 first, ulong second)
+        public static bool operator ==(RowId first, ulong second)
         {
             return first.Hi == 0 && first.Lo == second;
         }
 
-        public static bool operator !=(UInt128 first, ulong second)
+        public static bool operator !=(RowId first, ulong second)
         {
             return !(first == second);
         }
 
-        public static bool operator <(UInt128 first, ulong second)
+        public static bool operator <(RowId first, ulong second)
         {
             return first.Hi  == 0 && first.Lo < second;
         }
 
-        public static bool operator >(UInt128 first, ulong second)
+        public static bool operator >(RowId first, ulong second)
         {
             return first.Hi > 0 || first.Lo > second;
         }
 
-        public static bool operator <=(UInt128 first, ulong second)
+        public static bool operator <=(RowId first, ulong second)
         {
             return first.Hi == 0 && first.Lo <= second;
         }
 
-        public static bool operator >=(UInt128 first, ulong second)
+        public static bool operator >=(RowId first, ulong second)
         {
             return first.Hi > 0 || first.Lo >= second;
         }
 
-        public static explicit operator double(UInt128 x)
+        public static explicit operator double(RowId x)
         {
             // REVIEW: The 64-bit JIT has a bug where rounding might be not quite
             // correct when converting a ulong to double with the high bit set. Should we
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime.Data
         /// that were all zeros, except for the last bit which is one.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UInt128 Fork()
+        public RowId Fork()
         {
             ulong h1 = Lo;
             ulong h2 = Hi;
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
             h2 += h1;
             h2 = h2 * 5 + 0x38495ab5;
             h1 ^= RotL(_c1, 31) * _c2;
-            return new UInt128(h1, h2);
+            return new RowId(h1, h2);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Data
         /// that were all zeros.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UInt128 Next()
+        public RowId Next()
         {
             ulong h1 = Lo;
             ulong h2 = Hi;
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.Data
             h2 = RotL(h2, 31);
             h2 += h1;
             h2 = h2 * 5 + 0x38495ab5;
-            return new UInt128(h1, h2);
+            return new RowId(h1, h2);
         }
 
         /// <summary>
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="other"></param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UInt128 Combine(UInt128 other)
+        public RowId Combine(RowId other)
         {
             var h1 = Lo;
             var h2 = Hi;
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.Data
             h2 += h1;
             h2 = h2 * 5 + 0x38495ab5;
 
-            return new UInt128(h1, h2);
+            return new RowId(h1, h2);
         }
         #endregion
     }

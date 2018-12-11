@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract long Batch { get; }
 
-        public abstract ValueGetter<UInt128> GetIdGetter();
+        public abstract ValueGetter<RowId> GetIdGetter();
 
         public CursorState State { get; private set; }
 

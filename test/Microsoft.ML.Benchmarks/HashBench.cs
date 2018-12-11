@@ -23,8 +23,8 @@ namespace Microsoft.ML.Benchmarks
 
             public long Batch => 0;
 
-            public ValueGetter<UInt128> GetIdGetter()
-                => (ref UInt128 val) => val = new UInt128((ulong)Position, 0);
+            public ValueGetter<RowId> GetIdGetter()
+                => (ref RowId val) => val = new RowId((ulong)Position, 0);
         }
 
         private const int Count = 100_000;

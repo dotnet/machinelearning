@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             public long Position => 0;
             public long Batch => 0;
-            public ValueGetter<UInt128> GetIdGetter() => (ref UInt128 val) => val = default;
+            public ValueGetter<RowId> GetIdGetter() => (ref RowId val) => val = default;
         }
 
         private void HashTestCore<T>(T val, PrimitiveType type, uint expected, uint expectedOrdered, uint expectedOrdered3)
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestCore(value, NumberType.U8, expected, expectedOrdered, expectedOrdered3);
             HashTestCore((ulong)value, new KeyType(typeof(ulong), 0, 0), eKey, eoKey, e3Key);
 
-            HashTestCore(new UInt128(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
+            HashTestCore(new RowId(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
 
             // Next let's check signed numbers.
 

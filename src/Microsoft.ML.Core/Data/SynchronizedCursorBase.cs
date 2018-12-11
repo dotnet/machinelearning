@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Data
             return _root;
         }
 
-        public ValueGetter<UInt128> GetIdGetter()
+        public ValueGetter<RowId> GetIdGetter()
         {
             return Input.GetIdGetter();
         }

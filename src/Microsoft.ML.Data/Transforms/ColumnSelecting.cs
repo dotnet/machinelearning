@@ -600,7 +600,7 @@ namespace Microsoft.ML.Transforms
                 return _input.GetGetter<TValue>(index);
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
                 => _input.GetIdGetter();
 
             public bool IsColumnActive(int col) => true;

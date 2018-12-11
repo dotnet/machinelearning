@@ -430,7 +430,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 case DataKind.U8:
                     return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
                 case DataKind.U16:
-                    return MakeScalarHashGetter<UInt128, HashU16>(input, srcCol, seed, mask);
+                    return MakeScalarHashGetter<RowId, HashU16>(input, srcCol, seed, mask);
                 case DataKind.I1:
                     return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
                 case DataKind.I2:
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 case DataKind.U8:
                     return ComposeGetterVecCore<ulong, HashU8>(input, iinfo, srcCol, srcType);
                 case DataKind.U16:
-                    return ComposeGetterVecCore<UInt128, HashU16>(input, iinfo, srcCol, srcType);
+                    return ComposeGetterVecCore<RowId, HashU16>(input, iinfo, srcCol, srcType);
                 case DataKind.I1:
                     return ComposeGetterVecCore<sbyte, HashI1>(input, iinfo, srcCol, srcType);
                 case DataKind.I2:
@@ -647,10 +647,10 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private readonly struct HashU16: IHasher<UInt128>
+        private readonly struct HashU16: IHasher<RowId>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public uint HashCore(uint seed, uint mask, in UInt128 value)
+            public uint HashCore(uint seed, uint mask, in RowId value)
             {
                 var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Lo));
                 var hi = Utils.GetHi(value.Lo);

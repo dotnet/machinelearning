@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Data
             _getters = getters ?? new Delegate[0];
         }
 
-        public ValueGetter<UInt128> GetIdGetter()
+        public ValueGetter<RowId> GetIdGetter()
         {
             return _input.GetIdGetter();
         }

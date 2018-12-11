@@ -319,7 +319,7 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
+            public ValueGetter<RowId> GetIdGetter() => _input.GetIdGetter();
 
             public bool IsColumnActive(int col)
             {

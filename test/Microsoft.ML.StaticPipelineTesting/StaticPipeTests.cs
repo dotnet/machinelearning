@@ -257,7 +257,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             public long Position => 0;
             public long Batch => 0;
-            public ValueGetter<UInt128> GetIdGetter() => (ref UInt128 v) => v = default;
+            public ValueGetter<RowId> GetIdGetter() => (ref RowId v) => v = default;
         }
 
         [Fact]

@@ -278,7 +278,7 @@ namespace Microsoft.ML.Runtime.Api
                     _setters[i] = GenerateSetter(_input, parent._columnIndices[i], parent._columns[i], parent._pokes[i], parent._peeks[i]);
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return _input.GetIdGetter();
             }

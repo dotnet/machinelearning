@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.Api
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return _input.GetIdGetter();
             }

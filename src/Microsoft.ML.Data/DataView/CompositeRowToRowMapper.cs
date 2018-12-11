@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Data
             public long Position => _row.Position;
             public long Batch => _row.Batch;
             public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
-            public ValueGetter<UInt128> GetIdGetter() => _row.GetIdGetter();
+            public ValueGetter<RowId> GetIdGetter() => _row.GetIdGetter();
             public bool IsColumnActive(int col) => _pred(col);
         }
     }

@@ -214,7 +214,7 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return _input.GetIdGetter();
             }

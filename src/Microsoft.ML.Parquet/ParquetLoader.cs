@@ -515,7 +515,7 @@ namespace Microsoft.ML.Runtime.Data
                     case DataType.Int64:
                         return CreateGetterDelegateCore<long?, long>(col, _parquetConversions.Conv);
                     case DataType.Int96:
-                        return CreateGetterDelegateCore<BigInteger, UInt128>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<BigInteger, RowId>(col, _parquetConversions.Conv);
                     case DataType.ByteArray:
                         return CreateGetterDelegateCore<byte[], VBuffer<Byte>>(col, _parquetConversions.Conv);
                     case DataType.String:
@@ -599,14 +599,14 @@ namespace Microsoft.ML.Runtime.Data
                 return getter;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                   (ref UInt128 val) =>
+                   (ref RowId val) =>
                    {
                        // Unique row id consists of Position of cursor (how many times MoveNext has been called), and position in file
                        Ch.Check(IsGood, "Cannot call ID getter in current state");
-                       val = new UInt128((ulong)(_readerOptions.Offset + _curDataSetRow), 0);
+                       val = new RowId((ulong)(_readerOptions.Offset + _curDataSetRow), 0);
                    };
             }
 
@@ -706,11 +706,11 @@ namespace Microsoft.ML.Runtime.Data
             public void Conv(in IList src, ref ReadOnlyMemory<char> dst) => dst = ConvertListToString(src).AsMemory();
 
             /// <summary>
-            ///  Converts a System.Numerics.BigInteger value to a UInt128 data type value.
+            ///  Converts a System.Numerics.BigInteger value to a RowId data type value.
             /// </summary>
             /// <param name="src">BigInteger value.</param>
-            /// <param name="dst">UInt128 object.</param>
-            public void Conv(in BigInteger src, ref UInt128 dst)
+            /// <param name="dst">RowId object.</param>
+            public void Conv(in BigInteger src, ref RowId dst)
             {
                 try
                 {
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Runtime.Data
                     Array.Resize(ref arr, 16);
                     ulong lo = BitConverter.ToUInt64(arr, 0);
                     ulong hi = BitConverter.ToUInt64(arr, 8);
-                    dst = new UInt128(lo, hi);
+                    dst = new RowId(lo, hi);
                 }
                 catch (Exception ex)
                 {

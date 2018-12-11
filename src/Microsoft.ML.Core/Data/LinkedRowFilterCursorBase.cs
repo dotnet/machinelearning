@@ -17,7 +17,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public override ValueGetter<UInt128> GetIdGetter()
+        public override ValueGetter<RowId> GetIdGetter()
         {
             return Input.GetIdGetter();
         }

@@ -422,7 +422,7 @@ namespace Microsoft.ML.Trainers.KMeans
         // each row. Instead the RowCursor provides a stable ID across multiple
         // cursorings. We map those IDs into an index to poke into the per instance
         // structures.
-        private readonly HashArray<UInt128> _parallelIndexLookup;
+        private readonly HashArray<RowId> _parallelIndexLookup;
 
         public KMeansAcceleratedRowMap(FeatureFloatVectorCursor.Factory factory, IChannel ch,
             long baseMaxInstancesToAccelerate, long totalTrainingInstances, bool isParallel)
@@ -468,11 +468,11 @@ namespace Microsoft.ML.Trainers.KMeans
         /// preinitialize the HashArray so we can perform lock-free lookup operations during
         /// the primary KMeans pass.
         /// </summary>
-        private HashArray<UInt128> BuildParallelIndexLookup(FeatureFloatVectorCursor.Factory factory)
+        private HashArray<RowId> BuildParallelIndexLookup(FeatureFloatVectorCursor.Factory factory)
         {
             Contracts.AssertValue(factory);
 
-            HashArray<UInt128> lookup = new HashArray<UInt128>();
+            HashArray<RowId> lookup = new HashArray<RowId>();
             int n = 0;
             using (var cursor = factory.Create())
             {
