@@ -196,7 +196,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         // RowId
 
-        public static MD5Hash ToUInt128(this byte[] buffer, ref int position)
+        public static MD5Hash ToRowId(this byte[] buffer, ref int position)
         {
             MD5Hash a = new MD5Hash
             {
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             MD5Hash[] a = new MD5Hash[length];
             for (int i = 0; i < length; ++i)
             {
-                a[i] = buffer.ToUInt128(ref position);
+                a[i] = buffer.ToRowId(ref position);
             }
             return a;
         }

@@ -392,7 +392,7 @@ namespace Microsoft.ML.Transforms
             {
                 Contracts.Assert(Double.MinValue <= _cur && _cur <= Double.MaxValue);
                 Contracts.Assert(_cnz >= 0 && _cna >= 0);
-                Contracts.Assert(count.Hi != 0 || count.Lo >= (ulong)_cna);
+                Contracts.Assert(count.HigherWord != 0 || count.LowerWord >= (ulong)_cna);
 
                 // If all values in the column are NAs, emit a warning and return 0.
                 // Is this what we want to do or should an error be thrown?
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Transforms
                 // call won't throw.
                 Contracts.Assert(count > sumHi);
 
-                ulong res = IntUtils.DivRound(sumLo, sumHi, count.Lo, count.Hi);
+                ulong res = IntUtils.DivRound(sumLo, sumHi, count.LowerWord, count.HigherWord);
                 Contracts.Assert(0 <= res && res <= (ulong)valMax);
                 return neg ? -(long)res : (long)res;
             }

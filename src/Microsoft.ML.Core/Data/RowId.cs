@@ -9,36 +9,46 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// A sixteen-byte unsigned integer.
+    /// A structure serving as a sixteen-byte unsigned integer. It is used as the row id of <see cref="IDataView"/>.
+    /// For datasets with millions of records, those IDs need to be unique, therefore the need for such a large structure to hold the values.
+    /// Those Ids are derived from other Ids of the previous components of the pipelines, and dividing the structure in two: high order and low order of bits,
+    /// and reduces the changes of those collisions even further.
     /// </summary>
+    /// <seealso cref="Row.GetIdGetter"/>
     public readonly struct RowId : IComparable<RowId>, IEquatable<RowId>
     {
-        // The low order bits. Corresponds to H1 in the Murmur algorithms.
-        public readonly ulong Lo;
-        // The high order bits. Corresponds to H2 in the Murmur algorithms.
-        public readonly ulong Hi;
+        ///<summary>The low order bits. Corresponds to H1 in the Murmur algorithms.</summary>
+        public readonly ulong LowerWord;
 
-        public RowId(ulong lo, ulong hi)
+        ///<summary> The high order bits. Corresponds to H2 in the Murmur algorithms.</summary>
+        public readonly ulong HigherWord;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="RowId"/>
+        /// </summary>
+        /// <param name="lowerWord">The low order <langword>ulong</langword>.</param>
+        /// <param name="higherWord">The high order <langword>ulong</langword>.</param>
+        public RowId(ulong lowerWord, ulong higherWord)
         {
-            Lo = lo;
-            Hi = hi;
+            LowerWord = lowerWord;
+            HigherWord = higherWord;
         }
 
         public override string ToString()
         {
             // Since H1 are the low order bits, they are printed second.
-            return string.Format("{0:x16}{1:x16}", Hi, Lo);
+            return string.Format("{0:x16}{1:x16}", HigherWord, LowerWord);
         }
 
         public int CompareTo(RowId other)
         {
-            int result = Hi.CompareTo(other.Hi);
-            return result == 0 ? Lo.CompareTo(other.Lo) : result;
+            int result = HigherWord.CompareTo(other.HigherWord);
+            return result == 0 ? LowerWord.CompareTo(other.LowerWord) : result;
         }
 
         public bool Equals(RowId other)
         {
-            return Lo == other.Lo && Hi == other.Hi;
+            return LowerWord == other.LowerWord && HigherWord == other.HigherWord;
         }
 
         public override bool Equals(object obj)
@@ -53,8 +63,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public static RowId operator +(RowId first, ulong second)
         {
-            ulong resHi = first.Hi;
-            ulong resLo = first.Lo + second;
+            ulong resHi = first.HigherWord;
+            ulong resLo = first.LowerWord + second;
             if (resLo < second)
                 resHi++;
             return new RowId(resLo, resHi);
@@ -62,16 +72,16 @@ namespace Microsoft.ML.Runtime.Data
 
         public static RowId operator -(RowId first, ulong second)
         {
-            ulong resHi = first.Hi;
-            ulong resLo = first.Lo - second;
-            if (resLo > first.Lo)
+            ulong resHi = first.HigherWord;
+            ulong resLo = first.LowerWord - second;
+            if (resLo > first.LowerWord)
                 resHi--;
             return new RowId(resLo, resHi);
         }
 
         public static bool operator ==(RowId first, ulong second)
         {
-            return first.Hi == 0 && first.Lo == second;
+            return first.HigherWord == 0 && first.LowerWord == second;
         }
 
         public static bool operator !=(RowId first, ulong second)
@@ -81,22 +91,22 @@ namespace Microsoft.ML.Runtime.Data
 
         public static bool operator <(RowId first, ulong second)
         {
-            return first.Hi  == 0 && first.Lo < second;
+            return first.HigherWord  == 0 && first.LowerWord < second;
         }
 
         public static bool operator >(RowId first, ulong second)
         {
-            return first.Hi > 0 || first.Lo > second;
+            return first.HigherWord > 0 || first.LowerWord > second;
         }
 
         public static bool operator <=(RowId first, ulong second)
         {
-            return first.Hi == 0 && first.Lo <= second;
+            return first.HigherWord == 0 && first.LowerWord <= second;
         }
 
         public static bool operator >=(RowId first, ulong second)
         {
-            return first.Hi > 0 || first.Lo >= second;
+            return first.HigherWord > 0 || first.LowerWord >= second;
         }
 
         public static explicit operator double(RowId x)
@@ -104,14 +114,14 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: The 64-bit JIT has a bug where rounding might be not quite
             // correct when converting a ulong to double with the high bit set. Should we
             // care and compensate? See the DoubleParser code for a work-around.
-            return x.Hi * ((double)(1UL << 32) * (1UL << 32)) + x.Lo;
+            return x.HigherWord * ((double)(1UL << 32) * (1UL << 32)) + x.LowerWord;
         }
 
         public override int GetHashCode()
         {
             return (int)(
-                (uint)Lo ^ (uint)(Lo >> 32) ^
-                (uint)(Hi << 7) ^ (uint)(Hi >> 57) ^ (uint)(Hi >> (57 - 32)));
+                (uint)LowerWord ^ (uint)(LowerWord >> 32) ^
+                (uint)(HigherWord << 7) ^ (uint)(HigherWord >> 57) ^ (uint)(HigherWord >> (57 - 32)));
         }
 
         #region Hashing style
@@ -167,10 +177,10 @@ namespace Microsoft.ML.Runtime.Data
         /// that were all zeros, except for the last bit which is one.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public RowId Fork()
+        internal RowId Fork()
         {
-            ulong h1 = Lo;
-            ulong h2 = Hi;
+            ulong h1 = LowerWord;
+            ulong h2 = HigherWord;
             // Here it's as if k1=1, k2=0.
             h1 = RotL(h1, 27);
             h1 += h2;
@@ -188,10 +198,10 @@ namespace Microsoft.ML.Runtime.Data
         /// that were all zeros.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public RowId Next()
+        internal RowId Next()
         {
-            ulong h1 = Lo;
-            ulong h2 = Hi;
+            ulong h1 = LowerWord;
+            ulong h2 = HigherWord;
             // Here it's as if k1=0, k2=0.
             h1 = RotL(h1, 27);
             h1 += h2;
@@ -212,12 +222,12 @@ namespace Microsoft.ML.Runtime.Data
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public RowId Combine(RowId other)
         {
-            var h1 = Lo;
-            var h2 = Hi;
+            var h1 = LowerWord;
+            var h2 = HigherWord;
 
             other = other.Fork();
-            ulong k1 = other.Lo; // First 8 bytes.
-            ulong k2 = other.Hi; // Second 8 bytes.
+            ulong k1 = other.LowerWord; // First 8 bytes.
+            ulong k2 = other.HigherWord; // Second 8 bytes.
 
             k1 *= _c1;
             k1 = RotL(k1, 31);

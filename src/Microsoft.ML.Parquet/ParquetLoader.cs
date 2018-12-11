@@ -724,7 +724,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 catch (Exception ex)
                 {
-                    _ch.Error("Cannot convert BigInteger to UInt128. Exception : '{0}'", ex.Message);
+                    _ch.Error("Cannot convert BigInteger to RowId. Exception : '{0}'", ex.Message);
                     dst = default;
                 }
             }

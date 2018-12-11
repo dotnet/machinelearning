@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     func(new IntPtr(pArray));
             }
 
-            public override void Write(RowId a, BinaryWriter writer) { writer.Write(a.Lo); writer.Write(a.Hi); }
+            public override void Write(RowId a, BinaryWriter writer) { writer.Write(a.LowerWord); writer.Write(a.HigherWord); }
             public override RowId Read(BinaryReader reader)
             {
                 ulong lo = reader.ReadUInt64();

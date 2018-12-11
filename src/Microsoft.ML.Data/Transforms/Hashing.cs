@@ -653,14 +653,14 @@ namespace Microsoft.ML.Transforms.Conversions
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in RowId value)
             {
-                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Lo));
-                var hi = Utils.GetHi(value.Lo);
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.LowerWord));
+                var hi = Utils.GetHi(value.LowerWord);
                 if (hi != 0)
                     hash = Hashing.MurmurRound(hash, hi);
-                if (value.Hi != 0)
+                if (value.HigherWord != 0)
                 {
-                    hash = Hashing.MurmurRound(hash, Utils.GetLo(value.Hi));
-                    hi = Utils.GetHi(value.Hi);
+                    hash = Hashing.MurmurRound(hash, Utils.GetLo(value.HigherWord));
+                    hi = Utils.GetHi(value.HigherWord);
                     if (hi != 0)
                         hash = Hashing.MurmurRound(hash, hi);
                 }
