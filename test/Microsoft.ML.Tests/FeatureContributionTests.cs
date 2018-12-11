@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Tests
 {
@@ -64,6 +67,52 @@ namespace Microsoft.ML.Tests
             bldr.AddColumn("X4Rand", NumberType.Float, x4RandArray);
             bldr.AddColumn("Label", NumberType.Float, yArray);
             return bldr.GetDataView();
+        }
+
+        /// <summary>
+        /// Features: x1, x2, x3, xRand; y = 10*x1 + 20x2 + 5.5x3 + e, xRand- random, Label y is dependant on xRand.
+        /// Test verifies that feature contribution scores are outputted along with a score for predicted data. 
+        /// </summary>
+        private void TestFeatureImportance(
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<IFeatureContributionMapper>, IFeatureContributionMapper> trainer,
+            List<float[]> expectedValues,
+            int precision = 6)
+        {
+            // Setup synthetic dataset.
+            const int numFeatures = 4;
+            var srcDV = GenerateRegressionData();
+
+            var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2Important", "X3", "X4Rand")
+                .AppendCacheCheckpoint(ML)
+                .Append(ML.Transforms.Normalize("Features"));
+            var data = pipeline.Fit(srcDV).Transform(srcDV);
+            var model = trainer.Fit(data);
+
+            var output = new FeatureContributionCalculatingTransformer(ML, model.Model, model.FeatureColumn).Transform(data);
+
+            var transformedOutput = output.AsEnumerable<ScoreAndContribution>(Env, true);
+            int rowIndex = 0;
+            foreach (var row in transformedOutput.Take(expectedValues.Count))
+            {
+                var expectedValue = expectedValues[rowIndex++];
+                for (int i = 0; i < numFeatures; i++)
+                    Assert.Equal(expectedValue[i], row.FeatureContributions[i], precision);
+            }
+
+            Done();
+        }
+
+        [Fact]
+        public void TestOrdinaryLeastSquares()
+        {
+            var expectedValues = new List<float[]> {
+                new float[4] { 0.06319684F, 1, 0.1386623F, 4.46209469E-06F },
+                new float[4] { 0.03841561F, 1, 0.1633037F, 2.68303256E-06F },
+                new float[4] { 0.12006103F, 1, 0.254072F, 1.18671605E-05F },
+                new float[4] { 0.20861618F, 0.99999994F, 0.407312155F, 6.963478E-05F },
+                new float[4] { 0.024050576F, 0.99999994F, 0.31106182F, 8.456762E-06F }, };
+
+            TestFeatureImportance(ML.Regression.Trainers.OrdinaryLeastSquares(), expectedValues);
         }
 
         /// <summary>
