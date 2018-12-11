@@ -770,7 +770,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
                 separator: '\t', hasHeader: true);
 
-            FastTreerankingModelParameters pred = null;
+            FastTreeRankingModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))

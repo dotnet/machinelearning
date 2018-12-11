@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 case PredictionKind.Regression:
                     return new FastTreeRegressionModelParameters(_host, ensemble, featureCount, null);
                 case PredictionKind.Ranking:
-                    return new FastTreerankingModelParameters(_host, ensemble, featureCount, null);
+                    return new FastTreeRankingModelParameters(_host, ensemble, featureCount, null);
                 default:
                     _host.Assert(false);
                     throw _host.ExceptNotSupp();

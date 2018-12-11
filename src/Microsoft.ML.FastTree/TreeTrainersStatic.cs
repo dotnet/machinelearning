@@ -144,7 +144,7 @@ namespace Microsoft.ML.StaticPipe
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
             Action<FastTreeRankingTrainer.Arguments> advancedSettings = null,
-            Action<FastTreerankingModelParameters> onFit = null)
+            Action<FastTreeRankingModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings, onFit);
 
