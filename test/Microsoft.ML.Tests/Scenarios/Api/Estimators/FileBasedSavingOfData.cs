@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var ml = new MLContext(seed: 1, conc: 1);
             var src = new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename));
-            var trainData = ml.Data.CreateTextReader(MakeSentimentColumns(), hasHeader: true)
+            var trainData = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features"))
                 .Fit(src).Read(src);
 
