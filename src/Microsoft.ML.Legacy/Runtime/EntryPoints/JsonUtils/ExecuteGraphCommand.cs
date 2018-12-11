@@ -149,7 +149,11 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                         SaveDataView(idv, path, extension);
                     else
                         using (var ch = _host.Start("Get outputs from executed graph"))
-                            ch.Warning("Ignore empty graph output");
+                        {
+                            string msg = string.Format("Ignore empty graph output (output name: {0}, type: {1}, expected output's file: {2})",
+                                varName, nameof(idv), path + extension);
+                            ch.Warning(msg);
+                        }
                     break;
                 case TlcModule.DataKind.PredictorModel:
                     var pm = runner.GetOutput<IPredictorModel>(varName);
