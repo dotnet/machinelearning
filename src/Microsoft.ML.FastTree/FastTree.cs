@@ -2811,7 +2811,8 @@ namespace Microsoft.ML.Trainers.FastTree
         ISingleCanSaveOnnx
     {
         //The below two properties are necessary for tree Visualizer
-        public TreeEnsemble TrainedEnsemble { get; }
+        [BestFriend]
+        internal TreeEnsemble TrainedEnsemble { get; }
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.

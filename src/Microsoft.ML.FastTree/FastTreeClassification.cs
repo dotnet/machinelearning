@@ -108,7 +108,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The LoadName for the assembly containing the trainer.
         /// </summary>
-        public const string LoadNameValue = "FastTreeBinaryClassification";
+        internal const string LoadNameValue = "FastTreeBinaryClassification";
         internal const string UserNameValue = "FastTree (Boosted Trees) Classification";
         internal const string Summary = "Uses a logit-boost boosted tree learner to perform binary classification.";
         internal const string ShortName = "ftc";

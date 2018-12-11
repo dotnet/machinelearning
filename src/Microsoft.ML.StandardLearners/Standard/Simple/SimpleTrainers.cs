@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers
         IValueMapperDist,
         ICanSaveModel
     {
-        public const string LoaderSignature = "RandomPredictor";
+        internal const string LoaderSignature = "RandomPredictor";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
