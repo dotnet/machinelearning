@@ -80,8 +80,8 @@ namespace Microsoft.ML.Tests
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
 
-            var outputTran = new FeatureContributionCalculatingTransformer(ML, model.Model, model.FeatureColumn).Transform(data);
-            var outputEst = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn).Fit(data).Transform(data);
+            var outputTran = new FeatureContributionCalculatingTransformer(ML, model.FeatureColumn, model.Model).Transform(data);
+            var outputEst = new FeatureContributionCalculatingEstimator(ML, model.FeatureColumn, model.Model).Fit(data).Transform(data);
 
             // Get prediction scores and contributions
             var enumeratorTran = outputTran.AsEnumerable<ScoreAndContribution>(ML, true).GetEnumerator();
@@ -127,11 +127,11 @@ namespace Microsoft.ML.Tests
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
 
-            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, stringify: true)
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, bottom: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 0));
+            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.FeatureColumn, model.Model, stringify: true)
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.FeatureColumn, model.Model))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.FeatureColumn, model.Model, top: 0))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.FeatureColumn, model.Model, bottom: 0))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.FeatureColumn, model.Model, top: 0, bottom: 0));
             TestEstimatorCore(estPipe, data);
 
             Done();

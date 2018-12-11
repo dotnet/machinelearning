@@ -386,7 +386,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// </summary>
         /// <param name="env">Eviroment object for showing information</param>
         /// <param name="model">The model trained by one of the training functions in <see cref="MatrixFactorizationTrainer"/></param>
-        /// <param name="trainSchema">Targeted schema containing columns named as xColumnName</param>
+        /// <param name="trainSchema">Targeted schema that containing columns named as xColumnName</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixColumnIndexKind"/> in matrix factorization world</param>
         /// <param name="matrixRowIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixRowIndexKind"/> in matrix factorization world</param>
         /// <param name="scoreColumnNameSuffix">A string attached to the output column name of this transformer</param>

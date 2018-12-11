@@ -79,7 +79,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="bottom">The number of least contributing features for each data sample that will be retained in the FeatureContribution column.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized.</param>
         /// <param name="stringify">Whether to output feature contributions in string key-value format.</param>
-        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IFeatureContributionMapper predictor, string featureColumn,
+        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IFeatureContributionMapper predictor,
+            string featureColumn = DefaultColumnNames.Features,
             int top = FeatureContributionCalculatingEstimator.Defaults.Top,
             int bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom,
             bool normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize,
@@ -625,8 +626,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="bottom">The number of least contributing features for each data sample that will be retained in the FeatureContribution column.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized.</param>
         /// <param name="stringify">Whether to output feature contributions in string key-value format.</param>
-        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IFeatureContributionMapper predictor, string featureColumn,
-        int top = Defaults.Top,
+        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IFeatureContributionMapper predictor,
+            string featureColumn = DefaultColumnNames.Features,
+            int top = Defaults.Top,
             int bottom = Defaults.Bottom,
             bool normalize = Defaults.Normalize,
             bool stringify = Defaults.Stringify)
