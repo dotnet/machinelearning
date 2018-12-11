@@ -204,13 +204,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var kindVBuffer = "Testing VBuffer as metadata.";
             var valueVBuffer = new VBuffer<float>(4, new float[] { 4, 6, 89, 5 });
 
-            var metaFloat = new Microsoft.ML.Runtime.Api.MetadataInfo<float>(kindFloat, valueFloat, coltypeFloat);
-            var metaString = new Microsoft.ML.Runtime.Api.MetadataInfo<string>(kindString, valueString);
+            var metaFloat = new MetadataInfo<float>(kindFloat, valueFloat, coltypeFloat);
+            var metaString = new MetadataInfo<string>(kindString, valueString);
 
             // Add Metadata.
             var labelColumn = autoSchema[0];
             var labelColumnWithMetadata = new SchemaDefinition.Column(mlContext, labelColumn.MemberName, labelColumn.ColumnType,
-                metadataInfos: new Microsoft.ML.Runtime.Api.MetadataInfo[] { metaFloat, metaString });
+                metadataInfos: new MetadataInfo[] { metaFloat, metaString });
 
             var featureColumnWithMetadata = autoSchema[1];
             featureColumnWithMetadata.AddMetadata(kindStringArray, valueStringArray);
@@ -229,16 +229,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
             Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
             Assert.True(idv.Schema[1].Metadata.Schema[0].Type.IsVector && idv.Schema[1].Metadata.Schema[0].Type.ItemType.IsText);
-            var thrown = false;
-            try
-            {
-                var schema = idv.Schema[1].Metadata.Schema[kindFloat];
-            }
-            catch
-            {
-                thrown = true;
-            }
-            Assert.True(thrown);
+            Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Metadata.Schema[kindFloat]);
 
             float retrievedFloat = 0;
             idv.Schema[0].Metadata.GetValue(kindFloat, ref retrievedFloat);
@@ -261,15 +252,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             idv.Schema[1].Metadata.GetValue(kindVBuffer, ref retrievedVBuffer);
             Assert.True(retrievedVBuffer.Items().SequenceEqual(valueVBuffer.Items()));
 
-            try
-            {
-                idv.Schema[1].Metadata.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer);
-                Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
-            }
-            catch (Exception ex)
-            {
-                Assert.True(ex.IsMarked());
-            }
+            var ex = Assert.Throws<InvalidOperationException>(() => idv.Schema[1].Metadata.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer));
+            Assert.True(ex.IsMarked());
         }
 
         private List<BreastCancerExample> ReadBreastCancerExamples()
