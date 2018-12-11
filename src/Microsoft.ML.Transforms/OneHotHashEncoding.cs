@@ -136,7 +136,10 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="outputKind">The type of output expected.</param>
         public static IDataView Create(IHostEnvironment env,
             IDataView input,
@@ -220,7 +223,10 @@ namespace Microsoft.ML.Transforms.Categorical
             /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
-            /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+            /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+            /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+            /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+            /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
             public ColumnInfo(string input, string output,
                 OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind,
                 int hashBits = Defaults.HashBits,
@@ -242,7 +248,10 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
-        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         /// <param name="outputKind">The type of output expected.</param>
         public OneHotHashEncodingEstimator(IHostEnvironment env,
             string inputColumn,
@@ -421,7 +430,10 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="hashBits">Amount of bits to use for hashing.</param>
         /// <param name="seed">Seed value used for hashing.</param>
         /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
-        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static Vector<float> OneHotHashEncoding(this Scalar<string> input, OneHotHashScalarOutputKind outputKind = (OneHotHashScalarOutputKind)DefOut,
             int hashBits = DefHashBits, uint seed = DefSeed, bool ordered = DefOrdered, int invertHash = DefInvertHash)
         {
@@ -437,7 +449,10 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="hashBits">Amount of bits to use for hashing.</param>
         /// <param name="seed">Seed value used for hashing.</param>
         /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
-        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static Vector<float> OneHotHashEncoding(this Vector<string> input, OneHotHashVectorOutputKind outputKind = DefOut,
             int hashBits = DefHashBits, uint seed = DefSeed, bool ordered = DefOrdered, int invertHash = DefInvertHash)
         {
@@ -453,7 +468,10 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="hashBits">Amount of bits to use for hashing.</param>
         /// <param name="seed">Seed value used for hashing.</param>
         /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
-        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static Vector<float> OneHotHashEncoding(this VarVector<string> input, OneHotHashVectorOutputKind outputKind = DefOut,
             int hashBits = DefHashBits, uint seed = DefSeed, bool ordered = DefOrdered, int invertHash = DefInvertHash)
         {
