@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime
             AssemblyName dataAssemblyName = dataAssembly.GetName();
 
             _ = typeof(EnsemblePredictor).Assembly; // ML.Ensemble
-            _ = typeof(FastTreeBinaryPredictor).Assembly; // ML.FastTree
+            _ = typeof(FastTreeBinaryModelParameters).Assembly; // ML.FastTree
             _ = typeof(KMeansModelParameters).Assembly; // ML.KMeansClustering
             _ = typeof(Maml).Assembly; // ML.Maml
             _ = typeof(PcaPredictor).Assembly; // ML.PCA

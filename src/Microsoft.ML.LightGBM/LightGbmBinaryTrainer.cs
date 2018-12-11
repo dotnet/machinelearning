@@ -20,16 +20,16 @@ using System;
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     LightGbmBinaryTrainer.UserName, LightGbmBinaryTrainer.LoadNameValue, LightGbmBinaryTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
-[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LightGbmBinaryPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LightGbmBinaryModelParameters), null, typeof(SignatureLoadModel),
     "LightGBM Binary Executor",
-    LightGbmBinaryPredictor.LoaderSignature)]
+    LightGbmBinaryModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(LightGbm), null, typeof(SignatureEntryPointModule), "LightGBM")]
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
-    public sealed class LightGbmBinaryPredictor : FastTreePredictionWrapper
+    public sealed class LightGbmBinaryModelParameters : TreeEnsembleModelParameters
     {
         internal const string LoaderSignature = "LightGBMBinaryExec";
         internal const string RegistrationName = "LightGBMBinaryPredictor";
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LightGbmBinaryPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(LightGbmBinaryModelParameters).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;
@@ -55,12 +55,12 @@ namespace Microsoft.ML.Runtime.LightGBM
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        internal LightGbmBinaryPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        public LightGbmBinaryModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
 
-        private LightGbmBinaryPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private LightGbmBinaryModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
         {
         }
@@ -71,12 +71,12 @@ namespace Microsoft.ML.Runtime.LightGBM
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            var predictor = new LightGbmBinaryPredictor(env, ctx);
+            var predictor = new LightGbmBinaryModelParameters(env, ctx);
             ICalibrator calibrator;
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
-            var pred = new LightGbmBinaryPredictor(Host, TrainedEnsemble, FeatureCount, innerArgs);
+            var pred = new LightGbmBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
             var cali = new PlattCalibrator(Host, -0.5, 0);
             return new FeatureWeightsCalibratedPredictor(Host, pred, cali);
         }

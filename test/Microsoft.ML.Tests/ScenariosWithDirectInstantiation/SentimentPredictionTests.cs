@@ -5,11 +5,11 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms.Text;
 using System.Linq;
 using Xunit;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment);
 
             // Get feature importance based on feature gain during training
-            var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
+            var summary = ((ICanGetSummaryInKeyValuePairs)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
             Assert.Equal(1.0, (double)summary[0].Value, 1);
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment);
 
             // Get feature importance based on feature gain during training
-            var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
+            var summary = ((ICanGetSummaryInKeyValuePairs)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
             Assert.Equal(1.0, (double)summary[0].Value, 1);
         }
 
