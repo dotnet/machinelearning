@@ -489,9 +489,8 @@ namespace Microsoft.ML.Runtime.Data.IO
         {
             DataKind? kind;
             KeyRange keyRange = null;
-            if (type.ItemType.IsKey)
+            if (type.ItemType is KeyType key)
             {
-                var key = type.ItemType.AsKey;
                 if (!key.Contiguous)
                     keyRange = new KeyRange(key.Min, contiguous: false);
                 else if (key.Count == 0)

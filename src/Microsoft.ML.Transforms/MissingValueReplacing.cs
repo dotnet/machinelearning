@@ -899,8 +899,8 @@ namespace Microsoft.ML.Transforms
                 var type = _infos[iinfo].TypeSrc;
                 if (type is VectorType vectorType)
                     rawKind = vectorType.ItemType.RawKind;
-                else if (type.IsKey)
-                    rawKind = type.AsKey.RawKind;
+                else if (type is KeyType keyType)
+                    rawKind = keyType.RawKind;
                 else
                     rawKind = type.RawKind;
 

@@ -1001,11 +1001,11 @@ namespace Microsoft.ML.Runtime.Data
             if (!perInst.Schema.TryGetColumnIndex(schema.Label.Name, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", schema.Label.Name);
             var labelType = perInst.Schema.GetColumnType(labelCol);
-            if (labelType.IsKey && (!perInst.Schema.HasKeyValues(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
+            if (labelType is KeyType keyType && (!perInst.Schema.HasKeyValues(labelCol, keyType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
                     schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,
-                    (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)labelType.AsKey.Min);
+                    (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)keyType.Min);
             }
 
             var perInstSchema = perInst.Schema;

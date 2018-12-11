@@ -1101,7 +1101,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
                     _host.AssertValue(builder);
-                    var srcType = TypedMap.ItemType.AsKey;
+                    var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
                     var convInst = Runtime.Data.Conversion.Conversions.Instance;
@@ -1180,7 +1180,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
-                    var srcType = TypedMap.ItemType.AsKey;
+                    var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
                     var convInst = Runtime.Data.Conversion.Conversions.Instance;

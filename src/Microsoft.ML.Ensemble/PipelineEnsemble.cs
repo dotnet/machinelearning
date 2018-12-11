@@ -603,7 +603,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             if (mdType == null || !mdType.IsKnownSizeVector)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
-            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, labelType.AsKey, schema, labelInfo.Index, mdType);
+            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyType)labelType, schema, labelInfo.Index, mdType);
         }
 
         // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the
@@ -655,8 +655,8 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (labelInfo == null)
                     throw env.Except("Training schema for model {0} does not have a label column", i);
 
-                var curLabelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index);
-                if (!labelType.Equals(curLabelType.AsKey))
+                var curLabelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index) as KeyType;
+                if (!labelType.Equals(curLabelType))
                     throw env.Except("Label column of model {0} has different type than model 0", i);
 
                 var mdType = rmd.Schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelInfo.Index);

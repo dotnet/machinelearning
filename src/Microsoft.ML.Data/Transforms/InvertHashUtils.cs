@@ -41,12 +41,12 @@ namespace Microsoft.ML.Runtime.Data
             var conv = Conversion.Conversions.Instance;
 
             // First: if not key, then get the standard string converison.
-            if (!type.IsKey)
+            if (!(type is KeyType keyType))
                 return conv.GetStringConversion<T>(type);
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema.HasKeyValues(col, type.KeyCount))
+            if (schema.HasKeyValues(col, keyType.KeyCount))
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // Third choice: just use the key value itself, subject to offsetting by the min.
-            return conv.GetKeyStringConversion<T>(type.AsKey);
+            return conv.GetKeyStringConversion<T>(keyType);
         }
 
         public static ValueMapper<KeyValuePair<int, T>, StringBuilder> GetPairMapper<T>(ValueMapper<T, StringBuilder> submap)

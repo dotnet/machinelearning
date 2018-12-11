@@ -135,12 +135,6 @@ namespace Microsoft.ML.Runtime.Data
         internal bool IsKey { get; }
 
         /// <summary>
-        /// Equivalent to <c>as <see cref="KeyType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal KeyType AsKey => IsKey ? (KeyType)this : null;
-
-        /// <summary>
         /// Zero return means either it's not a key type or the cardinality is unknown. External code should first
         /// test whether this is of type <see cref="KeyType"/>, then if so get the <see cref="KeyType.Count"/> property
         /// from that.

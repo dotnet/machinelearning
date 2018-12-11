@@ -258,7 +258,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Check(keyMetadata.Length == typeKey.ItemType.KeyCount);
 
                 VBufferUtils.Densify(ref keyMetadata);
-                return new KeyToValueMap<TKey, TValue>(this, typeKey.ItemType.AsKey, (PrimitiveType)typeVal.ItemType, keyMetadata, iinfo);
+                return new KeyToValueMap<TKey, TValue>(this, (KeyType)typeKey.ItemType, (PrimitiveType)typeVal.ItemType, keyMetadata, iinfo);
             }
             /// <summary>
             /// A map is an object capable of creating the association from an input type, to an output

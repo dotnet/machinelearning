@@ -208,12 +208,12 @@ namespace Microsoft.ML.Runtime.Data
                     else
                         Host.Assert(colType.RawType == outputType);
 
-                    if (!colType.IsKey)
+                    if (!(colType is KeyType keyType))
                         del = CreateDirectGetterDelegate<int>;
                     else
                     {
                         var keyRawType = colType.RawType;
-                        Host.Assert(colType.AsKey.Contiguous);
+                        Host.Assert(keyType.Contiguous);
                         Func<Delegate, ColumnType, Delegate> delForKey = CreateKeyGetterDelegate<uint>;
                         return Utils.MarshalInvoke(delForKey, keyRawType, peek, colType);
                     }
@@ -299,9 +299,10 @@ namespace Microsoft.ML.Runtime.Data
             private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, ColumnType colType)
             {
                 // Make sure the function is dealing with key.
-                Host.Check(colType.IsKey);
+                KeyType keyType = colType as KeyType;
+                Host.Check(keyType != null);
                 // Following equations work only with contiguous key type.
-                Host.Check(colType.AsKey.Contiguous);
+                Host.Check(keyType.Contiguous);
                 // Following equations work only with unsigned integers.
                 Host.Check(typeof(TDst) == typeof(ulong) || typeof(TDst) == typeof(uint) ||
                     typeof(TDst) == typeof(byte) || typeof(TDst) == typeof(bool));
@@ -312,8 +313,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 TDst rawKeyValue = default;
                 ulong key = 0; // the raw key value as ulong
-                ulong min = colType.AsKey.Min;
-                ulong max = min + (ulong)colType.AsKey.Count - 1;
+                ulong min = keyType.Min;
+                ulong max = min + (ulong)keyType.Count - 1;
                 ulong result = 0; // the result as ulong
                 ValueGetter<TDst> getter = (ref TDst dst) =>
                 {
