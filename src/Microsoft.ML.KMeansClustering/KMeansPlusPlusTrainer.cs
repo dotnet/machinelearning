@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers.KMeans
             [Argument(ArgumentType.AtMostOnce, HelpText = "Cluster initialization algorithm", ShortName = "init")]
             public InitAlgorithm InitAlgorithm = InitAlgorithm.KMeansParallel;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for trainer convergence. Lower = slower, more accurate",
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for trainer convergence. Low = slower, more accurate",
                 ShortName = "ot")]
             [TGUI(Label = "Optimization Tolerance", Description = "Threshold for trainer convergence")]
             public float OptTol = (float)1e-7;

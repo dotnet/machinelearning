@@ -754,7 +754,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private const ulong SlotNamesVersion = 0x0001000100010003;
 
         /// <summary>
-        /// Lower inclusive bound of versions this reader can read.
+        /// Low inclusive bound of versions this reader can read.
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 

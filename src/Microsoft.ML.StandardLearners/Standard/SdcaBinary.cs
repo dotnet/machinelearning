@@ -330,7 +330,7 @@ namespace Microsoft.ML.Trainers
             // Getting the total count of rows in data. Ignore rows with bad label and feature values.
             long count = 0;
 
-            // The maximum value of cursor.Id.LowerWord.
+            // The maximum value of cursor.Id.Low.
             ulong idLoMax = 0;
 
             // Counting the number of bad training examples.
@@ -348,16 +348,16 @@ namespace Microsoft.ML.Trainers
                 while (cursor.MoveNext())
                 {
                     RowId id = cursor.Id;
-                    if (id.HigherWord > 0 || id.LowerWord >= (ulong)maxTrainingExamples)
+                    if (id.High > 0 || id.Low >= (ulong)maxTrainingExamples)
                     {
                         needLookup = true;
                         break;
                     }
                     else
                     {
-                        Contracts.Assert(id.HigherWord == 0);
-                        if (id.LowerWord > idLoMax)
-                            idLoMax = id.LowerWord;
+                        Contracts.Assert(id.High == 0);
+                        if (id.Low > idLoMax)
+                            idLoMax = id.Low;
                     }
 
                     count++;
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Trainers
                     // REVIEW: Is 1024 a good lower bound to enforce sparsity?
                     if (1024 < count && count < (long)idLoMax / 5)
                     {
-                        // The distribution of id.LowerWord is sparse in [0, idLoMax].
+                        // The distribution of id.Low is sparse in [0, idLoMax].
                         // Building a lookup table is more memory efficient.
                         needLookup = true;
                     }
@@ -1074,9 +1074,9 @@ namespace Microsoft.ML.Trainers
             {
                 return (RowId id) =>
                 {
-                    Contracts.Assert(id.HigherWord == 0);
-                    Contracts.Assert((long)id.LowerWord < maxTrainingExamples);
-                    return (long)id.LowerWord;
+                    Contracts.Assert(id.High == 0);
+                    Contracts.Assert((long)id.Low < maxTrainingExamples);
+                    return (long)id.Low;
                 };
             }
             else
@@ -1105,9 +1105,9 @@ namespace Microsoft.ML.Trainers
             {
                 return (RowId id, long row) =>
                 {
-                    Contracts.Assert(id.HigherWord == 0);
-                    Contracts.Assert((long)id.LowerWord < maxTrainingExamples);
-                    return (long)id.LowerWord;
+                    Contracts.Assert(id.High == 0);
+                    Contracts.Assert((long)id.Low < maxTrainingExamples);
+                    return (long)id.Low;
                 };
             }
             else
@@ -1313,8 +1313,8 @@ namespace Microsoft.ML.Trainers
             private static long Get64BitHashCode(RowId value)
             {
                 // REVIEW: Is this a good way to compute hash?
-                ulong lo = value.LowerWord;
-                ulong hi = value.HigherWord;
+                ulong lo = value.Low;
+                ulong hi = value.High;
                 return (long)(lo ^ (lo >> 32) ^ (hi << 7) ^ (hi >> 57) ^ (hi >> (57 - 32)));
             }
 
