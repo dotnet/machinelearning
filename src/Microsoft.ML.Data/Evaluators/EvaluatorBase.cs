@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.Data
         protected readonly int ScoreIndex;
         protected readonly int LabelIndex;
 
-        protected PerInstanceEvaluatorBase(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol)
+        protected PerInstanceEvaluatorBase(IHostEnvironment env, Schema schema, string scoreCol, string labelCol)
         {
             Contracts.AssertValue(env);
             Contracts.AssertNonEmpty(scoreCol);
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.Except("Did not find column '{0}'", ScoreCol);
         }
 
-        protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx,  ISchema schema)
+        protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx,  Schema schema)
         {
             Host = env.Register("PerInstanceRowMapper");
 

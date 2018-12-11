@@ -138,8 +138,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             // Computes the types of the columns and constructs the kvMaps.
-            private void ComputeKvMaps(ISchema schema, out ColumnType[] types, out KeyToValueMap[] kvMaps)
+            private void ComputeKvMaps(Schema schema, out ColumnType[] types, out KeyToValueMap[] kvMaps)
             {
                 types = new ColumnType[_parent.ColumnPairs.Length];
                 kvMaps = new KeyToValueMap[_parent.ColumnPairs.Length];

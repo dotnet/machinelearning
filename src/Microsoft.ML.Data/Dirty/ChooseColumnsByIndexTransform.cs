@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly int[] Sources;
 
-            private readonly ISchema _input;
+            private readonly Schema _input;
             private readonly Dictionary<string, int> _nameToIndex;
 
             // The following argument is used only to inform serialization.
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema AsSchema { get; }
 
-            public Bindings(Arguments args, ISchema schemaInput)
+            public Bindings(Arguments args, Schema schemaInput)
             {
                 Contracts.AssertValue(args);
                 Contracts.AssertValue(schemaInput);
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Data
                     nameToCol[_input.GetColumnName(sources[c])] = c;
             }
 
-            public Bindings(ModelLoadContext ctx, ISchema schemaInput)
+            public Bindings(ModelLoadContext ctx, Schema schemaInput)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(schemaInput);

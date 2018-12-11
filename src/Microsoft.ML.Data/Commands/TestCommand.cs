@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.AssertValue(loader);
 
             ch.Trace("Binding columns");
-            ISchema schema = loader.Schema;
+            var schema = loader.Schema;
             string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Args.LabelColumn),
                 Args.LabelColumn, DefaultColumnNames.Label);
             string features = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Args.FeatureColumn),

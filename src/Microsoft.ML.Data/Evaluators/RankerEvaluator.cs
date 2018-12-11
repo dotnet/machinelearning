@@ -1068,7 +1068,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            ISchema schema = input.Data.Schema;
+            var schema = input.Data.Schema;
             string groupId = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
                 nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
                 input.GroupIdColumn, DefaultColumnNames.GroupId);

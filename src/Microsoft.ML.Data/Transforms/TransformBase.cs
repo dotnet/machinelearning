@@ -287,7 +287,7 @@ namespace Microsoft.ML.Runtime.Data
             private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
 
             private Bindings(OneToOneTransformBase parent, ColInfo[] infos,
-                ISchema input, bool user, string[] names)
+                Schema input, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.AssertValue(parent);
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Runtime.Data
                 Infos = infos;
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, ISchema input,
+            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, Schema input,
                 ITransposeSchema transInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Bindings(parent, infos, input, true, names);
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, ISchema input,
+            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, Schema input,
                 ITransposeSchema transInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
