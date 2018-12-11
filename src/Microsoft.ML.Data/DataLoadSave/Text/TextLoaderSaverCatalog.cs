@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using static Microsoft.ML.Runtime.Data.TextLoader;
+using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.ML
 {
@@ -22,7 +26,7 @@ namespace Microsoft.ML
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="dataSample">The optional location of a data sample.</param>
         public static TextLoader CreateTextReader(this DataOperations catalog,
-            Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null)
+            TextLoader.Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChar, dataSample);
 
         /// <summary>
@@ -31,8 +35,112 @@ namespace Microsoft.ML
         /// <param name="catalog">The catalog.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        public static TextLoader CreateTextReader(this DataOperations catalog, Arguments args, IMultiStreamSource dataSample = null)
+        public static TextLoader CreateTextReader(this DataOperations catalog, TextLoader.Arguments args, IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), args, dataSample);
+
+        /// <summary>
+        /// Create a text reader <see cref="TextLoader"/>.
+        /// </summary>
+        /// <param name="catalog">The catalog.</param>
+        /// <param name="hasHeader"></param>
+        /// <param name="separator"></param>
+        /// <param name="allowQuotedStrings"></param>
+        /// <param name="supportSparse"></param>
+        /// <param name="trimWhitespace"></param>
+        public static TextLoader CreateTextReader<TInput>(this DataOperations catalog,
+            bool hasHeader = TextLoader.DefaultArguments.HasHeader,
+            char separator = TextLoader.DefaultArguments.Separator,
+            bool allowQuotedStrings = TextLoader.DefaultArguments.AllowQuoting,
+            bool supportSparse = TextLoader.DefaultArguments.AllowSparse,
+            bool trimWhitespace = TextLoader.DefaultArguments.TrimWhitespace)
+        {
+            var userType = typeof(TInput);
+
+            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            var propertyInfos =
+                userType
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
+
+            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
+
+            var columns = new TextLoader.Column[memberInfos.Length];
+
+            for (int index = 0; index < memberInfos.Length; index++)
+            {
+                var memberInfo = memberInfos[index];
+                var mappingAttr = memberInfo.GetCustomAttribute<ColumnAttribute>();
+                var mptr = memberInfo.GetCustomAttributes();
+
+                if (mappingAttr == null)
+                    throw Contracts.Except($"Field or property {memberInfo.Name} is missing ColumnAttribute");
+
+                if (Regex.Match(mappingAttr.Ordinal, @"[^(0-9,\*\-~)]+").Success)
+                    throw Contracts.Except($"{mappingAttr.Ordinal} contains invalid characters. " +
+                        $"Valid characters are 0-9, *, - and ~");
+
+                var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+                var name = mappingAttr.Name ?? mappingNameAttr?.Name ?? memberInfo.Name;
+
+                TextLoader.Range[] sources;
+                if (!TextLoader.Column.TryParseSourceEx(mappingAttr.Ordinal, out sources))
+                    throw Contracts.Except($"{mappingAttr.Ordinal} could not be parsed.");
+
+                Contracts.Assert(sources != null);
+
+                var column = new TextLoader.Column();
+                column.Name = name;
+                column.Source = new TextLoader.Range[sources.Length];
+                DataKind dk;
+                switch (memberInfo)
+                {
+                    case FieldInfo field:
+                        if (!DataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                            throw Contracts.Except($"Field {name} is of unsupported type.");
+
+                        break;
+
+                    case PropertyInfo property:
+                        if (!DataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                            throw Contracts.Except($"Property {name} is of unsupported type.");
+                        break;
+
+                    default:
+                        Contracts.Assert(false);
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                }
+
+                column.Type = dk;
+
+                for (int indexLocal = 0; indexLocal < column.Source.Length; indexLocal++)
+                {
+                    column.Source[indexLocal] = new TextLoader.Range
+                    {
+                        AllOther = sources[indexLocal].AllOther,
+                        AutoEnd = sources[indexLocal].AutoEnd,
+                        ForceVector = sources[indexLocal].ForceVector,
+                        VariableEnd = sources[indexLocal].VariableEnd,
+                        Max = sources[indexLocal].Max,
+                        Min = sources[indexLocal].Min
+                    };
+                }
+
+                columns[index] = column;
+            }
+
+            TextLoader.Arguments args = new TextLoader.Arguments
+            {
+                HasHeader = hasHeader,
+                SeparatorChars = new[] { separator },
+                AllowQuoting = allowQuotedStrings,
+                AllowSparse = supportSparse,
+                TrimWhitespace = trimWhitespace,
+                Column = columns
+            };
+
+            return new TextLoader(CatalogUtils.GetEnvironment(catalog), args);
+        }
 
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
@@ -44,7 +152,7 @@ namespace Microsoft.ML
         /// <param name="path">The path to the file.</param>
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile(this DataOperations catalog,
-            string path, Column[] columns, bool hasHeader = false, char separatorChar = '\t')
+            string path, TextLoader.Column[] columns, bool hasHeader = false, char separatorChar = '\t')
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
@@ -62,7 +170,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The catalog.</param>
         /// <param name="path">Specifies a file from which to read.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
-        public static IDataView ReadFromTextFile(this DataOperations catalog, string path, Arguments args = null)
+        public static IDataView ReadFromTextFile(this DataOperations catalog, string path, TextLoader.Arguments args = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
