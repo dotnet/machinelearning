@@ -951,7 +951,16 @@ namespace Microsoft.ML.Runtime.Api
             throw Contracts.ExceptNotImpl("Type '{0}' is not yet supported.", typeT.FullName);
         }
 
-        internal override Delegate GetGetterDelegate() => Utils.MarshalInvoke(GetGetter<int>, MetadataType.RawType);
+        // We want to use MarshalInvoke instead of adding custom Reflection logic for calling GetGetter<TDst>
+        private Delegate GetGetterCore<TDst>()
+        {
+            return GetGetter<TDst>();
+        }
+
+        internal override Delegate GetGetterDelegate()
+        {
+            return Utils.MarshalInvoke(GetGetterCore<int>, MetadataType.RawType);
+        }
 
         public class TElement
         {
