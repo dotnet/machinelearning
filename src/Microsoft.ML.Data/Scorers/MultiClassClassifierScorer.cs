@@ -303,14 +303,22 @@ namespace Microsoft.ML.Runtime.Data
                     ValueGetter<VBuffer<T>> labelNameGetter, string labelNameKind)
                 {
                     var builder = new SchemaBuilder();
+                    // Sequentially add columns so that the order of them is not changed comparing with the schema in the mapper
+                    // that computes score column.
                     for (int i = 0; i < partialSchema.ColumnCount; ++i)
                     {
                         var meta = new MetadataBuilder();
-                        // Take all existing metadata
-                        meta.Add(partialSchema[i].Metadata, selector: s => true);
-                        // Add label names
                         if (i == scoreColumnIndex)
+                        {
+                            // Add label names for score column.
+                            meta.Add(partialSchema[i].Metadata, selector: s => s != labelNameKind);
                             meta.Add(labelNameKind, labelNameType, labelNameGetter);
+                        }
+                        else
+                        {
+                            // Copy all existing metadata because this transform only affects score column.
+                            meta.Add(partialSchema[i].Metadata, selector: s => true);
+                        }
                         // Instead of appending extra metadata to the existing score column, we create new one because
                         // metadata is read-only.
                         builder.AddColumn(partialSchema[i].Name, partialSchema[i].Type, meta.GetMetadata());
