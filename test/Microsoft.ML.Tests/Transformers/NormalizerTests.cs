@@ -241,6 +241,31 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void SupervisedBin()
+        {
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+
+            var loader = new TextLoader(Env, new TextLoader.Arguments
+            {
+                Column = new[] {
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
+                }
+            });
+
+            var data = loader.Read(dataPath);
+
+            var est1 = new NormalizingEstimator(Env, "float4");
+            var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumn("float4"));
+
+            var data1 = est1.Fit(data).Transform(data);
+            var data2 = est2.Fit(data).Transform(data);
+            var data3 = est3.Fit(data).Transform(data);
+
+            var est4 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+        }
+
+        [Fact]
         public void LpGcNormAndWhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);

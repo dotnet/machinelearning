@@ -1862,7 +1862,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return BinColumnFunction.Create(Host, binUpperBounds, _fix);
                 }
 
-                public static IColumnFunctionBuilder Create(SupervisedBinArguments args, IHost host, int argsColumnIndex, int valueColumnId, int labelColumnId, Row dataRow)
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumn column, IHost host, int valueColumnId, int labelColumnId, Row dataRow)
                 {
                     var lim = args.Column[argsColumnIndex].MaxTrainingExamples ?? args.MaxTrainingExamples;
                     host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
@@ -1902,7 +1902,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return BinColumnFunction.Create(Host, binUpperBounds, _fix);
                 }
 
-                public static IColumnFunctionBuilder Create(SupervisedBinArguments args, IHost host, int argsColumnIndex, int valueColumnId, int labelColumnId, Row dataRow)
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumn column, IHost host, int valueColumnId, int labelColumnId, Row dataRow)
                 {
                     var lim = args.Column[argsColumnIndex].MaxTrainingExamples ?? args.MaxTrainingExamples;
                     host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");

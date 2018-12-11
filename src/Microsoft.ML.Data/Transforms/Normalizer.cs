@@ -161,6 +161,26 @@ namespace Microsoft.ML.Transforms.Normalizers
                 => NormalizeTransform.BinUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
+        public sealed class SupervisedBinningColumn : FixZeroColumnBase
+        {
+            public readonly int NumBins;
+            public string LabelColumn;
+
+            public SupervisedBinningColumn(string input, string output = null,
+                long maxTrainingExamples = Defaults.MaxTrainingExamples,
+                bool fixZero = true,
+                int numBins = Defaults.NumBins,
+                string labelColumn = "Label")
+                : base(input, output ?? input, maxTrainingExamples, fixZero)
+            {
+                NumBins = numBins;
+                LabelColumn = labelColumn;
+            }
+
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
+                => NormalizeTransform.SupervisedBinUtils.CreateBuilder(this, host, LabelColumn, srcIndex, srcType, cursor);
+        }
+
         private readonly IHost _host;
         private readonly ColumnBase[] _columns;
 
