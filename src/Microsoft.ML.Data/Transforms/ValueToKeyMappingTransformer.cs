@@ -736,8 +736,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     var type = _infos[i].TypeSrc;
                     KeyType keyType = _parent._unboundMaps[i].OutputType;
                     ColumnType colType;
-                    if (type.IsVector)
-                        colType = new VectorType(keyType, type.AsVector);
+                    if (type is VectorType vectorType)
+                        colType = new VectorType(keyType, vectorType);
                     else
                         colType = keyType;
                     _types[i] = colType;

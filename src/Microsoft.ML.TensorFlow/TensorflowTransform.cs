@@ -837,7 +837,7 @@ namespace Microsoft.ML.Transforms
                     else
                     {
                         if (shape.Select((dim, j) => dim != -1 && dim != colTypeDims[j]).Any(b => b))
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is {type.AsVector.ToString()}.");
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is {vecType.ToString()}.");
 
                         // Fill in the unknown dimensions.
                         var l = new long[originalShape.NumDimensions];

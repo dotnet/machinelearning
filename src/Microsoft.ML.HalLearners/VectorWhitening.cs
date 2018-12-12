@@ -323,7 +323,8 @@ namespace Microsoft.ML.Transforms.Projections
         // Check if the input column's type is supported. Note that only float vector with a known shape is allowed.
         internal static string TestColumn(ColumnType type)
         {
-            if ((type.IsVector && !type.IsKnownSizeVector && (type.AsVector.Dimensions.Length > 1)) || type.ItemType != NumberType.R4)
+            if ((type is VectorType vectorType && !vectorType.IsKnownSizeVector && vectorType.Dimensions.Length > 1)
+                || type.ItemType != NumberType.R4)
                 return "Expected float or float vector of known size";
 
             if ((long)type.ValueCount * type.ValueCount > Utils.ArrayMaxSize)

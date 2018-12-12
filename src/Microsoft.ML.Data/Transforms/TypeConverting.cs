@@ -370,7 +370,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!srcType.ItemType.IsKey && !srcType.ItemType.IsText)
                     return false;
             }
-            else if (!srcType.ItemType.IsKey)
+            else if (!(srcType.ItemType is KeyType key))
                 itemType = PrimitiveType.FromKind(kind);
             else if (!KeyType.IsValidDataKind(kind))
             {
@@ -379,7 +379,6 @@ namespace Microsoft.ML.Transforms.Conversions
             }
             else
             {
-                var key = srcType.ItemType.AsKey;
                 ectx.Assert(KeyType.IsValidDataKind(key.RawKind));
                 int count = key.Count;
                 // Technically, it's an error for the counts not to match, but we'll let the Conversions
@@ -436,8 +435,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     return false;
 
                 typeDst = itemType;
-                if (srcType.IsVector)
-                    typeDst = new VectorType(itemType, srcType.AsVector);
+                if (srcType is VectorType vectorType)
+                    typeDst = new VectorType(itemType, vectorType);
 
                 return true;
             }
@@ -473,9 +472,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
-                if (!_types[iinfo].IsVector)
+                if (!(_types[iinfo] is VectorType vectorType))
                     return RowCursorUtils.GetGetterAs(_types[iinfo], input, _srcCols[iinfo]);
-                return RowCursorUtils.GetVecGetterAs(_types[iinfo].AsVector.ItemType, input, _srcCols[iinfo]);
+                return RowCursorUtils.GetVecGetterAs(vectorType.ItemType, input, _srcCols[iinfo]);
             }
 
             public void SaveAsOnnx(OnnxContext ctx)
@@ -507,7 +506,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputKind);
                 if (_parent._columns[iinfo].OutputKeyRange != null)
                 {
-                    var key = _types[iinfo].ItemType.AsKey;
+                    var key = (KeyType)_types[iinfo].ItemType;
                     node.AddAttribute("min", key.Min);
                     node.AddAttribute("max", key.Count);
                     node.AddAttribute("contiguous", key.Contiguous);

@@ -306,8 +306,9 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     ColumnInfo srcInfo = _parent._cols[c];
                     var ctype = srcInfo.Type.ItemType;
-                    _ectx.Assert(ctype.IsPrimitive);
-                    _slotTypes[c] = new VectorType(ctype.AsPrimitive, _parent.RowCount);
+                    var primitiveType = ctype as PrimitiveType;
+                    _ectx.Assert(primitiveType != null);
+                    _slotTypes[c] = new VectorType(primitiveType, _parent.RowCount);
                 }
 
                 AsSchema = Schema.Create(this);
@@ -1189,7 +1190,7 @@ namespace Microsoft.ML.Runtime.Data
                     public ColumnSplitter(IDataView view, int col, int[] lims)
                         : base(view, col)
                     {
-                        var type = _view.Schema.GetColumnType(SrcCol).AsVector;
+                        var type = _view.Schema.GetColumnType(SrcCol) as VectorType;
                         // Only valid use is for two or more slices.
                         Contracts.Assert(Utils.Size(lims) >= 2);
                         Contracts.AssertValue(type);
