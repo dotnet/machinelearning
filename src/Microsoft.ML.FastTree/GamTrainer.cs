@@ -648,9 +648,8 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class GamPredictorBase : PredictorBase<float>,
-        IValueMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary,
-        IFeatureContributionMapper
+    public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper,
+        IFeatureContributionMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
@@ -856,60 +855,6 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             response = (float)value;
-        }
-
-        /// <summary>
-        /// Returns a vector of feature contributions for a given example.
-        /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
-        /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
-        /// </summary>
-        internal void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
-        {
-            if (builder == null)
-                builder = new BufferBuilder<float>(R4Adder.Instance);
-
-            // The model is Intercept + Features
-            builder.Reset(features.Length + 1, false);
-            builder.AddFeature(0, (float)Intercept);
-
-            var featuresValues = features.GetValues();
-            if (features.IsDense)
-            {
-                for (int i = 0; i < featuresValues.Length; ++i)
-                {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        builder.AddFeature(i+1, (float) GetBinEffect(j, featuresValues[i]));
-                }
-            }
-            else
-            {
-                int k = -1;
-                var featuresIndices = features.GetIndices();
-                int index = featuresIndices[++k];
-                for (int i = 0; i < _numFeatures; ++i)
-                {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                    {
-                        double value;
-                        if (i == index)
-                        {
-                            // Get the computed value
-                            value = GetBinEffect(j, featuresValues[index]);
-                            // Increment index to the next feature
-                            if (k < featuresIndices.Length - 1)
-                                index = featuresIndices[++k];
-                        }
-                        else
-                            // For features not defined, the impact is the impact at 0
-                            value = GetBinEffect(i, 0);
-                        builder.AddFeature(i + 1, (float)value);
-                    }
-                }
-            }
-
-            builder.GetResult(ref contribs);
-
-            return;
         }
 
         internal double GetFeatureBinsAndScore(in VBuffer<float> features, int[] bins)

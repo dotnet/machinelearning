@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests
                 new float[4] { 0.20861618F, 0.99999994F, 0.407312155F, 6.963478E-05F },
                 new float[4] { 0.024050576F, 0.99999994F, 0.31106182F, 8.456762E-06F }, };
 
-            TestFeatureImportance(ML.Regression.Trainers.OrdinaryLeastSquares(), expectedValues);
+            TestFeatureContribution(ML.Regression.Trainers.OrdinaryLeastSquares(), expectedValues);
         }
 
         [Fact]
@@ -57,14 +57,14 @@ namespace Microsoft.ML.Tests
                 new float[4] { -0.02197981F, -1F, -0.1051985F, -0.004131221F },
                 new float[4] { -0.1072952F, -1F, 0.1284171F, -0.002337188F }, };
 
-            TestFeatureImportance(ML.Regression.Trainers.GeneralizedAdditiveModels(), expectedValues, 5);
+            TestFeatureContribution(ML.Regression.Trainers.GeneralizedAdditiveModels(), expectedValues, 5);
         }
 
         /// <summary>
         /// Features: x1, x2, x3, xRand; y = 10*x1 + 20x2 + 5.5x3 + e, xRand- random, Label y is dependant on xRand.
         /// Test verifies that feature contribution scores are outputted along with a score for predicted data. 
         /// </summary>
-        private void TestFeatureImportance(
+        private void TestFeatureContribution(
             ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
             List<float[]> expectedValues,
             int precision = 6)
