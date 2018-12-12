@@ -50,7 +50,7 @@ namespace Microsoft.ML
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
-        /// <param name="features">Feature column names.</param>
+        /// <param name="features">Feature column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
@@ -124,7 +124,7 @@ namespace Microsoft.ML
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
-        /// <param name="features">Feature column names.</param>
+        /// <param name="features">Feature column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
@@ -202,7 +202,7 @@ namespace Microsoft.ML
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
-        /// <param name="features">Feature column names.</param>
+        /// <param name="features">Feature column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
@@ -286,7 +286,7 @@ namespace Microsoft.ML
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
         /// <param name="groupId">GroupId column name</param>
-        /// <param name="features">Feature column names.</param>
+        /// <param name="features">Feature column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
@@ -360,7 +360,7 @@ namespace Microsoft.ML
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
-        /// <param name="features">Feature column names.</param>
+        /// <param name="features">Feature column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
