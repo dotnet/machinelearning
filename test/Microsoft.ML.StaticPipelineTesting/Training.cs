@@ -43,7 +43,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
-            LinearRegressionPredictor pred = null;
+            LinearRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2,
@@ -114,7 +114,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            LinearBinaryPredictor pred = null;
+            LinearBinaryModelParameters pred = null;
             ParameterMixingCalibratedPredictor cali = null;
 
             var est = reader.MakeNewEstimator()
@@ -160,7 +160,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            LinearBinaryPredictor pred = null;
+            LinearBinaryModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -204,7 +204,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            LinearBinaryPredictor pred = null;
+            LinearBinaryModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -240,7 +240,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
-            LinearBinaryPredictor pred = null;
+            LinearBinaryModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -547,7 +547,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
-            PoissonRegressionPredictor pred = null;
+            PoissonRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.PoissonRegression(r.label, r.features,
@@ -673,7 +673,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
-            LinearRegressionPredictor pred = null;
+            LinearRegressionModelParameters pred = null;
 
             var loss = new SquaredLoss();
 

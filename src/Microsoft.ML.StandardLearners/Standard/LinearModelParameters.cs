@@ -2,13 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
@@ -20,26 +14,31 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Numeric;
 using Newtonsoft.Json.Linq;
-using Microsoft.ML.Data;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Float = System.Single;
 
 // This is for deserialization from a model repository.
-[assembly: LoadableClass(typeof(IPredictorProducing<Float>), typeof(LinearBinaryPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<Float>), typeof(LinearBinaryModelParameters), null, typeof(SignatureLoadModel),
     "Linear Binary Executor",
-    LinearBinaryPredictor.LoaderSignature)]
+    LinearBinaryModelParameters.LoaderSignature)]
 
 // This is for deserialization from a model repository.
-[assembly: LoadableClass(typeof(LinearRegressionPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(LinearRegressionModelParameters), null, typeof(SignatureLoadModel),
     "Linear Regression Executor",
-    LinearRegressionPredictor.LoaderSignature)]
+    LinearRegressionModelParameters.LoaderSignature)]
 
 // This is for deserialization from a model repository.
-[assembly: LoadableClass(typeof(PoissonRegressionPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(PoissonRegressionModelParameters), null, typeof(SignatureLoadModel),
     "Poisson Regression Executor",
-    PoissonRegressionPredictor.LoaderSignature)]
+    PoissonRegressionModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public abstract class LinearPredictor : PredictorBase<Float>,
+    public abstract class LinearModelParameters : PredictorBase<Float>,
         IValueMapper,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
@@ -60,7 +59,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         private sealed class WeightsCollection : IReadOnlyList<Float>
         {
-            private readonly LinearPredictor _pred;
+            private readonly LinearModelParameters _pred;
 
             public int Count => _pred.Weight.Length;
 
@@ -75,7 +74,7 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            public WeightsCollection(LinearPredictor pred)
+            public WeightsCollection(LinearModelParameters pred)
             {
                 Contracts.AssertValue(pred);
                 _pred = pred;
@@ -112,7 +111,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weights">The weights for the linear predictor. Note that this
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
-        internal LinearPredictor(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
+        public LinearModelParameters(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
             : base(env, name)
         {
             Host.CheckParam(FloatUtils.IsFinite(weights.GetValues()), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
@@ -128,7 +127,7 @@ namespace Microsoft.ML.Runtime.Learners
                 _weightsDenseLock = new object();
         }
 
-        protected LinearPredictor(IHostEnvironment env, string name, ModelLoadContext ctx)
+        protected LinearModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
             // *** Binary format ***
@@ -311,12 +310,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
-        protected void CombineParameters(IList<IParameterMixer<Float>> models, out VBuffer<Float> weights, out Float bias)
+        internal void CombineParameters(IList<IParameterMixer<Float>> models, out VBuffer<Float> weights, out Float bias)
         {
             Type type = GetType();
 
             Contracts.Check(type == models[0].GetType(), "Submodel for parameter mixer has the wrong type");
-            var first = (LinearPredictor)models[0];
+            var first = (LinearModelParameters)models[0];
 
             weights = default(VBuffer<Float>);
             first.Weight.CopyTo(ref weights);
@@ -327,7 +326,7 @@ namespace Microsoft.ML.Runtime.Learners
                 var m = models[i];
                 Contracts.Check(type == m.GetType(), "Submodel for parameter mixer has the wrong type");
 
-                var sub = (LinearPredictor)m;
+                var sub = (LinearModelParameters)m;
                 var subweights = sub.Weight;
                 VectorUtils.Add(in subweights, ref weights);
                 bias += sub.Bias;
@@ -400,12 +399,12 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed partial class LinearBinaryPredictor : LinearPredictor,
+    public sealed partial class LinearBinaryModelParameters : LinearModelParameters,
         ICanGetSummaryInKeyValuePairs,
         IParameterMixer<Float>
     {
-        public const string LoaderSignature = "Linear2CExec";
-        public const string RegistrationName = "LinearBinaryPredictor";
+        internal const string LoaderSignature = "Linear2CExec";
+        internal const string RegistrationName = "LinearBinaryPredictor";
 
         private const string ModelStatsSubModelFilename = "ModelStats";
         private readonly LinearModelStatistics _stats;
@@ -422,7 +421,7 @@ namespace Microsoft.ML.Runtime.Learners
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LinearBinaryPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(LinearBinaryModelParameters).Assembly.FullName);
         }
 
         /// <summary>
@@ -433,14 +432,14 @@ namespace Microsoft.ML.Runtime.Learners
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         /// <param name="stats"></param>
-        public LinearBinaryPredictor(IHostEnvironment env, in VBuffer<Float> weights, Float bias, LinearModelStatistics stats = null)
+        public LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<Float> weights, Float bias, LinearModelStatistics stats = null)
             : base(env, RegistrationName, in weights, bias)
         {
             Contracts.AssertValueOrNull(stats);
             _stats = stats;
         }
 
-        private LinearBinaryPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private LinearBinaryModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             // For model version earlier than 0x00020001, there is no model statisitcs.
@@ -454,12 +453,12 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
-        public static IPredictorProducing<Float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static IPredictorProducing<Float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            var predictor = new LinearBinaryPredictor(env, ctx);
+            var predictor = new LinearBinaryModelParameters(env, ctx);
             ICalibrator calibrator;
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
@@ -488,12 +487,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
-        public IParameterMixer<Float> CombineParameters(IList<IParameterMixer<Float>> models)
+        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
         {
             VBuffer<Float> weights;
             Float bias;
             CombineParameters(models, out weights, out bias);
-            return new LinearBinaryPredictor(Host, in weights, bias);
+            return new LinearBinaryModelParameters(Host, in weights, bias);
         }
 
         private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
@@ -542,14 +541,14 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public abstract class RegressionPredictor : LinearPredictor
+    public abstract class RegressionModelParameters : LinearModelParameters
     {
-        protected RegressionPredictor(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
+        public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
             : base(env, name, in weights, bias)
         {
         }
 
-        protected RegressionPredictor(IHostEnvironment env, string name, ModelLoadContext ctx)
+        protected RegressionModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
         }
@@ -576,12 +575,12 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class LinearRegressionPredictor : RegressionPredictor,
+    public sealed class LinearRegressionModelParameters : RegressionModelParameters,
         IParameterMixer<Float>,
         ICanGetSummaryInKeyValuePairs
     {
-        public const string LoaderSignature = "LinearRegressionExec";
-        public const string RegistrationName = "LinearRegressionPredictor";
+        internal const string LoaderSignature = "LinearRegressionExec";
+        internal const string RegistrationName = "LinearRegressionPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -592,7 +591,7 @@ namespace Microsoft.ML.Runtime.Learners
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LinearRegressionPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(LinearRegressionModelParameters).Assembly.FullName);
         }
 
         /// <summary>
@@ -602,22 +601,22 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weights">The weights for the linear predictor. Note that this
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
-        public LinearRegressionPredictor(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
+        public LinearRegressionModelParameters(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
             : base(env, RegistrationName, in weights, bias)
         {
         }
 
-        private LinearRegressionPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private LinearRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
         }
 
-        public static LinearRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static LinearRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new LinearRegressionPredictor(env, ctx);
+            return new LinearRegressionModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -640,12 +639,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
-        public IParameterMixer<Float> CombineParameters(IList<IParameterMixer<Float>> models)
+        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
         {
             VBuffer<Float> weights;
             Float bias;
             CombineParameters(models, out weights, out bias);
-            return new LinearRegressionPredictor(Host, in weights, bias);
+            return new LinearRegressionModelParameters(Host, in weights, bias);
         }
 
         ///<inheritdoc/>
@@ -661,10 +660,10 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class PoissonRegressionPredictor : RegressionPredictor, IParameterMixer<Float>
+    public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<Float>
     {
-        public const string LoaderSignature = "PoissonRegressionExec";
-        public const string RegistrationName = "PoissonRegressionPredictor";
+        internal const string LoaderSignature = "PoissonRegressionExec";
+        internal const string RegistrationName = "PoissonRegressionPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -675,25 +674,25 @@ namespace Microsoft.ML.Runtime.Learners
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(PoissonRegressionPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(PoissonRegressionModelParameters).Assembly.FullName);
         }
 
-        internal PoissonRegressionPredictor(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
+        public PoissonRegressionModelParameters(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
             : base(env, RegistrationName, in weights, bias)
         {
         }
 
-        private PoissonRegressionPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private PoissonRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
         }
 
-        public static PoissonRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static PoissonRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new PoissonRegressionPredictor(env, ctx);
+            return new PoissonRegressionModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -721,12 +720,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
-        public IParameterMixer<Float> CombineParameters(IList<IParameterMixer<Float>> models)
+        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
         {
             VBuffer<Float> weights;
             Float bias;
             CombineParameters(models, out weights, out bias);
-            return new PoissonRegressionPredictor(Host, in weights, bias);
+            return new PoissonRegressionModelParameters(Host, in weights, bias);
         }
     }
 }
