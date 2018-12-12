@@ -256,12 +256,16 @@ namespace Microsoft.ML.Tests.Transformers
             var data = loader.Read(dataPath);
 
             var est1 = new NormalizingEstimator(Env, "float4");
-            var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
-            var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumn("float4"));
+            var trans1 = est1.Fit(data);
+            var data1 = trans1.Transform(data);
 
-            var data1 = est1.Fit(data).Transform(data);
-            var data2 = est2.Fit(data).Transform(data);
-            var data3 = est3.Fit(data).Transform(data);
+            var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var trans2 = est2.Fit(data);
+            var data2 = trans2.Transform(data);
+
+            var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumn("float4"));
+            var trans3 = est3.Fit(data);
+            var data3 = trans3.Transform(data);
 
             var est4 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumn("float4"));
             var trans4 = est4.Fit(data);
