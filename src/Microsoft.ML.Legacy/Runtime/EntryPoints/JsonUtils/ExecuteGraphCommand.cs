@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     else
                         using (var ch = _host.Start("Get outputs from executed graph"))
                         {
-                            string msg = string.Format("Ignore empty graph output (output name: {0}, type: {1}, expected output's file: {2})",
+                            string msg = string.Format("Ignoring empty graph output (output name: {0}, type: {1}, expected output's file: {2})",
                                 varName, nameof(idv), path + extension);
                             ch.Warning(msg);
                         }
