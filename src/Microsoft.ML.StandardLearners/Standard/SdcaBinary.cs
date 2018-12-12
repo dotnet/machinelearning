@@ -76,15 +76,15 @@ namespace Microsoft.ML.Trainers
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
-                linInitPred = linInitPred ?? initPred as LinearPredictor;
+                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
+                linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
                 return TrainCore(ch, preparedData, linInitPred, weightSetCount);
             }
         }
 
-        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount);
+        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount);
 
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Trainers
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
-        protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
+        protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
             Contracts.Assert(weightSetCount >= 1);
@@ -1560,7 +1560,7 @@ namespace Microsoft.ML.Trainers
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
 
-            var predictor = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias[0]);
+            var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
             if (!(_loss is LogLoss))
                 return predictor;
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
@@ -1748,7 +1748,7 @@ namespace Microsoft.ML.Trainers
         //For complexity analysis, we assume that
         // - The number of features is N
         // - Average number of non-zero per instance is k
-        protected override TScalarPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
+        protected override TScalarPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             Contracts.AssertValue(data);
             Contracts.Assert(weightSetCount == 1);
@@ -1925,7 +1925,7 @@ namespace Microsoft.ML.Trainers
 
             VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
-            var pred = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias);
+            var pred = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
             if (!(_loss is LogLoss))
                 return pred;
             return new ParameterMixingCalibratedPredictor(Host, pred, new PlattCalibrator(Host, -1, 0));

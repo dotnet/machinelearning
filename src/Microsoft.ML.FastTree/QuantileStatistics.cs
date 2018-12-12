@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime
         private Float[] _weightedSums;
         private SummaryStatistics _summaryStatistics;
 
-        public Float Minimum
+        Float IDistribution<Float>.Minimum
         {
             get
             {
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime
             }
         }
 
-        public Float Maximum
+        Float IDistribution<Float>.Maximum
         {
             get
             {
@@ -41,11 +41,11 @@ namespace Microsoft.ML.Runtime
             }
         }
 
-        public Float Median { get { return GetQuantile(0.5F); } }
+        Float IQuantileDistribution<Float>.Median { get { return ((IQuantileDistribution<Float>)this).GetQuantile(0.5F); } }
 
-        public Float Mean { get { return (Float)SummaryStatistics.Mean; } }
+        Float IDistribution<Float>.Mean { get { return (Float)SummaryStatistics.Mean; } }
 
-        public Float StandardDeviation { get { return (Float)SummaryStatistics.SampleStdDev; } }
+        Float IDistribution<Float>.StandardDeviation { get { return (Float)SummaryStatistics.SampleStdDev; } }
 
         /// <summary>
         /// data array will be modified because of sorting if it is not already sorted yet and this class owns the data.
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime
         /// There are many ways to estimate quantile. This implementations is based on R-8, SciPy-(1/3,1/3)
         /// https://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population
         /// </summary>
-        public Float GetQuantile(Float p)
+        Float IQuantileDistribution<Float>.GetQuantile(Float p)
         {
             Contracts.CheckParam(0 <= p && p <= 1, nameof(p), "Probablity argument for Quantile function should be between 0 to 1 inclusive");
 
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime
             return (Float)(_data[hf - 1] + (h - hf) * (_data[hf] - _data[hf - 1]));
         }
 
-        public Float[] GetSupportSample(out Float[] weights)
+        Float[] ISampleableDistribution<Float>.GetSupportSample(out Float[] weights)
         {
             var result = new Float[_data.Length];
             Array.Copy(_data, result, _data.Length);

@@ -35,8 +35,8 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
-                linInitPred = linInitPred ?? initPred as LinearPredictor;
+                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
+                linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
                 return TrainCore(ch, preparedData, linInitPred, weightSetCount);
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Runtime.Learners
             return examplesToFeedTrain;
         }
 
-        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount);
+        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount);
 
         protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
     }

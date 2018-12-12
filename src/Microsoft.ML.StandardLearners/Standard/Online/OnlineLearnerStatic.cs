@@ -54,7 +54,7 @@ namespace Microsoft.ML.StaticPipe
                 float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
                 int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
                 Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null,
-                Action<LinearBinaryPredictor> onFit = null
+                Action<LinearBinaryModelParameters> onFit = null
             )
         {
             OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit, advancedSettings);
@@ -116,7 +116,7 @@ namespace Microsoft.ML.StaticPipe
             float l2RegularizerWeight = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
             Action<AveragedLinearArguments> advancedSettings = null,
-            Action<LinearRegressionPredictor> onFit = null)
+            Action<LinearRegressionModelParameters> onFit = null)
         {
             OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit, advancedSettings);
             Contracts.CheckValueOrNull(lossFunction);

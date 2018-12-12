@@ -58,7 +58,7 @@ namespace Microsoft.ML.Trainers.Online
 
         /// <summary>
         /// An object to hold the mutable updatable state for the online linear trainers. Specific algorithms should subclass
-        /// this, and return the instance via <see cref="MakeState(IChannel, int, LinearPredictor)"/>.
+        /// this, and return the instance via <see cref="MakeState(IChannel, int, LinearModelParameters)"/>.
         /// </summary>
         private protected abstract class TrainStateBase
         {
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Trainers.Online
 
             protected readonly IHost ParentHost;
 
-            protected TrainStateBase(IChannel ch, int numFeatures, LinearPredictor predictor, OnlineLinearTrainer<TTransformer, TModel> parent)
+            protected TrainStateBase(IChannel ch, int numFeatures, LinearModelParameters predictor, OnlineLinearTrainer<TTransformer, TModel> parent)
             {
                 Contracts.CheckValue(ch, nameof(ch));
                 ch.Check(numFeatures > 0, "Cannot train with zero features!");
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Trainers.Online
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor;
-            var initLinearPred = initPredictor as LinearPredictor ?? (initPredictor as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
+            var initLinearPred = initPredictor as LinearModelParameters ?? (initPredictor as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
             Host.CheckParam(initPredictor == null || initLinearPred != null, nameof(context), "Not a linear predictor.");
             var data = context.TrainingSet;
 
@@ -316,6 +316,6 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        private protected abstract TrainStateBase MakeState(IChannel ch, int numFeatures, LinearPredictor predictor);
+        private protected abstract TrainStateBase MakeState(IChannel ch, int numFeatures, LinearModelParameters predictor);
     }
 }

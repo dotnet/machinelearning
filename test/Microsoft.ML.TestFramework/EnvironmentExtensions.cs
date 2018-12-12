@@ -19,7 +19,7 @@ namespace Microsoft.ML.TestFramework
             where TEnvironment : IHostEnvironment
         {
             env.ComponentCatalog.RegisterAssembly(typeof(TextLoader).Assembly); // ML.Data
-            env.ComponentCatalog.RegisterAssembly(typeof(LinearPredictor).Assembly); // ML.StandardLearners
+            env.ComponentCatalog.RegisterAssembly(typeof(LinearModelParameters).Assembly); // ML.StandardLearners
             env.ComponentCatalog.RegisterAssembly(typeof(OneHotEncodingTransformer).Assembly); // ML.Transforms
             env.ComponentCatalog.RegisterAssembly(typeof(FastTreeBinaryModelParameters).Assembly); // ML.FastTree
             env.ComponentCatalog.RegisterAssembly(typeof(EnsemblePredictor).Assembly); // ML.Ensemble

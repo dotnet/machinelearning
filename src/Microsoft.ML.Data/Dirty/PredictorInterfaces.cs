@@ -21,7 +21,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// A generic interface for models that can average parameters from multiple instance of self
     /// </summary>
-    public interface IParameterMixer
+    [BestFriend]
+    internal interface IParameterMixer
     {
         IParameterMixer CombineParameters(IList<IParameterMixer> models);
     }
@@ -29,7 +30,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// A generic interface for models that can average parameters from multiple instance of self
     /// </summary>
-    public interface IParameterMixer<TOutput>
+    [BestFriend]
+    internal interface IParameterMixer<TOutput>
     {
         IParameterMixer<TOutput> CombineParameters(IList<IParameterMixer<TOutput>> models);
     }
@@ -48,7 +50,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// A generic interface for probability distributions
     /// </summary>
     /// <typeparam name="TResult">Type of statistics result</typeparam>
-    public interface IDistribution<out TResult>
+    [BestFriend]
+    internal interface IDistribution<out TResult>
     {
         TResult Minimum { get; }
 
@@ -70,7 +73,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// Interface for quantile distribution
     /// </summary>
     /// <typeparam name="TResult">Type of statistics result</typeparam>
-    public interface IQuantileDistribution<TResult> : IDistribution<TResult>, ISampleableDistribution<TResult>
+    [BestFriend]
+    internal interface IQuantileDistribution<TResult> : IDistribution<TResult>, ISampleableDistribution<TResult>
     {
         TResult Median { get; }
 
@@ -81,7 +85,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         TResult GetQuantile(Float p);
     }
 
-    public interface ISampleableDistribution<TResult> : IDistribution<TResult>
+    [BestFriend]
+    internal interface ISampleableDistribution<TResult> : IDistribution<TResult>
     {
         /// <summary>
         /// Returns Support sample for the distribution.
