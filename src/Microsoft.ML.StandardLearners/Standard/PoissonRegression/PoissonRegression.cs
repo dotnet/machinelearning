@@ -104,7 +104,7 @@ namespace Microsoft.ML.Trainers
         protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionModelParameters srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
-            return InitializeWeights(srcPredictor.Weights2, new[] { srcPredictor.Bias });
+            return InitializeWeights(srcPredictor.Weights, new[] { srcPredictor.Bias });
         }
 
         protected override void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)

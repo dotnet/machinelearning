@@ -565,16 +565,14 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// <summary>
         /// The coefficient of determination.
         /// </summary>
-        public Double RSquared
-        { get { return _rSquared; } }
+        public Double RSquared => _rSquared;
 
         /// <summary>
         /// The adjusted coefficient of determination. It is only possible to produce
         /// an adjusted R-squared if there are more examples than parameters in the model
         /// plus one. If this condition is not met, this value will be <c>NaN</c>.
         /// </summary>
-        public Double RSquaredAdjusted
-        { get { return _rSquaredAdjusted; } }
+        public Double RSquaredAdjusted => _rSquaredAdjusted;
 
         /// <summary>
         /// Whether the model has per parameter statistics. This is false iff
@@ -585,33 +583,29 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// <see cref="OlsLinearRegressionTrainer.Arguments.PerParameterSignificance"/>
         /// to false.
         /// </summary>
-        public bool HasStatistics
-        { get { return _standardErrors != null; } }
+        public bool HasStatistics => _standardErrors != null;
 
         /// <summary>
         /// The standard error per model parameter, where the first corresponds to the bias,
         /// and all subsequent correspond to each weight in turn. This is <c>null</c> if and
         /// only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public IReadOnlyCollection<Double> StandardErrors
-        { get { return _standardErrors.AsReadOnly(); } }
+        public IReadOnlyCollection<Double> StandardErrors => _standardErrors.AsReadOnly();
 
         /// <summary>
         /// t-Statistic values corresponding to each of the model standard errors. This is
         /// <c>null</c> if and only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public IReadOnlyCollection<Double> TValues
-        { get { return _tValues.AsReadOnly(); } }
+        public IReadOnlyCollection<Double> TValues => _tValues.AsReadOnly();
 
         /// <summary>
         /// p-values corresponding to each of the model standard errors. This is <c>null</c>
         /// if and only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public IReadOnlyCollection<Double> PValues
-        { get { return _pValues.AsReadOnly(); } }
+        public IReadOnlyCollection<Double> PValues => _pValues.AsReadOnly();
 
         public OlsLinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias,
-            Double[] standardErrors, Double[] tValues, Double[] pValues, Double rSquared, Double rSquaredAdjusted)
+            Double[] standardErrors = null, Double[] tValues = null, Double[] pValues = null, Double rSquared = 1, Double rSquaredAdjusted = float.NaN)
             : base(env, RegistrationName, in weights, bias)
         {
             Contracts.AssertValueOrNull(standardErrors);

@@ -1,7 +1,5 @@
-﻿using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
+﻿using Microsoft.ML.Data;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
@@ -39,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var modelParams = model.LastTransformer.Model;
             // Inspect the bias and model weights.
             Console.WriteLine("The bias term is: " + modelParams.Bias);
-            Console.WriteLine("The feature weights are: " + string.Join(", ", modelParams.Weights2.ToArray()));
+            Console.WriteLine("The feature weights are: " + string.Join(", ", modelParams.Weights.ToArray()));
         }
     }
 }

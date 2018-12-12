@@ -19,10 +19,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Float = System.Single;
 
 // This is for deserialization from a model repository.
-[assembly: LoadableClass(typeof(IPredictorProducing<Float>), typeof(LinearBinaryModelParameters), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LinearBinaryModelParameters), null, typeof(SignatureLoadModel),
     "Linear Binary Executor",
     LinearBinaryModelParameters.LoaderSignature)]
 
@@ -38,7 +37,7 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public abstract class LinearModelParameters : PredictorBase<Float>,
+    public abstract class LinearModelParameters : PredictorBase<float>,
         IValueMapper,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
@@ -46,29 +45,29 @@ namespace Microsoft.ML.Runtime.Learners
         ICanSaveModel,
         ICanGetSummaryAsIRow,
         ICanSaveSummary,
-        IPredictorWithFeatureWeights<Float>,
+        IPredictorWithFeatureWeights<float>,
         IFeatureContributionMapper,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
-        protected readonly VBuffer<Float> Weight;
+        protected readonly VBuffer<float> Weight;
 
         // _weightsDense is not persisted and is used for performance when the input instance is sparse.
-        private VBuffer<Float> _weightsDense;
+        private VBuffer<float> _weightsDense;
         private readonly object _weightsDenseLock;
 
-        private sealed class WeightsCollection : IReadOnlyList<Float>
+        private sealed class WeightsCollection : IReadOnlyList<float>
         {
             private readonly LinearModelParameters _pred;
 
             public int Count => _pred.Weight.Length;
 
-            public Float this[int index]
+            public float this[int index]
             {
                 get
                 {
                     Contracts.CheckParam(0 <= index && index < Count, nameof(index), "Out of range");
-                    Float value = 0;
+                    float value = 0;
                     _pred.Weight.GetItemOrDefault(index, ref value);
                     return value;
                 }
@@ -80,7 +79,7 @@ namespace Microsoft.ML.Runtime.Learners
                 _pred = pred;
             }
 
-            public IEnumerator<Float> GetEnumerator()
+            public IEnumerator<float> GetEnumerator()
             {
                 return _pred.Weight.Items(all: true).Select(iv => iv.Value).GetEnumerator();
             }
@@ -92,10 +91,10 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary> The predictor's feature weight coefficients.</summary>
-        public IReadOnlyList<Float> Weights2 => new WeightsCollection(this);
+        public IReadOnlyList<float> Weights => new WeightsCollection(this);
 
         /// <summary> The predictor's bias term.</summary>
-        public Float Bias { get; protected set; }
+        public float Bias { get; protected set; }
 
         private readonly ColumnType _inputType;
 
@@ -111,7 +110,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weights">The weights for the linear predictor. Note that this
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
-        public LinearModelParameters(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
+        public LinearModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
             : base(env, name)
         {
             Host.CheckParam(FloatUtils.IsFinite(weights.GetValues()), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
@@ -170,9 +169,9 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckDecode(Utils.Size(weights) == 0 || weights.All(x => FloatUtils.IsFinite(x)));
 
             if (cwht == 0)
-                Weight = VBufferUtils.CreateEmpty<Float>(len);
+                Weight = VBufferUtils.CreateEmpty<float>(len);
             else
-                Weight = new VBuffer<Float>(len, Utils.Size(weights), weights, indices);
+                Weight = new VBuffer<float>(len, Utils.Size(weights), weights, indices);
 
             _inputType = new VectorType(NumberType.Float, Weight.Length);
             WarnOnOldNormalizer(ctx, GetType(), Host);
@@ -247,7 +246,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         // Generate the score from the given values, assuming they have already been normalized.
-        protected virtual Float Score(in VBuffer<Float> src)
+        protected virtual float Score(in VBuffer<float> src)
         {
             if (src.IsDense)
             {
@@ -258,7 +257,7 @@ namespace Microsoft.ML.Runtime.Learners
             return Bias + VectorUtils.DotProduct(in _weightsDense, in src);
         }
 
-        protected virtual void GetFeatureContributions(in VBuffer<Float> features, ref VBuffer<Float> contributions, int top, int bottom, bool normalize)
+        protected virtual void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contributions, int top, int bottom, bool normalize)
         {
             if (features.Length != Weight.Length)
                 throw Contracts.Except("Input is of length {0} does not match expected length  of weights {1}", features.Length, Weight.Length);
@@ -294,11 +293,11 @@ namespace Microsoft.ML.Runtime.Learners
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
-            Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Contracts.Check(typeof(TOut) == typeof(Float));
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TOut) == typeof(float));
 
-            ValueMapper<VBuffer<Float>, Float> del =
-                (in VBuffer<Float> src, ref Float dst) =>
+            ValueMapper<VBuffer<float>, float> del =
+                (in VBuffer<float> src, ref float dst) =>
                 {
                     if (src.Length != Weight.Length)
                         throw Contracts.Except("Input is of length {0}, but predictor expected length {1}", src.Length, Weight.Length);
@@ -310,14 +309,14 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
-        internal void CombineParameters(IList<IParameterMixer<Float>> models, out VBuffer<Float> weights, out Float bias)
+        internal void CombineParameters(IList<IParameterMixer<float>> models, out VBuffer<float> weights, out float bias)
         {
             Type type = GetType();
 
             Contracts.Check(type == models[0].GetType(), "Submodel for parameter mixer has the wrong type");
             var first = (LinearModelParameters)models[0];
 
-            weights = default(VBuffer<Float>);
+            weights = default(VBuffer<float>);
             first.Weight.CopyTo(ref weights);
             bias = first.Bias;
 
@@ -331,7 +330,7 @@ namespace Microsoft.ML.Runtime.Learners
                 VectorUtils.Add(in subweights, ref weights);
                 bias += sub.Bias;
             }
-            VectorUtils.ScaleBy(ref weights, (Float)1 / models.Count);
+            VectorUtils.ScaleBy(ref weights, (float)1 / models.Count);
             bias /= models.Count;
         }
 
@@ -380,28 +379,28 @@ namespace Microsoft.ML.Runtime.Learners
 
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator) => SaveAsIni(writer, schema, calibrator);
 
-        public virtual void GetFeatureWeights(ref VBuffer<Float> weights)
+        public virtual void GetFeatureWeights(ref VBuffer<float> weights)
         {
             Weight.CopyTo(ref weights);
         }
 
-        ValueMapper<TSrc, VBuffer<Float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
+        ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
         {
-            Contracts.Check(typeof(TSrc) == typeof(VBuffer<Float>));
-            Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<Float>));
+            Contracts.Check(typeof(TSrc) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<float>));
 
-            ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (in VBuffer<Float> src, ref VBuffer<Float> dstContributions) =>
+            ValueMapper<VBuffer<float>, VBuffer<float>> del =
+                (in VBuffer<float> src, ref VBuffer<float> dstContributions) =>
                 {
                     GetFeatureContributions(in src, ref dstContributions, top, bottom, normalize);
                 };
-            return (ValueMapper<TSrc, VBuffer<Float>>)(Delegate)del;
+            return (ValueMapper<TSrc, VBuffer<float>>)(Delegate)del;
         }
     }
 
     public sealed partial class LinearBinaryModelParameters : LinearModelParameters,
         ICanGetSummaryInKeyValuePairs,
-        IParameterMixer<Float>
+        IParameterMixer<float>
     {
         internal const string LoaderSignature = "Linear2CExec";
         internal const string RegistrationName = "LinearBinaryPredictor";
@@ -432,7 +431,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         /// <param name="stats"></param>
-        public LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<Float> weights, Float bias, LinearModelStatistics stats = null)
+        public LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias, LinearModelStatistics stats = null)
             : base(env, RegistrationName, in weights, bias)
         {
             Contracts.AssertValueOrNull(stats);
@@ -453,7 +452,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
-        private static IPredictorProducing<Float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -487,10 +486,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
-        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
+        IParameterMixer<float> IParameterMixer<float>.CombineParameters(IList<IParameterMixer<float>> models)
         {
-            VBuffer<Float> weights;
-            Float bias;
+            VBuffer<float> weights;
+            float bias;
             CombineParameters(models, out weights, out bias);
             return new LinearBinaryModelParameters(Host, in weights, bias);
         }
@@ -543,7 +542,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     public abstract class RegressionModelParameters : LinearModelParameters
     {
-        public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
+        public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
             : base(env, name, in weights, bias)
         {
         }
@@ -576,7 +575,7 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     public sealed class LinearRegressionModelParameters : RegressionModelParameters,
-        IParameterMixer<Float>,
+        IParameterMixer<float>,
         ICanGetSummaryInKeyValuePairs
     {
         internal const string LoaderSignature = "LinearRegressionExec";
@@ -601,7 +600,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weights">The weights for the linear predictor. Note that this
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
-        public LinearRegressionModelParameters(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
+        public LinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
             : base(env, RegistrationName, in weights, bias)
         {
         }
@@ -639,10 +638,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
-        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
+        IParameterMixer<float> IParameterMixer<float>.CombineParameters(IList<IParameterMixer<float>> models)
         {
-            VBuffer<Float> weights;
-            Float bias;
+            VBuffer<float> weights;
+            float bias;
             CombineParameters(models, out weights, out bias);
             return new LinearRegressionModelParameters(Host, in weights, bias);
         }
@@ -660,7 +659,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<Float>
+    public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<float>
     {
         internal const string LoaderSignature = "PoissonRegressionExec";
         internal const string RegistrationName = "PoissonRegressionPredictor";
@@ -677,7 +676,7 @@ namespace Microsoft.ML.Runtime.Learners
                 loaderAssemblyName: typeof(PoissonRegressionModelParameters).Assembly.FullName);
         }
 
-        public PoissonRegressionModelParameters(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
+        public PoissonRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
             : base(env, RegistrationName, in weights, bias)
         {
         }
@@ -701,7 +700,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        protected override Float Score(in VBuffer<Float> src)
+        protected override float Score(in VBuffer<float> src)
         {
             return MathUtils.ExpSlow(base.Score(in src));
         }
@@ -720,10 +719,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
-        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
+        IParameterMixer<float> IParameterMixer<float>.CombineParameters(IList<IParameterMixer<float>> models)
         {
-            VBuffer<Float> weights;
-            Float bias;
+            VBuffer<float> weights;
+            float bias;
             CombineParameters(models, out weights, out bias);
             return new PoissonRegressionModelParameters(Host, in weights, bias);
         }

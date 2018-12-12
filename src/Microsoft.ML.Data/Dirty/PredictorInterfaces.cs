@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -66,7 +64,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     [BestFriend]
     internal interface IQuantileValueMapper
     {
-        ValueMapper<VBuffer<Float>, VBuffer<Float>> GetMapper(Float[] quantiles);
+        ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles);
     }
 
     /// <summary>
@@ -82,7 +80,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// Returns an estimate of the p-th quantile, the data value where proportionately p of the data has value
         /// less than or equal to the returned value.
         /// </summary>
-        TResult GetQuantile(Float p);
+        TResult GetQuantile(float p);
     }
 
     [BestFriend]
@@ -176,7 +174,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// The larger the absolute value of a weights, the more informative/important the feature.
         /// A weights of zero signifies that the feature is not used by the model.
         /// </summary>
-        void GetFeatureWeights(ref VBuffer<Float> weights);
+        void GetFeatureWeights(ref VBuffer<float> weights);
     }
 
     /// <summary>
@@ -201,7 +199,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// For trees we will not have negative contributions, so bottom param will be ignored.
         /// If normalization is requested that resulting values will be normalized to [-1, 1].
         /// </summary>
-        ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize);
+        ValueMapper<TSrc, VBuffer<float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize);
     }
 
     /// <summary>

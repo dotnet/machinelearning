@@ -55,7 +55,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
             // 11 input features, so we ought to have 11 weights.
-            Assert.Equal(11, pred.Weights2.Count);
+            Assert.Equal(11, pred.Weights.Count);
 
             var data = model.Read(dataSource);
 
@@ -131,7 +131,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.NotNull(pred);
             Assert.NotNull(cali);
             // 9 input features, so we ought to have 9 weights.
-            Assert.Equal(9, pred.Weights2.Count);
+            Assert.Equal(9, pred.Weights.Count);
 
             var data = model.Read(dataSource);
 
@@ -177,7 +177,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
             // 9 input features, so we ought to have 9 weights.
-            Assert.Equal(9, pred.Weights2.Count);
+            Assert.Equal(9, pred.Weights.Count);
 
             var data = model.Read(dataSource);
 
@@ -218,7 +218,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
             // 9 input features, so we ought to have 9 weights.
-            Assert.Equal(9, pred.Weights2.Count);
+            Assert.Equal(9, pred.Weights.Count);
 
             var data = model.Read(dataSource);
 
@@ -254,7 +254,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
             // 9 input features, so we ought to have 9 weights.
-            Assert.Equal(9, pred.Weights2.Count);
+            Assert.Equal(9, pred.Weights.Count);
 
             var data = model.Read(dataSource);
 

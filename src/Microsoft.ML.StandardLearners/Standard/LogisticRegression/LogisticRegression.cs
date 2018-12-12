@@ -386,7 +386,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             var pred = srcPredictor.SubPredictor as LinearBinaryModelParameters;
             Contracts.AssertValue(pred);
-            return InitializeWeights(pred.Weights2, new[] { pred.Bias });
+            return InitializeWeights(pred.Weights, new[] { pred.Bias });
         }
 
         protected override ParameterMixingCalibratedPredictor CreatePredictor()

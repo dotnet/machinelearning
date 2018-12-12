@@ -291,7 +291,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (!_coeffStdError.HasValue)
                 return new List<CoefficientStatistics>();
 
-            var weights = parent.Weights2 as IReadOnlyList<Single>;
+            var weights = parent.Weights as IReadOnlyList<Single>;
             _env.Assert(_paramCount == 1 || weights != null);
             _env.Assert(_coeffStdError.Value.Length == weights.Count + 1);
 
