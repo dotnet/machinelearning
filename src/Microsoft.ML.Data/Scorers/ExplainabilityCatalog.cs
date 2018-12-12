@@ -16,12 +16,13 @@ namespace Microsoft.ML
         /// The Feature Contribution Calculation scores the model on an input dataset and computes model-specific contribution scores for each feature.
         /// </summary>
         /// <param name="catalog">The model explainability operations catalog.</param>
-        /// <param name="predictor">A trained model that supports Feature Contribution Calculation, and which will be used for scoring.</param>
+        /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
         /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
         /// <param name="top">The number of top contributing features for each data sample that will be retained in the FeatureContribution column.</param>
         /// <param name="bottom">The number of least contributing features for each data sample that will be retained in the FeatureContribution column.</param>
-        /// <param name="normalize">Whether the feature contributions should be normalized.</param>
-        /// <param name="stringify">Whether to output feature contributions in string key-value format.</param>
+        /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
+        /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
+        /// string(key)-values, set stringify to <langword>true</langword></param>
         public static FeatureContributionCalculatingEstimator FeatureContributionCalculation(this ModelOperationsCatalog.ExplainabilityTransforms catalog,
             IFeatureContributionMapper predictor,
             string featureColumn = DefaultColumnNames.Features,

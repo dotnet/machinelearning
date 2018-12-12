@@ -73,12 +73,13 @@ namespace Microsoft.ML.Runtime.Data
         /// computes model-specific contribution scores for each feature.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="predictor">A trained model that supports Feature Contribution Calculation, and which will be used for scoring.</param>
+        /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
         /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
         /// <param name="top">The number of top contributing features for each data sample that will be retained in the FeatureContribution column.</param>
         /// <param name="bottom">The number of least contributing features for each data sample that will be retained in the FeatureContribution column.</param>
-        /// <param name="normalize">Whether the feature contributions should be normalized.</param>
-        /// <param name="stringify">Whether to output feature contributions in string key-value format.</param>
+        /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
+        /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
+        /// string(key)-values, set stringify to <langword>true</langword></param>
         public FeatureContributionCalculatingTransformer(IHostEnvironment env, IFeatureContributionMapper predictor,
             string featureColumn = DefaultColumnNames.Features,
             int top = FeatureContributionCalculatingEstimator.Defaults.Top,
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Runtime.Data
             _mapper = new BindableMapper(Host, predictor, top, bottom, normalize, stringify);
         }
 
-        // Factory method for SignatureLoadModel
+        // Factory constructor for SignatureLoadModel
         private FeatureContributionCalculatingTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)))
         {
@@ -103,7 +104,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.CheckAtModel(GetVersionInfo());
 
             // *** Binary format ***
-            // string features
+            // string featureColumn
             // BindableMapper mapper
 
             _featureColumn = ctx.LoadNonEmptyString();
@@ -120,7 +121,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // string features
+            // string featureColumn
             // BindableMapper mapper
 
             ctx.SaveNonEmptyString(_featureColumn);
@@ -281,9 +282,9 @@ namespace Microsoft.ML.Runtime.Data
                 _env = env;
                 _env.CheckValue(predictor, nameof(predictor));
                 if (topContributionsCount < 0)
-                    throw env.Except($"Number of top contribution must be positive");
+                    throw env.Except($"Number of top contribution must be non negative");
                 if (bottomContributionsCount < 0)
-                    throw env.Except($"Number of bottom contribution must be positive");
+                    throw env.Except($"Number of bottom contribution must be non negative");
 
                 _topContributionsCount = topContributionsCount;
                 _bottomContributionsCount = bottomContributionsCount;
@@ -294,7 +295,7 @@ namespace Microsoft.ML.Runtime.Data
                 GenericMapper = ScoreUtils.GetSchemaBindableMapper(_env, Predictor, null);
             }
 
-            // Factory method for SignatureLoadModel.
+            // Factory constructor for SignatureLoadModel.
             public BindableMapper(IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.CheckValue(env, nameof(env));
@@ -620,12 +621,13 @@ namespace Microsoft.ML.Runtime.Data
         /// computes model-specific contribution scores for each feature.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="predictor">A trained model that supports Feature Contribution Calculation, and which will be used for scoring.</param>
+        /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
         /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
         /// <param name="top">The number of top contributing features for each data sample that will be retained in the FeatureContribution column.</param>
         /// <param name="bottom">The number of least contributing features for each data sample that will be retained in the FeatureContribution column.</param>
-        /// <param name="normalize">Whether the feature contributions should be normalized.</param>
-        /// <param name="stringify">Whether to output feature contributions in string key-value format.</param>
+        /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
+        /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
+        /// string(key)-values, set stringify to <langword>true</langword></param>
         public FeatureContributionCalculatingEstimator(IHostEnvironment env, IFeatureContributionMapper predictor,
             string featureColumn = DefaultColumnNames.Features,
             int top = Defaults.Top,
@@ -654,7 +656,7 @@ namespace Microsoft.ML.Runtime.Data
             var result = inputSchema.ToDictionary(x => x.Name);
 
             // Add columns produced by scorer.
-            foreach (var column in ScoringUtils.GetPrdictorOutputColumns(_predictor.PredictionKind))
+            foreach (var column in ScoringUtils.GetPredictorOutputColumns(_predictor.PredictionKind))
                 result[column.Name] = column;
 
             // Add FeatureContributions column.

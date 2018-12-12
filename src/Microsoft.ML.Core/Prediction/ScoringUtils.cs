@@ -11,13 +11,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     public static class ScoringUtils
     {
         /// <summary>
-        /// Utility function that returns the SchemaShape of the generated outputcolumns when scoring a model.
+        /// Utility function that returns the SchemaShape of the generated output columns when scoring a model.
         /// </summary>
         /// <param name="predictionKind">The learning task that is being performed.</param>
         /// <param name="isNormalized">Whether the probability column (if generated) will be normalized or not.</param>
         /// <param name="labelColumn"></param>
         /// <returns></returns>
-        public static SchemaShape GetPrdictorOutputColumns(PredictionKind predictionKind, bool isNormalized = true, SchemaShape.Column? labelColumn = null)
+        public static SchemaShape GetPredictorOutputColumns(PredictionKind predictionKind, bool isNormalized = true, SchemaShape.Column? labelColumn = null)
         {
             var columns = new List<SchemaShape.Column>();
             switch (predictionKind)

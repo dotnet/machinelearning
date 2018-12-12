@@ -58,8 +58,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a Feature Contribution Calculator
             // Calculate the feature contributions for all features
             // And don't normalize the contribution scores
-            var featureContributionCalculator = new FeatureContributionCalculatingTransformer(mlContext, model.Model, model.FeatureColumn, top: 11, normalize: false);
-            var outputData = featureContributionCalculator.Transform(transformedData);
+            var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11, normalize: false);
+            var outputData = featureContributionCalculator.Fit(transformedData).Transform(transformedData);
 
             // Let's extract the weights from the linear model to use as a comparison
             var weights = new VBuffer<float>();
