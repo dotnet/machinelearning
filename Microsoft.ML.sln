@@ -139,7 +139,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.DnnImageFeatur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.DnnImageFeaturizer.ResNet101", "src\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.csproj", "{DB7CEB5E-8BE6-48A7-87BE-B91D9AE96F71}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.EntryPoints", "src\Microsoft.ML.Entrypoints\Microsoft.ML.EntryPoints.csproj", "{7504D46F-E4B3-43CB-9B1C-82F3131F1C99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.EntryPoints", "src\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.csproj", "{7504D46F-E4B3-43CB-9B1C-82F3131F1C99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
