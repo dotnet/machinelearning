@@ -398,7 +398,7 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var info in Infos)
                 {
                     ctx.SaveNonEmptyString(info.Name);
-                    ctx.SaveNonEmptyString(Input.GetColumnName(info.Source));
+                    ctx.SaveNonEmptyString(Input[info.Source].Name);
                 }
             }
 

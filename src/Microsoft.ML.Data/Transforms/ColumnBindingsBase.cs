@@ -536,8 +536,8 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Should we keep a dictionary for this mapping? This first looks up
             // the source column index, then does a linear scan in _colMap, starting at the src
             // slot (since source columns can only shift to larger indices).
-            int src;
-            if (Input.TryGetColumnIndex(name, out src))
+            var src = Input.GetColumnOrNull(name)?.Index ?? -1;
+            if (src >= 0)
             {
                 Contracts.Assert(0 <= src && src < Input.ColumnCount);
                 int res = src;
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Runtime.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input.GetColumnName(index);
+                return Input[index].Name;
             return GetColumnNameCore(index);
         }
 
@@ -575,7 +575,7 @@ namespace Microsoft.ML.Runtime.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input.GetColumnType(index);
+                return Input[index].Type;
             return GetColumnTypeCore(index);
         }
 
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Runtime.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                Input.GetMetadata(kind, index, ref value);
+                Input[index].Metadata.GetValue<TValue>(kind, ref value);
             else
             {
                 Contracts.Assert(0 <= index && index < InfoCount);
@@ -899,10 +899,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Contracts.CheckUserArg(!string.IsNullOrWhiteSpace(src[j]), nameof(ManyToOneColumn.Source));
 #pragma warning disable MSML_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
-                    if (!input.TryGetColumnIndex(src[j], out srcIndices[j]))
+
+                    var srcCol = input.GetColumnOrNull(src[j]);
+                    if (srcCol != null)
+                        srcIndices[j] = srcCol.Value.Index;
+                    else
                         throw Contracts.ExceptUserArg(standardColumnArgName, "Source column '{0}' not found", src[j]);
 #pragma warning restore MSML_ContractsNameUsesNameof
-                    srcTypes[j] = input.GetColumnType(srcIndices[j]);
+                    srcTypes[j] = input[srcIndices[j]].Type;
                     var size = srcTypes[j].ValueCount;
                     srcSize = size == 0 ? null : checked(srcSize + size);
                 }
@@ -1002,9 +1006,12 @@ namespace Microsoft.ML.Runtime.Data
                     for (int j = 0; j < csrc; j++)
                     {
                         string src = ctx.LoadNonEmptyString();
-                        if (!input.TryGetColumnIndex(src, out indices[j]))
+                        var srcCol = input.GetColumnOrNull(src);
+                        if (srcCol != null)
+                            indices[j] = srcCol.Value.Index;
+                        else
                             throw Contracts.Except("Source column '{0}' is required but not found", src);
-                        srcTypes[j] = input.GetColumnType(indices[j]);
+                        srcTypes[j] = input[indices[j]].Type;
                         var size = srcTypes[j].ValueCount;
                         srcSize = size == 0 ? null : checked(srcSize + size);
                     }
@@ -1015,7 +1022,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (reason != null)
                         {
                             throw Contracts.Except("Source columns '{0}' have invalid types: {1}. Source types: '{2}'.",
-                                string.Join(", ", indices.Select(k => input.GetColumnName(k))),
+                                string.Join(", ", indices.Select(k => input[k].Name)),
                                 reason,
                                 string.Join(", ", srcTypes.Select(type => type.ToString())));
                         }
@@ -1043,7 +1050,7 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.SaveNonEmptyString(GetColumnNameCore(i));
                 ctx.Writer.Write(info.SrcIndices.Length);
                 foreach (int src in info.SrcIndices)
-                    ctx.SaveNonEmptyString(Input.GetColumnName(src));
+                    ctx.SaveNonEmptyString(Input[src].Name);
             }
         }
 
