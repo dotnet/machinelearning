@@ -74,33 +74,36 @@ namespace Microsoft.ML.Tests
             const int numFeatures = 4;
 
             var rand = new Random(10);
-            float[] yArray = new float[numberOfInstances],
-                x1Array = new float[numberOfInstances],
-                x2Array = new float[numberOfInstances],
-                x3Array = new float[numberOfInstances],
-                x4RandArray = new float[numberOfInstances];
+            float[] yArray = new float[numberOfInstances];
+            float[][] xArray = new float[numFeatures][];
+            int[] xRangeArray = new[] { 1000, 10000, 5000, 1000 };
+            float[] xWeightArray = new[] {
+                10,
+                20, // Most important feature with high weight. Should have the highest contribution.
+                5.5f,
+                0, // Least important feature. Should have the least contribution.
+            };
 
-            for (var i = 0; i < numberOfInstances; i++)
+            for (var instanceIndex = 0; instanceIndex < numberOfInstances; instanceIndex++)
             {
-                var x1 = rand.Next(1000);
-                x1Array[i] = x1;
-                var x2Important = rand.Next(10000);
-                x2Array[i] = x2Important;
-                var x3 = rand.Next(5000);
-                x3Array[i] = x3;
-                var x4Rand = rand.Next(1000);
-                x4RandArray[i] = x4Rand;
+                for (int featureIndex = 0; featureIndex < numFeatures; featureIndex++)
+                {
+                    if (xArray[featureIndex] == null)
+                        xArray[featureIndex] = new float[numberOfInstances];
+                    xArray[featureIndex][instanceIndex] = rand.Next(xRangeArray[featureIndex]);
+                    yArray[instanceIndex] += xArray[featureIndex][instanceIndex] * xWeightArray[featureIndex];
+                }
 
                 var noise = rand.Next(50);
-                yArray[i] = (float)(10 * x1 + 20 * x2Important + 5.5 * x3 + noise);
+                yArray[instanceIndex] += noise;
             }
 
             // Create data view.
             var bldr = new ArrayDataViewBuilder(Env);
-            bldr.AddColumn("X1", NumberType.Float, x1Array);
-            bldr.AddColumn("X2Important", NumberType.Float, x2Array);
-            bldr.AddColumn("X3", NumberType.Float, x3Array);
-            bldr.AddColumn("X4Rand", NumberType.Float, x4RandArray);
+            bldr.AddColumn("X1", NumberType.Float, xArray[0]);
+            bldr.AddColumn("X2Important", NumberType.Float, xArray[1]);
+            bldr.AddColumn("X3", NumberType.Float, xArray[2]);
+            bldr.AddColumn("X4Rand", NumberType.Float, xArray[3]);
             bldr.AddColumn("Label", NumberType.Float, yArray);
             var srcDV = bldr.GetDataView();
 
