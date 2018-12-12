@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.Data
         /// that were all zeros, except for the last bit which is one.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal RowId Fork()
+        public RowId Fork()
         {
             ulong h1 = Low;
             ulong h2 = High;
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.Data
         /// that were all zeros.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal RowId Next()
+        public RowId Next()
         {
             ulong h1 = Low;
             ulong h2 = High;
