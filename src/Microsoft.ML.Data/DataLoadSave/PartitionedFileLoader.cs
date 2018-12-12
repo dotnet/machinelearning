@@ -412,14 +412,14 @@ namespace Microsoft.ML.Runtime.Data
                 return getter;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
 
-                        val = new UInt128(0, (ulong)Position);
+                        val = new RowId(0, (ulong)Position);
                     };
             }
 

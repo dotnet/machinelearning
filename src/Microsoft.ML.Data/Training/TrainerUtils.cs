@@ -634,13 +634,13 @@ namespace Microsoft.ML.Runtime.Training
     }
 
     /// <summary>
-    /// This supports Weight (float), Group (ulong), and Id (UInt128) columns.
+    /// This supports Weight (float), Group (ulong), and Id (RowId) columns.
     /// </summary>
     public class StandardScalarCursor : TrainingCursorBase
     {
         private readonly ValueGetter<float> _getWeight;
         private readonly ValueGetter<ulong> _getGroup;
-        private readonly ValueGetter<UInt128> _getId;
+        private readonly ValueGetter<RowId> _getId;
         private readonly bool _keepBadWeight;
         private readonly bool _keepBadGroup;
 
@@ -651,7 +651,7 @@ namespace Microsoft.ML.Runtime.Training
 
         public float Weight;
         public ulong Group;
-        public UInt128 Id;
+        public RowId Id;
 
         public StandardScalarCursor(RoleMappedData data, CursOpt opt, Random rand = null, params int[] extraCols)
             : this(CreateCursor(data, opt, rand, extraCols), data, opt)

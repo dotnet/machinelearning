@@ -1006,7 +1006,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly int[] _colToActive;
                 private readonly OutPipe[] _pipes;
                 private readonly Delegate[] _getters;
-                private readonly ValueGetter<UInt128> _idGetter;
+                private readonly ValueGetter<RowId> _idGetter;
                 private readonly BlockingCollection<Batch> _batchInputs;
                 private readonly Action _quitAction;
 
@@ -1050,7 +1050,7 @@ namespace Microsoft.ML.Runtime.Data
                     _getters = new Delegate[pipes.Length];
                     for (int i = 0; i < activeToCol.Length; ++i)
                         _getters[i] = _pipes[i].GetGetter();
-                    _idGetter = (ValueGetter<UInt128>)_pipes[activeToCol.Length + (int)ExtraIndex.Id].GetGetter();
+                    _idGetter = (ValueGetter<RowId>)_pipes[activeToCol.Length + (int)ExtraIndex.Id].GetGetter();
                     _batchInputs = batchInputs;
                     _batch = -1;
                     _quitAction = quitAction;
@@ -1070,7 +1070,7 @@ namespace Microsoft.ML.Runtime.Data
                     base.Dispose(disposing);
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter() => _idGetter;
+                public override ValueGetter<RowId> GetIdGetter() => _idGetter;
 
                 protected override bool MoveNextCore()
                 {
@@ -1218,13 +1218,13 @@ namespace Microsoft.ML.Runtime.Data
                 base.Dispose(disposing);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
-                ValueGetter<UInt128>[] idGetters = new ValueGetter<UInt128>[_cursors.Length];
+                ValueGetter<RowId>[] idGetters = new ValueGetter<RowId>[_cursors.Length];
                 for (int i = 0; i < _cursors.Length; ++i)
                     idGetters[i] = _cursors[i].GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(_icursor >= 0, "Cannot call ID getter in current state");
                         idGetters[_icursor](ref val);

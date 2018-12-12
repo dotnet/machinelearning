@@ -523,7 +523,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 base.Dispose(disposing);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
                 => _input.GetIdGetter();
 
             public override ValueGetter<T> GetGetter<T>(int col)
@@ -825,7 +825,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public override Action<long> GetPinger() =>
                 _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
 
-            public override ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _input.GetIdGetter();
 
             public override bool IsColumnActive(int col)
             {

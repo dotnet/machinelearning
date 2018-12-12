@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             RegisterSimpleCodec(new BoolCodec(this));
             RegisterSimpleCodec(new DateTimeCodec(this));
             RegisterSimpleCodec(new DateTimeOffsetCodec(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<UInt128>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<RowId>(this));
 
             // Register the old type system reading codec.
             RegisterOtherCodec("DvBool", new OldBoolCodec(this).GetCodec);

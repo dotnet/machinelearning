@@ -597,7 +597,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return _trailingCursor.GetIdGetter();
             }

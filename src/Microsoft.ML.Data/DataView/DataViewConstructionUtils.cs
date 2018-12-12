@@ -110,12 +110,12 @@ namespace Microsoft.ML.Runtime.Data
                 _position++;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return IdGetter;
             }
 
-            private void IdGetter(ref UInt128 val) => val = new UInt128((ulong)Position, 0);
+            private void IdGetter(ref RowId val) => val = new RowId((ulong)Position, 0);
 
             protected override TRow GetCurrentRowObject()
             {
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     => _toWrap.GetGetter<TValue>(col);
-                public override ValueGetter<UInt128> GetIdGetter() => _toWrap.GetIdGetter();
+                public override ValueGetter<RowId> GetIdGetter() => _toWrap.GetIdGetter();
                 public override RowCursor GetRootCursor() => this;
                 public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
                 public override bool MoveMany(long count) => _toWrap.MoveMany(count);
@@ -602,24 +602,24 @@ namespace Microsoft.ML.Runtime.Data
                         _permutation = Utils.GetRandomPermutation(rand, dataView._data.Count);
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
+                public override ValueGetter<RowId> GetIdGetter()
                 {
                     if (_permutation == null)
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)Position, 0);
+                                val = new RowId((ulong)Position, 0);
                             };
                     }
                     else
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)Index, 0);
+                                val = new RowId((ulong)Index, 0);
                             };
                     }
                 }
@@ -704,13 +704,13 @@ namespace Microsoft.ML.Runtime.Data
                     _currentRow = null;
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
+                public override ValueGetter<RowId> GetIdGetter()
                 {
                     return
-                        (ref UInt128 val) =>
+                        (ref RowId val) =>
                         {
                             Ch.Check(IsGood, "Cannot call ID getter in current state");
-                            val = new UInt128((ulong)Position, 0);
+                            val = new RowId((ulong)Position, 0);
                         };
                 }
 
@@ -772,13 +772,13 @@ namespace Microsoft.ML.Runtime.Data
                     _currentRow = dataView._current;
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
+                public override ValueGetter<RowId> GetIdGetter()
                 {
                     return
-                        (ref UInt128 val) =>
+                        (ref RowId val) =>
                         {
                             Ch.Check(IsGood, "Cannot call ID getter in current state");
-                            val = new UInt128((ulong)Position, 0);
+                            val = new RowId((ulong)Position, 0);
                         };
                 }
 

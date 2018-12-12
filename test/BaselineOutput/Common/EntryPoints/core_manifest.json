@@ -11391,7 +11391,7 @@
         {
           "Name": "OptTol",
           "Type": "Float",
-          "Desc": "Tolerance parameter for trainer convergence. Lower = slower, more accurate",
+          "Desc": "Tolerance parameter for trainer convergence. Low = slower, more accurate",
           "Aliases": [
             "ot"
           ],
@@ -13832,7 +13832,7 @@
         {
           "Name": "OptTol",
           "Type": "Float",
-          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
+          "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
             "ot"
           ],
@@ -13851,7 +13851,7 @@
         {
           "Name": "MemorySize",
           "Type": "Int",
-          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
+          "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
             "m"
           ],
@@ -14144,7 +14144,7 @@
         {
           "Name": "OptTol",
           "Type": "Float",
-          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
+          "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
             "ot"
           ],
@@ -14163,7 +14163,7 @@
         {
           "Name": "MemorySize",
           "Type": "Int",
-          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
+          "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
             "m"
           ],
@@ -15176,7 +15176,7 @@
         {
           "Name": "OptTol",
           "Type": "Float",
-          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
+          "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
             "ot"
           ],
@@ -15195,7 +15195,7 @@
         {
           "Name": "MemorySize",
           "Type": "Int",
-          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
+          "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
             "m"
           ],

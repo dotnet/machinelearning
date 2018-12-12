@@ -512,13 +512,13 @@ namespace Microsoft.ML.Transforms
                 get { return Input.Batch; }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 var idGetter = Input.GetIdGetter();
-                return (ref UInt128 val) =>
+                return (ref RowId val) =>
                 {
                     idGetter(ref val);
-                    val = val.Combine(new UInt128((ulong)_pivotColPosition, 0));
+                    val = val.Combine(new RowId((ulong)_pivotColPosition, 0));
                 };
             }
 

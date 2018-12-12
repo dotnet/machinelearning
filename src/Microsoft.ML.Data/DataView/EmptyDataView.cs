@@ -59,10 +59,10 @@ namespace Microsoft.ML.Runtime.Data
                 _active = Utils.BuildArray(Schema.ColumnCount, needCol);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Assert(!IsGood);
                         throw Ch.Except("Cannot call ID getter in current state");
