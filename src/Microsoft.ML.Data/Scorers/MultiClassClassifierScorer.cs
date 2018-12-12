@@ -331,10 +331,7 @@ namespace Microsoft.ML.Runtime.Data
                     return _mapper.GetDependencies(predicate);
                 }
 
-                public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
-                {
-                    return _mapper.GetInputColumnRoles();
-                }
+                public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles() => _mapper.GetInputColumnRoles();
 
                 public Row GetRow(Row input, Func<int, bool> predicate)
                 {
@@ -358,15 +355,9 @@ namespace Microsoft.ML.Runtime.Data
                         _schema = schema;
                     }
 
-                    public override bool IsColumnActive(int col)
-                    {
-                        return Input.IsColumnActive(col);
-                    }
+                    public override bool IsColumnActive(int col) => Input.IsColumnActive(col);
 
-                    public override ValueGetter<TValue> GetGetter<TValue>(int col)
-                    {
-                        return Input.GetGetter<TValue>(col);
-                    }
+                    public override ValueGetter<TValue> GetGetter<TValue>(int col) => Input.GetGetter<TValue>(col); 
                 }
             }
         }
