@@ -117,8 +117,6 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 Console.WriteLine($"{featureNames[i]}\t{weights[i]:0.00}\t{rSquared[i].Mean:G4}\t{rSquared[i].StandardError:G4}");
             }
-
-                throw new NotImplementedException("Haven't completed the documentation!");
         }
 
         private static float[] GetLinearModelWeights(OlsLinearRegressionPredictor linearModel)
