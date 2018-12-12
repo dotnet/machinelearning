@@ -293,7 +293,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             {
                 // We would expect the solution to the problem to be exact in this case.
                 ch.Info("Number of examples equals number of parameters, solution is exact but no statistics can be derived");
-                return new OlsLinearRegressionModelParameters(Host, in weights, bias, null, null, null, 1, float.NaN);
+                return new OlsLinearRegressionModelParameters(Host, in weights, bias);
             }
 
             Double rss = 0; // residual sum of squares
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             // Also we can't estimate it, unless we can estimate the variance, which requires more examples than
             // parameters.
             if (!_perParameterSignificance || m >= n)
-                return new OlsLinearRegressionModelParameters(Host, in weights, bias, null, null, null, rSquared, rSquaredAdjusted);
+                return new OlsLinearRegressionModelParameters(Host, in weights, bias, rSquared: rSquared, rSquaredAdjusted: rSquaredAdjusted);
 
             ch.Assert(!Double.IsNaN(rSquaredAdjusted));
             var standardErrors = new Double[m];
