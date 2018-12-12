@@ -14,7 +14,7 @@
   <ItemGroup>
     <Compile Include="SmokeTests.fs" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <!-- More projects are referenced than are currently tested. Future updates to -->
     <!-- these tests will test more of the surface area from F#, so leaving these references -->
@@ -24,7 +24,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.Entrypoints\Microsoft.ML.Entrypoints.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Entrypoints\Microsoft.ML.EntryPoints.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.csproj" />

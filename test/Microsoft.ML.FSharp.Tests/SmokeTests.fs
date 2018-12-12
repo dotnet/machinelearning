@@ -74,13 +74,14 @@ module SmokeTest1 =
         [<ColumnName("PredictedLabel"); DefaultValue>]
         val mutable Sentiment : bool
 
-    [<Fact(Skip = "Needs to be updated to not use Legacy API.")>]
+    [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
 
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
-              typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
+              typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
+              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
@@ -141,13 +142,14 @@ module SmokeTest2 =
         { [<ColumnName("PredictedLabel")>] 
            Sentiment : bool }
 
-    [<Fact(Skip = "Needs to be updated to not use Legacy API.")>]
+    [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
 
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
-              typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
+              typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
+              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
@@ -205,13 +207,14 @@ module SmokeTest3 =
         [<ColumnName("PredictedLabel")>] 
         member val Sentiment = false with get, set
 
-    [<Fact(Skip = "Needs to be updated to not use Legacy API.")>]
+    [<Fact>]
     let ``FSharp-Sentiment-Smoke-Test`` () =
 
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
-              typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
+              typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
+              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 

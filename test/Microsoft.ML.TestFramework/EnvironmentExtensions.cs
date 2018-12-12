@@ -31,7 +31,7 @@ namespace Microsoft.ML.TestFramework
             env.ComponentCatalog.RegisterAssembly(typeof(Experiment).Assembly); // ML.Legacy
 #pragma warning restore 612
             env.ComponentCatalog.RegisterAssembly(typeof(ComponentCreation).Assembly); // ML.Api
-            env.ComponentCatalog.RegisterAssembly(typeof(CVSplit).Assembly); //ML.Entrypoints
+            env.ComponentCatalog.RegisterAssembly(typeof(CVSplit).Assembly); // ML.EntryPoints
             return env;
         }
     }
