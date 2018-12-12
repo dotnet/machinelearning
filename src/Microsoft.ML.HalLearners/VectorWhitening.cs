@@ -306,13 +306,13 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
             => columns.Select(c => (c.Input, c.Output ?? c.Input)).ToArray();
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema.GetColumnType(srcCol);
             var reason = TestColumn(inType);
@@ -323,7 +323,8 @@ namespace Microsoft.ML.Transforms.Projections
         // Check if the input column's type is supported. Note that only float vector with a known shape is allowed.
         internal static string TestColumn(ColumnType type)
         {
-            if ((type.IsVector && !type.IsKnownSizeVector && (type.AsVector.Dimensions.Length > 1)) || type.ItemType != NumberType.R4)
+            if ((type is VectorType vectorType && !vectorType.IsKnownSizeVector && vectorType.Dimensions.Length > 1)
+                || type.ItemType != NumberType.R4)
                 return "Expected float or float vector of known size";
 
             if ((long)type.ValueCount * type.ValueCount > Utils.ArrayMaxSize)

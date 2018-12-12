@@ -146,8 +146,8 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private OnnxTransform(IHostEnvironment env, Arguments args, byte[] modelBytes = null) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransform)))

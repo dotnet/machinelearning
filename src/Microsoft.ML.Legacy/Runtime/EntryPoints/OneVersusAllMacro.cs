@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = host.Start("OVA Macro GetNumberOfClasses"))
             {
                 // RoleMappedData creation
-                ISchema schema = input.TrainingData.Schema;
+                var schema = input.TrainingData.Schema;
                 label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn),
                     input.LabelColumn,
                     DefaultColumnNames.Label);

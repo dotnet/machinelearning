@@ -24,9 +24,9 @@ namespace Microsoft.ML.Runtime.Ensemble
     public sealed class EnsembleDistributionPredictor : EnsemblePredictorBase<TDistPredictor, Single>,
          TDistPredictor, IValueMapperDist
     {
-        public const string UserName = "Ensemble Distribution Executor";
-        public const string LoaderSignature = "EnsemDbExec";
-        public const string RegistrationName = "EnsembleDistributionPredictor";
+        internal const string UserName = "Ensemble Distribution Executor";
+        internal const string LoaderSignature = "EnsemDbExec";
+        internal const string RegistrationName = "EnsembleDistributionPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -45,9 +45,11 @@ namespace Microsoft.ML.Runtime.Ensemble
         private readonly Median _probabilityCombiner;
         private readonly IValueMapperDist[] _mappers;
 
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
-        public ColumnType DistType => NumberType.Float;
+        private readonly ColumnType _inputType;
+
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => NumberType.Float;
+        ColumnType IValueMapperDist.DistType => NumberType.Float;
 
         public override PredictionKind PredictionKind { get; }
 
@@ -57,7 +59,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         {
             PredictionKind = kind;
             _probabilityCombiner = new Median(env);
-            InputType = InitializeMappers(out _mappers);
+            _inputType = InitializeMappers(out _mappers);
             ComputeAveragedWeights(out _averagedWeights);
         }
 
@@ -66,7 +68,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         {
             PredictionKind = (PredictionKind)ctx.Reader.ReadInt32();
             _probabilityCombiner = new Median(env);
-            InputType = InitializeMappers(out _mappers);
+            _inputType = InitializeMappers(out _mappers);
             ComputeAveragedWeights(out _averagedWeights);
         }
 
@@ -101,7 +103,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 && mapper.DistType == NumberType.Float;
         }
 
-        public static EnsembleDistributionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static EnsembleDistributionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -119,7 +121,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             ctx.Writer.Write((int)PredictionKind);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Single>));
             Host.Check(typeof(TOut) == typeof(Single));
@@ -132,8 +134,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             ValueMapper<VBuffer<Single>, Single> del =
                 (in VBuffer<Single> src, ref Single dst) =>
                 {
-                    if (InputType.VectorSize > 0)
-                        Host.Check(src.Length == InputType.VectorSize);
+                    if (_inputType.VectorSize > 0)
+                        Host.Check(src.Length == _inputType.VectorSize);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>
@@ -155,7 +157,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
+        ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Single>));
             Host.Check(typeof(TOut) == typeof(Single));
@@ -170,8 +172,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             ValueMapper<VBuffer<Single>, Single, Single> del =
                 (in VBuffer<Single> src, ref Single score, ref Single prob) =>
                 {
-                    if (InputType.VectorSize > 0)
-                        Host.Check(src.Length == InputType.VectorSize);
+                    if (_inputType.VectorSize > 0)
+                        Host.Check(src.Length == _inputType.VectorSize);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>

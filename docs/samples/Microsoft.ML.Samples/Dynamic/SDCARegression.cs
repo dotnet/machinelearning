@@ -1,12 +1,12 @@
 ﻿using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
 using System;
+using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class KMeans_example
+    public class SDCARegressionExample
     {
-        public static void KMeans()
+        public static void SDCARegression()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -25,22 +25,19 @@ namespace Microsoft.ML.Samples.Dynamic
             // 34   1       0-5yrs      2         4         2             4  ...
             // 35   1       6-11yrs     1         3         32            5  ...
 
-            // A pipeline for concatenating the age, parity and induced columns together in the Features column and training a KMeans model on them.
+            // A pipeline for concatenating the Parity and Induced columns together in the Features column.
+            // We will train a FastTreeRegression model with 1 tree on these two columns to predict Age.
             string outputColumnName = "Features";
-            var pipeline = ml.Transforms.Concatenate(outputColumnName, new[] { "Age", "Parity", "Induced" })
-                .Append(ml.Clustering.Trainers.KMeans(outputColumnName, clustersCount: 2));
+            var pipeline = ml.Transforms.Concatenate(outputColumnName, new[] { "Parity", "Induced" })
+                .Append(ml.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Age", featureColumn: outputColumnName, maxIterations:2));
 
             var model = pipeline.Fit(trainData);
 
-            // Get cluster centroids and the number of clusters k from KMeansModelParameters.
-            VBuffer<float>[] centroids = default;
-            int k;
-
+            // Get the trained model parameters.
             var modelParams = model.LastTransformer.Model;
-            modelParams.GetClusterCentroids(ref centroids, out k);
-
-            var centroid = centroids[0].GetValues();
-            Console.WriteLine("The coordinates of centroid 0 are: " + string.Join(", ", centroid.ToArray()));
+            // Inspect the bias and model weights.
+            Console.WriteLine("The bias term is: " + modelParams.Bias);
+            Console.WriteLine("The feature weights are: " + string.Join(", ", modelParams.Weights.ToArray()));
         }
     }
 }

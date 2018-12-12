@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This interface is an <see cref="Row"/> with 'strongly typed' binding.
@@ -480,7 +480,7 @@ namespace Microsoft.ML.Runtime.Api
             public Schema Schema => _row.Schema;
             public void FillValues(TRow row) => _row.FillValues(row);
             public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
-            public ValueGetter<UInt128> GetIdGetter() => _row.GetIdGetter();
+            public ValueGetter<RowId> GetIdGetter() => _row.GetIdGetter();
             public bool IsColumnActive(int col) => _row.IsColumnActive(col);
         }
 
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
-            public override ValueGetter<UInt128> GetIdGetter() => _cursor.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _cursor.GetIdGetter();
             public override RowCursor GetRootCursor() => _cursor.GetRootCursor();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
             public override bool MoveMany(long count) => _cursor.MoveMany(count);

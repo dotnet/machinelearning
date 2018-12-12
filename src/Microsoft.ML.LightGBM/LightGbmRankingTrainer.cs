@@ -18,17 +18,17 @@ using System;
     new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
     "LightGBM Ranking", LightGbmRankingTrainer.LoadNameValue, LightGbmRankingTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
-[assembly: LoadableClass(typeof(LightGbmRankingPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(LightGbmRankingModelParameters), null, typeof(SignatureLoadModel),
     "LightGBM Ranking Executor",
-    LightGbmRankingPredictor.LoaderSignature)]
+    LightGbmRankingModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
 
-    public sealed class LightGbmRankingPredictor : FastTreePredictionWrapper
+    public sealed class LightGbmRankingModelParameters : TreeEnsembleModelParameters
     {
-        public const string LoaderSignature = "LightGBMRankerExec";
-        public const string RegistrationName = "LightGBMRankingPredictor";
+        internal const string LoaderSignature = "LightGBMRankerExec";
+        internal const string RegistrationName = "LightGBMRankingPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LightGbmRankingPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(LightGbmRankingModelParameters).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;
@@ -51,12 +51,12 @@ namespace Microsoft.ML.Runtime.LightGBM
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
-        internal LightGbmRankingPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        public LightGbmRankingModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
 
-        private LightGbmRankingPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private LightGbmRankingModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
         {
         }
@@ -67,14 +67,14 @@ namespace Microsoft.ML.Runtime.LightGBM
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        private static LightGbmRankingPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static LightGbmRankingModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            return new LightGbmRankingPredictor(env, ctx);
+            return new LightGbmRankingModelParameters(env, ctx);
         }
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
-    public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, RankingPredictionTransformer<LightGbmRankingPredictor>, LightGbmRankingPredictor>
+    public sealed class LightGbmRankingTrainer : LightGbmTrainerBase<float, RankingPredictionTransformer<LightGbmRankingModelParameters>, LightGbmRankingModelParameters>
     {
         public const string UserName = "LightGBM Ranking";
         public const string LoadNameValue = "LightGBMRanking";
@@ -151,11 +151,11 @@ namespace Microsoft.ML.Runtime.LightGBM
                 error();
         }
 
-        private protected override LightGbmRankingPredictor CreatePredictor()
+        private protected override LightGbmRankingModelParameters CreatePredictor()
         {
             Host.Check(TrainedEnsemble != null, "The predictor cannot be created before training is complete");
             var innerArgs = LightGbmInterfaceUtils.JoinParameters(Options);
-            return new LightGbmRankingPredictor(Host, TrainedEnsemble, FeatureCount, innerArgs);
+            return new LightGbmRankingModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
         }
 
         protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
@@ -178,10 +178,10 @@ namespace Microsoft.ML.Runtime.LightGBM
             };
         }
 
-        protected override RankingPredictionTransformer<LightGbmRankingPredictor> MakeTransformer(LightGbmRankingPredictor model, Schema trainSchema)
-         => new RankingPredictionTransformer<LightGbmRankingPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override RankingPredictionTransformer<LightGbmRankingModelParameters> MakeTransformer(LightGbmRankingModelParameters model, Schema trainSchema)
+         => new RankingPredictionTransformer<LightGbmRankingModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RankingPredictionTransformer<LightGbmRankingPredictor> Train(IDataView trainData, IDataView validationData = null)
+        public RankingPredictionTransformer<LightGbmRankingModelParameters> Train(IDataView trainData, IDataView validationData = null)
             => TrainTransformer(trainData, validationData);
     }
 

@@ -283,7 +283,7 @@ namespace Microsoft.ML.Runtime.Learners
                 };
         }
 
-        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryPredictor parent, RoleMappedSchema schema)
+        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryModelParameters parent, RoleMappedSchema schema)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (!_coeffStdError.HasValue)
                 return new List<CoefficientStatistics>();
 
-            var weights = parent.Weights2 as IReadOnlyList<Single>;
+            var weights = parent.Weights as IReadOnlyList<Single>;
             _env.Assert(_paramCount == 1 || weights != null);
             _env.Assert(_coeffStdError.Value.Length == weights.Count + 1);
 
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Gets the coefficient statistics as an object.
         /// </summary>
-        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryPredictor parent, RoleMappedSchema schema, int paramCountCap)
+        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Runtime.Learners
             return order.Prepend(new[] { new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue) }).ToArray();
         }
 
-        public void SaveText(TextWriter writer, LinearBinaryPredictor parent, RoleMappedSchema schema, int paramCountCap)
+        public void SaveText(TextWriter writer, LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(writer, nameof(writer));
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Runtime.Learners
             writer.WriteLine("Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1");
         }
 
-        public void SaveSummaryInKeyValuePairs(LinearBinaryPredictor parent,
+        public void SaveSummaryInKeyValuePairs(LinearBinaryModelParameters parent,
             RoleMappedSchema schema, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
         {
             Contracts.AssertValue(_env);
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        internal Schema.Metadata MakeStatisticsMetadata(LinearBinaryPredictor parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
+        internal Schema.Metadata MakeStatisticsMetadata(LinearBinaryModelParameters parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
         {
             _env.AssertValueOrNull(parent);
             _env.AssertValue(schema);

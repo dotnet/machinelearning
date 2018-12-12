@@ -9380,7 +9380,7 @@ namespace Microsoft.ML
             public KMeansPlusPlusTrainerInitAlgorithm InitAlgorithm { get; set; } = KMeansPlusPlusTrainerInitAlgorithm.KMeansParallel;
 
             /// <summary>
-            /// Tolerance parameter for trainer convergence. Lower = slower, more accurate
+            /// Tolerance parameter for trainer convergence. Low = slower, more accurate
             /// </summary>
             [Obsolete]
             public float OptTol { get; set; } = 1E-07f;
@@ -10661,14 +10661,14 @@ namespace Microsoft.ML
             public float L1Weight { get; set; } = 1f;
 
             /// <summary>
-            /// Tolerance parameter for optimization convergence. Lower = slower, more accurate
+            /// Tolerance parameter for optimization convergence. Low = slower, more accurate
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[]{0.0001f, 1E-07f})]
             [Obsolete]
             public float OptTol { get; set; } = 1E-07f;
 
             /// <summary>
-            /// Memory size for L-BFGS. Lower=faster, less accurate
+            /// Memory size for L-BFGS. Low=faster, less accurate
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[]{5, 20, 50})]
             [Obsolete]
@@ -10836,14 +10836,14 @@ namespace Microsoft.ML
             public float L1Weight { get; set; } = 1f;
 
             /// <summary>
-            /// Tolerance parameter for optimization convergence. Lower = slower, more accurate
+            /// Tolerance parameter for optimization convergence. Low = slower, more accurate
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[]{0.0001f, 1E-07f})]
             [Obsolete]
             public float OptTol { get; set; } = 1E-07f;
 
             /// <summary>
-            /// Memory size for L-BFGS. Lower=faster, less accurate
+            /// Memory size for L-BFGS. Low=faster, less accurate
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[]{5, 20, 50})]
             [Obsolete]
@@ -11483,14 +11483,14 @@ namespace Microsoft.ML
             public float L1Weight { get; set; } = 1f;
 
             /// <summary>
-            /// Tolerance parameter for optimization convergence. Lower = slower, more accurate
+            /// Tolerance parameter for optimization convergence. Low = slower, more accurate
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[]{0.0001f, 1E-07f})]
             [Obsolete]
             public float OptTol { get; set; } = 1E-07f;
 
             /// <summary>
-            /// Memory size for L-BFGS. Lower=faster, less accurate
+            /// Memory size for L-BFGS. Low=faster, less accurate
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[]{5, 20, 50})]
             [Obsolete]

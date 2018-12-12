@@ -200,14 +200,14 @@ namespace Microsoft.ML.Transforms
                 _rgen = rgen;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 var inputIdGetter = Input.GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         inputIdGetter(ref val);
-                        val = val.Combine(new UInt128((ulong)_remaining, 0));
+                        val = val.Combine(new RowId((ulong)_remaining, 0));
                     };
             }
 

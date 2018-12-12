@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -254,7 +255,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <param name="ch">The channel to which we write any diagnostic information</param>
         /// <returns>The offset of the metadata table of contents, or 0 if there was
         /// no metadata</returns>
-        private long WriteMetadata(BinaryWriter writer, ISchema schema, int col, IChannel ch)
+        private long WriteMetadata(BinaryWriter writer, Schema schema, int col, IChannel ch)
         {
             _host.AssertValue(writer);
             _host.AssertValue(schema);
@@ -341,9 +342,9 @@ namespace Microsoft.ML.Runtime.Data.IO
             return offsets[metadataInfos.Count];
         }
 
-        private delegate IValueCodec WriteMetadataCoreDelegate(Stream stream, ISchema schema, int col, string kind, ColumnType type, out CompressionKind compression);
+        private delegate IValueCodec WriteMetadataCoreDelegate(Stream stream, Schema schema, int col, string kind, ColumnType type, out CompressionKind compression);
 
-        private IValueCodec WriteMetadataCore<T>(Stream stream, ISchema schema, int col, string kind, ColumnType type, out CompressionKind compressionKind)
+        private IValueCodec WriteMetadataCore<T>(Stream stream, Schema schema, int col, string kind, ColumnType type, out CompressionKind compressionKind)
         {
             _host.Assert(typeof(T) == type.RawType);
             IValueCodec generalCodec;
@@ -390,7 +391,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         private void WriteWorker(Stream stream, BlockingCollection<Block> toWrite, ColumnCodec[] activeColumns,
-            ISchema sourceSchema, int rowsPerBlock, IChannelProvider cp, ExceptionMarshaller exMarshaller)
+            Schema sourceSchema, int rowsPerBlock, IChannelProvider cp, ExceptionMarshaller exMarshaller)
         {
             _host.AssertValue(exMarshaller);
             try
@@ -708,7 +709,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private ColumnCodec[] GetActiveColumns(ISchema schema, int[] colIndices)
+        private ColumnCodec[] GetActiveColumns(Schema schema, int[] colIndices)
         {
             _host.AssertValue(schema);
             _host.AssertValueOrNull(colIndices);

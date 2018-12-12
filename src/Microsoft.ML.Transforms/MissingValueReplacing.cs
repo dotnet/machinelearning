@@ -232,7 +232,7 @@ namespace Microsoft.ML.Transforms
         // REVIEW: Currently these arrays are constructed on load but could be changed to being constructed lazily.
         private readonly BitArray[] _repIsDefault;
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
             string reason = TestType(type);
@@ -324,8 +324,8 @@ namespace Microsoft.ML.Transforms
                 input.Schema.TryGetColumnIndex(columns[iinfo].Input, out int colSrc);
                 sources[iinfo] = colSrc;
                 var type = input.Schema.GetColumnType(colSrc);
-                if (type.IsVector)
-                    type = new VectorType(type.ItemType.AsPrimitive, type.AsVector);
+                if (type is VectorType vectorType)
+                     type = new VectorType((PrimitiveType)type.ItemType, vectorType);
                 Delegate isNa = GetIsNADelegate(type);
                 types[iinfo] = type;
                 var kind = (ReplacementKind)columns[iinfo].Replacement;
@@ -509,8 +509,8 @@ namespace Microsoft.ML.Transforms
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private VBuffer<T> CreateVBuffer<T>(T[] array)
         {
@@ -593,8 +593,8 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var type = _infos[i].TypeSrc;
-                    if (type.IsVector)
-                        type = new VectorType(type.ItemType.AsPrimitive, type.AsVector);
+                    if (type is VectorType vectorType)
+                        type = new VectorType((PrimitiveType)type.ItemType, vectorType);
                     var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].ItemType;
                     if (!type.ItemType.Equals(repType.ItemType))
                         throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
@@ -616,7 +616,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private ColInfo[] CreateInfos(ISchema inputSchema)
+            private ColInfo[] CreateInfos(Schema inputSchema)
             {
                 Host.AssertValue(inputSchema);
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
@@ -897,10 +897,10 @@ namespace Microsoft.ML.Transforms
             {
                 DataKind rawKind;
                 var type = _infos[iinfo].TypeSrc;
-                if (type.IsVector)
-                    rawKind = type.AsVector.ItemType.RawKind;
-                else if (type.IsKey)
-                    rawKind = type.AsKey.RawKind;
+                if (type is VectorType vectorType)
+                    rawKind = vectorType.ItemType.RawKind;
+                else if (type is KeyType keyType)
+                    rawKind = keyType.RawKind;
                 else
                     rawKind = type.RawKind;
 
@@ -965,7 +965,9 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(slotMeta);
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normalized))
                     metadata.Add(normalized);
-                var type = !col.ItemType.IsVector ? col.ItemType : new VectorType(col.ItemType.ItemType.AsPrimitive, col.ItemType.AsVector);
+                var type = !(col.ItemType is VectorType vectorType) ?
+                    col.ItemType :
+                    new VectorType((PrimitiveType)col.ItemType.ItemType, vectorType);
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

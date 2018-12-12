@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Static
             var (trainData, testData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
-            LightGbmRegressionPredictor pred = null;
+            LightGbmRegressionModelParameters pred = null;
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()

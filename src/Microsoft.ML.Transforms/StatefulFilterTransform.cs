@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms;
 using System;
 using System.IO;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Transforms
 {
     // REVIEW: the current interface to 'state' object may be inadequate: instead of insisting on
     // parameterless constructor, we could take a delegate that would create the state per cursor.
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Runtime.Api
                 base.Dispose(disposing);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return _input.GetIdGetter();
             }

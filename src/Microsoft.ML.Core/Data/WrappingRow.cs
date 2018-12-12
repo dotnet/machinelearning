@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed override long Batch => Input.Batch;
         public sealed override long Position => Input.Position;
-        public override ValueGetter<UInt128> GetIdGetter() => Input.GetIdGetter();
+        public override ValueGetter<RowId> GetIdGetter() => Input.GetIdGetter();
 
         [BestFriend]
         private protected WrappingRow(Row input)

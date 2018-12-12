@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -26,6 +28,21 @@ namespace Microsoft.ML.Tests.Transformers
             [VectorType(2)]
             public string[] B;
         }
+
+// Visual Studio complains because the following class members are not never assigned. That is wrong because that class 
+// will be implicitly created in runtime and therefore we disable warning 169.
+#pragma warning disable 169
+        // This is a C# native data structure used to capture the output of ML.NET tokenizer in the test below.
+        public class NativeResult
+        {
+            public string A;
+            public string[] B;
+            public string[] TokenizeA;
+            public string[] TokenizeB;
+        }
+#pragma warning restore 169
+
+
         private class TestWrong
         {
             public float A;
@@ -33,6 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
             public float[] B;
         }
         [Fact]
+
         public void WordTokenizeWorkout()
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
@@ -45,6 +63,27 @@ namespace Microsoft.ML.Tests.Transformers
                 });
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataView);
+
+            // Reuse the pipe trained on dataView in TestEstimatorCore to make prediction.
+            var result = pipe.Fit(dataView).Transform(dataView);
+
+            // Extract the transformed result of the first row (the only row we have because data contains only one TestClass) as a native class.
+            var nativeResult = new List<NativeResult>(result.AsEnumerable<NativeResult>(Env, false))[0];
+
+            // Check the tokenization of A. Expected result is { "This", "is", "a", "good", "sentence." }.
+            var tokenizeA = new[] { "This", "is", "a", "good", "sentence." };
+            Assert.True(tokenizeA.Length == nativeResult.TokenizeA.Length);
+            for (int i = 0; i < tokenizeA.Length; ++i)
+                Assert.Equal(tokenizeA[i], nativeResult.TokenizeA[i]);
+
+            // Check the tokenization of B. Expected result is { "Much", "words", "Wow", "So", "Cool" }. One may think that the expected output
+            // should be a 2-D array { { "Much", "words"}, { "Wow", "So", "Cool" } }, but please note that ML.NET may flatten all outputs if
+            // they are high-dimension tensors.
+            var tokenizeB = new[] { "Much", "words", "Wow", "So", "Cool" };
+            Assert.True(tokenizeB.Length == nativeResult.TokenizeB.Length);
+            for (int i = 0; i < tokenizeB.Length; ++i)
+                Assert.Equal(tokenizeB[i], nativeResult.TokenizeB[i]);
+
             Done();
         }
 

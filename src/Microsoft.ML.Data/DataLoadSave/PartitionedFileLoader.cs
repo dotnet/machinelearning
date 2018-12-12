@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                var schemas = new ISchema[]
+                var schemas = new Schema[]
                 {
                     subSchema,
                     colSchema
@@ -412,14 +412,14 @@ namespace Microsoft.ML.Runtime.Data
                 return getter;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
 
-                        val = new UInt128(0, (ulong)Position);
+                        val = new RowId(0, (ulong)Position);
                     };
             }
 
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private bool SchemasMatch(ISchema schema1, ISchema schema2)
+            private bool SchemasMatch(Schema schema1, Schema schema2)
             {
                 if (schema1.ColumnCount != schema2.ColumnCount)
                 {
