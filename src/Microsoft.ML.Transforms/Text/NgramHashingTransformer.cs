@@ -470,9 +470,6 @@ namespace Microsoft.ML.Transforms.Text
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(nameof(NgramHashingTransformer));
-
-            host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
             return new NgramHashingTransformer(host, ctx);
         }
 
