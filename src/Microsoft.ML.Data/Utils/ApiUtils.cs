@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Runtime
 {
     internal delegate void Peek<in TRow, TValue>(TRow row, long position, ref TValue value);
 

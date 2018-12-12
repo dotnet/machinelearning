@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Data
     /// and the <see cref="EvaluateTransform"/> to evaluate, print and save the results.
     /// The input <see cref="RoleMappedData"/> to the <see cref="IEvaluator.Evaluate"/> and the <see cref="IEvaluator.GetPerInstanceMetrics"/> methods
     /// should be assumed to contain only the following column roles: label, group, weight and name. Any other columns needed for
-    /// evaluation should be searched for by name in the <see cref="ISchema"/>.
+    /// evaluation should be searched for by name in the <see cref="RoleMappedData.Schema"/>.
     /// </summary>
     public interface IMamlEvaluator : IEvaluator
     {

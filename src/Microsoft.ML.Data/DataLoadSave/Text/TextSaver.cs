@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(TextSaver.Summary, typeof(TextSaver), typeof(TextSaver.Arguments), typeof(SignatureDataSaver),
     "Text Saver", "TextSaver", "Text", DocName = "saver/TextSaver.md")]
@@ -449,7 +450,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             writer.WriteLine("#@ }");
         }
 
-        private string CreateLoaderArguments(ISchema schema, ValueWriter[] pipes, bool hasHeader, IChannel ch)
+        private string CreateLoaderArguments(Schema schema, ValueWriter[] pipes, bool hasHeader, IChannel ch)
         {
             StringBuilder sb = new StringBuilder();
             if (hasHeader)

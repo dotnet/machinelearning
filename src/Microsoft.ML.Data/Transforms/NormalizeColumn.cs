@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -1085,7 +1086,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 throw host.ExceptUserArg(nameof(args.Column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", args.Column[icol].Source, srcType.ToString());
             }
 
-            public static int GetLabelColumnId(IExceptionContext host, ISchema schema, string labelColumnName)
+            public static int GetLabelColumnId(IExceptionContext host, Schema schema, string labelColumnName)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(schema);

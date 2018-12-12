@@ -560,7 +560,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public abstract ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema);
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             for (int i = 0; i < PredictorModels.Length; i++)
             {
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, IPredictorModel[] models, KeyType labelType, ISchema schema, int labelIndex, ColumnType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, IPredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, ColumnType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
@@ -691,7 +691,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         ///       - If neither of those interfaces are implemented then the value is a string containing the name of the type of model.
         /// </summary>
         /// <returns></returns>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             Host.CheckValueOrNull(schema);
 

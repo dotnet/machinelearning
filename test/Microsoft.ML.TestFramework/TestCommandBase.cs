@@ -2093,32 +2093,5 @@ namespace Microsoft.ML.Runtime.RunTests
             TestCore("savedata", intermediateData.Path, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
             Done();
         }
-
-        [Fact]
-        public void CommandCodeGen()
-        {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
-            // REVIEW: this tests that the generated output matches the baseline. This does NOT baseline
-            // the console output. Currently, there's no console output either, but if some is added, a baseline test
-            // will be in order.
-
-            // First, train a model on breast-cancer.
-            var dataPath = GetDataPath("breast-cancer.txt");
-            var modelOutPath = DeleteOutputPath("Command", "codegen-model.zip");
-            var csOutPath = DeleteOutputPath("Command", "codegen-out.cs");
-
-            var trainArgs = string.Format(
-                "train data={{{0}}} loader=Text{{col=Label:0 col=F!1:1-5 col=F2:6-9}} xf=Concat{{col=Features:F!1,F2}} tr=lr out={{{1}}}",
-                dataPath, modelOutPath);
-            MainForTest(trainArgs);
-
-            // Now, generate the prediction code.
-            MainForTest(string.Format("codegen in={{{0}}} cs={{{1}}} modelNameOverride=model.zip", modelOutPath, csOutPath));
-            CheckEquality("Command", "codegen-out.cs");
-
-            Done();
-        }
     }
 }

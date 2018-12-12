@@ -327,8 +327,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IHostEnvironment _env;
             private readonly ISchemaBoundRowMapper _genericRowMapper;
             private readonly BindableMapper _parent;
-            private readonly ISchema _outputSchema;
-            private readonly ISchema _outputGenericSchema;
+            private readonly Schema _outputSchema;
+            private readonly Schema _outputGenericSchema;
             private VBuffer<ReadOnlyMemory<char>> _slotNames;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
@@ -364,13 +364,13 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    _outputSchema = new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
+                    _outputSchema = Schema.Create(new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
                         new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
-                        InputSchema, InputRoleMappedSchema.Feature.Index);
+                        InputSchema, InputRoleMappedSchema.Feature.Index));
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
-                OutputSchema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
+                OutputSchema = new CompositeSchema(new Schema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
             }
 
             /// <summary>

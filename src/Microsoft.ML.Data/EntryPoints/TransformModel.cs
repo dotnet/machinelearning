@@ -195,7 +195,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             public Schema OutputSchema => Schema;
 
-            public CompositeRowToRowMapper(IExceptionContext ectx, IDataView chain, ISchema rootSchema)
+            public CompositeRowToRowMapper(IExceptionContext ectx, IDataView chain, Schema rootSchema)
             {
                 Contracts.CheckValue(ectx, nameof(ectx));
                 _ectx = ectx;

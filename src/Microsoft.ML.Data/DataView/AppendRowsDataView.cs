@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 for (int i = startingSchemaIndex; i < _sources.Length; i++)
                 {
-                    ISchema schema = _sources[i].Schema;
+                    var schema = _sources[i].Schema;
                     _host.Check(schema.GetColumnName(c) == name, errMsg);
                     _host.Check(schema.GetColumnType(c).SameSizeAndItemType(type), errMsg);
                 }

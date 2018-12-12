@@ -895,7 +895,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var splitter = _splitters[i];
                     // Don't activate input source columns if none of the resulting columns were selected.
-                    bool isActive = pred == null || Enumerable.Range(offset, splitter.ColumnCount).Any(c => pred(c));
+                    bool isActive = pred == null || Enumerable.Range(offset, splitter.AsSchema.ColumnCount).Any(c => pred(c));
                     if (isActive)
                     {
                         activeSplitters[i] = isActive;
@@ -1633,11 +1633,11 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         internal sealed class SimpleTransposeSchema : ITransposeSchema
         {
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
 
             public int ColumnCount { get { return _schema.ColumnCount; } }
 
-            public SimpleTransposeSchema(ISchema schema)
+            public SimpleTransposeSchema(Schema schema)
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 _schema = schema;

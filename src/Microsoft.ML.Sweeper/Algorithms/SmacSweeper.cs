@@ -106,13 +106,13 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
 
             // Fit Random Forest Model on previous run data.
-            FastForestRegressionPredictor forestPredictor = FitModel(viableRuns);
+            FastForestRegressionModelParameters forestPredictor = FitModel(viableRuns);
 
             // Using acquisition function and current best, get candidate configuration(s).
             return GenerateCandidateConfigurations(numOfCandidates, viableRuns, forestPredictor);
         }
 
-        private FastForestRegressionPredictor FitModel(IEnumerable<IRunResult> previousRuns)
+        private FastForestRegressionModelParameters FitModel(IEnumerable<IRunResult> previousRuns)
         {
             Single[] targets = new Single[previousRuns.Count()];
             Single[][] features = new Single[previousRuns.Count()][];
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Sweeper
         /// <param name="previousRuns">History of previously evaluated points, with their emprical performance values.</param>
         /// <param name="forest">Trained random forest ensemble. Used in evaluating the candidates.</param>
         /// <returns>An array of ParamaterSets which are the candidate configurations to sweep.</returns>
-        private ParameterSet[] GenerateCandidateConfigurations(int numOfCandidates, IEnumerable<IRunResult> previousRuns, FastForestRegressionPredictor forest)
+        private ParameterSet[] GenerateCandidateConfigurations(int numOfCandidates, IEnumerable<IRunResult> previousRuns, FastForestRegressionModelParameters forest)
         {
             // Get k best previous runs ParameterSets.
             ParameterSet[] bestKParamSets = GetKBestConfigurations(previousRuns, forest, _args.LocalSearchParentCount);
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Sweeper
         /// <param name="numOfCandidates">Number of candidate configurations returned by the method (top K).</param>
         /// <param name="previousRuns">Historical run results.</param>
         /// <returns>Array of parameter sets, which will then be evaluated.</returns>
-        private ParameterSet[] GreedyPlusRandomSearch(ParameterSet[] parents, FastForestRegressionPredictor forest, int numOfCandidates, IEnumerable<IRunResult> previousRuns)
+        private ParameterSet[] GreedyPlusRandomSearch(ParameterSet[] parents, FastForestRegressionModelParameters forest, int numOfCandidates, IEnumerable<IRunResult> previousRuns)
         {
             // REVIEW: The IsMetricMaximizing flag affects the comparator, so that
             // performing Max() should get the best, regardless of if it is maximizing or
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Runtime.Sweeper
         /// <param name="bestVal">Best performance seen thus far.</param>
         /// <param name="epsilon">Threshold for when to stop the local search.</param>
         /// <returns></returns>
-        private Tuple<double, ParameterSet> LocalSearch(ParameterSet parent, FastForestRegressionPredictor forest, double bestVal, double epsilon)
+        private Tuple<double, ParameterSet> LocalSearch(ParameterSet parent, FastForestRegressionModelParameters forest, double bestVal, double epsilon)
         {
             try
             {
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Runtime.Sweeper
         /// <param name="forest">Trained forest predictor, used for filtering configs.</param>
         /// <param name="configs">Parameter configurations.</param>
         /// <returns>2D array where rows correspond to configurations, and columns to the predicted leaf values.</returns>
-        private double[][] GetForestRegressionLeafValues(FastForestRegressionPredictor forest, ParameterSet[] configs)
+        private double[][] GetForestRegressionLeafValues(FastForestRegressionModelParameters forest, ParameterSet[] configs)
         {
             List<double[]> datasetLeafValues = new List<double[]>();
             var e = forest.TrainedEnsemble;
@@ -369,14 +369,14 @@ namespace Microsoft.ML.Runtime.Sweeper
             return meansAndStdDevs;
         }
 
-        private double[] EvaluateConfigurationsByEI(FastForestRegressionPredictor forest, double bestVal, ParameterSet[] configs)
+        private double[] EvaluateConfigurationsByEI(FastForestRegressionModelParameters forest, double bestVal, ParameterSet[] configs)
         {
             double[][] leafPredictions = GetForestRegressionLeafValues(forest, configs);
             double[][] forestStatistics = ComputeForestStats(leafPredictions);
             return ComputeEIs(bestVal, forestStatistics);
         }
 
-        private ParameterSet[] GetKBestConfigurations(IEnumerable<IRunResult> previousRuns, FastForestRegressionPredictor forest, int k = 10)
+        private ParameterSet[] GetKBestConfigurations(IEnumerable<IRunResult> previousRuns, FastForestRegressionModelParameters forest, int k = 10)
         {
             // NOTE: Should we change this to rank according to EI (using forest), instead of observed performance?
 

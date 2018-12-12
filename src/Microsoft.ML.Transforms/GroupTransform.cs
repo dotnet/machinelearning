@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms
                 new[] { MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues };
 
             private readonly IExceptionContext _ectx;
-            private readonly ISchema _input;
+            private readonly Schema _input;
 
             private readonly string[] _groupColumns;
             private readonly string[] _keepColumns;
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Transforms
 
             public Schema AsSchema { get; }
 
-            public GroupSchema(IExceptionContext ectx, ISchema inputSchema, string[] groupColumns, string[] keepColumns)
+            public GroupSchema(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
             {
                 Contracts.AssertValue(ectx);
                 _ectx = ectx;
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Transforms
                 AsSchema = Schema.Create(this);
             }
 
-            public GroupSchema(ISchema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
+            public GroupSchema(Schema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(env);
                 _ectx = env.Register(LoaderSignature);
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Transforms
                 return map;
             }
 
-            private static ColumnType[] BuildColumnTypes(ISchema input, int[] ids)
+            private static ColumnType[] BuildColumnTypes(Schema input, int[] ids)
             {
                 var types = new ColumnType[ids.Length];
                 for (int i = 0; i < ids.Length; i++)
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private int[] GetColumnIds(ISchema schema, string[] names, Func<string, Exception> except)
+            private int[] GetColumnIds(Schema schema, string[] names, Func<string, Exception> except)
             {
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(names);

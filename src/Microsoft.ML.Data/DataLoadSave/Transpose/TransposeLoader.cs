@@ -612,7 +612,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private sealed class SchemaImpl : ITransposeSchema
         {
             private readonly TransposeLoader _parent;
-            private ISchema Schema { get { return _parent.Schema; } }
+            private Schema Schema { get { return _parent.Schema; } }
             private IHost Host { get { return _parent._host; } }
             public int ColumnCount { get { return Schema.ColumnCount; } }
 

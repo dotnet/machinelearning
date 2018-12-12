@@ -271,7 +271,7 @@ namespace Microsoft.ML.Transforms
                 AsSchema = Schema.Create(this);
             }
 
-            private static void CheckAndBind(IExceptionContext ectx, ISchema inputSchema,
+            private static void CheckAndBind(IExceptionContext ectx, Schema inputSchema,
                 string[] pivotColumns, out PivotColumnInfo[] infos)
             {
                 Contracts.AssertValueOrNull(ectx);

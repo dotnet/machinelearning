@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.TestFramework;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using Xunit;
 
 namespace Microsoft.ML.Runtime.RunTests
@@ -485,7 +484,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected bool CheckMetadataTypes(ISchema sch)
+        protected bool CheckMetadataTypes(Schema sch)
         {
             var hs = new HashSet<string>();
             for (int col = 0; col < sch.ColumnCount; col++)
@@ -545,7 +544,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckSameSchemas(ISchema sch1, ISchema sch2, bool exactTypes = true, bool keyNames = true)
+        protected bool CheckSameSchemas(Schema sch1, Schema sch2, bool exactTypes = true, bool keyNames = true)
         {
             if (sch1.ColumnCount != sch2.ColumnCount)
             {
@@ -603,7 +602,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataNames(string kind, int size, ISchema sch1, ISchema sch2, int col, bool exactTypes, bool mustBeText)
+        protected bool CheckMetadataNames(string kind, int size, Schema sch1, Schema sch2, int col, bool exactTypes, bool mustBeText)
         {
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
@@ -655,7 +654,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
+        protected bool CheckMetadataCallFailure(string kind, Schema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             try
             {
@@ -788,20 +787,6 @@ namespace Microsoft.ML.Runtime.RunTests
             public bool Sentiment;
 
             public float Score;
-        }
-
-        private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
-        {
-            return new TextLoader.Arguments()
-            {
-                Separator = "tab",
-                HasHeader = true,
-                Column = new[]
-                {
-                    new TextLoader.Column("Label", DataKind.BL, 0),
-                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                }
-            };
         }
 
         protected bool Failed()
