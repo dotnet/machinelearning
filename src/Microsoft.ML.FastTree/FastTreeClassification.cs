@@ -36,17 +36,17 @@ using System.Linq;
     "fastrank",
     "fastrankwrapper")]
 
-[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(FastTreeBinaryPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(FastTreeBinaryModelParameters), null, typeof(SignatureLoadModel),
     "FastTree Binary Executor",
-    FastTreeBinaryPredictor.LoaderSignature)]
+    FastTreeBinaryModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class FastTreeBinaryPredictor :
-        FastTreePredictionWrapper
+    public sealed class FastTreeBinaryModelParameters :
+        TreeEnsembleModelParameters
     {
-        public const string LoaderSignature = "FastTreeBinaryExec";
-        public const string RegistrationName = "FastTreeBinaryPredictor";
+        internal const string LoaderSignature = "FastTreeBinaryExec";
+        internal const string RegistrationName = "FastTreeBinaryPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(FastTreeBinaryPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(FastTreeBinaryModelParameters).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;
@@ -69,12 +69,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        internal FastTreeBinaryPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        public FastTreeBinaryModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
 
-        private FastTreeBinaryPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private FastTreeBinaryModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
         {
         }
@@ -85,12 +85,12 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            var predictor = new FastTreeBinaryPredictor(env, ctx);
+            var predictor = new FastTreeBinaryModelParameters(env, ctx);
             ICalibrator calibrator;
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// The LoadName for the assembly containing the trainer.
         /// </summary>
-        public const string LoadNameValue = "FastTreeBinaryClassification";
+        internal const string LoadNameValue = "FastTreeBinaryClassification";
         internal const string UserNameValue = "FastTree (Boosted Trees) Classification";
         internal const string Summary = "Uses a logit-boost boosted tree learner to perform binary classification.";
         internal const string ShortName = "ftc";
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // output probabilities when transformed using a scaled logistic function,
             // so transform the scores using that.
 
-            var pred = new FastTreeBinaryPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            var pred = new FastTreeBinaryModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
             // FastTree's binary classification boosting framework's natural probabilistic interpretation
             // is explained in "From RankNet to LambdaRank to LambdaMART: An Overview" by Chris Burges.
             // The correctness of this scaling depends upon the gradient calculation in

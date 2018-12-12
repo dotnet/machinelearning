@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Trainers;
@@ -56,8 +57,8 @@ namespace Microsoft.ML.Scenarios
             {
                 ImagePath = GetDataPath("images/banana.jpg")
             });
-            Assert.Equal(1, prediction.PredictedScores[0], 2);
-            Assert.Equal(0, prediction.PredictedScores[1], 2);
+            Assert.Equal(0, prediction.PredictedScores[0], 2);
+            Assert.Equal(1, prediction.PredictedScores[1], 2);
             Assert.Equal(0, prediction.PredictedScores[2], 2);
 
             prediction = predictFunction.Predict(new CifarData()
@@ -65,8 +66,8 @@ namespace Microsoft.ML.Scenarios
                 ImagePath = GetDataPath("images/hotdog.jpg")
             });
             Assert.Equal(0, prediction.PredictedScores[0], 2);
-            Assert.Equal(1, prediction.PredictedScores[1], 2);
-            Assert.Equal(0, prediction.PredictedScores[2], 2);
+            Assert.Equal(0, prediction.PredictedScores[1], 2);
+            Assert.Equal(1, prediction.PredictedScores[2], 2);
         }
     }
 

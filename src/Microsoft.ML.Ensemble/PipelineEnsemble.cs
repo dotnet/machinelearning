@@ -560,7 +560,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public abstract ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema);
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             for (int i = 0; i < PredictorModels.Length; i++)
             {
@@ -603,7 +603,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             if (mdType == null || !mdType.IsKnownSizeVector)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
-            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, labelType.AsKey, schema, labelInfo.Index, mdType);
+            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyType)labelType, schema, labelInfo.Index, mdType);
         }
 
         // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, IPredictorModel[] models, KeyType labelType, ISchema schema, int labelIndex, ColumnType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, IPredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, ColumnType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
@@ -655,8 +655,8 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (labelInfo == null)
                     throw env.Except("Training schema for model {0} does not have a label column", i);
 
-                var curLabelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index);
-                if (!labelType.Equals(curLabelType.AsKey))
+                var curLabelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index) as KeyType;
+                if (!labelType.Equals(curLabelType))
                     throw env.Except("Label column of model {0} has different type than model 0", i);
 
                 var mdType = rmd.Schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelInfo.Index);
@@ -691,7 +691,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         ///       - If neither of those interfaces are implemented then the value is a string containing the name of the type of model.
         /// </summary>
         /// <returns></returns>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             Host.CheckValueOrNull(schema);
 

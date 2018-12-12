@@ -145,7 +145,15 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     throw _host.ExceptNotSupp("File handle outputs not yet supported.");
                 case TlcModule.DataKind.DataView:
                     var idv = runner.GetOutput<IDataView>(varName);
-                    SaveDataView(idv, path, extension);
+                    if (idv != null)
+                        SaveDataView(idv, path, extension);
+                    else
+                        using (var ch = _host.Start("Get outputs from executed graph"))
+                        {
+                            string msg = string.Format("Ignoring empty graph output (output name: {0}, type: {1}, expected output's file: {2})",
+                                varName, nameof(idv), path + extension);
+                            ch.Warning(msg);
+                        }
                     break;
                 case TlcModule.DataKind.PredictorModel:
                     var pm = runner.GetOutput<IPredictorModel>(varName);

@@ -144,7 +144,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         /// <summary>
         /// Saves the model summary
         /// </summary>
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             for (int i = 0; i < Models.Length; i++)
             {

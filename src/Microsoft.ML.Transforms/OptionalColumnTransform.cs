@@ -66,7 +66,7 @@ namespace Microsoft.ML.Transforms
                 SetMetadata();
             }
 
-            public static Bindings Create(Arguments args, ISchema input, OptionalColumnTransform parent)
+            public static Bindings Create(Arguments args, Schema input, OptionalColumnTransform parent)
             {
                 var names = new string[args.Column.Length];
                 var columnTypes = new ColumnType[args.Column.Length];

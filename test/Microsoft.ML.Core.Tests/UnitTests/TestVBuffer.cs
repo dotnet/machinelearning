@@ -39,7 +39,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Assert.Equal(1, buffer.GetValues()[2]);
         }
 
-        [Fact(Skip = "Bug 1802: https://github.com/dotnet/machinelearning/issues/1802")]
+        [Fact]
         public void VBufferOpScaleBy()
         {
             var rgen = RandomUtils.Create(9);
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             }
         }
 
-        [Fact(Skip = "Bug 1802: https://github.com/dotnet/machinelearning/issues/1802")]
+        [Fact]
         public void VBufferOpScaleByCopy()
         {
             var rgen = RandomUtils.Create(9);

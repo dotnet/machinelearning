@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
-using System.Linq;
-using Microsoft.ML.Data;
+using Microsoft.ML.TimeSeries;
+using Microsoft.ML.Transforms;
+using System;
 using System.IO;
+using System.Linq;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public abstract Schema GetOutputSchema(Schema inputSchema);
 
-        private protected abstract IStatefulRowMapper MakeRowMapper(ISchema schema);
+        private protected abstract IStatefulRowMapper MakeRowMapper(Schema schema);
 
         private protected SequentialDataTransform MakeDataTransform(IDataView input)
         {
@@ -614,11 +614,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
         }
 
-        public static Schema GetOutputSchema(ISchema inputSchema, IRowMapper mapper)
+        public static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));
-            return new ColumnBindings(Schema.Create(inputSchema), mapper.GetOutputColumns()).Schema;
+            return new ColumnBindings(inputSchema, mapper.GetOutputColumns()).Schema;
         }
 
         private TimeSeriesRowToRowMapperTransform(IHost host, ModelLoadContext ctx, IDataView input)

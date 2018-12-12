@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// A helper class to create data views based on the user-provided types.
@@ -208,12 +208,12 @@ namespace Microsoft.ML.Runtime.Api
                     else
                         Host.Assert(colType.RawType == outputType);
 
-                    if (!colType.IsKey)
+                    if (!(colType is KeyType keyType))
                         del = CreateDirectGetterDelegate<int>;
                     else
                     {
                         var keyRawType = colType.RawType;
-                        Host.Assert(colType.AsKey.Contiguous);
+                        Host.Assert(keyType.Contiguous);
                         Func<Delegate, ColumnType, Delegate> delForKey = CreateKeyGetterDelegate<uint>;
                         return Utils.MarshalInvoke(delForKey, keyRawType, peek, colType);
                     }
@@ -299,9 +299,10 @@ namespace Microsoft.ML.Runtime.Api
             private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, ColumnType colType)
             {
                 // Make sure the function is dealing with key.
-                Host.Check(colType.IsKey);
+                KeyType keyType = colType as KeyType;
+                Host.Check(keyType != null);
                 // Following equations work only with contiguous key type.
-                Host.Check(colType.AsKey.Contiguous);
+                Host.Check(keyType.Contiguous);
                 // Following equations work only with unsigned integers.
                 Host.Check(typeof(TDst) == typeof(ulong) || typeof(TDst) == typeof(uint) ||
                     typeof(TDst) == typeof(byte) || typeof(TDst) == typeof(bool));
@@ -312,8 +313,8 @@ namespace Microsoft.ML.Runtime.Api
 
                 TDst rawKeyValue = default;
                 ulong key = 0; // the raw key value as ulong
-                ulong min = colType.AsKey.Min;
-                ulong max = min + (ulong)colType.AsKey.Count - 1;
+                ulong min = keyType.Min;
+                ulong max = min + (ulong)keyType.Count - 1;
                 ulong result = 0; // the result as ulong
                 ValueGetter<TDst> getter = (ref TDst dst) =>
                 {
@@ -797,6 +798,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
+        [BestFriend]
         internal static Schema.DetachedColumn[] GetSchemaColumns(InternalSchemaDefinition schemaDefn)
         {
             Contracts.AssertValue(schemaDefn);
@@ -951,7 +953,16 @@ namespace Microsoft.ML.Runtime.Api
             throw Contracts.ExceptNotImpl("Type '{0}' is not yet supported.", typeT.FullName);
         }
 
-        internal override Delegate GetGetterDelegate() => Utils.MarshalInvoke(GetGetter<int>, MetadataType.RawType);
+        // We want to use MarshalInvoke instead of adding custom Reflection logic for calling GetGetter<TDst>
+        private Delegate GetGetterCore<TDst>()
+        {
+            return GetGetter<TDst>();
+        }
+
+        internal override Delegate GetGetterDelegate()
+        {
+            return Utils.MarshalInvoke(GetGetterCore<int>, MetadataType.RawType);
+        }
 
         public class TElement
         {

@@ -612,7 +612,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private sealed class SchemaImpl : ITransposeSchema
         {
             private readonly TransposeLoader _parent;
-            private ISchema Schema { get { return _parent.Schema; } }
+            private Schema Schema { get { return _parent.Schema; } }
             private IHost Host { get { return _parent._host; } }
             public int ColumnCount { get { return Schema.ColumnCount; } }
 
@@ -659,7 +659,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 var view = _parent._entries[col].GetViewOrNull();
                 if (view == null)
                     return null;
-                return view.Schema.GetColumnType(0).AsVector;
+                return view.Schema.GetColumnType(0) as VectorType;
             }
         }
 

@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_Metacomponents()
         {
             var ml = new MLContext();
-            var data = ml.Data.TextReader(MakeIrisTextLoaderArgs())
+            var data = ml.Data.CreateTextReader(TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
             var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });

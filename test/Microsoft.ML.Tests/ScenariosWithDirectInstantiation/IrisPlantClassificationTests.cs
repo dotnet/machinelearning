@@ -5,14 +5,9 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms.Normalizers;
-using System;
 using System.IO;
 using Xunit;
 
@@ -26,10 +21,7 @@ namespace Microsoft.ML.Scenarios
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments()
-            {
-                HasHeader = false,
-                Column = new[]
+            var reader = mlContext.Data.CreateTextReader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column("SepalLength", DataKind.R4, 1),
@@ -37,7 +29,7 @@ namespace Microsoft.ML.Scenarios
                     new TextLoader.Column("PetalLength", DataKind.R4, 3),
                     new TextLoader.Column("PetalWidth", DataKind.R4, 4)
                 }
-            });
+            );
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(mlContext.Transforms.Normalize("Features"))

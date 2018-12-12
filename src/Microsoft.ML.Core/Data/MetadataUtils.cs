@@ -165,12 +165,12 @@ namespace Microsoft.ML.Runtime.Data
             return new VectorType(NumberType.I4, rangeCount, 2);
         }
 
-        private static volatile ColumnType _scoreColumnSetIdType;
+        private static volatile KeyType _scoreColumnSetIdType;
 
         /// <summary>
         /// The type of the ScoreColumnSetId metadata.
         /// </summary>
-        public static ColumnType ScoreColumnSetIdType
+        public static KeyType ScoreColumnSetIdType
         {
             get
             {

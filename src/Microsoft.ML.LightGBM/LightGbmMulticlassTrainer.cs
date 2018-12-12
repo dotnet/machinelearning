@@ -82,9 +82,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             return res;
         }
 
-        private LightGbmBinaryPredictor CreateBinaryPredictor(int classID, string innerArgs)
+        private LightGbmBinaryModelParameters CreateBinaryPredictor(int classID, string innerArgs)
         {
-            return new LightGbmBinaryPredictor(Host, GetBinaryEnsemble(classID), FeatureCount, innerArgs);
+            return new LightGbmBinaryModelParameters(Host, GetBinaryEnsemble(classID), FeatureCount, innerArgs);
         }
 
         private protected override OvaPredictor CreatePredictor()
@@ -139,14 +139,14 @@ namespace Microsoft.ML.Runtime.LightGBM
                 if (maxLabel >= _maxNumClass)
                     throw ch.ExceptParam(nameof(data), $"max labelColumn cannot exceed {_maxNumClass}");
 
-                if (data.Schema.Label.Type.IsKey)
+                if (data.Schema.Label.Type is KeyType keyType)
                 {
-                    ch.Check(data.Schema.Label.Type.AsKey.Contiguous, "labelColumn value should be contiguous");
+                    ch.Check(keyType.Contiguous, "labelColumn value should be contiguous");
                     if (hasNaNLabel)
-                        _numClass = data.Schema.Label.Type.AsKey.Count + 1;
+                        _numClass = keyType.Count + 1;
                     else
-                        _numClass = data.Schema.Label.Type.AsKey.Count;
-                    _tlcNumClass = data.Schema.Label.Type.AsKey.Count;
+                        _numClass = keyType.Count;
+                    _tlcNumClass = keyType.Count;
                 }
                 else
                 {

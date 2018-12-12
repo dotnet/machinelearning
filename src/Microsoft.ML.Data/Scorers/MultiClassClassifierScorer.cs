@@ -130,9 +130,9 @@ namespace Microsoft.ML.Runtime.Data
                 ColumnType type;
                 object value;
                 _host.CheckDecode(saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out type, out value));
-                _host.CheckDecode(type.IsVector);
+                _type = type as VectorType;
+                _host.CheckDecode(_type != null);
                 _host.CheckDecode(value != null);
-                _type = type.AsVector;
                 _getter = Utils.MarshalInvoke(DecodeInit<int>, _type.ItemType.RawType, value);
                 _metadataKind = ctx.Header.ModelVerReadable >= VersionAddedMetadataKind ?
                     ctx.LoadNonEmptyString() : MetadataUtils.Kinds.SlotNames;
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 private sealed class SchemaImpl : ISchema
                 {
-                    private readonly ISchema _parent;
+                    private readonly Schema _parent;
                     private readonly int _scoreCol;
                     private readonly VectorType _labelNameType;
                     private readonly MetadataUtils.MetadataGetter<VBuffer<T>> _labelNameGetter;
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     public int ColumnCount { get { return _parent.ColumnCount; } }
 
-                    public SchemaImpl(ISchema parent, int col, VectorType type, ValueGetter<VBuffer<T>> getter, string metadataKind)
+                    public SchemaImpl(Schema parent, int col, VectorType type, ValueGetter<VBuffer<T>> getter, string metadataKind)
                     {
                         Contracts.AssertValue(parent);
                         Contracts.Assert(0 <= col && col < parent.ColumnCount);
@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.Data
             if (rowMapper == null)
                 return false; // We could cover this case, but it is of no practical worth as far as I see, so I decline to do so.
 
-            ISchema outSchema = mapper.OutputSchema;
+            var outSchema = mapper.OutputSchema;
             int scoreIdx;
             if (!outSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Runtime.Data
                         trainSchema.Label.Index, ref value);
                 };
 
-            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type.AsVector, getter, MetadataUtils.Kinds.SlotNames, CanWrap);
+            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.SlotNames, CanWrap);
         }
 
         public MultiClassClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)

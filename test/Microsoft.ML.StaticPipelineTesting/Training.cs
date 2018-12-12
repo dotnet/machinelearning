@@ -423,7 +423,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
-            FastTreeRegressionPredictor pred = null;
+            FastTreeRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.FastTree(r.label, r.features,
@@ -505,7 +505,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
-            LightGbmRegressionPredictor pred = null;
+            LightGbmRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.LightGbm(r.label, r.features,
@@ -771,7 +771,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
                 separator: '\t', hasHeader: true);
 
-            FastTreeRankingPredictor pred = null;
+            FastTreeRankingModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))
@@ -812,7 +812,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
                 separator: '\t', hasHeader: true);
 
-            LightGbmRankingPredictor pred = null;
+            LightGbmRankingModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))
@@ -976,7 +976,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Read data file. The file contains 3 columns, label (float value), matrixColumnIndex (unsigned integer key), and matrixRowIndex (unsigned integer key).
             // More specifically, LoadKey(1, 0, 19) means that the matrixColumnIndex column is read from the 2nd (indexed by 1) column in the data file and as
             // a key type (stored as 32-bit unsigned integer) ranged from 0 to 19 (aka the training matrix has 20 columns).
-            var reader = mlContext.Data.TextReader(ctx => (label: ctx.LoadFloat(0), matrixColumnIndex: ctx.LoadKey(1, 0, 19), matrixRowIndex: ctx.LoadKey(2, 0, 39)), hasHeader: true);
+            var reader = mlContext.Data.CreateTextReader(ctx => (label: ctx.LoadFloat(0), matrixColumnIndex: ctx.LoadKey(1, 0, 19), matrixRowIndex: ctx.LoadKey(2, 0, 39)), hasHeader: true);
 
             // The parameter that will be into the onFit method below. The obtained predictor will be assigned to this variable
             // so that we will be able to touch it.

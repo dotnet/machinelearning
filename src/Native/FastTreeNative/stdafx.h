@@ -10,14 +10,10 @@
 //
 
 #pragma once
-
 #include <cstdint>
 #include <stdlib.h>
-
+#include "../Stdafx.h"
 #ifndef _WIN32
-#define EXPORT_API(ret) extern "C" __attribute__((visibility("default"))) ret
-#include "../UnixSal.h"
-
 // Workaround for _BitScanReverse using the gcc-specific __builtin_clz, which returns the number of leading zeros.
 const int LongNumBitsMinusOne = sizeof(long) * 8 - 1;
 inline unsigned char _BitScanReverse(_Inout_ unsigned long * index, _In_ unsigned long mask)
@@ -63,7 +59,4 @@ inline void qsort_s(_Inout_updates_all_(num) void* base, _In_ size_t num, _In_ s
 // __emul(u) is VS-specific.
 inline uint64_t __emulu(unsigned int i1, unsigned int i2) { return (uint64_t)i1 * i2; };
 inline int64_t __emul(int i1, int i2) { return (int64_t)i1 * i2; };
-#else
-#include <intrin.h>
-#define EXPORT_API(ret) extern "C" __declspec(dllexport) ret __stdcall
 #endif

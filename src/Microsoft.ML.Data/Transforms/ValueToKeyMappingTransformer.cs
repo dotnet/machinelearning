@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return "standard type or a vector of standard type";
         }
 
-        private ColInfo[] CreateInfos(ISchema inputSchema)
+        private ColInfo[] CreateInfos(Schema inputSchema)
         {
             Host.AssertValue(inputSchema);
             var infos = new ColInfo[ColumnPairs.Length];
@@ -388,8 +388,8 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
         /// Initializes a new instance of <see cref="ValueToKeyMappingTransformer"/>.
@@ -483,13 +483,10 @@ namespace Microsoft.ML.Transforms.Conversions
                             "{0} should not be specified when default loader is TextLoader. Ignoring {0}={1}",
                             nameof(Arguments.TermsColumn), src);
                     }
-                    termData = TextLoader.ReadFile(env,
-                        new TextLoader.Arguments()
-                        {
-                            Separator = "tab",
-                            Column = new[] { new TextLoader.Column("Term", DataKind.TX, 0) }
-                        },
-                        fileSource);
+                    termData = new TextLoader(env,
+                        columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
+                        dataSample: fileSource)
+                        .Read(fileSource);
                     src = "Term";
                     autoConvert = true;
                 }
@@ -739,8 +736,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     var type = _infos[i].TypeSrc;
                     KeyType keyType = _parent._unboundMaps[i].OutputType;
                     ColumnType colType;
-                    if (type.IsVector)
-                        colType = new VectorType(keyType, type.AsVector);
+                    if (type is VectorType vectorType)
+                        colType = new VectorType(keyType, vectorType);
                     else
                         colType = keyType;
                     _types[i] = colType;

@@ -5,6 +5,7 @@
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -162,44 +163,43 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             CceFormat = 57        /* Complex conjugate-even */
         }
 
-        private const string DllName = "MklImports";
+        private const string MklPath = "MklImports";
         private const string DllProxyName = "MklProxyNative";
 
         // See: https://software.intel.com/en-us/node/521976#8CD904AB-244B-42E4-820A-CC2376E776B8
-        [DllImport(DllProxyName, EntryPoint = "MKLDftiCreateDescriptor", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiCreateDescriptor", CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
         private static extern int CreateDescriptor(out IntPtr desc, ConfigValue precision, ConfigValue domain, int dimension, int length);
 
         // See: https://software.intel.com/en-us/node/521977
-        [DllImport(DllName, EntryPoint = "DftiCommitDescriptor")]
+        [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "DftiCommitDescriptor"), SuppressUnmanagedCodeSecurity]
         private static extern int CommitDescriptor(IntPtr desc);
 
         // See: https://software.intel.com/en-us/node/521978
-        [DllImport(DllName, EntryPoint = "DftiFreeDescriptor")]
+        [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "DftiFreeDescriptor"), SuppressUnmanagedCodeSecurity]
         private static extern int FreeDescriptor(ref IntPtr desc);
 
         // See: https://software.intel.com/en-us/node/521981
-        [DllImport(DllProxyName, EntryPoint = "MKLDftiSetValue", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiSetValue", CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
         private static extern int SetValue(IntPtr desc, ConfigParam configParam, ConfigValue configValue);
 
         // See: https://software.intel.com/en-us/node/521984
-        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeForward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeForward", CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
         private static extern int ComputeForward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521985
-        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeBackward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeBackward", CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
         private static extern int ComputeBackward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521984
-        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeForward", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeForward"), SuppressUnmanagedCodeSecurity]
         private static extern int ComputeForward(IntPtr desc, [In] float[] inputRe, [In] float[] inputIm, [Out] float[] outputRe, [Out] float[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521985
-        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeBackward", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeBackward"), SuppressUnmanagedCodeSecurity]
         private static extern int ComputeBackward(IntPtr desc, [In] float[] inputRe, [In] float[] inputIm, [Out] float[] outputRe, [Out] float[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521990
-        [System.Security.SuppressUnmanagedCodeSecurity]
-        [DllImport(DllName, EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        [DllImport(MklPath, EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
         private static extern IntPtr ErrorMessage(int status);
 
         private static void CheckStatus(int status)

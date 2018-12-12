@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Use tag to independently create multiple temporary, unique column
         /// names for a single transform.
         /// </summary>
-        public static string GetTempColumnName(this ISchema schema, string tag = null)
+        public static string GetTempColumnName(this Schema schema, string tag = null)
         {
             Contracts.CheckValue(schema, nameof(schema));
 
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Use tag to independently create multiple temporary, unique column
         /// names for a single transform.
         /// </summary>
-        public static string[] GetTempColumnNames(this ISchema schema, int n, string tag = null)
+        public static string[] GetTempColumnNames(this Schema schema, int n, string tag = null)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Check(n > 0, "n");
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCachable(ISchema schema, Func<int, bool> predicate)
+        public static bool AllCachable(Schema schema, Func<int, bool> predicate)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(predicate, nameof(predicate));

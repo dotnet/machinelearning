@@ -412,15 +412,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             conv = null;
             identity = false;
-            if (typeSrc.IsKey)
+            if (typeSrc is KeyType keySrc)
             {
-                var keySrc = typeSrc.AsKey;
-
                 // Key types are only convertable to compatible key types or unsigned integer
                 // types that are large enough.
-                if (typeDst.IsKey)
+                if (typeDst is KeyType keyDst)
                 {
-                    var keyDst = typeDst.AsKey;
                     // We allow the Min value to shift. We currently don't allow the counts to vary.
                     // REVIEW: Should we allow the counts to vary? Allowing the dst to be bigger is trivial.
                     // Smaller dst means mapping values to NA.
@@ -451,11 +448,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 // REVIEW: Should we look for illegal values and force them to zero? If so, then
                 // we'll need to set identity to false.
             }
-            else if (typeDst.IsKey)
+            else if (typeDst is KeyType keyDst)
             {
                 if (!typeSrc.IsText)
                     return false;
-                conv = GetKeyParse(typeDst.AsKey);
+                conv = GetKeyParse(keyDst);
                 return true;
             }
             else if (!typeDst.IsStandardScalar)
@@ -490,10 +487,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             Contracts.CheckValue(type, nameof(type));
             Contracts.Check(type.RawType == typeof(TSrc), "Wrong TSrc type argument");
 
-            if (type.IsKey)
+            if (type is KeyType keyType)
             {
                 // Key string conversion always works.
-                conv = GetKeyStringConversion<TSrc>(type.AsKey);
+                conv = GetKeyStringConversion<TSrc>(keyType);
                 return true;
             }
             return TryGetStringConversion(out conv);
@@ -572,8 +569,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 "Parse conversion only supported for standard types");
             Contracts.Check(typeDst.RawType == typeof(TDst), "Wrong TDst type parameter");
 
-            if (typeDst.IsKey)
-                return GetKeyTryParse<TDst>(typeDst.AsKey);
+            if (typeDst is KeyType keyType)
+                return GetKeyTryParse<TDst>(keyType);
 
             Contracts.Assert(_tryParseDelegates.ContainsKey(typeDst.RawKind));
             return (TryParseMapper<TDst>)_tryParseDelegates[typeDst.RawKind];

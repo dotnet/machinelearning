@@ -9,8 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Runtime
 {
+    // REVIEW: Temporarly moving here since it is used by the Legacy project. Remove when removing the legacy project.
     /// <summary>
     /// A class that runs the previously trained model (and the preceding transform pipeline) on the
     /// in-memory data in batch mode.
@@ -19,7 +20,8 @@ namespace Microsoft.ML.Runtime.Api
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public sealed class BatchPredictionEngine<TSrc, TDst>
+    [BestFriend]
+    internal sealed class BatchPredictionEngine<TSrc, TDst>
         where TSrc : class
         where TDst : class, new()
     {
@@ -122,7 +124,8 @@ namespace Microsoft.ML.Runtime.Api
         }
     }
 
-    public sealed class PredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
+    [BestFriend]
+    internal sealed class PredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
        where TSrc : class
        where TDst : class, new()
     {

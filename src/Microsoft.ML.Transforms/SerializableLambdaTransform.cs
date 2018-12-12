@@ -2,20 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
-using System.Reflection;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.IO;
+using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 
 [assembly: LoadableClass(SerializableLambdaTransform.Summary, typeof(ITransformTemplate), typeof(SerializableLambdaTransform), null,
     typeof(SignatureLoadDataTransform), "", SerializableLambdaTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Transforms
 {
     internal static class SerializableLambdaTransform
     {

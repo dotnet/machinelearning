@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Data;
-using static Microsoft.ML.Runtime.Api.SchemaDefinition;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Runtime.Data
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
-
     /// <summary>
     /// An internal class that holds the (already validated) mapping between a custom type and an IDataView schema.
     /// </summary>
+    [BestFriend]
     internal sealed class InternalSchemaDefinition
     {
         public readonly Column[] Columns;
@@ -208,7 +207,7 @@ namespace Microsoft.ML.Runtime.Api
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
         }
 
-        public static InternalSchemaDefinition Create(Type userType, Direction direction)
+        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition.Direction direction)
         {
             var userSchemaDefinition = SchemaDefinition.Create(userType, direction);
             return Create(userType, userSchemaDefinition);
