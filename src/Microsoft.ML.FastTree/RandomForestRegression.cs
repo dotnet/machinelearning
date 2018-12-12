@@ -119,7 +119,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     // REVIEW: Should make this more efficient - it repeatedly allocates too much stuff.
                     float[] weights = null;
                     var distribution = TrainedEnsemble.GetDistribution(in src, _quantileSampleCount, out weights);
-                    var qdist = new QuantileStatistics(distribution, weights);
+                    IQuantileDistribution<float> qdist = new QuantileStatistics(distribution, weights);
 
                     var editor = VBufferEditor.Create(ref dst, quantiles.Length);
                     for (int i = 0; i < quantiles.Length; i++)

@@ -26,16 +26,16 @@ using System.Security;
     OlsLinearRegressionTrainer.LoadNameValue,
     OlsLinearRegressionTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(OlsLinearRegressionPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(OlsLinearRegressionModelParameters), null, typeof(SignatureLoadModel),
     "OLS Linear Regression Executor",
-    OlsLinearRegressionPredictor.LoaderSignature)]
+    OlsLinearRegressionModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Trainers.HalLearners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
-    public sealed class OlsLinearRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionPredictor>, OlsLinearRegressionPredictor>
+    public sealed class OlsLinearRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>, OlsLinearRegressionModelParameters>
     {
         public sealed class Arguments : LearnerInputBaseWithWeight
         {
@@ -111,10 +111,10 @@ namespace Microsoft.ML.Trainers.HalLearners
             return args;
         }
 
-        protected override RegressionPredictionTransformer<OlsLinearRegressionPredictor> MakeTransformer(OlsLinearRegressionPredictor model, Schema trainSchema)
-             => new RegressionPredictionTransformer<OlsLinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, Schema trainSchema)
+             => new RegressionPredictionTransformer<OlsLinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<OlsLinearRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+        public RegressionPredictionTransformer<OlsLinearRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         private static Double ProbClamp(Double p)
             => Math.Max(0, Math.Min(p, 1));
 
-        private protected override OlsLinearRegressionPredictor TrainModelCore(TrainContext context)
+        private protected override OlsLinearRegressionModelParameters TrainModelCore(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
             {
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             }
         }
 
-        private OlsLinearRegressionPredictor TrainCore(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
+        private OlsLinearRegressionModelParameters TrainCore(IChannel ch, FloatLabelCursor.Factory cursorFactory, int featureCount)
         {
             Host.AssertValue(ch);
             ch.AssertValue(cursorFactory);
@@ -293,14 +293,14 @@ namespace Microsoft.ML.Trainers.HalLearners
             {
                 // We would expect the solution to the problem to be exact in this case.
                 ch.Info("Number of examples equals number of parameters, solution is exact but no statistics can be derived");
-                return new OlsLinearRegressionPredictor(Host, in weights, bias, null, null, null, 1, float.NaN);
+                return new OlsLinearRegressionModelParameters(Host, in weights, bias);
             }
 
             Double rss = 0; // residual sum of squares
             Double tss = 0; // total sum of squares
             using (var cursor = cursorFactory.Create())
             {
-                IValueMapper lrPredictor = new LinearRegressionPredictor(Host, in weights, bias);
+                IValueMapper lrPredictor = new LinearRegressionModelParameters(Host, in weights, bias);
                 var lrMap = lrPredictor.GetMapper<VBuffer<float>, float>();
                 float yh = default;
                 while (cursor.MoveNext())
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             // Also we can't estimate it, unless we can estimate the variance, which requires more examples than
             // parameters.
             if (!_perParameterSignificance || m >= n)
-                return new OlsLinearRegressionPredictor(Host, in weights, bias, null, null, null, rSquared, rSquaredAdjusted);
+                return new OlsLinearRegressionModelParameters(Host, in weights, bias, rSquared: rSquared, rSquaredAdjusted: rSquaredAdjusted);
 
             ch.Assert(!Double.IsNaN(rSquaredAdjusted));
             var standardErrors = new Double[m];
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 ch.Check(0 <= pValues[i] && pValues[i] <= 1, "p-Value calculated outside expected [0,1] range");
             }
 
-            return new OlsLinearRegressionPredictor(Host, in weights, bias, standardErrors, tValues, pValues, rSquared, rSquaredAdjusted);
+            return new OlsLinearRegressionModelParameters(Host, in weights, bias, standardErrors, tValues, pValues, rSquared, rSquaredAdjusted);
         }
 
         internal static class Mkl
@@ -536,10 +536,10 @@ namespace Microsoft.ML.Trainers.HalLearners
     /// <summary>
     /// A linear predictor for which per parameter significance statistics are available.
     /// </summary>
-    public sealed class OlsLinearRegressionPredictor : RegressionPredictor
+    public sealed class OlsLinearRegressionModelParameters : RegressionModelParameters
     {
-        public const string LoaderSignature = "OlsLinearRegressionExec";
-        public const string RegistrationName = "OlsLinearRegressionPredictor";
+        internal const string LoaderSignature = "OlsLinearRegressionExec";
+        internal const string RegistrationName = "OlsLinearRegressionPredictor";
 
         /// <summary>
         /// Version information to be saved in binary format
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(OlsLinearRegressionPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(OlsLinearRegressionModelParameters).Assembly.FullName);
         }
 
         // The following will be null iff RSquaredAdjusted is NaN.
@@ -565,16 +565,14 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// <summary>
         /// The coefficient of determination.
         /// </summary>
-        public Double RSquared
-        { get { return _rSquared; } }
+        public Double RSquared => _rSquared;
 
         /// <summary>
         /// The adjusted coefficient of determination. It is only possible to produce
         /// an adjusted R-squared if there are more examples than parameters in the model
         /// plus one. If this condition is not met, this value will be <c>NaN</c>.
         /// </summary>
-        public Double RSquaredAdjusted
-        { get { return _rSquaredAdjusted; } }
+        public Double RSquaredAdjusted => _rSquaredAdjusted;
 
         /// <summary>
         /// Whether the model has per parameter statistics. This is false iff
@@ -585,33 +583,29 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// <see cref="OlsLinearRegressionTrainer.Arguments.PerParameterSignificance"/>
         /// to false.
         /// </summary>
-        public bool HasStatistics
-        { get { return _standardErrors != null; } }
+        public bool HasStatistics => _standardErrors != null;
 
         /// <summary>
         /// The standard error per model parameter, where the first corresponds to the bias,
         /// and all subsequent correspond to each weight in turn. This is <c>null</c> if and
         /// only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public IReadOnlyCollection<Double> StandardErrors
-        { get { return _standardErrors.AsReadOnly(); } }
+        public IReadOnlyCollection<Double> StandardErrors => _standardErrors.AsReadOnly();
 
         /// <summary>
         /// t-Statistic values corresponding to each of the model standard errors. This is
         /// <c>null</c> if and only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public IReadOnlyCollection<Double> TValues
-        { get { return _tValues.AsReadOnly(); } }
+        public IReadOnlyCollection<Double> TValues => _tValues.AsReadOnly();
 
         /// <summary>
         /// p-values corresponding to each of the model standard errors. This is <c>null</c>
         /// if and only if <see cref="HasStatistics"/> is <c>false</c>.
         /// </summary>
-        public IReadOnlyCollection<Double> PValues
-        { get { return _pValues.AsReadOnly(); } }
+        public IReadOnlyCollection<Double> PValues => _pValues.AsReadOnly();
 
-        internal OlsLinearRegressionPredictor(IHostEnvironment env, in VBuffer<float> weights, float bias,
-            Double[] standardErrors, Double[] tValues, Double[] pValues, Double rSquared, Double rSquaredAdjusted)
+        public OlsLinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias,
+            Double[] standardErrors = null, Double[] tValues = null, Double[] pValues = null, Double rSquared = 1, Double rSquaredAdjusted = float.NaN)
             : base(env, RegistrationName, in weights, bias)
         {
             Contracts.AssertValueOrNull(standardErrors);
@@ -647,7 +641,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             _rSquaredAdjusted = rSquaredAdjusted;
         }
 
-        private OlsLinearRegressionPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private OlsLinearRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             // *** Binary format ***
@@ -731,12 +725,12 @@ namespace Microsoft.ML.Trainers.HalLearners
             Contracts.CheckDecode(0 <= p && p <= 1);
         }
 
-        public static OlsLinearRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static OlsLinearRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new OlsLinearRegressionPredictor(env, ctx);
+            return new OlsLinearRegressionModelParameters(env, ctx);
         }
 
         private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)

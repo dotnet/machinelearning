@@ -384,9 +384,9 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Contracts.AssertValue(srcPredictor);
 
-            var pred = srcPredictor.SubPredictor as LinearBinaryPredictor;
+            var pred = srcPredictor.SubPredictor as LinearBinaryModelParameters;
             Contracts.AssertValue(pred);
-            return InitializeWeights(pred.Weights2, new[] { pred.Bias });
+            return InitializeWeights(pred.Weights, new[] { pred.Bias });
         }
 
         protected override ParameterMixingCalibratedPredictor CreatePredictor()
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Runtime.Learners
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedPredictor(Host,
-                new LinearBinaryPredictor(Host, in weights, bias, _stats),
+                new LinearBinaryModelParameters(Host, in weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }
 

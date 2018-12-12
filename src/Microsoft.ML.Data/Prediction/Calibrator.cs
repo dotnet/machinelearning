@@ -494,7 +494,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             _featureWeights.GetFeatureWeights(ref weights);
         }
 
-        public IParameterMixer<Float> CombineParameters(IList<IParameterMixer<Float>> models)
+        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
         {
             var predictors = models.Select(
                 m =>
@@ -1466,7 +1466,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return string.Format("Platt calibrator parameters: A={0}, B={1}", ParamA, ParamB);
         }
 
-        public IParameterMixer CombineParameters(IList<IParameterMixer> calibrators)
+        IParameterMixer IParameterMixer.CombineParameters(IList<IParameterMixer> calibrators)
         {
             Double a = 0;
             Double b = 0;

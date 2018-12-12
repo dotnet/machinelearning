@@ -103,7 +103,7 @@ namespace Microsoft.ML.StaticPipe
             int memorySize = Arguments.Defaults.MemorySize,
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null,
-            Action<PoissonRegressionPredictor> onFit = null)
+            Action<PoissonRegressionModelParameters> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
 
