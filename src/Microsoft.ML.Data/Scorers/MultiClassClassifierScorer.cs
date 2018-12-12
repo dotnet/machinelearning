@@ -138,10 +138,7 @@ namespace Microsoft.ML.Runtime.Data
                     ctx.LoadNonEmptyString() : MetadataUtils.Kinds.SlotNames;
             }
 
-            public ISchemaBindableMapper Clone(ISchemaBindableMapper inner)
-            {
-                return new LabelNameBindableMapper(_host, inner, _type, _getter, _metadataKind, _canWrap);
-            }
+            public ISchemaBindableMapper Clone(ISchemaBindableMapper inner) => new LabelNameBindableMapper(_host, inner, _type, _getter, _metadataKind, _canWrap);
 
             private Delegate DecodeInit<T>(object value)
             {
@@ -326,10 +323,7 @@ namespace Microsoft.ML.Runtime.Data
                     return builder.GetSchema();
                 }
 
-                public Func<int, bool> GetDependencies(Func<int, bool> predicate)
-                {
-                    return _mapper.GetDependencies(predicate);
-                }
+                public Func<int, bool> GetDependencies(Func<int, bool> predicate) => _mapper.GetDependencies(predicate);
 
                 public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles() => _mapper.GetInputColumnRoles();
 
@@ -357,7 +351,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     public override bool IsColumnActive(int col) => Input.IsColumnActive(col);
 
-                    public override ValueGetter<TValue> GetGetter<TValue>(int col) => Input.GetGetter<TValue>(col); 
+                    public override ValueGetter<TValue> GetGetter<TValue>(int col) => Input.GetGetter<TValue>(col);
                 }
             }
         }
@@ -531,14 +525,8 @@ namespace Microsoft.ML.Runtime.Data
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
         }
 
-        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper)
-        {
-            return new KeyType(DataKind.U4, 0, scoreType.VectorSize);
-        }
+        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(DataKind.U4, 0, scoreType.VectorSize);
 
-        private static bool OutputTypeMatches(ColumnType scoreType)
-        {
-            return scoreType.IsKnownSizeVector && scoreType.ItemType == NumberType.Float;
-        }
+        private static bool OutputTypeMatches(ColumnType scoreType) => scoreType.IsKnownSizeVector && scoreType.ItemType == NumberType.Float;
     }
 }
