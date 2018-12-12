@@ -210,13 +210,13 @@ namespace Microsoft.ML.Runtime.Data
         public const string L1 = "L1-loss";
         public const string L2 = "L2-loss";
 
-        public RegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol)
+        public RegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string labelCol)
             : base(env, schema, scoreCol, labelCol)
         {
             CheckInputColumnTypes(schema);
         }
 
-        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Data
             // base
         }
 
-        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);

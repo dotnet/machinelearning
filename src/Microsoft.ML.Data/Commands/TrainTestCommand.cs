@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Trace("Constructing the training pipeline");
             IDataView trainPipe = CreateLoader();
 
-            ISchema schema = trainPipe.Schema;
+            var schema = trainPipe.Schema;
             string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn),
                 Args.LabelColumn, DefaultColumnNames.Label);
             string features = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.FeatureColumn),

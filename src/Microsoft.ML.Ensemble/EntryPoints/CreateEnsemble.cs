@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.AssertValue(input);
             env.AssertNonEmpty(input.Models);
 
-            ISchema inputSchema = null;
+            Schema inputSchema = null;
             startingData = null;
             transformedData = null;
             byte[][] transformedDataSerialized = null;

@@ -328,7 +328,7 @@ namespace Microsoft.ML.Data
             var meta = this[col].Metadata;
             if (meta == null)
                 return null;
-            if (((ISchema)meta.Schema).TryGetColumnIndex(kind, out int metaCol))
+            if (meta.Schema.TryGetColumnIndex(kind, out int metaCol))
                 return meta.Schema[metaCol].Type;
             return null;
         }

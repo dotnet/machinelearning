@@ -22,21 +22,21 @@ using System;
     FastForestRegression.LoadNameValue,
     FastForestRegression.ShortName)]
 
-[assembly: LoadableClass(typeof(FastForestRegressionPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(FastForestRegressionModelParameters), null, typeof(SignatureLoadModel),
     "FastForest Regression Executor",
-    FastForestRegressionPredictor.LoaderSignature)]
+    FastForestRegressionModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class FastForestRegressionPredictor :
-        FastTreePredictionWrapper,
+    public sealed class FastForestRegressionModelParameters :
+        TreeEnsembleModelParameters,
         IQuantileValueMapper,
         IQuantileRegressionPredictor
     {
         private readonly int _quantileSampleCount;
 
-        public const string LoaderSignature = "FastForestRegressionExec";
-        public const string RegistrationName = "FastForestRegressionPredictor";
+        internal const string LoaderSignature = "FastForestRegressionExec";
+        internal const string RegistrationName = "FastForestRegressionPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(FastForestRegressionPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(FastForestRegressionModelParameters).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010003;
@@ -60,13 +60,13 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
-        public FastForestRegressionPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
+        public FastForestRegressionModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
             _quantileSampleCount = samplesCount;
         }
 
-        private FastForestRegressionPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private FastForestRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
         {
             // *** Binary format ***
@@ -91,12 +91,12 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.Writer.Write(_quantileSampleCount);
         }
 
-        public static FastForestRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static FastForestRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new FastForestRegressionPredictor(env, ctx);
+            return new FastForestRegressionModelParameters(env, ctx);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers.FastTree
             dst = (float)TrainedEnsemble.GetOutput(in src) / TrainedEnsemble.NumTrees;
         }
 
-        public ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles)
+        ValueMapper<VBuffer<float>, VBuffer<float>> IQuantileValueMapper.GetMapper(float[] quantiles)
         {
             return
                 (in VBuffer<float> src, ref VBuffer<float> dst) =>
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 };
         }
 
-        public ISchemaBindableMapper CreateMapper(Double[] quantiles)
+        ISchemaBindableMapper IQuantileRegressionPredictor.CreateMapper(Double[] quantiles)
         {
             Host.CheckNonEmpty(quantiles, nameof(quantiles));
             return new SchemaBindableQuantileRegressionPredictor(this, quantiles);
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestRegression
-        : RandomForestTrainerBase<FastForestRegression.Arguments, RegressionPredictionTransformer<FastForestRegressionPredictor>, FastForestRegressionPredictor>
+        : RandomForestTrainerBase<FastForestRegression.Arguments, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>
     {
         public sealed class Arguments : FastForestArgumentsBase
         {
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        private protected override FastForestRegressionPredictor TrainModelCore(TrainContext context)
+        private protected override FastForestRegressionModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
             }
-            return new FastForestRegressionPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs, Args.QuantileSampleCount);
+            return new FastForestRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs, Args.QuantileSampleCount);
         }
 
         protected override void PrepareLabels(IChannel ch)
@@ -222,10 +222,10 @@ namespace Microsoft.ML.Trainers.FastTree
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }
 
-        protected override RegressionPredictionTransformer<FastForestRegressionPredictor> MakeTransformer(FastForestRegressionPredictor model, Schema trainSchema)
-         => new RegressionPredictionTransformer<FastForestRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override RegressionPredictionTransformer<FastForestRegressionModelParameters> MakeTransformer(FastForestRegressionModelParameters model, Schema trainSchema)
+         => new RegressionPredictionTransformer<FastForestRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<FastForestRegressionPredictor> Train(IDataView trainData, IDataView validationData = null)
+        public RegressionPredictionTransformer<FastForestRegressionModelParameters> Train(IDataView trainData, IDataView validationData = null)
             => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

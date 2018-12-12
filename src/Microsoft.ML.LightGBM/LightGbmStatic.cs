@@ -49,7 +49,7 @@ namespace Microsoft.ML.StaticPipe
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null,
-            Action<LightGbmRegressionPredictor> onFit = null)
+            Action<LightGbmRegressionModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
 
@@ -144,7 +144,7 @@ namespace Microsoft.ML.StaticPipe
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null,
-            Action<LightGbmRankingPredictor> onFit = null)
+            Action<LightGbmRankingModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
             Contracts.CheckValue(groupId, nameof(groupId));

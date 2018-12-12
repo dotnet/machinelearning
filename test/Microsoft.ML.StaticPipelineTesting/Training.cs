@@ -423,7 +423,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
-            FastTreeRegressionPredictor pred = null;
+            FastTreeRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.FastTree(r.label, r.features,
@@ -505,7 +505,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
-            LightGbmRegressionPredictor pred = null;
+            LightGbmRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.LightGbm(r.label, r.features,
@@ -771,7 +771,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
                 separator: '\t', hasHeader: true);
 
-            FastTreeRankingPredictor pred = null;
+            FastTreeRankingModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))
@@ -812,7 +812,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
                 separator: '\t', hasHeader: true);
 
-            LightGbmRankingPredictor pred = null;
+            LightGbmRankingModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))

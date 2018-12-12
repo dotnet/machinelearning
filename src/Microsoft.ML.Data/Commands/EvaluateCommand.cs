@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = env.Register("EvaluateTransform").Start("Create Transform"))
             {
                 ch.Trace("Binding columns");
-                ISchema schema = input.Schema;
+                var schema = input.Schema;
                 string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn),
                     args.LabelColumn, DefaultColumnNames.Label);
                 string group = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.GroupColumn),
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data
                 (env, source) => new IO.BinaryLoader(env, new IO.BinaryLoader.Arguments(), source));
 
             ch.Trace("Binding columns");
-            ISchema schema = view.Schema;
+            var schema = view.Schema;
             string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn),
                 Args.LabelColumn, DefaultColumnNames.Label);
             string group = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.GroupColumn),

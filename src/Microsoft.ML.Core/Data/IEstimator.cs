@@ -14,7 +14,7 @@ namespace Microsoft.ML.Core.Data
 {
     /// <summary>
     /// A set of 'requirements' to the incoming schema, as well as a set of 'promises' of the outgoing schema.
-    /// This is more relaxed than the proper <see cref="ISchema"/>, since it's only a subset of the columns,
+    /// This is more relaxed than the proper <see cref="Schema"/>, since it's only a subset of the columns,
     /// and also since it doesn't specify exact <see cref="ColumnType"/>'s for vectors and keys.
     /// </summary>
     public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Core.Data
     /// <summary>
     /// The estimator (in Spark terminology) is an 'untrained transformer'. It needs to 'fit' on the data to manufacture
     /// a transformer.
-    /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="ISchema"/>.
+    /// It also provides the 'schema propagation' like transformers do, but over <see cref="SchemaShape"/> instead of <see cref="Schema"/>.
     /// </summary>
     public interface IEstimator<out TTransformer>
         where TTransformer : ITransformer

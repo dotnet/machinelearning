@@ -483,7 +483,7 @@ namespace Microsoft.ML.Transforms
             private readonly Schema _inputSchema;
             private readonly int[] _outputToInputMap;
 
-            public ISchema InputSchema => _inputSchema;
+            public Schema InputSchema => _inputSchema;
 
             public Schema OutputSchema { get; }
 

@@ -344,7 +344,7 @@ namespace Microsoft.ML.Runtime.Learners
             SaveSummary(writer, schema);
         }
 
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
@@ -353,9 +353,12 @@ namespace Microsoft.ML.Runtime.Learners
             LinearPredictorUtils.SaveAsCode(writer, in weights, Bias, schema);
         }
 
-        public abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
+        [BestFriend]
+        private protected abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
 
-        public virtual Row GetSummaryIRowOrNull(RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema) => SaveSummary(writer, schema);
+
+        private protected virtual Row GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
@@ -368,16 +371,22 @@ namespace Microsoft.ML.Runtime.Learners
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        public virtual Row GetStatsIRowOrNull(RoleMappedSchema schema) => null;
+        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema) => GetSummaryIRowOrNull(schema);
 
-        public abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
+        private protected virtual Row GetStatsIRowOrNull(RoleMappedSchema schema) => null;
+
+        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema) => GetStatsIRowOrNull(schema);
+
+        private protected abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
+
+        void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator) => SaveAsIni(writer, schema, calibrator);
 
         public virtual void GetFeatureWeights(ref VBuffer<Float> weights)
         {
             Weight.CopyTo(ref weights);
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
+        ValueMapper<TSrc, VBuffer<Float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
         {
             Contracts.Check(typeof(TSrc) == typeof(VBuffer<Float>));
             Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<Float>));
@@ -487,7 +496,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new LinearBinaryPredictor(Host, in weights, bias);
         }
 
-        public override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
 
@@ -500,7 +509,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         ///<inheritdoc/>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
 
@@ -511,7 +520,7 @@ namespace Microsoft.ML.Runtime.Learners
             return results;
         }
 
-        public override Row GetStatsIRowOrNull(RoleMappedSchema schema)
+        private protected override Row GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;
@@ -521,7 +530,7 @@ namespace Microsoft.ML.Runtime.Learners
             return MetadataUtils.MetadataAsRow(meta);
         }
 
-        public override void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
+        private protected override void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
@@ -553,7 +562,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Output the INI model to a given writer
         /// </summary>
-        public override void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
+        private protected override void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             if (calibrator != null)
                 throw Host.ExceptNotImpl("Saving calibrators is not implemented yet.");
@@ -617,7 +626,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
@@ -640,7 +649,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         ///<inheritdoc/>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
 
@@ -698,7 +707,7 @@ namespace Microsoft.ML.Runtime.Learners
             return MathUtils.ExpSlow(base.Score(in src));
         }
 
-        public override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        private protected override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));

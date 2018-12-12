@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 private readonly IExceptionContext _ectx;
                 private readonly Row _input;
-                private readonly FastTreePredictionWrapper _ensemble;
+                private readonly TreeEnsembleModelParameters _ensemble;
                 private readonly int _numTrees;
                 private readonly int _numLeaves;
 
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Runtime.Data
                 private long _cachedLeafBuilderPosition;
                 private long _cachedPathBuilderPosition;
 
-                public State(IExceptionContext ectx, Row input, FastTreePredictionWrapper ensemble, int numLeaves, int featureIndex)
+                public State(IExceptionContext ectx, Row input, TreeEnsembleModelParameters ensemble, int numLeaves, int featureIndex)
                 {
                     Contracts.AssertValue(ectx);
                     _ectx = ectx;
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly IHost _host;
-        private readonly FastTreePredictionWrapper _ensemble;
+        private readonly TreeEnsembleModelParameters _ensemble;
         private readonly int _totalLeafCount;
 
         public TreeEnsembleFeaturizerBindableMapper(IHostEnvironment env, Arguments args, IPredictor predictor)
@@ -433,7 +433,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (predictor is CalibratedPredictorBase)
                 predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-            _ensemble = predictor as FastTreePredictionWrapper;
+            _ensemble = predictor as TreeEnsembleModelParameters;
             _host.Check(_ensemble != null, "Predictor in model file does not have compatible type");
 
             _totalLeafCount = CountLeaves(_ensemble);
@@ -448,7 +448,7 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // ensemble
 
-            ctx.LoadModel<FastTreePredictionWrapper, SignatureLoadModel>(env, out _ensemble, "Ensemble");
+            ctx.LoadModel<TreeEnsembleModelParameters, SignatureLoadModel>(env, out _ensemble, "Ensemble");
             _totalLeafCount = CountLeaves(_ensemble);
         }
 
@@ -465,7 +465,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveModel(_ensemble, "Ensemble");
         }
 
-        private static int CountLeaves(FastTreePredictionWrapper ensemble)
+        private static int CountLeaves(TreeEnsembleModelParameters ensemble)
         {
             Contracts.AssertValue(ensemble);
 
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Runtime.Data
                     // Make sure that the given predictor has the correct number of input features.
                     if (predictor is CalibratedPredictorBase)
                         predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-                    // Predictor should be a FastTreePredictionWrapper, which implements IValueMapper, so this should
+                    // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
                     ch.CheckUserArg(vm != null, nameof(args.TrainedModelFile), "Predictor in model file does not have compatible type");
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Make sure that the given predictor has the correct number of input features.
                 if (predictor is CalibratedPredictorBase)
                     predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-                // Predictor should be a FastTreePredictionWrapper, which implements IValueMapper, so this should
+                // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;
                 ch.CheckUserArg(vm != null, nameof(args.PredictorModel), "Predictor does not have compatible type");
