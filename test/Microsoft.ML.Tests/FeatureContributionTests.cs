@@ -70,11 +70,11 @@ namespace Microsoft.ML.Tests
             int precision = 6)
         {
             // Setup synthetic dataset.
-            const int numberOfInstances = 1000;
+            const int numInstances = 1000;
             const int numFeatures = 4;
 
             var rand = new Random(10);
-            float[] yArray = new float[numberOfInstances];
+            float[] yArray = new float[numInstances];
             float[][] xArray = new float[numFeatures][];
             int[] xRangeArray = new[] { 1000, 10000, 5000, 1000 };
             float[] xWeightArray = new[] {
@@ -84,12 +84,12 @@ namespace Microsoft.ML.Tests
                 0, // Least important feature. Should have the least contribution.
             };
 
-            for (var instanceIndex = 0; instanceIndex < numberOfInstances; instanceIndex++)
+            for (var instanceIndex = 0; instanceIndex < numInstances; instanceIndex++)
             {
                 for (int featureIndex = 0; featureIndex < numFeatures; featureIndex++)
                 {
                     if (xArray[featureIndex] == null)
-                        xArray[featureIndex] = new float[numberOfInstances];
+                        xArray[featureIndex] = new float[numInstances];
                     xArray[featureIndex][instanceIndex] = rand.Next(xRangeArray[featureIndex]);
                     yArray[instanceIndex] += xArray[featureIndex][instanceIndex] * xWeightArray[featureIndex];
                 }
