@@ -109,6 +109,7 @@ namespace Microsoft.ML.Trainers
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+
             return new LinearRegressionModelParameters(Host, in maybeSparseWeights, bias[0]);
         }
 

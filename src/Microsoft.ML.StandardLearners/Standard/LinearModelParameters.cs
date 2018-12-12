@@ -19,9 +19,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
 
 // This is for deserialization from a model repository.
 [assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LinearBinaryModelParameters), null, typeof(SignatureLoadModel),
+=======
+using Float = System.Single;
+
+// This is for deserialization from a model repository.
+[assembly: LoadableClass(typeof(IPredictorProducing<Float>), typeof(LinearBinaryModelParameters), null, typeof(SignatureLoadModel),
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
     "Linear Binary Executor",
     LinearBinaryModelParameters.LoaderSignature)]
 
@@ -37,7 +44,11 @@ using System.Linq;
 
 namespace Microsoft.ML.Runtime.Learners
 {
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
     public abstract class LinearModelParameters : PredictorBase<float>,
+=======
+    public abstract class LinearModelParameters : PredictorBase<Float>,
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         IValueMapper,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
@@ -110,7 +121,11 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weights">The weights for the linear predictor. Note that this
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         public LinearModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
+=======
+        public LinearModelParameters(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
             : base(env, name)
         {
             Host.CheckParam(FloatUtils.IsFinite(weights.GetValues()), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
@@ -309,7 +324,11 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         internal void CombineParameters(IList<IParameterMixer<float>> models, out VBuffer<float> weights, out float bias)
+=======
+        internal void CombineParameters(IList<IParameterMixer<Float>> models, out VBuffer<Float> weights, out Float bias)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         {
             Type type = GetType();
 
@@ -431,7 +450,11 @@ namespace Microsoft.ML.Runtime.Learners
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         /// <param name="stats"></param>
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         public LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias, LinearModelStatistics stats = null)
+=======
+        public LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<Float> weights, Float bias, LinearModelStatistics stats = null)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
             : base(env, RegistrationName, in weights, bias)
         {
             Contracts.AssertValueOrNull(stats);
@@ -452,7 +475,11 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+=======
+        private static IPredictorProducing<Float> Create(IHostEnvironment env, ModelLoadContext ctx)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -486,7 +513,11 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         IParameterMixer<float> IParameterMixer<float>.CombineParameters(IList<IParameterMixer<float>> models)
+=======
+        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         {
             VBuffer<float> weights;
             float bias;
@@ -542,7 +573,11 @@ namespace Microsoft.ML.Runtime.Learners
 
     public abstract class RegressionModelParameters : LinearModelParameters
     {
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
+=======
+        public RegressionModelParameters(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
             : base(env, name, in weights, bias)
         {
         }
@@ -575,7 +610,11 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     public sealed class LinearRegressionModelParameters : RegressionModelParameters,
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         IParameterMixer<float>,
+=======
+        IParameterMixer<Float>,
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         ICanGetSummaryInKeyValuePairs
     {
         internal const string LoaderSignature = "LinearRegressionExec";
@@ -600,7 +639,11 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weights">The weights for the linear predictor. Note that this
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         public LinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
+=======
+        public LinearRegressionModelParameters(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
             : base(env, RegistrationName, in weights, bias)
         {
         }
@@ -638,7 +681,11 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         IParameterMixer<float> IParameterMixer<float>.CombineParameters(IList<IParameterMixer<float>> models)
+=======
+        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         {
             VBuffer<float> weights;
             float bias;
@@ -659,7 +706,11 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
     public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<float>
+=======
+    public sealed class PoissonRegressionModelParameters : RegressionModelParameters, IParameterMixer<Float>
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
     {
         internal const string LoaderSignature = "PoissonRegressionExec";
         internal const string RegistrationName = "PoissonRegressionPredictor";
@@ -676,7 +727,11 @@ namespace Microsoft.ML.Runtime.Learners
                 loaderAssemblyName: typeof(PoissonRegressionModelParameters).Assembly.FullName);
         }
 
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         public PoissonRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
+=======
+        public PoissonRegressionModelParameters(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
             : base(env, RegistrationName, in weights, bias)
         {
         }
@@ -719,7 +774,11 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
+<<<<<<< HEAD:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         IParameterMixer<float> IParameterMixer<float>.CombineParameters(IList<IParameterMixer<float>> models)
+=======
+        IParameterMixer<Float> IParameterMixer<Float>.CombineParameters(IList<IParameterMixer<Float>> models)
+>>>>>>> 6ce0779f9b8d0a886177c851811663b195cc421e:src/Microsoft.ML.StandardLearners/Standard/LinearModelParameters.cs
         {
             VBuffer<float> weights;
             float bias;
