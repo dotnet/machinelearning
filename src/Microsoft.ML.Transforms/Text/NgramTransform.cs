@@ -14,6 +14,7 @@ using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -31,8 +32,10 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms.Text
 {
-    using Conditional = System.Diagnostics.ConditionalAttribute;
-
+    /// <summary>
+    /// Produces a bag of counts of ngrams(sequences of consecutive values of length 1-n) in a given vector of keys.
+    /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
+    /// </summary>
     public sealed class NgramExtractingTransformer : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
@@ -858,7 +861,7 @@ namespace Microsoft.ML.Transforms.Text
             return true;
         }
 
-        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertable to U4";
+        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertible to U4";
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

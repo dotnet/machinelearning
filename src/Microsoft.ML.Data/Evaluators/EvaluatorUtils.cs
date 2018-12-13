@@ -17,7 +17,8 @@ using System.Threading;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public static class EvaluateUtils
+    [BestFriend]
+    internal static class EvaluateUtils
     {
         public struct AggregatedMetric
         {

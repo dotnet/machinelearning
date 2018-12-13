@@ -597,7 +597,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return _trailingCursor.GetIdGetter();
             }
@@ -709,7 +709,7 @@ namespace Microsoft.ML.Transforms
             var view = new GroupTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

@@ -255,7 +255,7 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestCore(value, NumberType.U8, expected, expectedOrdered, expectedOrdered3);
             HashTestCore((ulong)value, new KeyType(typeof(ulong), 0, 0), eKey, eoKey, e3Key);
 
-            HashTestCore(new UInt128(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
+            HashTestCore(new RowId(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
 
             // Next let's check signed numbers.
 

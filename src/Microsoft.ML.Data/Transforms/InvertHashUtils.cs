@@ -13,7 +13,8 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public static class InvertHashUtils
+    [BestFriend]
+    internal static class InvertHashUtils
     {
         /// <summary>
         /// Clears a destination StringBuilder. If it is currently null, allocates it.
@@ -101,7 +102,8 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class InvertHashCollector<T>
+    [BestFriend]
+    internal sealed class InvertHashCollector<T>
     {
         /// <summary>
         /// This is a small struct that is meant to compare akin to the value,

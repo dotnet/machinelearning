@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return new LightGbmRegressionModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
         }
 
-        protected override void CheckDataValid(IChannel ch, RoleMappedData data)
+        private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
+        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             Options["objective"] = "regression";
             // Add default metric.

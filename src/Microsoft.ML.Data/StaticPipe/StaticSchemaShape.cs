@@ -344,7 +344,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 case DataKind.U2: return typeof(ushort);
                 case DataKind.U4: return typeof(uint);
                 case DataKind.U8: return typeof(ulong);
-                case DataKind.U16: return typeof(UInt128);
+                case DataKind.U16: return typeof(RowId);
 
                 case DataKind.R4: return typeof(float);
                 case DataKind.R8: return typeof(double);

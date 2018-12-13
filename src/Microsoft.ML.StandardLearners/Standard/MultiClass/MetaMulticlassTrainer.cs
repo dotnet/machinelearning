@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Learners
                 new LinearSvm(Host, new LinearSvm.Arguments());
         }
 
-        protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)
+        private protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)
         {
             Host.AssertValue(type);
             Host.Assert(type.RawType == typeof(T));
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Learners
                     dst = equalsTarget(in src) ? 1 : default(float));
         }
 
-        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
+        private protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
 
         /// <summary>
         /// The legacy train method.

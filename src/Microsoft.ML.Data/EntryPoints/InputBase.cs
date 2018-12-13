@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
-                return new TOut() { PredictorModel = new PredictorModel(host, roleMappedData, input.TrainingData, predictor) };
+                return new TOut() { PredictorModel = new PredictorModelImpl(host, roleMappedData, input.TrainingData, predictor) };
             }
         }
     }
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// </summary>
         public interface IFeaturizerInput : ITransformInput
         {
-            Var<IPredictorModel> PredictorModel { get; set; }
+            Var<PredictorModel> PredictorModel { get; set; }
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// </summary>
         public interface ICalibratorInput : ITransformInput
         {
-            Var<IPredictorModel> UncalibratedPredictorModel { get; }
+            Var<PredictorModel> UncalibratedPredictorModel { get; }
             int MaxRows { get; }
         }
 

@@ -1570,12 +1570,12 @@ namespace Microsoft.ML.Runtime.Data
                     return getter;
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter() => GetId;
+                public override ValueGetter<RowId> GetIdGetter() => GetId;
 
-                private void GetId(ref UInt128 id)
+                private void GetId(ref RowId id)
                 {
                     Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
-                    id = new UInt128((ulong)_slotCursor.SlotIndex, 0);
+                    id = new RowId((ulong)_slotCursor.SlotIndex, 0);
                 }
 
                 protected override bool MoveNextCore() => _slotCursor.MoveNext();
@@ -1615,12 +1615,12 @@ namespace Microsoft.ML.Runtime.Data
                 return _slotCursor.GetGetterWithVectorType<TValue>(Ch);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter() => GetId;
+            public override ValueGetter<RowId> GetIdGetter() => GetId;
 
-            private void GetId(ref UInt128 id)
+            private void GetId(ref RowId id)
             {
                 Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
-                id = new UInt128((ulong)_slotCursor.SlotIndex, 0);
+                id = new RowId((ulong)_slotCursor.SlotIndex, 0);
             }
 
             protected override bool MoveNextCore() => _slotCursor.MoveNext();

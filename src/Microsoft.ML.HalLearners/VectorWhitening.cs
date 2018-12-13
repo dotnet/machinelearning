@@ -11,8 +11,6 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Projections;
 using System;
 using System.Collections.Generic;
@@ -131,7 +129,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// Describes how the transformer handles one input-output column pair.
             /// </summary>
             /// <param name="input">Name of the input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="kind">Whitening kind (PCA/ZCA).</param>
             /// <param name="eps">Whitening constant, prevents division by zero.</param>
             /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
@@ -626,7 +624,7 @@ namespace Microsoft.ML.Transforms.Projections
             }
 
             // See: https://software.intel.com/en-us/node/520750
-            [DllImport(MklPath , CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_sgemv"), SuppressUnmanagedCodeSecurity]
+            [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_sgemv"), SuppressUnmanagedCodeSecurity]
             private static unsafe extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
                 float* a, int lda, float* x, int incx, float beta, float* y, int incy);
 

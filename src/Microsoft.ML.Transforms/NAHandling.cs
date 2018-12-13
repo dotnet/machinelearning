@@ -24,7 +24,7 @@ namespace Microsoft.ML.Transforms
             var xf = MissingValueDroppingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Transforms
             var xf = new NAFilter(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms
             var xf = MissingValueHandlingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Transforms
             var xf = new MissingValueIndicatorTransformer(h, input).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Transforms
             var xf = MissingValueReplacingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }

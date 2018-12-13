@@ -16,7 +16,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 {
-    public sealed class AllInstanceSelector : BaseSubsetSelector<AllInstanceSelector.Arguments>
+    internal sealed class AllInstanceSelector : BaseSubsetSelector<AllInstanceSelector.Arguments>
     {
         public const string UserName = "All Instance Selector";
         public const string LoadName = "AllInstanceSelector";

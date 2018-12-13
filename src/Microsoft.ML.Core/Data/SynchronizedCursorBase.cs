@@ -62,6 +62,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed override RowCursor GetRootCursor() => _root;
 
-        public sealed override ValueGetter<UInt128> GetIdGetter() => Input.GetIdGetter();
+        public sealed override ValueGetter<RowId> GetIdGetter() => Input.GetIdGetter();
     }
 }

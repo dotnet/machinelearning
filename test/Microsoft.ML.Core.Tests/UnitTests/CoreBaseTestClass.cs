@@ -34,13 +34,13 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
             return !exactTypes && type1 is VectorType vt1 && type2 is VectorType vt2 && vt1.ItemType.Equals(vt2.ItemType) && vt1.Size == vt2.Size;
         }
 
-        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<UInt128> idGetter)
+        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<RowId> idGetter)
         {
             var g1 = r1.GetIdGetter();
             idGetter = g1;
             var g2 = r2.GetIdGetter();
-            UInt128 v1 = default(UInt128);
-            UInt128 v2 = default(UInt128);
+            RowId v1 = default(RowId);
+            RowId v2 = default(RowId);
             return
                 () =>
                 {
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     case DataKind.DZ:
                         return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.UG:
-                        return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }
             }
             else
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     case DataKind.DZ:
                         return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.UG:
-                        return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<RowId>(r1, r2, col, (x, y) => x.Equals(y));
                 }
             }
 
@@ -336,13 +336,13 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     comps[col] = GetColumnComparer(curs1, curs2, col, type1, exactDoubles);
                 }
             }
-            ValueGetter<UInt128> idGetter = null;
+            ValueGetter<RowId> idGetter = null;
             Func<bool> idComp = checkId ? GetIdComparer(curs1, curs2, out idGetter) : null;
-            HashSet<UInt128> idsSeen = null;
+            HashSet<RowId> idsSeen = null;
             if (checkIdCollisions && idGetter == null)
                 idGetter = curs1.GetIdGetter();
             long idCollisions = 0;
-            UInt128 id = default(UInt128);
+            RowId id = default(RowId);
 
             for (; ; )
             {
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                         return Failed();
                     }
                     comps[col] = GetColumnComparer(curs1, cursors[col], col, type1, exactDoubles);
-                    ValueGetter<UInt128> idGetter;
+                    ValueGetter<RowId> idGetter;
                     idComps[col] = checkId ? GetIdComparer(curs1, cursors[col], out idGetter) : null;
                 }
 

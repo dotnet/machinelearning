@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
                     // Get the pipeline.
                     var dv = new EmptyDataView(Parent.Host, schema.Schema);
-                    var tm = new TransformModel(Parent.Host, dv, dv);
+                    var tm = new TransformModelImpl(Parent.Host, dv, dv);
                     var pipeline = Parent.PredictorModels[i].TransformModel.Apply(Parent.Host, tm);
                     BoundPipelines[i] = pipeline.AsRowToRowMapper(Parent.Host);
                     if (BoundPipelines[i] == null)
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             protected readonly IOutputCombiner<T> Combiner;
 
-            protected SchemaBindablePipelineEnsemble(IHostEnvironment env, IPredictorModel[] predictors,
+            protected SchemaBindablePipelineEnsemble(IHostEnvironment env, PredictorModel[] predictors,
                 IOutputCombiner<T> combiner, string registrationName, string scoreColumnKind)
                     : base(env, predictors, registrationName, scoreColumnKind)
             {
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 }
             }
 
-            public ImplOne(IHostEnvironment env, IPredictorModel[] predictors, IRegressionOutputCombiner combiner, string scoreColumnKind)
+            public ImplOne(IHostEnvironment env, PredictorModel[] predictors, IRegressionOutputCombiner combiner, string scoreColumnKind)
                 : base(env, predictors, combiner, LoaderSignature, scoreColumnKind)
             {
             }
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             private readonly VectorType _scoreType;
 
-            public ImplVec(IHostEnvironment env, IPredictorModel[] predictors, IMultiClassOutputCombiner combiner)
+            public ImplVec(IHostEnvironment env, PredictorModel[] predictors, IMultiClassOutputCombiner combiner)
                 : base(env, predictors, combiner, LoaderSignature, MetadataUtils.Const.ScoreColumnKind.MultiClassClassification)
             {
                 int classCount = CheckLabelColumn(Host, predictors, false);
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
 
-            public ImplOneWithCalibrator(IHostEnvironment env, IPredictorModel[] predictors, IBinaryOutputCombiner combiner)
+            public ImplOneWithCalibrator(IHostEnvironment env, PredictorModel[] predictors, IBinaryOutputCombiner combiner)
                 : base(env, predictors, combiner, LoaderSignature, MetadataUtils.Const.ScoreColumnKind.BinaryClassification)
             {
                 Host.Assert(_scoreColumnKind == MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 CheckBinaryLabel(false, Host, PredictorModels);
             }
 
-            private static void CheckBinaryLabel(bool user, IHostEnvironment env, IPredictorModel[] predictors)
+            private static void CheckBinaryLabel(bool user, IHostEnvironment env, PredictorModel[] predictors)
             {
                 int classCount = CheckLabelColumn(env, predictors, true);
                 if (classCount != 2)
@@ -394,9 +394,9 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public abstract PredictionKind PredictionKind { get; }
 
-        internal IPredictorModel[] PredictorModels { get; }
+        internal PredictorModel[] PredictorModels { get; }
 
-        private SchemaBindablePipelineEnsembleBase(IHostEnvironment env, IPredictorModel[] predictors, string registrationName, string scoreColumnKind)
+        private SchemaBindablePipelineEnsembleBase(IHostEnvironment env, PredictorModel[] predictors, string registrationName, string scoreColumnKind)
         {
             Contracts.CheckValue(env, nameof(env));
             Host = env.Register(registrationName);
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             var length = ctx.Reader.ReadInt32();
             Host.CheckDecode(length > 0);
-            PredictorModels = new IPredictorModel[length];
+            PredictorModels = new PredictorModel[length];
             for (int i = 0; i < PredictorModels.Length; i++)
             {
                 string dir =
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         ? "PredictorModels"
                         : Path.Combine(ctx.Directory, "PredictorModels");
                 using (var ent = ctx.Repository.OpenEntry(dir, $"PredictorModel_{i:000}"))
-                    PredictorModels[i] = new PredictorModel(Host, ent.Stream);
+                    PredictorModels[i] = new PredictorModelImpl(Host, ent.Stream);
             }
 
             length = ctx.Reader.ReadInt32();
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         protected abstract void SaveCore(ModelSaveContext ctx);
 
-        public static SchemaBindablePipelineEnsembleBase Create(IHostEnvironment env, IPredictorModel[] predictors, IOutputCombiner combiner, string scoreColumnKind)
+        public static SchemaBindablePipelineEnsembleBase Create(IHostEnvironment env, PredictorModel[] predictors, IOutputCombiner combiner, string scoreColumnKind)
         {
             switch (scoreColumnKind)
             {
@@ -580,7 +580,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         }
 
         // Checks that the predictors have matching label columns, and returns the number of classes in all predictors.
-        protected static int CheckLabelColumn(IHostEnvironment env, IPredictorModel[] models, bool isBinary)
+        protected static int CheckLabelColumn(IHostEnvironment env, PredictorModel[] models, bool isBinary)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(models, nameof(models));
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the
         // OutputType property of the IValueMapper.
         // If any of the predictors do not implement IValueMapper we throw an exception. Returns the class count.
-        private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, IPredictorModel[] models, bool isBinary, ColumnType labelType)
+        private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, PredictorModel[] models, bool isBinary, ColumnType labelType)
         {
             env.Assert(!labelType.IsKey);
             env.AssertNonEmpty(models);
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, IPredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, ColumnType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, ColumnType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));

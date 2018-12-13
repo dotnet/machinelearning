@@ -18,11 +18,11 @@ namespace Microsoft.ML.Runtime
         private static OpCode GetAssignmentOpCode(Type t)
         {
             // REVIEW: This should be a Dictionary<Type, OpCode> based solution.
-            // DvTypes, strings, arrays, all nullable types, VBuffers and UInt128.
+            // DvTypes, strings, arrays, all nullable types, VBuffers and RowId.
             if (t == typeof(ReadOnlyMemory<char>) || t == typeof(string) || t.IsArray ||
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(VBuffer<>)) ||
                 (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>)) ||
-                t == typeof(DateTime) || t == typeof(DateTimeOffset) || t == typeof(TimeSpan) || t == typeof(UInt128))
+                t == typeof(DateTime) || t == typeof(DateTimeOffset) || t == typeof(TimeSpan) || t == typeof(RowId))
             {
                 return OpCodes.Stobj;
             }

@@ -40,7 +40,8 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Provides information on an instantiatable component, aka, loadable class.
         /// </summary>
-        public sealed class LoadableClassInfo
+        [BestFriend]
+        internal sealed class LoadableClassInfo
         {
             /// <summary>
             /// Used for dictionary lookup based on signature and name.
@@ -264,7 +265,8 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// A description of a single entry point.
         /// </summary>
-        public sealed class EntryPointInfo
+        [BestFriend]
+        internal sealed class EntryPointInfo
         {
             public readonly string Name;
             public readonly string Description;
@@ -333,7 +335,8 @@ namespace Microsoft.ML.Runtime
         /// The 'component' is a non-standalone building block that is used to parametrize entry points or other ML.NET components.
         /// For example, 'Loss function', or 'similarity calculator' could be components.
         /// </summary>
-        public sealed class ComponentInfo
+        [BestFriend]
+        internal sealed class ComponentInfo
         {
             public readonly string Name;
             public readonly string Description;
@@ -616,7 +619,8 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing information for all instantiatable components.
         /// If provided, the given set of assemblies is loaded first.
         /// </summary>
-        public LoadableClassInfo[] GetAllClasses()
+        [BestFriend]
+        internal LoadableClassInfo[] GetAllClasses()
         {
             return _classes.ToArray();
         }
@@ -625,7 +629,8 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing information for instantiatable components with the given
         /// signature and base type. If provided, the given set of assemblies is loaded first.
         /// </summary>
-        public LoadableClassInfo[] GetAllDerivedClasses(Type typeBase, Type typeSig)
+        [BestFriend]
+        internal LoadableClassInfo[] GetAllDerivedClasses(Type typeBase, Type typeSig)
         {
             Contracts.CheckValue(typeBase, nameof(typeBase));
             Contracts.CheckValueOrNull(typeSig);
@@ -643,7 +648,8 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing all the known signature types. If provided, the given set of assemblies
         /// is loaded first.
         /// </summary>
-        public Type[] GetAllSignatureTypes()
+        [BestFriend]
+        internal Type[] GetAllSignatureTypes()
         {
             return _signatures.Select(kvp => kvp.Key).ToArray();
         }
@@ -651,7 +657,8 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Returns a string name for a given signature type.
         /// </summary>
-        public static string SignatureToString(Type sig)
+        [BestFriend]
+        internal static string SignatureToString(Type sig)
         {
             Contracts.CheckValue(sig, nameof(sig));
             Contracts.CheckParam(sig.BaseType == typeof(MulticastDelegate), nameof(sig), "Must be a delegate type");
@@ -670,7 +677,8 @@ namespace Microsoft.ML.Runtime
             return null;
         }
 
-        public LoadableClassInfo[] FindLoadableClasses(string name)
+        [BestFriend]
+        internal LoadableClassInfo[] FindLoadableClasses(string name)
         {
             name = name.ToLowerInvariant().Trim();
 
@@ -680,14 +688,16 @@ namespace Microsoft.ML.Runtime
             return res;
         }
 
-        public LoadableClassInfo[] FindLoadableClasses<TSig>()
+        [BestFriend]
+        internal LoadableClassInfo[] FindLoadableClasses<TSig>()
         {
             return _classes
                 .Where(ci => ci.SignatureTypes.Contains(typeof(TSig)))
                 .ToArray();
         }
 
-        public LoadableClassInfo[] FindLoadableClasses<TArgs, TSig>()
+        [BestFriend]
+        internal LoadableClassInfo[] FindLoadableClasses<TArgs, TSig>()
         {
             // REVIEW: this and above methods perform a linear search over all the loadable classes.
             // On 6/15/2015, TLC release build contained 431 of them, so adding extra lookups looks unnecessary at this time.
@@ -696,12 +706,14 @@ namespace Microsoft.ML.Runtime
                 .ToArray();
         }
 
-        public LoadableClassInfo GetLoadableClassInfo<TSig>(string loadName)
+        [BestFriend]
+        internal LoadableClassInfo GetLoadableClassInfo<TSig>(string loadName)
         {
             return GetLoadableClassInfo(loadName, typeof(TSig));
         }
 
-        public LoadableClassInfo GetLoadableClassInfo(string loadName, Type signatureType)
+        [BestFriend]
+        internal LoadableClassInfo GetLoadableClassInfo(string loadName, Type signatureType)
         {
             Contracts.CheckParam(signatureType.BaseType == typeof(MulticastDelegate), nameof(signatureType), "signatureType must be a delegate type");
             Contracts.CheckValueOrNull(loadName);
@@ -712,18 +724,21 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Get all registered entry points.
         /// </summary>
-        public IEnumerable<EntryPointInfo> AllEntryPoints()
+        [BestFriend]
+        internal IEnumerable<EntryPointInfo> AllEntryPoints()
         {
             return _entryPoints.AsEnumerable();
         }
 
-        public bool TryFindEntryPoint(string name, out EntryPointInfo entryPoint)
+        [BestFriend]
+        internal bool TryFindEntryPoint(string name, out EntryPointInfo entryPoint)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             return _entryPointMap.TryGetValue(name, out entryPoint);
         }
 
-        public bool TryFindComponent(string kind, string alias, out ComponentInfo component)
+        [BestFriend]
+        internal bool TryFindComponent(string kind, string alias, out ComponentInfo component)
         {
             Contracts.CheckNonEmpty(kind, nameof(kind));
             Contracts.CheckNonEmpty(alias, nameof(alias));
@@ -733,7 +748,8 @@ namespace Microsoft.ML.Runtime
             return _componentMap.TryGetValue($"{kind}:{alias}", out component);
         }
 
-        public bool TryFindComponent(Type argumentType, out ComponentInfo component)
+        [BestFriend]
+        internal bool TryFindComponent(Type argumentType, out ComponentInfo component)
         {
             Contracts.CheckValue(argumentType, nameof(argumentType));
 
@@ -741,7 +757,8 @@ namespace Microsoft.ML.Runtime
             return component != null;
         }
 
-        public bool TryFindComponent(Type interfaceType, Type argumentType, out ComponentInfo component)
+        [BestFriend]
+        internal bool TryFindComponent(Type interfaceType, Type argumentType, out ComponentInfo component)
         {
             Contracts.CheckValue(interfaceType, nameof(interfaceType));
             Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), "Must be interface");
@@ -751,7 +768,8 @@ namespace Microsoft.ML.Runtime
             return component != null;
         }
 
-        public bool TryFindComponent(Type interfaceType, string alias, out ComponentInfo component)
+        [BestFriend]
+        internal bool TryFindComponent(Type interfaceType, string alias, out ComponentInfo component)
         {
             Contracts.CheckValue(interfaceType, nameof(interfaceType));
             Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), "Must be interface");
@@ -764,7 +782,8 @@ namespace Microsoft.ML.Runtime
         /// Akin to <see cref="TryFindComponent(Type, string, out ComponentInfo)"/>, except if the regular (case sensitive) comparison fails, it will
         /// attempt to back off to a case-insensitive comparison.
         /// </summary>
-        public bool TryFindComponentCaseInsensitive(Type interfaceType, string alias, out ComponentInfo component)
+        [BestFriend]
+        internal bool TryFindComponentCaseInsensitive(Type interfaceType, string alias, out ComponentInfo component)
         {
             Contracts.CheckValue(interfaceType, nameof(interfaceType));
             Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), "Must be interface");
@@ -786,7 +805,8 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Returns all valid component kinds.
         /// </summary>
-        public IEnumerable<string> GetAllComponentKinds()
+        [BestFriend]
+        internal IEnumerable<string> GetAllComponentKinds()
         {
             return _components.Select(x => x.Kind).Distinct().OrderBy(x => x);
         }
@@ -794,7 +814,8 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Returns all components of the specified kind.
         /// </summary>
-        public IEnumerable<ComponentInfo> GetAllComponents(string kind)
+        [BestFriend]
+        internal IEnumerable<ComponentInfo> GetAllComponents(string kind)
         {
             Contracts.CheckNonEmpty(kind, nameof(kind));
             Contracts.CheckParam(IsValidName(kind), nameof(kind), "Invalid component kind");
@@ -804,13 +825,15 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Returns all components that implement the specified interface.
         /// </summary>
-        public IEnumerable<ComponentInfo> GetAllComponents(Type interfaceType)
+        [BestFriend]
+        internal IEnumerable<ComponentInfo> GetAllComponents(Type interfaceType)
         {
             Contracts.CheckValue(interfaceType, nameof(interfaceType));
             return _components.Where(x => x.InterfaceType == interfaceType).OrderBy(x => x.Name);
         }
 
-        public bool TryGetComponentKind(Type signatureType, out string kind)
+        [BestFriend]
+        internal bool TryGetComponentKind(Type signatureType, out string kind)
         {
             Contracts.CheckValue(signatureType, nameof(signatureType));
             // REVIEW: replace with a dictionary lookup.
@@ -821,7 +844,8 @@ namespace Microsoft.ML.Runtime
             return faceAttr != null;
         }
 
-        public bool TryGetComponentShortName(Type type, out string name)
+        [BestFriend]
+        internal bool TryGetComponentShortName(Type type, out string name)
         {
             ComponentInfo component;
             if (!TryFindComponent(type, out component))
@@ -850,7 +874,8 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Create an instance of the indicated component with the given extra parameters.
         /// </summary>
-        public static TRes CreateInstance<TRes>(IHostEnvironment env, Type signatureType, string name, string options, params object[] extra)
+        [BestFriend]
+        internal static TRes CreateInstance<TRes>(IHostEnvironment env, Type signatureType, string name, string options, params object[] extra)
             where TRes : class
         {
             TRes result;
@@ -863,13 +888,15 @@ namespace Microsoft.ML.Runtime
         /// Try to create an instance of the indicated component and settings with the given extra parameters.
         /// If there is no such component in the catalog, returns false. Any other error results in an exception.
         /// </summary>
-        public static bool TryCreateInstance<TRes, TSig>(IHostEnvironment env, out TRes result, string name, string options, params object[] extra)
+        [BestFriend]
+        internal static bool TryCreateInstance<TRes, TSig>(IHostEnvironment env, out TRes result, string name, string options, params object[] extra)
             where TRes : class
         {
             return TryCreateInstance<TRes>(env, typeof(TSig), out result, name, options, extra);
         }
 
-        private static bool TryCreateInstance<TRes>(IHostEnvironment env, Type signatureType, out TRes result, string name, string options, params object[] extra)
+        [BestFriend]
+        internal static bool TryCreateInstance<TRes>(IHostEnvironment env, Type signatureType, out TRes result, string name, string options, params object[] extra)
             where TRes : class
         {
             Contracts.CheckValue(env, nameof(env));
