@@ -11,8 +11,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 using System;
@@ -88,16 +86,26 @@ namespace Microsoft.ML.Transforms.Conversions
             public bool Bag = KeyToVectorMappingEstimator.Defaults.Bag;
         }
 
-        public class ColumnInfo
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;
             public readonly bool Bag;
 
-            public ColumnInfo(string input, string output, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="bag">Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input column is a vector.</param>
+            public ColumnInfo(string input, string output = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
             {
+                Contracts.CheckNonWhiteSpace(input, nameof(input));
                 Input = input;
-                Output = output;
+                Output = output ?? input;
                 Bag = bag;
             }
         }
@@ -767,258 +775,6 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             return new SchemaShape(result.Values);
-        }
-    }
-
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class KeyToVectorExtensions
-    {
-        private interface IColInput
-        {
-            PipelineColumn Input { get; }
-            bool Bag { get; }
-        }
-
-        private sealed class OutVectorColumn<TKey, TValue> : Vector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public bool Bag { get; }
-
-            public OutVectorColumn(Key<TKey, TValue> input)
-             : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Bag = false;
-            }
-
-            public OutVectorColumn(Vector<Key<TKey, TValue>> input, bool bag)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Bag = bag;
-            }
-
-            public OutVectorColumn(VarVector<Key<TKey, TValue>> input)
-             : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Bag = true;
-            }
-        }
-
-        private sealed class OutVarVectorColumn<TKey, TValue> : VarVector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public bool Bag { get; }
-
-            public OutVarVectorColumn(VarVector<Key<TKey, TValue>> input)
-            : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Bag = false;
-            }
-        }
-
-        private sealed class OutVectorColumn<TKey> : Vector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public bool Bag { get; }
-
-            public OutVectorColumn(Key<TKey> input)
-             : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Bag = false;
-            }
-
-            public OutVectorColumn(Vector<Key<TKey>> input, bool bag)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Bag = bag;
-            }
-
-            public OutVectorColumn(VarVector<Key<TKey>> input)
-             : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Bag = true;
-            }
-        }
-
-        private sealed class OutVarVectorColumn<TKey> : VarVector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public bool Bag { get; }
-
-            public OutVarVectorColumn(VarVector<Key<TKey>> input)
-            : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Bag = false;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            public static Reconciler Inst = new Reconciler();
-
-            private Reconciler() { }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                var infos = new KeyToVectorMappingTransformer.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToVectorMappingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Bag);
-                }
-                return new KeyToVectorMappingEstimator(env, infos);
-            }
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// </summary>
-        public static Vector<float> ToVector<TKey, TValue>(this Key<TKey, TValue> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// </summary>
-        public static Vector<float> ToVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input, false);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// In this case then the indicator vectors for all values in the column will be simply added together,
-        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
-        /// the output column will be a vector type of length equal to that cardinality.
-        /// </summary>
-        public static VarVector<float> ToVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<TKey, TValue>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// In this case then the indicator vectors for all values in the column will be simply added together,
-        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
-        /// the output column will be a vector type of length equal to that cardinality.
-        /// </summary>
-        public static Vector<float> ToBaggedVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input, true);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// In this case then the indicator vectors for all values in the column will be simply added together,
-        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
-        /// the output column will be a vector type of length equal to that cardinality.
-        /// </summary>
-        public static Vector<float> ToBaggedVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// </summary>
-        public static Vector<float> ToVector<TKey>(this Key<TKey> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// </summary>
-        public static Vector<float> ToVector<TKey>(this Vector<Key<TKey>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey>(input, false);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// In this case then the indicator vectors for all values in the column will be simply added together,
-        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
-        /// the output column will be a vector type of length equal to that cardinality.
-        /// </summary>
-        public static VarVector<float> ToVector<TKey>(this VarVector<Key<TKey>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<TKey>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// In this case then the indicator vectors for all values in the column will be simply added together,
-        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
-        /// the output column will be a vector type of length equal to that cardinality.
-        /// </summary>
-        public static Vector<float> ToBaggedVector<TKey>(this Vector<Key<TKey>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey>(input, true);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
-        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
-        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
-        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
-        /// In this case then the indicator vectors for all values in the column will be simply added together,
-        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
-        /// the output column will be a vector type of length equal to that cardinality.
-        /// </summary>
-        public static Vector<float> ToBaggedVector<TKey>(this VarVector<Key<TKey>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey>(input);
         }
     }
 }

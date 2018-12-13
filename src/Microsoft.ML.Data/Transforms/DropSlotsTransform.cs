@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// Describes how the transformer handles one input-output column pair.
             /// </summary>
             /// <param name="input">Name of the input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="slots">Ranges of indices in the input column to be dropped. Setting max in <paramref name="slots"/> to null sets max to int.MaxValue.</param>
             public ColumnInfo(string input, string output = null, params (int min, int? max)[] slots)
             {
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="input">Name of the input column.</param>
-        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
         public SlotsDroppingTransformer(IHostEnvironment env, string input, string output = null, int min = default, int? max = null)

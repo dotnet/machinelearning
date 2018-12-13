@@ -12734,7 +12734,7 @@ namespace Microsoft.ML
 
 
         [Obsolete]
-        public sealed partial class OneHotHashEncodingTransformerColumn : OneToOneColumn<OneHotHashEncodingTransformerColumn>, IOneToOneColumn
+        public sealed partial class OneHotHashEncodingColumn : OneToOneColumn<OneHotHashEncodingColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The number of bits to hash into. Must be between 1 and 30, inclusive.
@@ -12814,15 +12814,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12831,7 +12831,7 @@ namespace Microsoft.ML
             /// New column definition(s) (optional form: name:hashBits:src)
             /// </summary>
             [Obsolete]
-            public OneHotHashEncodingTransformerColumn[] Column { get; set; }
+            public OneHotHashEncodingColumn[] Column { get; set; }
 
             /// <summary>
             /// Number of bits to hash into. Must be between 1 and 30, inclusive.
@@ -19197,7 +19197,7 @@ namespace Microsoft.ML
             public string[] Term { get; set; }
 
             /// <summary>
-            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
+            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
             [Obsolete]
             public ValueToKeyMappingTransformerSortOrder Sort { get; set; } = ValueToKeyMappingTransformerSortOrder.Occurrence;

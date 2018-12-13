@@ -11,8 +11,6 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using System;
@@ -119,9 +117,9 @@ namespace Microsoft.ML.Transforms.Categorical
         internal const string Summary = "Converts the categorical value into an indicator array by building a dictionary of categories based on the "
             + "data and using the id in the dictionary as the index in the array.";
 
-        public const string UserName = "Categorical Transform";
+        internal const string UserName = "Categorical Transform";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("Categorical");
@@ -175,10 +173,24 @@ namespace Microsoft.ML.Transforms.Categorical
             public const OneHotEncodingTransformer.OutputKind OutKind = OneHotEncodingTransformer.OutputKind.Ind;
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
         public class ColumnInfo : ValueToKeyMappingTransformer.ColumnInfo
         {
             public readonly OneHotEncodingTransformer.OutputKind OutputKind;
-            public ColumnInfo(string input, string output, OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector.</param>
+            /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
+            /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
+            /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+            /// <param name="term">List of terms.</param>
+            public ColumnInfo(string input, string output=null,
+                OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
                 int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null)
                 : base(input, output, maxNumTerms, sort, term, true)
@@ -285,18 +297,18 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer",
-            Desc = OneHotHashEncodingTransformer.Summary,
-            UserName = OneHotHashEncodingTransformer.UserName,
+            Desc = OneHotHashEncoding.Summary,
+            UserName = OneHotHashEncoding.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CategoricalHashOneHotVectorizer""]/*' />"})]
-        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, OneHotHashEncodingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, OneHotHashEncoding.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CatTransformDict");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = OneHotHashEncodingTransformer.Create(host, input, input.Data);
+            var xf = OneHotHashEncoding.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
