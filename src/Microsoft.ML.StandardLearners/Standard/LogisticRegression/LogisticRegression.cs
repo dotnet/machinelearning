@@ -108,6 +108,20 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
+        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        {
+            Contracts.Assert(labelCol.IsValid);
+
+            Action error =
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "BL, R8, R4 or a Key", labelCol.GetTypeString());
+
+            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
+                error();
+
+            if (!labelCol.IsKey && labelCol.ItemType != NumberType.R4 && labelCol.ItemType != NumberType.R8 && !labelCol.ItemType.IsBool)
+                error();
+        }
+
         private protected override void CheckLabel(RoleMappedData data)
         {
             Contracts.AssertValue(data);

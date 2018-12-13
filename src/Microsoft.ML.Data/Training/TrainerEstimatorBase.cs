@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
+using System.Linq;
 
 namespace Microsoft.ML.Runtime.Training
 {
@@ -167,7 +166,7 @@ namespace Microsoft.ML.Runtime.Training
                 SchemaShape.Column label,
                 SchemaShape.Column weight = default,
                 SchemaShape.Column groupId = default)
-            :base(host, feature, label, weight)
+            : base(host, feature, label, weight)
         {
             GroupIdColumn = groupId;
         }
