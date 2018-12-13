@@ -47,7 +47,7 @@ namespace Microsoft.ML.Legacy
     public interface ILearningPipelineDataStep : ILearningPipelineStep
     {
         Var<IDataView> Data { get; }
-        Var<ITransformModel> Model { get; }
+        Var<TransformModel> Model { get; }
     }
 
     [Obsolete]

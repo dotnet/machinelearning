@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms
             var view = new BootstrapSamplingTransformer(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

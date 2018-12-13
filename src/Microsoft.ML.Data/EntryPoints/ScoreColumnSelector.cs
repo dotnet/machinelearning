@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 indices.Add(i);
             }
             var newView = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Index = indices.ToArray() }, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, newView, input.Data), OutputData = newView };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, newView, input.Data), OutputData = newView };
         }
 
         private static bool ShouldAddColumn(Schema schema, int i, string[] extraColumns, uint scoreSet)
@@ -103,12 +103,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                     var copyColumn = new ColumnCopyingTransformer(env, copyCols.ToArray()).Transform(input.Data);
                     var dropColumn = ColumnSelectingTransformer.CreateDrop(env, copyColumn, copyCols.Select(c => c.Source).ToArray());
-                    return new CommonOutputs.TransformOutput { Model = new TransformModel(env, dropColumn, input.Data), OutputData = dropColumn };
+                    return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, dropColumn, input.Data), OutputData = dropColumn };
                 }
             }
 
             var newView = NopTransform.CreateIfNeeded(env, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, newView, input.Data), OutputData = newView };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, newView, input.Data), OutputData = newView };
         }
     }
 }

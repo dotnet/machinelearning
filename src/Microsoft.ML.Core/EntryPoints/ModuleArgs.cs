@@ -577,7 +577,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// </summary>
             FileHandle,
             /// <summary>
-            /// A transform model, represented by an <see cref="ITransformModel"/>.
+            /// A transform model, represented by an <see cref="EntryPoints.TransformModel"/>.
             /// </summary>
             TransformModel,
             /// <summary>
@@ -628,7 +628,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return DataKind.Float;
             if (typeof(IDataView).IsAssignableFrom(type))
                 return DataKind.DataView;
-            if (typeof(ITransformModel).IsAssignableFrom(type))
+            if (typeof(TransformModel).IsAssignableFrom(type))
                 return DataKind.TransformModel;
             if (typeof(PredictorModel).IsAssignableFrom(type))
                 return DataKind.PredictorModel;

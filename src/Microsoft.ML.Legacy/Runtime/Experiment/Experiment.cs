@@ -306,12 +306,12 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Transform model
         /// </summary>
-        public Var<ITransformModel> Model { get; set; }
+        public Var<TransformModel> Model { get; set; }
 
         public EntryPointTransformOutput()
         {
             OutputData = new Var<Runtime.Data.IDataView>();
-            Model = new Var<ITransformModel>();
+            Model = new Var<TransformModel>();
         }
     }
 

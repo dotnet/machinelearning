@@ -121,9 +121,9 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     runner.SetInput(varName, pm);
                     break;
                 case TlcModule.DataKind.TransformModel:
-                    TransformModel tm;
+                    TransformModelImpl tm;
                     using (var fs = File.OpenRead(path))
-                        tm = new TransformModel(_host, fs);
+                        tm = new TransformModelImpl(_host, fs);
                     runner.SetInput(varName, tm);
                     break;
                 default:
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     SavePredictorModel(pm, path);
                     break;
                 case TlcModule.DataKind.TransformModel:
-                    var tm = runner.GetOutput<ITransformModel>(varName);
+                    var tm = runner.GetOutput<TransformModel>(varName);
                     using (var handle = _host.CreateOutputFile(path))
                     using (var fs = handle.CreateWriteStream())
                         tm.Save(_host, fs);

@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var xf = new ExponentialAverageTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var view = new IidChangePointEstimator(h, input).Fit(input.Data).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var view = new IidSpikeEstimator(h, input).Fit(input.Data).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var view = new PercentileThresholdTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var view = new PValueTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var view = new SlidingWindowTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var view = new SsaChangePointEstimator(h, input).Fit(input.Data).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var view = new SsaSpikeEstimator(h, input).Fit(input.Data).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

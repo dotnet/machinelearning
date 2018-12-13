@@ -217,36 +217,36 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public PredictorModel[] Model;
         }
 
-        public sealed class ArrayIPredictorModelOutput
+        public sealed class ArrayPredictorModelOutput
         {
             [TlcModule.Output(Desc = "The model array", SortOrder = 1)]
             public PredictorModel[] OutputModel;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create an array variable of IPredictorModel", Name = "Data.PredictorModelArrayConverter")]
-        public static ArrayIPredictorModelOutput MakeArray(IHostEnvironment env, ArrayIPredictorModelInput input)
+        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(PredictorModel), Name = "Data.PredictorModelArrayConverter")]
+        public static ArrayPredictorModelOutput MakeArray(IHostEnvironment env, ArrayIPredictorModelInput input)
         {
-            var result = new ArrayIPredictorModelOutput
+            var result = new ArrayPredictorModelOutput
             {
                 OutputModel = input.Model
             };
             return result;
         }
 
-        public sealed class ArrayITransformModelInput
+        public sealed class ArrayTransformModelInput
         {
             [Argument(ArgumentType.Required, HelpText = "The models", SortOrder = 1)]
-            public ITransformModel[] TransformModel;
+            public TransformModel[] TransformModel;
         }
 
         public sealed class ArrayITransformModelOutput
         {
             [TlcModule.Output(Desc = "The model array", SortOrder = 1)]
-            public ITransformModel[] OutputModel;
+            public TransformModel[] OutputModel;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create an array variable of ITransformModel", Name = "Data.TransformModelArrayConverter")]
-        public static ArrayITransformModelOutput MakeArray(IHostEnvironment env, ArrayITransformModelInput input)
+        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(TransformModel), Name = "Data.TransformModelArrayConverter")]
+        public static ArrayITransformModelOutput MakeArray(IHostEnvironment env, ArrayTransformModelInput input)
         {
             var result = new ArrayITransformModelOutput
             {
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView[] OutputData;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create an array variable of IDataView", Name = "Data.IDataViewArrayConverter")]
+        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(IDataView), Name = "Data.IDataViewArrayConverter")]
         public static ArrayIDataViewOutput MakeArray(IHostEnvironment env, ArrayIDataViewInput input)
         {
             var result = new ArrayIDataViewOutput

@@ -500,7 +500,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 writer.WriteLine("[Obsolete]");
                 writer.WriteLine("public Var<IDataView> Data { get; }");
                 writer.WriteLine("[Obsolete]");
-                writer.WriteLine("public Var<ITransformModel> Model { get; }");
+                writer.WriteLine("public Var<TransformModel> Model { get; }");
             }
             else
             {

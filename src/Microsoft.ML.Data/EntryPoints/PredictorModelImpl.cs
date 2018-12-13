@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
     {
         private readonly KeyValuePair<RoleMappedSchema.ColumnRole, string>[] _roleMappings;
 
-        internal override ITransformModel TransformModel { get; }
+        internal override TransformModel TransformModel { get; }
 
         internal override IPredictor Predictor { get; }
 
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.CheckValue(trainingData, nameof(trainingData));
             env.CheckValue(predictor, nameof(predictor));
 
-            TransformModel = new TransformModel(env, trainingData.Data, startingData);
+            TransformModel = new TransformModelImpl(env, trainingData.Data, startingData);
             _roleMappings = trainingData.Schema.GetColumnRoleNames().ToArray();
             Predictor = predictor;
         }
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = env.Start("Loading predictor model"))
             {
                 // REVIEW: address the asymmetry in the way we're loading and saving the model.
-                TransformModel = new TransformModel(env, stream);
+                TransformModel = new TransformModelImpl(env, stream);
 
                 var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, stream);
                 env.CheckDecode(roles != null, "Predictor model must contain role mappings");
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        private PredictorModelImpl(ITransformModel transformModel, IPredictor predictor, KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roleMappings)
+        private PredictorModelImpl(TransformModel transformModel, IPredictor predictor, KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roleMappings)
         {
             Contracts.AssertValue(transformModel);
             Contracts.AssertValue(predictor);
@@ -87,11 +87,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        internal override PredictorModel Apply(IHostEnvironment env, ITransformModel transformModel)
+        internal override PredictorModel Apply(IHostEnvironment env, TransformModel transformModel)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(transformModel, nameof(transformModel));
-            ITransformModel newTransformModel = TransformModel.Apply(env, transformModel);
+            TransformModel newTransformModel = TransformModel.Apply(env, transformModel);
             Contracts.AssertValue(newTransformModel);
             return new PredictorModelImpl(newTransformModel, Predictor, _roleMappings);
         }

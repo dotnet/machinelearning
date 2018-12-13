@@ -36,8 +36,8 @@ namespace Microsoft.ML.Legacy.Models
                 Experiment subGraph = environment.CreateExperiment();
                 ILearningPipelineStep step = null;
                 List<ILearningPipelineLoader> loaders = new List<ILearningPipelineLoader>();
-                List<Var<ITransformModel>> transformModels = new List<Var<ITransformModel>>();
-                Var<ITransformModel> lastTransformModel = null;
+                List<Var<TransformModel>> transformModels = new List<Var<TransformModel>>();
+                Var<TransformModel> lastTransformModel = null;
                 Var<IDataView> firstPipelineDataStep = null;
                 Var<PredictorModel> firstModel = null;
                 ILearningPipelineItem firstTransform = null;
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Legacy.Models
                             var localModelInput = new Transforms.ManyHeterogeneousModelCombiner
                             {
                                 PredictorModel = predictorDataStep.Model,
-                                TransformModels = new ArrayVar<ITransformModel>(transformModels.ToArray())
+                                TransformModels = new ArrayVar<TransformModel>(transformModels.ToArray())
                             };
                             var localModelOutput = subGraph.Add(localModelInput);
                             predictorModel = localModelOutput.PredictorModel;
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Legacy.Models
 
                     var modelInput = new Transforms.ModelCombiner
                     {
-                        Models = new ArrayVar<ITransformModel>(transformModels.ToArray())
+                        Models = new ArrayVar<TransformModel>(transformModels.ToArray())
                     };
 
                     var modelOutput = subGraph.Add(modelInput);
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Legacy.Models
                     throw Contracts.Except($"{Kind.ToString()} is not supported at the moment.");
                 }
 
-                ITransformModel model = experiment.GetOutput(trainTestNodeOutput.TransformModel);
+                TransformModel model = experiment.GetOutput(trainTestNodeOutput.TransformModel);
                 BatchPredictionEngine<TInput, TOutput> predictor;
                 using (var memoryStream = new MemoryStream())
                 {

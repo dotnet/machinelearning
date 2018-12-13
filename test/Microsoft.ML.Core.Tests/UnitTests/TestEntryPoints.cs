@@ -783,7 +783,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
-                var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
+                var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
                     new ModelOperations.SimplePredictorModelInput()
@@ -1046,7 +1046,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
-                var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
+                var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
                     new ModelOperations.SimplePredictorModelInput()
@@ -1234,7 +1234,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var rmd = new RoleMappedData(data, "Label", "Features");
 
                 predictorModels[i] = new PredictorModelImpl(Env, rmd, data, mlr.Train(rmd));
-                var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
+                var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
                     new ModelOperations.SimplePredictorModelInput()
@@ -1383,7 +1383,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         StdComputer = new ComputeLRTrainingStdThroughHal()
                 };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
-                    var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
+                    var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                     predictorModels[i] = ModelOperations.CombineTwoModels(Env,
                         new ModelOperations.SimplePredictorModelInput()

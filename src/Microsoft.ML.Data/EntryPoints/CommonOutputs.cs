@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView OutputData;
 
             [TlcModule.Output(Desc = "Transform model", SortOrder = 2)]
-            public ITransformModel Model;
+            public TransformModel Model;
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public interface ITransformOutput
         {
             Var<IDataView> OutputData { get; }
-            Var<ITransformModel> Model { get; }
+            Var<TransformModel> Model { get; }
         }
 
         /// <summary>

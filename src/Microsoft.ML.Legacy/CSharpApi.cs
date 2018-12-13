@@ -2070,7 +2070,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create an array variable of IPredictorModel
+        /// Create an array variable of PredictorModel
         /// </summary>
         [Obsolete]
         public sealed partial class PredictorModelArrayConverter
@@ -2329,7 +2329,7 @@ namespace Microsoft.ML
                 }
 
                 public Var<IDataView> Data { get; }
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
 
             /// <summary>
@@ -2361,7 +2361,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create an array variable of ITransformModel
+        /// Create an array variable of TransformModel
         /// </summary>
         [Obsolete]
         public sealed partial class TransformModelArrayConverter
@@ -2372,7 +2372,7 @@ namespace Microsoft.ML
             /// The models
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
 
             [Obsolete]
@@ -2381,7 +2381,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The model array
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
         }
@@ -3148,7 +3148,7 @@ namespace Microsoft.ML
             /// The transform model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
         }
 
@@ -3170,7 +3170,7 @@ namespace Microsoft.ML
             /// The transform model from the pipeline before this command. It gets included in the Output.PredictorModel.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             /// <summary>
             /// The training subgraph
@@ -3244,7 +3244,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
                 /// <summary>
                 /// Warning dataset
@@ -3332,7 +3332,7 @@ namespace Microsoft.ML
             /// Transform model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             /// <summary>
             /// Input dataset
@@ -3381,7 +3381,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -3894,7 +3894,7 @@ namespace Microsoft.ML
             /// Model that needs to be converted to ONNX format.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             /// <summary>
             /// The targeted ONNX version. It can be either "Stable" or "Experimental". If "Experimental" is used, produced model can contain components that is not officially supported in ONNX standard.
@@ -4651,7 +4651,7 @@ namespace Microsoft.ML
             /// Transform model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
         }
 
@@ -4679,7 +4679,7 @@ namespace Microsoft.ML
             /// The aggregated transform model from the pipeline before this command, to apply to the test data, and also include in the final model, together with the predictor model.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             /// <summary>
             /// The training subgraph
@@ -4753,7 +4753,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
                 /// <summary>
                 /// Warning dataset
@@ -4846,7 +4846,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -4881,7 +4881,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -4959,7 +4959,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -4994,7 +4994,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -5066,7 +5066,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5101,7 +5101,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -5159,7 +5159,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5194,7 +5194,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -5264,7 +5264,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5299,7 +5299,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -5370,7 +5370,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5405,7 +5405,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -5511,7 +5511,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5546,7 +5546,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -5636,7 +5636,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5671,7 +5671,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -12438,7 +12438,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -12473,7 +12473,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -12513,7 +12513,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -12548,7 +12548,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -12681,7 +12681,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -12716,7 +12716,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -12881,7 +12881,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -12916,7 +12916,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -13079,7 +13079,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13114,7 +13114,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -13215,7 +13215,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13250,7 +13250,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -13323,7 +13323,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13358,7 +13358,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -13455,7 +13455,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13490,7 +13490,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -13548,7 +13548,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13583,7 +13583,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -13704,7 +13704,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13739,7 +13739,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -13783,7 +13783,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13818,7 +13818,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -13939,7 +13939,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13974,7 +13974,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -14050,7 +14050,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -14096,7 +14096,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The scoring transform
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
         }
@@ -14123,7 +14123,7 @@ namespace Microsoft.ML
             /// The transform model to apply to data
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
 
             [Obsolete]
@@ -14137,7 +14137,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The scoring transform
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
         }
@@ -14283,7 +14283,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14318,7 +14318,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -14358,7 +14358,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14393,7 +14393,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -14438,7 +14438,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14473,7 +14473,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -14530,7 +14530,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14565,7 +14565,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -14696,7 +14696,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14731,7 +14731,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -14881,7 +14881,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14916,7 +14916,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -15013,7 +15013,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15048,7 +15048,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -15151,7 +15151,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15186,7 +15186,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -15379,7 +15379,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15414,7 +15414,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -15576,7 +15576,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15611,7 +15611,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -15706,7 +15706,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15741,7 +15741,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -15787,7 +15787,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15822,7 +15822,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -15931,7 +15931,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15966,7 +15966,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -16006,7 +16006,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16041,7 +16041,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -16281,7 +16281,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16316,7 +16316,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -16431,7 +16431,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16466,7 +16466,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -16594,7 +16594,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16629,7 +16629,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -16649,7 +16649,7 @@ namespace Microsoft.ML
             /// Transform model
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModels { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModels { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             /// <summary>
             /// Predictor model
@@ -16763,7 +16763,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16798,7 +16798,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -16890,7 +16890,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16925,7 +16925,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -17066,7 +17066,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17101,7 +17101,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -17197,7 +17197,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17232,7 +17232,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -17328,7 +17328,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17363,7 +17363,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -17408,7 +17408,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17443,7 +17443,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -17579,7 +17579,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17614,7 +17614,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -17634,7 +17634,7 @@ namespace Microsoft.ML
             /// Input models
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
 
             [Obsolete]
@@ -17643,7 +17643,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Combined model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> OutputModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> OutputModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
         }
@@ -17807,7 +17807,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17842,7 +17842,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -17876,7 +17876,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17911,7 +17911,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -17950,7 +17950,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17985,7 +17985,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18141,7 +18141,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18176,7 +18176,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18216,7 +18216,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18251,7 +18251,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18326,7 +18326,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18361,7 +18361,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18431,7 +18431,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18466,7 +18466,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18512,7 +18512,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18547,7 +18547,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18587,7 +18587,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18622,7 +18622,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18662,7 +18662,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18697,7 +18697,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18737,7 +18737,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18772,7 +18772,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18806,7 +18806,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The scoring transform
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
         }
@@ -18860,7 +18860,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18895,7 +18895,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -18940,7 +18940,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18975,7 +18975,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -19098,7 +19098,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19133,7 +19133,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -19323,7 +19323,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19358,7 +19358,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -19461,7 +19461,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19496,7 +19496,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -19593,7 +19593,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19628,7 +19628,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -19648,7 +19648,7 @@ namespace Microsoft.ML
             /// Transform model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             /// <summary>
             /// Predictor model
@@ -19869,7 +19869,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19904,7 +19904,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -20027,7 +20027,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -20062,7 +20062,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }
@@ -20170,7 +20170,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -20205,7 +20205,7 @@ namespace Microsoft.ML
                 [Obsolete]
                 public Var<IDataView> Data { get; }
                 [Obsolete]
-                public Var<ITransformModel> Model { get; }
+                public Var<TransformModel> Model { get; }
             }
         }
     }

@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 type == typeof(IDataView) ||
                 type == typeof(IFileHandle) ||
                 type == typeof(PredictorModel) ||
-                type == typeof(ITransformModel) ||
+                type == typeof(TransformModel) ||
                 type == typeof(CommonInputs.IEvaluatorInput) ||
                 type == typeof(CommonOutputs.IEvaluatorOutput);
         }

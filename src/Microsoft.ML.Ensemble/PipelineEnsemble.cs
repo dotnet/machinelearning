@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
                     // Get the pipeline.
                     var dv = new EmptyDataView(Parent.Host, schema.Schema);
-                    var tm = new TransformModel(Parent.Host, dv, dv);
+                    var tm = new TransformModelImpl(Parent.Host, dv, dv);
                     var pipeline = Parent.PredictorModels[i].TransformModel.Apply(Parent.Host, tm);
                     BoundPipelines[i] = pipeline.AsRowToRowMapper(Parent.Host);
                     if (BoundPipelines[i] == null)

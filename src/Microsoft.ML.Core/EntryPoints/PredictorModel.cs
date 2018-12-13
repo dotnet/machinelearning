@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// Extract only the transform portion of the predictor model.
         /// </summary>
         [BestFriend]
-        internal abstract ITransformModel TransformModel { get; }
+        internal abstract TransformModel TransformModel { get; }
 
         /// <summary>
         /// Extract the predictor object out of the predictor model.
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// Apply the predictor model to the transform model and return the resulting predictor model.
         /// </summary>
         [BestFriend]
-        internal abstract PredictorModel Apply(IHostEnvironment env, ITransformModel transformModel);
+        internal abstract PredictorModel Apply(IHostEnvironment env, TransformModel transformModel);
 
         /// <summary>
         /// For a given input data, return role mapped data and the predictor object.
