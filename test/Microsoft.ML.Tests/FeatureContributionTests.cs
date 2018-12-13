@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Transforms;
 using System.IO;
+using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Tests
 {
@@ -129,19 +130,50 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.BinaryClassification.Trainers.LogisticRegression(), GetSparseDataset(TaskType.BinaryClassification), "LogisticRegressionBinary");
         }
 
-        // Tests for multiclass classification trainers that implement IFeatureContributionMapper interface.
-        // None right now.
+        [Fact]
+        public void TestFastForestBinary()
+        {
+            TestFeatureContribution(ML.BinaryClassification.Trainers.FastForest(), GetSparseDataset(TaskType.BinaryClassification), "FastForestBinary");
+        }
 
-        // Tests for clustering trainers that implement IFeatureContributionMapper interface.
-        // None right now.
+        [Fact]
+        public void TestFastTreeBinary()
+        {
+            TestFeatureContribution(ML.BinaryClassification.Trainers.FastTree(), GetSparseDataset(TaskType.BinaryClassification), "FastTreeBinary");
+        }
 
-        // Predictors that do not implement IFeatureContributionMapper: 
-        // BinaryClassification: FastForest, LightGbm, FastTree, StochasticDualCoordinateAscent, StochasticGradientDescent, SymbolicStochasticGradientDescent, GAM
-        // MulticlassClassification: StochasticDualCoordinateAscent, LogistiRegression, LightGbm, NaiveBayes, OneVersusAll
-        // Clustering: Kmeans
+        [Fact]
+        public void TestLightGbmBinary()
+        {
+            TestFeatureContribution(ML.BinaryClassification.Trainers.LightGbm(), GetSparseDataset(TaskType.BinaryClassification), "LightGbmBinary");
+        }
+
+        [Fact(Skip = "Results vary a lot from run to run, need to investigate error.")]
+        public void TestSDCABinary()
+        {
+            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(), GetSparseDataset(TaskType.BinaryClassification), "SDCABinary");
+        }
+
+        [Fact(Skip = "Results vary a lot from run to run, need to investigate error.")]
+        public void TestSGDBinary()
+        {
+            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(), GetSparseDataset(TaskType.BinaryClassification), "SGDBinary");
+        }
+
+        [Fact]
+        public void TestSSGDBinary()
+        {
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(), GetSparseDataset(TaskType.BinaryClassification), "SSGDBinary");
+        }
+
+        [Fact]
+        public void TestGAMBinary()
+        {
+            TestFeatureContribution(ML.BinaryClassification.Trainers.GeneralizedAdditiveModels(), GetSparseDataset(TaskType.BinaryClassification), "GAMBinary");
+        }
 
         private void TestFeatureContribution(
-            ITrainerEstimator<ISingleFeaturePredictionTransformer<IFeatureContributionMapper>, IFeatureContributionMapper> trainer,
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
             IDataView data,
             string testFile,
             int precision = 6)
@@ -149,12 +181,15 @@ namespace Microsoft.ML.Tests
             // Train the model.
             var model = trainer.Fit(data);
 
+            var predictor = model.Model as IFeatureContributionMapper;
+            Assert.NotNull(predictor);
+
             // Calculate feature contributions.
-            var est = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 3, bottom: 0)
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 3))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 1, bottom: 1))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 1, bottom: 1, stringify: true))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 1, bottom: 1, normalize: false, stringify: true));
+            var est = new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 3, bottom: 0)
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 0, bottom: 3))
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1))
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1, stringify: true))
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1, normalize: false, stringify: true));
             // Verify output.
             var outputPath = GetOutputPath("FeatureContribution", testFile + ".tsv");
             using (var ch = Env.Start("save"))
