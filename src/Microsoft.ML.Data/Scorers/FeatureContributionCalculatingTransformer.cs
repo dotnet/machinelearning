@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
         /// string(key)-values, set stringify to <langword>true</langword></param>
-        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IFeatureContributionMapper predictor,
+        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IPredictor predictor,
             string featureColumn = DefaultColumnNames.Features,
             int top = FeatureContributionCalculatingEstimator.Defaults.Top,
             int bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom,
@@ -92,8 +92,11 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(predictor, nameof(predictor));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
 
+            var pred = predictor as IFeatureContributionMapper;
+            env.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
+
             _featureColumn = featureColumn;
-            _mapper = new BindableMapper(Host, predictor, top, bottom, normalize, stringify);
+            _mapper = new BindableMapper(Host, pred, top, bottom, normalize, stringify);
         }
 
         // Factory constructor for SignatureLoadModel
@@ -112,8 +115,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Factory method for SignatureLoadRowMapper.
-        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => new FeatureContributionCalculatingTransformer(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => new FeatureContributionCalculatingTransformer(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -198,7 +201,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var builder = new MetadataBuilder();
                     builder.Add(InputSchema[_roleMappedSchema.Feature.Index].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
-                    result.Add(new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _roleMappedSchema.Feature.Type.AsVector), builder.GetMetadata()));
+                    result.Add(new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _roleMappedSchema.Feature.Type.ValueCount), builder.GetMetadata()));
                 }
                 return result.ToArray();
             }
@@ -399,8 +402,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private ReadOnlyMemory<char> GetSlotName(int index, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var count = slotNames.GetValues().Length;
-                _env.Assert(count > index || count == 0 && slotNames.Length > index);
+                _env.Assert(0 <= index && index < slotNames.Length);
                 var slotName = slotNames.GetItemOrDefault(index);
                 return slotName.IsEmpty
                     ? new ReadOnlyMemory<char>($"f{index}".ToCharArray())
@@ -498,7 +500,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 var inputSchema = schema.Schema;
                 var genericRowMapper = parent.GenericMapper.Bind(_env, schema) as ISchemaBoundRowMapper;
-                ISchema outputSchema;
+                Schema outputSchema;
 
                 if (parent.Stringify)
                 {
@@ -508,12 +510,12 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    outputSchema = new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
-                        new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
-                        inputSchema, InputRoleMappedSchema.Feature.Index);
+                    outputSchema = Schema.Create(new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
+                        new VectorType(NumberType.R4, schema.Feature.Type.ValueCount),
+                        inputSchema, InputRoleMappedSchema.Feature.Index));
                 }
-                ISchema outputGenericSchema = genericRowMapper.OutputSchema;
-                OutputSchema = new CompositeSchema(new ISchema[] { outputGenericSchema, outputSchema }).AsSchema;
+                Schema outputGenericSchema = genericRowMapper.OutputSchema;
+                OutputSchema = new CompositeSchema(new Schema[] { outputGenericSchema, outputSchema }).AsSchema;
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
@@ -628,7 +630,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
         /// string(key)-values, set stringify to <langword>true</langword></param>
-        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IFeatureContributionMapper predictor,
+        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IPredictor predictor,
             string featureColumn = DefaultColumnNames.Features,
             int top = Defaults.Top,
             int bottom = Defaults.Bottom,

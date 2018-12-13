@@ -41,13 +41,15 @@ namespace Microsoft.ML.Tests
             var data = GetSparseDataset();
             var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
 
-            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, stringify: true);
+            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, stringify: true)
                 .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, normalize: false))
                 .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0))
                 .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, bottom: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 0));
-            TestEstimatorCore(estPipe, data);
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 0))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 0, stringify: true));
 
+            TestEstimatorCore(estPipe, data);
             Done();
         }
 
@@ -134,10 +136,14 @@ namespace Microsoft.ML.Tests
 
         // Tests for multiclass classification trainers that implement IFeatureContributionMapper interface.
         // None right now.
-        
+
+        // Tests for clustering trainers that implement IFeatureContributionMapper interface.
+        // None right now.
+
         // Predictors that do not implement IFeatureContributionMapper: 
-        // MulticlassClassification: StochasticDualCoordinateAscent, LogistiRegression, LightGbm, NaiveBayes, OneVersusAll
         // BinaryClassification: FastForest, LightGbm, FastTree, StochasticDualCoordinateAscent, StochasticGradientDescent, SymbolicStochasticGradientDescent
+        // MulticlassClassification: StochasticDualCoordinateAscent, LogistiRegression, LightGbm, NaiveBayes, OneVersusAll
+        // Clustering: Kmeans
 
         private void TestFeatureContribution(
             ITrainerEstimator<ISingleFeaturePredictionTransformer<IFeatureContributionMapper>, IFeatureContributionMapper> trainer,
@@ -149,8 +155,11 @@ namespace Microsoft.ML.Tests
             var model = trainer.Fit(data);
 
             // Calculate feature contributions.
-            var est = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn);
-
+            var est = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 3, bottom: 0)
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 3))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 1, bottom: 1))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 1, bottom: 1, stringify: true))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 1, bottom: 1, normalize: false, stringify: true));
             // Verify output.
             var outputPath = GetOutputPath("FeatureContribution", testFile + ".tsv");
             using (var ch = Env.Start("save"))
