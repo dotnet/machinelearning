@@ -320,11 +320,11 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// The trained model
         /// </summary>
-        public Var<IPredictorModel> PredictorModel { get; set; }
+        public Var<PredictorModel> PredictorModel { get; set; }
 
         public EntryPointTrainerOutput()
         {
-            PredictorModel = new Var<IPredictorModel>();
+            PredictorModel = new Var<PredictorModel>();
         }
     }
 }

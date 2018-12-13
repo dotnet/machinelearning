@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     /// <summary>
-    /// This module handles scoring a <see cref="IPredictorModel"/> against a new dataset.
+    /// This module handles scoring a <see cref="PredictorModel"/> against a new dataset.
     /// As a result, we return both the scored data and the scoring transform as a <see cref="ITransformModel"/>.
     ///
     /// REVIEW: This module does not support 'exotic' scoring scenarios, like recommendation and quantile regression
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView Data;
 
             [Argument(ArgumentType.Required, HelpText = "The predictor model to apply to data", SortOrder = 2)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Suffix to append to the score columns", SortOrder = 3)]
             public string Suffix;
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class ModelInput
         {
             [Argument(ArgumentType.Required, HelpText = "The predictor model to turn into a transform", SortOrder = 1)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class ModelOutput

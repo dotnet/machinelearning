@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class SubGraphOutput
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
-            public Var<IPredictorModel> PredictorModel;
+            public Var<PredictorModel> PredictorModel;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]
             public Var<ITransformModel> TransformModel;
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
                 "provided as the Input.TransformModel.", SortOrder = 1)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
 
             [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
                 "provided as the Input.TransformModel.", SortOrder = 2)]

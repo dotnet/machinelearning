@@ -505,7 +505,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             else
             {
                 writer.WriteLine("[Obsolete]");
-                writer.WriteLine("public Var<IPredictorModel> Model { get; }");
+                writer.WriteLine("public Var<PredictorModel> Model { get; }");
             }
 
             writer.Outdent();

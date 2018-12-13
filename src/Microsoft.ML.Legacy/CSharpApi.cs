@@ -2081,7 +2081,7 @@ namespace Microsoft.ML
             /// The models
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -2090,7 +2090,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The model array
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
         }
@@ -2515,7 +2515,7 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -2524,7 +2524,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
         }
@@ -2662,7 +2662,7 @@ namespace Microsoft.ML
             /// The model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
         }
 
@@ -2717,7 +2717,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
                 /// <summary>
                 /// Warning dataset
@@ -2772,7 +2772,7 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Whether to validate that all the pipelines are identical
@@ -2787,7 +2787,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
         }
@@ -2814,7 +2814,7 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -2823,7 +2823,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
         }
@@ -3142,7 +3142,7 @@ namespace Microsoft.ML
             /// The predictor model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// The transform model
@@ -3239,7 +3239,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
                 /// <summary>
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
@@ -3401,7 +3401,7 @@ namespace Microsoft.ML
             /// The predictor to summarize
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -3448,7 +3448,7 @@ namespace Microsoft.ML
             /// The predictor to calibrate
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// The maximum number of examples to train the calibrator on
@@ -3470,7 +3470,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -3502,7 +3502,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -3528,7 +3528,7 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -3537,7 +3537,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
         }
@@ -3641,7 +3641,7 @@ namespace Microsoft.ML
             /// The predictor to calibrate
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// The maximum number of examples to train the calibrator on
@@ -3663,7 +3663,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -3695,7 +3695,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -3728,7 +3728,7 @@ namespace Microsoft.ML
             /// The predictor model for the subgraph exemplar.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
         }
 
@@ -3799,7 +3799,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained multiclass model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -3831,7 +3831,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -3931,7 +3931,7 @@ namespace Microsoft.ML
             /// Input models
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> ModelArray { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> ModelArray { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Use probabilities from learners instead of raw values.
@@ -3982,7 +3982,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Predictor model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -4014,7 +4014,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -4034,7 +4034,7 @@ namespace Microsoft.ML
             /// The predictor to calibrate
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// The maximum number of examples to train the calibrator on
@@ -4056,7 +4056,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -4088,7 +4088,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -4108,7 +4108,7 @@ namespace Microsoft.ML
             /// The predictor to calibrate
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// The maximum number of examples to train the calibrator on
@@ -4130,7 +4130,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -4162,7 +4162,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -4359,7 +4359,7 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Whether to validate that all the pipelines are identical
@@ -4374,7 +4374,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
         }
@@ -4478,7 +4478,7 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -4487,7 +4487,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
         }
@@ -4508,7 +4508,7 @@ namespace Microsoft.ML
             /// The predictor to summarize
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -4549,7 +4549,7 @@ namespace Microsoft.ML
             /// The model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
         }
 
@@ -4598,7 +4598,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
                 /// <summary>
                 /// Warning dataset
@@ -4645,7 +4645,7 @@ namespace Microsoft.ML
             /// The predictor model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Transform model
@@ -4748,7 +4748,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
                 /// <summary>
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
@@ -5833,7 +5833,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -5865,7 +5865,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -5963,7 +5963,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -5995,7 +5995,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -6093,7 +6093,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -6125,7 +6125,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -6223,7 +6223,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -6255,7 +6255,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -6578,7 +6578,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -6610,7 +6610,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -6912,7 +6912,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -6944,7 +6944,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -7384,7 +7384,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -7416,7 +7416,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -7890,7 +7890,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -7922,7 +7922,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -8348,7 +8348,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -8380,7 +8380,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -8811,7 +8811,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -8843,7 +8843,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -8955,7 +8955,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -8987,7 +8987,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -9133,7 +9133,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9165,7 +9165,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -9311,7 +9311,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9343,7 +9343,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -9440,7 +9440,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9472,7 +9472,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -9700,7 +9700,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9732,7 +9732,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -9945,7 +9945,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9977,7 +9977,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -10190,7 +10190,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10222,7 +10222,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -10435,7 +10435,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10467,7 +10467,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -10593,7 +10593,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10625,7 +10625,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -10768,7 +10768,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10800,7 +10800,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -10943,7 +10943,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10975,7 +10975,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -11027,7 +11027,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11059,7 +11059,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -11208,7 +11208,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11240,7 +11240,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -11310,7 +11310,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11342,7 +11342,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -11421,7 +11421,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11453,7 +11453,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -11590,7 +11590,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11622,7 +11622,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -11754,7 +11754,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11786,7 +11786,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -11899,7 +11899,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11931,7 +11931,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -12044,7 +12044,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -12076,7 +12076,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -12207,7 +12207,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -12239,7 +12239,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -12348,7 +12348,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -12380,7 +12380,7 @@ namespace Microsoft.ML
                 }
 
                 [Obsolete]
-                public Var<IPredictorModel> Model { get; }
+                public Var<PredictorModel> Model { get; }
             }
         }
     }
@@ -12493,7 +12493,7 @@ namespace Microsoft.ML
             /// The predictor model used in scoring
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Input dataset
@@ -14076,7 +14076,7 @@ namespace Microsoft.ML
             /// The predictor model to apply to data
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Suffix to append to the score columns
@@ -16655,7 +16655,7 @@ namespace Microsoft.ML
             /// Predictor model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -16664,7 +16664,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Predictor model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
         }
@@ -18792,7 +18792,7 @@ namespace Microsoft.ML
             /// The predictor model to turn into a transform
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -19573,7 +19573,7 @@ namespace Microsoft.ML
             /// Trainer to use
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Input dataset
@@ -19654,7 +19654,7 @@ namespace Microsoft.ML
             /// Predictor model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -19663,7 +19663,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Predictor model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IPredictorModel>();
+                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
             }
         }

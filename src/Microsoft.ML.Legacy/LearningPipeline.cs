@@ -183,7 +183,7 @@ namespace Microsoft.ML.Legacy
                     if (lastTransformModel != null)
                         transformModels.Insert(0, lastTransformModel);
 
-                    Var<IPredictorModel> predictorModel;
+                    Var<PredictorModel> predictorModel;
                     if (transformModels.Count != 0)
                     {
                         var localModelInput = new Transforms.ManyHeterogeneousModelCombiner

@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public abstract class TrainerOutput
         {
             [TlcModule.Output(Desc = "The trained model", SortOrder = 1)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// </summary>
         public interface ITrainerOutput
         {
-            Var<IPredictorModel> PredictorModel { get; }
+            Var<PredictorModel> PredictorModel { get; }
         }
 
         /// <summary>

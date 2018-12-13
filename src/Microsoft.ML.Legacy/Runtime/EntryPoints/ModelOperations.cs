@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public ITransformModel[] TransformModels;
 
             [Argument(ArgumentType.Required, HelpText = "Predictor model", SortOrder = 2)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class SimplePredictorModelInput
@@ -43,19 +43,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public ITransformModel TransformModel;
 
             [Argument(ArgumentType.Required, HelpText = "Predictor model", SortOrder = 2)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class PredictorModelOutput
         {
             [TlcModule.Output(Desc = "Predictor model", SortOrder = 1)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class CombineOvaPredictorModelsInput : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.Multiple, HelpText = "Input models", SortOrder = 1)]
-            public IPredictorModel[] ModelArray;
+            public PredictorModel[] ModelArray;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use probabilities from learners instead of raw values.", SortOrder = 2)]
             public bool UseProbabilities = true;
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class CombinePredictorModelsInput
         {
             [Argument(ArgumentType.Multiple, HelpText = "Input models", SortOrder = 1)]
-            public IPredictorModel[] Models;
+            public PredictorModel[] Models;
         }
 
         public sealed class ApplyTransformModelInput : TransformInputBase
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                 return new PredictorModelOutput
                 {
-                    PredictorModel = new PredictorModel(env, data, input.TrainingData,
+                    PredictorModel = new PredictorModelImpl(env, data, input.TrainingData,
                     OvaPredictor.Create(host, input.UseProbabilities,
                             input.ModelArray.Select(p => p.Predictor as IPredictorProducing<float>).ToArray()))
                 };

@@ -1837,7 +1837,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public abstract class CalibrateInputBase : TransformInputBase
         {
             [Argument(ArgumentType.Required, ShortName = "uncalibratedPredictorModel", HelpText = "The predictor to calibrate", SortOrder = 2)]
-            public IPredictorModel UncalibratedPredictorModel;
+            public PredictorModel UncalibratedPredictorModel;
 
             [Argument(ArgumentType.Required, ShortName = "maxRows", HelpText = "The maximum number of examples to train the calibrator on", SortOrder = 3)]
             [TlcModule.Range(Inf = 0, Max = int.MaxValue)]
@@ -1910,7 +1910,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// <param name="input">The input object, containing the predictor, the data and an integer indicating the maximum number
         /// of examples to use for training the calibrator.</param>
         /// <param name="calibratorTrainer">The kind of calibrator to use.</param>
-        /// <returns>A <see cref="CommonOutputs.TrainerOutput"/> object, containing an <see cref="IPredictorModel"/>.</returns>
+        /// <returns>A <see cref="CommonOutputs.TrainerOutput"/> object, containing an <see cref="PredictorModel"/>.</returns>
         public static TOut CalibratePredictor<TOut>(IHost host, CalibrateInputBase input,
             ICalibratorTrainer calibratorTrainer)
             where TOut : CommonOutputs.TrainerOutput, new()
@@ -1935,7 +1935,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     calibratedPredictor =
                         CalibratorUtils.TrainCalibrator(host, ch, calibratorTrainer, input.MaxRows, predictor, data);
                 }
-                return new TOut() { PredictorModel = new PredictorModel(host, data, input.Data, calibratedPredictor) };
+                return new TOut() { PredictorModel = new PredictorModelImpl(host, data, input.Data, calibratedPredictor) };
             }
         }
     }

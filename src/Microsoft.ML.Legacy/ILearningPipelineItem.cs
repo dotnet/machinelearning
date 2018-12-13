@@ -53,6 +53,6 @@ namespace Microsoft.ML.Legacy
     [Obsolete]
     public interface ILearningPipelinePredictorStep : ILearningPipelineStep
     {
-        Var<IPredictorModel> Model { get; }
+        Var<PredictorModel> Model { get; }
     }
 }

@@ -39,7 +39,7 @@ namespace Microsoft.ML.Legacy.Models
                 List<Var<ITransformModel>> transformModels = new List<Var<ITransformModel>>();
                 Var<ITransformModel> lastTransformModel = null;
                 Var<IDataView> firstPipelineDataStep = null;
-                Var<IPredictorModel> firstModel = null;
+                Var<PredictorModel> firstModel = null;
                 ILearningPipelineItem firstTransform = null;
                 foreach (ILearningPipelineItem currentItem in pipeline)
                 {
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Legacy.Models
                         if (lastTransformModel != null)
                             transformModels.Insert(0, lastTransformModel);
 
-                        Var<IPredictorModel> predictorModel;
+                        Var<PredictorModel> predictorModel;
                         if (transformModels.Count != 0)
                         {
                             var localModelInput = new Transforms.ManyHeterogeneousModelCombiner

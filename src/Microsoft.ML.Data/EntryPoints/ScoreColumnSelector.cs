@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class RenameBinaryPredictionScoreColumnsInput : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The predictor model used in scoring", SortOrder = 2)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.BinaryPredictionScoreColumnsRenamer", Desc = "For binary prediction, it renames the PredictedLabel and Score columns to include the name of the positive class.", UserName = "Rename Binary Prediction Score Columns")]

@@ -581,7 +581,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// </summary>
             TransformModel,
             /// <summary>
-            /// A predictor model, represented by an <see cref="IPredictorModel"/>.
+            /// A predictor model, represented by an <see cref="EntryPoints.PredictorModel"/>.
             /// </summary>
             PredictorModel,
             /// <summary>
@@ -630,7 +630,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return DataKind.DataView;
             if (typeof(ITransformModel).IsAssignableFrom(type))
                 return DataKind.TransformModel;
-            if (typeof(IPredictorModel).IsAssignableFrom(type))
+            if (typeof(PredictorModel).IsAssignableFrom(type))
                 return DataKind.PredictorModel;
             if (typeof(IFileHandle).IsAssignableFrom(type))
                 return DataKind.FileHandle;
