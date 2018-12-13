@@ -61,6 +61,12 @@ namespace Microsoft.ML.Samples.Dynamic
             var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11, normalize: false);
             var outputData = featureContributionCalculator.Fit(transformedData).Transform(transformedData);
 
+            // FeatureContributionCalculatingEstimator can be use as an intermediary step in a pipeline. 
+            // The features retained by FeatureContributionCalculatingEstimator will be in the FeatureContribution column.
+            var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11)
+                .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(featureColumn: "FeatureContributions"));
+            var outData = featureContributionCalculator.Fit(transformedData).Transform(transformedData);
+
             // Let's extract the weights from the linear model to use as a comparison
             var weights = new VBuffer<float>();
             model.Model.GetFeatureWeights(ref weights);
@@ -69,7 +75,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Get prediction scores and contributions
             var scoringEnumerator = outputData.AsEnumerable<HousingRegressionScoreAndContribution>(mlContext, true).GetEnumerator();
             int index = 0;
-            Console.WriteLine("Label\tScore\tBiggestFeature\tValue\tWeight\tContribution\tPercent");
+            Console.WriteLine("Label\tScore\tBiggestFeature\tValue\tWeight\tContribution");
             while (scoringEnumerator.MoveNext() && index < 10)
             {
                 var row = scoringEnumerator.Current;
@@ -80,23 +86,34 @@ namespace Microsoft.ML.Samples.Dynamic
                 // And the corresponding information about the feature
                 var value = row.Features[featureOfInterest];
                 var contribution = row.FeatureContributions[featureOfInterest];
-                var percentContribution = 100 * contribution / row.Score;
                 var name = data.Schema.GetColumnName(featureOfInterest + 1);
                 var weight = weights.GetValues()[featureOfInterest];
 
-                Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}\t{6:0.00}",
+                Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}",
                     row.MedianHomeValue,
                     row.Score,
                     name,
                     value,
                     weight,
-                    contribution,
-                    percentContribution
+                    contribution
                     );
 
                 index++;
             }
             Console.ReadLine();
+
+            // The output of the above code is:
+            // Label Score   BiggestFeature Value   Weight Contribution
+            // 24.00   27.74   RoomsPerDwelling        6.58    98.55   39.95
+            // 21.60   23.85   RoomsPerDwelling        6.42    98.55   39.01
+            // 34.70   29.29   RoomsPerDwelling        7.19    98.55   43.65
+            // 33.40   27.17   RoomsPerDwelling        7.00    98.55   42.52
+            // 36.20   27.68   RoomsPerDwelling        7.15    98.55   43.42
+            // 28.70   23.13   RoomsPerDwelling        6.43    98.55   39.07
+            // 22.90   22.71   RoomsPerDwelling        6.01    98.55   36.53
+            // 27.10   21.72   RoomsPerDwelling        6.17    98.55   37.50
+            // 16.50   18.04   RoomsPerDwelling        5.63    98.55   34.21
+            // 18.90   20.14   RoomsPerDwelling        6.00    98.55   36.48
         }
 
         private static int GetMostContributingFeature(float[] featureContributions)

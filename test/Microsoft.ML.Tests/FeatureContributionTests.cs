@@ -102,6 +102,12 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(), GetSparseDataset(), "PoissonRegression");
         }
 
+        [Fact]
+        public void TestGAMRegression()
+        {
+            TestFeatureContribution(ML.Regression.Trainers.GeneralizedAdditiveModels(), GetSparseDataset(), "GAMRegression");
+        }
+
         // Tests for ranking trainers that implement IFeatureContributionMapper interface.
         [Fact]
         public void TestFastTreeRanking()
@@ -114,7 +120,7 @@ namespace Microsoft.ML.Tests
         {
             TestFeatureContribution(ML.Ranking.Trainers.LightGbm(), GetSparseDataset(TaskType.Ranking), "LightGbmRanking");
         }
-
+        
         // Tests for binary classification trainers that implement IFeatureContributionMapper interface.
         [Fact]
         public void TestAveragePerceptronBinary()
@@ -141,7 +147,7 @@ namespace Microsoft.ML.Tests
         // None right now.
 
         // Predictors that do not implement IFeatureContributionMapper: 
-        // BinaryClassification: FastForest, LightGbm, FastTree, StochasticDualCoordinateAscent, StochasticGradientDescent, SymbolicStochasticGradientDescent
+        // BinaryClassification: FastForest, LightGbm, FastTree, StochasticDualCoordinateAscent, StochasticGradientDescent, SymbolicStochasticGradientDescent, GAM
         // MulticlassClassification: StochasticDualCoordinateAscent, LogistiRegression, LightGbm, NaiveBayes, OneVersusAll
         // Clustering: Kmeans
 
