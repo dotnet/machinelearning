@@ -17,6 +17,23 @@ namespace Microsoft.ML.Runtime.LightGBM
         private int _lastPushedRowID;
         public IntPtr Handle => _handle;
 
+        /// <summary>
+        /// Create a <see cref="Dataset"/> for training and prediciton under LightGBM framework.
+        /// </summary>
+        /// <param name="sampleValuePerColumn">A 2-D array which encodes the whole data matrix. sampleValuePerColumn[i] stores
+        /// the non-zero values of the i-th feature. It is similar to CSC format for storing sparse matrix.</param>
+        /// <param name="sampleIndicesPerColumn">A 2-D array which encodes example indexes of non-zero features stored in sampleValuePerColumn.
+        /// The sampleIndicesPerColumn[i][j]-th example has a non-zero i-th feature whose value is sampleValuePerColumn[i][j].</param>
+        /// <param name="numCol">Total number of features in the training data. Its the first dimension of sampleValuePerColumn;
+        /// that is, the last column in the data is sampleValuePerColumn[numCol-1].</param>
+        /// <param name="sampleNonZeroCntPerColumn">sampleNonZeroCntPerColumn[i] is the size of sampleValuePerColumn[i].</param>
+        /// <param name="numSampleRow">The number of sampled examples when creating the training matrix using sampling without replacement.
+        /// It's identical to numTotalRow if sampling.</param>
+        /// <param name="numTotalRow">The number of total training examples.</param>
+        /// <param name="param">LightGBM parameter used at https://github.com/Microsoft/LightGBM/blob/c920e6345bcb41fc1ec6ac338f5437034b9f0d38/src/c_api.cpp#L421. </param>
+        /// <param name="labels">Labels of the original data set. It contains numTotalRow values.</param>
+        /// <param name="weights">Example weights of the original data set. It contains numTotalRow values.</param>
+        /// <param name="groups">Group identifiers of the original data set. It contains numTotalRow values.</param>
         public unsafe Dataset(double[][] sampleValuePerColumn,
             int[][] sampleIndicesPerColumn,
             int numCol,
