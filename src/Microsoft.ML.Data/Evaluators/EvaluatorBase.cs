@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// This is a base class for TLC evaluators. It implements both of the <see cref="IEvaluator"/> methods: <see cref="Evaluate"/> and
-    ///  <see cref="GetPerInstanceMetrics"/>. Note that the input <see cref="RoleMappedData"/> is assumed to contain all the column
+    ///  <see cref="GetPerInstanceMetricsCore"/>. Note that the input <see cref="RoleMappedData"/> is assumed to contain all the column
     /// roles needed for evaluation, including the score column.
     /// </summary>
     public abstract partial class EvaluatorBase<TAgg> : IEvaluator
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Data
             Host = env.Register(registrationName);
         }
 
-        public Dictionary<string, IDataView> Evaluate(RoleMappedData data)
+        Dictionary<string, IDataView> IEvaluator.Evaluate(RoleMappedData data)
         {
             CheckColumnTypes(data.Schema);
             Func<int, bool> activeCols = GetActiveCols(data.Schema);
@@ -209,7 +209,10 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        public abstract IDataTransform GetPerInstanceMetrics(RoleMappedData data);
+        IDataTransform IEvaluator.GetPerInstanceMetrics(RoleMappedData data) => GetPerInstanceMetricsCore(data);
+
+        [BestFriend]
+        internal abstract IDataTransform GetPerInstanceMetricsCore(RoleMappedData data);
 
         public abstract IEnumerable<MetricColumn> GetOverallMetricColumns();
 
@@ -440,7 +443,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public override IDataTransform GetPerInstanceMetrics(RoleMappedData data)
+        internal override IDataTransform GetPerInstanceMetricsCore(RoleMappedData data)
         {
             var mapper = CreatePerInstanceRowMapper(data.Schema);
             return new RowToRowMapperTransform(Host, data.Data, mapper, null);

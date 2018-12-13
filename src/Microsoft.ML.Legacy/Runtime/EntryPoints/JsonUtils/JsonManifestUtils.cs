@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return result;
         }
 
-        public static JObject BuildEntryPointManifest(IExceptionContext ectx, ComponentCatalog.EntryPointInfo entryPointInfo, ComponentCatalog catalog)
+        private static JObject BuildEntryPointManifest(IExceptionContext ectx, ComponentCatalog.EntryPointInfo entryPointInfo, ComponentCatalog catalog)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(entryPointInfo, nameof(entryPointInfo));
@@ -365,12 +365,6 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     jo = new JObject();
                     jo[FieldNames.Kind] = typeEnum.ToString();
                     jo[FieldNames.ComponentKind] = kind;
-                    return jo;
-                case TlcModule.DataKind.State:
-                    jo = new JObject();
-                    var typeString = $"{type}".Replace("Microsoft.ML.Runtime.Interfaces.", "");
-                    jo[FieldNames.Kind] = "C# Object";
-                    jo[FieldNames.ItemType] = typeString;
                     return jo;
                 default:
                     ectx.Assert(false);

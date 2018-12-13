@@ -18,7 +18,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 {
-    public sealed class BootstrapSelector : BaseSubsetSelector<BootstrapSelector.Arguments>
+    internal sealed class BootstrapSelector : BaseSubsetSelector<BootstrapSelector.Arguments>
     {
         public const string UserName = "Bootstrap Selector";
         public const string LoadName = "BootstrapSelector";

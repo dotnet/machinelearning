@@ -92,7 +92,7 @@
     },
     {
       "Name": "Data.PredictorModelArrayConverter",
-      "Desc": "Create an array variable of IPredictorModel",
+      "Desc": "Create an array variable of PredictorModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -471,7 +471,7 @@
     },
     {
       "Name": "Data.TransformModelArrayConverter",
-      "Desc": "Create an array variable of ITransformModel",
+      "Desc": "Create an array variable of TransformModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [

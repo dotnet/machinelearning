@@ -56,7 +56,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             public bool? LoadPredictor;
 
             [Argument(ArgumentType.Required, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
-            public ITransformModel Model;
+            public TransformModel Model;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The targeted ONNX version. It can be either \"Stable\" or \"Experimental\". If \"Experimental\" is used, produced model can contain components that is not officially supported in ONNX standard.", SortOrder = 11)]
             public OnnxVersion OnnxVersion;
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly bool? _loadPredictor;
         private readonly HashSet<string> _inputsToDrop;
         private readonly HashSet<string> _outputsToDrop;
-        private readonly ITransformModel _model;
+        private readonly TransformModel _model;
         private const string ProducerName = "ML.NET";
         private const long ModelVersion = 0;
 

@@ -29,7 +29,7 @@ namespace Microsoft.ML.Transforms.Text
             var xf = TextFeaturizingEstimator.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms.Text
             var xf = ML.Transforms.Text.WordTokenizingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms.Text
             var xf = NgramExtractingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms.Text
             var xf = ValueToKeyMappingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms.Text
             var view = SentimentAnalyzingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Transforms.Text
             var view = TokenizingByCharactersTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms.Text
 
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms.Text
             var view = WordEmbeddingsExtractingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

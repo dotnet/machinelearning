@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class SubGraphOutput
         {
             [Argument(ArgumentType.Required, HelpText = "The model", SortOrder = 1)]
-            public Var<IPredictorModel> Model;
+            public Var<PredictorModel> Model;
         }
 
         public sealed class Arguments
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class Output
         {
             [TlcModule.Output(Desc = "The trained model", SortOrder = 1)]
-            public IPredictorModel[] PredictorModel;
+            public PredictorModel[] PredictorModel;
 
             [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
             public IDataView[] Warnings;
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var cvSplitOutput = exp.Add(cvSplit);
             subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
 
-            var predModelVars = new Var<IPredictorModel>[input.NumFolds];
+            var predModelVars = new Var<PredictorModel>[input.NumFolds];
             var warningsVars = new Var<IDataView>[input.NumFolds];
             var overallMetricsVars = new Var<IDataView>[input.NumFolds];
             var instanceMetricsVars = new Var<IDataView>[input.NumFolds];
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     VarName = mapping[input.Inputs.Data.VarName]
                 };
-                args.Outputs.Model = new Var<IPredictorModel>
+                args.Outputs.Model = new Var<PredictorModel>
                 {
                     VarName = mapping[input.Outputs.Model.VarName]
                 };
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 inputBindingMap.Add(nameof(args.TestingData), new List<ParameterBinding> { testingData });
                 inputMap.Add(testingData, new ArrayIndexVariableBinding(cvSplitOutput.TestData.VarName, k));
                 var outputMap = new Dictionary<string, string>();
-                var predModelVar = new Var<IPredictorModel>();
+                var predModelVar = new Var<PredictorModel>();
                 outputMap.Add(nameof(TrainTestBinaryMacro.Output.PredictorModel), predModelVar.VarName);
                 predModelVars[k] = predModelVar;
                 var warningVar = new Var<IDataView>();
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             var outModels = new Legacy.Data.PredictorModelArrayConverter
             {
-                Model = new ArrayVar<IPredictorModel>(predModelVars)
+                Model = new ArrayVar<PredictorModel>(predModelVars)
             };
             var outModelsOutput = new Legacy.Data.PredictorModelArrayConverter.Output();
             outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
@@ -214,39 +214,39 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class ArrayIPredictorModelInput
         {
             [Argument(ArgumentType.Required, HelpText = "The models", SortOrder = 1)]
-            public IPredictorModel[] Model;
+            public PredictorModel[] Model;
         }
 
-        public sealed class ArrayIPredictorModelOutput
+        public sealed class ArrayPredictorModelOutput
         {
             [TlcModule.Output(Desc = "The model array", SortOrder = 1)]
-            public IPredictorModel[] OutputModel;
+            public PredictorModel[] OutputModel;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create an array variable of IPredictorModel", Name = "Data.PredictorModelArrayConverter")]
-        public static ArrayIPredictorModelOutput MakeArray(IHostEnvironment env, ArrayIPredictorModelInput input)
+        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(PredictorModel), Name = "Data.PredictorModelArrayConverter")]
+        public static ArrayPredictorModelOutput MakeArray(IHostEnvironment env, ArrayIPredictorModelInput input)
         {
-            var result = new ArrayIPredictorModelOutput
+            var result = new ArrayPredictorModelOutput
             {
                 OutputModel = input.Model
             };
             return result;
         }
 
-        public sealed class ArrayITransformModelInput
+        public sealed class ArrayTransformModelInput
         {
             [Argument(ArgumentType.Required, HelpText = "The models", SortOrder = 1)]
-            public ITransformModel[] TransformModel;
+            public TransformModel[] TransformModel;
         }
 
         public sealed class ArrayITransformModelOutput
         {
             [TlcModule.Output(Desc = "The model array", SortOrder = 1)]
-            public ITransformModel[] OutputModel;
+            public TransformModel[] OutputModel;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create an array variable of ITransformModel", Name = "Data.TransformModelArrayConverter")]
-        public static ArrayITransformModelOutput MakeArray(IHostEnvironment env, ArrayITransformModelInput input)
+        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(TransformModel), Name = "Data.TransformModelArrayConverter")]
+        public static ArrayITransformModelOutput MakeArray(IHostEnvironment env, ArrayTransformModelInput input)
         {
             var result = new ArrayITransformModelOutput
             {
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView[] OutputData;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create an array variable of IDataView", Name = "Data.IDataViewArrayConverter")]
+        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(IDataView), Name = "Data.IDataViewArrayConverter")]
         public static ArrayIDataViewOutput MakeArray(IHostEnvironment env, ArrayIDataViewInput input)
         {
             var result = new ArrayIDataViewOutput

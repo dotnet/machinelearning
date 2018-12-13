@@ -293,7 +293,7 @@ namespace Microsoft.ML.Transforms.Categorical
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = OneHotEncodingTransformer.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer",
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms.Categorical
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = OneHotHashEncoding.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.TextToKeyConverter",
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.Categorical
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = ValueToKeyMappingTransformer.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.KeyToTextConverter",
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Transforms.Categorical
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = KeyToValueMappingTransformer.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

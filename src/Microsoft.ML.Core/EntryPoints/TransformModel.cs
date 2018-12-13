@@ -12,48 +12,59 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// <summary>
     /// Interface for standard transform model port type.
     /// </summary>
-    public interface ITransformModel
+    public abstract class TransformModel
     {
+        [BestFriend]
+        private protected TransformModel()
+        {
+        }
+
         /// <summary>
         /// The input schema that this transform model was originally instantiated on.
         /// Note that the schema may have columns that aren't needed by this transform model.
-        /// If an IDataView exists with this schema, then applying this transform model to it
+        /// If an <see cref="IDataView"/> exists with this schema, then applying this transform model to it
         /// shouldn't fail because of column type issues.
         /// </summary>
         // REVIEW: Would be nice to be able to trim this to the minimum needed somehow. Note
         // however that doing so may cause issues for composing transform models. For example,
         // if transform model A needs column X and model B needs Y, that is NOT produced by A,
         // then trimming A's input schema would cause composition to fail.
-        Schema InputSchema { get; }
+        [BestFriend]
+        internal abstract Schema InputSchema { get; }
 
         /// <summary>
         /// The output schema that this transform model was originally instantiated on. The schema resulting
-        /// from <see cref="Apply(IHostEnvironment, ITransformModel)"/> may differ from this, similarly to how
+        /// from <see cref="Apply(IHostEnvironment, TransformModel)"/> may differ from this, similarly to how
         /// <see cref="InputSchema"/> may differ from the schema of dataviews we apply this transform model to.
         /// </summary>
-        Schema OutputSchema { get; }
+        [BestFriend]
+        internal abstract Schema OutputSchema { get; }
 
         /// <summary>
         /// Apply the transform(s) in the model to the given input data.
         /// </summary>
-        IDataView Apply(IHostEnvironment env, IDataView input);
+        [BestFriend]
+        internal abstract IDataView Apply(IHostEnvironment env, IDataView input);
 
         /// <summary>
         /// Apply the transform(s) in the model to the given transform model.
         /// </summary>
-        ITransformModel Apply(IHostEnvironment env, ITransformModel input);
+        [BestFriend]
+        internal abstract TransformModel Apply(IHostEnvironment env, TransformModel input);
 
         /// <summary>
         /// Save the model to the given stream.
         /// </summary>
-        void Save(IHostEnvironment env, Stream stream);
+        [BestFriend]
+        internal abstract void Save(IHostEnvironment env, Stream stream);
 
         /// <summary>
         /// Returns the transform model as an <see cref="IRowToRowMapper"/> that can output a row
         /// given a row with the same schema as <see cref="InputSchema"/>.
         /// </summary>
         /// <returns>The transform model as an <see cref="IRowToRowMapper"/>. If not all transforms
-        /// in the pipeline are <see cref="IRowToRowMapper"/> then it returns null.</returns>
-        IRowToRowMapper AsRowToRowMapper(IExceptionContext ectx);
+        /// in the pipeline are <see cref="IRowToRowMapper"/> then it returns <see langword="null"/>.</returns>
+        [BestFriend]
+        internal abstract IRowToRowMapper AsRowToRowMapper(IExceptionContext ectx);
     }
 }

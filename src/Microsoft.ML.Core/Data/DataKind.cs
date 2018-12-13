@@ -52,7 +52,8 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Extension methods related to the DataKind enum.
     /// </summary>
-    public static class DataKindExtensions
+    [BestFriend]
+    internal static class DataKindExtensions
     {
         public const DataKind KindMin = DataKind.I1;
         public const DataKind KindLim = DataKind.U16 + 1;

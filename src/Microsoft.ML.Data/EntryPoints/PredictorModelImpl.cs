@@ -14,58 +14,60 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     /// <summary>
-    /// This class encapsulates the predictor and a preceding transform model.
+    /// This class encapsulates the predictor and a preceding transform model, as the concrete and hidden
+    /// implementation of <see cref="PredictorModel"/>.
     /// </summary>
-    public sealed class PredictorModel : IPredictorModel
+    [BestFriend]
+    internal sealed class PredictorModelImpl : PredictorModel
     {
-        private readonly IPredictor _predictor;
-        private readonly ITransformModel _transformModel;
         private readonly KeyValuePair<RoleMappedSchema.ColumnRole, string>[] _roleMappings;
 
-        public ITransformModel TransformModel { get { return _transformModel; } }
+        internal override TransformModel TransformModel { get; }
 
-        public IPredictor Predictor { get { return _predictor; } }
+        internal override IPredictor Predictor { get; }
 
-        public PredictorModel(IHostEnvironment env, RoleMappedData trainingData, IDataView startingData, IPredictor predictor)
+        [BestFriend]
+        internal PredictorModelImpl(IHostEnvironment env, RoleMappedData trainingData, IDataView startingData, IPredictor predictor)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(trainingData, nameof(trainingData));
             env.CheckValue(predictor, nameof(predictor));
 
-            _transformModel = new TransformModel(env, trainingData.Data, startingData);
+            TransformModel = new TransformModelImpl(env, trainingData.Data, startingData);
             _roleMappings = trainingData.Schema.GetColumnRoleNames().ToArray();
-            _predictor = predictor;
+            Predictor = predictor;
         }
 
-        public PredictorModel(IHostEnvironment env, Stream stream)
+        [BestFriend]
+        internal PredictorModelImpl(IHostEnvironment env, Stream stream)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(stream, nameof(stream));
             using (var ch = env.Start("Loading predictor model"))
             {
                 // REVIEW: address the asymmetry in the way we're loading and saving the model.
-                _transformModel = new TransformModel(env, stream);
+                TransformModel = new TransformModelImpl(env, stream);
 
                 var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, stream);
                 env.CheckDecode(roles != null, "Predictor model must contain role mappings");
                 _roleMappings = roles.ToArray();
 
-                _predictor = ModelFileUtils.LoadPredictorOrNull(env, stream);
-                env.CheckDecode(_predictor != null, "Predictor model must contain a predictor");
+                Predictor = ModelFileUtils.LoadPredictorOrNull(env, stream);
+                env.CheckDecode(Predictor != null, "Predictor model must contain a predictor");
             }
         }
 
-        private PredictorModel(ITransformModel transformModel, IPredictor predictor, KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roleMappings)
+        private PredictorModelImpl(TransformModel transformModel, IPredictor predictor, KeyValuePair<RoleMappedSchema.ColumnRole, string>[] roleMappings)
         {
             Contracts.AssertValue(transformModel);
             Contracts.AssertValue(predictor);
             Contracts.AssertValue(roleMappings);
-            _transformModel = transformModel;
-            _predictor = predictor;
+            TransformModel = transformModel;
+            Predictor = predictor;
             _roleMappings = roleMappings;
         }
 
-        public void Save(IHostEnvironment env, Stream stream)
+        internal override void Save(IHostEnvironment env, Stream stream)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(stream, nameof(stream));
@@ -77,37 +79,37 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 // (we use the TrainUtils.SaveModel that does all three).
 
                 // Create the chain of transforms for saving.
-                IDataView data = new EmptyDataView(env, _transformModel.InputSchema);
-                data = _transformModel.Apply(env, data);
+                IDataView data = new EmptyDataView(env, TransformModel.InputSchema);
+                data = TransformModel.Apply(env, data);
                 var roleMappedData = new RoleMappedData(data, _roleMappings, opt: true);
 
-                TrainUtils.SaveModel(env, ch, stream, _predictor, roleMappedData);
+                TrainUtils.SaveModel(env, ch, stream, Predictor, roleMappedData);
             }
         }
 
-        public IPredictorModel Apply(IHostEnvironment env, ITransformModel transformModel)
+        internal override PredictorModel Apply(IHostEnvironment env, TransformModel transformModel)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(transformModel, nameof(transformModel));
-            ITransformModel newTransformModel = _transformModel.Apply(env, transformModel);
+            TransformModel newTransformModel = TransformModel.Apply(env, transformModel);
             Contracts.AssertValue(newTransformModel);
-            return new PredictorModel(newTransformModel, _predictor, _roleMappings);
+            return new PredictorModelImpl(newTransformModel, Predictor, _roleMappings);
         }
 
-        public void PrepareData(IHostEnvironment env, IDataView input, out RoleMappedData roleMappedData, out IPredictor predictor)
+        internal override void PrepareData(IHostEnvironment env, IDataView input, out RoleMappedData roleMappedData, out IPredictor predictor)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
-            input = _transformModel.Apply(env, input);
+            input = TransformModel.Apply(env, input);
             roleMappedData = new RoleMappedData(input, _roleMappings, opt: true);
-            predictor = _predictor;
+            predictor = Predictor;
         }
 
-        public string[] GetLabelInfo(IHostEnvironment env, out ColumnType labelType)
+        internal override string[] GetLabelInfo(IHostEnvironment env, out ColumnType labelType)
         {
             Contracts.CheckValue(env, nameof(env));
-            var predictor = _predictor;
+            var predictor = Predictor;
             var calibrated = predictor as CalibratedPredictorBase;
             while (calibrated != null)
             {
@@ -135,10 +137,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return null;
         }
 
-        public RoleMappedSchema GetTrainingSchema(IHostEnvironment env)
+        internal override RoleMappedSchema GetTrainingSchema(IHostEnvironment env)
         {
             Contracts.CheckValue(env, nameof(env));
-            var predInput = _transformModel.Apply(env, new EmptyDataView(env, _transformModel.InputSchema));
+            var predInput = TransformModel.Apply(env, new EmptyDataView(env, TransformModel.InputSchema));
             var trainRms = new RoleMappedSchema(predInput.Schema, _roleMappings, opt: true);
             return trainRms;
         }

@@ -279,7 +279,7 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        protected abstract void CheckLabels(RoleMappedData data);
+        private protected abstract void CheckLabels(RoleMappedData data);
 
         private void TrainCore(IChannel ch, RoleMappedData data, TrainStateBase state)
         {

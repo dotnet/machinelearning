@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = ColumnConcatenatingTransformer.Create(env, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.ColumnSelector", Desc = "Selects a set of columns, dropping all others", UserName = "Select Columns")]
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = new ColumnSelectingTransformer(env, input.KeepColumns, input.DropColumns, input.KeepHidden, input.IgnoreMissing).Transform(input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.ColumnCopier", Desc = "Duplicates columns from the dataset", UserName = ColumnCopyingTransformer.UserName, ShortName = ColumnCopyingTransformer.ShortName)]
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
             var xf = ColumnCopyingTransformer.Create(env, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

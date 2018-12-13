@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return new CommonOutputs.TransformOutput()
             {
 
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

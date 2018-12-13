@@ -104,7 +104,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
         }
 
-        protected override PkpdPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override PkpdPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train M * (M+1) / 2 models arranged as a lower triangular matrix.
             var predModels = new TDistPredictor[count][];

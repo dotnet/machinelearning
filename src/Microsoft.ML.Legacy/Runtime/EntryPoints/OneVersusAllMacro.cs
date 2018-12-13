@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class SubGraphOutput
         {
             [Argument(ArgumentType.Required, HelpText = "The predictor model for the subgraph exemplar.", SortOrder = 1)]
-            public Var<IPredictorModel> Model;
+            public Var<PredictorModel> Model;
         }
 
         public sealed class Arguments : LearnerInputBaseWithWeight
@@ -46,10 +46,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class Output
         {
             [TlcModule.Output(Desc = "The trained multiclass model", SortOrder = 1)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
-        private static Tuple<List<EntryPointNode>, Var<IPredictorModel>> ProcessClass(IHostEnvironment env, int k, string label, Arguments input, EntryPointNode node)
+        private static Tuple<List<EntryPointNode>, Var<PredictorModel>> ProcessClass(IHostEnvironment env, int k, string label, Arguments input, EntryPointNode node)
         {
             var macroNodes = new List<EntryPointNode>();
 
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Rename all the variables such that they don't conflict with the ones in the outer run context.
             var mapping = new Dictionary<string, string>();
             bool foundOutput = false;
-            Var<IPredictorModel> predModelVar = null;
+            Var<PredictorModel> predModelVar = null;
             foreach (var entryPointNode in subGraphNodes)
             {
                 // Rename variables in input/output maps, and in subgraph context.
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 // Grab a hold of output model from this subgraph.
                 if (entryPointNode.GetOutputVariableName("PredictorModel") is string mvn)
                 {
-                    predModelVar = new Var<IPredictorModel> { VarName = mvn };
+                    predModelVar = new Var<PredictorModel> { VarName = mvn };
                     foundOutput = true;
                 }
 
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Add training subgraph to our context.
             macroNodes.AddRange(subGraphNodes);
 
-            return new Tuple<List<EntryPointNode>, Var<IPredictorModel>>(macroNodes, predModelVar);
+            return new Tuple<List<EntryPointNode>, Var<PredictorModel>>(macroNodes, predModelVar);
         }
 
         private static int GetNumberOfClasses(IHostEnvironment env, Arguments input, out string label)
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.Assert(input.Nodes.Count > 0);
 
             var numClasses = GetNumberOfClasses(env, input, out var label);
-            var predModelVars = new Var<IPredictorModel>[numClasses];
+            var predModelVars = new Var<PredictorModel>[numClasses];
 
             // This will be the final resulting list of nodes that is returned from the macro.
             var macroNodes = new List<EntryPointNode>();
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var macroExperiment = new Experiment(env);
             var combinerNode = new Legacy.Models.OvaModelCombiner
             {
-                ModelArray = new ArrayVar<IPredictorModel>(predModelVars),
+                ModelArray = new ArrayVar<PredictorModel>(predModelVars),
                 TrainingData = new Var<IDataView> { VarName = node.GetInputVariable(nameof(input.TrainingData)).VariableName },
                 Caching = (Legacy.Models.CachingOptions)input.Caching,
                 FeatureColumn = input.FeatureColumn,
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 throw new Exception("Cannot find OVA model output.");
 
             // Map macro's output back to OVA combiner (so OVA combiner will set the value on our output variable).
-            var combinerOutput = new Legacy.Models.OvaModelCombiner.Output { PredictorModel = new Var<IPredictorModel> { VarName = outVariableName } };
+            var combinerOutput = new Legacy.Models.OvaModelCombiner.Output { PredictorModel = new Var<PredictorModel> { VarName = outVariableName } };
 
             // Add to experiment (must be done AFTER we assign variable name to output).
             macroExperiment.Add(combinerNode, combinerOutput);

@@ -818,7 +818,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(float));
@@ -994,7 +994,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
 
-        public ValueMapper<TSrc, VBuffer<float>> GetFeatureContributionMapper<TSrc, TDstContributions>
+        ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDstContributions>
             (int top, int bottom, bool normalize)
         {
             Contracts.Check(typeof(TSrc) == typeof(VBuffer<float>));
