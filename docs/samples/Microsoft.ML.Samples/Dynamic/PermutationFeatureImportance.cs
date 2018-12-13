@@ -86,18 +86,18 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Print out the permutation results, with the model weights, in order of their impact:
             // Expected console output for 100 permutations:
-            //    Feature             Model Weight    Change in R-Squared    Standard Error of the Mean Change in R-Squared
-            //    RoomsPerDwelling      53.35           -0.4294                 0.003252
-            //    EmploymentDistance   -19.21           -0.2666                 0.001997
-            //    NitricOxides         -19.32           -0.1543                 0.001559
-            //    HighwayDistance        6.11           -0.118                  0.001168
-            //    TeacherRatio         -21.92           -0.1079                 0.001392
-            //    TaxRate               -8.68           -0.1004                 0.001191
-            //    CrimesPerCapita      -16.37           -0.05994                0.001023
-            //    PercentPre40s         -4.52           -0.0375                 0.0007154
-            //    PercentResidental      3.91           -0.01961                0.000492
-            //    CharlesRiver           3.49           -0.01845                0.0004909
-            //    PercentNonRetail      -1.17           -0.001916               0.0001628
+            //    Feature             Model Weight    Change in R-Squared    95% Confidence Interval of the Mean
+            //    RoomsPerDwelling      53.35           -0.4298                 0.005705
+            //    EmploymentDistance   -19.21           -0.2609                 0.004591
+            //    NitricOxides         -19.32           -0.1569                 0.003701
+            //    HighwayDistance        6.11           -0.1173                 0.0025
+            //    TeacherRatio         -21.92           -0.1106                 0.002207
+            //    TaxRate               -8.68           -0.1008                 0.002083
+            //    CrimesPerCapita      -16.37           -0.05988                0.00178
+            //    PercentPre40s         -4.52           -0.03836                0.001432
+            //    PercentResidental      3.91           -0.02006                0.001079
+            //    CharlesRiver           3.49           -0.01839                0.000841
+            //    PercentNonRetail      -1.17           -0.002111               0.0003176
             //
             // Let's dig into these results a little bit. First, if you look at the weights of the model, they generally correlate
             // with the results of PFI, but there are some significant misorderings. For example, "Tax Rate" and "Highway Distance" 
@@ -111,11 +111,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // model weights don't reflect the same feature importance as PFI is that the solution to the linear model redistributes 
             // weights between correlated variables in unpredictable ways, so that the weights themselves are no longer a good 
             // measure of feature importance.
-            Console.WriteLine("Feature\tModel Weight\tChange in R-Squared\tStandard Error of the Mean Change in R-Squared");
+            Console.WriteLine("Feature\tModel Weight\tChange in R-Squared\t95% Confidence Interval of the Mean");
             var rSquared = permutationMetrics.Select(x => x.RSquared).ToArray(); // Fetch r-squared as an array
             foreach (int i in sortedIndices)
             {
-                Console.WriteLine($"{featureNames[i]}\t{weights[i]:0.00}\t{rSquared[i].Mean:G4}\t{rSquared[i].StandardError:G4}");
+                Console.WriteLine($"{featureNames[i]}\t{weights[i]:0.00}\t{rSquared[i].Mean:G4}\t{1.96 * rSquared[i].StandardError:G4}");
             }
         }
 
