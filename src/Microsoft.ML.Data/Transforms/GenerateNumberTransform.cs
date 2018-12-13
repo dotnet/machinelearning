@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
             public readonly TauswortheHybrid.State[] States;
 
             private Bindings(bool[] useCounter, TauswortheHybrid.State[] states,
-                ISchema input, bool user, string[] names)
+                Schema input, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.Assert(Utils.Size(useCounter) == InfoCount);
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
                 States = states;
             }
 
-            public static Bindings Create(Arguments args, ISchema input)
+            public static Bindings Create(Arguments args, Schema input)
             {
                 var names = new string[args.Column.Length];
                 var useCounter = new bool[args.Column.Length];
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(useCounter, states, input, true, names);
             }
 
-            public static Bindings Create(ModelLoadContext ctx, ISchema input)
+            public static Bindings Create(ModelLoadContext ctx, Schema input)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -473,7 +473,7 @@ namespace Microsoft.ML.Transforms
             var xf = new GenerateNumberTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }

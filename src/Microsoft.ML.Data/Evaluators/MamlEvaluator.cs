@@ -15,9 +15,10 @@ namespace Microsoft.ML.Runtime.Data
     /// and the <see cref="EvaluateTransform"/> to evaluate, print and save the results.
     /// The input <see cref="RoleMappedData"/> to the <see cref="IEvaluator.Evaluate"/> and the <see cref="IEvaluator.GetPerInstanceMetrics"/> methods
     /// should be assumed to contain only the following column roles: label, group, weight and name. Any other columns needed for
-    /// evaluation should be searched for by name in the <see cref="ISchema"/>.
+    /// evaluation should be searched for by name in the <see cref="RoleMappedData.Schema"/>.
     /// </summary>
-    public interface IMamlEvaluator : IEvaluator
+    [BestFriend]
+    internal interface IMamlEvaluator : IEvaluator
     {
         /// <summary>
         /// Print the aggregate metrics to the console.
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// A base class implementation of <see cref="IMamlEvaluator"/>. The <see cref="Evaluate"/> and <see cref="GetPerInstanceMetrics"/>
+    /// A base class implementation of <see cref="IMamlEvaluator"/>. The <see cref="Evaluate"/> and <see cref="IEvaluator.GetPerInstanceMetrics"/>
     /// methods create a new <see cref="RoleMappedData"/> containing all the columns needed for evaluation, and call the corresponding
     /// methods on an <see cref="IEvaluator"/> of the appropriate type.
     /// </summary>
@@ -81,7 +82,8 @@ namespace Microsoft.ML.Runtime.Data
         protected readonly string WeightCol;
         protected readonly string[] StratCols;
 
-        protected abstract IEvaluator Evaluator { get; }
+        [BestFriend]
+        private protected abstract IEvaluator Evaluator { get; }
 
         protected MamlEvaluatorBase(ArgumentsBase args, IHostEnvironment env, string scoreColumnKind, string registrationName)
         {
@@ -94,7 +96,7 @@ namespace Microsoft.ML.Runtime.Data
             StratCols = args.StratColumn;
         }
 
-        public Dictionary<string, IDataView> Evaluate(RoleMappedData data)
+        Dictionary<string, IDataView> IEvaluator.Evaluate(RoleMappedData data)
         {
             data = new RoleMappedData(data.Data, GetInputColumnRoles(data.Schema, needStrat: true));
             return Evaluator.Evaluate(data);
@@ -140,7 +142,7 @@ namespace Microsoft.ML.Runtime.Data
             return Evaluator.GetOverallMetricColumns();
         }
 
-        public void PrintFoldResults(IChannel ch, Dictionary<string, IDataView> metrics)
+        void IMamlEvaluator.PrintFoldResults(IChannel ch, Dictionary<string, IDataView> metrics)
         {
             Host.CheckValue(ch, nameof(ch));
             Host.CheckValue(metrics, nameof(metrics));
@@ -167,7 +169,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(unweightedMetrics);
         }
 
-        public IDataView GetOverallResults(params IDataView[] metrics)
+        IDataView IMamlEvaluator.GetOverallResults(params IDataView[] metrics)
         {
             Host.CheckNonEmpty(metrics, nameof(metrics));
             var overall = CombineOverallMetricsCore(metrics);
@@ -184,7 +186,7 @@ namespace Microsoft.ML.Runtime.Data
             return overall;
         }
 
-        public void PrintAdditionalMetrics(IChannel ch, params Dictionary<string, IDataView>[] metrics)
+        void IMamlEvaluator.PrintAdditionalMetrics(IChannel ch, params Dictionary<string, IDataView>[] metrics)
         {
             Host.CheckValue(ch, nameof(ch));
             Host.CheckNonEmpty(metrics, nameof(metrics));
@@ -199,7 +201,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public IDataTransform GetPerInstanceMetrics(RoleMappedData scoredData)
+        IDataTransform IEvaluator.GetPerInstanceMetrics(RoleMappedData scoredData)
         {
             Host.AssertValue(scoredData);
 
@@ -261,7 +263,7 @@ namespace Microsoft.ML.Runtime.Data
             return perInst;
         }
 
-        public IDataView GetPerInstanceDataViewToSave(RoleMappedData perInstance)
+        IDataView IMamlEvaluator.GetPerInstanceDataViewToSave(RoleMappedData perInstance)
         {
             Host.CheckValue(perInstance, nameof(perInstance));
             var data = new RoleMappedData(perInstance.Data, GetInputColumnRoles(perInstance.Schema, needName: true));

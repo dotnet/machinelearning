@@ -25,7 +25,6 @@
     <!-- More projects are referenced than are currently tested. Future updates to -->
     <!-- these tests will test more of the surface area from F#, so leaving these references -->
     <!-- here for now. -->
-    <ProjectReference Include="..\..\src\Microsoft.ML.Api\Microsoft.ML.Api.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />

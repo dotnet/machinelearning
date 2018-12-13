@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using System;
@@ -17,14 +17,14 @@ namespace Microsoft.ML.Legacy
     [Obsolete]
     public sealed class ScorerPipelineStep : ILearningPipelineDataStep
     {
-        public ScorerPipelineStep(Var<IDataView> data, Var<ITransformModel> model)
+        public ScorerPipelineStep(Var<IDataView> data, Var<TransformModel> model)
         {
             Data = data;
             Model = model;
         }
 
         public Var<IDataView> Data { get; }
-        public Var<ITransformModel> Model { get; }
+        public Var<TransformModel> Model { get; }
     }
 
     /// <summary>
@@ -167,8 +167,8 @@ namespace Microsoft.ML.Legacy
             Experiment experiment = environment.CreateExperiment();
             ILearningPipelineStep step = null;
             List<ILearningPipelineLoader> loaders = new List<ILearningPipelineLoader>();
-            List<Var<ITransformModel>> transformModels = new List<Var<ITransformModel>>();
-            Var<ITransformModel> lastTransformModel = null;
+            List<Var<TransformModel>> transformModels = new List<Var<TransformModel>>();
+            Var<TransformModel> lastTransformModel = null;
 
             foreach (ILearningPipelineItem currentItem in this)
             {
@@ -183,13 +183,13 @@ namespace Microsoft.ML.Legacy
                     if (lastTransformModel != null)
                         transformModels.Insert(0, lastTransformModel);
 
-                    Var<IPredictorModel> predictorModel;
+                    Var<PredictorModel> predictorModel;
                     if (transformModels.Count != 0)
                     {
                         var localModelInput = new Transforms.ManyHeterogeneousModelCombiner
                         {
                             PredictorModel = predictorDataStep.Model,
-                            TransformModels = new ArrayVar<ITransformModel>(transformModels.ToArray())
+                            TransformModels = new ArrayVar<TransformModel>(transformModels.ToArray())
                         };
                         var localModelOutput = experiment.Add(localModelInput);
                         predictorModel = localModelOutput.PredictorModel;
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Legacy
 
                 var modelInput = new Transforms.ModelCombiner
                 {
-                    Models = new ArrayVar<ITransformModel>(transformModels.ToArray())
+                    Models = new ArrayVar<TransformModel>(transformModels.ToArray())
                 };
 
                 var modelOutput = experiment.Add(modelInput);
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Legacy
             }
             experiment.Run();
 
-            ITransformModel model = experiment.GetOutput(lastTransformModel);
+            TransformModel model = experiment.GetOutput(lastTransformModel);
             BatchPredictionEngine<TInput, TOutput> predictor;
             using (var memoryStream = new MemoryStream())
             {

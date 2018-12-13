@@ -17,7 +17,8 @@ using System.Threading;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public static class EvaluateUtils
+    [BestFriend]
+    internal static class EvaluateUtils
     {
         public struct AggregatedMetric
         {
@@ -81,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Lambda used as validator/filter in calls to GetMaxMetadataKind.
-        private static bool CheckScoreColumnKindIsKnown(ISchema schema, int col)
+        private static bool CheckScoreColumnKindIsKnown(Schema schema, int col)
         {
             var columnType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, col);
             if (columnType == null || !columnType.IsText)
@@ -209,7 +210,7 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        private static bool IsScoreColumnKind(IExceptionContext ectx, ISchema schema, int col, string kind)
+        private static bool IsScoreColumnKind(IExceptionContext ectx, Schema schema, int col, string kind)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));
@@ -546,7 +547,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static int[][] MapKeys<T>(ISchema[] schemas, string columnName, bool isVec,
+        private static int[][] MapKeys<T>(Schema[] schemas, string columnName, bool isVec,
             int[] indices, Dictionary<ReadOnlyMemory<char>, int> reconciledKeyNames)
         {
             Contracts.AssertValue(indices);
@@ -723,7 +724,7 @@ namespace Microsoft.ML.Runtime.Data
                         (ref VBuffer<ReadOnlyMemory<char>> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, index, ref dst);
                 }
                 views[i] = LambdaColumnMapper.Create(env, "ReconcileKeyValues", views[i], columnName, columnName,
-                    type, new VectorType(keyType, type.AsVector), mapper, keyValueGetter, slotNamesGetter);
+                    type, new VectorType(keyType, type as VectorType), mapper, keyValueGetter, slotNamesGetter);
             }
         }
 
@@ -974,7 +975,7 @@ namespace Microsoft.ML.Runtime.Data
         private static IDataView AddVarLengthColumn<TSrc>(IHostEnvironment env, IDataView idv, string variableSizeVectorColumnName, ColumnType typeSrc)
         {
             return LambdaColumnMapper.Create(env, "ChangeToVarLength", idv, variableSizeVectorColumnName,
-                       variableSizeVectorColumnName + "_VarLength", typeSrc, new VectorType(typeSrc.ItemType.AsPrimitive),
+                       variableSizeVectorColumnName + "_VarLength", typeSrc, new VectorType((PrimitiveType)typeSrc.ItemType),
                        (in VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
         }
 
@@ -1273,7 +1274,7 @@ namespace Microsoft.ML.Runtime.Data
             return idv;
         }
 
-        private static void AddVectorColumn(this ArrayDataViewBuilder dvBldr, IHostEnvironment env, ISchema schema,
+        private static void AddVectorColumn(this ArrayDataViewBuilder dvBldr, IHostEnvironment env, Schema schema,
             AggregatedMetric[] agg, bool hasStdev, int numFolds, int iMetric, int i, ColumnType type, string columnName)
         {
             var vectorMetrics = new double[type.VectorSize];
@@ -1301,7 +1302,7 @@ namespace Microsoft.ML.Runtime.Data
                 dvBldr.AddColumn(columnName, getSlotNames, NumberType.R8, new[] { vectorMetrics });
         }
 
-        private static void AddScalarColumn(this ArrayDataViewBuilder dvBldr, ISchema schema, AggregatedMetric[] agg, bool hasStdev, int numFolds, int iMetric)
+        private static void AddScalarColumn(this ArrayDataViewBuilder dvBldr, Schema schema, AggregatedMetric[] agg, bool hasStdev, int numFolds, int iMetric)
         {
             Contracts.AssertValue(dvBldr);
 

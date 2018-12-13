@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector
 {
-    public interface ISubsetSelector
+    internal interface ISubsetSelector
     {
         void Initialize(RoleMappedData data, int size, int batchSize, Single validationDatasetProportion);
         IEnumerable<Batch> GetBatches(Random rand);
@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
     public delegate void SignatureEnsembleDataSelector();
 
     [TlcModule.ComponentKind("EnsembleSubsetSelector")]
-    public interface ISupportSubsetSelectorFactory : IComponentFactory<ISubsetSelector>
+    internal interface ISupportSubsetSelectorFactory : IComponentFactory<ISubsetSelector>
     {
     }
 }

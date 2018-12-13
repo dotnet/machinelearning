@@ -132,7 +132,10 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
-            /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+            /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+            /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+            /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+            /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
             public ColumnInfo(string input, string output,
                 int hashBits = HashingEstimator.Defaults.HashBits,
                 uint seed = HashingEstimator.Defaults.Seed,
@@ -203,7 +206,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly ColumnType[] _kvTypes;
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
             if (!HashingEstimator.IsColumnTypeValid(type))
@@ -216,7 +219,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        private ColumnType GetOutputType(ISchema inputSchema, ColumnInfo column)
+        private ColumnType GetOutputType(Schema inputSchema, ColumnInfo column)
         {
             var keyCount = column.HashBits < 31 ? 1 << column.HashBits : 0;
             inputSchema.TryGetColumnIndex(column.Input, out int srcCol);
@@ -367,8 +370,8 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -431,7 +434,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 case DataKind.U8:
                     return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
                 case DataKind.U16:
-                    return MakeScalarHashGetter<UInt128, HashU16>(input, srcCol, seed, mask);
+                    return MakeScalarHashGetter<RowId, HashU16>(input, srcCol, seed, mask);
                 case DataKind.I1:
                     return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
                 case DataKind.I2:
@@ -484,7 +487,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 case DataKind.U8:
                     return ComposeGetterVecCore<ulong, HashU8>(input, iinfo, srcCol, srcType);
                 case DataKind.U16:
-                    return ComposeGetterVecCore<UInt128, HashU16>(input, iinfo, srcCol, srcType);
+                    return ComposeGetterVecCore<RowId, HashU16>(input, iinfo, srcCol, srcType);
                 case DataKind.I1:
                     return ComposeGetterVecCore<sbyte, HashI1>(input, iinfo, srcCol, srcType);
                 case DataKind.I2:
@@ -648,19 +651,19 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private readonly struct HashU16: IHasher<UInt128>
+        private readonly struct HashU16: IHasher<RowId>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public uint HashCore(uint seed, uint mask, in UInt128 value)
+            public uint HashCore(uint seed, uint mask, in RowId value)
             {
-                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Lo));
-                var hi = Utils.GetHi(value.Lo);
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Low));
+                var hi = Utils.GetHi(value.Low);
                 if (hi != 0)
                     hash = Hashing.MurmurRound(hash, hi);
-                if (value.Hi != 0)
+                if (value.High != 0)
                 {
-                    hash = Hashing.MurmurRound(hash, Utils.GetLo(value.Hi));
-                    hi = Utils.GetHi(value.Hi);
+                    hash = Hashing.MurmurRound(hash, Utils.GetLo(value.High));
+                    hi = Utils.GetHi(value.High);
                     if (hi != 0)
                         hash = Hashing.MurmurRound(hash, hi);
                 }
@@ -911,7 +914,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _parent._keyValues[i].CopyTo(ref dst);
                 };
-                builder.AddKeyValues(_parent._kvTypes[i].VectorSize, _parent._kvTypes[i].ItemType.AsPrimitive, getter);
+                builder.AddKeyValues(_parent._kvTypes[i].VectorSize, (PrimitiveType)_parent._kvTypes[i].ItemType, getter);
             }
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);
@@ -1211,7 +1214,10 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="inputColumn">Name of the column to be transformed.</param>
         /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
-        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public HashingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash)
             : this(env, new HashingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, hashBits: hashBits, invertHash: invertHash))

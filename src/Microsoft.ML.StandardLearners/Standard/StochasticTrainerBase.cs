@@ -35,15 +35,15 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
-                linInitPred = linInitPred ?? initPred as LinearPredictor;
+                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
+                linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
                 return TrainCore(ch, preparedData, linInitPred, weightSetCount);
             }
         }
 
-        protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
+        private protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
         {
             int maxThreads = Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
             if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < maxThreads)
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weightSetCount">Gets the length of weights and bias array. For binary classification and regression,
         /// this is 1. For multi-class classification, this equals the number of classes on the label.</param>
         /// <returns>A potentially modified version of <paramref name="examples"/></returns>
-        protected RoleMappedData PrepareDataFromTrainingExamples(IChannel ch, RoleMappedData examples, out int weightSetCount)
+        private protected RoleMappedData PrepareDataFromTrainingExamples(IChannel ch, RoleMappedData examples, out int weightSetCount)
         {
             ch.AssertValue(examples);
             CheckLabel(examples, out weightSetCount);
@@ -95,8 +95,8 @@ namespace Microsoft.ML.Runtime.Learners
             return examplesToFeedTrain;
         }
 
-        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount);
+        private protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount);
 
-        protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
+        private protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
     }
 }

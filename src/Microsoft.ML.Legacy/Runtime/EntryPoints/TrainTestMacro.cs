@@ -27,10 +27,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class SubGraphOutput
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
-            public Var<IPredictorModel> PredictorModel;
+            public Var<PredictorModel> PredictorModel;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]
-            public Var<ITransformModel> TransformModel;
+            public Var<TransformModel> TransformModel;
         }
 
         public sealed class Arguments
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             [TlcModule.OptionalInput]
             [Argument(ArgumentType.AtMostOnce, HelpText = "The aggregated transform model from the pipeline before this command, to apply to the test data, and also include in the final model, together with the predictor model.", SortOrder = 3)]
-            public Var<ITransformModel> TransformModel = null;
+            public Var<TransformModel> TransformModel = null;
 
             [Argument(ArgumentType.Required, HelpText = "The training subgraph", SortOrder = 4)]
             public JArray Nodes;
@@ -82,11 +82,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
                 "provided as the Input.TransformModel.", SortOrder = 1)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
 
             [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
                 "provided as the Input.TransformModel.", SortOrder = 2)]
-            public ITransformModel TransformModel;
+            public TransformModel TransformModel;
 
             [TlcModule.Output(Desc = "Warning dataset", SortOrder = 3)]
             public IDataView Warnings;
@@ -174,10 +174,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     var modelCombine = new ML.Legacy.Transforms.ModelCombiner
                     {
-                        Models = new ArrayVar<ITransformModel>(
-                                new Var<ITransformModel>[] {
-                                    new Var<ITransformModel> { VarName = transformModelVarName.VariableName },
-                                    new Var<ITransformModel> { VarName = outputVarName} }
+                        Models = new ArrayVar<TransformModel>(
+                                new Var<TransformModel>[] {
+                                    new Var<TransformModel> { VarName = transformModelVarName.VariableName },
+                                    new Var<TransformModel> { VarName = outputVarName} }
                                 )
                     };
 

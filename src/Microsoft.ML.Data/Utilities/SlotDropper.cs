@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// Constructs slot dropper. It expects the slot ranges to be in sorted order and not overlap.
         /// </summary>
         /// <param name="srcLength">0 indicates variable sized vector.</param>
-        /// <param name="slotsMin">Lower limit of ranges to be dropped.</param>
+        /// <param name="slotsMin">Low limit of ranges to be dropped.</param>
         /// <param name="slotsMax">Upper limit of ranges to be dropped. </param>
         public SlotDropper(int srcLength, int[] slotsMin, int[] slotsMax)
         {

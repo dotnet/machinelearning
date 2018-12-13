@@ -306,8 +306,9 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     ColumnInfo srcInfo = _parent._cols[c];
                     var ctype = srcInfo.Type.ItemType;
-                    _ectx.Assert(ctype.IsPrimitive);
-                    _slotTypes[c] = new VectorType(ctype.AsPrimitive, _parent.RowCount);
+                    var primitiveType = ctype as PrimitiveType;
+                    _ectx.Assert(primitiveType != null);
+                    _slotTypes[c] = new VectorType(primitiveType, _parent.RowCount);
                 }
 
                 AsSchema = Schema.Create(this);
@@ -895,7 +896,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var splitter = _splitters[i];
                     // Don't activate input source columns if none of the resulting columns were selected.
-                    bool isActive = pred == null || Enumerable.Range(offset, splitter.ColumnCount).Any(c => pred(c));
+                    bool isActive = pred == null || Enumerable.Range(offset, splitter.AsSchema.ColumnCount).Any(c => pred(c));
                     if (isActive)
                     {
                         activeSplitters[i] = isActive;
@@ -1189,7 +1190,7 @@ namespace Microsoft.ML.Runtime.Data
                     public ColumnSplitter(IDataView view, int col, int[] lims)
                         : base(view, col)
                     {
-                        var type = _view.Schema.GetColumnType(SrcCol).AsVector;
+                        var type = _view.Schema.GetColumnType(SrcCol) as VectorType;
                         // Only valid use is for two or more slices.
                         Contracts.Assert(Utils.Size(lims) >= 2);
                         Contracts.AssertValue(type);
@@ -1569,12 +1570,12 @@ namespace Microsoft.ML.Runtime.Data
                     return getter;
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter() => GetId;
+                public override ValueGetter<RowId> GetIdGetter() => GetId;
 
-                private void GetId(ref UInt128 id)
+                private void GetId(ref RowId id)
                 {
                     Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
-                    id = new UInt128((ulong)_slotCursor.SlotIndex, 0);
+                    id = new RowId((ulong)_slotCursor.SlotIndex, 0);
                 }
 
                 protected override bool MoveNextCore() => _slotCursor.MoveNext();
@@ -1614,12 +1615,12 @@ namespace Microsoft.ML.Runtime.Data
                 return _slotCursor.GetGetterWithVectorType<TValue>(Ch);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter() => GetId;
+            public override ValueGetter<RowId> GetIdGetter() => GetId;
 
-            private void GetId(ref UInt128 id)
+            private void GetId(ref RowId id)
             {
                 Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
-                id = new UInt128((ulong)_slotCursor.SlotIndex, 0);
+                id = new RowId((ulong)_slotCursor.SlotIndex, 0);
             }
 
             protected override bool MoveNextCore() => _slotCursor.MoveNext();
@@ -1633,11 +1634,11 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         internal sealed class SimpleTransposeSchema : ITransposeSchema
         {
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
 
             public int ColumnCount { get { return _schema.ColumnCount; } }
 
-            public SimpleTransposeSchema(ISchema schema)
+            public SimpleTransposeSchema(Schema schema)
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 _schema = schema;

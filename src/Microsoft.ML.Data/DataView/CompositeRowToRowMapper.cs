@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.Data
             public override long Position => _row.Position;
             public override long Batch => _row.Batch;
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
-            public override ValueGetter<UInt128> GetIdGetter() => _row.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _row.GetIdGetter();
             public override bool IsColumnActive(int col) => _pred(col);
         }
     }

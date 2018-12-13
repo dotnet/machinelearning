@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms
                 _take = take;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return Input.GetIdGetter();
             }

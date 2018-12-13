@@ -840,9 +840,8 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.Assert((DataKind)(byte)type.RawKind == type.RawKind);
                     ctx.Writer.Write((byte)type.RawKind);
                     ctx.Writer.WriteBoolByte(type.IsKey);
-                    if (type.IsKey)
+                    if (type is KeyType key)
                     {
-                        var key = type.AsKey;
                         ctx.Writer.WriteBoolByte(key.Contiguous);
                         ctx.Writer.Write(key.Min);
                         ctx.Writer.Write(key.Count);

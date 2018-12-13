@@ -491,8 +491,8 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -528,7 +528,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        private void CheckInput(ISchema inputSchema, int col, out int srcCol)
+        private void CheckInput(Schema inputSchema, int col, out int srcCol)
         {
             Contracts.AssertValue(inputSchema);
             Contracts.Assert(0 <= col && col < Columns.Length);
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             CheckInputColumn(inputSchema, col, srcCol);
         }
 
-        private void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             const string expectedType = "scalar or known-size vector of R4";
 

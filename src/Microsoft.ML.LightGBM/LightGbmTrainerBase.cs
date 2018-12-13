@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.NetworkFree());
         }
 
-        protected virtual void CheckDataValid(IChannel ch, RoleMappedData data)
+        private protected virtual void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             data.CheckFeatureFloatVector();
             ch.CheckParam(data.Schema.Label != null, nameof(data), "Need a label column");
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <summary>
         /// Convert Nan labels. Default way is converting them to zero.
         /// </summary>
-        protected virtual void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
+        private protected virtual void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
         {
             for (int i = 0; i < labels.Length; ++i)
             {
@@ -896,7 +896,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <summary>
         /// This function will be called before training. It will check the label/group and add parameters for specific applications.
         /// </summary>
-        protected abstract void CheckAndUpdateParametersBeforeTraining(IChannel ch,
+        private protected abstract void CheckAndUpdateParametersBeforeTraining(IChannel ch,
             RoleMappedData data, float[] labels, int[] groups);
     }
 }

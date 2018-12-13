@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -113,7 +114,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static void PrintSchema(TextWriter writer, Arguments args, ISchema schema, ITransposeSchema tschema)
+        private static void PrintSchema(TextWriter writer, Arguments args, Schema schema, ITransposeSchema tschema)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValue(args);
@@ -179,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static void ShowMetadata(IndentedTextWriter itw, ISchema schema, int col, bool showVals)
+        private static void ShowMetadata(IndentedTextWriter itw, Schema schema, int col, bool showVals)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
@@ -205,7 +206,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static void ShowMetadataValue(IndentedTextWriter itw, ISchema schema, int col, string kind, ColumnType type)
+        private static void ShowMetadataValue(IndentedTextWriter itw, Schema schema, int col, string kind, ColumnType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
@@ -220,12 +221,12 @@ namespace Microsoft.ML.Runtime.Data
                 return;
             }
 
-            Action<IndentedTextWriter, ISchema, int, string, ColumnType> del = ShowMetadataValue<int>;
+            Action<IndentedTextWriter, Schema, int, string, ColumnType> del = ShowMetadataValue<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
             meth.Invoke(null, new object[] { itw, schema, col, kind, type });
         }
 
-        private static void ShowMetadataValue<T>(IndentedTextWriter itw, ISchema schema, int col, string kind, ColumnType type)
+        private static void ShowMetadataValue<T>(IndentedTextWriter itw, Schema schema, int col, string kind, ColumnType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
@@ -245,7 +246,7 @@ namespace Microsoft.ML.Runtime.Data
             itw.Write(": '{0}'", sb);
         }
 
-        private static void ShowMetadataValueVec(IndentedTextWriter itw, ISchema schema, int col, string kind, ColumnType type)
+        private static void ShowMetadataValueVec(IndentedTextWriter itw, Schema schema, int col, string kind, ColumnType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
@@ -260,12 +261,12 @@ namespace Microsoft.ML.Runtime.Data
                 return;
             }
 
-            Action<IndentedTextWriter, ISchema, int, string, ColumnType> del = ShowMetadataValueVec<int>;
+            Action<IndentedTextWriter, Schema, int, string, ColumnType> del = ShowMetadataValueVec<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
             meth.Invoke(null, new object[] { itw, schema, col, kind, type });
         }
 
-        private static void ShowMetadataValueVec<T>(IndentedTextWriter itw, ISchema schema, int col, string kind, ColumnType type)
+        private static void ShowMetadataValueVec<T>(IndentedTextWriter itw, Schema schema, int col, string kind, ColumnType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);

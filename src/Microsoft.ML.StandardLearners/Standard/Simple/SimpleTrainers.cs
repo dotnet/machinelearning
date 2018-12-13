@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers
         IValueMapperDist,
         ICanSaveModel
     {
-        public const string LoaderSignature = "RandomPredictor";
+        internal const string LoaderSignature = "RandomPredictor";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -129,9 +129,11 @@ namespace Microsoft.ML.Trainers
         private readonly Random _random;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
-        public ColumnType DistType => NumberType.Float;
+
+        private readonly ColumnType _inputType;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => NumberType.Float;
+        ColumnType IValueMapperDist.DistType => NumberType.Float;
 
         public RandomPredictor(IHostEnvironment env, int seed)
             : base(env, LoaderSignature)
@@ -141,7 +143,7 @@ namespace Microsoft.ML.Trainers
             _instanceLock = new object();
             _random = RandomUtils.Create(_seed);
 
-            InputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberType.Float);
         }
 
         /// <summary>
@@ -158,10 +160,10 @@ namespace Microsoft.ML.Trainers
             _instanceLock = new object();
             _random = RandomUtils.Create(_seed);
 
-            InputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberType.Float);
         }
 
-        public static RandomPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static RandomPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -184,7 +186,7 @@ namespace Microsoft.ML.Trainers
             ctx.Writer.Write(_seed);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));
@@ -193,7 +195,7 @@ namespace Microsoft.ML.Trainers
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
+        ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));
@@ -371,7 +373,7 @@ namespace Microsoft.ML.Trainers
             _prob = prob;
             _raw = 2 * _prob - 1;       // This could be other functions -- logodds for instance
 
-            InputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberType.Float);
         }
 
         private PriorPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -385,7 +387,7 @@ namespace Microsoft.ML.Trainers
 
             _raw = 2 * _prob - 1;
 
-            InputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberType.Float);
         }
 
         public static PriorPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -408,13 +410,14 @@ namespace Microsoft.ML.Trainers
             ctx.Writer.Write(_prob);
         }
 
-        public override PredictionKind PredictionKind
-        { get { return PredictionKind.BinaryClassification; } }
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
-        public ColumnType DistType => NumberType.Float;
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        private readonly ColumnType _inputType;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => NumberType.Float;
+        ColumnType IValueMapperDist.DistType => NumberType.Float;
+
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));
@@ -423,7 +426,7 @@ namespace Microsoft.ML.Trainers
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
+        ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));

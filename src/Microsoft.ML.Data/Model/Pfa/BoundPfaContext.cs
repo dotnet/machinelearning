@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
         /// <param name="toOutput">The columns to output</param>
         /// <returns>Returns a complete PFA program, where the output will correspond to the subset
         /// of columns from <paramref name="schema"/>.</returns>
-        public JObject Finalize(ISchema schema, params string[] toOutput)
+        public JObject Finalize(Schema schema, params string[] toOutput)
         {
             _host.CheckValue(schema, nameof(schema));
             _host.CheckValue(toOutput, nameof(toOutput));
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             return Pfa.Finalize();
         }
 
-        private JToken PfaTypeOrNullForColumn(ISchema schema, int col)
+        private JToken PfaTypeOrNullForColumn(Schema schema, int col)
         {
             _host.AssertValue(schema);
             _host.Assert(0 <= col && col < schema.ColumnCount);

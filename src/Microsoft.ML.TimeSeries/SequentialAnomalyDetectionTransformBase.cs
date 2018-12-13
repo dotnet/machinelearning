@@ -571,18 +571,18 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
-        private protected override IStatefulRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
+        private protected override IStatefulRowMapper MakeRowMapper(Schema schema) => new Mapper(Host, this, schema);
 
         private sealed class Mapper : IStatefulRowMapper
         {
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
-            private readonly ISchema _parentSchema;
+            private readonly Schema _parentSchema;
             private readonly int _inputColumnIndex;
             private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
             private TState State { get; set; }
 
-            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
+            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, Schema inputSchema)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register(nameof(Mapper));

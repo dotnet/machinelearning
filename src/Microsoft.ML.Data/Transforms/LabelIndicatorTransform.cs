@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

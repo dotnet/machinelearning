@@ -18,7 +18,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 {
-    public sealed class RandomPartitionSelector : BaseSubsetSelector<RandomPartitionSelector.Arguments>
+    internal sealed class RandomPartitionSelector : BaseSubsetSelector<RandomPartitionSelector.Arguments>
     {
         public const string UserName = "Random Partition Selector";
         public const string LoadName = "RandomPartitionSelector";

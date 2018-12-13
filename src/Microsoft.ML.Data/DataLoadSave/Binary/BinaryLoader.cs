@@ -754,7 +754,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private const ulong SlotNamesVersion = 0x0001000100010003;
 
         /// <summary>
-        /// Lower inclusive bound of versions this reader can read.
+        /// Low inclusive bound of versions this reader can read.
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 
@@ -2104,15 +2104,15 @@ namespace Microsoft.ML.Runtime.Data.IO
                 return del;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 if (_blockShuffleOrder == null)
                 {
                     return
-                        (ref UInt128 val) =>
+                        (ref RowId val) =>
                         {
                             Ch.Check(IsGood, "Cannot call ID getter in current state");
-                            val = new UInt128((ulong)Position, 0);
+                            val = new RowId((ulong)Position, 0);
                         };
                 }
                 // Find the index of the last block. Because the last block is unevenly sized,
@@ -2128,7 +2128,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 long firstPositionToCorrect = ((long)lastBlockIdx * _rowsPerBlock) + _rowsInLastBlock;
 
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
                         long pos = Position;
@@ -2138,7 +2138,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                         long blockPos = (long)_rowsPerBlock * _blockShuffleOrder[(int)(pos / _rowsPerBlock)];
                         blockPos += (pos % _rowsPerBlock);
                         Ch.Assert(0 <= blockPos && blockPos < _parent.RowCount);
-                        val = new UInt128((ulong)blockPos, 0);
+                        val = new RowId((ulong)blockPos, 0);
                     };
             }
         }

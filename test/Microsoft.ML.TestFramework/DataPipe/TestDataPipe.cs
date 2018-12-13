@@ -603,6 +603,201 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void SavePipeWordHashUnordered()
+        {
+            string pathData = GetDataPath(@"lm.sample.txt");
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{header+ col=One:TX:4 col=Two:TX:3 rows=101}",
+                    "xf=WordHashBag{bits=5 ord=- col=F1:One col=F2:One,One}",
+                    "xf=SelectColumns{keepcol=F1 keepcol=F2}",
+                },
+                (pipe) =>
+                {
+                    // Verify that F2 = 2 * F1
+                    using (var c = pipe.GetRowCursor(col => true))
+                    {
+                        int col1;
+                        bool tmp1 = c.Schema.TryGetColumnIndex("F1", out col1);
+                        if (!Check(tmp1, "Column F1 not found!"))
+                            return;
+                        int col2;
+                        bool tmp2 = c.Schema.TryGetColumnIndex("F2", out col2);
+                        if (!Check(tmp2, "Column F2 not found!"))
+                            return;
+
+                        var get1 = c.GetGetter<VBuffer<Float>>(col1);
+                        var get2 = c.GetGetter<VBuffer<Float>>(col2);
+                        VBuffer<Float> bag1 = default(VBuffer<Float>);
+                        VBuffer<Float> bag2 = default(VBuffer<Float>);
+                        while (c.MoveNext())
+                        {
+                            get1(ref bag1);
+                            get2(ref bag2);
+                            if (!CompareVec(in bag1, in bag2, bag1.Length, (x1, x2) => 2 * x1 == x2))
+                            {
+                                Fail("Values don't match");
+                                return;
+                            }
+                        }
+                    }
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeInvertHash()
+        {
+            string pathData = DeleteOutputPath("SavePipe","InvertHash-Data.txt");
+            // Four columns. First "A" with words starting with "a" (for easy identification), second
+            // "K" with an explicit key type, third "E" a column that has all missing values, and fourth
+            // "B" with words starting with "b".
+            File.WriteAllLines(pathData,
+                new[]
+                {
+                    "annie ate an ant\t5\t4\t\tbob bakes brownies",
+                    "an angry ant\t3\t3\t\tbob bowled badly",
+                    "\t10\t\t\t\"\""
+                });
+            const string loader = "loader=Text{col=A:TX:0 col=K:U4[3-10]:1-2 col=KS:U4[3-10]:2 col=B:TX:4 col=E:TX:3}";
+            TestCore(pathData, true,
+                new[] {
+                    loader,
+                    "xf=WordHashBag{bits=3 ord- col=F1:A,B col=F2:B,A ih=-1 ngram=2}",
+                    "xf=WordHashBag{bits=3 ord- col=F3:A,B col=F4:B,A ih=1 ngram=2}",
+                    "xf=SelectColumns{keepCol=A keepCol=B keepCol=F1 keepCol=F2 keepCol=F3 keepCol=F4}"
+                }, suffix: "1");
+            // Same, but using per column overrides, including one column without inversion.
+            TestCore(pathData, true,
+                new[] {
+                    loader,
+                    "xf=WordHashBag{bits=3 ord- col=F1:A,B col=F2:B,A ih=-1 ngram=2 col={name=F3 src=A src=B ih=1}  col={name=F4 src=B src=A ih=1} col={name=F5 src=A src=B ih=0}}",
+                    "xf=SelectColumns{keepCol=A keepCol=B keepCol=F1 keepCol=F2 keepCol=F3 keepCol=F4 keepCol=F5}"
+                }, suffix: "2");
+            // Do to the key column.
+            TestCore(pathData, true,
+                new[] {
+                    loader,
+                    "xf=CatHash{ih=-1 col=KH:2:K col={name=KHU bits=2 src=K ordered-}}",
+                    "xf=SelectColumns{keepCol=K keepCol=KH keepCol=KHU}"
+                }, suffix: "3");
+            // Do to the key column combining it with the text column.
+            TestCore(pathData, true,
+                new[] {
+                    loader,
+                    "xf=WordToken{col=AT:A}",
+                    "xf=Hash{bits=2 ih=-1 col=AH:AT col=KH:K}",
+                    "xf=NGramHash{bits=3 ih=-1 col=N3:AH,KH seed=2}",
+                    "xf=NGramHash{bits=10 ih=-1 col=N10:AH,KH seed=2}",
+                    "xf=SelectColumns{keepCol=A keepCol=K keepCol=KH keepCol=N3 keepCol=N10}"
+                }, suffix: "4");
+            // Do for scalar non-vector columns.
+            TestCore(pathData, true,
+                new[] {
+                    loader,
+                    "xf=CatHash{bits=3 ih=-1 col=AH:A col=KH:KS}",
+                    "xf=SelectColumns{keepCol=A keepCol=KS keepCol=AH keepCol=KH}"
+                }, suffix: "5");
+
+            // Do with full-length grams only.
+            TestCore(pathData, true,
+                new[] {
+                    loader,
+                    "xf=WordToken{col=AT:A}",
+                    "xf=Hash{col=AH:AT}",
+                    "xf=NgramHash{col=AH ngram=3 hashbits=4 all- ih=3}",
+                    "xf=SelectColumns{keepCol=AH}"
+                }, suffix: "6");
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeWordBag()
+        {
+            string pathData = GetDataPath(@"lm.sample.txt");
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{header+ col=Label:TX:0 col=One:TX:4 col=Vec:TX:3,4 rows=101}",
+                    "xf=AutoLabel{col=Label}",
+                    "xf=WordBag{max=10",
+                    "  col=F11:One col={name=F12 src=One ngram=4 max=3 max=4 max=5} col={name=F13 src=One ngram=3 skips=2}",
+                    "  col=F21:Vec col={name=F22 src=Vec max=20 ngram=4}}",
+                    "xf=WordBag{col={name=F23 src=Vec max=10 ngram=3 skips=2}}",
+                    "xf=SelectColumns{keepCol=Label keepCol=F21 keepCol=F22 keepCol=F23 keepCol=F11 keepCol=F12 keepCol=F13}",
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeWordBagTfIdf()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "Sample-Data.txt");
+            File.WriteAllLines(pathData,
+                new[]
+                {
+                    "Text",
+                    "A B C D",
+                    "E F G H",
+                    "E A",
+                    "E F G H K L A B",
+                    "A B"
+                });
+
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{header=+ col=Text:TX:0}",
+                    "xf=WordBag{col={name=TfIdf src=Text max=5 ngram=3 weighting=TfIdf}}",
+                    "xf=SelectColumns{keepCol=TfIdf}",
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeWordBagManyToOne()
+        {
+            string pathData = GetDataPath(@"lm.sample.txt");
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{header+ col=One:TX:4 col=Vec:TX:3,4 rows=101}",
+                    "xf=WordBag{col={name=WB1 src=One max=10 ngram=3 skips=2} col={name=WB2 src=One src=One max=10 ngram=3 skips=2}}",
+                    "xf=SelectColumns{keepCol=WB1 keepCol=WB2}"
+                },
+                (pipe) =>
+                {
+                    // Verify that WB2 = 2 * WB1
+                    using (var c = pipe.GetRowCursor(col => true))
+                    {
+                        var b1 = default(VBuffer<Float>);
+                        var b2 = default(VBuffer<Float>);
+                        int col1, col2;
+                        if (!c.Schema.TryGetColumnIndex("WB1", out col1) || !c.Schema.TryGetColumnIndex("WB2", out col2))
+                        {
+                            Fail("Did not find expected columns");
+                            return;
+                        }
+                        var get1 = c.GetGetter<VBuffer<Float>>(col1);
+                        var get2 = c.GetGetter<VBuffer<Float>>(col2);
+                        while (c.MoveNext())
+                        {
+                            get1(ref b1);
+                            get2(ref b2);
+                            if (!CompareVec(in b1, in b2, b1.Length, (x1, x2) => 2 * x1 == x2))
+                            {
+                                Fail("Unexpected values in row {0}", c.Position);
+                                break;
+                            }
+                        }
+                    }
+                });
+
+            Done();
+        }
+
+        [Fact]
         public void SavePipeWithKey()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -924,6 +1119,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             }
         }
+
+      
     }
     /// <summary>
     /// A class for non-baseline data pipe tests.

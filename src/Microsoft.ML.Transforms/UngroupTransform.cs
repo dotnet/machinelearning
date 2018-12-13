@@ -271,7 +271,7 @@ namespace Microsoft.ML.Transforms
                 AsSchema = Schema.Create(this);
             }
 
-            private static void CheckAndBind(IExceptionContext ectx, ISchema inputSchema,
+            private static void CheckAndBind(IExceptionContext ectx, Schema inputSchema,
                 string[] pivotColumns, out PivotColumnInfo[] infos)
             {
                 Contracts.AssertValueOrNull(ectx);
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms
                     if (!colType.IsVector || !colType.ItemType.IsPrimitive)
                         throw ectx.ExceptUserArg(nameof(Arguments.Column),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, colType);
-                    infos[i] = new PivotColumnInfo(name, col, colType.VectorSize, colType.ItemType.AsPrimitive);
+                    infos[i] = new PivotColumnInfo(name, col, colType.VectorSize, (PrimitiveType)colType.ItemType);
                 }
             }
 
@@ -512,13 +512,13 @@ namespace Microsoft.ML.Transforms
                 get { return Input.Batch; }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 var idGetter = Input.GetIdGetter();
-                return (ref UInt128 val) =>
+                return (ref RowId val) =>
                 {
                     idGetter(ref val);
-                    val = val.Combine(new UInt128((ulong)_pivotColPosition, 0));
+                    val = val.Combine(new RowId((ulong)_pivotColPosition, 0));
                 };
             }
 
@@ -670,7 +670,7 @@ namespace Microsoft.ML.Transforms
             var view = new UngroupTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

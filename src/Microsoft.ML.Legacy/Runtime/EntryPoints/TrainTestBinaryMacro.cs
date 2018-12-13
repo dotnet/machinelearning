@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class SubGraphOutput
         {
             [Argument(ArgumentType.Required, HelpText = "The model", SortOrder = 1)]
-            public Var<IPredictorModel> Model;
+            public Var<PredictorModel> Model;
         }
 
         public sealed class Arguments
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class Output
         {
             [TlcModule.Output(Desc = "The trained model", SortOrder = 1)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
 
             [TlcModule.Output(Desc = "Warning dataset", SortOrder = 2)]
             public IDataView Warnings;

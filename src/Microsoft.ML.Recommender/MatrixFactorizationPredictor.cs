@@ -212,7 +212,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// ratings from users to items, the mappers maps user ID and item ID to the rating of that
         /// item given by the user.
         /// </summary>
-        public ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut> GetMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>()
+        private ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut> GetMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>()
         {
             string msg = null;
             msg = "Invalid " + nameof(TMatrixColumnIndexIn) + " in GetMapper: " + typeof(TMatrixColumnIndexIn);
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 yield return RecommenderUtils.MatrixRowIndexKind.Bind(_matrixRowIndexColumnName);
             }
 
-            private void CheckInputSchema(ISchema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
+            private void CheckInputSchema(Schema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
             {
                 // See if matrix-column-index role's type matches the one expected in the trained predictor
                 var type = schema.GetColumnType(matrixColumnIndexCol);

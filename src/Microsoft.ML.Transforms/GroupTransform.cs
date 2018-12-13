@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms
                 new[] { MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues };
 
             private readonly IExceptionContext _ectx;
-            private readonly ISchema _input;
+            private readonly Schema _input;
 
             private readonly string[] _groupColumns;
             private readonly string[] _keepColumns;
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Transforms
 
             public Schema AsSchema { get; }
 
-            public GroupSchema(IExceptionContext ectx, ISchema inputSchema, string[] groupColumns, string[] keepColumns)
+            public GroupSchema(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
             {
                 Contracts.AssertValue(ectx);
                 _ectx = ectx;
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Transforms
                 AsSchema = Schema.Create(this);
             }
 
-            public GroupSchema(ISchema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
+            public GroupSchema(Schema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(env);
                 _ectx = env.Register(LoaderSignature);
@@ -281,14 +281,15 @@ namespace Microsoft.ML.Transforms
                 return map;
             }
 
-            private static ColumnType[] BuildColumnTypes(ISchema input, int[] ids)
+            private static ColumnType[] BuildColumnTypes(Schema input, int[] ids)
             {
                 var types = new ColumnType[ids.Length];
                 for (int i = 0; i < ids.Length; i++)
                 {
                     var srcType = input.GetColumnType(ids[i]);
-                    Contracts.Assert(srcType.IsPrimitive);
-                    types[i] = new VectorType(srcType.AsPrimitive, size: 0);
+                    var primitiveType = srcType as PrimitiveType;
+                    Contracts.Assert(primitiveType != null);
+                    types[i] = new VectorType(primitiveType, size: 0);
                 }
                 return types;
             }
@@ -320,7 +321,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private int[] GetColumnIds(ISchema schema, string[] names, Func<string, Exception> except)
+            private int[] GetColumnIds(Schema schema, string[] names, Func<string, Exception> except)
             {
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(names);
@@ -596,7 +597,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return _trailingCursor.GetIdGetter();
             }
@@ -708,7 +709,7 @@ namespace Microsoft.ML.Transforms
             var view = new GroupTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

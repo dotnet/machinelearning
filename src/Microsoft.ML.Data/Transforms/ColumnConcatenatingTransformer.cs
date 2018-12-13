@@ -404,8 +404,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(inputSchema);
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Runtime.Data
                     hasSlotNames = false;
                 }
 
-                return new BoundColumn(InputSchema, _parent._columns[iinfo], sources, new VectorType(itemType.AsPrimitive, totalSize),
+                return new BoundColumn(InputSchema, _parent._columns[iinfo], sources, new VectorType((PrimitiveType)itemType, totalSize),
                     isNormalized, hasSlotNames, hasCategoricals, totalSize, catCount);
             }
 

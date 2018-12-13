@@ -12,7 +12,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
@@ -117,7 +116,7 @@ namespace Microsoft.ML.Transforms.Text
 
         public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
             if (!TokenizingByCharactersEstimator.IsColumnTypeValid(type))
@@ -180,8 +179,8 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 

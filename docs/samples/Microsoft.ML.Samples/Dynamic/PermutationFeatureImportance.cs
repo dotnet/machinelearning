@@ -116,7 +116,7 @@ namespace Microsoft.ML.Samples.Dynamic
             }
         }
 
-        private static float[] GetLinearModelWeights(LinearRegressionPredictor linearModel)
+        private static float[] GetLinearModelWeights(LinearRegressionModelParameters linearModel)
         {
             var weights = new VBuffer<float>();
             linearModel.GetFeatureWeights(ref weights);
