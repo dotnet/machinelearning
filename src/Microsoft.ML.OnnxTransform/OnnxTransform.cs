@@ -230,9 +230,9 @@ namespace Microsoft.ML.Transforms
             // it will be runtime exception, util Maps and Sequences become supported.
             if (shape.Count > 0)
             {
-                return shape.Select(x => (x < 0) ? 1 : x).ToArray();
+                return shape.Select(x => (x <= 0) ? 1 : x).ToArray();
             }
-            return new[] { 0 };
+            return new[] { 1 };
         }
 
         private sealed class Mapper : MapperBase
