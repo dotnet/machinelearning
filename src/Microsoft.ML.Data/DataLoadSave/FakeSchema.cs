@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.ML.Data.DataLoadSave
 {
@@ -17,16 +14,10 @@ namespace Microsoft.ML.Data.DataLoadSave
     /// It will pretend that all vector sizes are equal to 10, all key value counts are equal to 10,
     /// and all values are defaults (for metadata).
     /// </summary>
-    internal sealed class FakeSchemaFactory
+    internal static class FakeSchemaFactory
     {
         private const int AllVectorSizes = 10;
         private const int AllKeySizes = 10;
-        private readonly SchemaShape _shape;
-
-        public FakeSchemaFactory(SchemaShape inputShape)
-        {
-            _shape = inputShape;
-        }
 
         public static Schema Create(SchemaShape shape)
         {
@@ -39,7 +30,11 @@ namespace Microsoft.ML.Data.DataLoadSave
                 for (int j = 0; j < partialMetadata.Count; ++j)
                 {
                     var metaColumnType = MakeColumnType(partialMetadata[i]);
-                    var del = GetMetadataGetter(metaColumnType);
+                    Delegate del;
+                    if (metaColumnType.IsVector)
+                        del = Utils.MarshalInvoke(GetDefaultVectorGetter<int>, metaColumnType.ItemType.RawType);
+                    else
+                        del = Utils.MarshalInvoke(GetDefaultGetter<int>, metaColumnType.RawType);
                     metaBuilder.Add(partialMetadata[j].Name, metaColumnType, del);
                 }
                 builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]));
@@ -47,24 +42,16 @@ namespace Microsoft.ML.Data.DataLoadSave
             return builder.GetSchema();
         }
 
-        private static ColumnType MakeColumnType(SchemaShape.Column inputCol)
+        private static ColumnType MakeColumnType(SchemaShape.Column column)
         {
-            ColumnType curType = inputCol.ItemType;
-            if (inputCol.IsKey)
+            ColumnType curType = column.ItemType;
+            if (column.IsKey)
                 curType = new KeyType(((PrimitiveType)curType).RawKind, 0, AllKeySizes);
-            if (inputCol.Kind == SchemaShape.Column.VectorKind.VariableVector)
+            if (column.Kind == SchemaShape.Column.VectorKind.VariableVector)
                 curType = new VectorType((PrimitiveType)curType, 0);
-            else if (inputCol.Kind == SchemaShape.Column.VectorKind.Vector)
+            else if (column.Kind == SchemaShape.Column.VectorKind.Vector)
                 curType = new VectorType((PrimitiveType)curType, AllVectorSizes);
             return curType;
-        }
-
-        private static Delegate GetMetadataGetter(ColumnType colType)
-        {
-            if (colType.IsVector)
-                return Utils.MarshalInvoke(GetDefaultVectorGetter<int>, colType.ItemType.RawType);
-            else
-                return Utils.MarshalInvoke(GetDefaultGetter<int>, colType.RawType);
         }
 
         private static Delegate GetDefaultVectorGetter<TValue>()
