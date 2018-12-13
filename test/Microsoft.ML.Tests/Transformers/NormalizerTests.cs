@@ -12,7 +12,6 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Projections;
 using System.Collections.Immutable;
-using Microsoft.ML.Runtime.Api;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;

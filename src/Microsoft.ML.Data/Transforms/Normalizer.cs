@@ -538,7 +538,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             CheckInputColumn(inputSchema, col, srcCol);
         }
 
-        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        private void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             const string expectedType = "scalar or known-size vector of R4";
 
