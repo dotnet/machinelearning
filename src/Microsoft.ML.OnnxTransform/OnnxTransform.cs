@@ -230,16 +230,7 @@ namespace Microsoft.ML.Transforms
             // it will be runtime exception, util Maps and Sequences become supported.
             if (shape.Count > 0)
             {
-                // some models may have -1 in first position.
-                // skip this dimension when setting output column dimensions.
-                if (shape[0] < 0)
-                {
-                    return shape.Skip(1).Select(x => (int)x).ToArray();
-                }
-                else
-                {
-                    return shape.Select(x => (int)x).ToArray();
-                }
+                return shape.Select(x => (x < 0) ? 1 : x).ToArray();
             }
             return new[] { 0 };
         }
@@ -274,7 +265,7 @@ namespace Microsoft.ML.Transforms
                     var shape = inputNodeInfo.Shape;
                     var inputType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
 
-                    var inputShape = inputNodeInfo.Shape;
+                    var inputShape = AdjustDimensions(inputNodeInfo.Shape).ToList();
                     _inputTensorShapes[i] = inputShape;
                     _inputOnnxTypes[i] = inputNodeInfo.Type;
 
