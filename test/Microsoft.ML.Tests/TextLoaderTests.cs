@@ -336,7 +336,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ThrowsExceptionWithPropertyName()
         {
             Exception ex = Assert.Throws<InvalidOperationException>(() => new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>());
-            Assert.StartsWith("Field or property String1 is missing ColumnAttribute", ex.Message);
+            Assert.StartsWith("Field or property String1 is missing LoadColumn attribute", ex.Message);
         }
 
         [Fact]
@@ -350,46 +350,46 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class QuoteInput
         {
-            [Column("0")]
+            [LoadColumn("0")]
             public float ID;
 
-            [Column("1")]
+            [LoadColumn("1")]
             public string Text;
         }
 
         public class SparseInput
         {
-            [Column("0")]
+            [LoadColumn("0")]
             public float C1;
 
-            [Column("1")]
+            [LoadColumn("1")]
             public float C2;
 
-            [Column("2")]
+            [LoadColumn("2")]
             public float C3;
 
-            [Column("3")]
+            [LoadColumn("3")]
             public float C4;
 
-            [Column("4")]
+            [LoadColumn("4")]
             public float C5;
         }
 
         public class Input
         {
-            [Column("0")]
+            [LoadColumn("0")]
             public string String1;
 
-            [Column("1")]
+            [LoadColumn("1")]
             public float Number1;
         }
 
         public class InputWithUnderscore
         {
-            [Column("0")]
+            [LoadColumn("0")]
             public string String_1;
 
-            [Column("1")]
+            [LoadColumn("1")]
             public float Number_1;
         }
 
@@ -400,12 +400,12 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class ModelWithColumnNameAttribute
         {
-            [Column("0", "Col1")]
+            [LoadColumn("0", "Col1")]
             public string String_1;
-            [Column("1")]
+            [LoadColumn("1")]
             [ColumnName("Col2")]
             public string String_2;
-            [Column("3")]
+            [LoadColumn("3")]
             public string String_3;
         }
     }

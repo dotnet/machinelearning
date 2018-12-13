@@ -216,28 +216,28 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class Input
         {
-            [Column("0")]
+            [LoadColumn("0")]
             public float Number1;
 
-            [Column("1")]
+            [LoadColumn("1")]
             public string String1;
         }
 
         public class IrisData
         {
-            [Column("0")]
+            [LoadColumn("0")]
             public float Label;
 
-            [Column("1")]
+            [LoadColumn("1")]
             public float SepalLength;
 
-            [Column("2")]
+            [LoadColumn("2")]
             public float SepalWidth;
 
-            [Column("3")]
+            [LoadColumn("3")]
             public float PetalLength;
 
-            [Column("4")]
+            [LoadColumn("4")]
             public float PetalWidth;
         }
 
@@ -255,19 +255,19 @@ namespace Microsoft.ML.EntryPoints.Tests
             private float _PetalLength;
             private float _PetalWidth;
 
-            [Column("0")]
+            [LoadColumn("0")]
             public float Label { get { return _Label; } set { _Label = value; } }
 
-            [Column("1")]
+            [LoadColumn("1")]
             public float SepalLength { get { return _SepalLength; } set { _SepalLength = value; } }
 
-            [Column("2")]
+            [LoadColumn("2")]
             public float SepalWidth { get { return _SepalWidth; } set { _SepalWidth = value; } }
 
-            [Column("3")]
+            [LoadColumn("3")]
             public float PetalLength { get { return _PetalLength; } set { _PetalLength = value; } }
 
-            [Column("4")]
+            [LoadColumn("4")]
             public float PetalWidth { get { return _PetalWidth; } set { _PetalWidth = value; } }
         }
 

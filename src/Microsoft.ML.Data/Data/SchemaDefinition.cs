@@ -68,12 +68,23 @@ namespace Microsoft.ML.Data
     /// column encapsulates.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public sealed class ColumnAttribute : Attribute
+    public sealed class LoadColumnAttribute : Attribute
     {
-        public ColumnAttribute(string ordinal, string name = null)
+        public LoadColumnAttribute(string range = null,
+            string name = null,
+            bool loadInverseRange = false,
+            string start=null,
+            string end = null,
+            int[] columnsIndexes = null,
+            int[] inverseColumnsIndexes = null)
         {
+            Range = range;
             Name = name;
-            Ordinal = ordinal;
+            LoadInverseRange = loadInverseRange;
+            Start = start;
+            End = end;
+            ColumnsIndexes = columnsIndexes;
+            InverseColumnsIndexes = inverseColumnsIndexes;
         }
 
         /// <summary>
@@ -82,16 +93,47 @@ namespace Microsoft.ML.Data
         public string Name { get; }
 
         /// <summary>
-        /// Contains positions of indices of source columns in the form
-        /// of ranges. Examples of range: if we want to include just column
+        /// Contains the position of the column in the files.
+        /// It can be a single column index, or a range.
+        /// Examples of range: if we want to include just column
         /// with index 1 we can write the range as 1, if we want to include
         /// columns 1 to 10 then we can write the range as 1-10 and we want to include all the
         /// columns from column with index 1 until end then we can write 1-*.
         ///
         /// This takes sequence of ranges that are comma seperated, example:
-        /// 1,2-5,10-*
+        /// 1,2-5,10-*.
+        /// All the other parameters are alternatives to this one.
         /// </summary>
-        public string Ordinal { get; }
+        public string Range { get; }
+
+        /// <summary>
+        /// If this is set to true, the columns defined in the range will be
+        /// excluded from loading, and all the other ones will be the ones loaded.
+        /// </summary>
+        public bool LoadInverseRange { get; }
+
+        public string Start { get; }
+        public string End { get; }
+        public int[] ColumnsIndexes { get; }
+        public int[] InverseColumnsIndexes { get; }
+    }
+
+    /// <summary>
+    /// Describes column information such as name and the source columns indicies that this
+    /// column encapsulates.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    public sealed class ColumnAttribute : Attribute
+    {
+        public ColumnAttribute(string ordinal, string name = null)
+        {
+            Name = name;
+        }
+
+        /// <summary>
+        /// Column name.
+        /// </summary>
+        public string Name { get; }
     }
 
     /// <summary>

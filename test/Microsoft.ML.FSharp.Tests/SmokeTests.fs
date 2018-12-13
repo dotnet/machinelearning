@@ -65,9 +65,9 @@ open Xunit
 module SmokeTest1 = 
 
     type SentimentData() =
-        [<Column(ordinal = "0"); DefaultValue>]
+        [<LoadColumn(ordinal = 0); DefaultValue>]
         val mutable SentimentText : string
-        [<Column(ordinal = "1", name = "Label"); DefaultValue>]
+        [<LoadColumn(ordinal = 1, name = "Label"); DefaultValue>]
         val mutable Sentiment : float32
 
     type SentimentPrediction() =
@@ -130,10 +130,10 @@ module SmokeTest2 =
 
     [<CLIMutable>]
     type SentimentData =
-        { [<Column(ordinal = "0")>] 
+        { [<LoadColumn(ordinal = 0)>] 
           SentimentText : string
 
-          [<Column(ordinal = "1", name = "Label")>] 
+          [<LoadColumn(ordinal = 1, name = "Label")>] 
           Sentiment : float32 }
 
     [<CLIMutable>]
@@ -195,10 +195,10 @@ module SmokeTest2 =
 module SmokeTest3 = 
 
     type SentimentData() =
-        [<Column(ordinal = "0")>] 
+        [<LoadColumn(ordinal = 0)>] 
         member val SentimentText = "".AsMemory() with get, set
 
-        [<Column(ordinal = "1", name = "Label")>] 
+        [<LoadColumn(ordinal = 1, name = "Label")>] 
         member val Sentiment = 0.0 with get, set
 
     type SentimentPrediction() =

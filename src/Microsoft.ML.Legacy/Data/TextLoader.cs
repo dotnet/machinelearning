@@ -86,20 +86,20 @@ namespace Microsoft.ML.Legacy.Data
             for (int index = 0; index < memberInfos.Length; index++)
             {
                 var memberInfo = memberInfos[index];
-                var mappingAttr = memberInfo.GetCustomAttribute<ColumnAttribute>();
+                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
                 if (mappingAttr == null)
-                    throw Contracts.Except($"Field or property {memberInfo.Name} is missing ColumnAttribute");
+                    throw Contracts.Except($"Field or property {memberInfo.Name} is missing LoadColumnAttributeAttribute");
 
-                if (Regex.Match(mappingAttr.Ordinal, @"[^(0-9,\*\-~)]+").Success)
-                    throw Contracts.Except($"{mappingAttr.Ordinal} contains invalid characters. " +
+                if (Regex.Match(mappingAttr.Range, @"[^(0-9,\*\-~)]+").Success)
+                    throw Contracts.Except($"{mappingAttr.Range} contains invalid characters. " +
                         $"Valid characters are 0-9, *, - and ~");
 
                 var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
                 var name = mappingAttr.Name ?? mappingNameAttr?.Name ?? memberInfo.Name;
 
                 Runtime.Data.TextLoader.Range[] sources;
-                if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Ordinal, out sources))
-                    throw Contracts.Except($"{mappingAttr.Ordinal} could not be parsed.");
+                if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Range, out sources))
+                    throw Contracts.Except($"{mappingAttr.Range} could not be parsed.");
 
                 Contracts.Assert(sources != null);
 

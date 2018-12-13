@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             var ml = new MLContext();
 
-            var data = ml.Data.CreateTextReader(TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
+            var data = ml.Data.CreateTextReader<IrisData>(separator: ',')
                     .Read(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
