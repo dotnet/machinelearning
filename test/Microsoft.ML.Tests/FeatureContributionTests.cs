@@ -20,17 +20,6 @@ namespace Microsoft.ML.Tests
 {
     public sealed class FeatureContributionTests : TestDataPipeBase
     {
-        private sealed class ScoreAndContribution
-        {
-            public float X1 { get; set; }
-            public float X2Important { get; set; }
-            public float X3 { get; set; }
-            public float X4Rand { get; set; }
-            public float Score { get; set; }
-            [VectorType(4)]
-            public float[] FeatureContributions { get; set; }
-        }
-
         public FeatureContributionTests(ITestOutputHelper output) : base(output)
         {
         }
