@@ -21,33 +21,28 @@ namespace Microsoft.ML.Data.DataLoadSave
     {
         private const int AllVectorSizes = 10;
         private const int AllKeySizes = 10;
-        private readonly IHostEnvironment _env;
         private readonly SchemaShape _shape;
-        private readonly Dictionary<string, int> _colMap;
 
-        public FakeSchemaFactory(IHostEnvironment env, SchemaShape inputShape)
+        public FakeSchemaFactory(SchemaShape inputShape)
         {
-            _env = env;
             _shape = inputShape;
-            _colMap = Enumerable.Range(0, _shape.Count)
-                .ToDictionary(idx => _shape[idx].Name, idx => idx);
         }
 
-        public Schema Make()
+        public static Schema Create(SchemaShape shape)
         {
             var builder = new SchemaBuilder();
 
-            for (int i = 0; i < _shape.Count; ++i)
+            for (int i = 0; i < shape.Count; ++i)
             {
                 var metaBuilder = new MetadataBuilder();
-                var partialMetadata = _shape[i].Metadata;
+                var partialMetadata = shape[i].Metadata;
                 for (int j = 0; j < partialMetadata.Count; ++j)
                 {
                     var metaColumnType = MakeColumnType(partialMetadata[i]);
                     var del = GetMetadataGetter(metaColumnType);
                     metaBuilder.Add(partialMetadata[j].Name, metaColumnType, del);
                 }
-                builder.AddColumn(_shape[i].Name, MakeColumnType(_shape[i]));
+                builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]));
             }
             return builder.GetSchema();
         }
@@ -64,7 +59,7 @@ namespace Microsoft.ML.Data.DataLoadSave
             return curType;
         }
 
-        private Delegate GetMetadataGetter(ColumnType colType)
+        private static Delegate GetMetadataGetter(ColumnType colType)
         {
             if (colType.IsVector)
                 return Utils.MarshalInvoke(GetDefaultVectorGetter<int>, colType.ItemType.RawType);
@@ -72,13 +67,13 @@ namespace Microsoft.ML.Data.DataLoadSave
                 return Utils.MarshalInvoke(GetDefaultGetter<int>, colType.RawType);
         }
 
-        private Delegate GetDefaultVectorGetter<TValue>()
+        private static Delegate GetDefaultVectorGetter<TValue>()
         {
             ValueGetter<VBuffer<TValue>> getter = (ref VBuffer<TValue> value) => value = new VBuffer<TValue>(AllVectorSizes, 0, null, null);
             return getter;
         }
 
-        private Delegate GetDefaultGetter<TValue>()
+        private static Delegate GetDefaultGetter<TValue>()
         {
             ValueGetter<TValue> getter = (ref TValue value) => value = default;
             return getter;
