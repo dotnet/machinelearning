@@ -16,6 +16,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using static Microsoft.ML.Transforms.Normalizers.NormalizeTransform;
 
 [assembly: LoadableClass(typeof(NormalizingTransformer), null, typeof(SignatureLoadModel),
     "", NormalizingTransformer.LoaderSignature)]
@@ -379,6 +380,13 @@ namespace Microsoft.ML.Transforms.Normalizers
                     throw env.ExceptSchemaMismatch(nameof(data), "input", info.Input);
                 srcTypes[i] = data.Schema.GetColumnType(srcCols[i]);
                 activeInput[srcCols[i]] = true;
+
+                var supervisedBinColumn = info as NormalizingEstimator.SupervisedBinningColumn;
+                if(supervisedBinColumn != null)
+                {
+                    var labelColumnId = SupervisedBinUtils.GetLabelColumnId(env, data.Schema, supervisedBinColumn.LabelColumn);
+                    activeInput[labelColumnId] = true;
+                }
             }
 
             var functionBuilders = new IColumnFunctionBuilder[columns.Length];
