@@ -45,7 +45,8 @@ namespace Microsoft.ML.Data
         /// <param name="weight">The name of the weight column. Can be null.</param>
         /// <param name="custom">Additional column mapping to be passed to the trainer or scorer (specific to the prediction type). Can be null or empty.</param>
         /// <returns>The constructed examples.</returns>
-        public static RoleMappedData CreateExamples(this IHostEnvironment env, IDataView data, string features, string label = null,
+        [BestFriend]
+        internal static RoleMappedData CreateExamples(this IHostEnvironment env, IDataView data, string features, string label = null,
             string group = null, string weight = null, IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> custom = null)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -264,7 +265,7 @@ namespace Microsoft.ML.Data
         /// additional information, for example, label names. If this is <c>null</c>, no information will be
         /// extracted.</param>
         /// <returns>The scored data.</returns>
-        public static IDataScorerTransform CreateScorer(this IHostEnvironment env, string settings,
+        internal static IDataScorerTransform CreateScorer(this IHostEnvironment env, string settings,
             RoleMappedData data, IPredictor predictor, RoleMappedSchema trainSchema = null)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -295,7 +296,8 @@ namespace Microsoft.ML.Data
         /// additional information, for example, label names. If this is <c>null</c>, no information will be
         /// extracted.</param>
         /// <returns>The scored data.</returns>
-        public static IDataScorerTransform CreateDefaultScorer(this IHostEnvironment env, RoleMappedData data,
+        [BestFriend]
+        internal static IDataScorerTransform CreateDefaultScorer(this IHostEnvironment env, RoleMappedData data,
             IPredictor predictor, RoleMappedSchema trainSchema = null)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -306,7 +308,8 @@ namespace Microsoft.ML.Data
             return ScoreUtils.GetScorer(predictor, data, env, trainSchema);
         }
 
-        public static IEvaluator CreateEvaluator(this IHostEnvironment env, string settings)
+        [BestFriend]
+        internal static IEvaluator CreateEvaluator(this IHostEnvironment env, string settings)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(settings, nameof(settings));

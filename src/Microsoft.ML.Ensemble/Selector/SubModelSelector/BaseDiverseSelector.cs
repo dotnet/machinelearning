@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
-    public abstract class BaseDiverseSelector<TOutput, TDiversityMetric> : SubModelDataSelector<TOutput>
+    internal abstract class BaseDiverseSelector<TOutput, TDiversityMetric> : SubModelDataSelector<TOutput>
         where TDiversityMetric : class, IDiversityMeasure<TOutput>
     {
         public abstract class DiverseSelectorArguments : ArgumentsBase

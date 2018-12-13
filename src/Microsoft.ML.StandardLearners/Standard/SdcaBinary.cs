@@ -84,7 +84,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount);
+        private protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount);
 
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="weightSetCount">Gets the length of weights and bias array. For binary classification and regression,
         /// this is 1. For multi-class classification, this equals the number of classes on the label.</param>
         /// <returns>A potentially modified version of <paramref name="examples"/></returns>
-        protected RoleMappedData PrepareDataFromTrainingExamples(IChannel ch, RoleMappedData examples, out int weightSetCount)
+        private protected RoleMappedData PrepareDataFromTrainingExamples(IChannel ch, RoleMappedData examples, out int weightSetCount)
         {
             ch.AssertValue(examples);
             CheckLabel(examples, out weightSetCount);
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers
             return examplesToFeedTrain;
         }
 
-        protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
+        private protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
 
         protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Trainers
             return VectorUtils.DotProduct(in weights, in features) * (float)scaling + bias;
         }
 
-        protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
+        private protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
         {
             int maxThreads = Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
             if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < maxThreads)
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Trainers
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
-        protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
+        private protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
             Contracts.Assert(weightSetCount >= 1);
@@ -748,7 +748,7 @@ namespace Microsoft.ML.Trainers
         /// The array holding the pre-computed squared L2-norm of features for each training example. It may be null. It is always null for
         /// binary classification and regression because this quantity is not needed.
         /// </param>
-        protected virtual void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, Random rand,
+        private protected virtual void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, Random rand,
             IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, float[] biasReg, float[] invariants, float lambdaNInv,
             VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
@@ -902,7 +902,7 @@ namespace Microsoft.ML.Trainers
         /// </param>
         /// <param name="bestIter">The iteration number when the best model is obtained.</param>
         /// <returns>Whether the optimization has converged.</returns>
-        protected virtual bool CheckConvergence(
+        private protected virtual bool CheckConvergence(
             IProgressChannel pch,
             int iter,
             FloatLabelCursor.Factory cursorFactory,
@@ -992,15 +992,15 @@ namespace Microsoft.ML.Trainers
             return null;
         }
 
-        protected abstract float GetInstanceWeight(FloatLabelCursor cursor);
+        private protected abstract float GetInstanceWeight(FloatLabelCursor cursor);
 
-        protected delegate void Visitor(long index, ref float value);
+        private protected delegate void Visitor(long index, ref float value);
 
         /// <summary>
         /// Encapsulates the common functionality of storing and
         /// retrieving the dual variables.
         /// </summary>
-        protected abstract class DualsTableBase
+        private protected abstract class DualsTableBase
         {
             public abstract float this[long index] { get; set; }
             public abstract long Length { get; }
@@ -1566,12 +1566,12 @@ namespace Microsoft.ML.Trainers
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
-        protected override float GetInstanceWeight(FloatLabelCursor cursor)
+        private protected override float GetInstanceWeight(FloatLabelCursor cursor)
         {
             return cursor.Label > 0 ? cursor.Weight * _positiveInstanceWeight : cursor.Weight;
         }
 
-        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
+        private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckBinaryLabel();
             weightSetCount = 1;
@@ -1748,7 +1748,7 @@ namespace Microsoft.ML.Trainers
         //For complexity analysis, we assume that
         // - The number of features is N
         // - Average number of non-zero per instance is k
-        protected override TScalarPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
+        private protected override TScalarPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             Contracts.AssertValue(data);
             Contracts.Assert(weightSetCount == 1);
@@ -1931,7 +1931,7 @@ namespace Microsoft.ML.Trainers
             return new ParameterMixingCalibratedPredictor(Host, pred, new PlattCalibrator(Host, -1, 0));
         }
 
-        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
+        private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckBinaryLabel();
             weightSetCount = 1;

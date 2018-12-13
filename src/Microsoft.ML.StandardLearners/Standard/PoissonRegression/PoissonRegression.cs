@@ -81,7 +81,7 @@ namespace Microsoft.ML.Trainers
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override void CheckLabel(RoleMappedData data)
+        private protected override void CheckLabel(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckRegressionLabel();
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers
             return new PoissonRegressionModelParameters(Host, in weights, bias);
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory factory, float loss, int numParams)
+        private protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory factory, float loss, int numParams)
         {
             // No-op by design.
         }

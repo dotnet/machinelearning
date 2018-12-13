@@ -113,19 +113,19 @@ namespace Microsoft.ML.Trainers
             return new LinearRegressionModelParameters(Host, in maybeSparseWeights, bias[0]);
         }
 
-        protected override float GetInstanceWeight(FloatLabelCursor cursor)
+        private protected override float GetInstanceWeight(FloatLabelCursor cursor)
         {
             return cursor.Weight;
         }
 
-        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
+        private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckRegressionLabel();
             weightSetCount = 1;
         }
 
         // REVIEW: No extra benefits from using more threads in training.
-        protected override int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
+        private protected override int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
         {
             int maxThreads;
             if (Host.ConcurrencyFactor < 1)

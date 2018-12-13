@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             Host.CheckNonEmpty(groupId, nameof(groupId));
         }
 
-        protected override void CheckDataValid(IChannel ch, RoleMappedData data)
+        private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return new LightGbmRankingModelParameters(Host, TrainedEnsemble, FeatureCount, innerArgs);
         }
 
-        protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
+        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             Host.AssertValue(ch);
             Options["objective"] = "lambdarank";

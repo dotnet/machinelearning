@@ -323,7 +323,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// This method is used for comparing pipelines. Its outputs can be passed to <see cref="CheckSamePipeline"/>
         /// to check if this pipeline is identical to another pipeline.
         /// </summary>
-        public static void SerializeRoleMappedData(IHostEnvironment env, IChannel ch, RoleMappedData data,
+        private static void SerializeRoleMappedData(IHostEnvironment env, IChannel ch, RoleMappedData data,
             out byte[][] dataSerialized, out string[] dataZipEntryNames)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// <see ref="dataZipEntryNames"/> and <see ref="dataSerialized"/>.
         /// This method throws if for any of the entries the name/byte sequence are not identical.
         /// </summary>
-        public static void CheckSamePipeline(IHostEnvironment env, IChannel ch,
+        private static void CheckSamePipeline(IHostEnvironment env, IChannel ch,
             RoleMappedData dataToCompare, byte[][] dataSerialized, string[] dataZipEntryNames)
         {
             Contracts.CheckValue(env, nameof(env));

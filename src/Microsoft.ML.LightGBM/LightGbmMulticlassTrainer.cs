@@ -105,7 +105,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return OvaPredictor.Create(Host, predictors);
         }
 
-        protected override void CheckDataValid(IChannel ch, RoleMappedData data)
+        private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
+        private protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
         {
             // Only initialize one time.
             if (_numClass < 0)
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
+        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             Host.AssertValue(ch);
             ch.Assert(PredictionKind == PredictionKind.MultiClassClassification);

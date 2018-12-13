@@ -155,7 +155,7 @@ namespace Microsoft.ML.Trainers.Online
             };
         }
 
-        protected override void CheckLabels(RoleMappedData data)
+        private protected override void CheckLabels(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckBinaryLabel();

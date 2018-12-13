@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var rolesMappedData = new RoleMappedData(data, opt: false, roles.ToArray());
 
-            var resultDict = Evaluate(rolesMappedData);
+            var resultDict = ((IEvaluator)this).Evaluate(rolesMappedData);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
@@ -777,7 +777,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly string _featureCol;
         private readonly bool _calculateDbi;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public ClusteringMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.Clustering, "ClusteringMamlEvaluator")
@@ -865,7 +865,7 @@ namespace Microsoft.ML.Runtime.Data
             string features = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
                 nameof(ClusteringMamlEvaluator.Arguments.FeatureColumn),
                 input.FeatureColumn, DefaultColumnNames.Features);
-            var evaluator = new ClusteringMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new ClusteringMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, features, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

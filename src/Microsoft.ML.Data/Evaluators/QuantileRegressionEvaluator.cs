@@ -474,7 +474,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int? _index;
         private readonly QuantileRegressionEvaluator _evaluator;
 
-        protected override IEvaluator Evaluator => _evaluator;
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public QuantileRegressionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.QuantileRegression, "QuantilsRegressionMamlEvaluator")
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new QuantileRegressionMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new QuantileRegressionMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

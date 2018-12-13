@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return new FeatureWeightsCalibratedPredictor(Host, pred, cali);
         }
 
-        protected override void CheckDataValid(IChannel ch, RoleMappedData data)
+        private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
+        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             Options["objective"] = "binary";
             // Add default metric.
