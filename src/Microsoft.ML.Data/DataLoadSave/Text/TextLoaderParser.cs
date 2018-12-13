@@ -663,12 +663,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var info = _infos[i];
 
-                    if (info.ColType.ItemType.IsKey)
+                    if (info.ColType is KeyType keyType)
                     {
-                        if (!info.ColType.IsVector)
-                            _creator[i] = cache.GetCreatorOne(info.ColType.AsKey);
-                        else
-                            _creator[i] = cache.GetCreatorVec(info.ColType.ItemType.AsKey);
+                        _creator[i] = cache.GetCreatorOne(keyType);
+                        continue;
+                    }
+                    else if (info.ColType is VectorType vectorType && vectorType.ItemType is KeyType vectorKeyType)
+                    {
+                        _creator[i] = cache.GetCreatorVec(vectorKeyType);
                         continue;
                     }
 

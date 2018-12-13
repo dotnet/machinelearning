@@ -38,13 +38,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 indices.Add(i);
             }
             var newView = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Index = indices.ToArray() }, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, newView, input.Data), OutputData = newView };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, newView, input.Data), OutputData = newView };
         }
 
         private static bool ShouldAddColumn(Schema schema, int i, string[] extraColumns, uint scoreSet)
         {
             uint scoreSetId = 0;
-            if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType.AsPrimitive, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
+            if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
                 && scoreSetId == scoreSet)
             {
                 return true;
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class RenameBinaryPredictionScoreColumnsInput : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The predictor model used in scoring", SortOrder = 2)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.BinaryPredictionScoreColumnsRenamer", Desc = "For binary prediction, it renames the PredictedLabel and Score columns to include the name of the positive class.", UserName = "Rename Binary Prediction Score Columns")]
@@ -103,12 +103,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                     var copyColumn = new ColumnCopyingTransformer(env, copyCols.ToArray()).Transform(input.Data);
                     var dropColumn = ColumnSelectingTransformer.CreateDrop(env, copyColumn, copyCols.Select(c => c.Source).ToArray());
-                    return new CommonOutputs.TransformOutput { Model = new TransformModel(env, dropColumn, input.Data), OutputData = dropColumn };
+                    return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, dropColumn, input.Data), OutputData = dropColumn };
                 }
             }
 
             var newView = NopTransform.CreateIfNeeded(env, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, newView, input.Data), OutputData = newView };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, newView, input.Data), OutputData = newView };
         }
     }
 }

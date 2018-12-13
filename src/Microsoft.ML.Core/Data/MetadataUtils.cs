@@ -165,12 +165,12 @@ namespace Microsoft.ML.Runtime.Data
             return new VectorType(NumberType.I4, rangeCount, 2);
         }
 
-        private static volatile ColumnType _scoreColumnSetIdType;
+        private static volatile KeyType _scoreColumnSetIdType;
 
         /// <summary>
         /// The type of the ScoreColumnSetId metadata.
         /// </summary>
-        public static ColumnType ScoreColumnSetIdType
+        public static KeyType ScoreColumnSetIdType
         {
             get
             {
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Data
         /// of a scalar <see cref="BoolType"/> type, which we assume, if set, should be <c>true</c>.</returns>
         public static bool IsNormalized(this SchemaShape.Column col)
         {
-            Contracts.CheckValue(col, nameof(col));
+            Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
             return col.Metadata.TryFindColumn(Kinds.IsNormalized, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Scalar && !metaCol.IsKey
                 && metaCol.ItemType == BoolType.Instance;
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <see cref="Kinds.SlotNames"/> metadata of definite sized vectors of text.</returns>
         public static bool HasSlotNames(this SchemaShape.Column col)
         {
-            Contracts.CheckValue(col, nameof(col));
+            Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
             return col.Kind == SchemaShape.Column.VectorKind.Vector
                 && col.Metadata.TryFindColumn(Kinds.SlotNames, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector && !metaCol.IsKey
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Runtime.Data
             public override long Position => 0;
             public override long Batch => 0;
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
-            public override ValueGetter<UInt128> GetIdGetter() => (ref UInt128 dst) => dst = default;
+            public override ValueGetter<RowId> GetIdGetter() => (ref RowId dst) => dst = default;
             public override bool IsColumnActive(int col) => true;
         }
 

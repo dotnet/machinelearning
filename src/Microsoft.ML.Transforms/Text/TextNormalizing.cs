@@ -113,7 +113,7 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
             if (!TextNormalizingEstimator.IsColumnTypeValid(type))
@@ -190,10 +190,10 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Transforms.Text
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.input, out var col))

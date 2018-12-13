@@ -36,8 +36,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="inputColumn">Name of the column to be transformed.</param>
         /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
-        /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
-        /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
+        /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         public ValueToKeyMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
            this(env, new [] { new ValueToKeyMappingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
         {
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms.Conversions
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     kv = new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
                         colInfo.TextKeyValues ? TextType.Instance : col.ItemType, col.IsKey);
                 }
-                Contracts.AssertValue(kv);
+                Contracts.Assert(kv.IsValid);
 
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata = new SchemaShape(new[] { slotMeta, kv });
@@ -118,7 +118,8 @@ namespace Microsoft.ML.Transforms.Conversions
         // At the moment this is empty. Once PR #863 clears, we can change this class to hold the output
         // key-values metadata.
 
-        public ToKeyFitResult(ValueToKeyMappingTransformer.TermMap map)
+        [BestFriend]
+        internal ToKeyFitResult(ValueToKeyMappingTransformer.TermMap map)
         {
         }
     }

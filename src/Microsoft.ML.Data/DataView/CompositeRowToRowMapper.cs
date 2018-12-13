@@ -43,13 +43,12 @@ namespace Microsoft.ML.Runtime.Data
             return toReturn;
         }
 
-        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));
             Contracts.CheckParam(input.Schema == InputSchema, nameof(input), "Schema did not match original schema");
 
-            disposer = null;
             if (InnerMappers.Length == 0)
             {
                 bool differentActive = false;
@@ -75,17 +74,7 @@ namespace Microsoft.ML.Runtime.Data
 
             Row result = input;
             for (int i = 0; i < InnerMappers.Length; ++i)
-            {
-                result = InnerMappers[i].GetRow(result, deps[i], out var localDisp);
-                if (localDisp != null)
-                {
-                    if (disposer == null)
-                        disposer = localDisp;
-                    else
-                        disposer = localDisp + disposer;
-                    // We want the last disposer to be called first, so the order of the addition here is important.
-                }
-            }
+                result = InnerMappers[i].GetRow(result, deps[i]);
 
             return result;
         }
@@ -107,7 +96,7 @@ namespace Microsoft.ML.Runtime.Data
             public override long Position => _row.Position;
             public override long Batch => _row.Batch;
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
-            public override ValueGetter<UInt128> GetIdGetter() => _row.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _row.GetIdGetter();
             public override bool IsColumnActive(int col) => _pred(col);
         }
     }

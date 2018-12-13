@@ -185,21 +185,21 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
             public float* Q;
         }
 
-        private const string DllPath = "MatrixFactorizationNative";
+        private const string NativePath = "MatrixFactorizationNative";
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern void MFDestroyModel(ref MFModel* model);
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern MFModel* MFTrain(MFProblem* prob, MFParameter* param);
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern MFModel* MFTrainWithValidation(MFProblem* tr, MFProblem* va, MFParameter* param);
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern float MFCrossValidation(MFProblem* prob, int nrFolds, MFParameter* param);
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern float MFPredict(MFModel* model, int pIdx, int qIdx);
 
         private MFParameter _mfParam;

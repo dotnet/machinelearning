@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, _aucCount, _numTopResults, _k, _p, _streaming, schema.Name == null ? -1 : schema.Name.Index, stratName);
         }
 
-        public override IDataTransform GetPerInstanceMetrics(RoleMappedData data)
+        internal override IDataTransform GetPerInstanceMetricsCore(RoleMappedData data)
         {
             return NopTransform.CreateIfNeeded(Host, data.Data);
         }
@@ -605,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int _k;
         private readonly Double _p;
 
-        protected override IEvaluator Evaluator => _evaluator;
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public AnomalyDetectionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, "AnomalyDetectionMamlEvaluator")
@@ -777,7 +777,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new AnomalyDetectionMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new AnomalyDetectionMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

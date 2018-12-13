@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
                     // Get the pipeline.
                     var dv = new EmptyDataView(Parent.Host, schema.Schema);
-                    var tm = new TransformModel(Parent.Host, dv, dv);
+                    var tm = new TransformModelImpl(Parent.Host, dv, dv);
                     var pipeline = Parent.PredictorModels[i].TransformModel.Apply(Parent.Host, tm);
                     BoundPipelines[i] = pipeline.AsRowToRowMapper(Parent.Host);
                     if (BoundPipelines[i] == null)
@@ -103,12 +103,13 @@ namespace Microsoft.ML.Runtime.Ensemble
                 yield break;
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
-                return new SimpleRow(OutputSchema, input, new[] { CreateScoreGetter(input, predicate, out disposer) });
+                var scoreGetter = CreateScoreGetter(input, predicate, out Action disposer);
+                return new SimpleRow(OutputSchema, input, new[] { scoreGetter }, disposer);
             }
 
-            public abstract Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer);
+            internal abstract Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer);
         }
 
         // A generic base class for pipeline ensembles. This class contains the combiner.
@@ -124,7 +125,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     _combiner = parent.Combiner;
                 }
 
-                public override Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer)
+                internal override Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer)
                 {
                     disposer = null;
 
@@ -137,13 +138,12 @@ namespace Microsoft.ML.Runtime.Ensemble
                         // First get the output row from the pipelines. The input predicate of the predictor
                         // is the output predicate of the pipeline.
                         var inputPredicate = Mappers[i].GetDependencies(mapperPredicate);
-                        var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate, out Action disp);
-                        disposer += disp;
+                        var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
 
                         // Next we get the output row from the predictors. We activate the score column as output predicate.
-                        var predictorRow = Mappers[i].GetRow(pipelineRow, col => col == ScoreCols[i], out disp);
-                        disposer += disp;
+                        var predictorRow = Mappers[i].GetRow(pipelineRow, col => col == ScoreCols[i]);
                         getters[i] = predictorRow.GetGetter<T>(ScoreCols[i]);
+                        disposer += predictorRow.Dispose;
                     }
 
                     var comb = _combiner.GetCombiner();
@@ -164,7 +164,8 @@ namespace Microsoft.ML.Runtime.Ensemble
                     Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label != null, "Mapper was not trained using a label column");
 
                     // The label should be in the output row of the i'th pipeline
-                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == Mappers[i].InputRoleMappedSchema.Label.Index, out disposer);
+                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == Mappers[i].InputRoleMappedSchema.Label.Index);
+                    disposer = pipelineRow.Dispose;
                     return RowCursorUtils.GetLabelGetter(pipelineRow, Mappers[i].InputRoleMappedSchema.Label.Index);
                 }
 
@@ -174,20 +175,22 @@ namespace Microsoft.ML.Runtime.Ensemble
 
                     if (Mappers[i].InputRoleMappedSchema.Weight == null)
                     {
-                        ValueGetter<Single> weight = (ref Single dst) => dst = 1;
+                        ValueGetter<Single> weight = (ref float dst) => dst = 1;
                         disposer = null;
                         return weight;
                     }
                     // The weight should be in the output row of the i'th pipeline if it exists.
                     var inputPredicate = Mappers[i].GetDependencies(col => col == Mappers[i].InputRoleMappedSchema.Weight.Index);
-                    var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate, out disposer);
-                    return pipelineRow.GetGetter<Single>(Mappers[i].InputRoleMappedSchema.Weight.Index);
+                    var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
+                    disposer = pipelineRow.Dispose;
+                    return pipelineRow.GetGetter<float>(Mappers[i].InputRoleMappedSchema.Weight.Index);
+
                 }
             }
 
             protected readonly IOutputCombiner<T> Combiner;
 
-            protected SchemaBindablePipelineEnsemble(IHostEnvironment env, IPredictorModel[] predictors,
+            protected SchemaBindablePipelineEnsemble(IHostEnvironment env, PredictorModel[] predictors,
                 IOutputCombiner<T> combiner, string registrationName, string scoreColumnKind)
                     : base(env, predictors, registrationName, scoreColumnKind)
             {
@@ -238,7 +241,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 }
             }
 
-            public ImplOne(IHostEnvironment env, IPredictorModel[] predictors, IRegressionOutputCombiner combiner, string scoreColumnKind)
+            public ImplOne(IHostEnvironment env, PredictorModel[] predictors, IRegressionOutputCombiner combiner, string scoreColumnKind)
                 : base(env, predictors, combiner, LoaderSignature, scoreColumnKind)
             {
             }
@@ -266,7 +269,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             private readonly VectorType _scoreType;
 
-            public ImplVec(IHostEnvironment env, IPredictorModel[] predictors, IMultiClassOutputCombiner combiner)
+            public ImplVec(IHostEnvironment env, PredictorModel[] predictors, IMultiClassOutputCombiner combiner)
                 : base(env, predictors, combiner, LoaderSignature, MetadataUtils.Const.ScoreColumnKind.MultiClassClassification)
             {
                 int classCount = CheckLabelColumn(Host, predictors, false);
@@ -288,7 +291,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
 
-            public ImplOneWithCalibrator(IHostEnvironment env, IPredictorModel[] predictors, IBinaryOutputCombiner combiner)
+            public ImplOneWithCalibrator(IHostEnvironment env, PredictorModel[] predictors, IBinaryOutputCombiner combiner)
                 : base(env, predictors, combiner, LoaderSignature, MetadataUtils.Const.ScoreColumnKind.BinaryClassification)
             {
                 Host.Assert(_scoreColumnKind == MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
@@ -302,7 +305,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 CheckBinaryLabel(false, Host, PredictorModels);
             }
 
-            private static void CheckBinaryLabel(bool user, IHostEnvironment env, IPredictorModel[] predictors)
+            private static void CheckBinaryLabel(bool user, IHostEnvironment env, PredictorModel[] predictors)
             {
                 int classCount = CheckLabelColumn(env, predictors, true);
                 if (classCount != 2)
@@ -391,9 +394,9 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public abstract PredictionKind PredictionKind { get; }
 
-        internal IPredictorModel[] PredictorModels { get; }
+        internal PredictorModel[] PredictorModels { get; }
 
-        private SchemaBindablePipelineEnsembleBase(IHostEnvironment env, IPredictorModel[] predictors, string registrationName, string scoreColumnKind)
+        private SchemaBindablePipelineEnsembleBase(IHostEnvironment env, PredictorModel[] predictors, string registrationName, string scoreColumnKind)
         {
             Contracts.CheckValue(env, nameof(env));
             Host = env.Register(registrationName);
@@ -456,7 +459,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             var length = ctx.Reader.ReadInt32();
             Host.CheckDecode(length > 0);
-            PredictorModels = new IPredictorModel[length];
+            PredictorModels = new PredictorModel[length];
             for (int i = 0; i < PredictorModels.Length; i++)
             {
                 string dir =
@@ -464,7 +467,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         ? "PredictorModels"
                         : Path.Combine(ctx.Directory, "PredictorModels");
                 using (var ent = ctx.Repository.OpenEntry(dir, $"PredictorModel_{i:000}"))
-                    PredictorModels[i] = new PredictorModel(Host, ent.Stream);
+                    PredictorModels[i] = new PredictorModelImpl(Host, ent.Stream);
             }
 
             length = ctx.Reader.ReadInt32();
@@ -509,7 +512,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         protected abstract void SaveCore(ModelSaveContext ctx);
 
-        public static SchemaBindablePipelineEnsembleBase Create(IHostEnvironment env, IPredictorModel[] predictors, IOutputCombiner combiner, string scoreColumnKind)
+        public static SchemaBindablePipelineEnsembleBase Create(IHostEnvironment env, PredictorModel[] predictors, IOutputCombiner combiner, string scoreColumnKind)
         {
             switch (scoreColumnKind)
             {
@@ -557,7 +560,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public abstract ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema);
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             for (int i = 0; i < PredictorModels.Length; i++)
             {
@@ -577,7 +580,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         }
 
         // Checks that the predictors have matching label columns, and returns the number of classes in all predictors.
-        protected static int CheckLabelColumn(IHostEnvironment env, IPredictorModel[] models, bool isBinary)
+        protected static int CheckLabelColumn(IHostEnvironment env, PredictorModel[] models, bool isBinary)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(models, nameof(models));
@@ -600,13 +603,13 @@ namespace Microsoft.ML.Runtime.Ensemble
             if (mdType == null || !mdType.IsKnownSizeVector)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
-            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, labelType.AsKey, schema, labelInfo.Index, mdType);
+            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyType)labelType, schema, labelInfo.Index, mdType);
         }
 
         // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the
         // OutputType property of the IValueMapper.
         // If any of the predictors do not implement IValueMapper we throw an exception. Returns the class count.
-        private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, IPredictorModel[] models, bool isBinary, ColumnType labelType)
+        private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, PredictorModel[] models, bool isBinary, ColumnType labelType)
         {
             env.Assert(!labelType.IsKey);
             env.AssertNonEmpty(models);
@@ -633,7 +636,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, IPredictorModel[] models, KeyType labelType, ISchema schema, int labelIndex, ColumnType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, ColumnType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
@@ -652,8 +655,8 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (labelInfo == null)
                     throw env.Except("Training schema for model {0} does not have a label column", i);
 
-                var curLabelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index);
-                if (!labelType.Equals(curLabelType.AsKey))
+                var curLabelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index) as KeyType;
+                if (!labelType.Equals(curLabelType))
                     throw env.Except("Label column of model {0} has different type than model 0", i);
 
                 var mdType = rmd.Schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelInfo.Index);
@@ -688,7 +691,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         ///       - If neither of those interfaces are implemented then the value is a string containing the name of the type of model.
         /// </summary>
         /// <returns></returns>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             Host.CheckValueOrNull(schema);
 

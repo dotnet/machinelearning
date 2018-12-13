@@ -158,18 +158,11 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
         public class ColumnInfo
         {
-            public ColumnInfo(string input, string output, int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort, string[] term = null, bool textKeyValues = false)
-            {
-                Input = input;
-                Output = output;
-                Sort = sort;
-                MaxNumTerms = maxNumTerms;
-                Term = term;
-                TextKeyValues = textKeyValues;
-            }
-
             public readonly string Input;
             public readonly string Output;
             public readonly SortOrder Sort;
@@ -178,13 +171,41 @@ namespace Microsoft.ML.Transforms.Conversions
             public readonly bool TextKeyValues;
 
             protected internal string Terms { get; set; }
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
+            /// <param name="sort">How items should be ordered when vectorized. If <see cref="SortOrder.Occurrence"/> choosen they will be in the order encountered.
+            /// If <see cref="SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+            /// <param name="term">List of terms.</param>
+            /// <param name="textKeyValues">Whether key value metadata should be text, regardless of the actual input type.</param>
+            public ColumnInfo(string input, string output = null,
+                int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms,
+                SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
+                string[] term = null,
+                bool textKeyValues = false
+                )
+            {
+                Contracts.CheckNonWhiteSpace(input, nameof(input));
+                Input = input;
+                Output = output ?? input;
+                Sort = sort;
+                MaxNumTerms = maxNumTerms;
+                Term = term;
+                TextKeyValues = textKeyValues;
+            }
         }
-
-        public const string Summary = "Converts input values (words, numbers, etc.) to index in a dictionary.";
-        public const string UserName = "Term Transform";
-        public const string LoaderSignature = "TermTransform";
-
-        public const string FriendlyName = "To Key";
+        [BestFriend]
+        internal const string Summary = "Converts input values (words, numbers, etc.) to index in a dictionary.";
+        [BestFriend]
+        internal const string UserName = "Term Transform";
+        [BestFriend]
+        internal const string LoaderSignature = "TermTransform";
+        [BestFriend]
+        internal const string FriendlyName = "To Key";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -202,7 +223,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private const uint VerNonTextTypesSupported = 0x00010003;
         private const uint VerManagerNonTextTypesSupported = 0x00010002;
 
-        public const string TermManagerLoaderSignature = "TermManager";
+        internal const string TermManagerLoaderSignature = "TermManager";
         private static volatile MemoryStreamPool _codecFactoryPool;
         private volatile CodecFactory _codecFactory;
 
@@ -248,7 +269,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return "standard type or a vector of standard type";
         }
 
-        private ColInfo[] CreateInfos(ISchema inputSchema)
+        private ColInfo[] CreateInfos(Schema inputSchema)
         {
             Host.AssertValue(inputSchema);
             var infos = new ColInfo[ColumnPairs.Length];
@@ -289,8 +310,9 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
+        [BestFriend]
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -388,49 +410,8 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="ValueToKeyMappingTransformer"/>.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
-        /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
-        /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        public static IDataView Create(IHostEnvironment env,
-            IDataView input, string name, string source = null,
-            int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort) =>
-            new ValueToKeyMappingTransformer(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
-
-        public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
-        {
-            return Create(env, new Arguments()
-            {
-                Column = column.Select(x => new Column()
-                {
-                    MaxNumTerms = x.MaxNumTerms,
-                    Name = x.Name,
-                    Sort = x.Sort,
-                    Source = x.Source,
-                    Term = x.Term,
-                    Terms = x.Terms,
-                    TextKeyValues = x.TextKeyValues
-                }).ToArray(),
-                Data = args.Data,
-                DataFile = args.DataFile,
-                Loader = args.Loader,
-                MaxNumTerms = args.MaxNumTerms,
-                Sort = args.Sort,
-                Term = args.Term,
-                Terms = args.Terms,
-                TermsColumn = args.TermsColumn,
-                TextKeyValues = args.TextKeyValues
-            }, input);
-        }
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
         /// Utility method to create the file-based <see cref="TermMap"/>.
@@ -483,13 +464,10 @@ namespace Microsoft.ML.Transforms.Conversions
                             "{0} should not be specified when default loader is TextLoader. Ignoring {0}={1}",
                             nameof(Arguments.TermsColumn), src);
                     }
-                    termData = TextLoader.ReadFile(env,
-                        new TextLoader.Arguments()
-                        {
-                            Separator = "tab",
-                            Column = new[] { new TextLoader.Column("Term", DataKind.TX, 0) }
-                        },
-                        fileSource);
+                    termData = new TextLoader(env,
+                        columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
+                        dataSample: fileSource)
+                        .Read(fileSource);
                     src = "Term";
                     autoConvert = true;
                 }
@@ -707,13 +685,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 });
         }
 
-        public TermMap GetTermMap(int iinfo)
+        [BestFriend]
+        internal TermMap GetTermMap(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _unboundMaps.Length);
             return _unboundMaps[iinfo];
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(Schema schema)
           => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
@@ -721,7 +700,6 @@ namespace Microsoft.ML.Transforms.Conversions
             private readonly ColumnType[] _types;
             private readonly ValueToKeyMappingTransformer _parent;
             private readonly ColInfo[] _infos;
-
             private readonly BoundTermMap[] _termMap;
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
@@ -739,8 +717,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     var type = _infos[i].TypeSrc;
                     KeyType keyType = _parent._unboundMaps[i].OutputType;
                     ColumnType colType;
-                    if (type.IsVector)
-                        colType = new VectorType(keyType, type.AsVector);
+                    if (type is VectorType vectorType)
+                        colType = new VectorType(keyType, vectorType);
                     else
                         colType = keyType;
                     _types[i] = colType;

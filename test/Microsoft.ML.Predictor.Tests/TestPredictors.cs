@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             base.InitializeEnvironment(environment);
 
-            environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
         }
 
@@ -606,12 +606,12 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var fastTrees = new IPredictorModel[3];
+            var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -628,13 +628,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var cat = new OneHotEncodingEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
-            var fastTrees = new IPredictorModel[3];
+            var cat = new OneHotEncodingEstimator(ML, "Categories", "Features").Fit(dataView).Transform(dataView);
+            var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -647,14 +647,14 @@ namespace Microsoft.ML.Runtime.RunTests
             CombineAndTestTreeEnsembles(cat, fastTrees);
         }
 
-        private void CombineAndTestTreeEnsembles(IDataView idv, IPredictorModel[] fastTrees)
+        private void CombineAndTestTreeEnsembles(IDataView idv, PredictorModel[] fastTrees)
         {
             var combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
 
             var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
-            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModel(Env, data, idv, fastTree) }).ScoredData;
+            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, fastTree) }).ScoredData;
             Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
             Assert.True(scored.Schema.TryGetColumnIndex("Probability", out int probCol));
             Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out int predCol));
@@ -729,11 +729,11 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var predictors = new IPredictorModel[]
+            var predictors = new PredictorModel[]
             {
-                FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -741,7 +741,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     LabelColumn = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                AveragedPerceptronTrainer.TrainBinary(Env, new AveragedPerceptronTrainer.Arguments()
+                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Arguments()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -775,9 +775,9 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestMultiClassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var predictors = new IPredictorModel[]
+            var predictors = new PredictorModel[]
             {
                 LightGbm.TrainMultiClass(Env, new LightGbmArguments
                 {
@@ -808,7 +808,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         private void CombineAndTestEnsembles(IDataView idv, string name, string options, PredictionKind predictionKind,
-            IPredictorModel[] predictors)
+            PredictorModel[] predictors)
         {
             var combiner = ComponentCatalog.CreateInstance<IModelCombiner>(
                 Env, typeof(SignatureModelCombiner), name, options, predictionKind);
@@ -816,7 +816,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var predictor = combiner.CombineModels(predictors.Select(pm => pm.Predictor));
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
-            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModel(Env, data, idv, predictor) }).ScoredData;
+            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, predictor) }).ScoredData;
 
             var predCount = Utils.Size(predictors);
 

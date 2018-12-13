@@ -34,10 +34,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class SubGraphOutput
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
-            public Var<IPredictorModel> PredictorModel;
+            public Var<PredictorModel> PredictorModel;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model", SortOrder = 2)]
-            public Var<ITransformModel> TransformModel;
+            public Var<TransformModel> TransformModel;
         }
 
         public sealed class Arguments
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [TlcModule.OptionalInput]
             [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model from the pipeline before this command. " +
                 "It gets included in the Output.PredictorModel.", SortOrder = 2)]
-            public ITransformModel TransformModel;
+            public TransformModel TransformModel;
 
             // This is the subgraph that describes how to train a model for each fold. It should
             // accept one IDataView input and output one IPredictorModel output (see Inputs and Outputs).
@@ -101,11 +101,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
                 "provided as the Input.TransformModel.", SortOrder = 1)]
-            public IPredictorModel[] PredictorModel;
+            public PredictorModel[] PredictorModel;
 
             [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
                 "provided as the Input.TransformModel.", SortOrder = 2)]
-            public ITransformModel[] TransformModel;
+            public TransformModel[] TransformModel;
 
             [TlcModule.Output(Desc = "Warning dataset", SortOrder = 3)]
             public IDataView Warnings;
@@ -190,9 +190,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var cvSplitOutput = exp.Add(cvSplit);
             subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
 
-            var predModelVars = new Var<IPredictorModel>[input.NumFolds];
-            var transformModelVars = new Var<ITransformModel>[input.NumFolds];
-            var inputTransformModelVars = new Var<IPredictorModel>[input.NumFolds];
+            var predModelVars = new Var<PredictorModel>[input.NumFolds];
+            var transformModelVars = new Var<TransformModel>[input.NumFolds];
+            var inputTransformModelVars = new Var<PredictorModel>[input.NumFolds];
             var warningsVars = new Var<IDataView>[input.NumFolds];
             var overallMetricsVars = new Var<IDataView>[input.NumFolds];
             var instanceMetricsVars = new Var<IDataView>[input.NumFolds];
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 };
 
                 if (transformModelVarName != null)
-                    args.TransformModel = new Var<ITransformModel> { VarName = transformModelVarName.VariableName };
+                    args.TransformModel = new Var<TransformModel> { VarName = transformModelVarName.VariableName };
 
                 args.Inputs.Data = new Var<IDataView>
                 {
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                 if (input.Outputs.PredictorModel != null && mapping.ContainsKey(input.Outputs.PredictorModel.VarName))
                 {
-                    args.Outputs.PredictorModel = new Var<IPredictorModel>
+                    args.Outputs.PredictorModel = new Var<PredictorModel>
                     {
                         VarName = mapping[input.Outputs.PredictorModel.VarName]
                     };
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                 if (input.Outputs.TransformModel != null && mapping.ContainsKey(input.Outputs.TransformModel.VarName))
                 {
-                    args.Outputs.TransformModel = new Var<ITransformModel>
+                    args.Outputs.TransformModel = new Var<TransformModel>
                     {
                         VarName = mapping[input.Outputs.TransformModel.VarName]
                     };
@@ -261,8 +261,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 inputBindingMap.Add(nameof(args.TestingData), new List<ParameterBinding> { testingData });
                 inputMap.Add(testingData, new ArrayIndexVariableBinding(cvSplitOutput.TestData.VarName, k));
                 var outputMap = new Dictionary<string, string>();
-                var transformModelVar = new Var<ITransformModel>();
-                var predModelVar = new Var<IPredictorModel>();
+                var transformModelVar = new Var<TransformModel>();
+                var predModelVar = new Var<PredictorModel>();
                 if (input.Outputs.PredictorModel == null)
                 {
                     outputMap.Add(nameof(TrainTestMacro.Output.TransformModel), transformModelVar.VarName);
@@ -272,9 +272,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     {
                         var modelCombine = new Legacy.Transforms.ModelCombiner
                         {
-                            Models = new ArrayVar<ITransformModel>(
-                                new Var<ITransformModel>[] {
-                                    new Var<ITransformModel> { VarName = transformModelVarName.VariableName },
+                            Models = new ArrayVar<TransformModel>(
+                                new Var<TransformModel>[] {
+                                    new Var<TransformModel> { VarName = transformModelVarName.VariableName },
                                     transformModelVar }
                                 )
                         };
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 var outModels = new Legacy.Data.TransformModelArrayConverter
                 {
-                    TransformModel = new ArrayVar<ITransformModel>(transformModelVars)
+                    TransformModel = new ArrayVar<TransformModel>(transformModelVars)
                 };
                 var outModelsOutput = new Legacy.Data.TransformModelArrayConverter.Output();
                 outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.TransformModel));
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 var outModels = new Legacy.Data.PredictorModelArrayConverter
                 {
-                    Model = new ArrayVar<IPredictorModel>(predModelVars)
+                    Model = new ArrayVar<PredictorModel>(predModelVars)
                 };
                 var outModelsOutput = new Legacy.Data.PredictorModelArrayConverter.Output();
                 outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.PredictorModel));

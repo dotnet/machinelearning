@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
         public void SavePipeSsaSpikeNoData()
         {
             string pathData = DeleteOutputPath("SavePipe", "SsaSpikeNoData.txt");
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // Test is Flaky on netcore 3.0
+        [Fact]
         public void SavePipeMovingAverageUniform()
         {
             TestCore(null, true,

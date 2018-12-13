@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             // an artificial vector type out of this. Obviously if you can't make a vector
             // out of the items, then you could not save each slot's values.
             var itemType = type.ItemType;
-            var primitiveType = itemType.AsPrimitive;
+            var primitiveType = itemType as PrimitiveType;
             if (primitiveType == null)
                 return false;
             var vectorType = new VectorType(primitiveType, size: 2);

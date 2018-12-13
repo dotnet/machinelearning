@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Learners
                 new LinearSvm(Host, new LinearSvm.Arguments());
         }
 
-        protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)
+        private protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)
         {
             Host.AssertValue(type);
             Host.Assert(type.RawType == typeof(T));
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Learners
                     dst = equalsTarget(in src) ? 1 : default(float));
         }
 
-        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
+        private protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
 
         /// <summary>
         /// The legacy train method.
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (LabelColumn != null)
+            if (LabelColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
                     throw Host.ExceptSchemaMismatch(nameof(labelCol), DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Learners
                     throw Host.Except($"Label column '{LabelColumn.Name}' is not compatible");
             }
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
             foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 
@@ -167,12 +167,12 @@ namespace Microsoft.ML.Runtime.Learners
 
         private SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
-            if (LabelColumn != null)
+            if (LabelColumn.IsValid)
             {
                 bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
                 Contracts.Assert(success);
 
-                var metadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+                var metadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
                                 .Concat(MetadataForScoreColumn()));
                 return new[]
                 {

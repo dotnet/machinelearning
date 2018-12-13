@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Core.Tests.UnitTests;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private (IEnumerable<string> epListContents, JObject manifest) BuildManifests()
         {
-            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransform).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataView = GetBreastCancerDataView();
             const int nModels = 5;
             var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = nModels + 1 });
-            var predictorModels = new IPredictorModel[nModels];
+            var predictorModels = new PredictorModel[nModels];
             var individualScores = new IDataView[nModels];
             for (int i = 0; i < nModels; i++)
             {
@@ -593,7 +593,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             runner.RunAll();
 
-            var model = runner.GetOutput<IPredictorModel>("model1");
+            var model = runner.GetOutput<PredictorModel>("model1");
             Assert.NotNull(model);
         }
 
@@ -732,7 +732,7 @@ namespace Microsoft.ML.Runtime.RunTests
             // This tests that the SchemaBindableCalibratedPredictor doesn't get confused if its sub-predictor is already calibrated.
             var fastForest = new FastForestClassification(Env, "Label", "Features");
             var rmd = new RoleMappedData(splitOutput.TrainData[0], "Label", "Features");
-            var ffModel = new PredictorModel(Env, rmd, splitOutput.TrainData[0], fastForest.Train(rmd));
+            var ffModel = new PredictorModelImpl(Env, rmd, splitOutput.TrainData[0], fastForest.Train(rmd));
             var calibratedFfModel = Calibrate.Platt(Env,
                 new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[0], UncalibratedPredictorModel = ffModel }).PredictorModel;
             var twiceCalibratedFfModel = Calibrate.Platt(Env,
@@ -747,7 +747,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataView = GetBreastCancerDataView();
             const int nModels = 5;
             var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = nModels + 1 });
-            var predictorModels = new IPredictorModel[nModels];
+            var predictorModels = new PredictorModel[nModels];
             var individualScores = new IDataView[nModels];
             for (int i = 0; i < nModels; i++)
             {
@@ -783,7 +783,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
-                var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
+                var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
                     new ModelOperations.SimplePredictorModelInput()
@@ -877,10 +877,10 @@ namespace Microsoft.ML.Runtime.RunTests
             using (var strm = file.CreateWriteStream())
                 regressionEnsembleModel.Save(Env, strm);
 
-            IPredictorModel loadedFromSaved;
+            PredictorModel loadedFromSaved;
             using (var file = Env.OpenInputFile(modelPath))
             using (var strm = file.OpenReadStream())
-                loadedFromSaved = new PredictorModel(Env, strm);
+                loadedFromSaved = new PredictorModelImpl(Env, strm);
 
             var scoredFromSaved = ScoreModel.Score(Env,
                 new ScoreModel.Input()
@@ -1014,7 +1014,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             const int nModels = 5;
             var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = nModels + 1 });
-            var predictorModels = new IPredictorModel[nModels];
+            var predictorModels = new PredictorModel[nModels];
             var individualScores = new IDataView[nModels];
             for (int i = 0; i < nModels; i++)
             {
@@ -1046,7 +1046,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     NormalizeFeatures = NormalizeOption.Yes
                 };
                 predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
-                var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
+                var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
                     new ModelOperations.SimplePredictorModelInput()
@@ -1101,10 +1101,10 @@ namespace Microsoft.ML.Runtime.RunTests
             using (var strm = file.CreateWriteStream())
                 regressionEnsembleModel.Save(Env, strm);
 
-            IPredictorModel loadedFromSaved;
+            PredictorModel loadedFromSaved;
             using (var file = Env.OpenInputFile(modelPath))
             using (var strm = file.OpenReadStream())
-                loadedFromSaved = new PredictorModel(Env, strm);
+                loadedFromSaved = new PredictorModelImpl(Env, strm);
 
             var scoredFromSaved = ScoreModel.Score(Env,
                 new ScoreModel.Input()
@@ -1216,7 +1216,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             const int nModels = 5;
             var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = nModels + 1 });
-            var predictorModels = new IPredictorModel[nModels];
+            var predictorModels = new PredictorModel[nModels];
             var individualScores = new IDataView[nModels];
             for (int i = 0; i < nModels; i++)
             {
@@ -1233,8 +1233,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
                 var rmd = new RoleMappedData(data, "Label", "Features");
 
-                predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.Train(rmd));
-                var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
+                predictorModels[i] = new PredictorModelImpl(Env, rmd, data, mlr.Train(rmd));
+                var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                 predictorModels[i] = ModelOperations.CombineTwoModels(Env,
                     new ModelOperations.SimplePredictorModelInput()
@@ -1264,10 +1264,10 @@ namespace Microsoft.ML.Runtime.RunTests
             using (var strm = file.CreateWriteStream())
                 mcEnsembleModel.Save(Env, strm);
 
-            IPredictorModel loadedFromSaved;
+            PredictorModel loadedFromSaved;
             using (var file = Env.OpenInputFile(modelPath))
             using (var strm = file.OpenReadStream())
-                loadedFromSaved = new PredictorModel(Env, strm);
+                loadedFromSaved = new PredictorModelImpl(Env, strm);
 
             var scoredFromSaved = ScoreModel.Score(Env,
                 new ScoreModel.Input()
@@ -1366,15 +1366,11 @@ namespace Microsoft.ML.Runtime.RunTests
 
             const int nModels = 4;
             var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = nModels });
-            var predictorModels = new IPredictorModel[nModels];
+            var predictorModels = new PredictorModel[nModels];
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = OneHotEncodingTransformer.Create(Env,
-                    new OneHotEncodingTransformer.Arguments()
-                    {
-                        Column = new[] { new OneHotEncodingTransformer.Column() { Name = "Cat", Source = "Cat" } }
-                    }, data);
+                data = new OneHotEncodingEstimator(Env,"Cat").Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
@@ -1387,7 +1383,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         StdComputer = new ComputeLRTrainingStdThroughHal()
                 };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
-                    var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
+                    var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
                     predictorModels[i] = ModelOperations.CombineTwoModels(Env,
                         new ModelOperations.SimplePredictorModelInput()
@@ -1400,7 +1396,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
                         RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
                     var predictor = trainer.Train(rmd);
-                    predictorModels[i] = new PredictorModel(Env, rmd, splitOutput.TrainData[i], predictor);
+                    predictorModels[i] = new PredictorModelImpl(Env, rmd, splitOutput.TrainData[i], predictor);
                 }
             }
 
@@ -1952,14 +1948,14 @@ namespace Microsoft.ML.Runtime.RunTests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmBinary()
         {
-            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
         }
 
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmMultiClass()
         {
-            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
         }
 
@@ -2641,7 +2637,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             runner.RunAll();
 
-            var model = runner.GetOutput<IPredictorModel>("model");
+            var model = runner.GetOutput<PredictorModel>("model");
             Assert.NotNull(model);
         }
 
@@ -2736,7 +2732,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             runner.RunAll();
 
-            var model = runner.GetOutput<IPredictorModel>("model");
+            var model = runner.GetOutput<PredictorModel>("model");
             Assert.NotNull(model);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
@@ -2843,7 +2839,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             runner.RunAll();
 
-            var model = runner.GetOutput<IPredictorModel>("model");
+            var model = runner.GetOutput<PredictorModel>("model");
             Assert.NotNull(model);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
@@ -2947,7 +2943,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             runner.RunAll();
 
-            var model = runner.GetOutput<IPredictorModel>("model");
+            var model = runner.GetOutput<PredictorModel>("model");
             Assert.NotNull(model);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
@@ -3107,10 +3103,10 @@ namespace Microsoft.ML.Runtime.RunTests
 
             runner.RunAll();
 
-            var model = runner.GetOutput<IPredictorModel>("model");
+            var model = runner.GetOutput<PredictorModel>("model");
             Assert.NotNull(model);
 
-            model = runner.GetOutput<IPredictorModel>("model2");
+            model = runner.GetOutput<PredictorModel>("model2");
             Assert.NotNull(model);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
@@ -3301,10 +3297,10 @@ namespace Microsoft.ML.Runtime.RunTests
 
             runner.RunAll();
 
-            var model = runner.GetOutput<IPredictorModel[]>("model");
+            var model = runner.GetOutput<PredictorModel[]>("model");
             Assert.NotNull(model[0]);
 
-            model = runner.GetOutput<IPredictorModel[]>("model2");
+            model = runner.GetOutput<PredictorModel[]>("model2");
             Assert.NotNull(model[0]);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
@@ -3480,7 +3476,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             runner.RunAll();
 
-            var model = runner.GetOutput<IPredictorModel>("model");
+            var model = runner.GetOutput<PredictorModel>("model");
             Assert.NotNull(model);
         }
 

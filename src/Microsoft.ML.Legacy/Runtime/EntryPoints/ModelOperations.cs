@@ -19,43 +19,43 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class CombineTransformModelsInput
         {
             [Argument(ArgumentType.Multiple, HelpText = "Input models", SortOrder = 1)]
-            public ITransformModel[] Models;
+            public TransformModel[] Models;
         }
 
         public sealed class CombineTransformModelsOutput
         {
             [TlcModule.Output(Desc = "Combined model", SortOrder = 1)]
-            public ITransformModel OutputModel;
+            public TransformModel OutputModel;
         }
 
         public sealed class PredictorModelInput
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Transform model", SortOrder = 1)]
-            public ITransformModel[] TransformModels;
+            public TransformModel[] TransformModels;
 
             [Argument(ArgumentType.Required, HelpText = "Predictor model", SortOrder = 2)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class SimplePredictorModelInput
         {
             [Argument(ArgumentType.Required, HelpText = "Transform model", SortOrder = 1)]
-            public ITransformModel TransformModel;
+            public TransformModel TransformModel;
 
             [Argument(ArgumentType.Required, HelpText = "Predictor model", SortOrder = 2)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class PredictorModelOutput
         {
             [TlcModule.Output(Desc = "Predictor model", SortOrder = 1)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class CombineOvaPredictorModelsInput : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.Multiple, HelpText = "Input models", SortOrder = 1)]
-            public IPredictorModel[] ModelArray;
+            public PredictorModel[] ModelArray;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use probabilities from learners instead of raw values.", SortOrder = 2)]
             public bool UseProbabilities = true;
@@ -64,13 +64,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class CombinePredictorModelsInput
         {
             [Argument(ArgumentType.Multiple, HelpText = "Input models", SortOrder = 1)]
-            public IPredictorModel[] Models;
+            public PredictorModel[] Models;
         }
 
         public sealed class ApplyTransformModelInput : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "Transform model", SortOrder = 2)]
-            public ITransformModel TransformModel;
+            public TransformModel TransformModel;
         }
 
         public sealed class ApplyTransformModelOutput
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             EntryPointUtils.CheckInputArgs(host, input);
             host.CheckNonEmpty(input.Models, nameof(input.Models));
 
-            ITransformModel model = input.Models[input.Models.Length - 1];
+            TransformModel model = input.Models[input.Models.Length - 1];
             for (int i = input.Models.Length - 2; i >= 0; i--)
                 model = model.Apply(env, input.Models[i]);
 
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             EntryPointUtils.CheckInputArgs(host, input);
             host.CheckNonEmpty(input.TransformModels, nameof(input.TransformModels));
 
-            ITransformModel model = input.TransformModels[input.TransformModels.Length - 1];
+            TransformModel model = input.TransformModels[input.TransformModels.Length - 1];
             for (int i = input.TransformModels.Length - 2; i >= 0; i--)
                 model = model.Apply(env, input.TransformModels[i]);
             return new PredictorModelOutput() { PredictorModel = input.PredictorModel.Apply(env, model) };
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                 return new PredictorModelOutput
                 {
-                    PredictorModel = new PredictorModel(env, data, input.TrainingData,
+                    PredictorModel = new PredictorModelImpl(env, data, input.TrainingData,
                     OvaPredictor.Create(host, input.UseProbabilities,
                             input.ModelArray.Select(p => p.Predictor as IPredictorProducing<float>).ToArray()))
                 };

@@ -55,7 +55,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// Describes the parameters of the feature selection process for a column pair.
             /// </summary>
             /// <param name="input">Name of the input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="minCount">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
             public ColumnInfo(string input, string output = null, long minCount = Defaults.Count)
             {
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in _columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))

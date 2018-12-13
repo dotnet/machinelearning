@@ -130,18 +130,15 @@ namespace Microsoft.ML.Runtime.Data
                 ColumnType type;
                 object value;
                 _host.CheckDecode(saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out type, out value));
-                _host.CheckDecode(type.IsVector);
+                _type = type as VectorType;
+                _host.CheckDecode(_type != null);
                 _host.CheckDecode(value != null);
-                _type = type.AsVector;
                 _getter = Utils.MarshalInvoke(DecodeInit<int>, _type.ItemType.RawType, value);
                 _metadataKind = ctx.Header.ModelVerReadable >= VersionAddedMetadataKind ?
                     ctx.LoadNonEmptyString() : MetadataUtils.Kinds.SlotNames;
             }
 
-            public ISchemaBindableMapper Clone(ISchemaBindableMapper inner)
-            {
-                return new LabelNameBindableMapper(_host, inner, _type, _getter, _metadataKind, _canWrap);
-            }
+            public ISchemaBindableMapper Clone(ISchemaBindableMapper inner) => new LabelNameBindableMapper(_host, inner, _type, _getter, _metadataKind, _canWrap);
 
             private Delegate DecodeInit<T>(object value)
             {
@@ -245,14 +242,13 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly VectorType _labelNameType;
                 private readonly string _metadataKind;
                 private readonly ValueGetter<VBuffer<T>> _labelNameGetter;
-                private readonly SchemaImpl _outSchema;
                 // Lazily initialized by the property.
                 private LabelNameBindableMapper _bindable;
                 private readonly Func<ISchemaBoundMapper, ColumnType, bool> _canWrap;
 
                 public RoleMappedSchema InputRoleMappedSchema => _mapper.InputRoleMappedSchema;
                 public Schema InputSchema => _mapper.InputSchema;
-                public Schema OutputSchema => _outSchema.AsSchema;
+                public Schema OutputSchema { get; }
 
                 public ISchemaBindableMapper Bindable
                 {
@@ -292,133 +288,70 @@ namespace Microsoft.ML.Runtime.Data
                     _labelNameType = type;
                     _labelNameGetter = getter;
                     _metadataKind = metadataKind;
-
-                    _outSchema = new SchemaImpl(mapper.OutputSchema, scoreIdx, _labelNameType, _labelNameGetter, _metadataKind);
                     _canWrap = canWrap;
+
+                    OutputSchema = DecorateOutputSchema(mapper.OutputSchema, scoreIdx, _labelNameType, _labelNameGetter, _metadataKind);
                 }
 
-                public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+                /// <summary>
+                /// Append label names to score column as its metadata.
+                /// </summary>
+                private Schema DecorateOutputSchema(Schema partialSchema, int scoreColumnIndex, VectorType labelNameType,
+                    ValueGetter<VBuffer<T>> labelNameGetter, string labelNameKind)
                 {
-                    return _mapper.GetDependencies(predicate);
+                    var builder = new SchemaBuilder();
+                    // Sequentially add columns so that the order of them is not changed comparing with the schema in the mapper
+                    // that computes score column.
+                    for (int i = 0; i < partialSchema.ColumnCount; ++i)
+                    {
+                        var meta = new MetadataBuilder();
+                        if (i == scoreColumnIndex)
+                        {
+                            // Add label names for score column.
+                            meta.Add(partialSchema[i].Metadata, selector: s => s != labelNameKind);
+                            meta.Add(labelNameKind, labelNameType, labelNameGetter);
+                        }
+                        else
+                        {
+                            // Copy all existing metadata because this transform only affects score column.
+                            meta.Add(partialSchema[i].Metadata, selector: s => true);
+                        }
+                        // Instead of appending extra metadata to the existing score column, we create new one because
+                        // metadata is read-only.
+                        builder.AddColumn(partialSchema[i].Name, partialSchema[i].Type, meta.GetMetadata());
+                    }
+                    return builder.GetSchema();
                 }
 
-                public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
-                {
-                    return _mapper.GetInputColumnRoles();
-                }
+                public Func<int, bool> GetDependencies(Func<int, bool> predicate) => _mapper.GetDependencies(predicate);
 
-                public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+                public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles() => _mapper.GetInputColumnRoles();
+
+                public Row GetRow(Row input, Func<int, bool> predicate)
                 {
-                    var innerRow = _mapper.GetRow(input, predicate, out disposer);
+                    var innerRow = _mapper.GetRow(input, predicate);
                     return new RowImpl(innerRow, OutputSchema);
                 }
 
-                private sealed class SchemaImpl : ISchema
+                private sealed class RowImpl : WrappingRow
                 {
-                    private readonly ISchema _parent;
-                    private readonly int _scoreCol;
-                    private readonly VectorType _labelNameType;
-                    private readonly MetadataUtils.MetadataGetter<VBuffer<T>> _labelNameGetter;
-                    private readonly string _metadataKind;
-
-                    public Schema AsSchema { get; }
-
-                    public int ColumnCount { get { return _parent.ColumnCount; } }
-
-                    public SchemaImpl(ISchema parent, int col, VectorType type, ValueGetter<VBuffer<T>> getter, string metadataKind)
-                    {
-                        Contracts.AssertValue(parent);
-                        Contracts.Assert(0 <= col && col < parent.ColumnCount);
-                        Contracts.AssertValue(type);
-                        Contracts.AssertValue(getter);
-                        Contracts.Assert(type.ItemType.RawType == typeof(T));
-                        Contracts.AssertNonEmpty(metadataKind);
-                        Contracts.Assert(parent.GetMetadataTypeOrNull(metadataKind, col) == null);
-
-                        _parent = parent;
-                        _scoreCol = col;
-                        _labelNameType = type;
-                        // We change to this metadata variant of the getter to enable the marshal call to work.
-                        _labelNameGetter = (int c, ref VBuffer<T> val) => getter(ref val);
-                        _metadataKind = metadataKind;
-
-                        AsSchema = Schema.Create(this);
-                    }
-
-                    public bool TryGetColumnIndex(string name, out int col)
-                    {
-                        return _parent.TryGetColumnIndex(name, out col);
-                    }
-
-                    public string GetColumnName(int col)
-                    {
-                        return _parent.GetColumnName(col);
-                    }
-
-                    public ColumnType GetColumnType(int col)
-                    {
-                        return _parent.GetColumnType(col);
-                    }
-
-                    public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-                    {
-                        var result = _parent.GetMetadataTypes(col);
-                        if (col == _scoreCol)
-                            return result.Prepend(_labelNameType.GetPair(_metadataKind));
-                        return result;
-                    }
-
-                    public ColumnType GetMetadataTypeOrNull(string kind, int col)
-                    {
-                        if (col == _scoreCol && kind == _metadataKind)
-                            return _labelNameType;
-                        return _parent.GetMetadataTypeOrNull(kind, col);
-                    }
-
-                    public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-                    {
-                        if (col == _scoreCol && kind == _metadataKind)
-                        {
-                            _labelNameGetter.Marshal(0, ref value);
-                            return;
-                        }
-                        _parent.GetMetadata(kind, col, ref value);
-                    }
-                }
-
-                private sealed class RowImpl : Row
-                {
-                    private readonly Row _row;
                     private readonly Schema _schema;
 
-                    public override long Batch => _row.Batch;
-                    public override long Position => _row.Position;
                     // The schema is of course the only difference from _row.
                     public override Schema Schema => _schema;
 
                     public RowImpl(Row row, Schema schema)
+                        : base(row)
                     {
                         Contracts.AssertValue(row);
                         Contracts.AssertValue(schema);
 
-                        _row = row;
                         _schema = schema;
                     }
 
-                    public override bool IsColumnActive(int col)
-                    {
-                        return _row.IsColumnActive(col);
-                    }
+                    public override bool IsColumnActive(int col) => Input.IsColumnActive(col);
 
-                    public override ValueGetter<TValue> GetGetter<TValue>(int col)
-                    {
-                        return _row.GetGetter<TValue>(col);
-                    }
-
-                    public override ValueGetter<UInt128> GetIdGetter()
-                    {
-                        return _row.GetIdGetter();
-                    }
+                    public override ValueGetter<TValue> GetGetter<TValue>(int col) => Input.GetGetter<TValue>(col);
                 }
             }
         }
@@ -469,7 +402,7 @@ namespace Microsoft.ML.Runtime.Data
             if (rowMapper == null)
                 return false; // We could cover this case, but it is of no practical worth as far as I see, so I decline to do so.
 
-            ISchema outSchema = mapper.OutputSchema;
+            var outSchema = mapper.OutputSchema;
             int scoreIdx;
             if (!outSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
@@ -501,7 +434,7 @@ namespace Microsoft.ML.Runtime.Data
                         trainSchema.Label.Index, ref value);
                 };
 
-            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type.AsVector, getter, MetadataUtils.Kinds.SlotNames, CanWrap);
+            return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.SlotNames, CanWrap);
         }
 
         public MultiClassClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
@@ -592,14 +525,8 @@ namespace Microsoft.ML.Runtime.Data
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
         }
 
-        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper)
-        {
-            return new KeyType(DataKind.U4, 0, scoreType.VectorSize);
-        }
+        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(DataKind.U4, 0, scoreType.VectorSize);
 
-        private static bool OutputTypeMatches(ColumnType scoreType)
-        {
-            return scoreType.IsKnownSizeVector && scoreType.ItemType == NumberType.Float;
-        }
+        private static bool OutputTypeMatches(ColumnType scoreType) => scoreType.IsKnownSizeVector && scoreType.ItemType == NumberType.Float;
     }
 }

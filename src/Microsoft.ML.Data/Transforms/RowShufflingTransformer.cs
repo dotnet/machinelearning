@@ -209,7 +209,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to check whether all types in an input schema are shufflable.
         /// </summary>
-        internal static bool CanShuffleAll(ISchema schema)
+        internal static bool CanShuffleAll(Schema schema)
         {
             for (int c = 0; c < schema.ColumnCount; ++c)
             {
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Transforms
             // Each delegate here corresponds to a pipe holding column data.
             private readonly Delegate[] _getters;
             // This delegate corresponds to the pipe holding ID data.
-            private readonly ValueGetter<UInt128> _idGetter;
+            private readonly ValueGetter<RowId> _idGetter;
 
             // The current position of the output cursor in circular "space".
             private int _circularIndex;
@@ -495,6 +495,7 @@ namespace Microsoft.ML.Transforms
             private Exception _producerTaskException;
 
             private readonly int[] _colToActivesIndex;
+            private bool _disposed;
 
             public override Schema Schema => _input.Schema;
 
@@ -534,7 +535,7 @@ namespace Microsoft.ML.Transforms
                     _getters[ia] = CreateGetterDelegate(c);
                 }
                 var idPipe = _pipes[numActive + (int)ExtraIndex.Id] = ShufflePipe.Create(_pipeIndices.Length, NumberType.UG, input.GetIdGetter());
-                _idGetter = CreateGetterDelegate<UInt128>(idPipe);
+                _idGetter = CreateGetterDelegate<RowId>(idPipe);
                 // Initially, after the preamble to MoveNextCore, we want:
                 // liveCount=0, deadCount=0, circularIndex=0. So we set these
                 // funky values accordingly.
@@ -554,14 +555,17 @@ namespace Microsoft.ML.Transforms
                 _producerTask = LoopProducerWorker();
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (_producerTask.Status == TaskStatus.Running)
+                if (_disposed)
+                    return;
+                if (disposing && _producerTask.Status == TaskStatus.Running)
                 {
                     _toProduce.Post(0);
                     _producerTask.Wait();
                 }
-                base.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public static void PostAssert<T>(ITargetBlock<T> target, T item)
@@ -570,7 +574,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(retval);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return _idGetter;
             }

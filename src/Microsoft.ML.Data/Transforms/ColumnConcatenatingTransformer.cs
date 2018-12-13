@@ -393,19 +393,19 @@ namespace Microsoft.ML.Runtime.Data
             return transformer.MakeDataTransform(input);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
         /// <summary>
         /// Factory method for SignatureLoadDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => new ColumnConcatenatingTransformer(env, ctx).MakeDataTransform(input);
 
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(inputSchema);
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Runtime.Data
                     hasSlotNames = false;
                 }
 
-                return new BoundColumn(InputSchema, _parent._columns[iinfo], sources, new VectorType(itemType.AsPrimitive, totalSize),
+                return new BoundColumn(InputSchema, _parent._columns[iinfo], sources, new VectorType((PrimitiveType)itemType, totalSize),
                     isNormalized, hasSlotNames, hasCategoricals, totalSize, catCount);
             }
 
@@ -829,7 +829,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 var active = new bool[InputSchema.ColumnCount];
                 for (int i = 0; i < _columns.Length; i++)

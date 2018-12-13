@@ -13,45 +13,54 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// An implementation of <see cref="Row"/> that gets its <see cref="Row.Position"/>, <see cref="Row.Batch"/>,
     /// and <see cref="Row.GetIdGetter"/> from an input row. The constructor requires a schema and array of getter
-    /// delegates. A null delegate indicates an inactive column. The delegates are assumed to be of the appropriate type
-    /// (this does not validate the type).
+    /// delegates. A <see langword="null"/> delegate indicates an inactive column. The delegates are assumed to be
+    /// of the appropriate type (this does not validate the type).
     /// REVIEW: Should this validate that the delegates are of the appropriate type? It wouldn't be difficult
     /// to do so.
     /// </summary>
-    public sealed class SimpleRow : Row
+    [BestFriend]
+    internal sealed class SimpleRow : WrappingRow
     {
-        private readonly Row _input;
         private readonly Delegate[] _getters;
+        private readonly Action _disposer;
 
         public override Schema Schema { get; }
 
-        public override long Position => _input.Position;
-
-        public override long Batch => _input.Batch;
-
-        public SimpleRow(Schema schema, Row input, Delegate[] getters)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="schema">The schema for the row.</param>
+        /// <param name="input">The row that is being wrapped by this row, where our <see cref="Row.Position"/>,
+        /// <see cref="Row.Batch"/>, <see cref="Row.GetIdGetter"/>.</param>
+        /// <param name="getters">The collection of getter delegates, whose types should map those in a schema.
+        /// If one of these is <see langword="null"/>, the corresponding column is considered inactive.</param>
+        /// <param name="disposer">A method that, if non-null, will be called exactly once during
+        /// <see cref="IDisposable.Dispose"/>, prior to disposing <paramref name="input"/>.</param>
+        public SimpleRow(Schema schema, Row input, Delegate[] getters, Action disposer = null)
+            : base(input)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(input, nameof(input));
-            Contracts.Check(Utils.Size(getters) == schema.ColumnCount);
+            Contracts.Check(Utils.Size(getters) == schema.Count);
+            Contracts.CheckValueOrNull(disposer);
             Schema = schema;
-            _input = input;
             _getters = getters ?? new Delegate[0];
+            _disposer = disposer;
         }
 
-        public override ValueGetter<UInt128> GetIdGetter()
+        protected override void DisposeCore(bool disposing)
         {
-            return _input.GetIdGetter();
+            if (disposing)
+                _disposer?.Invoke();
         }
 
         public override ValueGetter<T> GetGetter<T>(int col)
         {
             Contracts.CheckParam(0 <= col && col < _getters.Length, nameof(col), "Invalid col value in GetGetter");
             Contracts.Check(IsColumnActive(col));
-            var fn = _getters[col] as ValueGetter<T>;
-            if (fn == null)
-                throw Contracts.Except("Unexpected TValue in GetGetter");
-            return fn;
+            if (_getters[col] is ValueGetter<T> fn)
+                return fn;
+            throw Contracts.Except("Unexpected TValue in GetGetter");
         }
 
         public override bool IsColumnActive(int col)
@@ -135,68 +144,6 @@ namespace Microsoft.ML.Runtime.Data
         protected abstract void GetMetadataCore<TValue>(string kind, int col, ref TValue value);
     }
 
-    /// <summary>
-    /// An <see cref="ISchema"/> that takes all column names and types as constructor parameters.
-    /// The columns can optionally have text <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.
-    /// </summary>
-    public sealed class SimpleSchema : SimpleSchemaBase
-    {
-        private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[] _keyValueGetters;
-
-        public SimpleSchema(IExceptionContext ectx, params KeyValuePair<string, ColumnType>[] columns)
-            : base(ectx, columns)
-        {
-            _keyValueGetters = new MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[ColumnCount];
-        }
-
-        public SimpleSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns,
-            Dictionary<string, MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>> keyValues)
-            : this(ectx, columns)
-        {
-            foreach (var kvp in keyValues)
-            {
-                var name = kvp.Key;
-                var getter = kvp.Value;
-                if (!ColumnNameMap.TryGetValue(name, out int col))
-                    throw Ectx.ExceptParam(nameof(keyValues), $"Output schema does not contain column '{name}'");
-                if (!Types[col].ItemType.IsKey)
-                    throw Ectx.ExceptParam(nameof(keyValues), $"Column '{name}' is not a key column, so it cannot have key value metadata");
-                _keyValueGetters[col] = getter;
-            }
-        }
-
-        protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int col)
-        {
-            Ectx.Assert(0 <= col && col < ColumnCount);
-            if (_keyValueGetters[col] != null)
-            {
-                Ectx.Assert(Types[col].ItemType.IsKey);
-                yield return new KeyValuePair<string, ColumnType>(MetadataUtils.Kinds.KeyValues,
-                    new VectorType(TextType.Instance, Types[col].ItemType.KeyCount));
-            }
-        }
-
-        protected override ColumnType GetMetadataTypeOrNullCore(string kind, int col)
-        {
-            Ectx.Assert(0 <= col && col < ColumnCount);
-            if (kind == MetadataUtils.Kinds.KeyValues && _keyValueGetters[col] != null)
-            {
-                Ectx.Assert(Types[col].ItemType.IsKey);
-                return new VectorType(TextType.Instance, Types[col].ItemType.KeyCount);
-            }
-            return null;
-        }
-
-        protected override void GetMetadataCore<TValue>(string kind, int col, ref TValue value)
-        {
-            Ectx.Assert(0 <= col && col < ColumnCount);
-            if (kind == MetadataUtils.Kinds.KeyValues && _keyValueGetters[col] != null)
-                _keyValueGetters[col].Marshal(col, ref value);
-            else
-                throw Ectx.ExceptGetMetadata();
-        }
-    }
-
     public static class SimpleSchemaUtils
     {
         public static Schema Create(IExceptionContext ectx, params KeyValuePair<string, ColumnType>[] columns)
@@ -209,5 +156,4 @@ namespace Microsoft.ML.Runtime.Data
             return builder.GetSchema();
         }
     }
-
 }

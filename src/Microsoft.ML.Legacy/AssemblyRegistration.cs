@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Trainers.FastTree;
@@ -38,12 +38,11 @@ namespace Microsoft.ML.Runtime
         /// </summary>
         private static bool LoadStandardAssemblies()
         {
-            Assembly apiAssembly = typeof(LambdaTransform).Assembly; // ML.Api
-            AssemblyName apiAssemblyName = apiAssembly.GetName();
+            Assembly dataAssembly = typeof(TextLoader).Assembly; // ML.Data
+            AssemblyName dataAssemblyName = dataAssembly.GetName();
 
-            _ = typeof(TextLoader).Assembly; // ML.Data
-            //_ = typeof(EnsemblePredictor).Assembly); // ML.Ensemble BUG https://github.com/dotnet/machinelearning/issues/1078 Ensemble isn't in a NuGet package
-            _ = typeof(FastTreeBinaryPredictor).Assembly; // ML.FastTree
+            _ = typeof(EnsemblePredictor).Assembly; // ML.Ensemble
+            _ = typeof(FastTreeBinaryModelParameters).Assembly; // ML.FastTree
             _ = typeof(KMeansModelParameters).Assembly; // ML.KMeansClustering
             _ = typeof(Maml).Assembly; // ML.Maml
             _ = typeof(PcaPredictor).Assembly; // ML.PCA
@@ -55,7 +54,7 @@ namespace Microsoft.ML.Runtime
             _ = Assembly.Load(new AssemblyName()
             {
                 Name = "Microsoft.ML.StandardLearners",
-                Version = apiAssemblyName.Version, //assume the same version as ML.Api
+                Version = dataAssemblyName.Version, //assume the same version as ML.Data
             });
 
             return true;

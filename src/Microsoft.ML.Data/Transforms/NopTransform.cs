@@ -133,13 +133,11 @@ namespace Microsoft.ML.Runtime.Data
             return predicate;
         }
 
-        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));
             Contracts.CheckParam(input.Schema == Source.Schema, nameof(input), "Schema of input row must be the same as the schema the mapper is bound to");
-
-            disposer = null;
             return input;
         }
 
@@ -156,7 +154,7 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = CreateIfNeeded(host, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

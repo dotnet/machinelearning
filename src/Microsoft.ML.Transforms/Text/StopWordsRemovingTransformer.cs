@@ -184,7 +184,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public class ColumnInfo
+        public sealed class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
             if (!StopWordsRemovingEstimator.IsColumnTypeValid(type))
@@ -304,10 +304,10 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
 
         private void CheckResources()
         {
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Transforms.Text
                     (_resourcesExist[langVal] ?? (_resourcesExist[langVal] = GetResourceFileStreamOrNull(lang) != null).Value);
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 var active = new bool[InputSchema.ColumnCount];
                 foreach (var pair in _colMapNewToOld)
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Transforms.Text
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
@@ -722,17 +722,13 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     if (stopwordsCol == null)
                         stopwordsCol = "Stopwords";
-                    dataLoader = TextLoader.Create(
+                    dataLoader = new TextLoader(
                         Host,
-                        new TextLoader.Arguments()
+                        columns: new[]
                         {
-                            Separator = "tab",
-                            Column = new[]
-                            {
-                                new TextLoader.Column(stopwordsCol, DataKind.TX, 0)
-                            }
+                            new TextLoader.Column(stopwordsCol, DataKind.TX, 0)
                         },
-                        fileSource);
+                        dataSample: fileSource).Read(fileSource) as IDataLoader;
                 }
                 ch.AssertNonEmpty(stopwordsCol);
             }
@@ -963,10 +959,10 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-           => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+           => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -1076,7 +1072,7 @@ namespace Microsoft.ML.Transforms.Text
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.input, out var col))

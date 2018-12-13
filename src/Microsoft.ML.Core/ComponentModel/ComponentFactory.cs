@@ -48,7 +48,8 @@ namespace Microsoft.ML.Runtime
     /// <summary>
     /// A utility class for creating <see cref="IComponentFactory"/> instances.
     /// </summary>
-    public static class ComponentFactoryUtils
+    [BestFriend]
+    internal static class ComponentFactoryUtils
     {
         /// <summary>
         /// Creates a component factory with no extra parameters (other than an <see cref="IHostEnvironment"/>)

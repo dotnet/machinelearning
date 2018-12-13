@@ -327,8 +327,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IHostEnvironment _env;
             private readonly ISchemaBoundRowMapper _genericRowMapper;
             private readonly BindableMapper _parent;
-            private readonly ISchema _outputSchema;
-            private readonly ISchema _outputGenericSchema;
+            private readonly Schema _outputSchema;
+            private readonly Schema _outputGenericSchema;
             private VBuffer<ReadOnlyMemory<char>> _slotNames;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
@@ -353,8 +353,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (parent.Stringify)
                 {
-                    _outputSchema = new SimpleSchema(_env,
-                        new KeyValuePair<string, ColumnType>(DefaultColumnNames.FeatureContributions, TextType.Instance));
+                    var builder = new SchemaBuilder();
+                    builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
+                    _outputSchema = builder.GetSchema();
                     if (InputSchema.HasSlotNames(InputRoleMappedSchema.Feature.Index, InputRoleMappedSchema.Feature.Type.VectorSize))
                         InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index,
                             ref _slotNames);
@@ -363,13 +364,13 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    _outputSchema = new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
-                        new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
-                        InputSchema, InputRoleMappedSchema.Feature.Index);
+                    _outputSchema = Schema.Create(new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
+                        new VectorType(NumberType.R4, schema.Feature.Type as VectorType),
+                        InputSchema, InputRoleMappedSchema.Feature.Index));
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
-                OutputSchema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
+                OutputSchema = new CompositeSchema(new Schema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
             }
 
             /// <summary>
@@ -385,28 +386,28 @@ namespace Microsoft.ML.Runtime.Data
                 return col => false;
             }
 
-            public Row GetOutputRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active)
             {
                 Contracts.AssertValue(input);
-                Contracts.AssertValue(predicate);
+                Contracts.AssertValue(active);
                 var totalColumnsCount = 1 + _outputGenericSchema.ColumnCount;
                 var getters = new Delegate[totalColumnsCount];
 
-                if (predicate(totalColumnsCount - 1))
+                if (active(totalColumnsCount - 1))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
                         ? _parent.GetTextContributionGetter(input, InputRoleMappedSchema.Feature.Index, _slotNames)
                         : _parent.GetContributionGetter(input, InputRoleMappedSchema.Feature.Index);
                 }
 
-                var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(predicate), out disposer);
+                var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(active));
                 for (var i = 0; i < _outputGenericSchema.ColumnCount; i++)
                 {
                     if (genericRow.IsColumnActive(i))
                         getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
                 }
 
-                return new SimpleRow(OutputSchema, input, getters);
+                return new SimpleRow(OutputSchema, genericRow, getters);
             }
 
             public Func<int, bool> GetGenericPredicate(Func<int, bool> predicate)
@@ -417,11 +418,6 @@ namespace Microsoft.ML.Runtime.Data
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
-            }
-
-            public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
-            {
-                return GetOutputRow(input, active, out disposer);
             }
         }
 

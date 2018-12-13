@@ -481,7 +481,7 @@ namespace Microsoft.ML.Data
                 _index = index;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
 
             public override RowCursor GetRootCursor() => this;
 
@@ -565,12 +565,8 @@ namespace Microsoft.ML.Data
             public override long Batch => _internal.Batch;
             public override Schema Schema => _internal.Schema;
 
-            public override void Dispose()
-            {
-            }
-
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _internal.GetGetter<TValue>(col);
-            public override ValueGetter<UInt128> GetIdGetter() => _internal.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _internal.GetIdGetter();
             public override bool IsColumnActive(int col) => _internal.IsColumnActive(col);
             public override bool MoveTo(long rowIndex) => _internal.MoveTo(rowIndex);
         }
@@ -584,13 +580,13 @@ namespace Microsoft.ML.Data
 
             public override CursorState State => throw new NotImplementedException();
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(Position >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)Position, 0);
+                        val = new RowId((ulong)Position, 0);
                     };
             }
 
@@ -778,7 +774,7 @@ namespace Microsoft.ML.Data
             /// An ID getter, which should be based on the value that would be returned
             /// from <see cref="GetIndex"/>, if valid, and otherwise have undefined behavior.
             /// </summary>
-            ValueGetter<UInt128> GetIdGetter();
+            ValueGetter<RowId> GetIdGetter();
 
             /// <summary>
             /// Moves to the next index. Once this or <see cref="MoveMany"/> has returned
@@ -823,13 +819,13 @@ namespace Microsoft.ML.Data
                 return _curr;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_curr, 0);
+                        val = new RowId((ulong)_curr, 0);
                     };
             }
 
@@ -869,7 +865,7 @@ namespace Microsoft.ML.Data
 
                 public long Batch => _index.Batch;
                 public long GetIndex() => _index.GetIndex();
-                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
                 public bool MoveMany(long count) => _index.MoveMany(count);
             }
@@ -898,13 +894,13 @@ namespace Microsoft.ML.Data
                 return _perm[_curr];
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_perm[_curr], 0);
+                        val = new RowId((ulong)_perm[_curr], 0);
                     };
             }
 
@@ -960,7 +956,7 @@ namespace Microsoft.ML.Data
 
                 public long Batch => _index.Batch;
                 public long GetIndex() => _index.GetIndex();
-                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
                 public bool MoveMany(long count) => _index.MoveMany(count);
             }
@@ -1054,13 +1050,13 @@ namespace Microsoft.ML.Data
                 return _curr;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_curr, 0);
+                        val = new RowId((ulong)_curr, 0);
                     };
             }
 
@@ -1128,11 +1124,11 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch => _index.Batch;
-                public long GetIndex() => _index.GetIndex();
-                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
-                public bool MoveNext() => _index.MoveNext();
-                public bool MoveMany(long count) => _index.MoveMany(count);
+                public long Batch { get { return _index.Batch; } }
+                public long GetIndex() { return _index.GetIndex(); }
+                public ValueGetter<RowId> GetIdGetter() { return _index.GetIdGetter(); }
+                public bool MoveNext() { return _index.MoveNext(); }
+                public bool MoveMany(long count) { return _index.MoveMany(count); }
             }
         }
 
@@ -1173,13 +1169,13 @@ namespace Microsoft.ML.Data
                 return _perm[_curr];
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_perm[_curr], 0);
+                        val = new RowId((ulong)_perm[_curr], 0);
                     };
             }
 
@@ -1236,11 +1232,11 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch => _index.Batch;
-                public long GetIndex() => _index.GetIndex();
-                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
-                public bool MoveNext() => _index.MoveNext();
-                public bool MoveMany(long count) => _index.MoveMany(count);
+                public long Batch { get { return _index.Batch; } }
+                public long GetIndex() { return _index.GetIndex(); }
+                public ValueGetter<RowId> GetIdGetter() { return _index.GetIdGetter(); }
+                public bool MoveNext() { return _index.MoveNext(); }
+                public bool MoveMany(long count) { return _index.MoveMany(count); }
             }
         }
 
@@ -1291,15 +1287,18 @@ namespace Microsoft.ML.Data
                 return _colToActivesIndex[col] >= 0;
             }
 
-            public sealed override void Dispose()
+            protected sealed override void Dispose(bool disposing)
             {
-                if (!_disposed)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
                     DisposeCore();
                     PositionCore = -1;
                     Ch.Dispose();
-                    _disposed = true;
                 }
+                base.Dispose(disposing);
+                _disposed = true;
             }
 
             public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)

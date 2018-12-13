@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                             new[] { new ColumnConcatenatingTransformer.TaggedColumn() { Name = nameFeat, Source = concatNames.ToArray() } }
                     },
                     viewTrain);
-                return new CommonOutputs.TransformOutput { Model = new TransformModel(env, viewTrain, input.Data), OutputData = viewTrain };
+                return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, viewTrain, input.Data), OutputData = viewTrain };
             }
         }
 
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (labelType.IsKey || labelType.IsBool)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
-                return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
+                return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
             }
 
             var args = new ValueToKeyMappingTransformer.Arguments()
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
             };
             var xf = ValueToKeyMappingTransformer.Create(host, args, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.PredictedLabelColumnOriginalValueConverter", Desc = "Transforms a predicted label column to its original values, unless it is of type bool.", UserName = "Convert Predicted Label")]
@@ -274,11 +274,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (predictedLabelType.IsNumber || predictedLabelType.IsBool)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
-                return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
+                return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
             }
 
             var xf = new KeyToValueMappingTransformer(host, input.PredictedLabelColumn).Transform(input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.LabelToFloatConverter", Desc = "Transforms the label to float to make it suitable for regression.", UserName = "Prepare Regression Label")]
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (labelType == NumberType.R4 || !labelType.IsNumber)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
-                return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
+                return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
             }
 
             var args = new TypeConvertingTransformer.Arguments()
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
             };
             var xf = new TypeConvertingTransformer(host, new TypeConvertingTransformer.ColumnInfo(input.LabelColumn, input.LabelColumn, DataKind.R4)).Transform(input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

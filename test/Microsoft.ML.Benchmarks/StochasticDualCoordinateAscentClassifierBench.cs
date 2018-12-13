@@ -4,10 +4,10 @@
 
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
@@ -64,30 +64,29 @@ namespace Microsoft.ML.Benchmarks
         {
             var env = new MLContext(seed: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env,
-                new TextLoader.Arguments()
+            var arguments = new TextLoader.Arguments()
+            {
+                Column = new TextLoader.Column[]
                 {
-                    AllowQuoting = false,
-                    AllowSparse = false,
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
+                    new TextLoader.Column()
                     {
-                            new TextLoader.Column()
-                            {
-                                Name = "Label",
-                                Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
-                                Type = DataKind.Num
-                            },
+                        Name = "Label",
+                        Source = new[] { new TextLoader.Range() { Min = 0, Max = 0 } },
+                        Type = DataKind.Num
+                    },
 
-                            new TextLoader.Column()
-                            {
-                                Name = "SentimentText",
-                                Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
-                                Type = DataKind.Text
-                            }
+                    new TextLoader.Column()
+                    {
+                        Name = "SentimentText",
+                        Source = new[] { new TextLoader.Range() { Min = 1, Max = 1 } },
+                        Type = DataKind.Text
                     }
-                }, new MultiFileSource(_sentimentDataPath));
+                },
+                HasHeader = true,
+                AllowQuoting = false,
+                AllowSparse = false
+            };
+            var loader = env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
 
             var text = TextFeaturizingEstimator.Create(env,
                 new TextFeaturizingEstimator.Arguments()

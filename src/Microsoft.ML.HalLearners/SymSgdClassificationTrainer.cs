@@ -141,8 +141,8 @@ namespace Microsoft.ML.Trainers.SymSgd
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
-                linInitPred = linInitPred ?? initPred as LinearPredictor;
+                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
+                linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
                 return TrainCore(ch, preparedData, linInitPred, weightSetCount);
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
-            var predictor = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias);
+            var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
@@ -635,7 +635,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             }
         }
 
-        private TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
+        private TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             int numFeatures = data.Schema.Feature.Type.VectorSize;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
@@ -760,9 +760,9 @@ namespace Microsoft.ML.Trainers.SymSgd
             //To triger the loading of MKL library since SymSGD native library depends on it.
             static Native() => ErrorMessage(0);
 
-            internal const string DllName = "SymSgdNative";
-
-            [DllImport(DllName), SuppressUnmanagedCodeSecurity]
+            internal const string NativePath = "SymSgdNative";
+            internal const string MklPath = "MklImports";
+            [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
                 float** instValues, float* labels, bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
                 int numFeatres, int numPasses, int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize, State* state);
@@ -833,7 +833,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                 }
             }
 
-            [DllImport(DllName), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void MapBackWeightVector(float* weightVector, State* state);
 
             /// <summary>
@@ -847,7 +847,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                     MapBackWeightVector(pweightVector, (State*)stateGCHandle.AddrOfPinnedObject());
             }
 
-            [DllImport(DllName), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void DeallocateSequentially(State* state);
 
             public static void DeallocateSequentially(GCHandle stateGCHandle)
@@ -856,8 +856,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             }
 
             // See: https://software.intel.com/en-us/node/521990
-            [System.Security.SuppressUnmanagedCodeSecurity]
-            [DllImport("MklImports", EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+            [DllImport(MklPath, EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
             private static extern IntPtr ErrorMessage(int status);
         }
 

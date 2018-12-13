@@ -336,7 +336,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private readonly object _colTransposersLock;
 
         /// <summary>
-        /// Lower inclusive bound of versions this reader can read.
+        /// Low inclusive bound of versions this reader can read.
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010001;
 
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private sealed class SchemaImpl : ITransposeSchema
         {
             private readonly TransposeLoader _parent;
-            private ISchema Schema { get { return _parent.Schema; } }
+            private Schema Schema { get { return _parent.Schema; } }
             private IHost Host { get { return _parent._host; } }
             public int ColumnCount { get { return Schema.ColumnCount; } }
 
@@ -659,7 +659,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 var view = _parent._entries[col].GetViewOrNull();
                 if (view == null)
                     return null;
-                return view.Schema.GetColumnType(0).AsVector;
+                return view.Schema.GetColumnType(0) as VectorType;
             }
         }
 
@@ -824,15 +824,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Init(_actives[i]);
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (!_disposed)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    _disposed = true;
                     for (int i = 0; i < _transCursors.Length; ++i)
                         _transCursors[i].Dispose();
-                    base.Dispose();
                 }
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             /// <summary>
@@ -884,13 +886,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _transCursors[i] = cursor;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)Position, 0);
+                        val = new RowId((ulong)Position, 0);
                     };
             }
 

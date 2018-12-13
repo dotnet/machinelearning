@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Use tag to independently create multiple temporary, unique column
         /// names for a single transform.
         /// </summary>
-        public static string GetTempColumnName(this ISchema schema, string tag = null)
+        public static string GetTempColumnName(this Schema schema, string tag = null)
         {
             Contracts.CheckValue(schema, nameof(schema));
 
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Use tag to independently create multiple temporary, unique column
         /// names for a single transform.
         /// </summary>
-        public static string[] GetTempColumnNames(this ISchema schema, int n, string tag = null)
+        public static string[] GetTempColumnNames(this Schema schema, int n, string tag = null)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Check(n > 0, "n");
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
             int j = 0;
             for (int i = 0; i < n; i++)
             {
-                for (;;)
+                for (; ; )
                 {
                     string name = string.IsNullOrWhiteSpace(tag) ?
                         string.Format("temp_{0:000}", j) :
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCachable(ISchema schema, Func<int, bool> predicate)
+        public static bool AllCachable(Schema schema, Func<int, bool> predicate)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(predicate, nameof(predicate));
@@ -1006,7 +1006,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly int[] _colToActive;
                 private readonly OutPipe[] _pipes;
                 private readonly Delegate[] _getters;
-                private readonly ValueGetter<UInt128> _idGetter;
+                private readonly ValueGetter<RowId> _idGetter;
                 private readonly BlockingCollection<Batch> _batchInputs;
                 private readonly Action _quitAction;
 
@@ -1050,29 +1050,27 @@ namespace Microsoft.ML.Runtime.Data
                     _getters = new Delegate[pipes.Length];
                     for (int i = 0; i < activeToCol.Length; ++i)
                         _getters[i] = _pipes[i].GetGetter();
-                    _idGetter = (ValueGetter<UInt128>)_pipes[activeToCol.Length + (int)ExtraIndex.Id].GetGetter();
+                    _idGetter = (ValueGetter<RowId>)_pipes[activeToCol.Length + (int)ExtraIndex.Id].GetGetter();
                     _batchInputs = batchInputs;
                     _batch = -1;
                     _quitAction = quitAction;
                 }
 
-                public override void Dispose()
+                protected override void Dispose(bool disposing)
                 {
-                    if (!_disposed)
+                    if (_disposed)
+                        return;
+                    if (disposing)
                     {
                         foreach (var pipe in _pipes)
                             pipe.Unset();
-                        _disposed = true;
-                        if (_quitAction != null)
-                            _quitAction();
+                        _quitAction?.Invoke();
                     }
-                    base.Dispose();
+                    _disposed = true;
+                    base.Dispose(disposing);
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
-                {
-                    return _idGetter;
-                }
+                public override ValueGetter<RowId> GetIdGetter() => _idGetter;
 
                 protected override bool MoveNextCore()
                 {
@@ -1203,11 +1201,12 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (!_disposed)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    _disposed = true;
                     _batch = -1;
                     _icursor = -1;
                     _currentCursor = null;
@@ -1215,16 +1214,17 @@ namespace Microsoft.ML.Runtime.Data
                     foreach (var cursor in _cursors)
                         cursor.Dispose();
                 }
-                base.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
-                ValueGetter<UInt128>[] idGetters = new ValueGetter<UInt128>[_cursors.Length];
+                ValueGetter<RowId>[] idGetters = new ValueGetter<RowId>[_cursors.Length];
                 for (int i = 0; i < _cursors.Length; ++i)
                     idGetters[i] = _cursors[i].GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(_icursor >= 0, "Cannot call ID getter in current state");
                         idGetters[_icursor](ref val);

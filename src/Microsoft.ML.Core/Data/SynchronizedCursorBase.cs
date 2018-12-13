@@ -43,14 +43,17 @@ namespace Microsoft.ML.Runtime.Data
             _root = Input.GetRootCursor();
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (!_disposed)
+            if (_disposed)
+                return;
+            if (disposing)
             {
                 Input.Dispose();
                 Ch.Dispose();
-                _disposed = true;
             }
+            base.Dispose(disposing);
+            _disposed = true;
         }
 
         public sealed override bool MoveNext() => _root.MoveNext();
@@ -59,6 +62,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed override RowCursor GetRootCursor() => _root;
 
-        public sealed override ValueGetter<UInt128> GetIdGetter() => Input.GetIdGetter();
+        public sealed override ValueGetter<RowId> GetIdGetter() => Input.GetIdGetter();
     }
 }

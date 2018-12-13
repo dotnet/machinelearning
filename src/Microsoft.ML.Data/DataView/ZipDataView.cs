@@ -110,6 +110,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly RowCursor[] _cursors;
             private readonly CompositeSchema _compositeSchema;
             private readonly bool[] _isColumnActive;
+            private bool _disposed;
 
             public override long Batch { get { return 0; } }
 
@@ -124,20 +125,26 @@ namespace Microsoft.ML.Runtime.Data
                 _isColumnActive = Utils.BuildArray(_compositeSchema.ColumnCount, predicate);
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                for (int i = _cursors.Length - 1; i >= 0; i--)
-                    _cursors[i].Dispose();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                {
+                    for (int i = _cursors.Length - 1; i >= 0; i--)
+                        _cursors[i].Dispose();
+                }
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)Position, 0);
+                        val = new RowId((ulong)Position, 0);
                     };
             }
 

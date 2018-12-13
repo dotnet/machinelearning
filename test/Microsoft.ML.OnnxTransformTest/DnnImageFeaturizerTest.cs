@@ -3,20 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.ImageAnalytics;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
-using System.Reflection;
-using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Tests
 {
@@ -45,7 +44,7 @@ namespace Microsoft.ML.Tests
             public string[] data_0;
         }
 
-        private float[] getSampleArrayData()
+        private float[] GetSampleArrayData()
         {
             var samplevector = new float[inputSize];
             for (int i = 0; i < inputSize; i++)
@@ -65,9 +64,9 @@ namespace Microsoft.ML.Tests
                 return;
             
 
-            var samplevector = getSampleArrayData();
+            var samplevector = GetSampleArrayData();
 
-            var dataView = ComponentCreation.CreateDataView(Env,
+            var dataView = DataViewConstructionUtils.CreateFromList(Env,
                 new TestData[] {
                     new TestData()
                     {
@@ -134,7 +133,7 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(512, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 
@@ -146,7 +145,7 @@ namespace Microsoft.ML.Tests
                 return;
             
 
-            var samplevector = getSampleArrayData();
+            var samplevector = GetSampleArrayData();
 
             var dataView = ComponentCreation.CreateDataView(Env,
                 new TestData[] {

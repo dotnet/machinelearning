@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -200,7 +201,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
@@ -282,7 +283,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
             resultDic[_args.Name] = new SchemaShape.Column(
                 _args.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 

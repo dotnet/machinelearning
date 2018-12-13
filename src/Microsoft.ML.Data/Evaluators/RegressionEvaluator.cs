@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, LossFunction, schema.Weight != null, stratName);
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Contracts.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
@@ -210,13 +210,13 @@ namespace Microsoft.ML.Runtime.Data
         public const string L1 = "L1-loss";
         public const string L2 = "L2-loss";
 
-        public RegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol)
+        public RegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string labelCol)
             : base(env, schema, scoreCol, labelCol)
         {
             CheckInputColumnTypes(schema);
         }
 
-        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Data
             // base
         }
 
-        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -245,13 +245,13 @@ namespace Microsoft.ML.Runtime.Data
             base.Save(ctx);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             return
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             var infos = new Schema.DetachedColumn[2];
             infos[L1Col] = new Schema.DetachedColumn(L1, NumberType.R8, null);
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
             return infos;
         }
 
-        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly RegressionEvaluator _evaluator;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public RegressionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.Regression, "RegressionMamlEvaluator")
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new RegressionMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new RegressionMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

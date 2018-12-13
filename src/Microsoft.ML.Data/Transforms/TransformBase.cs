@@ -168,19 +168,16 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema InputSchema => Source.Schema;
 
-        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
             Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
 
-            disposer = null;
             using (var ch = Host.Start("GetEntireRow"))
             {
-                Action disp;
-                var getters = CreateGetters(input, active, out disp);
-                disposer += disp;
-                return new RowImpl(input, this, OutputSchema, getters);
+                var getters = CreateGetters(input, active, out Action disp);
+                return new RowImpl(input, this, OutputSchema, getters, disp);
             }
         }
 
@@ -188,26 +185,29 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract int MapColumnIndex(out bool isSrc, int col);
 
-        private sealed class RowImpl : Row
+        private sealed class RowImpl : WrappingRow
         {
             private readonly Schema _schema;
-            private readonly Row _input;
             private readonly Delegate[] _getters;
+            private readonly Action _disposer;
 
             private readonly RowToRowMapperTransformBase _parent;
 
-            public override long Batch => _input.Batch;
-
-            public override long Position => _input.Position;
-
             public override Schema Schema => _schema;
 
-            public RowImpl(Row input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters)
+            public RowImpl(Row input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters, Action disposer)
+                : base(input)
             {
-                _input = input;
                 _parent = parent;
                 _schema = schema;
                 _getters = getters;
+                _disposer = disposer;
+            }
+
+            protected override void DisposeCore(bool disposing)
+            {
+                if (disposing)
+                    _disposer?.Invoke();
             }
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
                 bool isSrc;
                 int index = _parent.MapColumnIndex(out isSrc, col);
                 if (isSrc)
-                    return _input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(index);
 
                 Contracts.Assert(_getters[index] != null);
                 var fn = _getters[index] as ValueGetter<TValue>;
@@ -224,17 +224,12 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
-            {
-                return _input.GetIdGetter();
-            }
-
             public override bool IsColumnActive(int col)
             {
                 bool isSrc;
                 int index = _parent.MapColumnIndex(out isSrc, col);
                 if (isSrc)
-                    return _input.IsColumnActive((index));
+                    return Input.IsColumnActive((index));
                 return _getters[index] != null;
             }
         }
@@ -292,7 +287,7 @@ namespace Microsoft.ML.Runtime.Data
             private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
 
             private Bindings(OneToOneTransformBase parent, ColInfo[] infos,
-                ISchema input, bool user, string[] names)
+                Schema input, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.AssertValue(parent);
@@ -305,7 +300,7 @@ namespace Microsoft.ML.Runtime.Data
                 Infos = infos;
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, ISchema input,
+            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, Schema input,
                 ITransposeSchema transInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
@@ -342,7 +337,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Bindings(parent, infos, input, true, names);
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, ISchema input,
+            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, Schema input,
                 ITransposeSchema transInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
@@ -842,7 +837,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly bool[] _active;
 
             private readonly Delegate[] _getters;
-            private readonly Action[] _disposers;
+            private readonly Action _disposer;
+            private bool _disposed;
 
             public Cursor(IChannelProvider provider, OneToOneTransformBase parent, RowCursor input, bool[] active)
                 : base(provider, input)
@@ -854,30 +850,29 @@ namespace Microsoft.ML.Runtime.Data
                 _active = active;
                 _getters = new Delegate[parent.Infos.Length];
 
-                // Build the delegates.
-                List<Action> disposers = null;
+                // Build the disposing delegate.
+                Action masterDisposer = null;
                 for (int iinfo = 0; iinfo < _getters.Length; iinfo++)
                 {
                     if (!IsColumnActive(parent._bindings.MapIinfoToCol(iinfo)))
                         continue;
-                    Action disposer;
-                    _getters[iinfo] = parent.GetGetterCore(Ch, Input, iinfo, out disposer);
+                    _getters[iinfo] = parent.GetGetterCore(Ch, Input, iinfo, out Action disposer);
                     if (disposer != null)
-                        Utils.Add(ref disposers, disposer);
+                        masterDisposer += disposer;
                 }
-
-                if (Utils.Size(disposers) > 0)
-                    _disposers = disposers.ToArray();
+                _disposer = masterDisposer;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (_disposers != null)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    foreach (var act in _disposers)
-                        act();
+                    _disposer?.Invoke();
                 }
-                base.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public override Schema Schema => _bindings.AsSchema;

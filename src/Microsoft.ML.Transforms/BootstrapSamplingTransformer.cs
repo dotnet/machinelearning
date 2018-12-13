@@ -200,14 +200,14 @@ namespace Microsoft.ML.Transforms
                 _rgen = rgen;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 var inputIdGetter = Input.GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         inputIdGetter(ref val);
-                        val = val.Combine(new UInt128((ulong)_remaining, 0));
+                        val = val.Combine(new RowId((ulong)_remaining, 0));
                     };
             }
 
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms
             var view = new BootstrapSamplingTransformer(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

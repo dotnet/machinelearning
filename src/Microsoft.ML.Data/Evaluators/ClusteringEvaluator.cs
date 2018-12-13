@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var rolesMappedData = new RoleMappedData(data, opt: false, roles.ToArray());
 
-            var resultDict = Evaluate(rolesMappedData);
+            var resultDict = ((IEvaluator)this).Evaluate(rolesMappedData);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, schema.Feature, numClusters, _calculateDbi, schema.Weight != null, stratName);
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             int numClusters = scoreInfo.Type.VectorSize;
@@ -586,7 +586,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int _numClusters;
         private readonly ColumnType[] _types;
 
-        public ClusteringPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, int numClusters)
+        public ClusteringPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, int numClusters)
             : base(env, schema, scoreCol, null)
         {
             CheckInputColumnTypes(schema);
@@ -599,7 +599,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);
         }
 
-        private ClusteringPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private ClusteringPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -618,7 +618,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[SortedClusterScoreCol] = new VectorType(NumberType.R4, _numClusters);
         }
 
-        public static ClusteringPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static ClusteringPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.Write(_numClusters);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             return
                 col =>
@@ -646,13 +646,13 @@ namespace Microsoft.ML.Runtime.Data
                     (activeOutput(ClusterIdCol) || activeOutput(SortedClusterCol) || activeOutput(SortedClusterScoreCol));
         }
 
-        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             disposer = null;
 
             var getters = new Delegate[3];
 
-            if (!activeOutput(ClusterIdCol) && !activeOutput(SortedClusterCol) && !activeOutput(SortedClusterScoreCol))
+            if (!activeCols(ClusterIdCol) && !activeCols(SortedClusterCol) && !activeCols(SortedClusterScoreCol))
                 return getters;
 
             long cachedPosition = -1;
@@ -675,7 +675,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 };
 
-            if (activeOutput(ClusterIdCol))
+            if (activeCols(ClusterIdCol))
             {
                 ValueGetter<uint> assignedFn =
                     (ref uint dst) =>
@@ -686,7 +686,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[ClusterIdCol] = assignedFn;
             }
 
-            if (activeOutput(SortedClusterScoreCol))
+            if (activeCols(SortedClusterScoreCol))
             {
                 ValueGetter<VBuffer<Single>> topKScoresFn =
                     (ref VBuffer<Single> dst) =>
@@ -700,7 +700,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[SortedClusterScoreCol] = topKScoresFn;
             }
 
-            if (activeOutput(SortedClusterCol))
+            if (activeCols(SortedClusterCol))
             {
                 ValueGetter<VBuffer<uint>> topKClassesFn =
                     (ref VBuffer<uint> dst) =>
@@ -716,7 +716,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             var infos = new Schema.DetachedColumn[3];
             infos[ClusterIdCol] = new Schema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);
@@ -747,7 +747,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
 
@@ -777,7 +777,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly string _featureCol;
         private readonly bool _calculateDbi;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public ClusteringMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.Clustering, "ClusteringMamlEvaluator")
@@ -861,11 +861,11 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             MatchColumns(host, input, out string label, out string weight, out string name);
-            ISchema schema = input.Data.Schema;
+            var schema = input.Data.Schema;
             string features = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
                 nameof(ClusteringMamlEvaluator.Arguments.FeatureColumn),
                 input.FeatureColumn, DefaultColumnNames.Features);
-            var evaluator = new ClusteringMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new ClusteringMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, features, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

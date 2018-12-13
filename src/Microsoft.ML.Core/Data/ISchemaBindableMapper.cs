@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Given a predicate specifying which columns are needed, return a predicate indicating which input columns are
-        /// needed. The domain of the function is defined over the indices of the columns of <see cref="ISchema.ColumnCount"/>
+        /// needed. The domain of the function is defined over the indices of the columns of <see cref="Schema.ColumnCount"/>
         /// for <see cref="InputSchema"/>.
         /// </summary>
         Func<int, bool> GetDependencies(Func<int, bool> predicate);
@@ -104,15 +104,9 @@ namespace Microsoft.ML.Runtime.Data
         /// This method creates a live connection between the input <see cref="Row"/> and the output <see
         /// cref="Row"/>. In particular, when the getters of the output <see cref="Row"/> are invoked, they invoke the
         /// getters of the input row and base the output values on the current values of the input <see cref="Row"/>.
-        /// The output <see cref="Row"/> values are re-computed when requested through the getters.
-        ///
-        /// The optional <paramref name="disposer"/> should be invoked by any user of this row mapping, once it no
-        /// longer needs the <see cref="Row"/>. If no action is needed when the cursor is Disposed, the implementation
-        /// should set <paramref name="disposer"/> to <c>null</c>, otherwise it should be set to a delegate to be
-        /// invoked by the code calling this object. (For example, a wrapping cursor's <see cref="IDisposable.Dispose"/>
-        /// method. It's best for this action to be idempotent - calling it multiple times should be equivalent to
-        /// calling it once.
+        /// The output <see cref="Row"/> values are re-computed when requested through the getters. Also, the returned
+        /// <see cref="Row"/> will dispose <paramref name="input"/> when it is disposed.
         /// </summary>
-        Row GetRow(Row input, Func<int, bool> active, out Action disposer);
+        Row GetRow(Row input, Func<int, bool> active);
     }
 }

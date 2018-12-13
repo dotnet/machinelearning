@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 for (int i = startingSchemaIndex; i < _sources.Length; i++)
                 {
-                    ISchema schema = _sources[i].Schema;
+                    var schema = _sources[i].Schema;
                     _host.Check(schema.GetColumnName(c) == name, errMsg);
                     _host.Check(schema.GetColumnType(c).SameSizeAndItemType(type), errMsg);
                 }
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class Cursor : CursorBase
         {
             private RowCursor _currentCursor;
-            private ValueGetter<UInt128> _currentIdGetter;
+            private ValueGetter<RowId> _currentIdGetter;
             private int _currentSourceIndex;
 
             public Cursor(AppendRowsDataView parent, Func<int, bool> needCol)
@@ -228,17 +228,17 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         _currentIdGetter(ref val);
                         // While the union of all IDs may not be acceptable, by taking each
                         // data views IDs and combining them against their source index, the
                         // union of these IDs becomes acceptable.
-                        // REVIEW: Convenience UInt128 constructor for this scenario?
-                        val = val.Combine(new UInt128((ulong)_currentSourceIndex, 0));
+                        // REVIEW: Convenience RowId constructor for this scenario?
+                        val = val.Combine(new RowId((ulong)_currentSourceIndex, 0));
                     };
             }
 
@@ -280,15 +280,16 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (State != CursorState.Done)
+                if (State == CursorState.Done)
+                    return;
+                if (disposing)
                 {
                     Ch.Dispose();
-                    if (_currentCursor != null)
-                        _currentCursor.Dispose();
-                    base.Dispose();
+                    _currentCursor?.Dispose();
                 }
+                base.Dispose(disposing);
             }
         }
 
@@ -328,17 +329,17 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
-                ValueGetter<UInt128>[] idGetters = new ValueGetter<UInt128>[_cursorSet.Length];
+                ValueGetter<RowId>[] idGetters = new ValueGetter<RowId>[_cursorSet.Length];
                 for (int i = 0; i < _cursorSet.Length; ++i)
                     idGetters[i] = _cursorSet[i].GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
                         idGetters[_currentSourceIndex](ref val);
-                        val = val.Combine(new UInt128((ulong)_currentSourceIndex, 0));
+                        val = val.Combine(new RowId((ulong)_currentSourceIndex, 0));
                     };
             }
 
@@ -369,15 +370,17 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (State != CursorState.Done)
+                if (State == CursorState.Done)
+                    return;
+                if (disposing)
                 {
                     Ch.Dispose();
                     foreach (RowCursor c in _cursorSet)
                         c.Dispose();
-                    base.Dispose();
                 }
+                base.Dispose(disposing);
             }
         }
 

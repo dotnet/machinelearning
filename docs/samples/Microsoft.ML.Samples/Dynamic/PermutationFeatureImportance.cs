@@ -23,11 +23,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // First, we define the reader: specify the data columns and where to find them in the text file.
             // The data file is composed of rows of data, with each row having 11 numerical columns
             // separated by whitespace.
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments()
-                {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
+            var reader = mlContext.Data.CreateTextReader(
+                columns: new[]
                     {
                         // Read the first column (indexed by 0) in the data file as an R4 (float)
                         new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
@@ -41,9 +38,10 @@ namespace Microsoft.ML.Samples.Dynamic
                         new TextLoader.Column("EmploymentDistance", DataKind.R4, 8),
                         new TextLoader.Column("HighwayDistance", DataKind.R4, 9),
                         new TextLoader.Column("TaxRate", DataKind.R4, 10),
-                        new TextLoader.Column("TeacherRatio", DataKind.R4, 11),
-                    }
-                });
+                        new TextLoader.Column("TeacherRatio", DataKind.R4, 11)
+                    },
+                hasHeader: true
+            );
             
             // Read the data
             var data = reader.Read(dataFile);
@@ -119,9 +117,9 @@ namespace Microsoft.ML.Samples.Dynamic
             }
         }
 
-        private static float[] GetLinearModelWeights(OlsLinearRegressionPredictor linearModel)
+        private static float[] GetLinearModelWeights(OlsLinearRegressionModelParameters linearModel)
         {
-            return linearModel.Weights2.ToArray();
+            return linearModel.Weights.ToArray();
         }
     }
 }

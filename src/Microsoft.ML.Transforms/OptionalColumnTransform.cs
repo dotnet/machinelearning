@@ -66,7 +66,7 @@ namespace Microsoft.ML.Transforms
                 SetMetadata();
             }
 
-            public static Bindings Create(Arguments args, ISchema input, OptionalColumnTransform parent)
+            public static Bindings Create(Arguments args, Schema input, OptionalColumnTransform parent)
             {
                 var names = new string[args.Column.Length];
                 var columnTypes = new ColumnType[args.Column.Length];
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Transforms
             var xf = new OptionalColumnTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }

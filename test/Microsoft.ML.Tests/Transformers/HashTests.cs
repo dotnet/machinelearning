@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
@@ -147,7 +145,7 @@ namespace Microsoft.ML.Tests.Transformers
             var xf = new HashingTransformer(Env, new[] { info });
             var mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out int outCol);
-            var outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            var outRow = mapper.GetRow(inRow, c => c == outCol);
 
             var getter = outRow.GetGetter<uint>(outCol);
             uint result = 0;
@@ -159,7 +157,7 @@ namespace Microsoft.ML.Tests.Transformers
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
 
             getter = outRow.GetGetter<uint>(outCol);
             getter(ref result);
@@ -177,7 +175,7 @@ namespace Microsoft.ML.Tests.Transformers
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
 
             var vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             VBuffer<uint> vecResult = default;
@@ -192,7 +190,7 @@ namespace Microsoft.ML.Tests.Transformers
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             vecGetter(ref vecResult);
 
@@ -211,7 +209,7 @@ namespace Microsoft.ML.Tests.Transformers
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             vecGetter(ref vecResult);
 
@@ -224,7 +222,7 @@ namespace Microsoft.ML.Tests.Transformers
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             vecGetter(ref vecResult);
 
@@ -257,7 +255,7 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestCore(value, NumberType.U8, expected, expectedOrdered, expectedOrdered3);
             HashTestCore((ulong)value, new KeyType(typeof(ulong), 0, 0), eKey, eoKey, e3Key);
 
-            HashTestCore(new UInt128(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
+            HashTestCore(new RowId(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
 
             // Next let's check signed numbers.
 

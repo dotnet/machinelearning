@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             var summarySaver = Predictor as ICanSaveSummary;
             if (summarySaver == null)
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema InputSchema => InputRoleMappedSchema.Schema;
 
-            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(predicate);
@@ -231,7 +231,6 @@ namespace Microsoft.ML.Runtime.Data
                 var getters = new Delegate[1];
                 if (predicate(0))
                     getters[0] = _parent.GetPredictionGetter(input, InputRoleMappedSchema.Feature.Index);
-                disposer = null;
                 return new SimpleRow(OutputSchema, input, getters);
             }
         }
@@ -566,12 +565,11 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 Contracts.AssertValue(input);
                 var active = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
                 var getters = CreateGetters(input, active);
-                disposer = null;
                 return new SimpleRow(OutputSchema, input, getters);
             }
         }

@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// Describes how the transformer handles one input-output column pair.
             /// </summary>
             /// <param name="input">Name of the input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="slots">Ranges of indices in the input column to be dropped. Setting max in <paramref name="slots"/> to null sets max to int.MaxValue.</param>
             public ColumnInfo(string input, string output = null, params (int min, int? max)[] slots)
             {
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="input">Name of the input column.</param>
-        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
         public SlotsDroppingTransformer(IHostEnvironment env, string input, string output = null, int min = default, int? max = null)
@@ -316,8 +316,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return true;
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(Schema schema)
             => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     Host.Assert(typeSrc.IsKnownSizeVector);
                     var dstLength = slotDropper.DstLength;
                     var hasSlotNames = input.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
-                    type = new VectorType(typeSrc.ItemType.AsPrimitive, Math.Max(dstLength, 1));
+                    type = new VectorType((PrimitiveType)typeSrc.ItemType, Math.Max(dstLength, 1));
                     suppressed = dstLength == 0;
                 }
             }
@@ -822,7 +822,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     {
                         var dstLength = _slotDropper[iinfo].DstLength;
                         var hasSlotNames = InputSchema.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
-                        var type = new VectorType(_srcTypes[iinfo].ItemType.AsPrimitive, Math.Max(dstLength, 1));
+                        var type = new VectorType((PrimitiveType)_srcTypes[iinfo].ItemType, Math.Max(dstLength, 1));
 
                         if (hasSlotNames && dstLength > 0)
                         {

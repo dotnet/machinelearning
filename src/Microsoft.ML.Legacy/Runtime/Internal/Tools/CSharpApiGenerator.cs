@@ -203,8 +203,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 if (type == typeof(CommonOutputs.IEvaluatorOutput))
                     continue;
                 var typeEnum = TlcModule.GetDataType(type);
-                if (typeEnum == TlcModule.DataKind.State)
-                    continue;
                 if (typeEnum != TlcModule.DataKind.Unknown)
                     continue;
 
@@ -502,12 +500,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 writer.WriteLine("[Obsolete]");
                 writer.WriteLine("public Var<IDataView> Data { get; }");
                 writer.WriteLine("[Obsolete]");
-                writer.WriteLine("public Var<ITransformModel> Model { get; }");
+                writer.WriteLine("public Var<TransformModel> Model { get; }");
             }
             else
             {
                 writer.WriteLine("[Obsolete]");
-                writer.WriteLine("public Var<IPredictorModel> Model { get; }");
+                writer.WriteLine("public Var<PredictorModel> Model { get; }");
             }
 
             writer.Outdent();

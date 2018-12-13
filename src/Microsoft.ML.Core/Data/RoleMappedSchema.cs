@@ -11,7 +11,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// This contains information about a column in an <see cref="IDataView"/>. It is essentially a convenience cache
     /// containing the name, column index, and column type for the column. The intended usage is that users of <see cref="RoleMappedSchema"/>
-    /// will have a convenient method of getting the index and type without having to separately query it through the <see cref="ISchema"/>,
+    /// will have a convenient method of getting the index and type without having to separately query it through the <see cref="Schema"/>,
     /// since practically the first thing a consumer of a <see cref="RoleMappedSchema"/> will want to do once they get a mappping is get
     /// the type and index of the corresponding column.
     /// </summary>
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Create a ColumnInfo for the column with the given name in the given schema. Throws if the name
         /// doesn't map to a column.
         /// </summary>
-        public static ColumnInfo CreateFromName(ISchema schema, string name, string descName)
+        public static ColumnInfo CreateFromName(Schema schema, string name, string descName)
         {
             if (!TryCreateFromName(schema, name, out var colInfo))
                 throw Contracts.ExceptParam(nameof(name), $"{descName} column '{name}' not found");
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Tries to create a ColumnInfo for the column with the given name in the given schema. Returns
         /// false if the name doesn't map to a column.
         /// </summary>
-        public static bool TryCreateFromName(ISchema schema, string name, out ColumnInfo colInfo)
+        public static bool TryCreateFromName(Schema schema, string name, out ColumnInfo colInfo)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckNonEmpty(name, nameof(name));
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime.Data
         /// of the column might actually map to a different column, so this should be used with care
         /// and rarely.
         /// </summary>
-        public static ColumnInfo CreateFromIndex(ISchema schema, int index)
+        public static ColumnInfo CreateFromIndex(Schema schema, int index)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(0 <= index && index < schema.ColumnCount, nameof(index));
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Encapsulates an <see cref="ISchema"/> plus column role mapping information. The purpose of role mappings is to
+    /// Encapsulates an <see cref="Schema"/> plus column role mapping information. The purpose of role mappings is to
     /// provide information on what the intended usage is for. That is: while a given data view may have a column named
     /// "Features", by itself that is insufficient: the trainer must be fed a role mapping that says that the role
     /// mapping for features is filled by that "Features" column. This allows things like columns not named "Features"
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
     /// in this schema.
     /// </summary>
     /// <remarks>
-    /// Note that instances of this class are, like instances of <see cref="ISchema"/>, immutable.
+    /// Note that instances of this class are, like instances of <see cref="Schema"/>, immutable.
     ///
     /// It is often the case that one wishes to bundle the actual data with the role mappings, not just the schema. For
     /// that case, please use the <see cref="RoleMappedData"/> class.
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Runtime.Data
             => new KeyValuePair<ColumnRole, string>(role, name);
 
         /// <summary>
-        /// The source <see cref="ISchema"/>.
+        /// The source <see cref="Schema"/>.
         /// </summary>
         public Schema Schema { get; }
 
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
             list.Add(info);
         }
 
-        private static Dictionary<string, List<ColumnInfo>> MapFromNames(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
+        private static Dictionary<string, List<ColumnInfo>> MapFromNames(Schema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
         {
             Contracts.AssertValue(schema);
             Contracts.AssertValue(roles);
@@ -469,7 +469,8 @@ namespace Microsoft.ML.Runtime.Data
     /// Note that the schema of <see cref="RoleMappedSchema.Schema"/> of <see cref="Schema"/> is
     /// guaranteed to equal the the <see cref="IDataView.Schema"/> of <see cref="Data"/>.
     /// </summary>
-    public sealed class RoleMappedData
+    [BestFriend]
+    internal sealed class RoleMappedData
     {
         /// <summary>
         /// The data.

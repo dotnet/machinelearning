@@ -95,7 +95,7 @@ This is how you can read this data:
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -115,9 +115,7 @@ If the schema of the data is not known at compile time, or too cumbersome, you c
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-{
-    Column = new[] {
+var reader = mlContext.Data.CreateTextReader(new[] {
         // A boolean column depicting the 'label'.
         new TextLoader.Column("IsOver50K", DataKind.BL, 0),
         // Three text columns.
@@ -126,8 +124,8 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
         new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
     },
     // First line of the file is a header, not a data row.
-    HasHeader = true
-});
+    hasHeader: true
+);
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(dataPath);
@@ -155,7 +153,7 @@ This is how you can read this data:
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(14),
         // Three text columns.
@@ -175,19 +173,17 @@ The code is very similar using the dynamic API:
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-{
-    Column = new[] {
+var reader = mlContext.Data.CreateTextReader(new[] {
         // A boolean column depicting the 'label'.
-        new TextLoader.Column("IsOver50k", DataKind.BL, 0),
+        new TextLoader.Column("IsOver50K", DataKind.BL, 0),
         // Three text columns.
         new TextLoader.Column("Workclass", DataKind.TX, 1),
         new TextLoader.Column("Education", DataKind.TX, 2),
         new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
     },
     // First line of the file is a header, not a data row.
-    HasHeader = true
-});
+    hasHeader: true
+);
 
 var data = reader.Read(exampleFile1, exampleFile2);
 ```
@@ -211,7 +207,7 @@ Reading this file using `TextLoader`:
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // We read the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
         // Separately, read the target variable.
@@ -233,7 +229,7 @@ If the schema of the data is not known at compile time, or too cumbersome, you c
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new[] {
+var reader = mlContext.Data.CreateTextReader(new[] {
         // We read the first 10 values as a single float vector.
         new TextLoader.Column("FeatureVector", DataKind.R4, new[] {new TextLoader.Range(0, 9)}),
         // Separately, read the target variable.
@@ -302,7 +298,7 @@ Label	Workclass	education	marital-status
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -365,19 +361,17 @@ You can also use the dynamic API to create the equivalent of the previous pipeli
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-{
-    Column = new[] {
+var reader = mlContext.Data.CreateTextReader(new[] {
         // A boolean column depicting the 'label'.
-        new TextLoader.Column("IsOver50k", DataKind.BL, 0),
+        new TextLoader.Column("IsOver50K", DataKind.BL, 0),
         // Three text columns.
         new TextLoader.Column("Workclass", DataKind.TX, 1),
         new TextLoader.Column("Education", DataKind.TX, 2),
         new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
     },
     // First line of the file is a header, not a data row.
-    HasHeader = true
-});
+    hasHeader: true
+);
 
 // Start creating our processing pipeline. For now, let's just concatenate all the text columns
 // together into one.
@@ -428,7 +422,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // We read the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
         // Separately, read the target variable.
@@ -443,10 +437,24 @@ var reader = mlContext.Data.TextReader(ctx => (
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var trainData = reader.Read(trainDataPath);
 
+// Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
+// several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
+// User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
+// a caching step, which provides the same caching function, will be inserted in the considered "learningPipeline."
+var cachedTrainData = trainData.Cache();
+
 // Step two: define the learning pipeline. 
 
 // We 'start' the pipeline with the output of the reader.
 var learningPipeline = reader.MakeNewEstimator()
+    // We add a step for caching data in memory so that the downstream iterative training
+    // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+    // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+    // The data accessed in any downstream step will be cached since its first use. In general, you only
+    // need to add a caching step before trainable step, because caching is not helpful if the data is
+    // only scanned once. This step can be removed if user doesn't have enough memory to store the whole
+    // data set.
+    .AppendCacheCheckpoint()
     // Now we can add any 'training steps' to it. In our case we want to 'normalize' the data (rescale to be
     // between -1 and 1 for all examples)
     .Append(r => (
@@ -468,9 +476,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-{
-    Column = new[] {
+var reader = mlContext.Data.CreateTextReader(new[] {
         // We read the first 11 values as a single float vector.
         new TextLoader.Column("FeatureVector", DataKind.R4, 0, 10),
 
@@ -478,13 +484,19 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
         new TextLoader.Column("Target", DataKind.R4, 11),
     },
     // First line of the file is a header, not a data row.
-    HasHeader = true,
+    hasHeader: true,
     // Default separator is tab, but we need a semicolon.
-    Separator = ";"
-});
+    separatorChar: ';'
+);
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var trainData = reader.Read(trainDataPath);
+
+// Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
+// several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
+// User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
+// a caching step, which provides the same caching function, will be inserted in the considered "dynamicPipeline."
+var cachedTrainData = mlContext.Data.Cache(trainData);
 
 // Step two: define the learning pipeline. 
 
@@ -493,6 +505,15 @@ var dynamicPipeline =
     // First 'normalize' the data (rescale to be
     // between -1 and 1 for all examples)
     mlContext.Transforms.Normalize("FeatureVector")
+    // We add a step for caching data in memory so that the downstream iterative training
+    // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+    // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+    // The data accessed in any downstream step will be cached since its first use. In general, you only
+    // need to add a caching step before trainable step, because caching is not helpful if the data is
+    // only scanned once. This step can be removed if user doesn't have enough memory to store the whole
+    // data set. Notice that in the upstream Transforms.Normalize step, we only scan through the data 
+    // once so adding a caching step before it is not helpful.
+    .AppendCacheCheckpoint(mlContext)
     // Add the SDCA regression trainer.
     .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"));
 
@@ -574,7 +595,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -595,6 +616,13 @@ var learningPipeline = reader.MakeNewEstimator()
         r.Label,
         // Concatenate all the features together into one column 'Features'.
         Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+    // We add a step for caching data in memory so that the downstream iterative training
+    // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+    // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+    // The data accessed in any downstream step will be cached since its first use. In general, you only
+    // need to add a caching step before trainable step, because caching is not helpful if the data is
+    // only scanned once.
+    .AppendCacheCheckpoint()
     .Append(r => (
         r.Label,
         // Train the multi-class SDCA model to predict the label using features.
@@ -617,9 +645,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-{
-    Column = new[] {
+var reader = mlContext.Data.CreateTextReader(new[] {
         new TextLoader.Column("SepalLength", DataKind.R4, 0),
         new TextLoader.Column("SepalWidth", DataKind.R4, 1),
         new TextLoader.Column("PetalLength", DataKind.R4, 2),
@@ -628,8 +654,8 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
         new TextLoader.Column("Label", DataKind.TX, 4),
     },
     // Default separator is tab, but the dataset has comma.
-    Separator = ","
-});
+    separatorChar: ','
+);
 
 // Retrieve the training data.
 var trainData = reader.Read(irisDataPath);
@@ -640,6 +666,8 @@ var dynamicPipeline =
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
     .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"), TransformerScope.TrainTest)
+    // Cache data in moemory for steps after the cache check point stage.
+    .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
@@ -741,6 +769,7 @@ var trainData = mlContext.CreateStreamingDataView(churnData);
 
 var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
     .Append(mlContext.Transforms.Concatenate("Features", "DemographicCategory", "LastVisits"))
+    .AppendCacheCheckpoint(mlContext) // FastTree will benefit from caching data in memory.
     .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
 var dynamicModel = dynamicLearningPipeline.Fit(trainData);
@@ -757,6 +786,7 @@ var staticLearningPipeline = staticData.MakeNewEstimator()
     .Append(r => (
         r.HasChurned,
         Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
+    .AppendCacheCheckpoint() // FastTree will benefit from caching data in memory.
     .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
 
 var staticModel = staticLearningPipeline.Fit(staticData);
@@ -781,7 +811,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -813,6 +843,8 @@ var learningPipeline = reader.MakeNewEstimator()
             // When the normalizer is trained, the below delegate is going to be called.
             // We use it to memorize the scales.
             onFit: (scales, offsets) => normScales = scales)))
+    // Cache data used in memory because the subsequently trainer needs to access the data multiple times.
+    .AppendCacheCheckpoint()
     .Append(r => (
         r.Label,
         // Train the multi-class SDCA model to predict the label using features.
@@ -875,7 +907,7 @@ Here's a snippet of code that demonstrates normalization in learning pipelines. 
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // The four features of the Iris dataset will be grouped together as one Features column.
         Features: ctx.LoadFloat(0, 3),
         // Label: kind of iris.
@@ -910,17 +942,15 @@ You can achieve the same results using the dynamic API.
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-{
-    Column = new[] {
+var reader = mlContext.Data.CreateTextReader(new[] {
         // The four features of the Iris dataset will be grouped together as one Features column.
         new TextLoader.Column("Features", DataKind.R4, 0, 3),
         // Label: kind of iris.
         new TextLoader.Column("Label", DataKind.TX, 4),
     },
     // Default separator is tab, but the dataset has comma.
-    Separator = ","
-});
+    separatorChar: ','
+);
 
 // Read the training data.
 var trainData = reader.Read(dataPath);
@@ -969,7 +999,7 @@ Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	n
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         Label: ctx.LoadBool(0),
         // We will load all the categorical features into one vector column of size 8.
         CategoricalFeatures: ctx.LoadText(1, 8),
@@ -987,6 +1017,10 @@ var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
 
 // Build several alternative featurization pipelines.
 var learningPipeline = reader.MakeNewEstimator()
+    // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
+    // cached in memory at their first uses. This step can be removed if user's machine doesn't
+    // have enough memory.
+    .AppendCacheCheckpoint()
     .Append(r => (
         r.Label,
         r.NumericalFeatures,
@@ -1027,9 +1061,8 @@ You can achieve the same results using the dynamic API.
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-{
-    Column = new[] {
+var reader = mlContext.Data.CreateTextReader(new[] 
+    {
         new TextLoader.Column("Label", DataKind.BL, 0),
         // We will load all the categorical features into one vector column of size 8.
         new TextLoader.Column("CategoricalFeatures", DataKind.TX, 1, 8),
@@ -1038,8 +1071,8 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
         // Let's also separately load the 'Workclass' column.
         new TextLoader.Column("Workclass", DataKind.TX, 1),
     },
-    HasHeader = true
-});
+    hasHeader: true
+);
 
 // Read the data.
 var data = reader.Read(dataPath);
@@ -1070,6 +1103,9 @@ var workclasses = transformedData.GetColumn<float[]>(mlContext, "WorkclassOneHot
 var fullLearningPipeline = dynamicPipeline
     // Concatenate two of the 3 categorical pipelines, and the numeric features.
     .Append(mlContext.Transforms.Concatenate("Features", "NumericalFeatures", "CategoricalBag", "WorkclassOneHotTrimmed"))
+    // Cache data in memory so that the following trainer will be able to access training examples without
+    // reading them from disk multiple times.
+    .AppendCacheCheckpoint(mlContext)
     // Now we're ready to train. We chose our FastTree trainer for this classification task.
     .Append(mlContext.BinaryClassification.Trainers.FastTree(numTrees: 50));
 
@@ -1108,7 +1144,7 @@ Sentiment   SentimentText
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         IsToxic: ctx.LoadBool(0),
         Message: ctx.LoadText(1)
     ), hasHeader: true);
@@ -1121,6 +1157,10 @@ var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
 
 // Apply various kinds of text operations supported by ML.NET.
 var learningPipeline = reader.MakeNewEstimator()
+    // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
+    // cached in memory at their first uses. This step can be removed if user's machine doesn't
+    // have enough memory.
+    .AppendCacheCheckpoint()
     .Append(r => (
         // One-stop shop to run the full text featurization.
         TextFeatures: r.Message.FeaturizeText(),
@@ -1154,14 +1194,13 @@ You can achieve the same results using the dynamic API.
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-{
-    Column = new[] {
+var reader = mlContext.Data.CreateTextReader(new[] 
+    {
         new TextLoader.Column("IsToxic", DataKind.BL, 0),
         new TextLoader.Column("Message", DataKind.TX, 1),
     },
-    HasHeader = true
-});
+    hasHeader: true
+);
 
 // Read the data.
 var data = reader.Read(dataPath);
@@ -1221,7 +1260,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -1243,6 +1282,9 @@ var learningPipeline = reader.MakeNewEstimator()
         Label: r.Label.ToKey(),
         // Concatenate all the features together into one column 'Features'.
         Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+    // Add a step for caching data in memory so that the downstream iterative training
+    // algorithm can efficiently scan through the data multiple times.
+    .AppendCacheCheckpoint()
     .Append(r => (
         r.Label,
         // Train the multi-class SDCA model to predict the label using features.
@@ -1274,9 +1316,8 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-{
-    Column = new[] {
+var reader = mlContext.Data.CreateTextReader(new[] 
+    {
         // We read the first 11 values as a single float vector.
         new TextLoader.Column("SepalLength", DataKind.R4, 0),
         new TextLoader.Column("SepalWidth", DataKind.R4, 1),
@@ -1286,8 +1327,8 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
         new TextLoader.Column("Label", DataKind.TX, 4),
     },
     // Default separator is tab, but the dataset has comma.
-    Separator = ","
-});
+    separatorChar: ','
+);
 
 // Read the data.
 var data = reader.Read(dataPath);
@@ -1298,6 +1339,10 @@ var dynamicPipeline =
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
     .Append(mlContext.Transforms.Conversions.MapValueToKey("Label"), TransformerScope.TrainTest)
+    // Cache data in memory so that SDCA trainer will be able to randomly access training examples without
+    // reading data from disk multiple times. Data will be cached at its first use in any downstream step.
+    // Notice that unused part in the data may not be cached.
+    .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
@@ -1335,7 +1380,7 @@ var mlContext = new MLContext();
 
 // Read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = mlContext.Data.TextReader(ctx => (
+var reader = mlContext.Data.CreateTextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -1439,6 +1484,7 @@ public static ITransformer TrainModel(MLContext mlContext, IDataView trainData)
     Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
     // Construct the learning pipeline.
     var estimator = mlContext.Transforms.CustomMapping(mapping, null)
+        .AppendCacheCheckpoint(mlContext)
         .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
 
     return estimator.Fit(trainData);
@@ -1480,8 +1526,12 @@ public class CustomMappings
 var estimator = mlContext.Transforms.CustomMapping<InputRow, OutputRow>(CustomMappings.IncomeMapping, nameof(CustomMappings.IncomeMapping))
     .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
 
+// If memory is enough, we can cache the data in-memory to avoid reading them from file
+// when it will be accessed multiple times. 
+var cachedTrainData = mlContext.Data.Cache(trainData);
+
 // Train the model.
-var model = estimator.Fit(trainData);
+var model = estimator.Fit(cachedTrainData);
 
 // Save the model.
 using (var fs = File.Create(modelPath))

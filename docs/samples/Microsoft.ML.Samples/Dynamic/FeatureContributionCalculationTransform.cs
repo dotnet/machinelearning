@@ -1,4 +1,4 @@
-﻿using Microsoft.ML.Runtime.Api;
+﻿using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using System;
 
@@ -19,11 +19,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 1: Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments()
-                {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
+            var reader = mlContext.Data.CreateTextReader(
+                columns: new[]
                     {
                         new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
                         new TextLoader.Column("CrimesPerCapita", DataKind.R4, 1),
@@ -37,8 +34,9 @@ namespace Microsoft.ML.Samples.Dynamic
                         new TextLoader.Column("HighwayDistance", DataKind.R4, 9),
                         new TextLoader.Column("TaxRate", DataKind.R4, 10),
                         new TextLoader.Column("TeacherRatio", DataKind.R4, 11),
-                    }
-                });
+                    }, 
+                hasHeader: true
+            );
             
             // Read the data
             var data = reader.Read(dataFile);

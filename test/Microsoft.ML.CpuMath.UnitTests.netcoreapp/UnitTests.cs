@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Internal.CpuMath;
 using System;
 using System.Collections.Generic;
 using Xunit;
-using Xunit.Abstractions;
-using Microsoft.ML.Runtime.Internal.CpuMath;
 
 namespace Microsoft.ML.CpuMath.UnitTests
 {
@@ -14,14 +13,12 @@ namespace Microsoft.ML.CpuMath.UnitTests
     {
         private readonly float[][] _testArrays;
         private readonly int[] _testIndexArray;
-        private readonly float[][] _testMatrices;
-        private readonly float[][] _testSrcVectors;
-        private readonly float[][] _testDstVectors;
+        private readonly AlignedArray[] _testMatrices;
+        private readonly AlignedArray[] _testSrcVectors;
+        private readonly AlignedArray[] _testDstVectors;
+        private readonly int _vectorAlignment = CpuMathUtils.GetVectorAlignment();
         private readonly FloatEqualityComparer _comparer;
         private readonly FloatEqualityComparerForMatMul _matMulComparer;
-
-        private const float DefaultScale = 1.7f;
-        private const int DefaultSeed = 253421;
 
         public CpuMathUtilsUnitTests()
         {
@@ -50,19 +47,34 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 testMatrix2[i] = i + 1;
             }
 
-            _testMatrices = new float[][] { testMatrix1, testMatrix2 };
+            AlignedArray testMatrixAligned1 = new AlignedArray(8 * 8, _vectorAlignment);
+            AlignedArray testMatrixAligned2 = new AlignedArray(8 * 16, _vectorAlignment);
+            testMatrixAligned1.CopyFrom(testMatrix1);
+            testMatrixAligned2.CopyFrom(testMatrix2);
+
+            _testMatrices = new AlignedArray[] { testMatrixAligned1, testMatrixAligned2 };
 
             // Padded source vectors whose dimensions are multiples of 8
             float[] testSrcVector1 = new float[8] { 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f };
             float[] testSrcVector2 = new float[16] { 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f };
 
-            _testSrcVectors = new float[][] { testSrcVector1, testSrcVector2 };
+            AlignedArray testSrcVectorAligned1 = new AlignedArray(8, _vectorAlignment);
+            AlignedArray testSrcVectorAligned2 = new AlignedArray(16, _vectorAlignment);
+            testSrcVectorAligned1.CopyFrom(testSrcVector1);
+            testSrcVectorAligned2.CopyFrom(testSrcVector2);
+
+            _testSrcVectors = new AlignedArray[] { testSrcVectorAligned1, testSrcVectorAligned2 };
 
             // Padded destination vectors whose dimensions are multiples of 8
             float[] testDstVector1 = new float[8] { 0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f };
             float[] testDstVector2 = new float[16] { 0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f };
 
-            _testDstVectors = new float[][] { testDstVector1, testDstVector2 };
+            AlignedArray testDstVectorAligned1 = new AlignedArray(8, _vectorAlignment);
+            AlignedArray testDstVectorAligned2 = new AlignedArray(16, _vectorAlignment);
+            testDstVectorAligned1.CopyFrom(testDstVector1);
+            testDstVectorAligned2.CopyFrom(testDstVector2);
+
+            _testDstVectors = new AlignedArray[] { testDstVectorAligned1, testDstVectorAligned2 };
         }
 
         [Theory]
@@ -71,110 +83,14 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(1, 0, 1, new float[] { 204f, 492f, 780f, 1068f, 1356f, 1644f, 1932f, 2220f, 2508f, 2796f, 3084f, 3372f, 3660f, 3948f, 4236f, 4524f })]
         public void MatMulTest(int matTest, int srcTest, int dstTest, float[] expected)
         {
-            float[] mat = _testMatrices[matTest];
-            float[] src = _testSrcVectors[srcTest];
-            float[] dst = _testDstVectors[dstTest];
+            AlignedArray mat = _testMatrices[matTest];
+            AlignedArray src = _testSrcVectors[srcTest];
+            AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatrixTimesSource(false, mat, src, dst, dst.Length);
-            float[] actual = new float[dst.Length];
-            Array.Copy(dst, actual, dst.Length);
+            CpuMathUtils.MatrixTimesSource(false, mat, src, dst, dst.Size);
+            float[] actual = new float[dst.Size];
+            dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
-        }
-
-        [Theory]
-        [InlineData(10, 5)]
-        [InlineData(10, 8)]
-        [InlineData(10, 11)]
-        [InlineData(11, 8)]
-        [InlineData(8, 23)]
-        [InlineData(2, 8)]
-        [InlineData(2, 9)]
-        [InlineData(2, 3)]
-        [InlineData(2, 5)]
-        [InlineData(4, 5)]
-        [InlineData(4, 7)]
-        [InlineData(4, 9)]
-        [InlineData(5, 7)]
-        [InlineData(5, 9)]
-        private void MatMulAnyDimensionTest(int col, int row)
-        {
-            Random rand = new Random(DefaultSeed);
-            float[] mat = new float[col * row];
-            for (int i = 0; i < col * row; i++)
-            {
-                mat[i] = rand.Next(-10, 10);
-            }
-
-            float[] src = new float[col];
-            for (int i = 0; i < col; i++)
-            {
-                src[i] = rand.Next(-10, 10);
-            }
-
-            float[] dst = new float[row];
-            float[] expected = new float[row];
-            
-            for (int i = 0; i < row; i++)
-            {
-                float dotProduct = 0;
-                for (int j = 0; j < src.Length; j++)
-                {
-                    dotProduct += mat[i * src.Length + j] * src[j];
-                }
-
-                expected[i] = dotProduct;
-            }
-
-            CpuMathUtils.MatrixTimesSource(false, mat, src, dst, dst.Length);
-            Assert.Equal(expected, dst, _matMulComparer);
-        }
-
-        [Theory]
-        [InlineData(10, 5)]
-        [InlineData(10, 8)]
-        [InlineData(10, 11)]
-        [InlineData(11, 8)]
-        [InlineData(8, 23)]
-        [InlineData(2, 8)]
-        [InlineData(2, 9)]
-        [InlineData(2, 3)]
-        [InlineData(2, 5)]
-        [InlineData(4, 5)]
-        [InlineData(4, 7)]
-        [InlineData(4, 9)]
-        [InlineData(5, 7)]
-        [InlineData(5, 9)]
-        private void MatMulTranAnyDimensionTest(int col, int row)
-        {
-            float[] mat = new float[col * row];
-            Random rand = new Random(DefaultSeed);
-            for (int i = 0; i < col * row; i++)
-            {
-                mat[i] = rand.Next(0, 10);
-            }
-
-            float[] src = new float[row];
-            for (int i = 0; i < row; i++)
-            {
-                src[i] = rand.Next(0, 10);
-            }
-
-            float[] dst = new float[col];
-            float[] expected = new float[col];
-
-            for (int i = 0; i < dst.Length; i++)
-            {
-                float dotProduct = 0;
-                for (int j = 0; j < row; j++)
-                {
-                    dotProduct += mat[j * dst.Length + i] * src[j];
-                }
-
-                expected[i] = dotProduct;
-            }
-
-            CpuMathUtils.MatrixTimesSource(true, mat, src, dst, row);
-            Assert.Equal(expected, dst, _matMulComparer);
         }
 
         [Theory]
@@ -183,13 +99,13 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(1, 1, 0, new float[] { 11016f, 11152f, 11288f, 11424f, 11560f, 11696f, 11832f, 11968f })]
         public void MatMulTranTest(int matTest, int srcTest, int dstTest, float[] expected)
         {
-            float[] mat = _testMatrices[matTest];
-            float[] src = _testSrcVectors[srcTest];
-            float[] dst = _testDstVectors[dstTest];
+            AlignedArray mat = _testMatrices[matTest];
+            AlignedArray src = _testSrcVectors[srcTest];
+            AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatrixTimesSource(true, mat, src, dst, src.Length);
-            float[] actual = new float[dst.Length];
-            Array.Copy(dst, actual, dst.Length);
+            CpuMathUtils.MatrixTimesSource(true, mat, src, dst, src.Size);
+            float[] actual = new float[dst.Size];
+            dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
         }
 
@@ -199,57 +115,63 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(1, 0, 1, new float[] { 95f, 231f, 367f, 503f, 639f, 775f, 911f, 1047f, 1183f, 1319f, 1455f, 1591f, 1727f, 1863f, 1999f, 2135f })]
         public void MatTimesSrcSparseTest(int matTest, int srcTest, int dstTest, float[] expected)
         {
-            float[] mat = _testMatrices[matTest];
-            float[] src = _testSrcVectors[srcTest];
-            float[] dst = _testDstVectors[dstTest];
+            AlignedArray mat = _testMatrices[matTest];
+            AlignedArray src = _testSrcVectors[srcTest];
+            AlignedArray dst = _testDstVectors[dstTest];
             int[] idx = _testIndexArray;
 
-            CpuMathUtils.MatrixTimesSource(mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Length);
-            float[] actual = new float[dst.Length];
-            Array.Copy(dst, actual, dst.Length);
+            CpuMathUtils.MatrixTimesSource(mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
+            float[] actual = new float[dst.Size];
+            dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public void AddScalarUTest(int test)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void AddScalarUTest(int test, float defaultScale)
         {
             float[] dst = (float[])_testArrays[test].Clone();
             float[] expected = (float[])dst.Clone();
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] += DefaultScale;
+                expected[i] += defaultScale;
             }
 
-            CpuMathUtils.Add(DefaultScale, dst);
+            CpuMathUtils.Add(defaultScale, dst);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public void ScaleTest(int test)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void ScaleTest(int test, float defaultScale)
         {
             float[] dst = (float[])_testArrays[test].Clone();
             float[] expected = (float[])dst.Clone();
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] *= DefaultScale;
+                expected[i] *= defaultScale;
             }
 
-            CpuMathUtils.Scale(DefaultScale, dst);
+            CpuMathUtils.Scale(defaultScale, dst);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public void ScaleSrcUTest(int test)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void ScaleSrcUTest(int test, float defaultScale)
         {
             float[] src = (float[])_testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
@@ -257,36 +179,40 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] *= DefaultScale;
+                expected[i] *= defaultScale;
             }
 
-            CpuMathUtils.Scale(DefaultScale, src, dst, dst.Length);
+            CpuMathUtils.Scale(defaultScale, src, dst, dst.Length);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public void ScaleAddUTest(int test)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void ScaleAddUTest(int test, float defaultScale)
         {
             float[] dst = (float[])_testArrays[test].Clone();
             float[] expected = (float[])dst.Clone();
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] = DefaultScale * (dst[i] + DefaultScale);
+                expected[i] = defaultScale * (dst[i] + defaultScale);
             }
 
-            CpuMathUtils.ScaleAdd(DefaultScale, DefaultScale, dst);
+            CpuMathUtils.ScaleAdd(defaultScale, defaultScale, dst);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public void AddScaleUTest(int test)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void AddScaleUTest(int test, float defaultScale)
         {
             float[] src = (float[])_testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
@@ -294,43 +220,42 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] *= (1 + DefaultScale);
+                expected[i] *= (1 + defaultScale);
             }
 
-            CpuMathUtils.AddScale(DefaultScale, src, dst, dst.Length);
+            CpuMathUtils.AddScale(defaultScale, src, dst, dst.Length);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public void AddScaleSUTest(int test)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void AddScaleSUTest(int test, float defaultScale)
         {
             float[] src = (float[])_testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
             int[] idx = _testIndexArray;
             float[] expected = (float[])dst.Clone();
 
-            expected[0] = 5.292f;
-            expected[2] = -13.806f;
-            expected[5] = -43.522f;
-            expected[6] = 55.978f;
-            expected[8] = -178.869f;
-            expected[11] = -31.941f;
-            expected[12] = -51.205f;
-            expected[13] = -21.337f;
-            expected[14] = 35.782f;
+            CpuMathUtils.AddScale(defaultScale, src, idx, dst, idx.Length);
+            for (int i = 0; i < idx.Length; i++)
+            {
+                int index = idx[i];
+                expected[index] += defaultScale * src[i];
+            }
 
-            CpuMathUtils.AddScale(DefaultScale, src, idx, dst, idx.Length);
-            var actual = dst;
-            Assert.Equal(expected, actual, _comparer);
+            Assert.Equal(expected, dst, _comparer);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public void AddScaleCopyUTest(int test)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void AddScaleCopyUTest(int test, float defaultScale)
         {
             float[] src = (float[])_testArrays[test].Clone();
             float[] dst = (float[])src.Clone();
@@ -339,10 +264,10 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] *= (1 + DefaultScale);
+                expected[i] *= (1 + defaultScale);
             }
 
-            CpuMathUtils.AddScaleCopy(DefaultScale, src, dst, result, dst.Length);
+            CpuMathUtils.AddScaleCopy(defaultScale, src, dst, result, dst.Length);
             var actual = result;
             Assert.Equal(expected, actual, _comparer);
         }
@@ -445,12 +370,21 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 27484.6352f)]
-        [InlineData(1, 27482.1071f)]
-        public void SumSqDiffUTest(int test, float expected)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void SumSqDiffUTest(int test, float defaultScale)
         {
             float[] src = (float[])_testArrays[test].Clone();
-            var actual = CpuMathUtils.SumSq(DefaultScale, src);
+            var actual = CpuMathUtils.SumSq(defaultScale, src);
+
+            float expected = 0;
+            for (int i = 0; i < src.Length; i++)
+            {
+                expected += (src[i] - defaultScale) * (src[i] - defaultScale);
+            }
+
             Assert.Equal(expected, actual, 2);
         }
 
@@ -465,12 +399,21 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 393.96f)]
-        [InlineData(1, 392.37f)]
-        public void SumAbsDiffUTest(int test, float expected)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void SumAbsDiffUTest(int test, float defaultScale)
         {
             float[] src = (float[])_testArrays[test].Clone();
-            var actual = CpuMathUtils.SumAbs(DefaultScale, src);
+            var actual = CpuMathUtils.SumAbs(defaultScale, src);
+
+            float expected = 0;
+            for (int i = 0; i < src.Length; i++)
+            {
+                expected += Math.Abs(src[i] - defaultScale);
+            }
+
             Assert.Equal(expected, actual, 2);
         }
 
@@ -485,12 +428,25 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0, 108.07f)]
-        [InlineData(1, 108.07f)]
-        public void MaxAbsDiffUTest(int test, float expected)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void MaxAbsDiffUTest(int test, float defaultScale)
         {
             float[] src = (float[])_testArrays[test].Clone();
-            var actual = CpuMathUtils.MaxAbsDiff(DefaultScale, src);
+            var actual = CpuMathUtils.MaxAbsDiff(defaultScale, src);
+
+            float expected = 0;
+            for (int i = 0; i < src.Length; i++)
+            {
+                float abs = Math.Abs(src[i] - defaultScale);
+                if (abs > expected)
+                {
+                    expected = abs;
+                }
+            }
+
             Assert.Equal(expected, actual, 2);
         }
 
@@ -549,9 +505,39 @@ namespace Microsoft.ML.CpuMath.UnitTests
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public void SdcaL1UpdateUTest(int test)
+        [InlineData(0, new int[] { 0, 2, 5, 6 }, new float[] { 0f, 2f, 0f, 4f, 5f, 0f, 0f, 8f })]
+        [InlineData(1, new int[] { 0, 2, 5, 6, 8, 11, 12, 13, 14 }, new float[] { 0f, 2f, 0f, 4f, 5f, 0f, 0f, 8f, 0f, 10f, 11f, 0f, 0f, 0f, 0f, 16f })]
+        public void ZeroItemsUTest(int test, int[] idx, float[] expected)
+        {
+            AlignedArray src = new AlignedArray(8 + 8 * test, _vectorAlignment);
+            src.CopyFrom(_testSrcVectors[test]);
+
+            CpuMathUtils.ZeroMatrixItems(src, src.Size, src.Size, idx);
+            float[] actual = new float[src.Size];
+            src.CopyTo(actual, 0, src.Size);
+            Assert.Equal(expected, actual, _comparer);
+        }
+
+        [Theory]
+        [InlineData(0, new int[] { 0, 2, 5 }, new float[] { 0f, 2f, 0f, 4f, 5f, 6f, 0f, 8f })]
+        [InlineData(1, new int[] { 0, 2, 5, 6, 8, 11, 12, 13 }, new float[] { 0f, 2f, 0f, 4f, 5f, 0f, 0f, 8f, 9f, 0f, 11f, 12f, 0f, 0f, 0f, 16f })]
+        public void ZeroMatrixItemsCoreTest(int test, int[] idx, float[] expected)
+        {
+            AlignedArray src = new AlignedArray(8 + 8 * test, _vectorAlignment);
+            src.CopyFrom(_testSrcVectors[test]);
+
+            CpuMathUtils.ZeroMatrixItems(src, src.Size / 2 - 1, src.Size / 2, idx);
+            float[] actual = new float[src.Size];
+            src.CopyTo(actual, 0, src.Size);
+            Assert.Equal(expected, actual, _comparer);
+        }
+
+        [Theory]
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void SdcaL1UpdateUTest(int test, float defaultScale)
         {
             float[] src = (float[])_testArrays[test].Clone();
             float[] v = (float[])src.Clone();
@@ -560,19 +546,21 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                float value = src[i] * (1 + DefaultScale);
-                expected[i] = Math.Abs(value) > DefaultScale ? (value > 0 ? value - DefaultScale : value + DefaultScale) : 0;
+                float value = src[i] * (1 + defaultScale);
+                expected[i] = Math.Abs(value) > defaultScale ? (value > 0 ? value - defaultScale : value + defaultScale) : 0;
             }
 
-            CpuMathUtils.SdcaL1UpdateDense(DefaultScale, src.Length, src, DefaultScale, v, w);
+            CpuMathUtils.SdcaL1UpdateDense(defaultScale, src.Length, src, defaultScale, v, w);
             var actual = w;
             Assert.Equal(expected, actual, _comparer);
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        public void SdcaL1UpdateSUTest(int test)
+        [InlineData(0, 1.7f)]
+        [InlineData(1, 1.7f)]
+        [InlineData(0, -1.7f)]
+        [InlineData(1, -1.7f)]
+        public void SdcaL1UpdateSUTest(int test, float defaultScale)
         {
             float[] src = (float[])_testArrays[test].Clone();
             float[] v = (float[])src.Clone();
@@ -583,11 +571,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             for (int i = 0; i < idx.Length; i++)
             {
                 int index = idx[i];
-                float value = v[index] + src[i] * DefaultScale;
-                expected[index] = Math.Abs(value) > DefaultScale ? (value > 0 ? value - DefaultScale : value + DefaultScale) : 0;
+                float value = v[index] + src[i] * defaultScale;
+                expected[index] = Math.Abs(value) > defaultScale ? (value > 0 ? value - defaultScale : value + defaultScale) : 0;
             }
 
-            CpuMathUtils.SdcaL1UpdateSparse(DefaultScale, idx.Length, src, idx, DefaultScale, v, w);
+            CpuMathUtils.SdcaL1UpdateSparse(defaultScale, idx.Length, src, idx, defaultScale, v, w);
             var actual = w;
             Assert.Equal(expected, actual, _comparer);
         }

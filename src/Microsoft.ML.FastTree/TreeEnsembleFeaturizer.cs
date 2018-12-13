@@ -208,11 +208,10 @@ namespace Microsoft.ML.Runtime.Data
                 OutputSchema = Schema.Create(new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType));
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 _ectx.CheckValue(input, nameof(input));
                 _ectx.CheckValue(predicate, nameof(predicate));
-                disposer = null;
                 return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
             }
 
@@ -260,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 private readonly IExceptionContext _ectx;
                 private readonly Row _input;
-                private readonly FastTreePredictionWrapper _ensemble;
+                private readonly TreeEnsembleModelParameters _ensemble;
                 private readonly int _numTrees;
                 private readonly int _numLeaves;
 
@@ -276,7 +275,7 @@ namespace Microsoft.ML.Runtime.Data
                 private long _cachedLeafBuilderPosition;
                 private long _cachedPathBuilderPosition;
 
-                public State(IExceptionContext ectx, Row input, FastTreePredictionWrapper ensemble, int numLeaves, int featureIndex)
+                public State(IExceptionContext ectx, Row input, TreeEnsembleModelParameters ensemble, int numLeaves, int featureIndex)
                 {
                     Contracts.AssertValue(ectx);
                     _ectx = ectx;
@@ -422,7 +421,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly IHost _host;
-        private readonly FastTreePredictionWrapper _ensemble;
+        private readonly TreeEnsembleModelParameters _ensemble;
         private readonly int _totalLeafCount;
 
         public TreeEnsembleFeaturizerBindableMapper(IHostEnvironment env, Arguments args, IPredictor predictor)
@@ -434,7 +433,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (predictor is CalibratedPredictorBase)
                 predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-            _ensemble = predictor as FastTreePredictionWrapper;
+            _ensemble = predictor as TreeEnsembleModelParameters;
             _host.Check(_ensemble != null, "Predictor in model file does not have compatible type");
 
             _totalLeafCount = CountLeaves(_ensemble);
@@ -449,7 +448,7 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // ensemble
 
-            ctx.LoadModel<FastTreePredictionWrapper, SignatureLoadModel>(env, out _ensemble, "Ensemble");
+            ctx.LoadModel<TreeEnsembleModelParameters, SignatureLoadModel>(env, out _ensemble, "Ensemble");
             _totalLeafCount = CountLeaves(_ensemble);
         }
 
@@ -466,7 +465,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveModel(_ensemble, "Ensemble");
         }
 
-        private static int CountLeaves(FastTreePredictionWrapper ensemble)
+        private static int CountLeaves(TreeEnsembleModelParameters ensemble)
         {
             Contracts.AssertValue(ensemble);
 
@@ -576,7 +575,7 @@ namespace Microsoft.ML.Runtime.Data
             public int LabelPermutationSeed;
 
             [Argument(ArgumentType.Required, HelpText = "Trainer to use", SortOrder = 10, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 #pragma warning restore CS0649
 
@@ -644,7 +643,7 @@ namespace Microsoft.ML.Runtime.Data
                     // Make sure that the given predictor has the correct number of input features.
                     if (predictor is CalibratedPredictorBase)
                         predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-                    // Predictor should be a FastTreePredictionWrapper, which implements IValueMapper, so this should
+                    // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
                     ch.CheckUserArg(vm != null, nameof(args.TrainedModelFile), "Predictor in model file does not have compatible type");
@@ -708,7 +707,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Make sure that the given predictor has the correct number of input features.
                 if (predictor is CalibratedPredictorBase)
                     predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-                // Predictor should be a FastTreePredictionWrapper, which implements IValueMapper, so this should
+                // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;
                 ch.CheckUserArg(vm != null, nameof(args.PredictorModel), "Predictor does not have compatible type");
@@ -789,7 +788,7 @@ namespace Microsoft.ML.Runtime.Data
                         "labelPermutationSeed != 0 only applies on a multi-class learning problem when the label type is a key.");
                 return input;
             }
-            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, labelType.AsKey,
+            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, (KeyType)labelType,
                 labelPermutationSeed);
         }
     }
@@ -810,7 +809,7 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = TreeEnsembleFeaturizerTransform.CreateForEntryPoint(env, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 #pragma warning restore CS0649
     }

@@ -17,7 +17,7 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
 {
-    public class RandomFeatureSelector : IFeatureSelector
+    internal class RandomFeatureSelector : IFeatureSelector
     {
         public const string UserName = "Random Feature Selector";
         public const string LoadName = "RandomFeatureSelector";

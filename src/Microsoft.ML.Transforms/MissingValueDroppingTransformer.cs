@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms
         private static (string input, string output)[] GetColumnPairs(Column[] columns)
             => columns.Select(c => (c.Source ?? c.Name, c.Name)).ToArray();
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema.GetColumnType(srcCol);
             if (!inType.IsVector)
@@ -126,8 +126,8 @@ namespace Microsoft.ML.Transforms
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
         /// Saves the transform.
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Transforms
             SaveColumns(ctx);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
-                    _types[i] = new VectorType(srcCol.Type.ItemType.AsPrimitive);
+                    _types[i] = new VectorType((PrimitiveType)srcCol.Type.ItemType);
                     _isNAs[i] = GetIsNADelegate(srcCol.Type);
                 }
             }
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))

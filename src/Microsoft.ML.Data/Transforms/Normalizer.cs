@@ -213,7 +213,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
 
             foreach (var colInfo in _columns)
             {
@@ -438,8 +438,8 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             const string expectedType = "scalar or known-size vector of R4";
 
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         public new IDataTransform MakeDataTransform(IDataView input)
             => base.MakeDataTransform(input);
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {

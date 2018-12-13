@@ -15,14 +15,14 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     internal sealed class CompositeSchema : ISchema
     {
-        private readonly ISchema[] _sources;
+        private readonly Schema[] _sources;
 
         public Schema AsSchema { get; }
 
         // Zero followed by cumulative column counts. Zero being used for the empty case.
         private readonly int[] _cumulativeColCounts;
 
-        public CompositeSchema(ISchema[] sources)
+        public CompositeSchema(Schema[] sources)
         {
             Contracts.AssertNonEmpty(sources);
             _sources = sources;

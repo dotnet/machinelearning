@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))] // 32bit and netcore3.0 output differs from Baseline
+        [Fact]
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;

@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.Data
             return names;
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
@@ -516,7 +516,7 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
@@ -592,7 +592,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[SortedClassesCol] = new VectorType(key, _numClasses);
         }
 
-        private MultiClassPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private MultiClassPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -621,7 +621,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[SortedClassesCol] = new VectorType(key, _numClasses);
         }
 
-        public static MultiClassPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static MultiClassPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -648,7 +648,7 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.SaveNonEmptyString(_classNames[i].ToString());
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             Host.Assert(ScoreIndex >= 0);
             Host.Assert(LabelIndex >= 0);
@@ -662,13 +662,13 @@ namespace Microsoft.ML.Runtime.Data
                     activeOutput(SortedClassesCol) || activeOutput(LogLossCol));
         }
 
-        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             disposer = null;
 
             var getters = new Delegate[4];
 
-            if (!activeOutput(AssignedCol) && !activeOutput(SortedClassesCol) && !activeOutput(SortedScoresCol) && !activeOutput(LogLossCol))
+            if (!activeCols(AssignedCol) && !activeCols(SortedClassesCol) && !activeCols(SortedScoresCol) && !activeCols(LogLossCol))
                 return getters;
 
             long cachedPosition = -1;
@@ -677,7 +677,7 @@ namespace Microsoft.ML.Runtime.Data
             var scoresArr = new float[_numClasses];
             int[] sortedIndices = new int[_numClasses];
 
-            var labelGetter = activeOutput(LogLossCol) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) :
+            var labelGetter = activeCols(LogLossCol) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) :
                 (ref float dst) => dst = float.NaN;
             var scoreGetter = input.GetGetter<VBuffer<float>>(ScoreIndex);
             Action updateCacheIfNeeded =
@@ -695,7 +695,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 };
 
-            if (activeOutput(AssignedCol))
+            if (activeCols(AssignedCol))
             {
                 ValueGetter<uint> assignedFn =
                     (ref uint dst) =>
@@ -706,7 +706,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[AssignedCol] = assignedFn;
             }
 
-            if (activeOutput(SortedScoresCol))
+            if (activeCols(SortedScoresCol))
             {
                 ValueGetter<VBuffer<float>> topKScoresFn =
                     (ref VBuffer<float> dst) =>
@@ -720,7 +720,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[SortedScoresCol] = topKScoresFn;
             }
 
-            if (activeOutput(SortedClassesCol))
+            if (activeCols(SortedClassesCol))
             {
                 ValueGetter<VBuffer<uint>> topKClassesFn =
                     (ref VBuffer<uint> dst) =>
@@ -734,7 +734,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[SortedClassesCol] = topKClassesFn;
             }
 
-            if (activeOutput(LogLossCol))
+            if (activeCols(LogLossCol))
             {
                 ValueGetter<double> logLossFn =
                     (ref double dst) =>
@@ -761,7 +761,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             var infos = new Schema.DetachedColumn[4];
 
@@ -808,7 +808,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
@@ -847,7 +847,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int? _outputTopKAcc;
         private readonly MultiClassClassifierEvaluator _evaluator;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public MultiClassMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.MultiClassClassification, "MultiClassMamlEvaluator")
@@ -1001,11 +1001,11 @@ namespace Microsoft.ML.Runtime.Data
             if (!perInst.Schema.TryGetColumnIndex(schema.Label.Name, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", schema.Label.Name);
             var labelType = perInst.Schema.GetColumnType(labelCol);
-            if (labelType.IsKey && (!perInst.Schema.HasKeyValues(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
+            if (labelType is KeyType keyType && (!perInst.Schema.HasKeyValues(labelCol, keyType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
                     schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,
-                    (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)labelType.AsKey.Min);
+                    (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)keyType.Min);
             }
 
             var perInstSchema = perInst.Schema;
@@ -1039,7 +1039,7 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             MatchColumns(host, input, out string label, out string weight, out string name);
-            var evaluator = new MultiClassMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new MultiClassMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

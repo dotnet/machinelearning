@@ -199,13 +199,13 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_total, 0);
+                        val = new RowId((ulong)_total, 0);
                     };
             }
 
@@ -275,16 +275,18 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema => _bindings.AsSchema;
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
                 if (_disposed)
                     return;
-
+                if (disposing)
+                {
+                    _ator.Dispose();
+                    _reader.Release();
+                    _stats.Release();
+                }
                 _disposed = true;
-                _ator.Dispose();
-                _reader.Release();
-                _stats.Release();
-                base.Dispose();
+                base.Dispose(disposing);
             }
 
             protected override bool MoveNextCore()

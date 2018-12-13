@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Data
             return names;
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
@@ -813,7 +813,7 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probability),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
@@ -850,7 +850,7 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
@@ -893,7 +893,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool _useRaw;
         private readonly ColumnType[] _types;
 
-        public BinaryPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
+        public BinaryPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
             : base(env, schema, scoreCol, labelCol)
         {
             _threshold = threshold;
@@ -913,7 +913,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             // *** Binary format **
@@ -939,7 +939,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -968,7 +968,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.WriteBoolByte(_useRaw);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             if (_probIndex >= 0)
             {
@@ -981,7 +981,7 @@ namespace Microsoft.ML.Runtime.Data
             return col => activeOutput(AssignedCol) && col == ScoreIndex;
         }
 
-        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);
@@ -1079,7 +1079,7 @@ namespace Microsoft.ML.Runtime.Data
             return Single.IsNaN(val) ? false : val > _threshold;
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             if (_probIndex >= 0)
             {
@@ -1091,7 +1091,7 @@ namespace Microsoft.ML.Runtime.Data
             return new[] { new Schema.DetachedColumn(Assigned, _types[AssignedCol], null), };
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertValueOrNull(_probCol);
@@ -1152,7 +1152,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly string _prFileName;
         private readonly string _probCol;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public BinaryClassifierMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.BinaryClassification, "BinaryClassifierMamlEvaluator")
@@ -1521,7 +1521,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new BinaryClassifierMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new BinaryClassifierMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 
@@ -1541,7 +1541,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static void MatchColumns(IHost host, MamlEvaluatorBase.ArgumentsBase input, out string label, out string weight, out string name)
         {
-            ISchema schema = input.Data.Schema;
+            var schema = input.Data.Schema;
             label = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
                 nameof(BinaryClassifierMamlEvaluator.Arguments.LabelColumn),
                 input.LabelColumn, DefaultColumnNames.Label);
