@@ -354,11 +354,11 @@ namespace Microsoft.ML.Runtime.Training
             => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
 
         /// <summary>
-        /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.
+        /// The <see cref="SchemaShape.Column"/> for the float type columns.
         /// </summary>
-        /// <param name="labelColumn">name of the weight column</param>
-        public static SchemaShape.Column MakeR4ScalarLabel(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        /// <param name="columnName">name of the column</param>
+        public static SchemaShape.Column MakeR4ScalarColumn(string columnName)
+            => new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
 
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Calibrator;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn
 {

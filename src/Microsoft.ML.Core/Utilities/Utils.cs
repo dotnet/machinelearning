@@ -218,10 +218,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// In case of duplicates it returns the index of the first one.
         /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
         /// </summary>
-        public static int FindIndexSorted(this Single[] input, Single value)
+        public static int FindIndexSorted(this IList<float> input, float value)
         {
             Contracts.AssertValue(input);
-            return FindIndexSorted(input, 0, input.Length, value);
+            return FindIndexSorted(input, 0, input.Count, value);
         }
 
         /// <summary>
@@ -342,11 +342,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// In case of duplicates it returns the index of the first one.
         /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
         /// </summary>
-        public static int FindIndexSorted(this Single[] input, int min, int lim, Single value)
+        public static int FindIndexSorted(this IList<float> input, int min, int lim, float value)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
-            Contracts.Assert(!Single.IsNaN(value));
+            Contracts.Assert(0 <= min & min <= lim & lim <= input.Count);
+            Contracts.Assert(!float.IsNaN(value));
 
             int minCur = min;
             int limCur = lim;
@@ -354,7 +354,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 int mid = (int)(((uint)minCur + (uint)limCur) / 2);
                 Contracts.Assert(minCur <= mid & mid < limCur);
-                Contracts.Assert(!Single.IsNaN(input[mid]));
+                Contracts.Assert(!float.IsNaN(input[mid]));
 
                 if (input[mid] >= value)
                     limCur = mid;
@@ -615,14 +615,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return Regex.Replace(value, "[^A-Za-z0-9]", "");
         }
 
-        public static bool IsSorted(Float[] values)
+        public static bool IsSorted(IList<float> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
             var prev = values[0];
 
-            for (int i = 1; i < values.Length; i++)
+            for (int i = 1; i < values.Count; i++)
             {
                 if (!(values[i] >= prev))
                     return false;
