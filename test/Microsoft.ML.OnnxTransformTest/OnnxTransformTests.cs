@@ -343,6 +343,7 @@ namespace Microsoft.ML.Tests
             var pipeline = new OnnxScoringEstimator(mlContext, modelFile);   
             var transformedValues = pipeline.Fit(idv).Transform(idv);
             var predictions = transformedValues.AsEnumerable<PredictionUnknownDimensions>(mlContext, reuseRowObject: false).ToArray();
+
             Assert.Equal(1, predictions[0].argmax[0]);
             Assert.Equal(0, predictions[1].argmax[0]);
             Assert.Equal(2, predictions[2].argmax[0]);
