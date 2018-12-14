@@ -40,6 +40,9 @@ namespace Microsoft.ML.Runtime.Data
             // relations between input and output schemas.
             private readonly Schema _sourceSchema;
 
+            // Variable used for saving in backward-compatible format. It's not needed actually.
+            private readonly bool _drop;
+
             // This transform's output schema.
             internal Schema OutputSchema { get; }
 
@@ -49,6 +52,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(sourceSchema);
 
                 _sourceSchema = sourceSchema;
+                _drop = args.Drop;
 
                 if (args.Drop)
                     // Drop columns indexed by args.Index
@@ -64,29 +68,16 @@ namespace Microsoft.ML.Runtime.Data
                 OutputSchema = ComputeOutputSchema();
             }
 
-            internal Bindings(ModelLoadContext ctx, Schema sourceSchema)
-            {
-                Contracts.AssertValue(ctx);
-                Contracts.AssertValue(sourceSchema);
-
-                // *** Binary format ***
-                // int[]: selected source column indices
-                _sources = ctx.Reader.ReadIntArray();
-
-                _sourceSchema = sourceSchema;
-                OutputSchema = ComputeOutputSchema();
-            }
-
             /// <summary>
-            /// After _input and _sources are set, pick up selected columns from _input to create output schema.
-            /// Note that _sources tells us what columns in _input are selected.
+            /// After <see cref="_sourceSchema"/> and <see cref="_sources"/> are set, pick up selected columns from <see cref="_sourceSchema"/> to create <see cref="OutputSchema"/>
+            /// Note that <see cref="_sources"/> tells us what columns in <see cref="_sourceSchema"/> are put into <see cref="OutputSchema"/>.
             /// </summary>
             private Schema ComputeOutputSchema()
             {
                 var schemaBuilder = new SchemaBuilder();
                 for (int i = 0; i < _sources.Length; ++i)
                 {
-                    // selectedIndex is an column index of input schema. Note that the input column indexed by _sources[i] in _input is sent
+                    // selectedIndex is an column index of input schema. Note that the input column indexed by _sources[i] in _sourceSchema is sent
                     // to the i-th column in the output schema.
                     var selectedIndex = _sources[i];
 
@@ -101,12 +92,29 @@ namespace Microsoft.ML.Runtime.Data
                 return schemaBuilder.GetSchema();
             }
 
+            internal Bindings(ModelLoadContext ctx, Schema sourceSchema)
+            {
+                Contracts.AssertValue(ctx);
+                Contracts.AssertValue(sourceSchema);
+
+                // *** Binary format ***
+                // bool (as byte): operation mode
+                // int[]: selected source column indices
+                _drop = ctx.Reader.ReadBoolByte();
+                _sources = ctx.Reader.ReadIntArray();
+
+                _sourceSchema = sourceSchema;
+                OutputSchema = ComputeOutputSchema();
+            }
+
             internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
                 // *** Binary format ***
+                // bool (as byte): operation mode
                 // int[]: selected source column indices
+                ctx.Writer.WriteBoolByte(_drop);
                 ctx.Writer.WriteIntArray(_sources);
             }
 
@@ -139,9 +147,9 @@ namespace Microsoft.ML.Runtime.Data
         {
             return new VersionInfo(
                 modelSignature: "CHSCOLIF",
-                verWrittenCur: 0x00010002,
-                verReadableCur: 0x00010002,
-                verWeCanReadBack: 0x00010002,
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
                 loaderAssemblyName: typeof(ChooseColumnsByIndexTransform).Assembly.FullName);
