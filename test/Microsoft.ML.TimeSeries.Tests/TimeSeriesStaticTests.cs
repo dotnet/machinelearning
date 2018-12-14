@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe;
 using System.Collections.Generic;
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests
             while (enumerator.MoveNext() && index < expectedValues.Count)
             {
                 row = enumerator.Current;
-                
+
                 Assert.Equal(expectedValues[index++], row.Data[0], precision: 7);  // Alert
                 Assert.Equal(expectedValues[index++], row.Data[1], precision: 7);  // Raw score
                 Assert.Equal(expectedValues[index++], row.Data[2], precision: 7);  // P-Value score
