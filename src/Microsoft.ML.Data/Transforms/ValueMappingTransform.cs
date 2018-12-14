@@ -99,7 +99,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
             var vectorKind = Transformer.ValueColumnType.IsVector ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
             var isKey = Transformer.ValueColumnType.IsKey;
             var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
@@ -768,9 +768,9 @@ namespace Microsoft.ML.Transforms
                 return new ValueMap<TKeyType, TValueType>(keyType, valueType, valueMetadata);
             }
 
-            public abstract void Train(IHostEnvironment env, IRowCursor cursor);
+            public abstract void Train(IHostEnvironment env, RowCursor cursor);
 
-            public abstract Delegate GetGetter(IRow input, int index);
+            public abstract Delegate GetGetter(Row input, int index);
 
             public abstract IDataView GetDataView(IHostEnvironment env);
         }
@@ -798,7 +798,7 @@ namespace Microsoft.ML.Transforms
                 _valueMetadata = valueMetadata;
             }
 
-            public override void Train(IHostEnvironment env, IRowCursor cursor)
+            public override void Train(IHostEnvironment env, RowCursor cursor)
             {
                 // Validate that the conversion is supported for non-vector types
                 bool identity;
@@ -840,7 +840,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override Delegate GetGetter(IRow input, int index)
+            public override Delegate GetGetter(Row input, int index)
             {
                 var src = default(TKeyType);
                 ValueGetter<TKeyType> getSrc = input.GetGetter<TKeyType>(index);
@@ -926,7 +926,7 @@ namespace Microsoft.ML.Transforms
             return new BinaryLoader(env, new BinaryLoader.Arguments(), strm);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(Schema schema)
         {
             return new Mapper(this, Schema.Create(schema), _valueMap,  _valueMetadata, ColumnPairs);
         }
@@ -953,7 +953,7 @@ namespace Microsoft.ML.Transforms
                 _parent = transform;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _columns.Length);

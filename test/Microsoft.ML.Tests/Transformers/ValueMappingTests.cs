@@ -5,7 +5,6 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
@@ -154,7 +153,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
             var outputSchema  = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
-            Assert.Equal(6, outputSchema.Columns.Length);
+            Assert.Equal(6, outputSchema.Count());
             Assert.True(outputSchema.TryFindColumn("D", out SchemaShape.Column dColumn));
             Assert.True(outputSchema.TryFindColumn("E", out SchemaShape.Column eColumn));
             Assert.True(outputSchema.TryFindColumn("F", out SchemaShape.Column fColumn));
@@ -180,7 +179,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
             var outputSchema  = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
-            Assert.Equal(6, outputSchema.Columns.Length);
+            Assert.Equal(6, outputSchema.Count());
             Assert.True(outputSchema.TryFindColumn("D", out SchemaShape.Column dColumn));
             Assert.True(outputSchema.TryFindColumn("E", out SchemaShape.Column eColumn));
             Assert.True(outputSchema.TryFindColumn("F", out SchemaShape.Column fColumn));
@@ -371,10 +370,12 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(result.Schema.TryGetColumnIndex("Label", out int labelIdx));
                 Assert.True(result.Schema.TryGetColumnIndex("GroupId", out int groupIdx));
                 
+                /*
                 Assert.True(result.Schema[labelIdx].Type.IsKey);
                 var keyType = result.Schema[labelIdx].Type.AsKey;
                 Assert.Equal((ulong)0, keyType.Min);
                 Assert.Equal(5, keyType.KeyCount);
+                */
 
                 var t = result.GetColumn<uint>(Env, "Label");
                 uint s = t.First();
