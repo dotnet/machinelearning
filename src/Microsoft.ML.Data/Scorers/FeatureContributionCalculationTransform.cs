@@ -12,6 +12,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -31,6 +32,8 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(FeatureContributionCalculatingTransformer), null, typeof(SignatureLoadRowMapper),
    FeatureContributionCalculatingTransformer.FriendlyName, FeatureContributionCalculatingTransformer.LoaderSignature)]
 
+//[assembly: LoadableClass(typeof(void), typeof(FeatureContributionCalculatingTransformer), null, typeof(SignatureEntryPointModule), FeatureContributionCalculatingTransformer.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
@@ -49,6 +52,24 @@ namespace Microsoft.ML.Runtime.Data
     /// </example>
     public sealed class FeatureContributionCalculatingTransformer : RowToRowTransformerBase
     {
+        public sealed class Arguments : TransformInputBase
+        {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of feature column", SortOrder = 2)]
+            public string FeatureColumn = DefaultColumnNames.Features;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of top contributions", SortOrder = 3)]
+            public int Top = FeatureContributionCalculatingEstimator.Defaults.Top;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bottom contributions", SortOrder = 4)]
+            public int Bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution should be normalized", ShortName = "norm", SortOrder = 5)]
+            public bool Normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution in string key-value format", ShortName = "str", SortOrder = 6)]
+            public bool Stringify = FeatureContributionCalculatingEstimator.Defaults.Stringify;
+        }
+
         // Apparently, loader signature is limited in length to 24 characters.
         internal const string Summary = "For each data point, calculates the contribution of individual features to the model prediction.";
         internal const string FriendlyName = "Feature Contribution Transform";
@@ -80,7 +101,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
         /// string(key)-values, set stringify to <langword>true</langword></param>
-        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IPredictor predictor,
+        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IFeatureContributionMappable predictor,
             string featureColumn = DefaultColumnNames.Features,
             int top = FeatureContributionCalculatingEstimator.Defaults.Top,
             int bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom,
@@ -92,8 +113,10 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(predictor, nameof(predictor));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
 
-            var pred = predictor as IFeatureContributionMapper;
-            env.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
+            // If a predictor implements IFeatureContributionMappable, it also implements the internal interface IFeatureContributionMapper.
+            // This is how we keep the implementation of feature contribution calculation internal.
+            IFeatureContributionMapper pred = predictor as IFeatureContributionMapper;
+            Host.AssertValue(pred);
 
             _featureColumn = featureColumn;
             _mapper = new BindableMapper(Host, pred, top, bottom, normalize, stringify);
@@ -117,6 +140,9 @@ namespace Microsoft.ML.Runtime.Data
         // Factory method for SignatureLoadRowMapper.
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => new FeatureContributionCalculatingTransformer(env, ctx).MakeRowMapper(inputSchema);
+
+        //internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        //    => new FeatureContributionCalculatingTransformer(env, predictor).MakeDataTransform(input);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -607,7 +633,7 @@ namespace Microsoft.ML.Runtime.Data
     public sealed class FeatureContributionCalculatingEstimator : TrivialEstimator<FeatureContributionCalculatingTransformer>
     {
         private readonly string _featureColumn;
-        private readonly IPredictor _predictor;
+        private readonly IFeatureContributionMappable _predictor;
         private readonly bool _stringify;
 
         public static class Defaults
@@ -630,7 +656,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
         /// string(key)-values, set stringify to <langword>true</langword></param>
-        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IPredictor predictor,
+        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IFeatureContributionMappable predictor,
             string featureColumn = DefaultColumnNames.Features,
             int top = Defaults.Top,
             int bottom = Defaults.Bottom,
@@ -661,6 +687,13 @@ namespace Microsoft.ML.Runtime.Data
             foreach (var column in ScoringUtils.GetPredictorOutputColumns(_predictor.PredictionKind))
                 result[column.Name] = column;
 
+            // REVIEW: We should change the scorers so that they produce consistently probabilities and predicted labels for binary classification.
+            // Notice that the generic scorer used here will not produce label column. If the predictor is not IValueMapperDist it does not produce probability either.
+            if (!(_predictor is IValueMapperDist))
+                result.Remove(DefaultColumnNames.Probability);
+            if (_predictor.PredictionKind == PredictionKind.BinaryClassification)
+                result.Remove(DefaultColumnNames.PredictedLabel);
+
             // Add FeatureContributions column.
             if (_stringify)
                 result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false);
@@ -673,5 +706,19 @@ namespace Microsoft.ML.Runtime.Data
             }
             return new SchemaShape(result.Values);
         }
+    }
+
+    internal static class FeatureContributionEntryPoint
+    {
+        //public static CommonOutputs.TransformOutput CatTransformDict(IHostEnvironment env, FeatureContributionCalculatingTransformer.Arguments input)
+        //{
+        //    Contracts.CheckValue(env, nameof(env));
+        //    var host = env.Register(nameof(FeatureContributionCalculatingTransformer));
+        //    host.CheckValue(input, nameof(input));
+        //    EntryPointUtils.CheckInputArgs(host, input);
+
+        //    var xf = new FeatureContributionCalculatingTransformer.Create(host, predictor, input, input.Data); // we need to add predictor.
+        //    return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+        //}
     }
 }

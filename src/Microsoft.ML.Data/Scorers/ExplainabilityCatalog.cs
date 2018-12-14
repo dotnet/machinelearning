@@ -24,7 +24,7 @@ namespace Microsoft.ML
         /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
         /// string(key)-values, set stringify to <langword>true</langword></param>
         public static FeatureContributionCalculatingEstimator FeatureContributionCalculation(this ModelOperationsCatalog.ExplainabilityTransforms catalog,
-            IPredictor predictor,
+            IFeatureContributionMappable predictor,
             string featureColumn = DefaultColumnNames.Features,
             int top = FeatureContributionDefaults.Top,
             int bottom = FeatureContributionDefaults.Bottom,

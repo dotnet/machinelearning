@@ -8,10 +8,12 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public static class ScoringUtils
+    [BestFriend]
+    internal static class ScoringUtils
     {
         /// <summary>
         /// Utility function that returns the SchemaShape of the generated output columns when scoring a model.
+        /// Notice this assumes that the task specific scorer is used.
         /// </summary>
         /// <param name="predictionKind">The learning task that is being performed.</param>
         /// <param name="isNormalized">Whether the probability column (if generated) will be normalized or not.</param>
@@ -63,6 +65,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         new SchemaShape.Column(MetadataUtils.Const.ScoreValueKind.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
                     });
                     break;
+                default:
+                    throw Contracts.Except("Prediction.Kind not recognized and should define it's own output columns");
             }
 
             return new SchemaShape(columns);

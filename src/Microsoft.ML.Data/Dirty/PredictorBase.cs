@@ -7,6 +7,7 @@ using Float = System.Single;
 using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn
 {
