@@ -256,13 +256,13 @@ namespace Microsoft.ML.Tests.Transformers
             // The expected values will contain the generated key type values.
             uint dValue = 1;
             getterD(ref dValue);
-            Assert.Equal<uint>(1, dValue);
+            Assert.Equal<uint>(2, dValue);
             uint eValue = 0;
             getterE(ref eValue);
-            Assert.Equal<uint>(0, eValue);
+            Assert.Equal<uint>(1, eValue);
             uint fValue = 0;
             getterF(ref fValue);
-            Assert.Equal<uint>(0, fValue);
+            Assert.Equal<uint>(1, fValue);
         }
 
         [Fact]
@@ -288,6 +288,33 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{key=ID value=Text data="
                                     + dataFile
                                     + @" col=A:B loader=Text{col=ID:U8:0 col=Text:TX:1 sep=, header=+} } in=f:\1.txt" }), (int)0);
+        }
+
+        [Fact]
+        void TestCommandLineNoLoader()
+        {
+            var dataFile = GetDataPath("lm.labels.txt");
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
+                                    + dataFile
+                                    + @" col=A:B } in=f:\1.txt" }), (int)0);
+        }
+
+        [Fact]
+        void TestCommandLineNoLoaderWithColumnNames()
+        {
+            var dataFile = GetDataPath("lm.labels.txt");
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
+                                    + dataFile
+                                    + @" col=A:B key=foo value=bar} in=f:\1.txt" }), (int)0);
+        }
+        
+        [Fact]
+        void TestCommandLineNoLoaderWithoutTreatValuesAsKeys()
+        {
+            var dataFile = GetDataPath("lm.labels.txt");
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
+                                    + dataFile
+                                    + @" col=A:B valuesAsKeyType=-} in=f:\1.txt" }), (int)0);
         }
 
         [Fact]

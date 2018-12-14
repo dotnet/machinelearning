@@ -19,6 +19,9 @@ using System.Text;
 [assembly: LoadableClass(TermLookupTransformer.Summary, typeof(TermLookupTransformer), typeof(TermLookupTransformer.Arguments), typeof(SignatureDataTransform),
     "Term Lookup Transform", "TermLookup", "Lookup", "LookupTransform", "TermLookupTransform")]
 
+//[assembly: LoadableClass(TermLookupTransformer.Summary, typeof(TermLookupTransformer), null, typeof(SignatureLoadDataTransform),
+    //"Term Lookup Transform", TermLookupTransformer.LoaderSignature)]
+
 namespace Microsoft.ML.Transforms.Categorical
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;

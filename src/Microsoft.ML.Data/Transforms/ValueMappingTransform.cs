@@ -28,6 +28,9 @@ using System.Text;
 [assembly: LoadableClass(ValueMappingTransform.Summary, typeof(ValueMappingTransform), null, typeof(SignatureLoadModel),
     "Value Mapping Transform", ValueMappingTransform.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ValueMappingTransform), null, typeof(SignatureLoadRowMapper),
+    ValueMappingTransform.UserName, ValueMappingTransform.LoaderSignature)]
+
 [assembly: LoadableClass("", typeof(IDataTransform), typeof(ValueMappingTransform), null, typeof(SignatureLoadDataTransform),
     "", ValueMappingTransform.TermLookupLoaderSignature)]
 
@@ -114,6 +117,123 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    internal class DataViewHelper
+    {
+        public static PrimitiveType GetPrimitiveType(Type rawType, out bool isVectorType)
+        {
+            Type type = rawType;
+            isVectorType = false;
+            if (type.IsArray)
+            {
+                type = rawType.GetElementType();
+                isVectorType = true;
+            }
+
+            if  (!type.TryGetDataKind(out DataKind kind))
+            {
+                throw new InvalidOperationException($"Unsupported type {type} used in mapping.");
+            }
+
+            return PrimitiveType.FromKind(kind);
+        }
+
+        private static ValueGetter<VBuffer<ReadOnlyMemory<char>>> GetKeyValueGetter<TValue>(TValue[] values)
+        {
+            return
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                {
+                    var editor = VBufferEditor.Create(ref dst, values.Length);
+                    for (int i = 0; i < values.Length; i++)
+                        editor.Values[i] = values[i].ToString().AsMemory();
+                    dst = editor.Commit();
+                };
+        }
+
+        public static IDataView CreateDataView<TKey, TValue>(IHostEnvironment env,
+                                                                IEnumerable<TKey> keys,
+                                                                IEnumerable<TValue[]> values,
+                                                                string keyColumnName,
+                                                                string valueColumnName)
+        {
+            // Build DataView from the mapping
+            var keyType = GetPrimitiveType(typeof(TKey), out bool isKeyVectorType);
+            var valueType = GetPrimitiveType(typeof(TValue), out bool isValueVectorType);
+            var dataViewBuilder = new ArrayDataViewBuilder(env);
+            dataViewBuilder.AddColumn(keyColumnName, keyType, keys.ToArray());
+            dataViewBuilder.AddColumn(valueColumnName, valueType, values.ToArray());
+            return dataViewBuilder.GetDataView();
+        }
+
+        public static IDataView CreateDataView<TKey, TValue>(IHostEnvironment env,
+                                                             IEnumerable<TKey> keys,
+                                                             IEnumerable<TValue> values,
+                                                             string keyColumnName,
+                                                             string valueColumnName,
+                                                             bool treatValuesAsKeyTypes)
+        {
+            // Build DataView from the mapping
+            var keyType = GetPrimitiveType(typeof(TKey), out bool isKeyVectorType);
+            var valueType = GetPrimitiveType(typeof(TValue), out bool isValueVectorType);
+
+            var dataViewBuilder = new ArrayDataViewBuilder(env);
+            dataViewBuilder.AddColumn(keyColumnName, keyType, keys.ToArray());
+            //var valuesArray = values.ToArray();
+            if (treatValuesAsKeyTypes)
+            {
+                // If the values are key values, there are two different ways in which they are handled:
+                // 1) If the values are of type uint, then it is assumed that these values are the
+                // key values. In this case, the values are used for the key values.
+                // 2) If the values are not of type uint. Then key type values are generated as a number range starting at 0.
+                if (valueType.RawKind == DataKind.U4)
+                {
+                    uint[] indices = values.Select((x) => Convert.ToUInt32(x) - 1).ToArray();
+                    var min = indices.Min();
+                    var max = indices.Max();
+                    int count = (int)(max - min + 1);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(indices), min, count, indices);
+                }
+                else if (valueType.RawKind == DataKind.U8)
+                {
+                    ulong[] indices = values.Select((x) => Convert.ToUInt64(x) - 1).ToArray();
+                    var min = indices.Min();
+                    var max = indices.Max();
+                    int count = (int)(max - min + 1);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(indices), min, count, indices);
+                }
+                else
+                {
+                    // When generating the indices, treat each value as being unique, i.e. two values that are the same will
+                    // be assigned the same index. The dictionary is used to maintain uniqueness, indices will contain
+                    // the full list of indices (equal to the same length of values).
+                    Dictionary<TValue, uint> keyTypeValueMapping = new Dictionary<TValue, uint>();
+                    uint[] indices  = new uint[values.Count()];
+                    // Start the index at 1 since key types start at 1, 0 is invalid
+                    uint index = 1;
+                    for(int i = 0; i < values.Count(); ++i)
+                    {
+                        TValue value = values.ElementAt(i);
+                        if(!keyTypeValueMapping.ContainsKey(value))
+                        {
+                            keyTypeValueMapping.Add(value, index);
+                            index++;
+                        }
+
+                        var keyValue = keyTypeValueMapping[value];
+                        indices[i] = keyValue;
+                    }
+
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(values.ToArray()), 0, indices.Count(), indices);
+                }
+            }
+            else
+            {
+                dataViewBuilder.AddColumn(valueColumnName, valueType, values.ToArray());
+            }
+
+            return dataViewBuilder.GetDataView();
+        }
+    }
+
     /// <summary>
     /// The ValueMappingTransform is a 1-1 mapping from a key to value. The key type and value type are specified
     /// through TKeyType and TValueType. Arrays are supported for vector types which can be used as either a key or a value
@@ -148,84 +268,17 @@ namespace Microsoft.ML.Transforms
                 ConvertToDataView(env, keys, values), KeyColumnName, ValueColumnName, columns)
         { }
 
-        private static ValueGetter<VBuffer<ReadOnlyMemory<char>>> GetKeyValueGetter(TValueType[] values)
-        {
-            return
-                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                {
-                    var editor = VBufferEditor.Create(ref dst, values.Length);
-                    for (int i = 0; i < values.Length; i++)
-                        editor.Values[i] = values[i].ToString().AsMemory();
-                    dst = editor.Commit();
-                };
-        }
-
         private static IDataView ConvertToDataView(IHostEnvironment env, IEnumerable<TKeyType> keys, IEnumerable<TValueType> values, bool treatValuesAsKeyValue)
-        {
-            // Build DataView from the mapping
-            var keyType = ValueMappingTransform.GetPrimitiveType(typeof(TKeyType), out bool isKeyVectorType);
-            var valueType = ValueMappingTransform.GetPrimitiveType(typeof(TValueType), out bool isValueVectorType);
+            => DataViewHelper.CreateDataView(env,
+                    keys,
+                    values,
+                    ValueMappingTransform.KeyColumnName,
+                    ValueMappingTransform.ValueColumnName,
+                    treatValuesAsKeyValue);
 
-            // If treatValuesAsKeyValues can only be used with non-vector types
-            env.Check(!(treatValuesAsKeyValue && valueType.IsVector), "Treating values as key value types can only be used on non-vector types.");
-
-            var dataViewBuilder = new ArrayDataViewBuilder(env);
-            dataViewBuilder.AddColumn(ValueMappingTransform.KeyColumnName, keyType, keys.ToArray());
-            var valuesArray = values.ToArray();
-            if (treatValuesAsKeyValue)
-            {
-                // If the values are key values, there are two different ways in which they are handled:
-                // 1) If the values are of type uint, then it is assumed that these values are the
-                // key values. In this case, the values are used for the key values.
-                // 2) If the values are not of type uint. Then key type values are generated as a number range starting at 0.
-                if (valueType.RawKind == DataKind.U4)
-                {
-                    IEnumerable<uint> indices = values.Select((x) => Convert.ToUInt32(x));
-                    var min = indices.Min();
-                    dataViewBuilder.AddColumn(ValueMappingTransform.ValueColumnName, GetKeyValueGetter(valuesArray), min, indices.Count(), indices.ToArray());
-                }
-                else
-                {
-                    // When generating the indices, treat each value as being unique, i.e. two values that are the same will
-                    // be assigned the same index. The dictionary is used to maintain uniqueness, indices will contain
-                    // the full list of indices (equal to the same length of values).
-                    Dictionary<TValueType, uint> keyTypeValueMapping = new Dictionary<TValueType, uint>();
-                    uint[] indices  = new uint[values.Count()];
-                    uint index = 0;
-                    for(int i = 0; i < values.Count(); ++i)
-                    {
-                        TValueType value = values.ElementAt(i);
-                        if(!keyTypeValueMapping.ContainsKey(value))
-                        {
-                            keyTypeValueMapping.Add(value, index);
-                            index++;
-                        }
-
-                        var keyValue = keyTypeValueMapping[value];
-                        indices[i] = keyValue;
-                    }
-
-                    dataViewBuilder.AddColumn(ValueMappingTransform.ValueColumnName, GetKeyValueGetter(valuesArray), 0, indices.Count(), indices);
-                }
-            }
-            else
-            {
-                dataViewBuilder.AddColumn(ValueMappingTransform.ValueColumnName, valueType, values.ToArray());
-            }
-
-            return dataViewBuilder.GetDataView();
-        }
-
+        // Handler for vector value types
         private static IDataView ConvertToDataView(IHostEnvironment env, IEnumerable<TKeyType> keys, IEnumerable<TValueType[]> values)
-        {
-            // Build DataView from the mapping
-            var keyType = ValueMappingTransform.GetPrimitiveType(typeof(TKeyType), out bool isKeyVectorType);
-            var valueType = ValueMappingTransform.GetPrimitiveType(typeof(TValueType), out bool isValueVectorType);
-            var dataViewBuilder = new ArrayDataViewBuilder(env);
-            dataViewBuilder.AddColumn(ValueMappingTransform.KeyColumnName, keyType, keys.ToArray());
-            dataViewBuilder.AddColumn(ValueMappingTransform.ValueColumnName, valueType, values.ToArray());
-            return dataViewBuilder.GetDataView();
-        }
+            => DataViewHelper.CreateDataView(env, keys, values, ValueMappingTransform.KeyColumnName, ValueMappingTransform.ValueColumnName);
     }
 
     public class ValueMappingTransform : OneToOneTransformerBase
@@ -242,6 +295,7 @@ namespace Microsoft.ML.Transforms
         protected static string KeyColumnName = "Key";
         protected static string ValueColumnName = "Value";
         private ValueMap _valueMap;
+        private Schema.Metadata _valueMetadata;
 
         public ColumnType ValueColumnType => _valueMap.ValueType;
 
@@ -301,14 +355,28 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The data file containing the terms", ShortName = "data", SortOrder = 2)]
             public string DataFile;
+
+            [Argument(ArgumentType.AtMostOnce,
+                HelpText = "Specifies whether the values are key values or numeric, only valid when loader is not specified and the type of data is not an idv.")]
+            public bool ValuesAsKeyType = true;
         }
 
-        protected ValueMappingTransform(IHostEnvironment env, IDataView lookupMap, string keyColumn, string valueColumn, (string Input, string Output)[] columns)
+        protected ValueMappingTransform(IHostEnvironment env, IDataView lookupMap,
+            string keyColumn, string valueColumn, (string Input, string Output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ValueMappingTransform)), columns)
         {
             env.CheckNonEmpty(keyColumn, nameof(keyColumn), "A key column must be specified when passing in an IDataView for the value mapping");
             env.CheckNonEmpty(valueColumn, nameof(valueColumn), "A value column must be specified when passing in an IDataView for the value mapping");
             _valueMap = CreateValueMapFromDataView(lookupMap, keyColumn, valueColumn);
+            env.Assert(lookupMap.Schema.TryGetColumnIndex(valueColumn, out int valueColumnIdx));
+            _valueMetadata = CopyMetadata(lookupMap.Schema[valueColumnIdx].Metadata);
+        }
+
+        private Schema.Metadata CopyMetadata(Schema.Metadata metadata)
+        {
+            var meta = new MetadataBuilder();
+            meta.Add(metadata, x=> true);
+            return meta.GetMetadata();
         }
 
         private ValueMap CreateValueMapFromDataView(IDataView dataView, string keyColumn, string valueColumn)
@@ -318,10 +386,135 @@ namespace Microsoft.ML.Transforms
             Host.Check(dataView.Schema.TryGetColumnIndex(valueColumn, out int valueIdx), "Value column " + valueColumn + " does not exist in the given dataview");
             var keyType = dataView.Schema.GetColumnType(keyIdx);
             var valueType = dataView.Schema.GetColumnType(valueIdx);
-            var valueMap = ValueMap.Create(keyType, valueType);
+            var valueMap = ValueMap.Create(keyType, valueType, _valueMetadata);
             using (var cursor = dataView.GetRowCursor(c=> c == keyIdx || c == valueIdx))
                 valueMap.Train(Host, cursor);
             return valueMap;
+        }
+
+        private static TextLoader.Column GenerateValueColumn(IHostEnvironment env,
+                                                  IDataView loader,
+                                                  string valueColumnName,
+                                                  int keyIdx,
+                                                  int valueIdx)
+        {
+            // Scan the source to determine the min max of the column
+            ulong keyMin = ulong.MinValue;
+            ulong keyMax = ulong.MinValue;
+
+            // scan the input to create convert the values as key types
+            using (var cursor = loader.GetRowCursor(c => true))
+            {
+                using(var ch = env.Start("Processing key values"))
+                {
+                    var getKey = cursor.GetGetter<ReadOnlyMemory<char>>(keyIdx);
+                    var getValue = cursor.GetGetter<ReadOnlyMemory<char>>(valueIdx);
+                    int countNonKeys = 0;
+
+                    ReadOnlyMemory<char> key = default;
+                    ReadOnlyMemory<char> value = default;
+                    while(cursor.MoveNext())
+                    {
+                        getKey(ref key);
+                        getValue(ref value);
+
+                        ulong res;
+                        // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
+                        // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
+                        // computing max and min.
+                        if (Microsoft.ML.Runtime.Data.Conversion.Conversions.Instance.TryParseKey(in value, 1, ulong.MaxValue, out res))
+                        {
+                            if (res < keyMin && res != 0)
+                                keyMin = res;
+                            if (res > keyMax)
+                                keyMax = res;
+                        }
+                        // If parsing as key did not succeed, the value can still be 0, so we try parsing it as a ulong. If it succeeds,
+                        // then the value is 0, and we update min accordingly.
+                        else if (Microsoft.ML.Runtime.Data.Conversion.Conversions.Instance.TryParse(in value, out res))
+                        {
+                            keyMin = 0;
+                        }
+                        //If parsing as a ulong fails, we increment the counter for the non-key values.
+                        else
+                        {
+                            if (countNonKeys < 5)
+                                ch.Warning("Key '{0}' in mapping file is mapped to non key value '{1}'", key, value);
+                            countNonKeys++;
+                        }
+                    }
+                }
+            }
+
+            TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.U4, 1);
+            if (keyMax - keyMin < (ulong)int.MaxValue)
+            {
+                valueColumn.KeyRange = new KeyRange(keyMin, keyMax);
+            }
+            else if (keyMax - keyMin < (ulong)uint.MaxValue)
+            {
+                valueColumn.KeyRange = new KeyRange(keyMin);
+            }
+            else
+            {
+                valueColumn.Type = DataKind.U8;
+                valueColumn.KeyRange = new KeyRange(keyMin);
+            }
+
+            return valueColumn;
+        }
+
+        private static ValueMappingTransform CreateTransformInvoke<TKeyType, TValueType>(IHostEnvironment env,
+                                                                                        IDataView idv,
+                                                                                        string keyColumnName,
+                                                                                        string valueColumnName,
+                                                                                        bool treatValuesAsKeyTypes,
+                                                                                        (string Input, string Output)[] columns)
+        {
+            // Read in the data
+            // scan the input to create convert the values as key types
+            List<TKeyType> keys = new List<TKeyType>();
+            List<TValueType> values = new List<TValueType>();
+
+            idv.Schema.TryGetColumnIndex(keyColumnName, out int keyIdx);
+            idv.Schema.TryGetColumnIndex(valueColumnName, out int valueIdx);
+            using (var cursor = idv.GetRowCursor(c => true))
+            {
+                using(var ch = env.Start("Processing key values"))
+                {
+                    TKeyType key = default;
+                    TValueType value = default;
+                    var getKey = cursor.GetGetter<TKeyType>(keyIdx);
+                    var getValue = cursor.GetGetter<TValueType>(valueIdx);
+                    while(cursor.MoveNext())
+                    {
+                        try
+                        {
+                            getKey(ref key);
+                        }
+                        catch(InvalidOperationException)
+                        {
+                            ch.Warning("Invalid key parsed, row will be skipped.");
+                            continue;
+                        }
+
+                        try
+                        {
+                            getValue(ref value);
+                        }
+                        catch(InvalidOperationException)
+                        {
+                            ch.Warning("Invalid value parsed for key {key}, row will be skipped.");
+                            continue;
+                        }
+
+                        keys.Add(key);
+                        values.Add(value);
+                    }
+                }
+            }
+
+            return new ValueMappingTransform<TKeyType, TValueType>(env, keys, values, treatValuesAsKeyTypes, columns);
         }
 
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -329,8 +522,11 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.Assert(!string.IsNullOrWhiteSpace(args.DataFile));
-            env.AssertNonEmpty(args.KeyColumn);
-            env.AssertNonEmpty(args.ValueColumn);
+            env.CheckValueOrNull(args.KeyColumn);
+            env.CheckValueOrNull(args.ValueColumn);
+
+            var keyColumnName = (string.IsNullOrEmpty(args.KeyColumn)) ? KeyColumnName : args.KeyColumn;
+            var valueColumnName = (string.IsNullOrEmpty(args.ValueColumn)) ? ValueColumnName : args.ValueColumn;
 
             IMultiStreamSource fileSource = new MultiFileSource(args.DataFile);
             IDataView loader;
@@ -340,10 +536,104 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                loader = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
+                var extension = Path.GetExtension(args.DataFile);
+                if (extension.Equals(".idv", StringComparison.OrdinalIgnoreCase))
+                    loader = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
+                else if (extension.Equals(".tdv"))
+                    loader = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
+                else
+                {
+                    // The user has not specified how to load this file. This will attempt to load the
+                    // data file as two text columns. If the user has also specified ValuesAsKeyTypes,
+                    // this will default to the key column as a text column and the value column as a uint column
+
+                    // Set the keyColumnName and valueColumnName to the default values.
+                    keyColumnName = KeyColumnName;
+                    valueColumnName = ValueColumnName;
+
+                    TextLoader.Column keyColumn = new TextLoader.Column(keyColumnName, DataKind.TXT, 0);
+                    TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.TXT, 1);
+                    /*
+                    if (args.ValuesAsKeyType)
+                    {
+                        valueColumn = new TextLoader.Column(valueColumnName, DataKind.U8, 1);
+                    }*/
+
+                    var txtArgs = new TextLoader.Arguments()
+                    {
+                        Column=new TextLoader.Column[]
+                        {
+                            keyColumn,
+                            valueColumn
+                        }
+                    };
+
+                    //loader = TextLoader.ReadFile(env, txtArgs, fileSource);
+                    var textLoader = TextLoader.ReadFile(env, txtArgs, fileSource);
+                    //env.Assert(textLoader.Schema.TryGetColumnIndex(keyColumnName, out int keyColumnIndex));
+                    //env.Assert(textLoader.Schema.TryGetColumnIndex(valueColumnName, out int valueColumnIndex));
+
+                    // Default to a text loader. KeyType and ValueType are assumed to be string
+                    // types unless ValueAsKeyType is specified.
+                    //TextLoader.Column keyColumn = new TextLoader.Column(keyColumnName, DataKind.TXT, keyColumnIndex);
+                    //TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.TXT, valueColumnIndex);
+                    if (args.ValuesAsKeyType)
+                    {
+                        valueColumn = GenerateValueColumn(env, textLoader, valueColumnName, 0, 1);
+                        // Change ValueColumn to be of type U4
+                        //valueColumn = new TextLoader.Column(valueColumnName, DataKind.U4, valueColumnIndex);
+                        //GenerateKeyRangeAndMinFromValues(env, textLoader, keyColumnIndex, valueColumnIndex, out ulong min, out ulong max);
+                        //valueColumn.KeyRange = new KeyRange(min, max);
+                    }
+
+                    loader = TextLoader.Create(
+                        env,
+                        new TextLoader.Arguments()
+                        {
+                            Column = new TextLoader.Column[]
+                            {
+                                keyColumn,
+                                valueColumn
+                            }
+                        },
+                        fileSource);
+                }
             }
 
-            var transformer = new ValueMappingTransform(env, loader, args.KeyColumn, args.ValueColumn, args.Column.Select(x => (x.Source, x.Name)).ToArray());
+            env.AssertValue(loader);
+            env.Assert(loader.Schema.TryGetColumnIndex(keyColumnName, out int keyColumnIndex));
+            env.Assert(loader.Schema.TryGetColumnIndex(valueColumnName, out int valueColumnIndex));
+
+            ValueMappingTransform transformer = null;
+            (string Source, string Name)[] columns = args.Column.Select(x => (x.Source, x.Name)).ToArray();
+        /*
+            Func<IHostEnvironment, IDataView, string, string, bool, (string Input, string Output)[], ValueMappingTransform> del = CreateTransformInvoke<int, int>;
+            var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(loader.Schema[keyColumnIndex].Type.RawType,
+                                                                                  loader.Schema[valueColumnIndex].Type.RawType);
+            transformer = (ValueMappingTransform)meth.Invoke(null, new object[] { env,
+                                                                                      loader,
+                                                                                      keyColumnName,
+                                                                                      valueColumnName,
+                                                                                      args.ValuesAsKeyType,
+                                                                                      columns
+                                                                                 });
+            /*
+            if (args.ValuesAsKeyType)
+            {
+                Func<IHostEnvironment, IDataView, string, string, bool, (string Input, string Output)[], ValueMappingTransform> del = CreateTransformInvoke<int, int>;
+                var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(loader.Schema[keyColumnIndex].Type.RawType,
+                                                                                      loader.Schema[valueColumnIndex].Type.RawType);
+                transformer = (ValueMappingTransform)meth.Invoke(null, new object[] { env,
+                                                                                          loader,
+                                                                                          keyColumnName,
+                                                                                          valueColumnName,
+                                                                                          args.ValuesAsKeyType,
+                                                                                          columns
+                                                                                     });
+            }
+            else
+            */
+            transformer =  new ValueMappingTransform(env, loader, keyColumnName, valueColumnName, columns);
             return transformer.MakeDataTransform(input);
         }
 
@@ -418,6 +708,9 @@ namespace Microsoft.ML.Transforms
         protected static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+
         protected static PrimitiveType GetPrimitiveType(Type rawType, out bool isVectorType)
         {
             Type type = rawType;
@@ -461,16 +754,18 @@ namespace Microsoft.ML.Transforms
                 ValueType = valueType;
             }
 
-            public static ValueMap Create(ColumnType keyType, ColumnType valueType)
+            public static ValueMap Create(ColumnType keyType, ColumnType valueType, Schema.Metadata valueMetadata)
             {
-               Func<ColumnType, ColumnType, ValueMap> del = CreateValueMapInvoke<int, int>;
+               Func<ColumnType, ColumnType, Schema.Metadata, ValueMap> del = CreateValueMapInvoke<int, int>;
                var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(keyType.RawType, valueType.RawType);
-               return (ValueMap)meth.Invoke(null, new object[] { keyType, valueType });
+               return (ValueMap)meth.Invoke(null, new object[] { keyType, valueType, valueMetadata });
             }
 
-            private static ValueMap CreateValueMapInvoke<TKeyType, TValueType>(ColumnType keyType, ColumnType valueType)
+            private static ValueMap CreateValueMapInvoke<TKeyType, TValueType>(ColumnType keyType,
+                                                                                ColumnType valueType,
+                                                                                Schema.Metadata valueMetadata)
             {
-                return new ValueMap<TKeyType, TValueType>(keyType, valueType);
+                return new ValueMap<TKeyType, TValueType>(keyType, valueType, valueMetadata);
             }
 
             public abstract void Train(IHostEnvironment env, IRowCursor cursor);
@@ -487,6 +782,7 @@ namespace Microsoft.ML.Transforms
         {
             private Dictionary<TKeyType, TValueType> _mapping;
             private TValueType _missingValue;
+            private Schema.Metadata _valueMetadata;
 
             private Dictionary<TKeyType, TValueType> CreateDictionary()
             {
@@ -495,10 +791,11 @@ namespace Microsoft.ML.Transforms
                 return new Dictionary<TKeyType, TValueType>();
             }
 
-            public ValueMap(ColumnType keyType, ColumnType valueType)
+            public ValueMap(ColumnType keyType, ColumnType valueType, Schema.Metadata valueMetadata)
                 : base(keyType, valueType)
             {
                 _mapping = CreateDictionary();
+                _valueMetadata = valueMetadata;
             }
 
             public override void Train(IHostEnvironment env, IRowCursor cursor)
@@ -515,7 +812,7 @@ namespace Microsoft.ML.Transforms
                     // First check if there is a String->ValueType conversion method. If so, call the conversion method with an
                     // empty string, the returned value will be the new missing value.
                     // NOTE this will return NA for R4 and R8 types.
-                    if (Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TValueType>(
+                    if (Microsoft.ML.Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TValueType>(
                                                                         TextType.Instance,
                                                                         ValueType,
                                                                         out conv,
@@ -565,14 +862,12 @@ namespace Microsoft.ML.Transforms
             }
 
             public override IDataView GetDataView(IHostEnvironment env)
-            {
-                var dataViewBuilder = new ArrayDataViewBuilder(env);
-                var keyType = ValueMappingTransform.GetPrimitiveType(typeof(TKeyType), out bool isKeyVectorType);
-                var valueType = ValueMappingTransform.GetPrimitiveType(typeof(TValueType), out bool isValueVectorType);
-                dataViewBuilder.AddColumn(ValueMappingTransform.KeyColumnName, keyType, _mapping.Keys.ToArray());
-                dataViewBuilder.AddColumn(ValueMappingTransform.ValueColumnName,valueType, _mapping.Values.ToArray());
-                return dataViewBuilder.GetDataView();
-            }
+                => DataViewHelper.CreateDataView(env,
+                                                 _mapping.Keys,
+                                                 _mapping.Values,
+                                                 ValueMappingTransform.KeyColumnName,
+                                                 ValueMappingTransform.ValueColumnName,
+                                                 ValueType.IsKey);
 
             private static TValueType GetVector<T>(TValueType value)
             {
@@ -633,23 +928,26 @@ namespace Microsoft.ML.Transforms
 
         protected override IRowMapper MakeRowMapper(Schema schema)
         {
-            return new Mapper(this, Schema.Create(schema), _valueMap, ColumnPairs);
+            return new Mapper(this, Schema.Create(schema), _valueMap,  _valueMetadata, ColumnPairs);
         }
 
         private sealed class Mapper : OneToOneMapperBase
         {
             private readonly Schema _inputSchema;
             private readonly ValueMap _valueMap;
+            private readonly Schema.Metadata _valueMetadata;
             private readonly (string Source, string Name)[] _columns;
             private readonly ValueMappingTransform _parent;
 
             internal Mapper(ValueMappingTransform transform,
                             Schema inputSchema,
                             ValueMap valueMap,
+                            Schema.Metadata valueMetadata,
                             (string input, string output)[] columns)
                 : base(transform.Host.Register(nameof(Mapper)), transform, inputSchema)
             {
                 _inputSchema = inputSchema;
+                _valueMetadata = valueMetadata;
                 _valueMap = valueMap;
                 _columns = columns;
                 _parent = transform;
@@ -666,11 +964,13 @@ namespace Microsoft.ML.Transforms
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
+                var md = new MetadataBuilder();
+
                 var result = new Schema.DetachedColumn[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     var srcCol = _inputSchema[_columns[i].Source];
-                    result[i] = new Schema.DetachedColumn(_columns[i].Name, _valueMap.ValueType, srcCol.Metadata);
+                    result[i] = new Schema.DetachedColumn(_columns[i].Name, _valueMap.ValueType, md.GetMetadata());
                 }
                 return result;
             }

@@ -86,6 +86,20 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Constructs a new key column from an array where values are copied to output simply
+        /// by being assigned.
+        /// </summary>
+        public void AddColumn(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyMin, int keyCount, params ulong[] values)
+        {
+            _host.CheckValue(getKeyValues, nameof(getKeyValues));
+            _host.CheckParam(keyCount > 0, nameof(keyCount));
+            CheckLength(name, values);
+            _columns.Add(new AssignmentColumn<ulong>(new KeyType(DataKind.U8, keyMin, keyCount), values));
+            _getKeyValues.Add(name, getKeyValues);
+            _names.Add(name);
+        }
+
+        /// <summary>
         /// Creates a column with slot names from arrays. The added column will be re-interpreted as a buffer.
         /// </summary>
         public void AddColumn<T>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getNames, PrimitiveType itemType, params T[][] values)
