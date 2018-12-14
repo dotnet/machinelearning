@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Linq;
 
 [assembly: LoadableClass(typeof(ChooseColumnsByIndexTransform), typeof(ChooseColumnsByIndexTransform.Arguments), typeof(SignatureDataTransform),
     "", "ChooseColumnsByIndexTransform", "ChooseColumnsByIndex")]
@@ -31,158 +30,101 @@ namespace Microsoft.ML.Runtime.Data
             public bool Drop;
         }
 
-        private sealed class Bindings : ISchema
+        private sealed class Bindings
         {
-            public readonly int[] Sources;
+            // A collection of source column indexes after removing those we want to drop. Specifically, j=_sources[i] means
+            // that the i-th output column in the output schema is the j-th column in the input schema.
+            private readonly int[] _sources;
 
+            // Input schema of this transform. It's useful when determining column dependencies and other
+            // relations between input and output schemas.
             private readonly Schema _input;
-            private readonly Dictionary<string, int> _nameToIndex;
 
-            // The following argument is used only to inform serialization.
-            private readonly int[] _dropped;
+            // This transform's output schema.
+            internal Schema OutputSchema { get; }
 
-            public Schema AsSchema { get; }
-
-            public Bindings(Arguments args, Schema schemaInput)
+            internal Bindings(Arguments args, Schema sourceSchema)
             {
                 Contracts.AssertValue(args);
-                Contracts.AssertValue(schemaInput);
+                Contracts.AssertValue(sourceSchema);
 
-                _input = schemaInput;
+                _input = sourceSchema;
 
-                int[] indexCopy = args.Index == null ? new int[0] : args.Index.ToArray();
-                BuildNameDict(indexCopy, args.Drop, out Sources, out _dropped, out _nameToIndex, user: true);
+                if (args.Drop)
+                    // Drop columns indexed by args.Index
+                    _sources = Enumerable.Range(0, _input.ColumnCount).Except(args.Index).ToArray();
+                else
+                    // Keep columns indexed by args.Index
+                    _sources = args.Index.ToArray();
 
-                AsSchema = Schema.Create(this);
+                // Make sure the output of this transform is meaningful.
+                Contracts.Check(_sources.Length > 0, "Choose columns by index has no output column.");
+
+                var schemaBuilder = new SchemaBuilder();
+                for (int i = 0; i < _sources.Length; ++i)
+                {
+                    var selectedIndex = _sources[i];
+
+                    // The dropped/kept columns are determined by user-specified arguments, so we throw if a bad configuration is provided.
+                    string fmt = string.Format("Column index {0} invalid for input with {1} columns", selectedIndex, _input.ColumnCount);
+                    Contracts.Check(selectedIndex > sourceSchema.ColumnCount, fmt);
+
+                    // Put the selected column into output schema.
+                    var selectedColumn = sourceSchema[selectedIndex];
+                    schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
+                }
+                OutputSchema = schemaBuilder.GetSchema();
             }
 
-            private void BuildNameDict(int[] indexCopy, bool drop, out int[] sources, out int[] dropped, out Dictionary<string, int> nameToCol, bool user)
-            {
-                Contracts.AssertValue(indexCopy);
-                foreach (int col in indexCopy)
-                {
-                    if (col < 0 || _input.ColumnCount <= col)
-                    {
-                        const string fmt = "Column index {0} invalid for input with {1} columns";
-                        if (user)
-                            throw Contracts.ExceptUserArg(nameof(Arguments.Index), fmt, col, _input.ColumnCount);
-                        else
-                            throw Contracts.ExceptDecode(fmt, col, _input.ColumnCount);
-                    }
-                }
-                if (drop)
-                {
-                    sources = Enumerable.Range(0, _input.ColumnCount).Except(indexCopy).ToArray();
-                    dropped = indexCopy;
-                }
-                else
-                {
-                    sources = indexCopy;
-                    dropped = null;
-                }
-                if (user)
-                    Contracts.CheckUserArg(sources.Length > 0, nameof(Arguments.Index), "Choose columns by index has no output columns");
-                else
-                    Contracts.CheckDecode(sources.Length > 0, "Choose columns by index has no output columns");
-                nameToCol = new Dictionary<string, int>();
-                for (int c = 0; c < sources.Length; ++c)
-                    nameToCol[_input.GetColumnName(sources[c])] = c;
-            }
-
-            public Bindings(ModelLoadContext ctx, Schema schemaInput)
+            internal Bindings(ModelLoadContext ctx, Schema sourceSchema)
             {
                 Contracts.AssertValue(ctx);
-                Contracts.AssertValue(schemaInput);
-
-                _input = schemaInput;
+                Contracts.AssertValue(sourceSchema);
 
                 // *** Binary format ***
-                // bool(as byte): whether the indicated source columns are columns to keep, or drop
-                // int: number of source column indices
-                // int[]: source column indices
+                // int[]: selected source column indices
+                _sources = ctx.Reader.ReadIntArray();
 
-                bool isDrop = ctx.Reader.ReadBoolByte();
-                BuildNameDict(ctx.Reader.ReadIntArray() ?? new int[0], isDrop, out Sources, out _dropped, out _nameToIndex, user: false);
-                AsSchema = Schema.Create(this);
+                _input = sourceSchema;
+                var schemaBuilder = new SchemaBuilder();
+                for (int i = 0; i < _sources.Length; ++i)
+                {
+                    var selectedColumn = sourceSchema[_sources[i]];
+                    schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
+                }
+                OutputSchema = schemaBuilder.GetSchema();
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
                 // *** Binary format ***
-                // bool(as byte): whether the indicated columns are columns to keep, or drop
-                // int: number of source column indices
-                // int[]: source column indices
-
-                ctx.Writer.WriteBoolByte(_dropped != null);
-                ctx.Writer.WriteIntArray(_dropped ?? Sources);
-            }
-
-            public int ColumnCount
-            {
-                get { return Sources.Length; }
-            }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                Contracts.CheckValueOrNull(name);
-                if (name == null)
-                {
-                    col = default(int);
-                    return false;
-                }
-                return _nameToIndex.TryGetValue(name, out col);
-            }
-
-            public string GetColumnName(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _input.GetColumnName(Sources[col]);
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _input.GetColumnType(Sources[col]);
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _input.GetMetadataTypes(Sources[col]);
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _input.GetMetadataTypeOrNull(kind, Sources[col]);
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                _input.GetMetadata(kind, Sources[col], ref value);
+                // int[]: selected source column indices
+                ctx.Writer.WriteIntArray(_sources);
             }
 
             internal bool[] GetActive(Func<int, bool> predicate)
             {
-                return Utils.BuildArray(ColumnCount, predicate);
+                return Utils.BuildArray(OutputSchema.ColumnCount, predicate);
             }
 
             internal Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
                 Contracts.AssertValue(predicate);
                 var active = new bool[_input.ColumnCount];
-                for (int i = 0; i < Sources.Length; i++)
+                for (int i = 0; i < _sources.Length; i++)
                 {
                     if (predicate(i))
-                        active[Sources[i]] = true;
+                        active[_sources[i]] = true;
                 }
                 return col => 0 <= col && col < active.Length && active[col];
             }
+
+            /// <summary>
+            /// Given the column index in the output schema, this function returns its source column's index in the input schema.
+            /// </summary>
+            internal int GetSourceColumnIndex(int outputColumnIndex) => _sources[outputColumnIndex];
         }
 
         public const string LoaderSignature = "ChooseColumnsIdxTrans";
@@ -191,9 +133,9 @@ namespace Microsoft.ML.Runtime.Data
         {
             return new VersionInfo(
                 modelSignature: "CHSCOLIF",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
+                verWrittenCur: 0x00010002,
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
                 loaderAssemblyName: typeof(ChooseColumnsByIndexTransform).Assembly.FullName);
@@ -245,7 +187,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.OutputSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -292,17 +234,17 @@ namespace Microsoft.ML.Runtime.Data
                 : base(provider, input)
             {
                 Ch.AssertValue(bindings);
-                Ch.Assert(active == null || active.Length == bindings.ColumnCount);
+                Ch.Assert(active == null || active.Length == bindings.OutputSchema.ColumnCount);
 
                 _bindings = bindings;
                 _active = active;
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < _bindings.ColumnCount);
+                Ch.Check(0 <= col && col < _bindings.OutputSchema.ColumnCount);
                 return _active == null || _active[col];
             }
 
@@ -310,7 +252,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Ch.Check(IsColumnActive(col));
 
-                var src = _bindings.Sources[col];
+                var src = _bindings.GetSourceColumnIndex(col);
                 return Input.GetGetter<TValue>(src);
             }
         }
