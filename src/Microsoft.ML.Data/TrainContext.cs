@@ -36,14 +36,15 @@ namespace Microsoft.ML
         /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
+        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
         /// <returns>A pair of datasets, for the train and test set.</returns>
-        public (IDataView trainSet, IDataView testSet) TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null)
+        public (IDataView trainSet, IDataView testSet) TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
             Host.CheckValueOrNull(stratificationColumn);
 
-            EnsureStratificationColumn(ref data, ref stratificationColumn);
+            EnsureStratificationColumn(ref data, ref stratificationColumn, seed);
 
             var trainFilter = new RangeFilter(Host, new RangeFilter.Arguments()
             {
@@ -68,14 +69,14 @@ namespace Microsoft.ML
         /// Return each model and each scored test dataset.
         /// </summary>
         protected (IDataView scoredTestSet, ITransformer model)[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
-            int numFolds, string stratificationColumn)
+            int numFolds, string stratificationColumn, uint? seed = null)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckValue(estimator, nameof(estimator));
             Host.CheckParam(numFolds > 1, nameof(numFolds), "Must be more than 1");
             Host.CheckValueOrNull(stratificationColumn);
 
-            EnsureStratificationColumn(ref data, ref stratificationColumn);
+            EnsureStratificationColumn(ref data, ref stratificationColumn, seed);
 
             Func<int, (IDataView scores, ITransformer model)> foldFunction =
                 fold =>
@@ -122,7 +123,7 @@ namespace Microsoft.ML
         /// for <see cref="RangeFilter"/>, hash it if needed, or introduce a new one
         /// if needed.
         /// </summary>
-        private void EnsureStratificationColumn(ref IDataView data, ref string stratificationColumn)
+        private void EnsureStratificationColumn(ref IDataView data, ref string stratificationColumn, uint? seed = null)
         {
             // We need to handle two cases: if the stratification column is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
@@ -130,7 +131,7 @@ namespace Microsoft.ML
             if (stratificationColumn == null)
             {
                 stratificationColumn = data.Schema.GetTempColumnName("StratificationColumn");
-                data = new GenerateNumberTransform(Host, data, stratificationColumn);
+                data = new GenerateNumberTransform(Host, data, stratificationColumn, seed);
             }
             else
             {
@@ -254,12 +255,13 @@ namespace Microsoft.ML
         /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
+        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (BinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => (EvaluateNonCalibrated(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
 
@@ -276,9 +278,10 @@ namespace Microsoft.ML
         /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
+        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (CalibratedBinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
@@ -326,12 +329,12 @@ namespace Microsoft.ML
         public ClusteringMetrics Evaluate(IDataView data,
             string label = null,
             string score = DefaultColumnNames.Score,
-            string features = null )
+            string features = null)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(score, nameof(score));
 
-            if(features != null)
+            if (features != null)
                 Host.CheckNonEmpty(features, nameof(features), "The features column name should be non-empty if you want to calculate the Dbi metric.");
 
             if (label != null)
@@ -355,9 +358,11 @@ namespace Microsoft.ML
         /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
+        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (ClusteringMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null, string stratificationColumn = null)
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null,
+            string stratificationColumn = null, uint? seed = null)
         {
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
             return result.Select(x => (Evaluate(x.scoredTestSet, label: labelColumn, features: featuresColumn), x.model, x.scoredTestSet)).ToArray();
@@ -427,9 +432,11 @@ namespace Microsoft.ML
         /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
+        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (MultiClassClassifierMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
+            string stratificationColumn = null, uint? seed=null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
@@ -491,9 +498,11 @@ namespace Microsoft.ML
         /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
+        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (RegressionMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
+            string stratificationColumn = null, uint? seed=null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);

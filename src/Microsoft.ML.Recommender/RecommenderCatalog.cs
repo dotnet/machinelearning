@@ -95,9 +95,11 @@ namespace Microsoft.ML
         /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
+        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (RegressionMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
+            string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
