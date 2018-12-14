@@ -146,8 +146,8 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private OnnxTransform(IHostEnvironment env, Arguments args, byte[] modelBytes = null) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransform)))
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Transforms
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
         }
-        protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
         private static int[] AdjustDimensions(OnnxShape shape)
         {
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms
                 return info;
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 Host.AssertValue(input);
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(IRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private Delegate MakeGetter<T>(Row input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Transforms
                 return valuegetter;
             }
 
-            private static INamedOnnxValueGetter[] GetNamedOnnxValueGetters(IRow input,
+            private static INamedOnnxValueGetter[] GetNamedOnnxValueGetters(Row input,
                 string[] inputColNames,
                 int[] inputColIndices,
                 bool[] isInputVector,
@@ -400,14 +400,14 @@ namespace Microsoft.ML.Transforms
                 return srcNamedOnnxValueGetters;
             }
 
-            private static INamedOnnxValueGetter CreateNamedOnnxValueGetter(IRow input, System.Type onnxType, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNamedOnnxValueGetter(Row input, System.Type onnxType, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 var type = OnnxUtils.OnnxToMlNetType(onnxType).RawType;
                 Contracts.AssertValue(type);
                 return Utils.MarshalInvoke(CreateNameOnnxValueGetter<int>, type, input, isVector, colName, colIndex, onnxShape);
             }
 
-            private static INamedOnnxValueGetter CreateNameOnnxValueGetter<T>(IRow input, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNameOnnxValueGetter<T>(Row input, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 if (isVector)
                     return new NamedOnnxValueGetterVec<T>(input, colName, colIndex, onnxShape);
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Transforms
                 private readonly ValueGetter<T> _srcgetter;
                 private readonly string _colName;
 
-                public NameOnnxValueGetter(IRow input, string colName, int colIndex)
+                public NameOnnxValueGetter(Row input, string colName, int colIndex)
                 {
                     _colName = colName;
                     _srcgetter = input.GetGetter<T>(colIndex);
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Transforms
                 private readonly string _colName;
                 private VBuffer<T> _vBuffer;
                 private VBuffer<T> _vBufferDense;
-                public NamedOnnxValueGetterVec(IRow input, string colName, int colIndex, OnnxShape tensorShape)
+                public NamedOnnxValueGetterVec(Row input, string colName, int colIndex, OnnxShape tensorShape)
                 {
                     _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                     _tensorShape = tensorShape;
@@ -480,8 +480,8 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
 
             for (var i = 0; i < Transformer.Inputs.Length; i++)
             {

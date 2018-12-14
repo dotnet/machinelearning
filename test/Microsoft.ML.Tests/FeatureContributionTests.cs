@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Training;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,50 +32,86 @@ namespace Microsoft.ML.Tests
         {
         }
 
+        [Fact]
+        public void TestOrdinaryLeastSquares()
+        {
+            var expectedValues = new List<float[]> {
+                new float[4] { 0.06319684F, 1, 0.1386623F, 4.46209469E-06F },
+                new float[4] { 0.03841561F, 1, 0.1633037F, 2.68303256E-06F },
+                new float[4] { 0.12006103F, 1, 0.254072F, 1.18671605E-05F },
+                new float[4] { 0.20861618F, 0.99999994F, 0.407312155F, 6.963478E-05F },
+                new float[4] { 0.024050576F, 0.99999994F, 0.31106182F, 8.456762E-06F }, };
+
+            TestFeatureContribution(ML.Regression.Trainers.OrdinaryLeastSquares(), expectedValues);
+        }
+
+        [Fact]
+        public void TestGam()
+        {
+            // Index 1: Most important feature
+            // Index 3: Random feature
+            var expectedValues = new List<float[]> {
+                new float[4] { 0.08439296F, 1F, 0.1442171F, -0.001832674F },
+                new float[4] { -0.07902145F, -1F, -0.01937493F, 0.02314214F },
+                new float[4] { 0.04072217F, -1F, 0.01370963F, -0.00197823F },
+                new float[4] { -0.02197981F, -1F, -0.1051985F, -0.004131221F },
+                new float[4] { -0.1072952F, -1F, 0.1284171F, -0.002337188F }, };
+
+            TestFeatureContribution(ML.Regression.Trainers.GeneralizedAdditiveModels(), expectedValues, 5);
+        }
+
         /// <summary>
         /// Features: x1, x2, x3, xRand; y = 10*x1 + 20x2 + 5.5x3 + e, xRand- random, Label y is dependant on xRand.
         /// Test verifies that feature contribution scores are outputted along with a score for predicted data. 
         /// </summary>
-        [Fact]
-        public void TestFeatureImportance()
+        private void TestFeatureContribution(
+            ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
+            List<float[]> expectedValues,
+            int precision = 6)
         {
             // Setup synthetic dataset.
-            const int numberOfInstances = 1000;
-            var rand = new Random(10);
-            float[] yArray = new float[numberOfInstances],
-                x1Array = new float[numberOfInstances],
-                x2Array = new float[numberOfInstances],
-                x3Array = new float[numberOfInstances],
-                x4RandArray = new float[numberOfInstances];
+            const int numInstances = 1000;
+            const int numFeatures = 4;
 
-            for (var i = 0; i < numberOfInstances; i++)
+            var rand = new Random(10);
+            float[] yArray = new float[numInstances];
+            float[][] xArray = new float[numFeatures][];
+            int[] xRangeArray = new[] { 1000, 10000, 5000, 1000 };
+            float[] xWeightArray = new[] {
+                10,
+                20, // Most important feature with high weight. Should have the highest contribution.
+                5.5f,
+                0, // Least important feature. Should have the least contribution.
+            };
+
+            for (var instanceIndex = 0; instanceIndex < numInstances; instanceIndex++)
             {
-                var x1 = rand.Next(1000);
-                x1Array[i] = x1;
-                var x2Important = rand.Next(10000);
-                x2Array[i] = x2Important;
-                var x3 = rand.Next(5000);
-                x3Array[i] = x3;
-                var x4Rand = rand.Next(1000);
-                x4RandArray[i] = x4Rand;
+                for (int featureIndex = 0; featureIndex < numFeatures; featureIndex++)
+                {
+                    if (xArray[featureIndex] == null)
+                        xArray[featureIndex] = new float[numInstances];
+                    xArray[featureIndex][instanceIndex] = rand.Next(xRangeArray[featureIndex]);
+                    yArray[instanceIndex] += xArray[featureIndex][instanceIndex] * xWeightArray[featureIndex];
+                }
 
                 var noise = rand.Next(50);
-                yArray[i] = (float)(10 * x1 + 20 * x2Important + 5.5 * x3 + noise);
+                yArray[instanceIndex] += noise;
             }
 
             // Create data view.
             var bldr = new ArrayDataViewBuilder(Env);
-            bldr.AddColumn("X1", NumberType.Float, x1Array);
-            bldr.AddColumn("X2Important", NumberType.Float, x2Array);
-            bldr.AddColumn("X3", NumberType.Float, x3Array);
-            bldr.AddColumn("X4Rand", NumberType.Float, x4RandArray);
+            bldr.AddColumn("X1", NumberType.Float, xArray[0]);
+            bldr.AddColumn("X2Important", NumberType.Float, xArray[1]);
+            bldr.AddColumn("X3", NumberType.Float, xArray[2]);
+            bldr.AddColumn("X4Rand", NumberType.Float, xArray[3]);
             bldr.AddColumn("Label", NumberType.Float, yArray);
             var srcDV = bldr.GetDataView();
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2Important", "X3", "X4Rand")
+                .AppendCacheCheckpoint(ML)
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
-            var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
+            var model = trainer.Fit(data);
             var args = new FeatureContributionCalculationTransform.Arguments()
             {
                 Bottom = 10,
@@ -81,23 +119,13 @@ namespace Microsoft.ML.Tests
             };
             var output = FeatureContributionCalculationTransform.Create(Env, args, data, model.Model, model.FeatureColumn);
 
-            // Get prediction scores and contributions
-            var enumerator = output.AsEnumerable<ScoreAndContribution>(Env, true).GetEnumerator();
-            ScoreAndContribution row = null;
-            var expectedValues = new List<float[]>();
-            expectedValues.Add(new float[4] { 0.15640761F, 1, 0.155862764F, 0.07276783F });
-            expectedValues.Add(new float[4] { 0.09507586F, 1, 0.1835608F, 0.0437548943F });
-            expectedValues.Add(new float[4] { 0.297142357F, 1, 0.2855884F, 0.193529665F });
-            expectedValues.Add(new float[4] { 0.45465675F, 0.8805887F, 0.4031663F, 1 });
-            expectedValues.Add(new float[4] { 0.0595234372F, 0.99999994F, 0.349647522F, 0.137912869F });
-            int index = 0;
-            while (enumerator.MoveNext() && index < expectedValues.Count)
+            var transformedOutput = output.AsEnumerable<ScoreAndContribution>(Env, true);
+            int rowIndex = 0;
+            foreach (var row in transformedOutput.Take(expectedValues.Count))
             {
-                row = enumerator.Current;
-                Assert.True(row.FeatureContributions[0] == expectedValues[index][0]);
-                Assert.True(row.FeatureContributions[1] == expectedValues[index][1]);
-                Assert.True(row.FeatureContributions[2] == expectedValues[index][2]);
-                Assert.True(row.FeatureContributions[3] == expectedValues[index++][3]);
+                var expectedValue = expectedValues[rowIndex++];
+                for (int i = 0; i < numFeatures; i++)
+                    Assert.Equal(expectedValue[i], row.FeatureContributions[i], precision);
             }
 
             Done();

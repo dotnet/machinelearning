@@ -164,35 +164,35 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             // We do not use the input random because this cursor does not support shuffling.
             var rgen = new TauswortheHybrid(_state);
             var input = Source.GetRowCursor(predicate, _shuffleInput ? new TauswortheHybrid(rgen) : null);
-            IRowCursor cursor = new RowCursor(this, input, rgen);
+            RowCursor cursor = new Cursor(this, input, rgen);
             if (_poolSize > 1)
                 cursor = RowShufflingTransformer.GetShuffledCursor(Host, _poolSize, cursor, new TauswortheHybrid(rgen));
             return cursor;
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             var cursor = GetRowCursorCore(predicate, rand);
             consolidator = null;
-            return new IRowCursor[] { cursor };
+            return new RowCursor[] { cursor };
         }
 
-        private sealed class RowCursor : LinkedRootCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : LinkedRootCursorBase
         {
             private int _remaining;
             private readonly BootstrapSamplingTransformer _parent;
             private readonly Random _rgen;
 
-            public override long Batch { get { return 0; } }
+            public override long Batch => 0;
 
-            public Schema Schema { get { return Input.Schema; } }
+            public override Schema Schema => Input.Schema;
 
-            public RowCursor(BootstrapSamplingTransformer parent, IRowCursor input, Random rgen)
+            public Cursor(BootstrapSamplingTransformer parent, RowCursor input, Random rgen)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(rgen);
@@ -200,23 +200,23 @@ namespace Microsoft.ML.Transforms
                 _rgen = rgen;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 var inputIdGetter = Input.GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         inputIdGetter(ref val);
-                        val = val.Combine(new UInt128((ulong)_remaining, 0));
+                        val = val.Combine(new RowId((ulong)_remaining, 0));
                     };
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 return Input.GetGetter<TValue>(col);
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 return Input.IsColumnActive(col);
             }
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms
             var view = new BootstrapSamplingTransformer(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

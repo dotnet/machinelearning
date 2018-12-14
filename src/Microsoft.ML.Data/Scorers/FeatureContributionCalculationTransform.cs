@@ -214,24 +214,24 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.Writer.WriteBoolByte(Stringify);
             }
 
-            public Delegate GetTextContributionGetter(IRow input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
+            public Delegate GetTextContributionGetter(Row input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
                 var typeSrc = input.Schema.GetColumnType(colSrc);
 
-                Func<IRow, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
+                Func<Row, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
                 var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType);
                 return (Delegate)meth.Invoke(this, new object[] { input, colSrc, slotNames });
             }
 
-            public Delegate GetContributionGetter(IRow input, int colSrc)
+            public Delegate GetContributionGetter(Row input, int colSrc)
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
 
                 var typeSrc = input.Schema.GetColumnType(colSrc);
-                Func<IRow, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
+                Func<Row, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.
                 // For multiclass LR it needs to be(VBuffer<float>[].
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.Data
                     : slotName;
             }
 
-            private ValueGetter<ReadOnlyMemory<char>> GetTextValueGetter<TSrc>(IRow input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
+            private ValueGetter<ReadOnlyMemory<char>> GetTextValueGetter<TSrc>(Row input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            private ValueGetter<VBuffer<float>> GetValueGetter<TSrc>(IRow input, int colSrc)
+            private ValueGetter<VBuffer<float>> GetValueGetter<TSrc>(Row input, int colSrc)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
@@ -327,8 +327,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IHostEnvironment _env;
             private readonly ISchemaBoundRowMapper _genericRowMapper;
             private readonly BindableMapper _parent;
-            private readonly ISchema _outputSchema;
-            private readonly ISchema _outputGenericSchema;
+            private readonly Schema _outputSchema;
+            private readonly Schema _outputGenericSchema;
             private VBuffer<ReadOnlyMemory<char>> _slotNames;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
@@ -353,8 +353,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (parent.Stringify)
                 {
-                    _outputSchema = new SimpleSchema(_env,
-                        new KeyValuePair<string, ColumnType>(DefaultColumnNames.FeatureContributions, TextType.Instance));
+                    var builder = new SchemaBuilder();
+                    builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
+                    _outputSchema = builder.GetSchema();
                     if (InputSchema.HasSlotNames(InputRoleMappedSchema.Feature.Index, InputRoleMappedSchema.Feature.Type.VectorSize))
                         InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index,
                             ref _slotNames);
@@ -363,13 +364,13 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    _outputSchema = new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
-                        new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
-                        InputSchema, InputRoleMappedSchema.Feature.Index);
+                    _outputSchema = Schema.Create(new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
+                        new VectorType(NumberType.R4, schema.Feature.Type as VectorType),
+                        InputSchema, InputRoleMappedSchema.Feature.Index));
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
-                OutputSchema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
+                OutputSchema = new CompositeSchema(new Schema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
             }
 
             /// <summary>
@@ -385,28 +386,28 @@ namespace Microsoft.ML.Runtime.Data
                 return col => false;
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active)
             {
                 Contracts.AssertValue(input);
-                Contracts.AssertValue(predicate);
+                Contracts.AssertValue(active);
                 var totalColumnsCount = 1 + _outputGenericSchema.ColumnCount;
                 var getters = new Delegate[totalColumnsCount];
 
-                if (predicate(totalColumnsCount - 1))
+                if (active(totalColumnsCount - 1))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
                         ? _parent.GetTextContributionGetter(input, InputRoleMappedSchema.Feature.Index, _slotNames)
                         : _parent.GetContributionGetter(input, InputRoleMappedSchema.Feature.Index);
                 }
 
-                var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(predicate), out disposer);
+                var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(active));
                 for (var i = 0; i < _outputGenericSchema.ColumnCount; i++)
                 {
                     if (genericRow.IsColumnActive(i))
                         getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
                 }
 
-                return new SimpleRow(OutputSchema, input, getters);
+                return new SimpleRow(OutputSchema, genericRow, getters);
             }
 
             public Func<int, bool> GetGenericPredicate(Func<int, bool> predicate)
@@ -417,11 +418,6 @@ namespace Microsoft.ML.Runtime.Data
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
-            }
-
-            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
-            {
-                return GetOutputRow(input, active, out disposer);
             }
         }
 

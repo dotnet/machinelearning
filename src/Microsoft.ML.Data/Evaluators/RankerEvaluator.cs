@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, _labelGains, _truncationLevel, _groupSummary, schema.Weight != null, stratName);
         }
 
-        public override IDataTransform GetPerInstanceMetrics(RoleMappedData data)
+        internal override IDataTransform GetPerInstanceMetricsCore(RoleMappedData data)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckParam(data.Schema.Label != null, nameof(data), "Schema must contain a label column");
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.ColumnRole.Group.Bind(groupId),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Runtime.Data
                     GroupId = new List<ReadOnlyMemory<char>>();
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Contracts.Assert(PassNum < 1);
                 Contracts.AssertValue(schema.Label);
@@ -610,12 +610,12 @@ namespace Microsoft.ML.Runtime.Data
             return _transform.GetRowCount();
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             return _transform.GetRowCursor(needCol, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
         {
             return _transform.GetRowCursorSet(out consolidator, needCol, n, rand);
         }
@@ -775,7 +775,7 @@ namespace Microsoft.ML.Runtime.Data
                 dst = editor.Commit();
             }
 
-            protected override ValueGetter<short> GetLabelGetter(IRow row)
+            protected override ValueGetter<short> GetLabelGetter(Row row)
             {
                 var lb = RowCursorUtils.GetLabelGetter(row, _bindings.LabelIndex);
                 return
@@ -787,12 +787,12 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            protected override ValueGetter<Single> GetScoreGetter(IRow row)
+            protected override ValueGetter<Single> GetScoreGetter(Row row)
             {
                 return row.GetGetter<Single>(_bindings.ScoreIndex);
             }
 
-            protected override RowCursorState InitializeState(IRow input)
+            protected override RowCursorState InitializeState(Row input)
             {
                 return new RowCursorState(_truncationLevel);
             }
@@ -864,7 +864,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly string _groupSummaryFilename;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public RankerMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.Ranking, "RankerMamlEvaluator")
@@ -1068,11 +1068,11 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            ISchema schema = input.Data.Schema;
+            var schema = input.Data.Schema;
             string groupId = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
                 nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
                 input.GroupIdColumn, DefaultColumnNames.GroupId);
-            var evaluator = new RankerMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new RankerMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, groupId, weight, name);
             var metrics = evaluator.Evaluate(data);
 

@@ -13,8 +13,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     /// <summary>
-    /// This module handles scoring a <see cref="IPredictorModel"/> against a new dataset.
-    /// As a result, we return both the scored data and the scoring transform as a <see cref="ITransformModel"/>.
+    /// This module handles scoring a <see cref="PredictorModel"/> against a new dataset.
+    /// As a result, we return both the scored data and the scoring transform as a <see cref="TransformModel"/>.
     ///
     /// REVIEW: This module does not support 'exotic' scoring scenarios, like recommendation and quantile regression
     /// (those where the user-defined scorer settings are necessary to identify the scorer). We could resolve this by
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView Data;
 
             [Argument(ArgumentType.Required, HelpText = "The predictor model to apply to data", SortOrder = 2)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Suffix to append to the score columns", SortOrder = 3)]
             public string Suffix;
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView Data;
 
             [Argument(ArgumentType.Required, HelpText = "The transform model to apply to data", SortOrder = 2)]
-            public ITransformModel TransformModel;
+            public TransformModel TransformModel;
         }
 
         public sealed class Output
@@ -49,19 +49,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public IDataView ScoredData;
 
             [TlcModule.Output(Desc = "The scoring transform", SortOrder = 2)]
-            public ITransformModel ScoringTransform;
+            public TransformModel ScoringTransform;
         }
 
         public sealed class ModelInput
         {
             [Argument(ArgumentType.Required, HelpText = "The predictor model to turn into a transform", SortOrder = 1)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class ModelOutput
         {
             [TlcModule.Output(Desc = "The scoring transform", SortOrder = 1)]
-            public ITransformModel ScoringTransform;
+            public TransformModel ScoringTransform;
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.DatasetScorer", Desc = "Score a dataset with a predictor model")]
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 new Output
                 {
                     ScoredData = scoredPipe,
-                    ScoringTransform = new TransformModel(host, scoredPipe, inputData)
+                    ScoringTransform = new TransformModelImpl(host, scoredPipe, inputData)
                 };
 
         }
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new Output
             {
                 ScoredData = scoredPipe,
-                ScoringTransform = new TransformModel(host, scoredPipe, emptyData)
+                ScoringTransform = new TransformModelImpl(host, scoredPipe, emptyData)
             };
         }
     }

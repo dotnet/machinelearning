@@ -14,6 +14,7 @@ using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -31,8 +32,10 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms.Text
 {
-    using Conditional = System.Diagnostics.ConditionalAttribute;
-
+    /// <summary>
+    /// Produces a bag of counts of ngrams(sequences of consecutive values of length 1-n) in a given vector of keys.
+    /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
+    /// </summary>
     public sealed class NgramExtractingTransformer : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
@@ -268,7 +271,7 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
             if (!NgramExtractingEstimator.IsColumnTypeValid(type))
@@ -444,8 +447,8 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private NgramExtractingTransformer(IHost host, ModelLoadContext ctx) :
             base(host, ctx)
@@ -540,7 +543,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -665,7 +668,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -858,12 +861,12 @@ namespace Microsoft.ML.Transforms.Text
             return true;
         }
 
-        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertable to U4";
+        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertible to U4";
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

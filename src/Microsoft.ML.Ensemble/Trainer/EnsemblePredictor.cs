@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             return new EnsemblePredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             ctx.Writer.Write((int)PredictionKind);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Single>));
             Host.Check(typeof(TOut) == typeof(Single));

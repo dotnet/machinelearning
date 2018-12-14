@@ -120,7 +120,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return new FieldAwareFactorizationMachinePredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         /// <summary>
-        /// Gets the <see cref="ISchema"/> result after transformation.
+        /// Gets the <see cref="Schema"/> result after transformation.
         /// </summary>
         /// <param name="inputSchema">The <see cref="Schema"/> of the input data.</param>
         /// <returns>The post transformation <see cref="Schema"/>.</returns>

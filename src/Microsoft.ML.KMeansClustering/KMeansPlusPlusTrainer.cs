@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 namespace Microsoft.ML.Trainers.KMeans
 {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
-    public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansPredictor>, KMeansPredictor>
+    public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
         public const string LoadNameValue = "KMeansPlusPlus";
         internal const string UserNameValue = "KMeans++ Clustering";
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Trainers.KMeans
             [Argument(ArgumentType.AtMostOnce, HelpText = "Cluster initialization algorithm", ShortName = "init")]
             public InitAlgorithm InitAlgorithm = InitAlgorithm.KMeansParallel;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for trainer convergence. Lower = slower, more accurate",
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for trainer convergence. Low = slower, more accurate",
                 ShortName = "ot")]
             [TGUI(Label = "Optimization Tolerance", Description = "Threshold for trainer convergence")]
             public float OptTol = (float)1e-7;
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Trainers.KMeans
         }
 
         private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, Action<Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
 
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Trainers.KMeans
             Info = new TrainerInfo();
         }
 
-        private protected override KMeansPredictor TrainModelCore(TrainContext context)
+        private protected override KMeansModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Trainers.KMeans
             }
         }
 
-        private KMeansPredictor TrainCore(IChannel ch, RoleMappedData data, int dimensionality)
+        private KMeansModelParameters TrainCore(IChannel ch, RoleMappedData data, int dimensionality)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Trainers.KMeans
                     "{0} instances with missing features detected and ignored. Consider using MissingHandler.",
                     missingFeatureCount);
             }
-            return new KMeansPredictor(Host, _k, centroids, copyIn: true);
+            return new KMeansModelParameters(Host, _k, centroids, copyIn: true);
         }
 
         private static int ComputeNumThreads(IHost host, int? argNumThreads)
@@ -278,8 +278,8 @@ namespace Microsoft.ML.Trainers.KMeans
             };
         }
 
-        protected override ClusteringPredictionTransformer<KMeansPredictor> MakeTransformer(KMeansPredictor model, Schema trainSchema)
-        => new ClusteringPredictionTransformer<KMeansPredictor>(Host, model, trainSchema, _featureColumn);
+        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, Schema trainSchema)
+        => new ClusteringPredictionTransformer<KMeansModelParameters>(Host, model, trainSchema, _featureColumn);
     }
 
     internal static class KMeansPlusPlusInit
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Trainers.KMeans
         // each row. Instead the RowCursor provides a stable ID across multiple
         // cursorings. We map those IDs into an index to poke into the per instance
         // structures.
-        private readonly HashArray<UInt128> _parallelIndexLookup;
+        private readonly HashArray<RowId> _parallelIndexLookup;
 
         public KMeansAcceleratedRowMap(FeatureFloatVectorCursor.Factory factory, IChannel ch,
             long baseMaxInstancesToAccelerate, long totalTrainingInstances, bool isParallel)
@@ -469,11 +469,11 @@ namespace Microsoft.ML.Trainers.KMeans
         /// preinitialize the HashArray so we can perform lock-free lookup operations during
         /// the primary KMeans pass.
         /// </summary>
-        private HashArray<UInt128> BuildParallelIndexLookup(FeatureFloatVectorCursor.Factory factory)
+        private HashArray<RowId> BuildParallelIndexLookup(FeatureFloatVectorCursor.Factory factory)
         {
             Contracts.AssertValue(factory);
 
-            HashArray<UInt128> lookup = new HashArray<UInt128>();
+            HashArray<RowId> lookup = new HashArray<RowId>();
             int n = 0;
             using (var cursor = factory.Create())
             {

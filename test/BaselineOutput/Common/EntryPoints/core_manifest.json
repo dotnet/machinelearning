@@ -92,7 +92,7 @@
     },
     {
       "Name": "Data.PredictorModelArrayConverter",
-      "Desc": "Create an array variable of IPredictorModel",
+      "Desc": "Create an array variable of PredictorModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -471,7 +471,7 @@
     },
     {
       "Name": "Data.TransformModelArrayConverter",
-      "Desc": "Create an array variable of ITransformModel",
+      "Desc": "Create an array variable of TransformModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -11391,7 +11391,7 @@
         {
           "Name": "OptTol",
           "Type": "Float",
-          "Desc": "Tolerance parameter for trainer convergence. Lower = slower, more accurate",
+          "Desc": "Tolerance parameter for trainer convergence. Low = slower, more accurate",
           "Aliases": [
             "ot"
           ],
@@ -13832,7 +13832,7 @@
         {
           "Name": "OptTol",
           "Type": "Float",
-          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
+          "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
             "ot"
           ],
@@ -13851,7 +13851,7 @@
         {
           "Name": "MemorySize",
           "Type": "Int",
-          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
+          "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
             "m"
           ],
@@ -14144,7 +14144,7 @@
         {
           "Name": "OptTol",
           "Type": "Float",
-          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
+          "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
             "ot"
           ],
@@ -14163,7 +14163,7 @@
         {
           "Name": "MemorySize",
           "Type": "Int",
-          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
+          "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
             "m"
           ],
@@ -15176,7 +15176,7 @@
         {
           "Name": "OptTol",
           "Type": "Float",
-          "Desc": "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
+          "Desc": "Tolerance parameter for optimization convergence. Low = slower, more accurate",
           "Aliases": [
             "ot"
           ],
@@ -15195,7 +15195,7 @@
         {
           "Name": "MemorySize",
           "Type": "Int",
-          "Desc": "Memory size for L-BFGS. Lower=faster, less accurate",
+          "Desc": "Memory size for L-BFGS. Low=faster, less accurate",
           "Aliases": [
             "m"
           ],
@@ -22716,7 +22716,7 @@
                     "Value"
                   ]
                 },
-                "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
+                "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                 "Required": false,
                 "SortOrder": 5.0,
                 "IsNullable": false,

@@ -40,8 +40,8 @@ namespace Microsoft.ML.Runtime.Ensemble
         private readonly ColumnType _outputType;
         private readonly IValueMapper[] _mappers;
 
-        public ColumnType InputType { get { return _inputType; } }
-        public ColumnType OutputType { get { return _outputType; } }
+        public ColumnType InputType => _inputType;
+        public ColumnType OutputType => _outputType;
 
         internal EnsembleMultiClassPredictor(IHostEnvironment env, FeatureSubsetModel<TVectorPredictor>[] models,
             IMultiClassOutputCombiner combiner, Single[] weights = null)
@@ -95,15 +95,15 @@ namespace Microsoft.ML.Runtime.Ensemble
             return new EnsembleMultiClassPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.MultiClassClassification; } }
+        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Single>));
             Host.Check(typeof(TOut) == typeof(VBuffer<Single>));

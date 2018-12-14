@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// This interface maps an input <see cref="IRow"/> to an output <see cref="IRow"/>. Typically, the output contains
+    /// This interface maps an input <see cref="Row"/> to an output <see cref="Row"/>. Typically, the output contains
     /// both the input columns and new columns added by the implementing class, although some implementations may
     /// return a subset of the input columns.
     /// This interface is similar to <see cref="ISchemaBoundRowMapper"/>, except it does not have any input role mappings,
@@ -87,32 +87,26 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Given a predicate specifying which columns are needed, return a predicate indicating which input columns are
-        /// needed. The domain of the function is defined over the indices of the columns of <see cref="ISchema.ColumnCount"/>
+        /// needed. The domain of the function is defined over the indices of the columns of <see cref="Schema.ColumnCount"/>
         /// for <see cref="InputSchema"/>.
         /// </summary>
         Func<int, bool> GetDependencies(Func<int, bool> predicate);
 
         /// <summary>
-        /// Get an <see cref="IRow"/> with the indicated active columns, based on the input <paramref name="input"/>.
+        /// Get an <see cref="Row"/> with the indicated active columns, based on the input <paramref name="input"/>.
         /// The active columns are those for which <paramref name="active"/> returns true. Getting values on inactive
         /// columns of the returned row will throw. Null predicates are disallowed.
         ///
-        /// The <see cref="IRow.Schema"/> of <paramref name="input"/> should be the same object as
+        /// The <see cref="Row.Schema"/> of <paramref name="input"/> should be the same object as
         /// <see cref="InputSchema"/>. Implementors of this method should throw if that is not the case. Conversely,
         /// the returned value must have the same schema as <see cref="OutputSchema"/>.
         ///
-        /// This method creates a live connection between the input <see cref="IRow"/> and the output <see
-        /// cref="IRow"/>. In particular, when the getters of the output <see cref="IRow"/> are invoked, they invoke the
-        /// getters of the input row and base the output values on the current values of the input <see cref="IRow"/>.
-        /// The output <see cref="IRow"/> values are re-computed when requested through the getters.
-        ///
-        /// The optional <paramref name="disposer"/> should be invoked by any user of this row mapping, once it no
-        /// longer needs the <see cref="IRow"/>. If no action is needed when the cursor is Disposed, the implementation
-        /// should set <paramref name="disposer"/> to <c>null</c>, otherwise it should be set to a delegate to be
-        /// invoked by the code calling this object. (For example, a wrapping cursor's <see cref="IDisposable.Dispose"/>
-        /// method. It's best for this action to be idempotent - calling it multiple times should be equivalent to
-        /// calling it once.
+        /// This method creates a live connection between the input <see cref="Row"/> and the output <see
+        /// cref="Row"/>. In particular, when the getters of the output <see cref="Row"/> are invoked, they invoke the
+        /// getters of the input row and base the output values on the current values of the input <see cref="Row"/>.
+        /// The output <see cref="Row"/> values are re-computed when requested through the getters. Also, the returned
+        /// <see cref="Row"/> will dispose <paramref name="input"/> when it is disposed.
         /// </summary>
-        IRow GetRow(IRow input, Func<int, bool> active, out Action disposer);
+        Row GetRow(Row input, Func<int, bool> active);
     }
 }

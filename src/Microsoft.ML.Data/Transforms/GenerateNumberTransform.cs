@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
             public readonly TauswortheHybrid.State[] States;
 
             private Bindings(bool[] useCounter, TauswortheHybrid.State[] states,
-                ISchema input, bool user, string[] names)
+                Schema input, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.Assert(Utils.Size(useCounter) == InfoCount);
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
                 States = states;
             }
 
-            public static Bindings Create(Arguments args, ISchema input)
+            public static Bindings Create(Arguments args, Schema input)
             {
                 var names = new string[args.Column.Length];
                 var useCounter = new bool[args.Column.Length];
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(useCounter, states, input, true, names);
             }
 
-            public static Bindings Create(ModelLoadContext ctx, ISchema input)
+            public static Bindings Create(ModelLoadContext ctx, Schema input)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -340,10 +340,10 @@ namespace Microsoft.ML.Transforms
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
             var input = Source.GetRowCursor(inputPred);
-            return new RowCursor(Host, _bindings, input, active);
+            return new Cursor(Host, _bindings, input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Transforms
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            IRowCursor input;
+            RowCursor input;
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
@@ -360,9 +360,9 @@ namespace Microsoft.ML.Transforms
 
                 if (inputs.Length != 1)
                 {
-                    var cursors = new IRowCursor[inputs.Length];
+                    var cursors = new RowCursor[inputs.Length];
                     for (int i = 0; i < inputs.Length; i++)
-                        cursors[i] = new RowCursor(Host, _bindings, inputs[i], active);
+                        cursors[i] = new Cursor(Host, _bindings, inputs[i], active);
                     return cursors;
                 }
                 input = inputs[0];
@@ -371,10 +371,10 @@ namespace Microsoft.ML.Transforms
                 input = Source.GetRowCursor(inputPred);
 
             consolidator = null;
-            return new IRowCursor[] { new RowCursor(Host, _bindings, input, active) };
+            return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Transforms
             private readonly TauswortheHybrid[] _rngs;
             private readonly long[] _lastCounters;
 
-            public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));
@@ -408,15 +408,15 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.ColumnCount);
                 return _active == null || _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -473,7 +473,7 @@ namespace Microsoft.ML.Transforms
             var xf = new GenerateNumberTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }

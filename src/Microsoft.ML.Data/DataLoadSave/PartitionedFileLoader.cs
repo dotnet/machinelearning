@@ -293,16 +293,16 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             return new Cursor(_host, this, _files, needCol, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
         {
             consolidator = null;
             var cursor = new Cursor(_host, this, _files, needCol, rand);
-            return new IRowCursor[] { cursor };
+            return new RowCursor[] { cursor };
         }
 
         /// <summary>
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                var schemas = new ISchema[]
+                var schemas = new Schema[]
                 {
                     subSchema,
                     colSchema
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private PartitionedFileLoader _parent;
 
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Runtime.Data
             private Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
             private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
-            private IRowCursor _subCursor; // Sub cursor of the current file.
+            private RowCursor _subCursor; // Sub cursor of the current file.
 
             private IEnumerator<int> _fileOrder;
 
@@ -397,9 +397,9 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch => 0;
 
-            public Schema Schema => _parent.Schema;
+            public override Schema Schema => _parent.Schema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -412,18 +412,18 @@ namespace Microsoft.ML.Runtime.Data
                 return getter;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
 
-                        val = new UInt128(0, (ulong)Position);
+                        val = new RowId(0, (ulong)Position);
                     };
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < Schema.Count);
                 return _active[col];
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private bool SchemasMatch(ISchema schema1, ISchema schema2)
+            private bool SchemasMatch(Schema schema1, Schema schema2)
             {
                 if (schema1.ColumnCount != schema2.ColumnCount)
                 {

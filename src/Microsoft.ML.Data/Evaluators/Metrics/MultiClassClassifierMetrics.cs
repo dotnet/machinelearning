@@ -81,7 +81,7 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public double[] PerClassLogLoss { get; }
 
-        internal MultiClassClassifierMetrics(IExceptionContext ectx, IRow overallResult, int topK)
+        internal MultiClassClassifierMetrics(IExceptionContext ectx, Row overallResult, int topK)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
             AccuracyMicro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
@@ -95,6 +95,19 @@ namespace Microsoft.ML.Data
             var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
             PerClassLogLoss = new double[perClassLogLoss.Length];
             perClassLogLoss.CopyTo(PerClassLogLoss);
+        }
+
+        internal MultiClassClassifierMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
+            int topK, double topKAccuracy, double[] perClassLogLoss)
+        {
+            AccuracyMicro = accuracyMicro;
+            AccuracyMacro = accuracyMacro;
+            LogLoss = logLoss;
+            LogLossReduction = logLossReduction;
+            TopK = topK;
+            TopKAccuracy = topKAccuracy;
+            PerClassLogLoss = new double[perClassLogLoss.Length];
+            perClassLogLoss.CopyTo(PerClassLogLoss, 0);
         }
     }
 }

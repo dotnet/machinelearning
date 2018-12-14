@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract Schema OutputSchema { get; }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
             // When the input wants to be split, this puts the consolidation after this transform
             // instead of before. This is likely to produce better performance, for example, when
             // this is RangeFilter.
-            IRowCursor curs;
+            RowCursor curs;
             if (useParallel != false &&
                 DataViewUtils.TryCreateConsolidatingCursor(out curs, this, predicate, Host, rng))
             {
@@ -93,9 +93,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Create a single (non-parallel) row cursor.
         /// </summary>
-        protected abstract IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null);
+        protected abstract RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null);
 
-        public abstract IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public abstract RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null);
     }
 
@@ -168,54 +168,54 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema InputSchema => Source.Schema;
 
-        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
             Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
 
-            disposer = null;
             using (var ch = Host.Start("GetEntireRow"))
             {
-                Action disp;
-                var getters = CreateGetters(input, active, out disp);
-                disposer += disp;
-                return new Row(input, this, OutputSchema, getters);
+                var getters = CreateGetters(input, active, out Action disp);
+                return new RowImpl(input, this, OutputSchema, getters, disp);
             }
         }
 
-        protected abstract Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disp);
+        protected abstract Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disp);
 
         protected abstract int MapColumnIndex(out bool isSrc, int col);
 
-        private sealed class Row : IRow
+        private sealed class RowImpl : WrappingRow
         {
             private readonly Schema _schema;
-            private readonly IRow _input;
             private readonly Delegate[] _getters;
+            private readonly Action _disposer;
 
             private readonly RowToRowMapperTransformBase _parent;
 
-            public long Batch { get { return _input.Batch; } }
+            public override Schema Schema => _schema;
 
-            public long Position { get { return _input.Position; } }
-
-            public Schema Schema { get { return _schema; } }
-
-            public Row(IRow input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters)
+            public RowImpl(Row input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters, Action disposer)
+                : base(input)
             {
-                _input = input;
                 _parent = parent;
                 _schema = schema;
                 _getters = getters;
+                _disposer = disposer;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            protected override void DisposeCore(bool disposing)
+            {
+                if (disposing)
+                    _disposer?.Invoke();
+            }
+
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 bool isSrc;
                 int index = _parent.MapColumnIndex(out isSrc, col);
                 if (isSrc)
-                    return _input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(index);
 
                 Contracts.Assert(_getters[index] != null);
                 var fn = _getters[index] as ValueGetter<TValue>;
@@ -224,17 +224,12 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
-            {
-                return _input.GetIdGetter();
-            }
-
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 bool isSrc;
                 int index = _parent.MapColumnIndex(out isSrc, col);
                 if (isSrc)
-                    return _input.IsColumnActive((index));
+                    return Input.IsColumnActive((index));
                 return _getters[index] != null;
             }
         }
@@ -292,7 +287,7 @@ namespace Microsoft.ML.Runtime.Data
             private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
 
             private Bindings(OneToOneTransformBase parent, ColInfo[] infos,
-                ISchema input, bool user, string[] names)
+                Schema input, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.AssertValue(parent);
@@ -305,7 +300,7 @@ namespace Microsoft.ML.Runtime.Data
                 Infos = infos;
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, ISchema input,
+            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, Schema input,
                 ITransposeSchema transInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
@@ -342,7 +337,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Bindings(parent, infos, input, true, names);
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, ISchema input,
+            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, Schema input,
                 ITransposeSchema transInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
@@ -683,9 +678,9 @@ namespace Microsoft.ML.Runtime.Data
         /// otherwise it should be set to a delegate to be invoked by the cursor's Dispose method. It's best
         /// for this action to be idempotent - calling it multiple times should be equivalent to calling it once.
         /// </summary>
-        protected abstract Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer);
+        protected abstract Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer);
 
-        protected ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo)
+        protected ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
         {
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
@@ -694,12 +689,12 @@ namespace Microsoft.ML.Runtime.Data
             return input.GetGetter<T>(src);
         }
 
-        protected Delegate GetSrcGetter(ColumnType typeDst, IRow row, int iinfo)
+        protected Delegate GetSrcGetter(ColumnType typeDst, Row row, int iinfo)
         {
             Host.CheckValue(typeDst, nameof(typeDst));
             Host.CheckValue(row, nameof(row));
 
-            Func<IRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
+            Func<Row, int, ValueGetter<int>> del = GetSrcGetter<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
             return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
         }
@@ -727,7 +722,7 @@ namespace Microsoft.ML.Runtime.Data
             return _bindings.AnyNewColumnsActive(predicate);
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -735,10 +730,10 @@ namespace Microsoft.ML.Runtime.Data
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
             var input = Source.GetRowCursor(inputPred, rand);
-            return new RowCursor(Host, this, input, active);
+            return new Cursor(Host, this, input, active);
         }
 
-        public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public sealed override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
@@ -753,9 +748,9 @@ namespace Microsoft.ML.Runtime.Data
                 inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(Host, this, inputs[i], active);
+                cursors[i] = new Cursor(Host, this, inputs[i], active);
             return cursors;
         }
 
@@ -770,7 +765,7 @@ namespace Microsoft.ML.Runtime.Data
                 OutputSchema[col].Name);
         }
 
-        public ISlotCursor GetSlotCursor(int col)
+        public SlotCursor GetSlotCursor(int col)
         {
             Host.CheckParam(0 <= col && col < _bindings.ColumnCount, nameof(col));
 
@@ -795,7 +790,7 @@ namespace Microsoft.ML.Runtime.Data
         /// null for all new columns, and so reaching this is only possible if there is a
         /// bug.
         /// </summary>
-        protected virtual ISlotCursor GetSlotCursorCore(int iinfo)
+        protected virtual SlotCursor GetSlotCursorCore(int iinfo)
         {
             Host.Assert(false);
             throw Host.ExceptNotImpl("Data view indicated it could transpose a column, but apparently it could not");
@@ -811,7 +806,7 @@ namespace Microsoft.ML.Runtime.Data
             return _bindings.GetDependencies(predicate);
         }
 
-        protected override Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disposer)
+        protected override Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disposer)
         {
             Func<int, bool> activeInfos =
                 iinfo =>
@@ -836,15 +831,16 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;
 
             private readonly Delegate[] _getters;
-            private readonly Action[] _disposers;
+            private readonly Action _disposer;
+            private bool _disposed;
 
-            public RowCursor(IChannelProvider provider, OneToOneTransformBase parent, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, OneToOneTransformBase parent, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.AssertValue(parent);
@@ -854,35 +850,34 @@ namespace Microsoft.ML.Runtime.Data
                 _active = active;
                 _getters = new Delegate[parent.Infos.Length];
 
-                // Build the delegates.
-                List<Action> disposers = null;
+                // Build the disposing delegate.
+                Action masterDisposer = null;
                 for (int iinfo = 0; iinfo < _getters.Length; iinfo++)
                 {
                     if (!IsColumnActive(parent._bindings.MapIinfoToCol(iinfo)))
                         continue;
-                    Action disposer;
-                    _getters[iinfo] = parent.GetGetterCore(Ch, Input, iinfo, out disposer);
+                    _getters[iinfo] = parent.GetGetterCore(Ch, Input, iinfo, out Action disposer);
                     if (disposer != null)
-                        Utils.Add(ref disposers, disposer);
+                        masterDisposer += disposer;
                 }
-
-                if (Utils.Size(disposers) > 0)
-                    _disposers = disposers.ToArray();
+                _disposer = masterDisposer;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (_disposers != null)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    foreach (var act in _disposers)
-                        act();
+                    _disposer?.Invoke();
                 }
-                base.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -898,7 +893,7 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.ColumnCount);
                 return _active == null || _active[col];

@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.CommandLine;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
-    public abstract class BaseBestPerformanceSelector<TOutput> : SubModelDataSelector<TOutput>
+    internal abstract class BaseBestPerformanceSelector<TOutput> : SubModelDataSelector<TOutput>
     {
         protected abstract string MetricName { get; }
 

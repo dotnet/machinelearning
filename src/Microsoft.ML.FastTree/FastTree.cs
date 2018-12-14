@@ -58,12 +58,12 @@ namespace Microsoft.ML.Trainers.FastTree
         protected readonly bool AllowGC;
         protected TreeEnsemble TrainedEnsemble;
         protected int FeatureCount;
-        protected RoleMappedData ValidData;
+        private protected RoleMappedData ValidData;
         /// <summary>
         /// If not null, it's a test data set passed in from training context. It will be converted to one element in
         /// <see cref="Tests"/> by calling <see cref="ExamplesToFastTreeBins.GetCompatibleDataset"/> in <see cref="InitializeTests"/>.
         /// </summary>
-        protected RoleMappedData TestData;
+        private protected RoleMappedData TestData;
         protected IParallelTraining ParallelTraining;
         protected OptimizationAlgorithm OptimizationAlgorithm;
         protected Dataset TrainSet;
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Trainers.FastTree
             InitializeThreads(numThreads);
         }
 
-        protected void ConvertData(RoleMappedData trainData)
+        private protected void ConvertData(RoleMappedData trainData)
         {
             MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Index, out CategoricalFeatures);
             var useTranspose = UseTranspose(Args.DiskTranspose, trainData) && (ValidData == null || UseTranspose(Args.DiskTranspose, ValidData));
@@ -1441,7 +1441,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, features.Length));
                                     while (cursor.MoveNext())
                                     {
-                                        iFeature = checked((int)cursor.Position);
+                                        iFeature = cursor.SlotIndex;
                                         if (!localConstructBinFeatures[iFeature])
                                             continue;
 
@@ -1670,19 +1670,19 @@ namespace Microsoft.ML.Trainers.FastTree
                 return result;
             }
 
-            private void GetFeatureValues(ISlotCursor cursor, int iFeature, ValueGetter<VBuffer<float>> getter,
+            private void GetFeatureValues(SlotCursor cursor, int iFeature, ValueGetter<VBuffer<float>> getter,
                 ref VBuffer<float> temp, ref VBuffer<double> doubleTemp, ValueMapper<VBuffer<float>, VBuffer<double>> copier)
             {
                 while (cursor.MoveNext())
                 {
 
-                    Contracts.Assert(iFeature >= checked((int)cursor.Position));
+                    Contracts.Assert(iFeature >= cursor.SlotIndex);
 
-                    if (iFeature == checked((int)cursor.Position))
+                    if (iFeature == cursor.SlotIndex)
                         break;
                 }
 
-                Contracts.Assert(cursor.Position == iFeature);
+                Contracts.Assert(cursor.SlotIndex == iFeature);
 
                 getter(ref temp);
                 copier(in temp, ref doubleTemp);
@@ -1700,13 +1700,13 @@ namespace Microsoft.ML.Trainers.FastTree
             /// Returns a slot dropper object that has ranges of slots to be dropped,
             /// based on an examination of the feature values.
             /// </summary>
-            private static SlotDropper ConstructDropSlotRanges(ISlotCursor cursor,
+            private static SlotDropper ConstructDropSlotRanges(SlotCursor cursor,
                 ValueGetter<VBuffer<float>> getter, ref VBuffer<float> temp)
             {
                 // The iteration here is slightly differently from a usual cursor iteration. Here, temp
                 // already holds the value of the cursor's current position, and we don't really want
                 // to re-fetch it, and the cursor is necessarily advanced.
-                Contracts.Assert(cursor.State == CursorState.Good);
+                Contracts.Assert(cursor.SlotIndex >= 0);
                 BitArray rowHasMissing = new BitArray(temp.Length);
                 for (; ; )
                 {
@@ -2794,7 +2794,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class FastTreePredictionWrapper :
+    public abstract class TreeEnsembleModelParameters :
         PredictorBase<Float>,
         IValueMapper,
         ICanSaveInTextFormat,
@@ -2811,7 +2811,8 @@ namespace Microsoft.ML.Trainers.FastTree
         ISingleCanSaveOnnx
     {
         //The below two properties are necessary for tree Visualizer
-        public TreeEnsemble TrainedEnsemble { get; }
+        [BestFriend]
+        internal TreeEnsemble TrainedEnsemble { get; }
         int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
@@ -2830,12 +2831,16 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract uint VerCategoricalSplitSerialized { get; }
 
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
+        protected internal readonly ColumnType InputType;
+        ColumnType IValueMapper.InputType => InputType;
+
+        protected readonly ColumnType OutputType;
+        ColumnType IValueMapper.OutputType => OutputType;
+
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
-        protected FastTreePredictionWrapper(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
+        public TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));
@@ -2853,9 +2858,10 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
+            OutputType = NumberType.Float;
         }
 
-        protected FastTreePredictionWrapper(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
+        protected TreeEnsembleModelParameters(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
             : base(env, name, ctx)
         {
             // *** Binary format ***
@@ -2890,9 +2896,11 @@ namespace Microsoft.ML.Trainers.FastTree
             // tricks.
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
+            OutputType = NumberType.Float;
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        [BestFriend]
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
 
@@ -2907,7 +2915,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.Writer.Write(NumFeatures);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
             Host.Check(typeof(TOut) == typeof(Float));
@@ -2926,7 +2934,7 @@ namespace Microsoft.ML.Trainers.FastTree
             dst = (Float)TrainedEnsemble.GetOutput(in src);
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        ValueMapper<TSrc, VBuffer<Float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             Host.Check(typeof(TSrc) == typeof(VBuffer<Float>));
             Host.Check(typeof(TDst) == typeof(VBuffer<Float>));
@@ -2956,7 +2964,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// write out a C# representation of the ensemble
         /// </summary>
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValueOrNull(schema);
             SaveEnsembleAsCode(writer, schema);
@@ -2965,17 +2973,17 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Output the INI model to a given writer
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
-            SaveAsIni(writer, schema);
+            ((ICanSaveInIniFormat)this).SaveAsIni(writer, schema);
         }
 
         /// <summary>
         /// Output the INI model to a given writer
         /// </summary>
-        public void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
+        void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
@@ -3149,12 +3157,12 @@ namespace Microsoft.ML.Trainers.FastTree
             return true;
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine();
             writer.WriteLine("Per-feature gain summary for the boosted tree ensemble:");
 
-            foreach (var pair in GetSummaryInKeyValuePairs(schema))
+            foreach (var pair in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
             {
                 Host.Assert(pair.Value is Double);
                 writer.WriteLine("\t{0}\t{1}", pair.Key, (Double)pair.Value);
@@ -3180,7 +3188,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         ///<inheritdoc/>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
 
@@ -3302,7 +3310,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(in features, ref path);
         }
 
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
@@ -3317,7 +3325,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }

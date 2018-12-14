@@ -14,12 +14,12 @@ namespace Microsoft.ML.Runtime.Data
     {
         public override long Batch => Input.Batch;
 
-        protected LinkedRowFilterCursorBase(IChannelProvider provider, IRowCursor input, Schema schema, bool[] active)
+        protected LinkedRowFilterCursorBase(IChannelProvider provider, RowCursor input, Schema schema, bool[] active)
             : base(provider, input, schema, active)
         {
         }
 
-        public override ValueGetter<UInt128> GetIdGetter()
+        public override ValueGetter<RowId> GetIdGetter()
         {
             return Input.GetIdGetter();
         }

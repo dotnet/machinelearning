@@ -54,7 +54,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
         }
 
-        private void CheckSchemaHasColumn(ISchema schema, string name, out int idx)
+        private void CheckSchemaHasColumn(Schema schema, string name, out int idx)
             => Assert.True(schema.TryGetColumnIndex(name, out idx), "Could not find column '" + name + "'");
 
         [Fact]
@@ -169,7 +169,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Ahhh. No one would ever, ever do this, of course, but just having fun with it.
 
-            void Helper(ISchema thisSchema, string name, ColumnType expected)
+            void Helper(Schema thisSchema, string name, ColumnType expected)
             {
                 Assert.True(thisSchema.TryGetColumnIndex(name, out int thisCol), $"Could not find column '{name}'");
                 Assert.Equal(expected, thisSchema.GetColumnType(thisCol));
@@ -882,7 +882,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                + "1 1 2 4 15";
             var dataSource = new BytesStreamSource(content);
 
-            var text = ml.Data.TextReader(ctx => (
+            var text = ml.Data.CreateTextReader(ctx => (
                label: ctx.LoadBool(0),
                text: ctx.LoadText(1),
                numericFeatures: ctx.LoadDouble(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.

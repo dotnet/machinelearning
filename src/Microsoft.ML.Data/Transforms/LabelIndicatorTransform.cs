@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms
             return BoolType.Instance;
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input,
+        protected override Delegate GetGetterCore(IChannel ch, Row input,
             int iinfo, out Action disposer)
         {
             Host.AssertValue(ch);
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Transforms
             return GetGetter(ch, input, iinfo);
         }
 
-        private ValueGetter<bool> GetGetter(IChannel ch, IRow input, int iinfo)
+        private ValueGetter<bool> GetGetter(IChannel ch, Row input, int iinfo)
         {
             Host.AssertValue(ch);
             ch.AssertValue(input);
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

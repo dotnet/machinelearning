@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
-    public abstract class BaseSubModelSelector<TOutput> : ISubModelSelector<TOutput>
+    internal abstract class BaseSubModelSelector<TOutput> : ISubModelSelector<TOutput>
     {
         protected readonly IHost Host;
 

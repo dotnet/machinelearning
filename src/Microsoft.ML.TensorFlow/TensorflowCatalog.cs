@@ -18,6 +18,13 @@ namespace Microsoft.ML
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
         /// <param name="inputs"> The names of the model inputs.</param>
         /// <param name="outputs">The names of the requested model outputs.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlowTransform.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
             string modelLocation,
             string[] inputs,

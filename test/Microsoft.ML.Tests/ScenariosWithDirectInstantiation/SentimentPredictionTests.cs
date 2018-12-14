@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Legacy.Models;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Transforms.Text;
 using System.Linq;
 using Xunit;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -25,17 +24,14 @@ namespace Microsoft.ML.Scenarios
 
             var env = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env,
-                new TextLoader.Arguments()
+            var loader = env.Data.ReadFromTextFile(dataPath,
+                columns: new[]
                 {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
-                    {
-                        new TextLoader.Column("Label", DataKind.Num, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                    }
-                }, new MultiFileSource(dataPath));
+                    new TextLoader.Column("Label", DataKind.Num, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                },
+                hasHeader: true
+            );
 
             var trans = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
             {
@@ -74,7 +70,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment);
 
             // Get feature importance based on feature gain during training
-            var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
+            var summary = ((ICanGetSummaryInKeyValuePairs)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
             Assert.Equal(1.0, (double)summary[0].Value, 1);
         }
 
@@ -86,17 +82,14 @@ namespace Microsoft.ML.Scenarios
 
             var env = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env,
-                new TextLoader.Arguments()
+            var loader = env.Data.ReadFromTextFile(dataPath,
+                columns: new[]
                 {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
-                    {
-                        new TextLoader.Column("Label", DataKind.Num, 0),
-                        new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                    }
-                }, new MultiFileSource(dataPath));
+                    new TextLoader.Column("Label", DataKind.Num, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                },
+                hasHeader: true 
+            );
 
             var text = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
             {
@@ -148,7 +141,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment);
 
             // Get feature importance based on feature gain during training
-            var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
+            var summary = ((ICanGetSummaryInKeyValuePairs)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
             Assert.Equal(1.0, (double)summary[0].Value, 1);
         }
 
@@ -160,7 +153,7 @@ namespace Microsoft.ML.Scenarios
             // It does not work. It throws error "Failed to find 'Score' column" when Evaluate is called
             //var evaluator = new BinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments());
 
-            var evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
+            IMamlEvaluator evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
             var metricsDic = evaluator.Evaluate(dataEval);
 
             return Microsoft.ML.Legacy.Models.BinaryClassificationMetrics
