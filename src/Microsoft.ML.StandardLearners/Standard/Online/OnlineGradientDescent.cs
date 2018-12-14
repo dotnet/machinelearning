@@ -138,7 +138,7 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         internal OnlineGradientDescentTrainer(IHostEnvironment env, Arguments args)
-        : base(args, env, UserNameValue, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
+        : base(args, env, UserNameValue, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
         {
             LossFunction = args.LossFunction.CreateComponent(env);
         }

@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                     _host.Check(calibrated.Calibrator is PlattCalibrator,
                         "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
                     predictor = calibrated.SubPredictor;
-                    paramA = -(calibrated.Calibrator as PlattCalibrator).ParamA;
+                    paramA = -(calibrated.Calibrator as PlattCalibrator).Slope;
                 }
                 var tree = predictor as TreeEnsembleModelParameters;
                 if (tree == null)

@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
     /// <summary>
     /// For simple mappers. Intended to be used for <see cref="IValueMapper"/> and
-    /// <see cref="Microsoft.ML.Runtime.Internal.Calibration.ICalibrator"/> instances.
+    /// <see cref="ICalibrator"/> instances.
     /// </summary>
     [BestFriend]
     internal interface ISingleCanSaveOnnx : ICanSaveOnnx
