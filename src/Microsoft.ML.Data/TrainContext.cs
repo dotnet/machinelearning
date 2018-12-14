@@ -32,11 +32,12 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="data">The dataset to split.</param>
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
-        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>A pair of datasets, for the train and test set.</returns>
         public (IDataView trainSet, IDataView testSet) TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null, uint? seed = null)
         {
@@ -251,11 +252,12 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
-        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (BinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null, uint? seed = null)
@@ -354,11 +356,12 @@ namespace Microsoft.ML
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">Optional label column for evaluation (clustering tasks may not always have a label).</param>
         /// <param name="featuresColumn">Optional features column for evaluation (needed for calculating Dbi metric)</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
-        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (ClusteringMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null,
@@ -428,11 +431,12 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
-        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (MultiClassClassifierMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
@@ -494,11 +498,12 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
-        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (RegressionMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
