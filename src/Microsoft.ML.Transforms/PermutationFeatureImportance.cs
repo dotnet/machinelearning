@@ -232,9 +232,12 @@ namespace Microsoft.ML.Transforms
                         metricsDelta.Add(metricsDeltaForFeature);
 
                         // Swap values for next iteration of permutation.
-                        Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);
-                        nextValues.CopyTo(featureValuesBuffer, 0);
-                        Array.Clear(nextValues, 0, nextValues.Length);
+                        if (processedCnt < workingFeatureIndices.Count - 1)
+                        {
+                            Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);
+                            nextValues.CopyTo(featureValuesBuffer, 0);
+                            Array.Clear(nextValues, 0, nextValues.Length);
+                        }
                         processedCnt++;
                     }
                     pch.Checkpoint(processedCnt, processedCnt);
