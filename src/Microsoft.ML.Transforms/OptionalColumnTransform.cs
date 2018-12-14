@@ -487,7 +487,7 @@ namespace Microsoft.ML.Transforms
             var xf = new OptionalColumnTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }

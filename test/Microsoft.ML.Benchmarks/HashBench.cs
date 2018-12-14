@@ -21,8 +21,8 @@ namespace Microsoft.ML.Benchmarks
             public override Schema Schema { get; }
             public override long Position => PositionValue;
             public override long Batch => 0;
-            public override ValueGetter<UInt128> GetIdGetter()
-                => (ref UInt128 val) => val = new UInt128((ulong)Position, 0);
+            public override ValueGetter<RowId> GetIdGetter()
+                => (ref RowId val) => val = new RowId((ulong)Position, 0);
 
             private readonly Delegate _getter;
 

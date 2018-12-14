@@ -3,108 +3,68 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 
 namespace Microsoft.ML.Data.DataLoadSave
 {
-
     /// <summary>
     /// A fake schema that is manufactured out of a SchemaShape.
     /// It will pretend that all vector sizes are equal to 10, all key value counts are equal to 10,
     /// and all values are defaults (for metadata).
     /// </summary>
-    internal sealed class FakeSchema : ISchema
+    internal static class FakeSchemaFactory
     {
         private const int AllVectorSizes = 10;
         private const int AllKeySizes = 10;
 
-        private readonly IHostEnvironment _env;
-        private readonly SchemaShape _shape;
-        private readonly Dictionary<string, int> _colMap;
-
-        public FakeSchema(IHostEnvironment env, SchemaShape inputShape)
+        public static Schema Create(SchemaShape shape)
         {
-            _env = env;
-            _shape = inputShape;
-            _colMap = Enumerable.Range(0, _shape.Count)
-                .ToDictionary(idx => _shape[idx].Name, idx => idx);
+            var builder = new SchemaBuilder();
+
+            for (int i = 0; i < shape.Count; ++i)
+            {
+                var metaBuilder = new MetadataBuilder();
+                var partialMetadata = shape[i].Metadata;
+                for (int j = 0; j < partialMetadata.Count; ++j)
+                {
+                    var metaColumnType = MakeColumnType(partialMetadata[i]);
+                    Delegate del;
+                    if (metaColumnType.IsVector)
+                        del = Utils.MarshalInvoke(GetDefaultVectorGetter<int>, metaColumnType.ItemType.RawType);
+                    else
+                        del = Utils.MarshalInvoke(GetDefaultGetter<int>, metaColumnType.RawType);
+                    metaBuilder.Add(partialMetadata[j].Name, metaColumnType, del);
+                }
+                builder.AddColumn(shape[i].Name, MakeColumnType(shape[i]));
+            }
+            return builder.GetSchema();
         }
 
-        public int ColumnCount => _shape.Count;
-
-        public string GetColumnName(int col)
+        private static ColumnType MakeColumnType(SchemaShape.Column column)
         {
-            _env.Check(0 <= col && col < ColumnCount);
-            return _shape[col].Name;
-        }
-
-        public ColumnType GetColumnType(int col)
-        {
-            _env.Check(0 <= col && col < ColumnCount);
-            var inputCol = _shape[col];
-            return MakeColumnType(inputCol);
-        }
-
-        public bool TryGetColumnIndex(string name, out int col) => _colMap.TryGetValue(name, out col);
-
-        private static ColumnType MakeColumnType(SchemaShape.Column inputCol)
-        {
-            ColumnType curType = inputCol.ItemType;
-            if (inputCol.IsKey)
-                curType = new KeyType(curType.AsPrimitive.RawKind, 0, AllKeySizes);
-            if (inputCol.Kind == SchemaShape.Column.VectorKind.VariableVector)
-                curType = new VectorType(curType.AsPrimitive, 0);
-            else if (inputCol.Kind == SchemaShape.Column.VectorKind.Vector)
-                curType = new VectorType(curType.AsPrimitive, AllVectorSizes);
+            ColumnType curType = column.ItemType;
+            if (column.IsKey)
+                curType = new KeyType(((PrimitiveType)curType).RawKind, 0, AllKeySizes);
+            if (column.Kind == SchemaShape.Column.VectorKind.VariableVector)
+                curType = new VectorType((PrimitiveType)curType, 0);
+            else if (column.Kind == SchemaShape.Column.VectorKind.Vector)
+                curType = new VectorType((PrimitiveType)curType, AllVectorSizes);
             return curType;
         }
 
-        public void GetMetadata<TValue>(string kind, int col, ref TValue value)
+        private static Delegate GetDefaultVectorGetter<TValue>()
         {
-            _env.Check(0 <= col && col < ColumnCount);
-            var inputCol = _shape[col];
-            var metaShape = inputCol.Metadata;
-            if (metaShape == null || !metaShape.TryFindColumn(kind, out var metaColumn))
-                throw _env.ExceptGetMetadata();
-
-            var colType = MakeColumnType(metaColumn);
-            _env.Check(colType.RawType.Equals(typeof(TValue)));
-
-            if (colType.IsVector)
-            {
-                // This as an atypical use of VBuffer: we create it in GetMetadataVec, and then pass through
-                // via boxing to be returned out of this method. This is intentional.
-                value = (TValue)Utils.MarshalInvoke(GetMetadataVec<int>, colType.ItemType.RawType);
-            }
-            else
-                value = default;
+            ValueGetter<VBuffer<TValue>> getter = (ref VBuffer<TValue> value) => value = new VBuffer<TValue>(AllVectorSizes, 0, null, null);
+            return getter;
         }
 
-        private object GetMetadataVec<TItem>() => new VBuffer<TItem>(AllVectorSizes, 0, null, null);
-
-        public ColumnType GetMetadataTypeOrNull(string kind, int col)
+        private static Delegate GetDefaultGetter<TValue>()
         {
-            _env.Check(0 <= col && col < ColumnCount);
-            var inputCol = _shape[col];
-            var metaShape = inputCol.Metadata;
-            if (metaShape == null || !metaShape.TryFindColumn(kind, out var metaColumn))
-                return null;
-            return MakeColumnType(metaColumn);
+            ValueGetter<TValue> getter = (ref TValue value) => value = default;
+            return getter;
         }
 
-        public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-        {
-            _env.Check(0 <= col && col < ColumnCount);
-            var inputCol = _shape[col];
-            var metaShape = inputCol.Metadata;
-            if (metaShape == null)
-                return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
-
-            return metaShape.Select(c => new KeyValuePair<string, ColumnType>(c.Name, MakeColumnType(c)));
-        }
     }
 }

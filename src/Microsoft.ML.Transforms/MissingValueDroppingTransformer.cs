@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
-                    _types[i] = new VectorType(srcCol.Type.ItemType.AsPrimitive);
+                    _types[i] = new VectorType((PrimitiveType)srcCol.Type.ItemType);
                     _isNAs[i] = GetIsNADelegate(srcCol.Type);
                 }
             }

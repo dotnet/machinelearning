@@ -99,7 +99,7 @@ namespace Microsoft.ML.Legacy.Data
             }
 
             public Var<IDataView> Data { get; }
-            public Var<ITransformModel> Model => null;
+            public Var<TransformModel> Model => null;
         }
     }
 }

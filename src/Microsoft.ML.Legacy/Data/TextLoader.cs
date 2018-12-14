@@ -190,7 +190,7 @@ namespace Microsoft.ML.Legacy.Data
                 kind = DataKind.DT;
             else if (type == typeof(DateTimeOffset))
                 kind = DataKind.DZ;
-            else if (type == typeof(UInt128))
+            else if (type == typeof(RowId))
                 kind = DataKind.UG;
             else
             {

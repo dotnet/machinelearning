@@ -165,12 +165,12 @@ namespace Microsoft.ML.Runtime.Data
             return new VectorType(NumberType.I4, rangeCount, 2);
         }
 
-        private static volatile ColumnType _scoreColumnSetIdType;
+        private static volatile KeyType _scoreColumnSetIdType;
 
         /// <summary>
         /// The type of the ScoreColumnSetId metadata.
         /// </summary>
-        public static ColumnType ScoreColumnSetIdType
+        public static KeyType ScoreColumnSetIdType
         {
             get
             {
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Runtime.Data
             public override long Position => 0;
             public override long Batch => 0;
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
-            public override ValueGetter<UInt128> GetIdGetter() => (ref UInt128 dst) => dst = default;
+            public override ValueGetter<RowId> GetIdGetter() => (ref RowId dst) => dst = default;
             public override bool IsColumnActive(int col) => true;
         }
 

@@ -89,7 +89,8 @@ namespace Microsoft.ML.Runtime.Data
     /// Both take a <see cref="RoleMappedData"/> as input. The <see cref="RoleMappedData"/> is assumed to contain all the column
     /// roles needed for evaluation, including the score column.
     /// </summary>
-    public interface IEvaluator
+    [BestFriend]
+    internal interface IEvaluator
     {
         /// <summary>
         /// Compute the aggregate metrics. Return a dictionary from the metric kind
@@ -109,12 +110,14 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Signature for creating an IEvaluator.
+    /// Signature for creating an <see cref="IEvaluator"/>.
     /// </summary>
-    public delegate void SignatureEvaluator();
-    public delegate void SignatureMamlEvaluator();
+    [BestFriend]
+    internal delegate void SignatureEvaluator();
+    [BestFriend]
+    internal delegate void SignatureMamlEvaluator();
 
-    public static class EvaluateTransform
+    internal static class EvaluateTransform
     {
         public sealed class Arguments
         {

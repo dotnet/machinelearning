@@ -15,7 +15,7 @@ namespace Microsoft.ML.TestFramework
     public static class ModelHelper
     {
         private static MLContext s_environment = new MLContext(seed: 1);
-        private static ITransformModel s_housePriceModel;
+        private static TransformModel s_housePriceModel;
 
         public static void WriteKcHousePriceModel(string dataPath, string outputModelPath)
         {
@@ -71,7 +71,7 @@ namespace Microsoft.ML.TestFramework
             );
         }
 
-        private static ITransformModel CreateKcHousePricePredictorModel(string dataPath)
+        private static TransformModel CreateKcHousePricePredictorModel(string dataPath)
         {
             Experiment experiment = s_environment.CreateExperiment();
             var importData = new Legacy.Data.TextLoader(dataPath)
@@ -263,7 +263,7 @@ namespace Microsoft.ML.TestFramework
             Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output learnerOutput = experiment.Add(learner);
 
             var combineModels = new Legacy.Transforms.ManyHeterogeneousModelCombiner();
-            combineModels.TransformModels = new ArrayVar<ITransformModel>(numericalConcatenated.Model, categoryConcatenated.Model, categorized.Model, featuresConcatenated.Model);
+            combineModels.TransformModels = new ArrayVar<TransformModel>(numericalConcatenated.Model, categoryConcatenated.Model, categorized.Model, featuresConcatenated.Model);
             combineModels.PredictorModel = learnerOutput.PredictorModel;
             Legacy.Transforms.ManyHeterogeneousModelCombiner.Output combinedModels = experiment.Add(combineModels);
 

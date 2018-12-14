@@ -9,8 +9,6 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
@@ -39,21 +37,32 @@ namespace Microsoft.ML.Transforms.Conversions
                 ShortName = "col", SortOrder = 1)]
             public KeyToVectorMappingTransformer.Column[] Column;
         }
-        public class ColumnInfo
+
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;
 
-            public ColumnInfo(string input, string output)
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+
+            public ColumnInfo(string input, string output = null)
             {
+                Contracts.CheckNonWhiteSpace(input, nameof(input));
                 Input = input;
-                Output = output;
+                Output = output ?? input;
             }
         }
 
         internal const string Summary = "Converts a key column to a binary encoded vector.";
-        public const string UserName = "KeyToBinaryVectorTransform";
-        public const string LoaderSignature = "KeyToBinaryTransform";
+        internal const string UserName = "KeyToBinaryVectorTransform";
+        internal const string LoaderSignature = "KeyToBinaryTransform";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -131,11 +140,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
+        private static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
             new KeyToBinaryVectorMappingTransformer(env, columns).MakeDataTransform(input);
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -485,162 +494,5 @@ namespace Microsoft.ML.Transforms.Conversions
             return new SchemaShape(result.Values);
         }
     }
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class KeyToBinaryVectorExtensions
-    {
-        private interface IColInput
-        {
-            PipelineColumn Input { get; }
-        }
 
-        private sealed class OutVectorColumn<TKey, TValue> : Vector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutVectorColumn(Vector<Key<TKey, TValue>> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-
-            public OutVectorColumn(Key<TKey, TValue> input)
-              : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutVarVectorColumn<TKey, TValue> : VarVector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public OutVarVectorColumn(VarVector<Key<TKey, TValue>> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutVectorColumn<TKey> : Vector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutVectorColumn(Vector<Key<TKey>> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-
-            public OutVectorColumn(Key<TKey> input)
-              : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutVarVectorColumn<TKey> : VarVector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public OutVarVectorColumn(VarVector<Key<TKey>> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            public static Reconciler Inst = new Reconciler();
-
-            private Reconciler() { }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                var infos = new KeyToBinaryVectorMappingTransformer.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToBinaryVectorMappingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]]);
-                }
-                return new KeyToBinaryVectorMappingEstimator(env, infos);
-            }
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
-        /// The first value is encoded as all zeros and missing values are encoded as all ones.
-        /// In the case where a vector has multiple keys, the encoded values are concatenated.
-        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
-        /// </summary>
-        public static Vector<float> ToBinaryVector<TKey, TValue>(this Key<TKey, TValue> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
-        /// The first value is encoded as all zeros and missing values are encoded as all ones.
-        /// In the case where a vector has multiple keys, the encoded values are concatenated.
-        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
-        /// </summary>
-        public static Vector<float> ToBinaryVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
-        /// The first value is encoded as all zeros and missing values are encoded as all ones.
-        /// In the case where a vector has multiple keys, the encoded values are concatenated.
-        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
-        /// </summary>
-        public static VarVector<float> ToBinaryVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<TKey, TValue>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
-        /// The first value is encoded as all zeros and missing values are encoded as all ones.
-        /// In the case where a vector has multiple keys, the encoded values are concatenated.
-        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
-        /// </summary>
-        public static Vector<float> ToBinaryVector<TKey>(this Key<TKey> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
-        /// The first value is encoded as all zeros and missing values are encoded as all ones.
-        /// In the case where a vector has multiple keys, the encoded values are concatenated.
-        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
-        /// </summary>
-        public static Vector<float> ToBinaryVector<TKey>(this Vector<Key<TKey>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey>(input);
-        }
-
-        /// <summary>
-        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
-        /// The first value is encoded as all zeros and missing values are encoded as all ones.
-        /// In the case where a vector has multiple keys, the encoded values are concatenated.
-        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
-        /// </summary>
-        public static VarVector<float> ToBinaryVector<TKey>(this VarVector<Key<TKey>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<TKey>(input);
-        }
-    }
 }

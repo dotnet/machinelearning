@@ -5,9 +5,10 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.FeatureSelection;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Projections;
 using System;
 using System.Collections.Generic;
@@ -363,7 +364,8 @@ namespace Microsoft.ML.StaticPipe
         public static Vector<string> SelectFeaturesBasedOnCount(this Vector<string> input,
             long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<string>(input, count);
     }
-        public static class CategoricalStaticExtensions
+
+    public static class CategoricalStaticExtensions
     {
         public enum OneHotVectorOutputKind : byte
         {
@@ -509,6 +511,574 @@ namespace Microsoft.ML.StaticPipe
         {
             Contracts.CheckValue(input, nameof(input));
             return new ImplVector<string>(input, new Config(outputKind, order, maxItems, Wrap(onFit)));
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class KeyToBinaryVectorExtensions
+    {
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+        }
+
+        private sealed class OutVectorColumn<TKey, TValue> : Vector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVectorColumn(Vector<Key<TKey, TValue>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+
+            public OutVectorColumn(Key<TKey, TValue> input)
+              : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TKey, TValue> : VarVector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public OutVarVectorColumn(VarVector<Key<TKey, TValue>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVectorColumn<TKey> : Vector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVectorColumn(Vector<Key<TKey>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+
+            public OutVectorColumn(Key<TKey> input)
+              : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TKey> : VarVector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public OutVarVectorColumn(VarVector<Key<TKey>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new KeyToBinaryVectorMappingTransformer.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    infos[i] = new KeyToBinaryVectorMappingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]]);
+                }
+                return new KeyToBinaryVectorMappingEstimator(env, infos);
+            }
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static Vector<float> ToBinaryVector<TKey, TValue>(this Key<TKey, TValue> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static Vector<float> ToBinaryVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static VarVector<float> ToBinaryVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static Vector<float> ToBinaryVector<TKey>(this Key<TKey> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static Vector<float> ToBinaryVector<TKey>(this Vector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static VarVector<float> ToBinaryVector<TKey>(this VarVector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<TKey>(input);
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class KeyToVectorExtensions
+    {
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+            bool Bag { get; }
+        }
+
+        private sealed class OutVectorColumn<TKey, TValue> : Vector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public bool Bag { get; }
+
+            public OutVectorColumn(Key<TKey, TValue> input)
+             : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = false;
+            }
+
+            public OutVectorColumn(Vector<Key<TKey, TValue>> input, bool bag)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = bag;
+            }
+
+            public OutVectorColumn(VarVector<Key<TKey, TValue>> input)
+             : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = true;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TKey, TValue> : VarVector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public bool Bag { get; }
+
+            public OutVarVectorColumn(VarVector<Key<TKey, TValue>> input)
+            : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = false;
+            }
+        }
+
+        private sealed class OutVectorColumn<TKey> : Vector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public bool Bag { get; }
+
+            public OutVectorColumn(Key<TKey> input)
+             : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = false;
+            }
+
+            public OutVectorColumn(Vector<Key<TKey>> input, bool bag)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = bag;
+            }
+
+            public OutVectorColumn(VarVector<Key<TKey>> input)
+             : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = true;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TKey> : VarVector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public bool Bag { get; }
+
+            public OutVarVectorColumn(VarVector<Key<TKey>> input)
+            : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = false;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new KeyToVectorMappingTransformer.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    infos[i] = new KeyToVectorMappingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Bag);
+                }
+                return new KeyToVectorMappingEstimator(env, infos);
+            }
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// </summary>
+        public static Vector<float> ToVector<TKey, TValue>(this Key<TKey, TValue> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// </summary>
+        public static Vector<float> ToVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input, false);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static VarVector<float> ToVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static Vector<float> ToBaggedVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input, true);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static Vector<float> ToBaggedVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// </summary>
+        public static Vector<float> ToVector<TKey>(this Key<TKey> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// </summary>
+        public static Vector<float> ToVector<TKey>(this Vector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input, false);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static VarVector<float> ToVector<TKey>(this VarVector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<TKey>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static Vector<float> ToBaggedVector<TKey>(this Vector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input, true);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static Vector<float> ToBaggedVector<TKey>(this VarVector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input);
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class NAReplacerExtensions
+    {
+        private readonly struct Config
+        {
+            public readonly bool ImputeBySlot;
+            public readonly MissingValueReplacingTransformer.ColumnInfo.ReplacementMode ReplacementMode;
+
+            public Config(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+                bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+            {
+                ImputeBySlot = imputeBySlot;
+                ReplacementMode = replacementMode;
+            }
+        }
+
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+            Config Config { get; }
+        }
+
+        private sealed class OutScalar<TValue> : Scalar<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutScalar(Scalar<TValue> input, Config config)
+              : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class OutVectorColumn<TValue> : Vector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutVectorColumn(Vector<TValue> input, Config config)
+              : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+
+        }
+
+        private sealed class OutVarVectorColumn<TValue> : VarVector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutVarVectorColumn(VarVector<TValue> input, Config config)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new MissingValueReplacingTransformer.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    infos[i] = new MissingValueReplacingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.ReplacementMode, col.Config.ImputeBySlot);
+                }
+                return new MissingValueReplacingEstimator(env, infos);
+            }
+        }
+
+        /// <summary>
+        /// Scan through all rows and replace NaN values according to replacement strategy.
+        /// </summary>
+        /// <param name="input">Incoming data.</param>
+        /// <param name="replacementMode">How NaN should be replaced</param>
+        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<float>(input, new Config(replacementMode, false));
+        }
+
+        /// <summary>
+        /// Scan through all rows and replace NaN values according to replacement strategy.
+        /// </summary>
+        /// <param name="input">Incoming data.</param>
+        /// <param name="replacementMode">How NaN should be replaced</param>
+        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<double>(input, new Config(replacementMode, false));
+        }
+        /// <summary>
+        /// Scan through all rows and replace NaN values according to replacement strategy.
+        /// </summary>
+        /// <param name="input">Incoming data.</param>
+        /// <param name="replacementMode">How NaN should be replaced</param>
+        /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
+        /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+        /// where imputation is always for the entire column.</param>
+        public static Vector<float> ReplaceNaNValues(this Vector<float> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        /// <summary>
+        /// Scan through all rows and replace NaN values according to replacement strategy.
+        /// </summary>
+        /// <param name="input">Incoming data.</param>
+        /// <param name="replacementMode">How NaN should be replaced</param>
+        /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
+        /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+        /// where imputation is always for the entire column.</param>
+        public static Vector<double> ReplaceNaNValues(this Vector<double> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        /// <summary>
+        /// Scan through all rows and replace NaN values according to replacement strategy.
+        /// </summary>
+        /// <param name="input">Incoming data.</param>
+        /// <param name="replacementMode">How NaN should be replaced</param>
+        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<float>(input, new Config(replacementMode, false));
+        }
+        /// <summary>
+        /// Scan through all rows and replace NaN values according to replacement strategy.
+        /// </summary>
+        /// <param name="input">Incoming data.</param>
+        /// <param name="replacementMode">How NaN should be replaced</param>
+        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<double>(input, new Config(replacementMode, false));
         }
     }
 }

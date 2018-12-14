@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public abstract class InputBase
         {
             [Argument(ArgumentType.Required, ShortName = "predictorModel", HelpText = "The predictor to summarize")]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class Input : InputBase

@@ -105,7 +105,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return OvaPredictor.Create(Host, predictors);
         }
 
-        protected override void CheckDataValid(IChannel ch, RoleMappedData data)
+        private protected override void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
+        private protected override void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
         {
             // Only initialize one time.
             if (_numClass < 0)
@@ -139,14 +139,14 @@ namespace Microsoft.ML.Runtime.LightGBM
                 if (maxLabel >= _maxNumClass)
                     throw ch.ExceptParam(nameof(data), $"max labelColumn cannot exceed {_maxNumClass}");
 
-                if (data.Schema.Label.Type.IsKey)
+                if (data.Schema.Label.Type is KeyType keyType)
                 {
-                    ch.Check(data.Schema.Label.Type.AsKey.Contiguous, "labelColumn value should be contiguous");
+                    ch.Check(keyType.Contiguous, "labelColumn value should be contiguous");
                     if (hasNaNLabel)
-                        _numClass = data.Schema.Label.Type.AsKey.Count + 1;
+                        _numClass = keyType.Count + 1;
                     else
-                        _numClass = data.Schema.Label.Type.AsKey.Count;
-                    _tlcNumClass = data.Schema.Label.Type.AsKey.Count;
+                        _numClass = keyType.Count;
+                    _tlcNumClass = keyType.Count;
                 }
                 else
                 {
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
+        private protected override void CheckAndUpdateParametersBeforeTraining(IChannel ch, RoleMappedData data, float[] labels, int[] groups)
         {
             Host.AssertValue(ch);
             ch.Assert(PredictionKind == PredictionKind.MultiClassClassification);

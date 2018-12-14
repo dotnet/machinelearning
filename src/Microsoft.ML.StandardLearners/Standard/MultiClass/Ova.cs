@@ -103,7 +103,7 @@ namespace Microsoft.ML.Trainers
             _args.UseProbabilities = useProbabilities;
         }
 
-        protected override OvaPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override OvaPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train one-vs-all models.
             var predictors = new TScalarPredictor[count];

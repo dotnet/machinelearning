@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 {
-    public abstract class BaseSubsetSelector<TArgs> : ISubsetSelector
+    internal abstract class BaseSubsetSelector<TArgs> : ISubsetSelector
         where TArgs : BaseSubsetSelector<TArgs>.ArgumentsBase
     {
         public abstract class ArgumentsBase

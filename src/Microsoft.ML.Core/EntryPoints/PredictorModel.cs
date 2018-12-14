@@ -9,35 +9,45 @@ using Microsoft.ML.Runtime.Data;
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     /// <summary>
-    /// Interface for standard predictor model port type.
+    /// Base type for standard predictor model port type.
     /// </summary>
-    public interface IPredictorModel
+    public abstract class PredictorModel
     {
+        [BestFriend]
+        private protected PredictorModel()
+        {
+        }
+
         /// <summary>
         /// Save the model to the given stream.
         /// </summary>
-        void Save(IHostEnvironment env, Stream stream);
+        [BestFriend]
+        internal abstract void Save(IHostEnvironment env, Stream stream);
 
         /// <summary>
         /// Extract only the transform portion of the predictor model.
         /// </summary>
-        ITransformModel TransformModel { get; }
+        [BestFriend]
+        internal abstract TransformModel TransformModel { get; }
 
         /// <summary>
         /// Extract the predictor object out of the predictor model.
         /// </summary>
-        IPredictor Predictor { get; }
+        [BestFriend]
+        internal abstract IPredictor Predictor { get; }
 
         /// <summary>
         /// Apply the predictor model to the transform model and return the resulting predictor model.
         /// </summary>
-        IPredictorModel Apply(IHostEnvironment env, ITransformModel transformModel);
+        [BestFriend]
+        internal abstract PredictorModel Apply(IHostEnvironment env, TransformModel transformModel);
 
         /// <summary>
         /// For a given input data, return role mapped data and the predictor object.
         /// The scoring entry point will hopefully know how to construct a scorer out of them.
         /// </summary>
-        void PrepareData(IHostEnvironment env, IDataView input, out RoleMappedData roleMappedData, out IPredictor predictor);
+        [BestFriend]
+        internal abstract void PrepareData(IHostEnvironment env, IDataView input, out RoleMappedData roleMappedData, out IPredictor predictor);
 
         /// <summary>
         /// Returns a string array containing the label names of the label column type predictor was trained on.
@@ -46,13 +56,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// </summary>
         /// <param name="env"/>
         /// <param name="labelType">The column type of the label the predictor was trained on.</param>
-        string[] GetLabelInfo(IHostEnvironment env, out ColumnType labelType);
+        [BestFriend]
+        internal abstract string[] GetLabelInfo(IHostEnvironment env, out ColumnType labelType);
 
         /// <summary>
-        /// Returns the RoleMappedSchema that was used in training.
+        /// Returns the <see cref="RoleMappedSchema"/> that was used in training.
         /// </summary>
-        /// <param name="env"></param>
-        /// <returns></returns>
-        RoleMappedSchema GetTrainingSchema(IHostEnvironment env);
+        [BestFriend]
+        internal abstract RoleMappedSchema GetTrainingSchema(IHostEnvironment env);
     }
 }

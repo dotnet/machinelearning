@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(sortOrder == SortOrder.Occurrence || sortOrder == SortOrder.Value);
                 bool sorted = sortOrder == SortOrder.Value;
 
-                PrimitiveType itemType = type.ItemType.AsPrimitive;
+                PrimitiveType itemType = type.ItemType as PrimitiveType;
                 Contracts.AssertValue(itemType);
                 if (itemType.IsText)
                     return new TextImpl(sorted);
@@ -474,7 +474,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// These are the immutable and serializable analogs to the <see cref="Builder"/> used in
         /// training.
         /// </summary>
-        public abstract class TermMap
+        [BestFriend]
+        internal abstract class TermMap
         {
             /// <summary>
             /// The item type of the input type, that is, either the input type or,
@@ -568,7 +569,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                 }
 
-                return new HashArrayImpl<T>(codec.Type.AsPrimitive, values);
+                return new HashArrayImpl<T>((PrimitiveType)codec.Type, values);
             }
 
             internal abstract void WriteTextTerms(TextWriter writer);
@@ -757,7 +758,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        public abstract class TermMap<T> : TermMap
+        internal abstract class TermMap<T> : TermMap
         {
             protected TermMap(PrimitiveType type, int count)
                 : base(type, count)
@@ -1101,7 +1102,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
                     _host.AssertValue(builder);
-                    var srcType = TypedMap.ItemType.AsKey;
+                    var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
                     var convInst = Runtime.Data.Conversion.Conversions.Instance;
@@ -1156,7 +1157,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                 getter(ref dst);
                                 _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, srcMetaType.ItemType.AsPrimitive, mgetter);
+                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, (PrimitiveType)srcMetaType.ItemType, mgetter);
                     }
                     return true;
                 }
@@ -1169,7 +1170,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     ColumnType srcMetaType = _schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
                     if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
-                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.AsVector.ItemType, writer))
+                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.WriteTextTerms(writer);
@@ -1180,7 +1181,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
-                    var srcType = TypedMap.ItemType.AsKey;
+                    var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
                     var convInst = Runtime.Data.Conversion.Conversions.Instance;

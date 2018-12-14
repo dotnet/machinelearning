@@ -153,7 +153,7 @@ namespace Microsoft.ML.Scenarios
             // It does not work. It throws error "Failed to find 'Score' column" when Evaluate is called
             //var evaluator = new BinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments());
 
-            var evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
+            IMamlEvaluator evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
             var metricsDic = evaluator.Evaluate(dataEval);
 
             return Microsoft.ML.Legacy.Models.BinaryClassificationMetrics

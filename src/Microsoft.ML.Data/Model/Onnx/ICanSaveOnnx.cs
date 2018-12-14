@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Calibrator;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {

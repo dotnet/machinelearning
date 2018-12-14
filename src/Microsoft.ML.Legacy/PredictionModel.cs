@@ -21,7 +21,7 @@ namespace Microsoft.ML.Legacy
         {
             _env = new MLContext();
             AssemblyRegistration.RegisterAssemblies(_env);
-            PredictorModel = new TransformModel(_env, stream);
+            PredictorModel = new TransformModelImpl(_env, stream);
         }
 
         internal TransformModel PredictorModel { get; }

@@ -299,14 +299,16 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             for (int f = 0; f < fieldCount; f++)
             {
                 var col = featureColumns[f];
-                Host.Assert(col.Type.AsVector.VectorSize > 0);
                 if (col == null)
                     throw ch.ExceptParam(nameof(data), "Empty feature column not allowed");
                 Host.Assert(!data.Schema.Schema.IsHidden(col.Index));
-                if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
+                if (!(col.Type is VectorType vectorType) ||
+                    !vectorType.IsKnownSizeVector ||
+                    vectorType.ItemType != NumberType.Float)
                     throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
+                Host.Assert(vectorType.VectorSize > 0);
                 fieldColumnIndexes[f] = col.Index;
-                totalFeatureCount += col.Type.AsVector.VectorSize;
+                totalFeatureCount += vectorType.VectorSize;
             }
             ch.Check(checked(totalFeatureCount * fieldCount * _latentDimAligned) <= Utils.ArrayMaxSize, "Latent dimension or the number of fields too large");
             if (predictor != null)
