@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Input schema of this transform. It's useful when determining column dependencies and other
             // relations between input and output schemas.
-            private readonly Schema _input;
+            private readonly Schema _sourceSchema;
 
             // This transform's output schema.
             internal Schema OutputSchema { get; }
@@ -48,11 +48,11 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(args);
                 Contracts.AssertValue(sourceSchema);
 
-                _input = sourceSchema;
+                _sourceSchema = sourceSchema;
 
                 if (args.Drop)
                     // Drop columns indexed by args.Index
-                    _sources = Enumerable.Range(0, _input.ColumnCount).Except(args.Index).ToArray();
+                    _sources = Enumerable.Range(0, _sourceSchema.ColumnCount).Except(args.Index).ToArray();
                 else
                     // Keep columns indexed by args.Index
                     _sources = args.Index.ToArray();
@@ -60,20 +60,8 @@ namespace Microsoft.ML.Runtime.Data
                 // Make sure the output of this transform is meaningful.
                 Contracts.Check(_sources.Length > 0, "Choose columns by index has no output column.");
 
-                var schemaBuilder = new SchemaBuilder();
-                for (int i = 0; i < _sources.Length; ++i)
-                {
-                    var selectedIndex = _sources[i];
-
-                    // The dropped/kept columns are determined by user-specified arguments, so we throw if a bad configuration is provided.
-                    string fmt = string.Format("Column index {0} invalid for input with {1} columns", selectedIndex, _input.ColumnCount);
-                    Contracts.Check(selectedIndex > sourceSchema.ColumnCount, fmt);
-
-                    // Put the selected column into output schema.
-                    var selectedColumn = sourceSchema[selectedIndex];
-                    schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
-                }
-                OutputSchema = schemaBuilder.GetSchema();
+                // All necessary fields in this class are set, so we can compute output schema now.
+                OutputSchema = ComputeOutputSchema();
             }
 
             internal Bindings(ModelLoadContext ctx, Schema sourceSchema)
@@ -85,14 +73,32 @@ namespace Microsoft.ML.Runtime.Data
                 // int[]: selected source column indices
                 _sources = ctx.Reader.ReadIntArray();
 
-                _input = sourceSchema;
+                _sourceSchema = sourceSchema;
+                OutputSchema = ComputeOutputSchema();
+            }
+
+            /// <summary>
+            /// After _input and _sources are set, pick up selected columns from _input to create output schema.
+            /// Note that _sources tells us what columns in _input are selected.
+            /// </summary>
+            private Schema ComputeOutputSchema()
+            {
                 var schemaBuilder = new SchemaBuilder();
                 for (int i = 0; i < _sources.Length; ++i)
                 {
-                    var selectedColumn = sourceSchema[_sources[i]];
+                    // selectedIndex is an column index of input schema. Note that the input column indexed by _sources[i] in _input is sent
+                    // to the i-th column in the output schema.
+                    var selectedIndex = _sources[i];
+
+                    // The dropped/kept columns are determined by user-specified arguments, so we throw if a bad configuration is provided.
+                    string fmt = string.Format("Column index {0} invalid for input with {1} columns", selectedIndex, _sourceSchema.ColumnCount);
+                    Contracts.Check(selectedIndex < _sourceSchema.ColumnCount, fmt);
+
+                    // Copy the selected column into output schema.
+                    var selectedColumn = _sourceSchema[selectedIndex];
                     schemaBuilder.AddColumn(selectedColumn.Name, selectedColumn.Type, selectedColumn.Metadata);
                 }
-                OutputSchema = schemaBuilder.GetSchema();
+                return schemaBuilder.GetSchema();
             }
 
             internal void Save(ModelSaveContext ctx)
@@ -112,7 +118,7 @@ namespace Microsoft.ML.Runtime.Data
             internal Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
                 Contracts.AssertValue(predicate);
-                var active = new bool[_input.ColumnCount];
+                var active = new bool[_sourceSchema.ColumnCount];
                 for (int i = 0; i < _sources.Length; i++)
                 {
                     if (predicate(i))
