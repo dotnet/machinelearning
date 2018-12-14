@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// When specifying what trainer OVA should use, a user will be able to specify any binary classifier.
         /// If they specify a regression or multi-class classifier ideally that should be a compile error.
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void New_Metacomponents()
         {
             var ml = new MLContext();

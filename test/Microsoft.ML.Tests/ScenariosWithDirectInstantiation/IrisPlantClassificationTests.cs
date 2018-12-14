@@ -16,7 +16,7 @@ namespace Microsoft.ML.Scenarios
 #pragma warning disable 612
     public partial class ScenariosTests
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TrainAndPredictIrisModelUsingDirectInstantiationTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);

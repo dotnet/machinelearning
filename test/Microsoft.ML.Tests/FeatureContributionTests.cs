@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestOrdinaryLeastSquares()
         {
             var expectedValues = new List<float[]> {
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.Regression.Trainers.OrdinaryLeastSquares(), expectedValues);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestGam()
         {
             // Index 1: Most important feature

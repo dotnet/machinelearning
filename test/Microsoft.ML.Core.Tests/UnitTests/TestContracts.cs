@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(caught, "Exception was not caught at all");
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ExceptionSensitivity()
         {
             var env = new MLContext();

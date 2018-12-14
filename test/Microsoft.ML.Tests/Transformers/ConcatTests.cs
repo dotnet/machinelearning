@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         void TestConcat()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ConcatWithAliases()
         {
             string dataPath = GetDataPath("adult.tiny.with-schema.txt");

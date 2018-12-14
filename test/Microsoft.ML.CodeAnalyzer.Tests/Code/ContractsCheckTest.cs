@@ -16,7 +16,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
         private readonly Lazy<string> SourceContracts = TestUtils.LazySource("Contracts.cs");
         private readonly Lazy<string> SourceFriend = TestUtils.LazySource("BestFriendAttribute.cs");
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ContractsCheck()
         {
             var analyzer = GetCSharpDiagnosticAnalyzer();
@@ -44,7 +44,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
             VerifyCSharpDiagnostic(Source.Value + SourceContracts.Value + SourceFriend.Value, expected);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ContractsCheckDecoy()
         {
             // Run a test with a "decoy" Contacts that has the same signature on the method,
@@ -80,7 +80,7 @@ namespace TestNamespace
         private readonly Lazy<string> SourceBestAttr = TestUtils.LazySource("BestFriendAttribute.cs");
         private readonly Lazy<string> SourceDefArgAttr = TestUtils.LazySource("DefaultArgumentAttribute.cs");
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ContractsCheckFix()
         {
             //VerifyCSharpFix(SourcePreFix.Value, SourcePostFix.Value);

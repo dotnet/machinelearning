@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         /// evaluations and optionally trained pipes. (People always want metrics out of xfold,
         /// they sometimes want the actual models too.)
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         void CrossValidation()
         {
             var dataPath = GetDataPath(SentimentDataPath);

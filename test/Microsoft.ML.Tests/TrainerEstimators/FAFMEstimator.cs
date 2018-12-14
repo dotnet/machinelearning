@@ -14,7 +14,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())

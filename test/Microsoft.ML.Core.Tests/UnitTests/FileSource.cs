@@ -12,7 +12,7 @@ namespace Microsoft.ML.Runtime.RunTests
     public sealed class FileSource
     {
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void MultiFileSourceUnitTest()
         {
             var fileSource = new MultiFileSource("adult.txt");

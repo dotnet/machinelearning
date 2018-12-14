@@ -57,7 +57,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         private void CheckSchemaHasColumn(Schema schema, string name, out int idx)
             => Assert.True(schema.TryGetColumnIndex(name, out idx), "Could not find column '" + name + "'");
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SimpleTextLoaderCopyColumnsTest()
         {
             var env = new MLContext(0);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         private static Obnoxious3<T> MakeObnoxious3<T>(Scalar<bool> hi, Obnoxious1 my, T friend)
             => new Obnoxious3<T>() { Donut = (hi, my, friend) };
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SimpleTextLoaderObnoxiousTypeTest()
         {
             var env = new MLContext(0);
@@ -205,7 +205,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         private static KeyValuePair<string, ColumnType> P(string name, ColumnType type)
             => new KeyValuePair<string, ColumnType>(name, type);
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void AssertStaticSimple()
         {
             var env = new MLContext(0);
@@ -229,7 +229,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             ));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void AssertStaticSimpleFailure()
         {
             var env = new MLContext(0);
@@ -254,7 +254,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     hello: c.Text.Scalar)));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void AssertStaticKeys()
         {
             var env = new MLContext(0);
@@ -361,7 +361,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                    alot: c.KeyU1.I4Values.Vector)));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void Normalizer()
         {
             var env = new MLContext(0);
@@ -386,7 +386,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.IsNormalized(mmCol));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void NormalizerWithOnFit()
         {
             var env = new MLContext(0);
@@ -430,7 +430,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ToKey()
         {
             var env = new MLContext(0);
@@ -468,7 +468,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(valuesKeyKeyType.Equals(valuesKeyType));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ConcatWith()
         {
             var env = new MLContext(0);
@@ -506,7 +506,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(NumberType.Float, types[3].ItemType);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void Tokenize()
         {
             var env = new MLContext(0);
@@ -535,7 +535,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     && vecType2.ItemType.RawType == typeof(ushort));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void NormalizeTextAndRemoveStopWords()
         {
             var env = new MLContext(0);
@@ -564,7 +564,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(TextType.Instance, type);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ConvertToWordBag()
         {
             var env = new MLContext(0);
@@ -593,7 +593,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void Ngrams()
         {
             var env = new MLContext(0);
@@ -623,7 +623,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void LpGcNormAndWhitening()
         {
             var env = new MLContext(0);
@@ -661,7 +661,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType4 && vecType4.Size > 0 && vecType4.ItemType is NumberType);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void LdaTopicModel()
         {
             var env = new MLContext(0);
@@ -689,7 +689,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void FeatureSelection()
         {
             var env = new MLContext(0);
@@ -718,7 +718,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TrainTestSplit()
         {
             var env = new MLContext(0);
@@ -748,7 +748,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.False(trainLabels.Intersect(testLabels).Any());
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void PrincipalComponentAnalysis()
         {
             var env = new MLContext(0);
@@ -771,7 +771,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void NAIndicatorStatic()
         {
             var env = new MLContext(0);
@@ -815,7 +815,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TextNormalizeStatic()
         {
             var env = new MLContext(0);
@@ -855,7 +855,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is TextType);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPcaStatic()
         {
             var env = new MLContext(0);
@@ -874,7 +874,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(new VectorType(NumberType.R4, 5), type);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestConvertStatic()
         {
             MLContext ml = new MLContext();

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// mapped into term numbers [203, 25, 3, 511] then projected into the sparse
         /// float vector {3:1, 25:1, 203:1, 511:1}, etc. etc.
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         void New_Visibility()
         {
             var ml = new MLContext(seed: 1, conc: 1);

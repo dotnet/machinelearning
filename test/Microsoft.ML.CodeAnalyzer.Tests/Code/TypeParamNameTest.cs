@@ -10,7 +10,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class TypeParamNameTest : DiagnosticVerifier<TypeParamNameAnalyzer>
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TypeParamName()
         {
             const string test = @"

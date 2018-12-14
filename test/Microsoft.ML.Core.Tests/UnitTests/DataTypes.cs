@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private readonly static Conversions _conv = Conversions.Instance;
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void R4ToSBtoR4()
         {
             var r4ToSB = Conversions.Instance.GetStringConversion<float>(NumberType.R4);
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.Equal(fVal, float.NaN);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void R8ToSBtoR8()
         {
             var r8ToSB = Conversions.Instance.GetStringConversion<double>(NumberType.R8);
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.Equal(dVal, double.NaN);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TXToSByte()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, sbyte>(NumberType.I1);
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.Equal(default, dst);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TXToShort()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, short>(NumberType.I2);
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.Equal(default, dst);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TXToInt()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, int>(NumberType.I4);
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.Equal(default, dst);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TXToLong()
         {
             var mapper = GetMapper<ReadOnlyMemory<char>, long>(NumberType.I8);

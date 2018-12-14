@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Regression for Dense Features
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPfiRegressionOnDenseFeatures()
         {
             var data = GetDenseDataset();
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Regression for Sparse Features
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPfiRegressionOnSparseFeatures()
         {
             var data = GetSparseDataset();
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Binary Classification for Dense Features
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPfiBinaryClassificationOnDenseFeatures()
         {
             var data = GetDenseDataset(TaskType.BinaryClassification);
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Binary Classification for Sparse Features
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPfiBinaryClassificationOnSparseFeatures()
         {
             var data = GetSparseDataset(TaskType.BinaryClassification);
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Multiclass Classification for Dense Features
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPfiMulticlassClassificationOnDenseFeatures()
         {
             var data = GetDenseDataset(TaskType.MulticlassClassification);
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Multiclass Classification for Sparse Features
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPfiMulticlassClassificationOnSparseFeatures()
         {
             var data = GetSparseDataset(TaskType.MulticlassClassification);
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Multiclass Classification for Dense Features
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPfiRankingOnDenseFeatures()
         {
             var data = GetDenseDataset(TaskType.Ranking);
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Multiclass Classification for Sparse Features
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPfiRankingOnSparseFeatures()
         {
             var data = GetSparseDataset(TaskType.Ranking);
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// Test PFI Clustering for Dense Features
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPfiClusteringOnDenseFeatures()
         {
             var data = GetDenseClusteringDataset();

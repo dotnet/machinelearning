@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Out of the result, produce some structure over which you can get predictions programmatically 
         /// (for example, the prediction does not happen over a file as it did during training).
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void New_SimpleTrainAndPredict()
         {
             var ml = new MLContext(seed: 1, conc: 1);

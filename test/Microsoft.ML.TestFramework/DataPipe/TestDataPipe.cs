@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeWithHeader()
         {
             string pathTerms = DeleteOutputPath("SavePipe", "Terms.txt");
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeKeyToVec()
         {
             string pathTerms = DeleteOutputPath("SavePipe", "Terms.txt");
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeConcatUnknownLength()
         {
             string pathData = DeleteOutputPath("SavePipe", "ConcatUnknownLength.txt");
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeNgram()
         {
             TestCore(null, true,
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeNgramSparse()
         {
             string pathData = DeleteOutputPath("SavePipe", "NgramSparse.txt");
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeConcatWithAliases()
         {
             string pathData = GetDataPath("breast-cancer-withheader.txt");
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeCat()
         {
             TestCore(null, false,
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeCountSelect()
         {
             TestCore(null, false,
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return false;
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeNgramHash()
         {
             string pathData = GetDataPath("lm.sample.txt");
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeWordTokenize()
         {
             TestCore(GetDataPath("lm.sample.txt"), false,
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeWordHash()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
@@ -602,7 +602,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeWordHashUnordered()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
@@ -646,7 +646,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeInvertHash()
         {
             string pathData = DeleteOutputPath("SavePipe","InvertHash-Data.txt");
@@ -713,7 +713,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeWordBag()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
@@ -731,7 +731,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeWordBagTfIdf()
         {
             string pathData = DeleteOutputPath("SavePipe", "Sample-Data.txt");
@@ -756,7 +756,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeWordBagManyToOne()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
@@ -797,7 +797,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeWithKey()
         {
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
@@ -868,7 +868,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeDropColumns()
         {
             string pathData = GetDataPath("adult.tiny.with-schema.txt");
@@ -884,7 +884,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeCustomStopwordsRemover()
         {
             string dataFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-dataFile.txt");
@@ -956,7 +956,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeTokenizerAndStopWords()
         {
             string dataFile = DeleteOutputPath("SavePipe", "Multi-Languages.txt");
@@ -980,7 +980,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SavePipeDropNAs()
         {
             string pathData = DeleteOutputPath("SavePipe", "DropNAs.txt");
@@ -1009,13 +1009,13 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberType.R4);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestHashTransformFloatVector()
         {
             var data = new[] { dataFloat };
@@ -1023,27 +1023,27 @@ namespace Microsoft.ML.Runtime.RunTests
             TestHashTransformVectorHelper(data, results, NumberType.R4);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestHashTransformFloatSparseVector()
         {
             var results = new[] { resultsFloatSparse };
             TestHashTransformVectorHelper(dataFloatSparse, results, NumberType.R4);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestHashTransformDoubleSparseVector()
         {
             var results = new[] { resultsDoubleSparse };
             TestHashTransformVectorHelper(dataDoubleSparse, results, NumberType.R8);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestHashTransformDouble()
         {
             TestHashTransformHelper(dataDouble, resultsDouble, NumberType.R8);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestHashTransformDoubleVector()
         {
             var data = new[] { dataDouble };
@@ -1127,7 +1127,7 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public sealed partial class TestDataPipeNoBaseline : TestDataViewBase
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestLDATransform()
         {
             var builder = new ArrayDataViewBuilder(Env);
@@ -1175,7 +1175,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestLdaTransformerEmptyDocumentException()
         {
             var builder = new ArrayDataViewBuilder(Env);

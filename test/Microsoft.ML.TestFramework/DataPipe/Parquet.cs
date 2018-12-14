@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestParquetPrimitiveDataTypes()
         {
             string pathData = GetDataPath(@"Parquet", "alltypes.parquet");
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestParquetNull()
         {
             string pathData = GetDataPath(@"Parquet", "test-null.parquet");

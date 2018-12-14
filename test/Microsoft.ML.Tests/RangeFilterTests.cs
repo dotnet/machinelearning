@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void RangeFilterTest()
         {
             var builder = new ArrayDataViewBuilder(ML);

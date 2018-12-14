@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Transformers
             public float[] B;
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TextNormalizerWorkout()
         {
             var data = new[] { new TestClass() { A = "A 1, b. c! йЁ 24 ", B = new string[2] { "~``ё 52ds й vc", "6ksj94 vd ё dakl Юds Ё q й" } },
@@ -76,13 +76,13 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:TX:0} xf=TextNorm{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "A 1, b. c! йЁ 24 ", B = new string[2] { "~``ё 52ds й vc", "6ksj94 vd ё dakl Юds Ё q й" } } };

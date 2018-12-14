@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             public IChannel ChannelTwo = null;
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void CursorChannelExposedInMapTransform()
         {
             var env = new MLContext(seed: 0);
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             public float[] Features;
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void LambdaTransformCreate()
         {
             var env = new MLContext(seed: 42);
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 saver.SaveData(fs, applied, label);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TrainAveragedPerceptronWithCache()
         {
             var env = new MLContext(0);
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             Assert.Equal(1, globalCounter);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void MetadataSupportInDataViewConstruction()
         {
             var data = ReadBreastCancerExamples();

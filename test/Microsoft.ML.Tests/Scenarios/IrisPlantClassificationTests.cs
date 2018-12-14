@@ -15,7 +15,7 @@ namespace Microsoft.ML.Scenarios
 #pragma warning disable 612, 618
     public partial class ScenariosTests
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TrainAndPredictIrisModelTest()
         {
             string dataPath = GetDataPath("iris.txt");
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TrainOneVersusAll()
         {
             string dataPath = GetDataPath("iris.txt");

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios
         {
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestGetColumn()
         {
             

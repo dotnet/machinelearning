@@ -10,7 +10,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class SingleVariableDeclarationTest : DiagnosticVerifier<SingleVariableDeclarationAnalyzer>
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SingleVariableDeclaration()
         {
             const string test = @"

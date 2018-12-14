@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         /// and performant in the new API.
         /// </summary>
 #pragma warning disable 612, 618
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         void MultithreadedPrediction()
         {
             var dataPath = GetDataPath(SentimentDataPath);

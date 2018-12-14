@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ChangeDetection()
         {
             var env = new MLContext(conc: 1);

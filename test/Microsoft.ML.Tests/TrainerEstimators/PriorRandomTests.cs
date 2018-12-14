@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestEstimatorRandom()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestEstimatorPrior()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();

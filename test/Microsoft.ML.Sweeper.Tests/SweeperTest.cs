@@ -15,7 +15,7 @@ namespace Microsoft.ML.Sweeper.Tests
 {
     public class SweeperTest
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void UniformRandomSweeperReturnsDistinctValuesWhenProposeSweep()
         {
             DiscreteValueGenerator valueGenerator = CreateDiscreteValueGenerator();
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Sweeper.Tests
             Assert.Equal(2, length);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void RandomGridSweeperReturnsDistinctValuesWhenProposeSweep()
         {
             DiscreteValueGenerator valueGenerator = CreateDiscreteValueGenerator();

@@ -12,7 +12,7 @@ namespace Microsoft.ML.Analyzer.Tests
         private static string _srcResource;
         internal static string Source => TestUtils.EnsureSourceLoaded(ref _srcResource, "TypeIsSchemaShapeResource.cs");
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ReturnTypeIsSchemaShape()
         {
             var analyzer = GetCSharpDiagnosticAnalyzer();
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Analyzer.Tests
         internal static string SourceChained => TestUtils.EnsureSourceLoaded(
             ref _srcResourceChained, "TypeIsSchemaShapeResourceChained.cs");
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ReturnTypeIsSchemaShapeChained()
         {
             // This is a somewhat more complex example, where instead of direct usage the user of the API is devising their own
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Analyzer.Tests
         internal static string SourceClass => TestUtils.EnsureSourceLoaded(
             ref _srcResourceClass, "TypeIsSchemaShapeClassResource.cs");
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ReturnTypeIsSchemaShapeClass()
         {
             // This is a somewhat more complex example, where instead of direct usage the user of the API is devising their own

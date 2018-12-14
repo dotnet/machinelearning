@@ -11,7 +11,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void SdcaWorkout()
         {
             var dataPath = GetDataPath("breast-cancer.txt");

@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// The actual test will not run in different processes, but will simulate the idea that the 
         /// "communication pipe" is just a serialized model of some form.
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void New_TrainSaveModelAndPredict()
         {
             var ml = new MLContext(seed: 1, conc: 1);

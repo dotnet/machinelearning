@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         /// Out of the result, produce some structure over which you can get predictions programmatically 
         /// (for example, the prediction does not happen over a file as it did during training).
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         void SimpleTrainAndPredict()
         {
             var dataPath = GetDataPath(SentimentDataPath);

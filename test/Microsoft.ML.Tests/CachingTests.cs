@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void CacheCheckpointTest()
         {
             var trainData = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests
             Assert.True(trainData.All(x => x.AccessCount == 1));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void CacheTest()
         {
             var src = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests
             Assert.True(src.All(x => x.AccessCount == 1));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void StaticDataCacheTest()
         {
             var env = new MLContext(seed: 0);

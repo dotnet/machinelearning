@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestEstimatorChain()
         {
             var env = new MLContext();
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestEstimatorSaveLoad()
         {
             IHostEnvironment env = new MLContext();
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestSaveImages()
         {
             var env = new MLContext();
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestGreyscaleTransformImages()
         {
             IHostEnvironment env = new MLContext();
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestBackAndForthConversionWithAlphaInterleave()
         {
             IHostEnvironment env = new MLContext();
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestBackAndForthConversionWithoutAlphaInterleave()
         {
             IHostEnvironment env = new MLContext();
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestBackAndForthConversionWithAlphaNoInterleave()
         {
             IHostEnvironment env = new MLContext();
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestBackAndForthConversionWithoutAlphaNoInterleave()
         {
             IHostEnvironment env = new MLContext();
@@ -563,7 +563,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestBackAndForthConversionWithAlphaInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext();
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestBackAndForthConversionWithoutAlphaInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext();
@@ -731,7 +731,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestBackAndForthConversionWithAlphaNoInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext();
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset()
         {
             IHostEnvironment env = new MLContext();

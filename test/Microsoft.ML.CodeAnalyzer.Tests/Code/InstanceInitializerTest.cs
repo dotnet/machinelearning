@@ -10,7 +10,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class InstanceInitializerTest : DiagnosticVerifier<InstanceInitializerAnalyzer>
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void InstanceInitializer()
         {
             const string test = @"

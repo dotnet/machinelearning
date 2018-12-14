@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Transformers
             public int A;
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void RffWorkout()
         {
             Random rand = new Random();
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void RffStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -90,13 +90,13 @@ namespace Microsoft.ML.Tests.Transformers
 
 
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestCommandLine()
         {
             Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-100} xf=Rff{col=B:A dim=4 useSin+ kernel=LaplacianRandom}  in=f:\2.txt" }));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestOldSavingAndLoading()
         {
             Random rand = new Random();

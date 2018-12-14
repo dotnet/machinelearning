@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests
 
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void PartitionedNamedDirectories()
         {
             string basePath = GetDataPath("Partitioned", "Named");
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void PartitionedUnnamedDirectories()
         {
             string basePath = GetDataPath("Partitioned", "Unnamed"); ;

@@ -39,7 +39,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             Assert.Equal(valueText, value.ValueText);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestLongValueGeneratorRoundTrip()
         {
             var paramSweep = new LongValueGenerator(new LongParamArguments() { Name = "bla", Min = 0, Max = 17 });
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             Assert.Equal(valueText, value.ValueText);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestFloatValueGeneratorRoundTrip()
         {
             var paramSweep = new FloatValueGenerator(new FloatParamArguments() { Name = "bla", Min = 1, Max = 5 });
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             Assert.Equal(expected, value.ValueText);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestRandomSweeper()
         {
             var env = new MLContext(42);
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestSimpleSweeperAsync()
         {
             var random = new Random(42);
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             CheckAsyncSweeperResult(paramSets);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestDeterministicSweeperAsyncCancellation()
         {
             var random = new Random(42);
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             Assert.Equal(args.BatchSize + args.BatchSize, numCompleted);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestDeterministicSweeperAsync()
         {
             var random = new Random(42);
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             tasks.All(t => t.IsCompleted);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestDeterministicSweeperAsyncParallel()
         {
             var random = new Random(42);
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             CheckAsyncSweeperResult(paramSets);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public async Task TestNelderMeadSweeperAsync()
         {
             var random = new Random(42);
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestRandomGridSweeper()
         {
             var env = new MLContext(42);
@@ -537,7 +537,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             Assert.True(gridPoint.All(bArray => bArray.All(b => b)));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestNelderMeadSweeper()
         {
             var random = new Random(42);
@@ -593,7 +593,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             Assert.True(sweeps.Length <= 5);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestNelderMeadSweeperWithDefaultFirstBatchSweeper()
         {
             var random = new Random(42);
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             Assert.True(sweeps == null || sweeps.Length <= 5);
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestSmacSweeper()
         {
             var random = new Random(42);

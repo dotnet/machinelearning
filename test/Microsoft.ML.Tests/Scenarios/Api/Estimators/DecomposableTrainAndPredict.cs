@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// have the class labels as slot names, etc. This should be do-able without ugly compromises like,
         /// say, injecting a dummy label.
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         void New_DecomposableTrainAndPredict()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);

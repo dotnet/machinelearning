@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestSimpleExperiment()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal(expected[i], schema.GetColumnName(i));
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestSimpleTrainExperiment()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestTrainTestMacro()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestCrossValidationBinaryMacro()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -399,7 +399,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestCrossValidationMacroWithMultiClass()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
@@ -530,7 +530,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.False(cursor.MoveNext());
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestCrossValidationMacroMultiClassWithWarnings()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestCrossValidationMacroWithStratification()
         {
             var dataPath = GetDataPath(@"breast-cancer.txt");
@@ -701,7 +701,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestCrossValidationMacroWithNonDefaultNames()
         {
             string dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
@@ -832,7 +832,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestOvaMacro()
         {
             var dataPath = GetDataPath(@"iris.txt");
@@ -889,7 +889,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestOvaMacroWithUncalibratedLearner()
         {
             var dataPath = GetDataPath(@"iris.txt");

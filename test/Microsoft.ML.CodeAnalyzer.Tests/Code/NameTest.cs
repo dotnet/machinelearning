@@ -10,7 +10,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class NameTest : DiagnosticVerifier<NameAnalyzer>
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void PrivateFieldName()
         {
             var analyzer = GetCSharpDiagnosticAnalyzer();
@@ -53,7 +53,7 @@ namespace TestNamespace
     }
 }";
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void MoreNameTests()
         {
             var analyzer = GetCSharpDiagnosticAnalyzer();
@@ -124,7 +124,7 @@ namespace foo.bar.Biz
 
     struct marco { public int polo; }
 }";
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void ExternName()
         {
             var analyzer = GetCSharpDiagnosticAnalyzer();
@@ -159,7 +159,7 @@ namespace TestNamespace
 
     public sealed class NameFixTest : CodeFixVerifier<NameAnalyzer, NameFixProvider>
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void NameFix()
         {
             VerifyCSharpFix(NameTest.TestSource, FixedTestSource);

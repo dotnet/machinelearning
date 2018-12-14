@@ -17,7 +17,7 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public class TestHosts
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestCancellation()
         {
             IHostEnvironment env = new MLContext(seed: 42);

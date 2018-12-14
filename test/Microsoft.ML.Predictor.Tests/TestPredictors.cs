@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Binary")]
         public void BinaryClassifierPerceptronTest()
         {
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Binary")]
         [TestCategory("SimpleLearners")]
         public void BinaryPriorTest()
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Binary")]
         [TestCategory("SimpleLearners")]
         public void BinaryRandomTest()
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Multiclass")]
         public void MulticlassReductionTest()
         {
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNormTest()
         {
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Binary")]
         [TestCategory("FastRank")]
         public void BinaryClassifierFastRankClassificationTest()
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for regressors
         ///</summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Regressor")]
         [TestCategory("FastForest")]
         public void FastForestRegressionTest()
@@ -1072,7 +1072,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("FastTree")]
         public void GamBinaryClassificationTest()
         {
@@ -1165,7 +1165,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
@@ -1608,7 +1608,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for default calibrators
         ///</summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Calibrator")]
         public void NoCalibratorLinearSvmTest()
         {
@@ -1620,7 +1620,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Calibrator")]
         public void PAVCalibratorLinearSvmTest()
         {
@@ -1751,7 +1751,7 @@ output Out [3] from H all;
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
@@ -2168,7 +2168,7 @@ output Out [3] from H all;
         /// <summary>
         /// A test for field-aware factorization machine.
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         [TestCategory("Binary")]
         [TestCategory("FieldAwareFactorizationMachine")]
         public void BinaryClassifierFieldAwareFactorizationMachineTest()

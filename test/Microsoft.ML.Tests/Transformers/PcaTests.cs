@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.Transformers
             _saver = new TextSaver(_env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void PcaWorkout()
         {
             var data = TextLoader.CreateReader(_env,
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestPcaEstimator()
         {
             var data = TextLoader.CreateReader(_env,

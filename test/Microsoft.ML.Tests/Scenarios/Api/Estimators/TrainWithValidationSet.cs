@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Train with validation set: Similar to the simple train scenario, but also support a validation set.
         /// The learner might be trees with early stopping.
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void New_TrainWithValidationSet()
         {
             var ml = new MLContext(seed: 1, conc: 1);

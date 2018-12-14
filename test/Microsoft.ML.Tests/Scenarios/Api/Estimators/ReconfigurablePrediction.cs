@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// and configures the scorer (or more precisely instantiates a new scorer over the same predictor)
         /// with some threshold derived from that.
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void New_ReconfigurablePrediction()
         {
             var ml = new MLContext(seed: 1, conc: 1);

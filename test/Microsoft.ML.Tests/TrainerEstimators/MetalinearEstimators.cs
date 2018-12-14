@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA with all constructor args.
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void OVAWithAllConstructorArgs()
         {
             var (pipeline, data) = GetMultiClassPipeline();
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// OVA un-calibrated
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void OVAUncalibrated()
         {
             var (pipeline, data) = GetMultiClassPipeline();
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// Pkpd trainer
         /// </summary>
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void Pkpd()
         {
             var (pipeline, data) = GetMultiClassPipeline();
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void New_MetacomponentsFeaturesRenamed()
         {
             var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')

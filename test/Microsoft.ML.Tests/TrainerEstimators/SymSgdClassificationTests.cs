@@ -14,7 +14,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestEstimatorSymSgdClassificationTrainer()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+         [Fact(Skip = "InvestigatingSDCA")]
         public void TestEstimatorSymSgdInitPredictor()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
