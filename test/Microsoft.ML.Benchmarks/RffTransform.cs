@@ -5,9 +5,7 @@
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms.Conversions;
 using System.IO;
 
 namespace Microsoft.ML.Benchmarks
@@ -28,14 +26,28 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void CV_Multiclass_Digits_RffTransform_OVAAveragedPerceptron()
         {
-            string cmd = @"CV k=5 data={" + _dataPath_Digits + "}" +
-                " loader=TextLoader{col=Label:R4:64 col=Features:R4:0-63 sep=,}" +
-                " xf=RffTransform{col=FeaturesRFF:Features}" +
-                " xf=Concat{col=Features:FeaturesRFF}" +
-                " tr=OVA{p=AveragedPerceptron{iter=10}}";
+            var mlContext = new MLContext();
+            var reader = mlContext.Data.CreateTextReader(new TextLoader.Arguments
+            {
+                Column = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.R4, 64),
+                    new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range() { Min = 0, Max = 63 }})
+                },
+                HasHeader = false,
+                Separator = ","
+            });
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, RandomFourierFeaturizingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            var data = reader.Read(_dataPath_Digits);
+            var cachedTrainData = mlContext.Data.Cache(data);
+
+            var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("Features", "FeaturesRFF")
+            .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
+            .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
+            .AppendCacheCheckpoint(mlContext)
+            .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numIterations: 10)));
+
+            var cvResults = mlContext.MulticlassClassification.CrossValidate(cachedTrainData, pipeline, numFolds: 5);
         }
     }
 }
