@@ -39,15 +39,14 @@ namespace Microsoft.ML.Benchmarks
             });
 
             var data = reader.Read(_dataPath_Digits);
-            var cachedTrainData = mlContext.Data.Cache(data);
 
             var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("Features", "FeaturesRFF")
             .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
-            .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
             .AppendCacheCheckpoint(mlContext)
+            .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
             .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numIterations: 10)));
 
-            var cvResults = mlContext.MulticlassClassification.CrossValidate(cachedTrainData, pipeline, numFolds: 5);
+            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);
         }
     }
 }
