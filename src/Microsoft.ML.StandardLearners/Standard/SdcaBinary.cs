@@ -538,7 +538,7 @@ namespace Microsoft.ML.Trainers
                     while (cursor.MoveNext())
                     {
                         long longIdx = getIndexFromIdAndRow(cursor.Id, row);
-                        Contracts.Assert(0 <= longIdx & longIdx < invariants.Length, $"longIdx={longIdx}, invariants.Length={invariants.Length}");
+                        Contracts.Assert(0 <= longIdx & longIdx < invariants.Length, $"longIdx={longIdx}, invariants.Length={invariants.Length}, count={count}");
                         int idx = (int)longIdx;
                         var features = cursor.Features;
                         var normSquared = VectorUtils.NormSquared(features);

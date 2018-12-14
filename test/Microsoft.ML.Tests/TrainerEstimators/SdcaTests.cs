@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -26,6 +27,30 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var mcTrainer = new SdcaMultiClassTrainer(Env, "Label", "Features", advancedSettings: (s) => s.ConvergenceTolerance = 1e-2f);
             TestEstimatorCore(mcTrainer, data.AsDynamic);
+
+            Done();
+        }
+
+        [Fact]
+        public void SdcaRegressionEntryPoint_ReplicaNewApi()
+        {
+            var data = new TextLoader(Env,
+                    new TextLoader.Arguments()
+                    {
+                        Separator = ";",
+                        HasHeader = true,
+                        Column = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.R4, 11),
+                            new TextLoader.Column("Features", DataKind.R4, 0,10)
+                        }
+                    }).Read(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename));
+
+            Log($"Text loader loaded {data.GetRowCount()} records.");
+
+            var trainer = new SdcaRegressionTrainer(Env, "Label", "Features");
+
+            trainer.Fit(data);
 
             Done();
         }
