@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -244,7 +245,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public AnomalyPredictionTransformer(IHostEnvironment env, TModel model, Schema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(AnomalyPredictionTransformer<TModel>)),model, inputSchema, featureColumn)
         {
             Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
             Threshold = threshold;
@@ -502,7 +503,7 @@ namespace Microsoft.ML.Runtime.Data
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "RANK PRED",
+                modelSignature: "RANKPRED",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,

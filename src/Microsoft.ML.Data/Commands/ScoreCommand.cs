@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -178,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
                 maxScoreId = loader.Schema.GetMaxMetadataKind(out int colMax, MetadataUtils.Kinds.ScoreColumnSetId);
             ch.Assert(outputAllColumns || maxScoreId > 0); // score set IDs are one-based
             var cols = new List<int>();
-            for (int i = 0; i < loader.Schema.ColumnCount; i++)
+            for (int i = 0; i < loader.Schema.Count; i++)
             {
                 if (!Args.KeepHidden && loader.Schema.IsHidden(i))
                     continue;
@@ -209,7 +210,7 @@ namespace Microsoft.ML.Runtime.Data
         private bool ShouldAddColumn(Schema schema, int i, uint scoreSet, bool outputNamesAndLabels)
         {
             uint scoreSetId = 0;
-            if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType.AsPrimitive, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
+            if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
                 && scoreSetId == scoreSet)
             {
                 return true;
@@ -305,8 +306,8 @@ namespace Microsoft.ML.Runtime.Data
 
             ComponentCatalog.LoadableClassInfo info = null;
             ReadOnlyMemory<char> scoreKind = default;
-            if (mapper.Schema.ColumnCount > 0 &&
-                mapper.Schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
+            if (mapper.OutputSchema.Count > 0 &&
+                mapper.OutputSchema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
                 !scoreKind.IsEmpty)
             {
                 var loadName = scoreKind.ToString();

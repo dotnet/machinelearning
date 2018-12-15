@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(TextSaver.Summary, typeof(TextSaver), typeof(TextSaver.Arguments), typeof(SignatureDataSaver),
     "Text Saver", "TextSaver", "Text", DocName = "saver/TextSaver.md")]
@@ -47,7 +48,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         {
             public readonly int Source;
 
-            public static ValueWriter Create(IRowCursor cursor, int col, char sep)
+            public static ValueWriter Create(RowCursor cursor, int col, char sep)
             {
                 Contracts.AssertValue(cursor);
 
@@ -148,7 +149,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _slotCount;
 
-            public VecValueWriter(IRowCursor cursor, VectorType type, int source, char sep)
+            public VecValueWriter(RowCursor cursor, VectorType type, int source, char sep)
                 : base(type.ItemType, source, sep)
             {
                 _getSrc = cursor.GetGetter<VBuffer<T>>(source);
@@ -213,7 +214,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private T _src;
             private string _columnName;
 
-            public ValueWriter(IRowCursor cursor, PrimitiveType type, int source, char sep)
+            public ValueWriter(RowCursor cursor, PrimitiveType type, int source, char sep)
                 : base(type, source, sep)
             {
                 _getSrc = cursor.GetGetter<T>(source);
@@ -449,7 +450,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             writer.WriteLine("#@ }");
         }
 
-        private string CreateLoaderArguments(ISchema schema, ValueWriter[] pipes, bool hasHeader, IChannel ch)
+        private string CreateLoaderArguments(Schema schema, ValueWriter[] pipes, bool hasHeader, IChannel ch)
         {
             StringBuilder sb = new StringBuilder();
             if (hasHeader)
@@ -488,9 +489,8 @@ namespace Microsoft.ML.Runtime.Data.IO
         {
             DataKind? kind;
             KeyRange keyRange = null;
-            if (type.ItemType.IsKey)
+            if (type.ItemType is KeyType key)
             {
-                var key = type.ItemType.AsKey;
                 if (!key.Contiguous)
                     keyRange = new KeyRange(key.Min, contiguous: false);
                 else if (key.Count == 0)
@@ -573,7 +573,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _mpslotichLim = new int[128];
             }
 
-            public void Run(IRowCursor cursor, ref long count, out int minLen, out int maxLen)
+            public void Run(RowCursor cursor, ref long count, out int minLen, out int maxLen)
             {
                 minLen = int.MaxValue;
                 maxLen = 0;

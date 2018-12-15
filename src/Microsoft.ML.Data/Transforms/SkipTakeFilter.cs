@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -187,26 +188,26 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate);
             Host.AssertValueOrNull(rand);
 
             var input = Source.GetRowCursor(predicate);
-            var activeColumns = Utils.BuildArray(Schema.ColumnCount, predicate);
-            return new RowCursor(Host, input, Schema, activeColumns, _skip, _take);
+            var activeColumns = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
+            return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate) };
+            return new RowCursor[] { GetRowCursorCore(predicate) };
         }
 
-        private sealed class RowCursor : LinkedRowRootCursorBase
+        private sealed class Cursor : LinkedRowRootCursorBase
         {
             private readonly long _skip;
             private readonly long _take;
@@ -218,7 +219,7 @@ namespace Microsoft.ML.Transforms
                 get { return 0; }
             }
 
-            public RowCursor(IChannelProvider provider, IRowCursor input, Schema schema, bool[] active, long skip, long take)
+            public Cursor(IChannelProvider provider, RowCursor input, Schema schema, bool[] active, long skip, long take)
                 : base(provider, input, schema, active)
             {
                 Ch.Assert(skip >= 0);
@@ -228,7 +229,7 @@ namespace Microsoft.ML.Transforms
                 _take = take;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return Input.GetIdGetter();
             }

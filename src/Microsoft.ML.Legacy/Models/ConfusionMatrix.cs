@@ -15,6 +15,7 @@ namespace Microsoft.ML.Legacy.Models
     /// Each row of the matrix represents the instances in a predicted class
     /// while each column represents the instances in the actual class.
     /// </summary>
+    [Obsolete]
     public sealed class ConfusionMatrix
     {
         private readonly double[,] _elements;
@@ -51,7 +52,7 @@ namespace Microsoft.ML.Legacy.Models
                 throw env.Except($"ConfusionMatrix data view did not contain a {nameof(MetricKinds.ColumnNames.Count)} column.");
             }
 
-            IRowCursor cursor = confusionMatrix.GetRowCursor(col => col == countColumn);
+            RowCursor cursor = confusionMatrix.GetRowCursor(col => col == countColumn);
             var slots = default(VBuffer<ReadOnlyMemory<char>>);
             confusionMatrix.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countColumn, ref slots);
             var slotsValues = slots.GetValues();

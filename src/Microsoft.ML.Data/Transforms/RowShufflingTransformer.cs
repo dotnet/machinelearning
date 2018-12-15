@@ -4,6 +4,7 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -208,7 +209,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to check whether all types in an input schema are shufflable.
         /// </summary>
-        internal static bool CanShuffleAll(ISchema schema)
+        internal static bool CanShuffleAll(Schema schema)
         {
             for (int c = 0; c < schema.ColumnCount; ++c)
             {
@@ -222,7 +223,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to take a cursor, and get a shuffled version of this cursor.
         /// </summary>
-        public static IRowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, IRowCursor cursor, IRandom rand)
+        public static RowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, RowCursor cursor, Random rand)
         {
             Contracts.CheckValue(provider, nameof(provider));
 
@@ -235,12 +236,12 @@ namespace Microsoft.ML.Transforms
 
             if (poolRows == 1)
                 return cursor;
-            return new RowCursor(provider, poolRows, cursor, rand);
+            return new Cursor(provider, poolRows, cursor, rand);
         }
 
         public override bool CanShuffle { get { return true; } }
 
-        public override Schema Schema { get { return _subsetInput.Schema; } }
+        public override Schema OutputSchema { get { return _subsetInput.Schema; } }
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -248,7 +249,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -256,7 +257,7 @@ namespace Microsoft.ML.Transforms
             // REVIEW: This is slightly interesting. Our mechanism for inducing
             // randomness in the source cursor is this Random object, but this can change
             // from release to release. The correct solution, it seems, is to instead have
-            // randomness injected into cursor creation by using IRandom (or something akin
+            // randomness injected into cursor creation by using Random (or something akin
             // to it), vs. just a straight system Random.
 
             // The desired functionality is to support some permutations of whether we allow
@@ -274,10 +275,10 @@ namespace Microsoft.ML.Transforms
             bool shouldShuffleMe = _forceShuffle || rand != null;
             bool shouldShuffleSource = _forceShuffleSource || (!_poolOnly && rand != null);
 
-            IRandom myRandom = rand ?? (shouldShuffleMe || shouldShuffleSource ? RandomUtils.Create(_forceShuffleSeed) : null);
+            Random myRandom = rand ?? (shouldShuffleMe || shouldShuffleSource ? RandomUtils.Create(_forceShuffleSeed) : null);
             if (shouldShuffleMe)
                 rand = myRandom;
-            IRandom sourceRand = shouldShuffleSource ? RandomUtils.Create(myRandom) : null;
+            Random sourceRand = shouldShuffleSource ? RandomUtils.Create(myRandom) : null;
 
             var input = _subsetInput.GetRowCursor(predicate, sourceRand);
             // If rand is null (so we're not doing pool shuffling) or number of pool rows is 1
@@ -285,16 +286,16 @@ namespace Microsoft.ML.Transforms
             // source cursor.
             if (rand == null || _poolRows == 1)
                 return input;
-            return new RowCursor(Host, _poolRows, input, rand);
+            return new Cursor(Host, _poolRows, input, rand);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
         /// <summary>
@@ -343,7 +344,7 @@ namespace Microsoft.ML.Transforms
         /// The result is something functionally equivalent to but but considerably faster than the
         /// simple implementation described in the first paragraph.
         /// </summary>
-        private sealed class RowCursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             /// <summary>
             /// Pipes, in addition to column values, will also communicate extra information
@@ -464,8 +465,8 @@ namespace Microsoft.ML.Transforms
             private const int _bufferDepth = 3;
 
             private readonly int _poolRows;
-            private readonly IRowCursor _input;
-            private readonly IRandom _rand;
+            private readonly RowCursor _input;
+            private readonly Random _rand;
 
             // This acts as mapping from the "circular" index to the actual index within the pipe.
             private readonly int[] _pipeIndices;
@@ -475,7 +476,7 @@ namespace Microsoft.ML.Transforms
             // Each delegate here corresponds to a pipe holding column data.
             private readonly Delegate[] _getters;
             // This delegate corresponds to the pipe holding ID data.
-            private readonly ValueGetter<UInt128> _idGetter;
+            private readonly ValueGetter<RowId> _idGetter;
 
             // The current position of the output cursor in circular "space".
             private int _circularIndex;
@@ -494,16 +495,14 @@ namespace Microsoft.ML.Transforms
             private Exception _producerTaskException;
 
             private readonly int[] _colToActivesIndex;
+            private bool _disposed;
 
-            public Schema Schema { get { return _input.Schema; } }
+            public override Schema Schema => _input.Schema;
 
-            public override long Batch
-            {
-                // REVIEW: Implement cursor set support.
-                get { return 0; }
-            }
+            // REVIEW: Implement cursor set support.
+            public override long Batch => 0;
 
-            public RowCursor(IChannelProvider provider, int poolRows, IRowCursor input, IRandom rand)
+            public Cursor(IChannelProvider provider, int poolRows, RowCursor input, Random rand)
                 : base(provider)
             {
                 Ch.AssertValue(input);
@@ -536,7 +535,7 @@ namespace Microsoft.ML.Transforms
                     _getters[ia] = CreateGetterDelegate(c);
                 }
                 var idPipe = _pipes[numActive + (int)ExtraIndex.Id] = ShufflePipe.Create(_pipeIndices.Length, NumberType.UG, input.GetIdGetter());
-                _idGetter = CreateGetterDelegate<UInt128>(idPipe);
+                _idGetter = CreateGetterDelegate<RowId>(idPipe);
                 // Initially, after the preamble to MoveNextCore, we want:
                 // liveCount=0, deadCount=0, circularIndex=0. So we set these
                 // funky values accordingly.
@@ -556,14 +555,17 @@ namespace Microsoft.ML.Transforms
                 _producerTask = LoopProducerWorker();
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (_producerTask.Status == TaskStatus.Running)
+                if (_disposed)
+                    return;
+                if (disposing && _producerTask.Status == TaskStatus.Running)
                 {
                     _toProduce.Post(0);
                     _producerTask.Wait();
                 }
-                base.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public static void PostAssert<T>(ITargetBlock<T> target, T item)
@@ -572,7 +574,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(retval);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return _idGetter;
             }
@@ -668,7 +670,7 @@ namespace Microsoft.ML.Transforms
                 return true;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 Ch.Assert((_colToActivesIndex[col] >= 0) == _input.IsColumnActive(col));
@@ -705,7 +707,7 @@ namespace Microsoft.ML.Transforms
                 return getter;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 Ch.CheckParam(_colToActivesIndex[col] >= 0, nameof(col), "requested column not active");

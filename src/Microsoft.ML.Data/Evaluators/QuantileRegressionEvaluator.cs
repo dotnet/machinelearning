@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Quantile Regression Evaluator", QuantileRegressionEvaluator.LoadName, "QuantileRegression")]
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly VBuffer<ReadOnlyMemory<char>> _quantiles;
         private readonly ColumnType _outputType;
 
-        public QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol, int scoreSize, VBuffer<ReadOnlyMemory<char>> quantiles)
+        public QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string labelCol, int scoreSize, VBuffer<ReadOnlyMemory<char>> quantiles)
             : base(env, schema, scoreCol, labelCol)
         {
             Host.CheckParam(scoreSize > 0, nameof(scoreSize), "must be greater than 0");
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.Data
             _outputType = new VectorType(NumberType.R8, _scoreSize);
         }
 
-        private QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Data
             _outputType = new VectorType(NumberType.R8, _scoreSize);
         }
 
-        public static QuantileRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static QuantileRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -345,25 +345,25 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.SaveNonEmptyString(quantiles[i].ToString());
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             return
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new Schema.Column[2];
+            var infos = new Schema.DetachedColumn[2];
 
             var slotNamesType = new VectorType(TextType.Instance, _scoreSize);
-            var l1Metadata = new Schema.Metadata.Builder();
+            var l1Metadata = new MetadataBuilder();
             l1Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L1));
 
-            var l2Metadata = new Schema.Metadata.Builder();
+            var l2Metadata = new MetadataBuilder();
             l2Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L2));
 
-            infos[L1Col] = new Schema.Column(L1, _outputType, l1Metadata.GetMetadata());
-            infos[L2Col] = new Schema.Column(L2, _outputType, l2Metadata.GetMetadata());
+            infos[L1Col] = new Schema.DetachedColumn(L1, _outputType, l1Metadata.GetMetadata());
+            infos[L2Col] = new Schema.DetachedColumn(L2, _outputType, l2Metadata.GetMetadata());
             return infos;
         }
 
@@ -380,7 +380,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
@@ -474,7 +474,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int? _index;
         private readonly QuantileRegressionEvaluator _evaluator;
 
-        protected override IEvaluator Evaluator => _evaluator;
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public QuantileRegressionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.QuantileRegression, "QuantilsRegressionMamlEvaluator")
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new QuantileRegressionMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new QuantileRegressionMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

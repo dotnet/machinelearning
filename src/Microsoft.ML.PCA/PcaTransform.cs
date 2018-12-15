@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -284,8 +285,8 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -539,9 +540,9 @@ namespace Microsoft.ML.Transforms.Projections
             return y;
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             ValidatePcaInput(Host, inputSchema.GetColumnName(srcCol), inputSchema.GetColumnType(srcCol));
         }
@@ -600,15 +601,15 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_numColumns];
+                var result = new Schema.DetachedColumn[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _parent._transformInfos[i].OutputType, null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _parent._transformInfos[i].OutputType, null);
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _numColumns);
@@ -653,12 +654,13 @@ namespace Microsoft.ML.Transforms.Projections
             var view = PcaTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
     public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransform>
     {
         internal static class Defaults
@@ -673,10 +675,9 @@ namespace Microsoft.ML.Transforms.Projections
         private readonly IHost _host;
         private readonly PcaTransform.ColumnInfo[] _columns;
 
-        /// <summary>Convinence constructor for simple one column case.</summary>
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">Input column to apply PCA on.</param>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="inputColumn">Input column to project to Principal Component.</param>
         /// <param name="outputColumn">Output column. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
@@ -691,6 +692,9 @@ namespace Microsoft.ML.Transforms.Projections
         {
         }
 
+        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">The dataset columns to use, and their specific settings.</param>
         public PrincipalComponentAnalysisEstimator(IHostEnvironment env, params PcaTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -703,7 +707,7 @@ namespace Microsoft.ML.Transforms.Projections
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

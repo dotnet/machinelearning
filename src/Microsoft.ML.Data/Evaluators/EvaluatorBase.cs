@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// This is a base class for TLC evaluators. It implements both of the <see cref="IEvaluator"/> methods: <see cref="Evaluate"/> and
-    ///  <see cref="GetPerInstanceMetrics"/>. Note that the input <see cref="RoleMappedData"/> is assumed to contain all the column
+    ///  <see cref="GetPerInstanceMetricsCore"/>. Note that the input <see cref="RoleMappedData"/> is assumed to contain all the column
     /// roles needed for evaluation, including the score column.
     /// </summary>
     public abstract partial class EvaluatorBase<TAgg> : IEvaluator
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Runtime.Data
             Host = env.Register(registrationName);
         }
 
-        public Dictionary<string, IDataView> Evaluate(RoleMappedData data)
+        Dictionary<string, IDataView> IEvaluator.Evaluate(RoleMappedData data)
         {
             CheckColumnTypes(data.Schema);
             Func<int, bool> activeCols = GetActiveCols(data.Schema);
@@ -208,7 +209,10 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        public abstract IDataTransform GetPerInstanceMetrics(RoleMappedData data);
+        IDataTransform IEvaluator.GetPerInstanceMetrics(RoleMappedData data) => GetPerInstanceMetricsCore(data);
+
+        [BestFriend]
+        internal abstract IDataTransform GetPerInstanceMetricsCore(RoleMappedData data);
 
         public abstract IEnumerable<MetricColumn> GetOverallMetricColumns();
 
@@ -252,7 +256,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// This method should get the getters of the new IRow that are needed for the next pass.
             /// </summary>
-            public abstract void InitializeNextPass(IRow row, RoleMappedSchema schema);
+            public abstract void InitializeNextPass(Row row, RoleMappedSchema schema);
 
             /// <summary>
             /// Call the getters once, and process the input as necessary.
@@ -323,7 +327,7 @@ namespace Microsoft.ML.Runtime.Data
         // When a new value is encountered, it uses a callback for creating a new aggregator.
         protected abstract class AggregatorDictionaryBase
         {
-            protected IRow Row;
+            protected Row Row;
             protected readonly Func<string, TAgg> CreateAgg;
             protected readonly RoleMappedSchema Schema;
 
@@ -345,7 +349,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Gets the stratification column getter for the new IRow.
             /// </summary>
-            public abstract void Reset(IRow row);
+            public abstract void Reset(Row row);
 
             public static AggregatorDictionaryBase Create(RoleMappedSchema schema, string stratCol, ColumnType stratType,
                 Func<string, TAgg> createAgg)
@@ -396,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
                     _dict = new Dictionary<TStrat, TAgg>();
                 }
 
-                public override void Reset(IRow row)
+                public override void Reset(Row row)
                 {
                     Row = row;
                     int col;
@@ -439,13 +443,14 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public override IDataTransform GetPerInstanceMetrics(RoleMappedData data)
+        internal override IDataTransform GetPerInstanceMetricsCore(RoleMappedData data)
         {
             var mapper = CreatePerInstanceRowMapper(data.Schema);
             return new RowToRowMapperTransform(Host, data.Data, mapper, null);
         }
 
-        protected abstract IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema);
+        [BestFriend]
+        private protected abstract IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema);
     }
 
     /// <summary>
@@ -459,7 +464,7 @@ namespace Microsoft.ML.Runtime.Data
         protected readonly int ScoreIndex;
         protected readonly int LabelIndex;
 
-        protected PerInstanceEvaluatorBase(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol)
+        protected PerInstanceEvaluatorBase(IHostEnvironment env, Schema schema, string scoreCol, string labelCol)
         {
             Contracts.AssertValue(env);
             Contracts.AssertNonEmpty(scoreCol);
@@ -474,7 +479,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.Except("Did not find column '{0}'", ScoreCol);
         }
 
-        protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx,  ISchema schema)
+        protected PerInstanceEvaluatorBase(IHostEnvironment env, ModelLoadContext ctx,  Schema schema)
         {
             Host = env.Register("PerInstanceRowMapper");
 
@@ -500,10 +505,22 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveStringOrNull(LabelCol);
         }
 
-        public abstract Func<int, bool> GetDependencies(Func<int, bool> activeOutput);
+        Func<int, bool> IRowMapper.GetDependencies(Func<int, bool> activeOutput)
+            => GetDependenciesCore(activeOutput);
 
-        public abstract Schema.Column[] GetOutputColumns();
+        [BestFriend]
+        private protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput);
 
-        public abstract Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer);
+        Schema.DetachedColumn[] IRowMapper.GetOutputColumns()
+            => GetOutputColumnsCore();
+
+        [BestFriend]
+        private protected abstract Schema.DetachedColumn[] GetOutputColumnsCore();
+
+        Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer)
+            => CreateGettersCore(input, activeCols, out disposer);
+
+        [BestFriend]
+        private protected abstract Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer);
     }
 }

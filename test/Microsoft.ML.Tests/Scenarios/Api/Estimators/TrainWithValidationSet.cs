@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var ml = new MLContext(seed: 1, conc: 1);
             // Pipeline.
-            var reader = ml.Data.TextReader(MakeSentimentTextLoaderArgs());
+            var reader = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true);
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features");
 
             // Train the pipeline, prepare train and validation set.
@@ -30,8 +30,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var validData = preprocess.Transform(reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename)));
 
             // Train model with validation set.
-            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label","Features");
-            var model = trainer.Train(trainData, validData);
+            var trainer = ml.BinaryClassification.Trainers.FastTree("Label","Features");
+            var model = trainer.Train(ml.Data.Cache(trainData), ml.Data.Cache(validData));
         }
     }
 }

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using System.Linq;
@@ -14,6 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
+#pragma warning disable 612, 618
     public class LearningPipelineTests : BaseTestClass
     {
         public LearningPipelineTests(ITestOutputHelper output)
@@ -154,4 +155,5 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal(3, pipeline.Count);
         }
     }
+#pragma warning restore 612, 618
 }

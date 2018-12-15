@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -162,7 +163,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <summary>
         /// Save the trained matrix factorization model (two factor matrices) in text format
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine("# Imputed matrix is P * Q'");
             writer.WriteLine("# P in R^({0} x {1}), rows correpond to Y item", _numberOfRows, _approximationRank);
@@ -211,7 +212,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// ratings from users to items, the mappers maps user ID and item ID to the rating of that
         /// item given by the user.
         /// </summary>
-        public ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut> GetMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>()
+        private ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut> GetMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>()
         {
             string msg = null;
             msg = "Invalid " + nameof(TMatrixColumnIndexIn) + " in GetMapper: " + typeof(TMatrixColumnIndexIn);
@@ -277,8 +278,8 @@ namespace Microsoft.ML.Trainers.Recommender
             private readonly string _matrixColumnIndexColumnName;
             private readonly string _matrixRowIndexColumnName;
             private IHostEnvironment _env;
-            public Schema Schema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema OutputSchema { get; }
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
@@ -306,12 +307,12 @@ namespace Microsoft.ML.Trainers.Recommender
 
                 CheckInputSchema(schema.Schema, _matrixColumnIndexColumnIndex, _matrixRowIndexCololumnIndex);
                 InputRoleMappedSchema = schema;
-                Schema = outputSchema;
+                OutputSchema = outputSchema;
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => (col == _matrixColumnIndexColumnIndex || col == _matrixRowIndexCololumnIndex);
@@ -325,7 +326,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 yield return RecommenderUtils.MatrixRowIndexKind.Bind(_matrixRowIndexColumnName);
             }
 
-            private void CheckInputSchema(ISchema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
+            private void CheckInputSchema(Schema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
             {
                 // See if matrix-column-index role's type matches the one expected in the trained predictor
                 var type = schema.GetColumnType(matrixColumnIndexCol);
@@ -338,10 +339,10 @@ namespace Microsoft.ML.Trainers.Recommender
                 _env.CheckParam(type.Equals(_parent.MatrixRowIndexType), nameof(schema), msg);
             }
 
-            private Delegate[] CreateGetter(IRow input, bool[] active)
+            private Delegate[] CreateGetter(Row input, bool[] active)
             {
                 _env.CheckValue(input, nameof(input));
-                _env.Assert(Utils.Size(active) == Schema.ColumnCount);
+                _env.Assert(Utils.Size(active) == OutputSchema.ColumnCount);
 
                 var getters = new Delegate[1];
                 if (active[0])
@@ -357,15 +358,14 @@ namespace Microsoft.ML.Trainers.Recommender
                 return getters;
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active)
             {
-                var active = Utils.BuildArray(Schema.ColumnCount, predicate);
-                var getters = CreateGetter(input, active);
-                disposer = null;
-                return new SimpleRow(Schema, input, getters);
+                var activeArray = Utils.BuildArray(OutputSchema.ColumnCount, active);
+                var getters = CreateGetter(input, activeArray);
+                return new SimpleRow(OutputSchema, input, getters);
             }
 
-            public ISchemaBindableMapper Bindable { get { return _parent; } }
+            public ISchemaBindableMapper Bindable => _parent;
         }
     }
 

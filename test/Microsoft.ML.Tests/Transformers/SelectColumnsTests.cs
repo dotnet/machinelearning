@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
@@ -57,7 +56,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(foundColumnA);
             Assert.Equal(0, aIdx);
             Assert.False(foundColumnB);
-            Assert.Equal(0, bIdx);
             Assert.True(foundColumnC);
             Assert.Equal(1, cIdx);
         }
@@ -79,7 +77,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(foundColumnA);
             Assert.Equal(1, aIdx);
             Assert.False(foundColumnB);
-            Assert.Equal(0, bIdx);
             Assert.True(foundColumnC);
             Assert.Equal(0, cIdx);
         }
@@ -97,11 +94,9 @@ namespace Microsoft.ML.Tests.Transformers
             var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
 
             Assert.False(foundColumnA);
-            Assert.Equal(0, aIdx);
             Assert.True(foundColumnB);
             Assert.Equal(0, bIdx);
             Assert.False(foundColumnC);
-            Assert.Equal(0, cIdx);
         }
         
         [Fact]
@@ -113,16 +108,12 @@ namespace Microsoft.ML.Tests.Transformers
             var invalidDataView = ComponentCreation.CreateDataView(Env, invalidData);
 
             // Workout on keep columns
-            var est = ML.Transforms.SelectColumns(new[] {"A", "B"}, null, true, false);
+            var est = ML.Transforms.SelectColumns(new[] {"A", "B"});
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
 
-            // Workout on drop columns
-            est = ML.Transforms.SelectColumns(null, new[] {"A", "B"}, true, false);
+            // Workout on select columns with hidden: true
+            est = ML.Transforms.SelectColumns(new[] {"A", "B"}, true);
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
-
-            // Workout on keep columns with ignore mismatch -- using invalid data set
-            est = ML.Transforms.SelectColumns(new[] {"A", "B"}, null, true, true);
-            TestEstimatorCore(est, validFitInput: invalidDataView);
         }
 
         [Fact]
@@ -139,7 +130,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
             var chain = est.Append(ColumnSelectingEstimator.KeepColumns(Env, "C", "A"));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
@@ -153,7 +144,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(foundColumnA);
             Assert.Equal(1, aIdx);
             Assert.False(foundColumnB);
-            Assert.Equal(0, bIdx);
             Assert.True(foundColumnC);
             Assert.Equal(0, cIdx);
         }
@@ -163,8 +153,8 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(ML.Transforms.SelectColumns(new[] {"B", "A" }, null, true));
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var chain = est.Append(ML.Transforms.SelectColumns(new[] {"B", "A" }, true));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
 
@@ -179,46 +169,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(foundColumnB);
             Assert.Equal(1, bIdx);
             Assert.False(foundColumnC);
-            Assert.Equal(0, cIdx);
-        }
-
-        [Fact]
-        void TestSelectColumnsDropWithKeepHidden()
-        {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(ML.Transforms.SelectColumns(null, new[] { "A" }, true));
-            var transformer = chain.Fit(dataView);
-            var result = transformer.Transform(dataView);
-
-            // Input for SelectColumns should be AABBC, we chose to drop A
-            // and keep hidden columns is true, therefore the output should be BBC
-            Assert.Equal(3, result.Schema.ColumnCount);
-            var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
-            var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
-            var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
-            Assert.False(foundColumnA);
-            Assert.Equal(0, aIdx);
-            Assert.True(foundColumnB);
-            Assert.Equal(1, bIdx);
-            Assert.True(foundColumnC);
-            Assert.Equal(2, cIdx);
-        }
-
-        [Fact]
-        void TestSelectWithKeepAndDropSet()
-        {
-            // Setting both keep and drop is not allowed.
-            var test = new string[]{ "D", "G"};
-            Assert.Throws<InvalidOperationException>(() => ML.Transforms.SelectColumns(test, test));
-        }
-
-        [Fact]
-        void TestSelectNoKeepAndDropSet()
-        {
-            // Passing null to both keep and drop is not allowed.
-            Assert.Throws<InvalidOperationException>(() => ML.Transforms.SelectColumns(null, null));
         }
 
         [Fact]
@@ -245,8 +195,8 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")}).Append(
-                      ML.Transforms.SelectColumns(new[] { "A", "B" }, null, false));
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")}).Append(
+                      ML.Transforms.SelectColumns(new[] { "A", "B" }, false));
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
@@ -281,7 +231,6 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(foundColumnFeature);
                 Assert.Equal(1, featureIdx);
                 Assert.False(foundColumnA);
-                Assert.Equal(0, aIdx);
                 Assert.True(foundColumnB);
                 Assert.Equal(2, bIdx);
                 Assert.True(foundColumnC);
@@ -314,7 +263,6 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(foundColumnB);
                 Assert.Equal(3, bIdx);
                 Assert.False(foundColumnC);
-                Assert.Equal(0, cIdx);
             }
         }
         
@@ -343,7 +291,6 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(foundColumnB);
                 Assert.Equal(3, bIdx);
                 Assert.False(foundColumnC);
-                Assert.Equal(0, cIdx);
             }
         }
 
@@ -373,7 +320,6 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(foundColumnB);
                 Assert.Equal(5, bIdx);
                 Assert.False(foundColumnC);
-                Assert.Equal(0, cIdx);
             }
         }
 

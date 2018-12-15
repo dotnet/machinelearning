@@ -6,13 +6,14 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector;
+using System;
 
 [assembly: LoadableClass(typeof(AllFeatureSelector), null, typeof(SignatureEnsembleFeatureSelector),
     AllFeatureSelector.UserName, AllFeatureSelector.LoadName)]
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
 {
-    public sealed class AllFeatureSelector : IFeatureSelector
+    internal sealed class AllFeatureSelector : IFeatureSelector
     {
         public const string UserName = "All Feature Selector";
         public const string LoadName = "AllFeatureSelector";
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
         {
         }
 
-        public Subset SelectFeatures(RoleMappedData data, IRandom rand)
+        public Subset SelectFeatures(RoleMappedData data, Random rand)
         {
             return new Subset(data);
         }

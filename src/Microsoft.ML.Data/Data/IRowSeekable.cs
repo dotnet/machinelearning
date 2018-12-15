@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using System;
 
 namespace Microsoft.ML.Runtime.Data
@@ -11,17 +12,19 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Represents a data view that supports random access to a specific row.
     /// </summary>
-    public interface IRowSeekable : ISchematized
+    public interface IRowSeekable
     {
-        IRowSeeker GetSeeker(Func<int, bool> predicate);
+        RowSeeker GetSeeker(Func<int, bool> predicate);
+
+        Schema Schema { get; }
     }
 
     /// <summary>
     /// Represents a row seeker with random access that can retrieve a specific row by the row index.
-    /// For IRowSeeker, when the state is valid (that is when MoveTo() returns true), it returns the
-    /// current row index. Otherwise it's -1.
+    /// For <see cref="RowSeeker"/>, when the state is valid (that is when <see cref="MoveTo(long)"/>
+    /// returns <see langword="true"/>), it returns the current row index. Otherwise it's -1.
     /// </summary>
-    public interface IRowSeeker : IRow, IDisposable
+    public abstract class RowSeeker : Row
     {
         /// <summary>
         /// Moves the seeker to a row at a specific row index.
@@ -30,6 +33,6 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="rowIndex">The row index to move to.</param>
         /// <returns>True if a row with specified index is found; false otherwise.</returns>
-        bool MoveTo(long rowIndex);
+        public abstract bool MoveTo(long rowIndex);
     }
 }

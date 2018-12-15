@@ -5,12 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
-    public abstract class BaseSubModelSelector<TOutput> : ISubModelSelector<TOutput>
+    internal abstract class BaseSubModelSelector<TOutput> : ISubModelSelector<TOutput>
     {
         protected readonly IHost Host;
 

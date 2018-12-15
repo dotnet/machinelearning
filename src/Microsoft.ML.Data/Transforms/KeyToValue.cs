@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -137,8 +138,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -152,7 +153,7 @@ namespace Microsoft.ML.Transforms.Conversions
             SaveColumns(ctx);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsPfa
         {
@@ -169,14 +170,14 @@ namespace Microsoft.ML.Transforms.Conversions
 
             public bool CanSavePfa => true;
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var meta = new Schema.Metadata.Builder();
+                    var meta = new MetadataBuilder();
                     meta.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
@@ -210,7 +211,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 ctx.DeclareVar(toDeclare.ToArray());
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _types.Length);
@@ -219,7 +220,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             // Computes the types of the columns and constructs the kvMaps.
-            private void ComputeKvMaps(ISchema schema, out ColumnType[] types, out KeyToValueMap[] kvMaps)
+            private void ComputeKvMaps(Schema schema, out ColumnType[] types, out KeyToValueMap[] kvMaps)
             {
                 types = new ColumnType[_parent.ColumnPairs.Length];
                 kvMaps = new KeyToValueMap[_parent.ColumnPairs.Length];
@@ -231,10 +232,10 @@ namespace Microsoft.ML.Transforms.Conversions
                     var typeVals = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, ColMapNewToOld[iinfo]);
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
                     Host.Check(typeVals.VectorSize == typeSrc.ItemType.KeyCount, "KeyValues metadata size does not match column type key count");
-                    if (!typeSrc.IsVector)
+                    if (!(typeSrc is VectorType vectorType))
                         types[iinfo] = typeVals.ItemType;
                     else
-                        types[iinfo] = new VectorType(typeVals.ItemType.AsPrimitive, typeSrc.AsVector);
+                        types[iinfo] = new VectorType((PrimitiveType)typeVals.ItemType, vectorType);
 
                     // MarshalInvoke with two generic params.
                     Func<int, ColumnType, ColumnType, KeyToValueMap> func = GetKeyMetadata<int, int>;
@@ -257,7 +258,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Check(keyMetadata.Length == typeKey.ItemType.KeyCount);
 
                 VBufferUtils.Densify(ref keyMetadata);
-                return new KeyToValueMap<TKey, TValue>(this, typeKey.ItemType.AsKey, typeVal.ItemType.AsPrimitive, keyMetadata, iinfo);
+                return new KeyToValueMap<TKey, TValue>(this, (KeyType)typeKey.ItemType, (PrimitiveType)typeVal.ItemType, keyMetadata, iinfo);
             }
             /// <summary>
             /// A map is an object capable of creating the association from an input type, to an output
@@ -293,7 +294,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     InfoIndex = iinfo;
                 }
 
-                public abstract Delegate GetMappingGetter(IRow input);
+                public abstract Delegate GetMappingGetter(Row input);
 
                 public abstract JToken SavePfa(BoundPfaContext ctx, JToken srcToken);
             }
@@ -345,7 +346,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         dst = _na;
                 }
 
-                public override Delegate GetMappingGetter(IRow input)
+                public override Delegate GetMappingGetter(Row input)
                 {
                     // When constructing the getter, there are a few cases we have to consider:
                     // If scalar then it's just a straightforward mapping.
@@ -511,7 +512,7 @@ namespace Microsoft.ML.Transforms.Conversions
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.input, out var col))

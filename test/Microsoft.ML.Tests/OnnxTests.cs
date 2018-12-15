@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.RunTests;
@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
+#pragma warning disable 612, 618
     public class OnnxTests : BaseTestBaseline
     {
         public OnnxTests(ITestOutputHelper output) : base(output)
@@ -350,7 +351,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 differs from Baseline
         public void KmeansTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");
@@ -587,4 +588,5 @@ namespace Microsoft.ML.Tests
         }
 
     }
+#pragma warning restore 612, 618
 }

@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Google.Protobuf;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Google.Protobuf;
-using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
-using Microsoft.ML.Runtime.Data;
-using System;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
@@ -296,10 +296,10 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
             TensorProto.Types.DataType dataType = TensorProto.Types.DataType.Undefined;
             DataKind rawKind;
-            if (type.IsVector)
-                rawKind = type.AsVector.ItemType.RawKind;
-            else if (type.IsKey)
-                rawKind = type.AsKey.RawKind;
+            if (type is VectorType vectorType)
+                rawKind = vectorType.ItemType.RawKind;
+            else if (type is KeyType keyType)
+                rawKind = keyType.RawKind;
             else
                 rawKind = type.RawKind;
 
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                     dimsLocal.Add(1);
                 else if (type.ValueCount > 1)
                 {
-                    var vec = type.AsVector;
+                    var vec = (VectorType)type;
                     for (int i = 0; i < vec.Dimensions.Length; i++)
                         dimsLocal.Add(vec.Dimensions[i]);
                 }

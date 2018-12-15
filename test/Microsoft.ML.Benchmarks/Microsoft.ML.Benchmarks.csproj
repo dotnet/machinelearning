@@ -31,7 +31,7 @@
     <Content Include="..\data\iris.txt" Link="Input\iris.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="..\data\adult.train" Link="Input\adult.train">
+    <None Include="..\data\adult.tiny.with-schema.txt" Link="Input\adult.tiny.with-schema.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\data\wikipedia-detox-250-line-data.tsv" Link="Input\wikipedia-detox-250-line-data.tsv">

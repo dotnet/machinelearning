@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Core.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Float = System.Single;
 
 [assembly: LoadableClass(TextLoader.Summary, typeof(IDataLoader), typeof(TextLoader), typeof(TextLoader.Arguments), typeof(SignatureDataLoader),
     "Text Loader", "TextLoader", "Text", DocName = "loader/TextLoader.md")]
@@ -25,7 +25,6 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// Loads a text file into an IDataView. Supports basic mapping from input columns to IDataView columns.
-    /// Should accept any file that TlcTextInstances accepts.
     /// </summary>
     public sealed partial class TextLoader : IDataReader<IMultiStreamSource>, ICanSaveModel
     {
@@ -841,9 +840,8 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.Assert((DataKind)(byte)type.RawKind == type.RawKind);
                     ctx.Writer.Write((byte)type.RawKind);
                     ctx.Writer.WriteBoolByte(type.IsKey);
-                    if (type.IsKey)
+                    if (type is KeyType key)
                     {
-                        var key = type.AsKey;
                         ctx.Writer.WriteBoolByte(key.Contiguous);
                         ctx.Writer.Write(key.Min);
                         ctx.Writer.Write(key.Count);
@@ -1008,23 +1006,38 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private const string RegistrationName = "TextLoader";
 
-        public TextLoader(IHostEnvironment env, Column[] columns, Action<Arguments> advancedSettings, IMultiStreamSource dataSample = null)
-            : this(env, MakeArgs(columns, advancedSettings), dataSample)
+        /// <summary>
+        /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
+        /// <param name="hasHeader">Whether the file has a header.</param>
+        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
+        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        public TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null)
+            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }), dataSample)
         {
         }
 
-        private static Arguments MakeArgs(Column[] columns, Action<Arguments> advancedSettings)
+        private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars)
         {
-            var result = new Arguments { Column = columns };
-            advancedSettings?.Invoke(result);
+            Contracts.AssertValue(separatorChars);
+            var result = new Arguments { Column = columns, HasHeader = hasHeader, SeparatorChars = separatorChars};
             return result;
         }
 
-        public TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource dataSample = null)
+        /// <summary>
+        /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="args">Defines the settings of the load operation.</param>
+        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        public TextLoader(IHostEnvironment env, Arguments args = null, IMultiStreamSource dataSample = null)
         {
+            args = args ?? new Arguments();
+
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-
             _host.CheckValue(args, nameof(args));
             _host.CheckValueOrNull(dataSample);
 
@@ -1285,7 +1298,7 @@ namespace Microsoft.ML.Runtime.Data
             _parser = new Parser(this);
         }
 
-        public static TextLoader Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static TextLoader Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(RegistrationName);
@@ -1297,15 +1310,15 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // These are legacy constructors needed for ComponentCatalog.
-        public static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        internal static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
             => (IDataLoader)Create(env, ctx).Read(files);
-        public static IDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
+        internal static IDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
             => (IDataLoader)new TextLoader(env, args, files).Read(files);
 
         /// <summary>
         /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
         /// </summary>
-        public static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
+        internal static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
             => new TextLoader(env, args, fileSource).Read(fileSource);
 
         public void Save(ModelSaveContext ctx)
@@ -1364,7 +1377,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema Schema => _reader._bindings.AsSchema;
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
@@ -1372,8 +1385,8 @@ namespace Microsoft.ML.Runtime.Data
                 return Cursor.Create(_reader, _files, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-                Func<int, bool> predicate, int n, IRandom rand = null)
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+                Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);

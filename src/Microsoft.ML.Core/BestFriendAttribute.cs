@@ -4,7 +4,13 @@
 
 using System;
 
+#if CPUMATH_INFRASTRUCTURE
+// CpuMath has its own BestFriend and WantsToBeBestFriends attributes for making itself a standalone module
+namespace Microsoft.ML.Runtime.Internal.CpuMath.Core
+#else
+// This namespace contains the BestFriend and WantsToBeBestFriends attributes generally used in ML.NET project settings
 namespace Microsoft.ML
+#endif
 {
     /// <summary>
     /// Intended to be applied to types and members marked as internal to indicate that friend access of this

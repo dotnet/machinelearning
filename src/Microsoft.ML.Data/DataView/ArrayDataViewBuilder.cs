@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Linq;
-using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -211,46 +209,46 @@ namespace Microsoft.ML.Runtime.Data
                 _host.Assert(builder._names.Count == builder._columns.Count);
                 _columns = builder._columns.ToArray();
 
-                var schemaCols = new Schema.Column[_columns.Length];
-                for(int i=0; i<schemaCols.Length; i++)
+                var schemaBuilder = new SchemaBuilder();
+                for(int i=0; i< _columns.Length; i++)
                 {
-                    var meta = new Schema.Metadata.Builder();
+                    var meta = new MetadataBuilder();
 
                     if (builder._getSlotNames.TryGetValue(builder._names[i], out var slotNamesGetter))
                         meta.AddSlotNames(_columns[i].Type.VectorSize, slotNamesGetter);
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
                         meta.AddKeyValues(_columns[i].Type.KeyCount, TextType.Instance, keyValueGetter);
-                    schemaCols[i] = new Schema.Column(builder._names[i], _columns[i].Type, meta.GetMetadata());
+                    schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.GetMetadata());
                 }
 
-                _schema = new Schema(schemaCols);
+                _schema = schemaBuilder.GetSchema();
                 _rowCount = rowCount;
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                return new RowCursor(_host, this, predicate, rand);
+                return new Cursor(_host, this, predicate, rand);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-                Func<int, bool> predicate, int n, IRandom rand = null)
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+                Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
                 consolidator = null;
-                return new IRowCursor[] { new RowCursor(_host, this, predicate, rand) };
+                return new RowCursor[] { new Cursor(_host, this, predicate, rand) };
             }
 
-            private sealed class RowCursor : RootCursorBase, IRowCursor
+            private sealed class Cursor : RootCursorBase
             {
                 private readonly DataView _view;
                 private readonly BitArray _active;
                 private readonly int[] _indices;
 
-                public Schema Schema => _view.Schema;
+                public override Schema Schema => _view.Schema;
 
                 public override long Batch
                 {
@@ -258,7 +256,7 @@ namespace Microsoft.ML.Runtime.Data
                     get { return 0; }
                 }
 
-                public RowCursor(IChannelProvider provider, DataView view, Func<int, bool> predicate, IRandom rand)
+                public Cursor(IChannelProvider provider, DataView view, Func<int, bool> predicate, Random rand)
                     : base(provider)
                 {
                     Ch.AssertValue(view);
@@ -278,35 +276,35 @@ namespace Microsoft.ML.Runtime.Data
                         _indices = Utils.GetRandomPermutation(rand, view._rowCount);
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
+                public override ValueGetter<RowId> GetIdGetter()
                 {
                     if (_indices == null)
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)Position, 0);
+                                val = new RowId((ulong)Position, 0);
                             };
                     }
                     else
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)MappedIndex(), 0);
+                                val = new RowId((ulong)MappedIndex(), 0);
                             };
                     }
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.Check(0 <= col & col < Schema.ColumnCount);
                     return _active[col];
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.Check(0 <= col & col < Schema.ColumnCount);
                     Ch.Check(_active[col], "column is not active");

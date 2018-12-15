@@ -12,10 +12,12 @@ namespace Microsoft.ML.Runtime
     /// <summary>
     /// Common signature type with no extra parameters.
     /// </summary>
-    public delegate void SignatureDefault();
+    [BestFriend]
+    internal delegate void SignatureDefault();
 
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-    public sealed class LoadableClassAttribute : LoadableClassAttributeBase
+    [BestFriend]
+    internal sealed class LoadableClassAttribute : LoadableClassAttributeBase
     {
         /// <summary>
         /// Assembly attribute used to specify that a class is loadable by a machine learning
@@ -98,7 +100,7 @@ namespace Microsoft.ML.Runtime
         }
     }
 
-    public abstract class LoadableClassAttributeBase : Attribute
+    internal abstract class LoadableClassAttributeBase : Attribute
     {
         // Note: these properties have private setters to make attribute parsing easier - the values
         // are all guaranteed to be in the ConstructorArguments of the CustomAttributeData

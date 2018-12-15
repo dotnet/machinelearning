@@ -2,13 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -16,6 +10,11 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Multi Output Regression Evaluator", MultiOutputRegressionEvaluator.LoadName, "MultiOutputRegression", "MRE")]
@@ -48,7 +47,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Host.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
@@ -300,7 +299,7 @@ namespace Microsoft.ML.Runtime.Data
                 WeightedCounters = Weighted ? new Counters(lossFunction, _size) : null;
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Contracts.Assert(PassNum < 1);
                 Contracts.AssertValue(schema.Label);
@@ -417,7 +416,7 @@ namespace Microsoft.ML.Runtime.Data
             // base
         }
 
-        public static MultiOutputRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static MultiOutputRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -437,7 +436,7 @@ namespace Microsoft.ML.Runtime.Data
             base.Save(ctx);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             return
                 col =>
@@ -447,18 +446,18 @@ namespace Microsoft.ML.Runtime.Data
                     (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
-            var infos = new Schema.Column[5];
-            infos[LabelOutput] = new Schema.Column(LabelCol, _labelType, _labelMetadata);
-            infos[ScoreOutput] = new Schema.Column(ScoreCol, _scoreType, _scoreMetadata);
-            infos[L1Output] = new Schema.Column(L1, NumberType.R8, null);
-            infos[L2Output] = new Schema.Column(L2, NumberType.R8, null);
-            infos[DistCol] = new Schema.Column(Dist, NumberType.R8, null);
+            var infos = new Schema.DetachedColumn[5];
+            infos[LabelOutput] = new Schema.DetachedColumn(LabelCol, _labelType, _labelMetadata);
+            infos[ScoreOutput] = new Schema.DetachedColumn(ScoreCol, _scoreType, _scoreMetadata);
+            infos[L1Output] = new Schema.DetachedColumn(L1, NumberType.R8, null);
+            infos[L2Output] = new Schema.DetachedColumn(L2, NumberType.R8, null);
+            infos[DistCol] = new Schema.DetachedColumn(Dist, NumberType.R8, null);
             return infos;
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);
@@ -550,25 +549,25 @@ namespace Microsoft.ML.Runtime.Data
             var t = schema.GetColumnType(LabelIndex);
             if (!t.IsKnownSizeVector || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
                 throw Host.Except("Label column '{0}' has type '{1}' but must be a known-size vector of R4 or R8", LabelCol, t);
-            labelType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
+            labelType = new VectorType((PrimitiveType)t.ItemType, t.VectorSize);
             var slotNamesType = new VectorType(TextType.Instance, t.VectorSize);
-            var builder = new Schema.Metadata.Builder();
+            var builder = new MetadataBuilder();
             builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, LabelIndex, labelType.VectorSize, "True"));
             labelMetadata = builder.GetMetadata();
 
             t = schema.GetColumnType(ScoreIndex);
             if (t.VectorSize == 0 || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be a known length vector of type R4", ScoreCol, t);
-            scoreType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
-            builder = new Schema.Metadata.Builder();
+            scoreType = new VectorType((PrimitiveType)t.ItemType, t.VectorSize);
+            builder = new MetadataBuilder();
             builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.VectorSize, "Predicted"));
 
             ValueGetter<ReadOnlyMemory<char>> getter = GetScoreColumnKind;
-            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance, null), getter);
+            builder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance, getter);
             getter = GetScoreValueKind;
-            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance, null), getter);
+            builder.Add(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance, getter);
             ValueGetter<uint> uintGetter = GetScoreColumnSetId(schema);
-            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreColumnSetId, MetadataUtils.ScoreColumnSetIdType, null), uintGetter);
+            builder.Add(MetadataUtils.Kinds.ScoreColumnSetId, MetadataUtils.ScoreColumnSetIdType, uintGetter);
             scoreMetadata = builder.GetMetadata();
         }
 
@@ -591,7 +590,7 @@ namespace Microsoft.ML.Runtime.Data
             dst = MetadataUtils.Const.ScoreValueKind.Score.AsMemory();
         }
 
-        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(ISchema schema, int column, int length, string prefix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(Schema schema, int column, int length, string prefix)
         {
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, column);
             if (type != null && type.IsText)
@@ -624,7 +623,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly MultiOutputRegressionEvaluator _evaluator;
         private readonly bool _supressScoresAndLabels;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public MultiOutputRegressionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.MultiOutputRegression, "RegressionMamlEvaluator")
@@ -782,7 +781,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new MultiOutputRegressionMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new MultiOutputRegressionMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

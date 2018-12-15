@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
     using TScalarPredictor = IPredictorProducing<Single>;
 
-    public sealed class BestDiverseSelectorRegression : BaseDiverseSelector<Single, RegressionDisagreementDiversityMeasure>, IRegressionSubModelSelector
+    internal sealed class BestDiverseSelectorRegression : BaseDiverseSelector<Single, RegressionDisagreementDiversityMeasure>, IRegressionSubModelSelector
     {
         public const string UserName = "Best Diverse Selector";
         public const string LoadName = "BestDiverseSelectorRegression";

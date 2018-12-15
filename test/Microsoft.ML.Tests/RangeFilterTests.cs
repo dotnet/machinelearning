@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
-using System.Threading;
 using Xunit;
 using Xunit.Abstractions;
 

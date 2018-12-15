@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.DataLoadSave;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -159,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var fakeSchema = Schema.Create(new FakeSchema(Host, inputSchema));
+            var fakeSchema = FakeSchemaFactory.Create(inputSchema);
             var transformer = Fit(new EmptyDataView(Host, fakeSchema));
             return SchemaShape.Create(transformer.GetOutputSchema(fakeSchema));
         }
@@ -178,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var fakeSchema = Schema.Create(new FakeSchema(Host, inputSchema));
+            var fakeSchema = FakeSchemaFactory.Create(inputSchema);
             return SchemaShape.Create(Transformer.GetOutputSchema(fakeSchema));
         }
     }

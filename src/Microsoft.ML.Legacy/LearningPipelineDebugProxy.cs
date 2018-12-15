@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Legacy
 {
@@ -17,6 +18,7 @@ namespace Microsoft.ML.Legacy
     /// The debug proxy class for a LearningPipeline.
     /// Displays the current columns and values in the debugger Watch window.
     /// </summary>
+    [Obsolete]
     internal sealed class LearningPipelineDebugProxy
     {
         // load more rows than we display in order for transforms like CategoricalOneHotVectorizer
@@ -145,8 +147,9 @@ namespace Microsoft.ML.Legacy
                     catch (Exception e)
                     {
                         _pipelineExecutionException = e;
-                        var fakeColumn = new KeyValuePair<string, ColumnType>("Blank", TextType.Instance);
-                        _preview = new EmptyDataView(_environment, Schema.Create(new SimpleSchema(_environment, fakeColumn)));
+                        var builder = new SchemaBuilder();
+                        builder.AddColumn("Blank", TextType.Instance);
+                        _preview = new EmptyDataView(_environment, builder.GetSchema());
                     }
                 }
             }
@@ -221,6 +224,7 @@ namespace Microsoft.ML.Legacy
         }
     }
 
+    [Obsolete]
     [DebuggerDisplay("{Name} {Type}{SlotNames}")]
     internal class PipelineItemDebugColumn
     {
@@ -234,6 +238,7 @@ namespace Microsoft.ML.Legacy
         }
     }
 
+    [Obsolete]
     [DebuggerDisplay("{Values}")]
     internal class PipelineItemDebugRow
     {

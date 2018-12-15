@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -11,7 +12,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.ML.Transforms.Categorical
+namespace Microsoft.ML.Transforms.Conversions
 {
     public sealed partial class ValueToKeyMappingTransformer
     {
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 Contracts.Assert(sortOrder == SortOrder.Occurrence || sortOrder == SortOrder.Value);
                 bool sorted = sortOrder == SortOrder.Value;
 
-                PrimitiveType itemType = type.ItemType.AsPrimitive;
+                PrimitiveType itemType = type.ItemType as PrimitiveType;
                 Contracts.AssertValue(itemType);
                 if (itemType.IsText)
                     return new TextImpl(sorted);
@@ -279,7 +280,7 @@ namespace Microsoft.ML.Transforms.Categorical
             /// the input type to the desired type</param>
             /// <param name="bldr">The builder we add items to</param>
             /// <returns>An associated training pipe</returns>
-            public static Trainer Create(IRow row, int col, bool autoConvert, int count, Builder bldr)
+            public static Trainer Create(Row row, int col, bool autoConvert, int count, Builder bldr)
             {
                 Contracts.AssertValue(row);
                 var schema = row.Schema;
@@ -296,7 +297,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 return Utils.MarshalInvoke(CreateOne<int>, bldr.ItemType.RawType, row, col, autoConvert, count, bldr);
             }
 
-            private static Trainer CreateOne<T>(IRow row, int col, bool autoConvert, int count, Builder bldr)
+            private static Trainer CreateOne<T>(Row row, int col, bool autoConvert, int count, Builder bldr)
             {
                 Contracts.AssertValue(row);
                 Contracts.AssertValue(bldr);
@@ -312,7 +313,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 return new ImplOne<T>(inputGetter, count, bldrT);
             }
 
-            private static Trainer CreateVec<T>(IRow row, int col, int count, Builder bldr)
+            private static Trainer CreateVec<T>(Row row, int col, int count, Builder bldr)
             {
                 Contracts.AssertValue(row);
                 Contracts.AssertValue(bldr);
@@ -473,7 +474,8 @@ namespace Microsoft.ML.Transforms.Categorical
         /// These are the immutable and serializable analogs to the <see cref="Builder"/> used in
         /// training.
         /// </summary>
-        public abstract class TermMap
+        [BestFriend]
+        internal abstract class TermMap
         {
             /// <summary>
             /// The item type of the input type, that is, either the input type or,
@@ -567,7 +569,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     }
                 }
 
-                return new HashArrayImpl<T>(codec.Type.AsPrimitive, values);
+                return new HashArrayImpl<T>((PrimitiveType)codec.Type, values);
             }
 
             internal abstract void WriteTextTerms(TextWriter writer);
@@ -756,7 +758,7 @@ namespace Microsoft.ML.Transforms.Categorical
             }
         }
 
-        public abstract class TermMap<T> : TermMap
+        internal abstract class TermMap<T> : TermMap
         {
             protected TermMap(PrimitiveType type, int count)
                 : base(type, count)
@@ -848,13 +850,13 @@ namespace Microsoft.ML.Transforms.Categorical
                 return new Impl<T>(env, schema, mapT, infos, textMetadata, iinfo);
             }
 
-            public abstract Delegate GetMappingGetter(IRow row);
+            public abstract Delegate GetMappingGetter(Row row);
 
             /// <summary>
             /// Allows us to optionally register metadata. It is also perfectly legal for
             /// this to do nothing, which corresponds to there being no metadata.
             /// </summary>
-            public abstract void AddMetadata(Schema.Metadata.Builder builder);
+            public abstract void AddMetadata(MetadataBuilder builder);
 
             /// <summary>
             /// Writes out all terms we map to a text writer, with one line per mapped term.
@@ -889,7 +891,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     return dst;
                 }
 
-                public override Delegate GetMappingGetter(IRow input)
+                public override Delegate GetMappingGetter(Row input)
                 {
                     // When constructing the getter, there are a few cases we have to consider:
                     // If scalar then it's just a straightforward mapping.
@@ -1037,7 +1039,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     }
                 }
 
-                public override void AddMetadata(Schema.Metadata.Builder builder)
+                public override void AddMetadata(MetadataBuilder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1080,7 +1082,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     _host.Assert(TypedMap.ItemType.IsKey);
                 }
 
-                public override void AddMetadata(Schema.Metadata.Builder builder)
+                public override void AddMetadata(MetadataBuilder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1095,12 +1097,12 @@ namespace Microsoft.ML.Transforms.Categorical
                     }
                 }
 
-                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, Schema.Metadata.Builder builder)
+                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, MetadataBuilder builder)
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
                     _host.AssertValue(builder);
-                    var srcType = TypedMap.ItemType.AsKey;
+                    var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
                     var convInst = Runtime.Data.Conversion.Conversions.Instance;
@@ -1155,7 +1157,7 @@ namespace Microsoft.ML.Transforms.Categorical
                                 getter(ref dst);
                                 _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, srcMetaType.ItemType.AsPrimitive, mgetter);
+                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, (PrimitiveType)srcMetaType.ItemType, mgetter);
                     }
                     return true;
                 }
@@ -1168,7 +1170,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     ColumnType srcMetaType = _schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
                     if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
-                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.AsVector.ItemType, writer))
+                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.WriteTextTerms(writer);
@@ -1179,7 +1181,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
-                    var srcType = TypedMap.ItemType.AsKey;
+                    var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
                     var convInst = Runtime.Data.Conversion.Conversions.Instance;

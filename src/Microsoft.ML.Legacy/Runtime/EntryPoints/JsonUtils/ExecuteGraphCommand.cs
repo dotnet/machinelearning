@@ -115,15 +115,15 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     runner.SetInput(varName, loader);
                     break;
                 case TlcModule.DataKind.PredictorModel:
-                    PredictorModel pm;
+                    PredictorModelImpl pm;
                     using (var fs = File.OpenRead(path))
-                        pm = new PredictorModel(_host, fs);
+                        pm = new PredictorModelImpl(_host, fs);
                     runner.SetInput(varName, pm);
                     break;
                 case TlcModule.DataKind.TransformModel:
-                    TransformModel tm;
+                    TransformModelImpl tm;
                     using (var fs = File.OpenRead(path))
-                        tm = new TransformModel(_host, fs);
+                        tm = new TransformModelImpl(_host, fs);
                     runner.SetInput(varName, tm);
                     break;
                 default:
@@ -145,14 +145,22 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     throw _host.ExceptNotSupp("File handle outputs not yet supported.");
                 case TlcModule.DataKind.DataView:
                     var idv = runner.GetOutput<IDataView>(varName);
-                    SaveDataView(idv, path, extension);
+                    if (idv != null)
+                        SaveDataView(idv, path, extension);
+                    else
+                        using (var ch = _host.Start("Get outputs from executed graph"))
+                        {
+                            string msg = string.Format("Ignoring empty graph output (output name: {0}, type: {1}, expected output's file: {2})",
+                                varName, nameof(idv), path + extension);
+                            ch.Warning(msg);
+                        }
                     break;
                 case TlcModule.DataKind.PredictorModel:
-                    var pm = runner.GetOutput<IPredictorModel>(varName);
+                    var pm = runner.GetOutput<PredictorModel>(varName);
                     SavePredictorModel(pm, path);
                     break;
                 case TlcModule.DataKind.TransformModel:
-                    var tm = runner.GetOutput<ITransformModel>(varName);
+                    var tm = runner.GetOutput<TransformModel>(varName);
                     using (var handle = _host.CreateOutputFile(path))
                     using (var fs = handle.CreateWriteStream())
                         tm.Save(_host, fs);
@@ -160,17 +168,17 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 case TlcModule.DataKind.Array:
                     string partialPath = path.Substring(0, path.Length - extension.Length);
 
-                    var ipmArray = runner.GetOutputOrDefault<IPredictorModel[]>(varName);
+                    var ipmArray = runner.GetOutputOrDefault<PredictorModel[]>(varName);
                     if (ipmArray != null && !ipmArray.GetType().IsValueType)
                     {
-                        SaveArrayToFile(ipmArray.ToList(), TlcModule.DataKind.PredictorModel, partialPath, extension);
+                        SaveArrayToFile(ipmArray, partialPath, extension);
                         break;
                     }
 
                     var idvArray = runner.GetOutputOrDefault<IDataView[]>(varName);
                     if (idvArray != null && !idvArray.GetType().IsValueType)
                     {
-                        SaveArrayToFile(idvArray.ToList(), TlcModule.DataKind.DataView, partialPath, extension);
+                        SaveArrayToFile(idvArray, partialPath, extension);
                         break;
                     }
                     goto default;
@@ -180,28 +188,28 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
 
         }
 
-        private void SaveArrayToFile<T>(List<T> array, TlcModule.DataKind kind, string partialPath, string extension)
-           where T : class
+        private void SaveArrayToFile(PredictorModel[] array, string partialPath, string extension)
         {
-            for (int i = 0; i < array.Count; i++)
+            for (int i = 0; i < array.Length; i++)
             {
                 string path = $"{partialPath}_{i}{extension}";
-                switch (kind)
-                {
-                    case TlcModule.DataKind.DataView:
-                        SaveDataView((IDataView)array[i], path, extension);
-                        break;
-                    case TlcModule.DataKind.PredictorModel:
-                        SavePredictorModel((IPredictorModel)array[i], path);
-                        break;
-                }
+                SavePredictorModel(array[i], path);
+            }
+        }
+
+        private void SaveArrayToFile(IDataView[] array, string partialPath, string extension)
+        {
+            for (int i = 0; i < array.Length; i++)
+            {
+                string path = $"{partialPath}_{i}{extension}";
+                SaveDataView(array[i], path, extension);
             }
         }
 
         /// <summary>
         /// Saves the PredictorModel to the given path
         /// </summary>
-        private void SavePredictorModel(IPredictorModel pm, string path)
+        private void SavePredictorModel(PredictorModel pm, string path)
         {
             Contracts.CheckValue(pm, nameof(pm));
 

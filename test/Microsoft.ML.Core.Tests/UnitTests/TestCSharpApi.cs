@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
+#pragma warning disable 612, 618
     public class TestCSharpApi : BaseTestClass
     {
         public TestCSharpApi(ITestOutputHelper output) : base(output)
@@ -146,7 +147,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
             {
-                TransformModels = new ArrayVar<ITransformModel>(catOutput.Model, concatOutput.Model),
+                TransformModels = new ArrayVar<TransformModel>(catOutput.Model, concatOutput.Model),
                 PredictorModel = sdcaOutput.PredictorModel
             };
             var modelCombineOutput = subGraph.Add(modelCombine);
@@ -214,7 +215,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
             {
-                TransformModels = new ArrayVar<ITransformModel>(catOutput.Model, concatOutput.Model),
+                TransformModels = new ArrayVar<TransformModel>(catOutput.Model, concatOutput.Model),
                 PredictorModel = lrOutput.PredictorModel
             };
             var modelCombineOutput = subGraph.Add(modelCombine);
@@ -254,7 +255,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
@@ -279,7 +280,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
             {
-                TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model, generateOutput.Model),
+                TransformModels = new ArrayVar<TransformModel>(nopOutput.Model, generateOutput.Model),
                 PredictorModel = learnerOutput.PredictorModel
             };
             var modelCombineOutput = subGraph.Add(modelCombine);
@@ -417,7 +418,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
             {
-                TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model),
+                TransformModels = new ArrayVar<TransformModel>(nopOutput.Model),
                 PredictorModel = learnerOutput.PredictorModel
             };
             var modelCombineOutput = subGraph.Add(modelCombine);
@@ -625,7 +626,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
             {
-                TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model),
+                TransformModels = new ArrayVar<TransformModel>(nopOutput.Model),
                 PredictorModel = learnerOutput.PredictorModel
             };
             var modelCombineOutput = subGraph.Add(modelCombine);
@@ -727,7 +728,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
             {
-                TransformModels = new ArrayVar<ITransformModel>(textToKeyOutput.Model, hashOutput.Model),
+                TransformModels = new ArrayVar<TransformModel>(textToKeyOutput.Model, hashOutput.Model),
                 PredictorModel = learnerOutput.PredictorModel
             };
             var modelCombineOutput = subGraph.Add(modelCombine);
@@ -980,4 +981,5 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.Equal(10, (schema.GetColumnType(2) as VectorType)?.Size);
         }
     }
+#pragma warning restore 612, 618
 }

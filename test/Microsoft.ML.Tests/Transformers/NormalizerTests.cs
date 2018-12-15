@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
@@ -62,8 +63,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = loader.Read(dataPath);
 
-            var badData1 = new ColumnsCopyingTransformer(Env, ("int1", "float1")).Transform(data);
-            var badData2 = new ColumnsCopyingTransformer(Env, ("float0", "float4")).Transform(data);
+            var badData1 = new ColumnCopyingTransformer(Env, ("int1", "float1")).Transform(data);
+            var badData2 = new ColumnCopyingTransformer(Env, ("float0", "float4")).Transform(data);
 
             TestEstimatorCore(est, data, null, badData1);
             TestEstimatorCore(est, data, null, badData2);
@@ -392,7 +393,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         public void GcnWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);

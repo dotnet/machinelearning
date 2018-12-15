@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.NetworkFree());
         }
 
-        protected virtual void CheckDataValid(IChannel ch, RoleMappedData data)
+        private protected virtual void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             data.CheckFeatureFloatVector();
             ch.CheckParam(data.Schema.Label != null, nameof(data), "Need a label column");
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <summary>
         /// Convert Nan labels. Default way is converting them to zero.
         /// </summary>
-        protected virtual void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
+        private protected virtual void ConvertNaNLabels(IChannel ch, RoleMappedData data, float[] labels)
         {
             for (int i = 0; i < labels.Length; ++i)
             {
@@ -482,7 +482,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return true;
         }
 
-        private void GetFeatureValueDense(IChannel ch, FloatLabelCursor cursor, CategoricalMetaData catMetaData, IRandom rand, out ReadOnlySpan<float> featureValues)
+        private void GetFeatureValueDense(IChannel ch, FloatLabelCursor cursor, CategoricalMetaData catMetaData, Random rand, out ReadOnlySpan<float> featureValues)
         {
             var cursorFeaturesValues = cursor.Features.GetValues();
             if (catMetaData.CategoricalBoudaries != null)
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         }
 
         private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor,
-            CategoricalMetaData catMetaData, IRandom rand, out ReadOnlySpan<int> indices,
+            CategoricalMetaData catMetaData, Random rand, out ReadOnlySpan<int> indices,
             out ReadOnlySpan<float> featureValues, out int cnt)
         {
             var cursorFeaturesValues = cursor.Features.GetValues();
@@ -758,7 +758,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
-        private void CopyToArray(IChannel ch, FloatLabelCursor cursor, float[] features, CategoricalMetaData catMetaData, IRandom rand, ref int numElem)
+        private void CopyToArray(IChannel ch, FloatLabelCursor cursor, float[] features, CategoricalMetaData catMetaData, Random rand, ref int numElem)
         {
             ch.Assert(features.Length >= numElem + catMetaData.NumCol);
             if (catMetaData.CategoricalBoudaries != null)
@@ -797,7 +797,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         }
 
         private void CopyToCsr(IChannel ch, FloatLabelCursor cursor,
-            int[] indices, float[] features, CategoricalMetaData catMetaData, IRandom rand, ref int numElem)
+            int[] indices, float[] features, CategoricalMetaData catMetaData, Random rand, ref int numElem)
         {
             int numValue = cursor.Features.GetValues().Length;
             if (numValue > 0)
@@ -896,7 +896,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <summary>
         /// This function will be called before training. It will check the label/group and add parameters for specific applications.
         /// </summary>
-        protected abstract void CheckAndUpdateParametersBeforeTraining(IChannel ch,
+        private protected abstract void CheckAndUpdateParametersBeforeTraining(IChannel ch,
             RoleMappedData data, float[] labels, int[] groups);
     }
 }

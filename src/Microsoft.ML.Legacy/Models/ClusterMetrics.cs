@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ namespace Microsoft.ML.Legacy.Models
     /// <summary>
     /// This class contains the overall metrics computed by cluster evaluators.
     /// </summary>
+    [Obsolete]
     public sealed class ClusterMetrics
     {
         private ClusterMetrics()

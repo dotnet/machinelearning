@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
-    public class AllSelector : BaseSubModelSelector<Single>, IBinarySubModelSelector, IRegressionSubModelSelector
+    internal sealed class AllSelector : BaseSubModelSelector<Single>, IBinarySubModelSelector, IRegressionSubModelSelector
     {
         public const string UserName = "All Selector";
         public const string LoadName = "AllSelector";

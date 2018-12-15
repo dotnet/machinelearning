@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -269,7 +270,7 @@ namespace Microsoft.ML.Transforms.Projections
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
             string reason = TestColumnType(type);
@@ -429,8 +430,8 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private RandomFourierFeaturizingTransformer(IHost host, ModelLoadContext ctx)
          : base(host, ctx)
@@ -504,7 +505,7 @@ namespace Microsoft.ML.Transforms.Projections
                 _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -531,15 +532,15 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], null);
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -549,7 +550,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return GetterFromFloatType(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<float>> GetterFromVectorType(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetterFromVectorType(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
                 var src = default(VBuffer<float>);
@@ -566,7 +567,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             }
 
-            private ValueGetter<VBuffer<float>> GetterFromFloatType(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetterFromFloatType(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<float>(_srcCols[iinfo]);
                 var src = default(float);
@@ -677,7 +678,7 @@ namespace Microsoft.ML.Transforms.Projections
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

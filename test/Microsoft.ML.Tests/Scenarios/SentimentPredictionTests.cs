@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Legacy;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
+#pragma warning disable 612, 618
     public partial class ScenariosTests
     {
         public const string SentimentDataPath = "wikipedia-detox-250-line-data.tsv";
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment);
         }
 
-        private void ValidateBinaryMetricsSymSGD(BinaryClassificationMetrics metrics)
+        private void ValidateBinaryMetricsSymSGD(Microsoft.ML.Legacy.Models.BinaryClassificationMetrics metrics)
         {
 
             Assert.Equal(.8889, metrics.Accuracy, 4);
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Scenarios
 
         }
 
-        private void ValidateBinaryMetricsLightGBM(BinaryClassificationMetrics metrics)
+        private void ValidateBinaryMetricsLightGBM(Microsoft.ML.Legacy.Models.BinaryClassificationMetrics metrics)
         {
 
             Assert.Equal(0.61111111111111116, metrics.Accuracy, 4);
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Scenarios
 
         }
 
-        private void ValidateBinaryMetrics(BinaryClassificationMetrics metrics)
+        private void ValidateBinaryMetrics(Microsoft.ML.Legacy.Models.BinaryClassificationMetrics metrics)
         {
 
             Assert.Equal(0.6111, metrics.Accuracy, 4);
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Scenarios
             {
                 KeepPunctuations = false,
                 OutputTokens = true,
-                StopWordsRemover = new PredefinedStopWordsRemover(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Scenarios
             {
                 KeepPunctuations = false,
                 OutputTokens = true,
-                StopWordsRemover = new PredefinedStopWordsRemover(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Scenarios
             {
                 KeepPunctuations = false,
                 OutputTokens = true,
-                StopWordsRemover = new PredefinedStopWordsRemover(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
@@ -516,5 +516,6 @@ namespace Microsoft.ML.Scenarios
             public bool Sentiment;
         }
     }
+#pragma warning restore 612, 618
 }
 
