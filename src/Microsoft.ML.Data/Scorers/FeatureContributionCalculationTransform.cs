@@ -32,7 +32,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(FeatureContributionCalculatingTransformer), null, typeof(SignatureLoadRowMapper),
    FeatureContributionCalculatingTransformer.FriendlyName, FeatureContributionCalculatingTransformer.LoaderSignature)]
 
-//[assembly: LoadableClass(typeof(void), typeof(FeatureContributionCalculatingTransformer), null, typeof(SignatureEntryPointModule), FeatureContributionCalculatingTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(void), typeof(FeatureContributionEntryPoint), null, typeof(SignatureEntryPointModule), FeatureContributionCalculatingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -54,6 +54,9 @@ namespace Microsoft.ML.Runtime.Data
     {
         public sealed class Arguments : TransformInputBase
         {
+            [Argument(ArgumentType.Required, HelpText = "The predictor model to apply to data", SortOrder = 1)]
+            public PredictorModel PredictorModel;
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of feature column", SortOrder = 2)]
             public string FeatureColumn = DefaultColumnNames.Features;
 
@@ -141,8 +144,9 @@ namespace Microsoft.ML.Runtime.Data
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => new FeatureContributionCalculatingTransformer(env, ctx).MakeRowMapper(inputSchema);
 
-        //internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
-        //    => new FeatureContributionCalculatingTransformer(env, predictor).MakeDataTransform(input);
+        // Used by the entrypoints.
+        internal static IDataTransform Create(IHostEnvironment env, IFeatureContributionMappable predictor, Arguments args, IDataView input)
+            => new FeatureContributionCalculatingTransformer(env, predictor, args.FeatureColumn, args.Top, args.Bottom, args.Normalize, args.Stringify).MakeDataTransform(input);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -710,15 +714,22 @@ namespace Microsoft.ML.Runtime.Data
 
     internal static class FeatureContributionEntryPoint
     {
-        //public static CommonOutputs.TransformOutput CatTransformDict(IHostEnvironment env, FeatureContributionCalculatingTransformer.Arguments input)
-        //{
-        //    Contracts.CheckValue(env, nameof(env));
-        //    var host = env.Register(nameof(FeatureContributionCalculatingTransformer));
-        //    host.CheckValue(input, nameof(input));
-        //    EntryPointUtils.CheckInputArgs(host, input);
+        [TlcModule.EntryPoint(Name = "Transforms.FeatureContributionCalculationTransformer",
+            Desc = FeatureContributionCalculatingTransformer.Summary,
+            UserName = FeatureContributionCalculatingTransformer.FriendlyName)]
+        public static CommonOutputs.TransformOutput FeatureContributionCalculation(IHostEnvironment env, FeatureContributionCalculatingTransformer.Arguments input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(nameof(FeatureContributionCalculatingTransformer));
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
 
-        //    var xf = new FeatureContributionCalculatingTransformer.Create(host, predictor, input, input.Data); // we need to add predictor.
-        //    return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
-        //}
+            var predictor = input.PredictorModel.Predictor as IFeatureContributionMappable;
+            if (predictor == null)
+                throw host.ExceptUserArg(nameof(predictor), "The provided predictor does not support feature contribution calculation.");
+
+            var xf = FeatureContributionCalculatingTransformer.Create(host, predictor, input, input.Data);
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
+        }
     }
 }
