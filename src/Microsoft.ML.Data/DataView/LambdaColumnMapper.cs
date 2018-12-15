@@ -13,7 +13,8 @@ namespace Microsoft.ML.Runtime.Data
     /// This applies the user provided ValueMapper to a column to produce a new column. It automatically
     /// injects a standard conversion from the actual type of the source column to typeSrc (if needed).
     /// </summary>
-    public static class LambdaColumnMapper
+    [BestFriend]
+    internal static class LambdaColumnMapper
     {
         // REVIEW: It would be nice to support propagation of select metadata.
         public static IDataView Create<TSrc, TDst>(IHostEnvironment env, string name, IDataView input,
@@ -150,7 +151,7 @@ namespace Microsoft.ML.Runtime.Data
                 return _typeDst;
             }
 
-            protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+            protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
             {
                 Host.AssertValueOrNull(ch);
                 Host.AssertValue(input);

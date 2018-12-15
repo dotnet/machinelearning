@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ using System.Threading.Tasks;
     "PKPD Executor",
     PkpdPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     using CR = RoleMappedSchema.ColumnRole;
     using TDistPredictor = IDistPredictorProducing<float, float>;
@@ -103,7 +104,7 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
         }
 
-        protected override PkpdPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override PkpdPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train M * (M+1) / 2 models arranged as a lower triangular matrix.
             var predModels = new TDistPredictor[count][];
@@ -136,7 +137,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             var calibratedModel = transformer.Model as TDistPredictor;
             if (calibratedModel == null)
-                calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
+                calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
             return new BinaryPredictionTransformer<TDistPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
         }
@@ -243,8 +244,10 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly IValueMapperDist[] _mappers;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        public ColumnType InputType { get; }
-        public ColumnType OutputType { get; }
+        private readonly ColumnType _inputType;
+        private readonly ColumnType _outputType;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => _outputType;
 
         internal PkpdPredictor(IHostEnvironment env, TDistPredictor[][] predictors) :
             base(env, RegistrationName)
@@ -266,8 +269,8 @@ namespace Microsoft.ML.Runtime.Learners
             }
             Host.Assert(index == _predictors.Length);
 
-            InputType = InitializeMappers(out _mappers);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            _inputType = InitializeMappers(out _mappers);
+            _outputType = new VectorType(NumberType.Float, _numClasses);
         }
 
         private PkpdPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -294,8 +297,8 @@ namespace Microsoft.ML.Runtime.Learners
                 Host.Assert(index == GetIndex(i, i));
                 ctx.LoadModel<TDistPredictor, SignatureLoadModel>(Host, out _predictors[index++], string.Format(SubPredictorFmt, i));
             }
-            InputType = InitializeMappers(out _mappers);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            _inputType = InitializeMappers(out _mappers);
+            _outputType = new VectorType(NumberType.Float, _numClasses);
         }
 
         private ColumnType InitializeMappers(out IValueMapperDist[] mappers)
@@ -336,7 +339,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new PkpdPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -441,7 +444,7 @@ namespace Microsoft.ML.Runtime.Learners
             return i * (i + 1) / 2 + j;
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(VBuffer<float>));
@@ -454,8 +457,8 @@ namespace Microsoft.ML.Runtime.Learners
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
                 (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
-                    if (InputType.VectorSize > 0)
-                        Host.Check(src.Length == InputType.VectorSize);
+                    if (_inputType.VectorSize > 0)
+                        Host.Check(src.Length == _inputType.VectorSize);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, parallelOptions, i =>

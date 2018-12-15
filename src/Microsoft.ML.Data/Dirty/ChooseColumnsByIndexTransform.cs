@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly int[] Sources;
 
-            private readonly ISchema _input;
+            private readonly Schema _input;
             private readonly Dictionary<string, int> _nameToIndex;
 
             // The following argument is used only to inform serialization.
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema AsSchema { get; }
 
-            public Bindings(Arguments args, ISchema schemaInput)
+            public Bindings(Arguments args, Schema schemaInput)
             {
                 Contracts.AssertValue(args);
                 Contracts.AssertValue(schemaInput);
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Data
                     nameToCol[_input.GetColumnName(sources[c])] = c;
             }
 
-            public Bindings(ModelLoadContext ctx, ISchema schemaInput)
+            public Bindings(ModelLoadContext ctx, Schema schemaInput)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(schemaInput);
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public override Schema Schema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -262,11 +262,11 @@ namespace Microsoft.ML.Runtime.Data
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
             var input = Source.GetRowCursor(inputPred, rand);
-            return new RowCursor(Host, _bindings, input, active);
+            return new Cursor(Host, _bindings, input, active);
         }
 
-        public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public sealed override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -277,18 +277,18 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(Host, _bindings, inputs[i], active);
+                cursors[i] = new Cursor(Host, _bindings, inputs[i], active);
             return cursors;
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;
 
-            public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.AssertValue(bindings);
@@ -298,15 +298,15 @@ namespace Microsoft.ML.Runtime.Data
                 _active = active;
             }
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.ColumnCount);
                 return _active == null || _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 

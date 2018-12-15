@@ -306,12 +306,12 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Transform model
         /// </summary>
-        public Var<ITransformModel> Model { get; set; }
+        public Var<TransformModel> Model { get; set; }
 
         public EntryPointTransformOutput()
         {
             OutputData = new Var<Runtime.Data.IDataView>();
-            Model = new Var<ITransformModel>();
+            Model = new Var<TransformModel>();
         }
     }
 
@@ -320,11 +320,11 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// The trained model
         /// </summary>
-        public Var<IPredictorModel> PredictorModel { get; set; }
+        public Var<PredictorModel> PredictorModel { get; set; }
 
         public EntryPointTrainerOutput()
         {
-            PredictorModel = new Var<IPredictorModel>();
+            PredictorModel = new Var<PredictorModel>();
         }
     }
 }

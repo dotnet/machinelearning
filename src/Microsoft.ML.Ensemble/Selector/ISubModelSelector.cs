@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector
 {
-    public interface ISubModelSelector<TOutput>
+    internal interface ISubModelSelector<TOutput>
     {
         IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> Prune(IList<FeatureSubsetModel<IPredictorProducing<TOutput>>> models);
 
@@ -19,33 +19,33 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
         Single ValidationDatasetProportion { get; }
     }
 
-    public interface IRegressionSubModelSelector : ISubModelSelector<Single>
+    internal interface IRegressionSubModelSelector : ISubModelSelector<Single>
     {
     }
 
-    public interface IBinarySubModelSelector : ISubModelSelector<Single>
+    internal interface IBinarySubModelSelector : ISubModelSelector<Single>
     {
     }
 
-    public interface IMulticlassSubModelSelector : ISubModelSelector<VBuffer<Single>>
+    internal interface IMulticlassSubModelSelector : ISubModelSelector<VBuffer<Single>>
     {
     }
 
-    public delegate void SignatureEnsembleSubModelSelector();
+    internal delegate void SignatureEnsembleSubModelSelector();
 
     [TlcModule.ComponentKind("EnsembleMulticlassSubModelSelector")]
-    public interface ISupportMulticlassSubModelSelectorFactory : IComponentFactory<IMulticlassSubModelSelector>
+    internal interface ISupportMulticlassSubModelSelectorFactory : IComponentFactory<IMulticlassSubModelSelector>
     {
     }
 
     [TlcModule.ComponentKind("EnsembleBinarySubModelSelector")]
-    public interface ISupportBinarySubModelSelectorFactory: IComponentFactory<IBinarySubModelSelector>
+    internal interface ISupportBinarySubModelSelectorFactory: IComponentFactory<IBinarySubModelSelector>
     {
 
     }
 
     [TlcModule.ComponentKind("EnsembleRegressionSubModelSelector")]
-    public interface ISupportRegressionSubModelSelectorFactory : IComponentFactory<IRegressionSubModelSelector>
+    internal interface ISupportRegressionSubModelSelectorFactory : IComponentFactory<IRegressionSubModelSelector>
     {
 
     }

@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
                 public const string QuantileRegression = "QuantileRegression";
                 public const string Recommender = "Recommender";
                 public const string ItemSimilarity = "ItemSimilarity";
-                public const string WhatTheFeature = "WhatTheFeature";
+                public const string FeatureContribution = "FeatureContribution";
             }
 
             public static class ScoreValueKind
@@ -165,12 +165,12 @@ namespace Microsoft.ML.Runtime.Data
             return new VectorType(NumberType.I4, rangeCount, 2);
         }
 
-        private static volatile ColumnType _scoreColumnSetIdType;
+        private static volatile KeyType _scoreColumnSetIdType;
 
         /// <summary>
         /// The type of the ScoreColumnSetId metadata.
         /// </summary>
-        public static ColumnType ScoreColumnSetIdType
+        public static KeyType ScoreColumnSetIdType
         {
             get
             {
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Data
         /// of a scalar <see cref="BoolType"/> type, which we assume, if set, should be <c>true</c>.</returns>
         public static bool IsNormalized(this SchemaShape.Column col)
         {
-            Contracts.CheckValue(col, nameof(col));
+            Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
             return col.Metadata.TryFindColumn(Kinds.IsNormalized, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Scalar && !metaCol.IsKey
                 && metaCol.ItemType == BoolType.Instance;
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <see cref="Kinds.SlotNames"/> metadata of definite sized vectors of text.</returns>
         public static bool HasSlotNames(this SchemaShape.Column col)
         {
-            Contracts.CheckValue(col, nameof(col));
+            Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
             return col.Kind == SchemaShape.Column.VectorKind.Vector
                 && col.Metadata.TryFindColumn(Kinds.SlotNames, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector && !metaCol.IsKey
@@ -493,6 +493,35 @@ namespace Microsoft.ML.Runtime.Data
                 cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
             cols.AddRange(GetTrainerOutputMetadata());
             return cols;
+        }
+
+        private sealed class MetadataRow : Row
+        {
+            private readonly Schema.Metadata _metadata;
+
+            public MetadataRow(Schema.Metadata metadata)
+            {
+                Contracts.AssertValue(metadata);
+                _metadata = metadata;
+            }
+
+            public override Schema Schema => _metadata.Schema;
+            public override long Position => 0;
+            public override long Batch => 0;
+            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
+            public override ValueGetter<RowId> GetIdGetter() => (ref RowId dst) => dst = default;
+            public override bool IsColumnActive(int col) => true;
+        }
+
+        /// <summary>
+        /// Presents a <see cref="Schema.Metadata"/> as a an <see cref="Row"/>.
+        /// </summary>
+        /// <param name="metadata">The metadata to wrap.</param>
+        /// <returns>A row that wraps an input metadata.</returns>
+        public static Row MetadataAsRow(Schema.Metadata metadata)
+        {
+            Contracts.CheckValue(metadata, nameof(metadata));
+            return new MetadataRow(metadata);
         }
     }
 }

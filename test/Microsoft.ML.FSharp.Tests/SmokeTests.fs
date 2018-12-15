@@ -59,7 +59,7 @@ open Microsoft.ML
 open Microsoft.ML.Legacy.Data
 open Microsoft.ML.Legacy.Transforms
 open Microsoft.ML.Legacy.Trainers
-open Microsoft.ML.Runtime.Api
+open Microsoft.ML.Data
 open Xunit
 
 module SmokeTest1 = 
@@ -80,7 +80,8 @@ module SmokeTest1 =
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
-              typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
+              typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
+              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
@@ -147,7 +148,8 @@ module SmokeTest2 =
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
-              typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
+              typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
+              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
@@ -211,7 +213,8 @@ module SmokeTest3 =
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
-              typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
+              typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
+              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 

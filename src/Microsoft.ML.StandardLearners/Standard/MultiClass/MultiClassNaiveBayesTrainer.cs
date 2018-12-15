@@ -52,8 +52,8 @@ namespace Microsoft.ML.Trainers
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         public MultiClassNaiveBayesTrainer(IHostEnvironment env,
-            string featureColumn = DefaultColumnNames.Features,
-            string labelColumn = DefaultColumnNames.Label)
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
                   TrainerUtils.MakeU4ScalarColumn(labelColumn))
         {
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Trainers
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var predLabelMetadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+            var predLabelMetadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
 
             return new[]
@@ -206,9 +206,9 @@ namespace Microsoft.ML.Trainers
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        public ColumnType InputType => _inputType;
+        ColumnType IValueMapper.InputType => _inputType;
 
-        public ColumnType OutputType => _outputType;
+        ColumnType IValueMapper.OutputType => _outputType;
 
         /// <summary>
         /// Copies the label histogram into a buffer.
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Trainers
             return new MultiClassNaiveBayesPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Trainers
             return absentFeaturesLogProb;
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(VBuffer<float>));

@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
+using System;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -352,48 +352,48 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             var srcCursor = _transform.GetRowCursor(predicate, rand);
             return new Cursor(this, srcCursor);
         }
 
-        public override Schema Schema => _transform.Schema;
+        public override Schema OutputSchema => _transform.Schema;
 
         public override long? GetRowCount()
         {
             return _transform.GetRowCount();
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
         /// <summary>
         /// A wrapper around the cursor which replaces the schema.
         /// </summary>
-        private sealed class Cursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly SequentialTransformBase<TInput, TOutput, TState> _parent;
 
-            public Cursor(SequentialTransformBase<TInput, TOutput, TState> parent, IRowCursor input)
+            public Cursor(SequentialTransformBase<TInput, TOutput, TState> parent, RowCursor input)
                 : base(parent.Host, input)
             {
-                Ch.Assert(input.Schema.ColumnCount == parent.Schema.ColumnCount);
+                Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);
                 _parent = parent;
             }
 
-            public Schema Schema { get { return _parent.Schema; } }
+            public override Schema Schema { get { return _parent.OutputSchema; } }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < Schema.ColumnCount, "col");
                 return Input.IsColumnActive(col);
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col), "col");
                 return Input.GetGetter<TValue>(col);

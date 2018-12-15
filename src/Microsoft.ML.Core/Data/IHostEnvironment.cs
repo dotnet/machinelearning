@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime
         /// The random number generator issued to this component. Note that random number
         /// generators are NOT thread safe.
         /// </summary>
-        IRandom Rand { get; }
+        Random Rand { get; }
 
         /// <summary>
         /// Signal to stop exection in this host and all its children.
@@ -233,7 +233,8 @@ namespace Microsoft.ML.Runtime
     /// that do not belong in more specific areas, for example, <see cref="Contracts"/> or
     /// component creation.
     /// </summary>
-    public static class HostExtensions
+    [BestFriend]
+    internal static class HostExtensions
     {
         public static T Apply<T>(this IHost host, string channelName, Func<IChannel, T> func)
         {

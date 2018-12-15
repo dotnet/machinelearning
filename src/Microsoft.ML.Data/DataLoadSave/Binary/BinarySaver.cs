@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -88,7 +89,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             /// <summary>
             /// Returns an appropriate generic <c>WritePipe{T}</c> for the given column.
             /// </summary>
-            public static WritePipe Create(BinarySaver parent, IRowCursor cursor, ColumnCodec col)
+            public static WritePipe Create(BinarySaver parent, RowCursor cursor, ColumnCodec col)
             {
                 Type writePipeType = typeof(WritePipe<>).MakeGenericType(col.Codec.Type.RawType);
                 return (WritePipe)Activator.CreateInstance(writePipeType, parent, cursor, col);
@@ -109,7 +110,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private MemoryStream _currentStream;
             private T _value;
 
-            public WritePipe(BinarySaver parent, IRowCursor cursor, ColumnCodec col)
+            public WritePipe(BinarySaver parent, RowCursor cursor, ColumnCodec col)
                 : base(parent)
             {
                 var codec = col.Codec as IValueCodec<T>;
@@ -254,7 +255,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <param name="ch">The channel to which we write any diagnostic information</param>
         /// <returns>The offset of the metadata table of contents, or 0 if there was
         /// no metadata</returns>
-        private long WriteMetadata(BinaryWriter writer, ISchema schema, int col, IChannel ch)
+        private long WriteMetadata(BinaryWriter writer, Schema schema, int col, IChannel ch)
         {
             _host.AssertValue(writer);
             _host.AssertValue(schema);
@@ -341,9 +342,9 @@ namespace Microsoft.ML.Runtime.Data.IO
             return offsets[metadataInfos.Count];
         }
 
-        private delegate IValueCodec WriteMetadataCoreDelegate(Stream stream, ISchema schema, int col, string kind, ColumnType type, out CompressionKind compression);
+        private delegate IValueCodec WriteMetadataCoreDelegate(Stream stream, Schema schema, int col, string kind, ColumnType type, out CompressionKind compression);
 
-        private IValueCodec WriteMetadataCore<T>(Stream stream, ISchema schema, int col, string kind, ColumnType type, out CompressionKind compressionKind)
+        private IValueCodec WriteMetadataCore<T>(Stream stream, Schema schema, int col, string kind, ColumnType type, out CompressionKind compressionKind)
         {
             _host.Assert(typeof(T) == type.RawType);
             IValueCodec generalCodec;
@@ -390,7 +391,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         private void WriteWorker(Stream stream, BlockingCollection<Block> toWrite, ColumnCodec[] activeColumns,
-            ISchema sourceSchema, int rowsPerBlock, IChannelProvider cp, ExceptionMarshaller exMarshaller)
+            Schema sourceSchema, int rowsPerBlock, IChannelProvider cp, ExceptionMarshaller exMarshaller)
         {
             _host.AssertValue(exMarshaller);
             try
@@ -581,7 +582,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 HashSet<int> activeSet = new HashSet<int>(activeColumns.Select(col => col.SourceIndex));
                 long blockIndex = 0;
                 int remainingInBlock = rowsPerBlock;
-                using (IRowCursor cursor = data.GetRowCursor(activeSet.Contains))
+                using (RowCursor cursor = data.GetRowCursor(activeSet.Contains))
                 {
                     WritePipe[] pipes = new WritePipe[activeColumns.Length];
                     for (int c = 0; c < activeColumns.Length; ++c)
@@ -708,7 +709,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private ColumnCodec[] GetActiveColumns(ISchema schema, int[] colIndices)
+        private ColumnCodec[] GetActiveColumns(Schema schema, int[] colIndices)
         {
             _host.AssertValue(schema);
             _host.AssertValueOrNull(colIndices);
@@ -741,12 +742,12 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             // First get the cursor.
             HashSet<int> active = new HashSet<int>(actives.Select(cc => cc.SourceIndex));
-            IRandom rand = data.CanShuffle ? new TauswortheHybrid(_host.Rand) : null;
+            Random rand = data.CanShuffle ? new TauswortheHybrid(_host.Rand) : null;
             // Get the estimators.
             EstimatorDelegate del = EstimatorCore<int>;
             MethodInfo methInfo = del.GetMethodInfo().GetGenericMethodDefinition();
 
-            using (IRowCursor cursor = data.GetRowCursor(active.Contains, rand))
+            using (RowCursor cursor = data.GetRowCursor(active.Contains, rand))
             {
                 object[] args = new object[] { cursor, null, null, null };
                 var writers = new IValueWriter[actives.Length];
@@ -776,10 +777,10 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private delegate void EstimatorDelegate(IRowCursor cursor, ColumnCodec col,
+        private delegate void EstimatorDelegate(RowCursor cursor, ColumnCodec col,
             out Func<long> fetchWriteEstimator, out IValueWriter writer);
 
-        private void EstimatorCore<T>(IRowCursor cursor, ColumnCodec col,
+        private void EstimatorCore<T>(RowCursor cursor, ColumnCodec col,
             out Func<long> fetchWriteEstimator, out IValueWriter writer)
         {
             ValueGetter<T> getter = cursor.GetGetter<T>(col.SourceIndex);

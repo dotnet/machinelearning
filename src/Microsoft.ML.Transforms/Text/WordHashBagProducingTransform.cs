@@ -7,7 +7,6 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
@@ -283,6 +282,17 @@ namespace Microsoft.ML.Transforms.Text
             public bool AllLengths = true;
         }
 
+        internal static class DefaultArguments
+        {
+            public const int NgramLength = 1;
+            public const int SkipLength = 0;
+            public const int HashBits = 16;
+            public const uint Seed = 314489979;
+            public const bool Ordered = true;
+            public const int InvertHash = 0;
+            public const bool AllLengths = true;
+        }
+
         [TlcModule.Component(Name = "NGramHash", FriendlyName = "NGram Hash Extractor Transform", Alias = "NGramHashExtractorTransform,NGramHashExtractor",
                             Desc = "Extracts NGrams from text and convert them to vector using hashing trick.")]
         public sealed class NgramHashExtractorArguments : ArgumentsBase, INgramExtractorFactoryFactory
@@ -320,7 +330,7 @@ namespace Microsoft.ML.Transforms.Text
             if (termLoaderArgs != null)
                 termCols = new List<ValueToKeyMappingTransformer.Column>();
             var hashColumns = new List<HashingTransformer.Column>();
-            var ngramHashColumns = new NgramHashingTransformer.Column[args.Column.Length];
+            var ngramHashColumns = new NgramHashingTransformer.ColumnInfo[args.Column.Length];
 
             var colCount = args.Column.Length;
             // The NGramHashExtractor has a ManyToOne column type. To avoid stepping over the source
@@ -362,25 +372,15 @@ namespace Microsoft.ML.Transforms.Text
                 }
 
                 ngramHashColumns[iinfo] =
-                    new NgramHashingTransformer.Column
-                    {
-                        Name = column.Name,
-                        Source = tmpColNames[iinfo],
-                        AllLengths = column.AllLengths,
-                        HashBits = column.HashBits,
-                        NgramLength = column.NgramLength,
-                        RehashUnigrams = false,
-                        Seed = column.Seed,
-                        SkipLength = column.SkipLength,
-                        Ordered = column.Ordered,
-                        InvertHash = column.InvertHash,
-                        // REVIEW: This is an ugly internal hack to get around
-                        // the problem that we want the *original* source names surfacing
-                        // in the descriptions where appropriate, rather than _tmp000 and
-                        // what have you. The alternative is we do something elaborate
-                        // with metadata or something but I'm not sure that's better.
-                        FriendlyNames = column.FriendlyNames
-                    };
+                    new NgramHashingTransformer.ColumnInfo(tmpColNames[iinfo], column.Name,
+                    column.NgramLength ?? args.NgramLength,
+                    column.SkipLength ?? args.SkipLength,
+                    column.AllLengths ?? args.AllLengths,
+                    column.HashBits ?? args.HashBits,
+                    column.Seed ?? args.Seed,
+                    column.Ordered ?? args.Ordered,
+                    column.InvertHash ?? args.InvertHash);
+                ngramHashColumns[iinfo].FriendlyNames = column.FriendlyNames;
             }
 
             if (termLoaderArgs != null)
@@ -422,22 +422,7 @@ namespace Microsoft.ML.Transforms.Text
 
             view = HashingTransformer.Create(h, hashArgs, view);
 
-            // creating the NgramHash function
-            var ngramHashArgs =
-                new NgramHashingTransformer.Arguments
-                {
-                    AllLengths = args.AllLengths,
-                    HashBits = args.HashBits,
-                    NgramLength = args.NgramLength,
-                    SkipLength = args.SkipLength,
-                    RehashUnigrams = false,
-                    Ordered = args.Ordered,
-                    Seed = args.Seed,
-                    Column = ngramHashColumns,
-                    InvertHash = args.InvertHash
-                };
-
-            view = new NgramHashingTransformer(h, ngramHashArgs, view);
+            view =  new NgramHashingEstimator(h, ngramHashColumns).Fit(view).Transform(view);
             return ColumnSelectingTransformer.CreateDrop(h, view, tmpColNames.SelectMany(cols => cols).ToArray());
         }
 

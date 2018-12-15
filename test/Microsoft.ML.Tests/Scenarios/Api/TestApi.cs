@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -177,10 +178,87 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 (i, s) => true,
                 s => { globalCounter++; });
 
-            new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).Fit(xf).Transform(xf);
+            // The baseline result of this was generated with everything cached in memory. As auto-cache is removed,
+            // an explicit step of caching is required to make this test ok.
+            var cached = env.Data.Cache(xf);
+
+            new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).Fit(cached).Transform(cached);
 
             // Make sure there were 2 cursoring events.
             Assert.Equal(1, globalCounter);
+        }
+
+        [Fact]
+        public void MetadataSupportInDataViewConstruction()
+        {
+            var data = ReadBreastCancerExamples();
+            var autoSchema = SchemaDefinition.Create(typeof(BreastCancerExample));
+
+            var mlContext = new MLContext(0);
+
+            // Create Metadata.
+            var kindFloat = "Testing float as metadata.";
+            var valueFloat = 10;
+            var coltypeFloat = NumberType.Float;
+            var kindString = "Testing string as metadata.";
+            var valueString = "Strings have value.";
+            var kindStringArray = "Testing string array as metadata.";
+            var valueStringArray = "I really have no idea what these features entail.".Split(' ');
+            var kindFloatArray = "Testing float array as metadata.";
+            var valueFloatArray = new float[] { 1, 17, 7, 19, 25, 0 };
+            var kindVBuffer = "Testing VBuffer as metadata.";
+            var valueVBuffer = new VBuffer<float>(4, new float[] { 4, 6, 89, 5 });
+
+            var metaFloat = new MetadataInfo<float>(kindFloat, valueFloat, coltypeFloat);
+            var metaString = new MetadataInfo<string>(kindString, valueString);
+
+            // Add Metadata.
+            var labelColumn = autoSchema[0];
+            var labelColumnWithMetadata = new SchemaDefinition.Column(mlContext, labelColumn.MemberName, labelColumn.ColumnType,
+                metadataInfos: new MetadataInfo[] { metaFloat, metaString });
+
+            var featureColumnWithMetadata = autoSchema[1];
+            featureColumnWithMetadata.AddMetadata(kindStringArray, valueStringArray);
+            featureColumnWithMetadata.AddMetadata(kindFloatArray, valueFloatArray);
+            featureColumnWithMetadata.AddMetadata(kindVBuffer, valueVBuffer);
+
+            var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
+            var idv = mlContext.CreateDataView(data, mySchema);
+
+            Assert.True(idv.Schema[0].Metadata.Schema.Count == 2);
+            Assert.True(idv.Schema[0].Metadata.Schema[0].Name == kindFloat);
+            Assert.True(idv.Schema[0].Metadata.Schema[0].Type == coltypeFloat);
+            Assert.True(idv.Schema[0].Metadata.Schema[1].Name == kindString);
+            Assert.True(idv.Schema[0].Metadata.Schema[1].Type == TextType.Instance);
+
+            Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
+            Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
+            Assert.True(idv.Schema[1].Metadata.Schema[0].Type.IsVector && idv.Schema[1].Metadata.Schema[0].Type.ItemType.IsText);
+            Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Metadata.Schema[kindFloat]);
+
+            float retrievedFloat = 0;
+            idv.Schema[0].Metadata.GetValue(kindFloat, ref retrievedFloat);
+            Assert.True(Math.Abs(retrievedFloat - valueFloat) < .000001);
+
+            ReadOnlyMemory<char> retrievedReadOnlyMemory = new ReadOnlyMemory<char>();
+            idv.Schema[0].Metadata.GetValue(kindString, ref retrievedReadOnlyMemory);
+            Assert.True(retrievedReadOnlyMemory.Span.SequenceEqual(valueString.AsMemory().Span));
+
+            VBuffer<ReadOnlyMemory<char>> retrievedReadOnlyMemoryVBuffer = new VBuffer<ReadOnlyMemory<char>>();
+            idv.Schema[1].Metadata.GetValue(kindStringArray, ref retrievedReadOnlyMemoryVBuffer);
+            Assert.True(retrievedReadOnlyMemoryVBuffer.DenseValues().Select((s, i) => s.ToString() == valueStringArray[i]).All(b => b));
+
+            VBuffer<float> retrievedFloatVBuffer = new VBuffer<float>(1, new float[] { 2 });
+            idv.Schema[1].Metadata.GetValue(kindFloatArray, ref retrievedFloatVBuffer);
+            VBuffer<float> valueFloatVBuffer = new VBuffer<float>(valueFloatArray.Length, valueFloatArray);
+            Assert.True(retrievedFloatVBuffer.Items().SequenceEqual(valueFloatVBuffer.Items()));
+
+            VBuffer<float> retrievedVBuffer = new VBuffer<float>();
+            idv.Schema[1].Metadata.GetValue(kindVBuffer, ref retrievedVBuffer);
+            Assert.True(retrievedVBuffer.Items().SequenceEqual(valueVBuffer.Items()));
+
+            var ex = Assert.Throws<InvalidOperationException>(() => idv.Schema[1].Metadata.GetValue(kindFloat, ref retrievedReadOnlyMemoryVBuffer));
+            Assert.True(ex.IsMarked());
         }
 
         private List<BreastCancerExample> ReadBreastCancerExamples()

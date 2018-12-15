@@ -15,7 +15,6 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
 using System;
-using Float = System.Single;
 
 [assembly: LoadableClass(SdcaRegressionTrainer.Summary, typeof(SdcaRegressionTrainer), typeof(SdcaRegressionTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -26,7 +25,7 @@ using Float = System.Single;
 namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
-    public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Arguments, RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
+    public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Arguments, RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         internal const string LoadNameValue = "SDCAR";
         internal const string UserNameValue = "Fast Linear Regression (SA-SDCA)";
@@ -76,7 +75,7 @@ namespace Microsoft.ML.Trainers
             float? l1Threshold = null,
             int? maxIterations = null,
             Action<Arguments> advancedSettings = null)
-             : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weights), advancedSettings,
+             : base(env, featureColumn, TrainerUtils.MakeR4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weights), advancedSettings,
                   l2Const, l1Threshold, maxIterations)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -86,7 +85,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaRegressionTrainer(IHostEnvironment env, Arguments args, string featureColumn, string labelColumn, string weightColumn = null)
-            : base(env, args, TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            : base(env, args, TrainerUtils.MakeR4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
@@ -100,32 +99,33 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override LinearRegressionPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        protected override LinearRegressionModelParameters CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
             Host.CheckParam(weights[0].Length > 0, nameof(weights));
 
-            VBuffer<Float> maybeSparseWeights = default;
+            VBuffer<float> maybeSparseWeights = default;
             // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
-            return new LinearRegressionPredictor(Host, in maybeSparseWeights, bias[0]);
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+
+            return new LinearRegressionModelParameters(Host, in maybeSparseWeights, bias[0]);
         }
 
-        protected override Float GetInstanceWeight(FloatLabelCursor cursor)
+        private protected override float GetInstanceWeight(FloatLabelCursor cursor)
         {
             return cursor.Weight;
         }
 
-        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
+        private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckRegressionLabel();
             weightSetCount = 1;
         }
 
         // REVIEW: No extra benefits from using more threads in training.
-        protected override int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
+        private protected override int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
         {
             int maxThreads;
             if (Host.ConcurrencyFactor < 1)
@@ -137,13 +137,13 @@ namespace Microsoft.ML.Trainers
         }
 
         // Using a different logic for default L2 parameter in regression.
-        protected override Float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
+        protected override float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
         {
             Contracts.AssertValue(ch);
             Contracts.Assert(maxIterations > 0);
             Contracts.Assert(rowCount > 0);
             Contracts.Assert(numThreads > 0);
-            Float l2;
+            float l2;
 
             if (rowCount > 10000)
                 l2 = 1e-04f;
@@ -164,8 +164,8 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, Schema trainSchema)
-            => new RegressionPredictionTransformer<LinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override RegressionPredictionTransformer<LinearRegressionModelParameters> MakeTransformer(LinearRegressionModelParameters model, Schema trainSchema)
+            => new RegressionPredictionTransformer<LinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
     /// <summary>

@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using System;
@@ -74,11 +75,17 @@ namespace Microsoft.ML.Tests.Transformers
             var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
             var est = data.MakeNewEstimator().
                   Append(row => (
-                  A: row.ScalarString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashScalarOutputKind.Ind),
-                  B: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Ind),
-                  C: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bag),
-                  D: row.ScalarString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashScalarOutputKind.Bin),
-                  E: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bin)
+                      row.ScalarString,
+                      row.VectorString,
+                      // Create a VarVector column
+                      VarVectorString: row.ScalarString.TokenizeText())).
+                  Append(row => (
+                      A: row.ScalarString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashScalarOutputKind.Ind),
+                      B: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Ind),
+                      C: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bag),
+                      D: row.ScalarString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashScalarOutputKind.Bin),
+                      E: row.VectorString.OneHotHashEncoding(outputKind: CategoricalHashStaticExtensions.OneHotHashVectorOutputKind.Bin),
+                      F: row.VarVectorString.OneHotHashEncoding()
                   ));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
@@ -88,7 +95,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 var savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                var view  = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "A", "B", "C", "D", "E" });
+                var view  = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "A", "B", "C", "D", "E", "F" });
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, view, fs, keepHidden: true);
             }

@@ -18,8 +18,8 @@ namespace Microsoft.ML.Benchmarks
             var ml = new MLContext(seed: 1);
             // Pipeline
 
-            var input = ml.Data.ReadFromTextFile(new[] {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
+            var input = ml.Data.ReadFromTextFile(_dataPath, new[] {
+                            new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("CatFeatures", DataKind.TX,
                                 new [] {
                                     new TextLoader.Range() { Min = 1, Max = 8 },
@@ -28,11 +28,7 @@ namespace Microsoft.ML.Benchmarks
                                 new [] {
                                     new TextLoader.Range() { Min = 9, Max = 14 },
                                 }),
-            }, _dataPath, s =>
-            {
-                s.HasHeader = true;
-                s.Separator = "\t";
-            });
+            }, hasHeader: true);
 
             var estimatorPipeline = ml.Transforms.Categorical.OneHotEncoding("CatFeatures")
                 .Append(ml.Transforms.Normalize("NumFeatures"))

@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema Schema => _schemaImpl.AsSchema;
+        public override Schema OutputSchema => _schemaImpl.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -179,19 +179,19 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             var activeInput = _schemaImpl.GetActiveInput(predicate);
             var inputCursor = Source.GetRowCursor(col => activeInput[col], null);
             return new Cursor(Host, inputCursor, _schemaImpl, predicate);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
-            int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
+            int n, Random rand = null)
         {
             var activeInput = _schemaImpl.GetActiveInput(predicate);
             var inputCursors = Source.GetRowCursorSet(out consolidator, col => activeInput[col], n, null);
-            return Utils.BuildArray<IRowCursor>(inputCursors.Length,
+            return Utils.BuildArray<RowCursor>(inputCursors.Length,
                 x => new Cursor(Host, inputCursors[x], _schemaImpl, predicate));
         }
 
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Transforms
                 AsSchema = Schema.Create(this);
             }
 
-            private static void CheckAndBind(IExceptionContext ectx, ISchema inputSchema,
+            private static void CheckAndBind(IExceptionContext ectx, Schema inputSchema,
                 string[] pivotColumns, out PivotColumnInfo[] infos)
             {
                 Contracts.AssertValueOrNull(ectx);
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms
                     if (!colType.IsVector || !colType.ItemType.IsPrimitive)
                         throw ectx.ExceptUserArg(nameof(Arguments.Column),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, colType);
-                    infos[i] = new PivotColumnInfo(name, col, colType.VectorSize, colType.ItemType.AsPrimitive);
+                    infos[i] = new PivotColumnInfo(name, col, colType.VectorSize, (PrimitiveType)colType.ItemType);
                 }
             }
 
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private sealed class Cursor : LinkedRootCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : LinkedRootCursorBase
         {
             private readonly SchemaImpl _schemaImpl;
 
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Transforms
             // Parallel to columns.
             private int[] _colSizes;
 
-            public Cursor(IChannelProvider provider, IRowCursor input, SchemaImpl schema, Func<int, bool> predicate)
+            public Cursor(IChannelProvider provider, RowCursor input, SchemaImpl schema, Func<int, bool> predicate)
                 : base(provider, input)
             {
                 _schemaImpl = schema;
@@ -512,13 +512,13 @@ namespace Microsoft.ML.Transforms
                 get { return Input.Batch; }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 var idGetter = Input.GetIdGetter();
-                return (ref UInt128 val) =>
+                return (ref RowId val) =>
                 {
                     idGetter(ref val);
-                    val = val.Combine(new UInt128((ulong)_pivotColPosition, 0));
+                    val = val.Combine(new RowId((ulong)_pivotColPosition, 0));
                 };
             }
 
@@ -582,15 +582,15 @@ namespace Microsoft.ML.Transforms
                     };
             }
 
-            public Schema Schema => _schemaImpl.AsSchema;
+            public override Schema Schema => _schemaImpl.AsSchema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _schemaImpl.ColumnCount);
                 return _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _schemaImpl.ColumnCount, nameof(col));
 
@@ -670,7 +670,7 @@ namespace Microsoft.ML.Transforms
             var view = new UngroupTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

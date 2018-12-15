@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ProduceIdTransform.Summary, typeof(ProduceIdTransform), typeof(ProduceIdTransform.Arguments), typeof(SignatureDataTransform),
     "", "ProduceIdTransform", "ProduceId")]
@@ -15,7 +16,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(ProduceIdTransform.Summary, typeof(ProduceIdTransform), null, typeof(SignatureLoadDataTransform),
     "Produce ID Transform", ProduceIdTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Produces a column with the cursor's ID as a column. This can be useful for diagnostic purposes.
@@ -91,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly Bindings _bindings;
 
-        public override Schema Schema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -135,7 +136,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -144,19 +145,19 @@ namespace Microsoft.ML.Runtime.Data
             var input = Source.GetRowCursor(inputPred, rand);
             bool active = predicate(_bindings.MapIinfoToCol(0));
 
-            return new RowCursor(Host, _bindings, input, active);
+            return new Cursor(Host, _bindings, input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
             var inputPred = _bindings.GetDependencies(predicate);
-            IRowCursor[] cursors = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            RowCursor[] cursors = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
             bool active = predicate(_bindings.MapIinfoToCol(0));
             for (int c = 0; c < cursors.Length; ++c)
-                cursors[c] = new RowCursor(Host, _bindings, cursors[c], active);
+                cursors[c] = new Cursor(Host, _bindings, cursors[c], active);
             return cursors;
         }
 
@@ -166,14 +167,14 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool _active;
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
-            public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool active)
+            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));
@@ -181,7 +182,7 @@ namespace Microsoft.ML.Runtime.Data
                 _active = active;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _bindings.ColumnCount, nameof(col));
                 bool isSrc;
@@ -192,7 +193,7 @@ namespace Microsoft.ML.Runtime.Data
                 return _active;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _bindings.ColumnCount, nameof(col));
                 Ch.CheckParam(IsColumnActive(col), nameof(col));

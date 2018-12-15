@@ -12,8 +12,6 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections;
@@ -175,7 +173,10 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public class ColumnInfo
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnInfo
         {
             public enum ReplacementMode : byte
             {
@@ -194,16 +195,17 @@ namespace Microsoft.ML.Transforms
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of output column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="replacementMode">What to replace the missing value with.</param>
             /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
             /// where imputation is always for the entire column.</param>
-            public ColumnInfo(string input, string output, ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+            public ColumnInfo(string input, string output = null, ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
                 bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
             {
+                Contracts.CheckNonWhiteSpace(input, nameof(input));
                 Input = input;
-                Output = output;
+                Output = output ?? input;
                 ImputeBySlot = imputeBySlot;
                 Replacement = replacementMode;
             }
@@ -232,7 +234,7 @@ namespace Microsoft.ML.Transforms
         // REVIEW: Currently these arrays are constructed on load but could be changed to being constructed lazily.
         private readonly BitArray[] _repIsDefault;
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
             string reason = TestType(type);
@@ -324,8 +326,8 @@ namespace Microsoft.ML.Transforms
                 input.Schema.TryGetColumnIndex(columns[iinfo].Input, out int colSrc);
                 sources[iinfo] = colSrc;
                 var type = input.Schema.GetColumnType(colSrc);
-                if (type.IsVector)
-                    type = new VectorType(type.ItemType.AsPrimitive, type.AsVector);
+                if (type is VectorType vectorType)
+                     type = new VectorType((PrimitiveType)type.ItemType, vectorType);
                 Delegate isNa = GetIsNADelegate(type);
                 types[iinfo] = type;
                 var kind = (ReplacementKind)columns[iinfo].Replacement;
@@ -493,7 +495,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadModel.
-        public static MissingValueReplacingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static MissingValueReplacingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(LoadName);
@@ -505,12 +507,12 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private VBuffer<T> CreateVBuffer<T>(T[] array)
         {
@@ -558,7 +560,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
@@ -593,8 +595,8 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var type = _infos[i].TypeSrc;
-                    if (type.IsVector)
-                        type = new VectorType(type.ItemType.AsPrimitive, type.AsVector);
+                    if (type is VectorType vectorType)
+                        type = new VectorType((PrimitiveType)type.ItemType, vectorType);
                     var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].ItemType;
                     if (!type.ItemType.Equals(repType.ItemType))
                         throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
@@ -616,7 +618,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private ColInfo[] CreateInfos(ISchema inputSchema)
+            private ColInfo[] CreateInfos(Schema inputSchema)
             {
                 Host.AssertValue(inputSchema);
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
@@ -645,7 +647,7 @@ namespace Microsoft.ML.Transforms
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -659,13 +661,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for single valued inputs.
             /// </summary>
-            private Delegate ComposeGetterOne(IRow input, int iinfo)
+            private Delegate ComposeGetterOne(Row input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].TypeSrc.RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for scalars.
             /// </summary>
-            private Delegate ComposeGetterOne<T>(IRow input, int iinfo)
+            private Delegate ComposeGetterOne<T>(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
@@ -685,13 +687,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for vector valued inputs.
             /// </summary>
-            private Delegate ComposeGetterVec(IRow input, int iinfo)
+            private Delegate ComposeGetterVec(Row input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.ItemType.RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for vectors.
             /// </summary>
-            private Delegate ComposeGetterVec<T>(IRow input, int iinfo)
+            private Delegate ComposeGetterVec<T>(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
@@ -897,10 +899,10 @@ namespace Microsoft.ML.Transforms
             {
                 DataKind rawKind;
                 var type = _infos[iinfo].TypeSrc;
-                if (type.IsVector)
-                    rawKind = type.AsVector.ItemType.RawKind;
-                else if (type.IsKey)
-                    rawKind = type.AsKey.RawKind;
+                if (type is VectorType vectorType)
+                    rawKind = vectorType.ItemType.RawKind;
+                else if (type is KeyType keyType)
+                    rawKind = keyType.RawKind;
                 else
                     rawKind = type.RawKind;
 
@@ -952,7 +954,7 @@ namespace Microsoft.ML.Transforms
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
@@ -965,7 +967,9 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(slotMeta);
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normalized))
                     metadata.Add(normalized);
-                var type = !col.ItemType.IsVector ? col.ItemType : new VectorType(col.ItemType.ItemType.AsPrimitive, col.ItemType.AsVector);
+                var type = !(col.ItemType is VectorType vectorType) ?
+                    col.ItemType :
+                    new VectorType((PrimitiveType)col.ItemType.ItemType, vectorType);
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
@@ -974,160 +978,4 @@ namespace Microsoft.ML.Transforms
         public MissingValueReplacingTransformer Fit(IDataView input) => new MissingValueReplacingTransformer(_host, input, _columns);
     }
 
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class NAReplacerExtensions
-    {
-        private readonly struct Config
-        {
-            public readonly bool ImputeBySlot;
-            public readonly MissingValueReplacingTransformer.ColumnInfo.ReplacementMode ReplacementMode;
-
-            public Config(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
-                bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
-            {
-                ImputeBySlot = imputeBySlot;
-                ReplacementMode = replacementMode;
-            }
-        }
-
-        private interface IColInput
-        {
-            PipelineColumn Input { get; }
-            Config Config { get; }
-        }
-
-        private sealed class OutScalar<TValue> : Scalar<TValue>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-
-            public OutScalar(Scalar<TValue> input, Config config)
-              : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class OutVectorColumn<TValue> : Vector<TValue>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-
-            public OutVectorColumn(Vector<TValue> input, Config config)
-              : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-
-        }
-
-        private sealed class OutVarVectorColumn<TValue> : VarVector<TValue>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-
-            public OutVarVectorColumn(VarVector<TValue> input, Config config)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            public static Reconciler Inst = new Reconciler();
-
-            private Reconciler() { }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                var infos = new MissingValueReplacingTransformer.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var col = (IColInput)toOutput[i];
-                    infos[i] = new MissingValueReplacingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.ReplacementMode, col.Config.ImputeBySlot);
-                }
-                return new MissingValueReplacingEstimator(env, infos);
-            }
-        }
-
-        /// <summary>
-        /// Scan through all rows and replace NaN values according to replacement strategy.
-        /// </summary>
-        /// <param name="input">Incoming data.</param>
-        /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutScalar<float>(input, new Config(replacementMode, false));
-        }
-
-        /// <summary>
-        /// Scan through all rows and replace NaN values according to replacement strategy.
-        /// </summary>
-        /// <param name="input">Incoming data.</param>
-        /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutScalar<double>(input, new Config(replacementMode, false));
-        }
-        /// <summary>
-        /// Scan through all rows and replace NaN values according to replacement strategy.
-        /// </summary>
-        /// <param name="input">Incoming data.</param>
-        /// <param name="replacementMode">How NaN should be replaced</param>
-        /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
-        /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
-        /// where imputation is always for the entire column.</param>
-        public static Vector<float> ReplaceNaNValues(this Vector<float> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
-        }
-
-        /// <summary>
-        /// Scan through all rows and replace NaN values according to replacement strategy.
-        /// </summary>
-        /// <param name="input">Incoming data.</param>
-        /// <param name="replacementMode">How NaN should be replaced</param>
-        /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
-        /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
-        /// where imputation is always for the entire column.</param>
-        public static Vector<double> ReplaceNaNValues(this Vector<double> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
-        }
-
-        /// <summary>
-        /// Scan through all rows and replace NaN values according to replacement strategy.
-        /// </summary>
-        /// <param name="input">Incoming data.</param>
-        /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<float>(input, new Config(replacementMode, false));
-        }
-        /// <summary>
-        /// Scan through all rows and replace NaN values according to replacement strategy.
-        /// </summary>
-        /// <param name="input">Incoming data.</param>
-        /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<double>(input, new Config(replacementMode, false));
-        }
-    }
 }

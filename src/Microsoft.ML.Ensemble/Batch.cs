@@ -6,7 +6,7 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
-    public sealed class Batch
+    internal sealed class Batch
     {
         public readonly RoleMappedData TrainInstances;
         public readonly RoleMappedData TestInstances;

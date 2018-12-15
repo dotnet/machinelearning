@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 using System.Collections.Generic;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -31,7 +32,7 @@ using System.Collections.Generic;
     OvaPredictor.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(OvaPredictor))]
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Runtime.Learners
             _args.UseProbabilities = useProbabilities;
         }
 
-        protected override OvaPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override OvaPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train one-vs-all models.
             var predictors = new TScalarPredictor[count];
@@ -133,7 +134,7 @@ namespace Microsoft.ML.Runtime.Learners
                 var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
 
                 if (calibratedModel == null)
-                    calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
+                    calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
                 Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
                 return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
@@ -226,9 +227,8 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly ImplBase _impl;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        public ColumnType InputType => _impl.InputType;
-        public ColumnType OutputType { get; }
-        public ColumnType DistType => OutputType;
+        private readonly ColumnType _outputType;
+        public ColumnType DistType => _outputType;
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
         [BestFriend]
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.Learners
             Host.Assert(Utils.Size(impl.Predictors) > 0);
 
             _impl = impl;
-            OutputType = new VectorType(NumberType.Float, _impl.Predictors.Length);
+            _outputType = new VectorType(NumberType.Float, _impl.Predictors.Length);
         }
 
         private OvaPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Learners
                 _impl = new ImplRaw(predictors);
             }
 
-            OutputType = new VectorType(NumberType.Float, _impl.Predictors.Length);
+            _outputType = new VectorType(NumberType.Float, _impl.Predictors.Length);
         }
 
         public static OvaPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Runtime.Learners
                 ctx.LoadModel<TPredictor, SignatureLoadModel>(env, out predictors[i], string.Format(SubPredictorFmt, i));
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -348,7 +348,16 @@ namespace Microsoft.ML.Runtime.Learners
             return _impl.SaveAsPfa(ctx, input);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ColumnType IValueMapper.InputType
+        {
+            get { return _impl.InputType; }
+        }
+
+        ColumnType IValueMapper.OutputType
+        {
+            get { return _outputType; }
+        }
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(VBuffer<float>));
@@ -356,7 +365,7 @@ namespace Microsoft.ML.Runtime.Learners
             return (ValueMapper<TIn, TOut>)(Delegate)_impl.GetMapper();
         }
 
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
@@ -376,7 +385,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));

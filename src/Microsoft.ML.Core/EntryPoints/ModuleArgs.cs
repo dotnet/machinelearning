@@ -577,11 +577,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// </summary>
             FileHandle,
             /// <summary>
-            /// A transform model, represented by an <see cref="ITransformModel"/>.
+            /// A transform model, represented by an <see cref="EntryPoints.TransformModel"/>.
             /// </summary>
             TransformModel,
             /// <summary>
-            /// A predictor model, represented by an <see cref="IPredictorModel"/>.
+            /// A predictor model, represented by an <see cref="EntryPoints.PredictorModel"/>.
             /// </summary>
             PredictorModel,
             /// <summary>
@@ -602,11 +602,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// optionally, a set of parameters, unique to each component. Example: "BinaryClassifierEvaluator{threshold=0.5}".
             /// The C# representation is <see cref="IComponentFactory"/>.
             /// </summary>
-            Component,
-            /// <summary>
-            /// An C# object that represents state, such as <see cref="IMlState"/>.
-            /// </summary>
-            State
+            Component
         }
 
         public static DataKind GetDataType(Type type)
@@ -632,9 +628,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return DataKind.Float;
             if (typeof(IDataView).IsAssignableFrom(type))
                 return DataKind.DataView;
-            if (typeof(ITransformModel).IsAssignableFrom(type))
+            if (typeof(TransformModel).IsAssignableFrom(type))
                 return DataKind.TransformModel;
-            if (typeof(IPredictorModel).IsAssignableFrom(type))
+            if (typeof(PredictorModel).IsAssignableFrom(type))
                 return DataKind.PredictorModel;
             if (typeof(IFileHandle).IsAssignableFrom(type))
                 return DataKind.FileHandle;
@@ -649,8 +645,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
             if (typeof(IComponentFactory).IsAssignableFrom(type))
                 return DataKind.Component;
-            if (typeof(IMlState).IsAssignableFrom(type))
-                return DataKind.State;
 
             return DataKind.Unknown;
         }
@@ -673,7 +667,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public abstract object GetValue();
 
-        protected Optional(bool isExplicit)
+        private protected Optional(bool isExplicit)
         {
             IsExplicit = isExplicit;
         }

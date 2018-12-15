@@ -216,8 +216,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new WordTokenizingEstimator(Env, "text", "text")
                 .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
-                .Append(new NgramCountingEstimator(Env, "terms", "ngrams"))
-                .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));
+                .Append(new NgramExtractingEstimator(Env, "terms", "ngrams"))
+                .Append(new NgramHashingEstimator(Env, "terms", "ngramshash"));
 
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 

@@ -152,9 +152,9 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var columns = new List<StopWordsRemovingTransform.ColumnInfo>();
+                var columns = new List<StopWordsRemovingTransformer.ColumnInfo>();
                 foreach (var outCol in toOutput)
-                    columns.Add(new StopWordsRemovingTransform.ColumnInfo(inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol], _language));
+                    columns.Add(new StopWordsRemovingTransformer.ColumnInfo(inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol], _language));
 
                 return new StopWordsRemovingEstimator(env, columns.ToArray());
             }
@@ -254,7 +254,7 @@ namespace Microsoft.ML.StaticPipe
                 int skipLength,
                 bool allLengths,
                 int maxNumTerms,
-                NgramCountingEstimator.WeightingCriteria weighting)
+                NgramExtractingEstimator.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -267,9 +267,9 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly int _maxNumTerms;
-            private readonly NgramCountingEstimator.WeightingCriteria _weighting;
+            private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
-            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramCountingEstimator.WeightingCriteria weighting)
+            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramExtractingEstimator.WeightingCriteria weighting)
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
@@ -319,7 +319,7 @@ namespace Microsoft.ML.StaticPipe
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.WeightingCriteria.Tf)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
                 => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 
@@ -405,7 +405,10 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static Vector<float> ToBagofHashedWords(this Scalar<string> input,
             int hashBits = 16,
             int ngramLength = 1,
@@ -430,7 +433,7 @@ namespace Microsoft.ML.StaticPipe
                 int skipLength,
                 bool allLengths,
                 int maxNumTerms,
-                NgramCountingEstimator.WeightingCriteria weighting)
+                NgramExtractingEstimator.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -443,9 +446,9 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly int _maxNumTerms;
-            private readonly NgramCountingEstimator.WeightingCriteria _weighting;
+            private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
-            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramCountingEstimator.WeightingCriteria weighting)
+            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramExtractingEstimator.WeightingCriteria weighting)
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
@@ -476,7 +479,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new NgramCountingEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _allLengths, _maxNumTerms, _weighting);
+                return new NgramExtractingEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _allLengths, _maxNumTerms, _weighting);
             }
         }
 
@@ -498,7 +501,7 @@ namespace Microsoft.ML.StaticPipe
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.WeightingCriteria.Tf)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
                 => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 
@@ -557,12 +560,12 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyCollection<string> usedNames)
             {
                 Contracts.Assert(toOutput.Length == 1);
-
-                var pairs = new List<(string[] inputs, string output)>();
+                var columns = new List<NgramHashingTransformer.ColumnInfo>();
                 foreach (var outCol in toOutput)
-                    pairs.Add((new[] { inputNames[((OutPipelineColumn)outCol).Input] }, outputNames[outCol]));
+                    columns.Add(new NgramHashingTransformer.ColumnInfo(new[] { inputNames[((OutPipelineColumn)outCol).Input] }, outputNames[outCol],
+                          _ngramLength, _skipLength, _allLengths, _hashBits, _seed, _ordered, _invertHash));
 
-                return new NgramHashEstimator(env, pairs.ToArray(), _hashBits, _ngramLength, _skipLength, _allLengths, _seed, _ordered, _invertHash);
+                return new NgramHashingEstimator(env, columns.ToArray());
             }
         }
 
@@ -580,7 +583,10 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="seed">Hashing seed.</param>
         /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
-        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
+        /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
+        /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
+        /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
         public static Vector<float> ToNgramsHash(this VarVector<Key<uint, string>> input,
             int hashBits = 16,
             int ngramLength = 2,

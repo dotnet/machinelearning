@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
-    public sealed class Subset
+    internal sealed class Subset
     {
         public readonly RoleMappedData Data;
         public readonly BitArray SelectedFeatures;

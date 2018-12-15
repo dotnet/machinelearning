@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = ImageLoaderTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = ImageResizerTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = ImagePixelExtractorTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = ImageGrayscaleTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = new VectorToImageTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }

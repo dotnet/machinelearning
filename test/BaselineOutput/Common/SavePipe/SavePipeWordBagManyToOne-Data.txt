@@ -1,0 +1,108 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=WB1:R4:0-29
+#@   col=WB2:R4:30-59
+#@ }
+lediglich	lediglich|air	lediglich|air|worldwide	lediglich|air|ein	lediglich|air|spezialist	lediglich|worldwide	lediglich|worldwide|ein	lediglich|worldwide|spezialist	lediglich|ein	lediglich|ein|spezialist	air	air|worldwide	air|worldwide|ein	air|worldwide|spezialist	air|worldwide|fuer	air|ein	air|ein|spezialist	air|spezialist	worldwide	worldwide|ein	worldwide|spezialist	worldwide|fuer	ein	ein|spezialist	spezialist	fuer	risikomodelle	wagte	sich	schnell	lediglich	lediglich|air	lediglich|air|worldwide	lediglich|air|ein	lediglich|air|spezialist	lediglich|worldwide	lediglich|worldwide|ein	lediglich|worldwide|spezialist	lediglich|ein	lediglich|ein|spezialist	air	air|worldwide	air|worldwide|ein	air|worldwide|spezialist	air|worldwide|fuer	air|ein	air|ein|spezialist	air|spezialist	worldwide	worldwide|ein	worldwide|spezialist	worldwide|fuer	ein	ein|spezialist	spezialist	fuer	risikomodelle	wagte	sich	schnell
+1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2
+60	22:2	25:1	28:1	52:4	55:2	58:2
+60	22:1	52:2
+60	25:1	55:2
+60	22:4	25:3	28:6	52:8	55:6	58:12
+60	22:2	25:8	52:4	55:16
+60	10:1	22:2	25:1	28:3	40:2	52:4	55:2	58:6
+60	25:1	28:1	55:2	58:2
+60	0:0
+60	25:2	28:2	55:4	58:4
+60	0:0
+60	22:4	25:3	28:1	52:8	55:6	58:2
+60	22:1	52:2
+60	0:0
+60	28:1	58:2
+60	22:2	25:3	28:5	52:4	55:6	58:10
+60	22:4	25:4	28:3	52:8	55:8	58:6
+60	22:1	25:2	52:2	55:4
+60	25:1	28:1	55:2	58:2
+60	22:2	25:3	28:2	52:4	55:6	58:4
+60	28:1	58:2
+60	22:1	25:4	27:1	28:1	52:2	55:8	57:2	58:2
+60	0:0
+60	28:1	58:2
+60	22:2	25:3	28:3	52:4	55:6	58:6
+60	0:0
+60	22:1	52:2
+60	25:1	28:1	55:2	58:2
+60	25:1	55:2
+60	22:1	25:3	28:1	52:2	55:6	58:2
+60	28:1	58:2
+60	22:1	52:2
+60	0:0
+60	25:2	28:1	55:4	58:2
+60	0:0
+60	0:0
+60	0:0
+60	0:0
+60	0:0
+60	22:1	52:2
+60	0:0
+60	0:0
+60	25:2	55:4
+60	22:4	28:3	52:8	58:6
+60	0:0
+60	22:4	25:2	28:2	52:8	55:4	58:4
+60	22:1	25:1	52:2	55:2
+60	22:2	25:2	29:1	52:4	55:4	59:2
+60	25:1	55:2
+60	22:6	25:2	28:2	52:12	55:4	58:4
+60	22:2	25:4	28:1	52:4	55:8	58:2
+60	22:1	52:2
+60	22:1	25:1	28:1	52:2	55:2	58:2
+60	25:1	55:2
+60	0:0
+60	0:0
+60	0:1	22:1	25:3	28:1	30:2	52:2	55:6	58:2
+60	22:2	25:1	29:1	52:4	55:2	59:2
+60	0:0
+60	22:7	25:3	28:3	29:1	52:14	55:6	58:6	59:2
+60	22:1	28:1	52:2	58:2
+60	22:2	25:1	28:5	52:4	55:2	58:10
+60	22:4	25:2	28:3	29:1	52:8	55:4	58:6	59:2
+60	22:1	28:1	52:2	58:2
+60	22:1	25:2	28:1	52:2	55:4	58:2
+60	0:0
+60	0:0
+60	28:1	58:2
+60	22:2	28:2	52:4	58:4
+60	25:1	28:1	55:2	58:2
+60	28:1	58:2
+60	28:1	58:2
+60	0:0
+60	22:1	28:1	52:2	58:2
+60	0:0
+60	22:1	52:2
+60	22:1	25:1	52:2	55:2
+60	22:3	52:6
+60	25:2	28:2	55:4	58:4
+60	25:1	55:2
+60	22:1	25:2	28:1	52:2	55:4	58:2
+60	22:2	25:5	28:1	52:4	55:10	58:2
+60	25:2	28:1	55:4	58:2
+60	0:0
+60	22:1	28:1	29:1	52:2	58:2	59:2
+60	22:2	25:1	52:4	55:2
+60	28:1	58:2
+60	0:0
+60	25:1	28:1	55:2	58:2
+60	22:3	25:2	28:6	52:6	55:4	58:12
+60	22:1	25:2	52:2	55:4
+60	28:7	58:14
+60	28:1	58:2
+60	22:1	25:5	28:4	52:2	55:10	58:8
+60	25:1	55:2
+60	0:0
+60	22:1	25:3	28:1	52:2	55:6	58:2
+60	25:2	28:1	55:4	58:2
+60	25:1	55:2
+60	0:0
+60	22:2	25:5	28:7	52:4	55:10	58:14

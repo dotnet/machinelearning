@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 FeatureColumns[i] = new SchemaShape.Column(featureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
             LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-            WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : null;
+            WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : default;
         }
 
         /// <summary>
@@ -299,14 +299,16 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             for (int f = 0; f < fieldCount; f++)
             {
                 var col = featureColumns[f];
-                Host.Assert(col.Type.AsVector.VectorSize > 0);
                 if (col == null)
                     throw ch.ExceptParam(nameof(data), "Empty feature column not allowed");
                 Host.Assert(!data.Schema.Schema.IsHidden(col.Index));
-                if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
+                if (!(col.Type is VectorType vectorType) ||
+                    !vectorType.IsKnownSizeVector ||
+                    vectorType.ItemType != NumberType.Float)
                     throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
+                Host.Assert(vectorType.VectorSize > 0);
                 fieldColumnIndexes[f] = col.Index;
-                totalFeatureCount += col.Type.AsVector.VectorSize;
+                totalFeatureCount += vectorType.VectorSize;
             }
             ch.Check(checked(totalFeatureCount * fieldCount * _latentDimAligned) <= Utils.ArrayMaxSize, "Latent dimension or the number of fields too large");
             if (predictor != null)
@@ -461,7 +463,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, LabelColumn.Name));
 
-            if (WeightColumn != null)
+            if (WeightColumn.IsValid)
                 roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, WeightColumn.Name));
 
             var trainingData = new RoleMappedData(trainData, roles);
@@ -500,10 +502,10 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 CheckColumnsCompatible(feat, DefaultColumnNames.Features);
             }
 
-            if (WeightColumn != null)
+            if (WeightColumn.IsValid)
                 CheckColumnsCompatible(WeightColumn, DefaultColumnNames.Weight);
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
             foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 

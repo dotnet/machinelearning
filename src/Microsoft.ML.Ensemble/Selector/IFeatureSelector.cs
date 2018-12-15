@@ -4,18 +4,19 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using System;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector
 {
-    public interface IFeatureSelector
+    internal interface IFeatureSelector
     {
-        Subset SelectFeatures(RoleMappedData data, IRandom rand);
+        Subset SelectFeatures(RoleMappedData data, Random rand);
     }
 
     public delegate void SignatureEnsembleFeatureSelector();
 
     [TlcModule.ComponentKind("EnsembleFeatureSelector")]
-    public interface ISupportFeatureSelectorFactory : IComponentFactory<IFeatureSelector>
+    internal interface ISupportFeatureSelectorFactory : IComponentFactory<IFeatureSelector>
     {
     }
 }

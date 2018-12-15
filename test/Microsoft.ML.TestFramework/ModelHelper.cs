@@ -14,8 +14,8 @@ namespace Microsoft.ML.TestFramework
 #pragma warning disable 612, 618
     public static class ModelHelper
     {
-        private static IHostEnvironment s_environment = new MLContext(seed: 1);
-        private static ITransformModel s_housePriceModel;
+        private static MLContext s_environment = new MLContext(seed: 1);
+        private static TransformModel s_housePriceModel;
 
         public static void WriteKcHousePriceModel(string dataPath, string outputModelPath)
         {
@@ -41,20 +41,37 @@ namespace Microsoft.ML.TestFramework
 
         public static IDataView GetKcHouseDataView(string dataPath)
         {
-            var dataSchema = "col=Id:TX:0 col=Date:TX:1 col=Label:R4:2 col=Bedrooms:R4:3 " +
-                "col=Bathrooms:R4:4 col=SqftLiving:R4:5 col=SqftLot:R4:6 col=Floors:R4:7 " +
-                "col=Waterfront:R4:8 col=View:R4:9 col=Condition:R4:10 col=Grade:R4:11 " +
-                "col=SqftAbove:R4:12 col=SqftBasement:R4:13 col=YearBuilt:R4:14 " +
-                "col=YearRenovated:R4:15 col=Zipcode:R4:16 col=Lat:R4:17 col=Long:R4:18 " +
-                "col=SqftLiving15:R4:19 col=SqftLot15:R4:20 header+ sep=,";
-
-            var txtArgs = new Runtime.Data.TextLoader.Arguments();
-            bool parsed = CmdParser.ParseArguments(s_environment, dataSchema, txtArgs);
-            s_environment.Assert(parsed);
-            return Runtime.Data.TextLoader.ReadFile(s_environment, txtArgs, new MultiFileSource(dataPath));
+            return s_environment.Data.ReadFromTextFile(dataPath, 
+                columns: new[]
+                {
+                    new Runtime.Data.TextLoader.Column("Id", Runtime.Data.DataKind.TX, 0),
+                    new Runtime.Data.TextLoader.Column("Date", Runtime.Data.DataKind.TX, 1),
+                    new Runtime.Data.TextLoader.Column("Label", Runtime.Data.DataKind.R4, 2),
+                    new Runtime.Data.TextLoader.Column("BedRooms", Runtime.Data.DataKind.R4, 3),
+                    new Runtime.Data.TextLoader.Column("BathRooms", Runtime.Data.DataKind.R4, 4),
+                    new Runtime.Data.TextLoader.Column("SqftLiving", Runtime.Data.DataKind.R4, 5),
+                    new Runtime.Data.TextLoader.Column("SqftLot", Runtime.Data.DataKind.R4, 6),
+                    new Runtime.Data.TextLoader.Column("Floors", Runtime.Data.DataKind.R4, 7),
+                    new Runtime.Data.TextLoader.Column("WaterFront", Runtime.Data.DataKind.R4, 8),
+                    new Runtime.Data.TextLoader.Column("View", Runtime.Data.DataKind.R4, 9),
+                    new Runtime.Data.TextLoader.Column("Condition", Runtime.Data.DataKind.R4, 10),
+                    new Runtime.Data.TextLoader.Column("Grade", Runtime.Data.DataKind.R4, 11),
+                    new Runtime.Data.TextLoader.Column("SqftAbove", Runtime.Data.DataKind.R4, 12),
+                    new Runtime.Data.TextLoader.Column("SqftBasement", Runtime.Data.DataKind.R4, 13),
+                    new Runtime.Data.TextLoader.Column("YearBuilt", Runtime.Data.DataKind.R4, 14),
+                    new Runtime.Data.TextLoader.Column("YearRenovated", Runtime.Data.DataKind.R4, 15),
+                    new Runtime.Data.TextLoader.Column("Zipcode", Runtime.Data.DataKind.R4, 16),
+                    new Runtime.Data.TextLoader.Column("Lat", Runtime.Data.DataKind.R4, 17),
+                    new Runtime.Data.TextLoader.Column("Long", Runtime.Data.DataKind.R4, 18),
+                    new Runtime.Data.TextLoader.Column("SqftLiving15", Runtime.Data.DataKind.R4, 19),
+                    new Runtime.Data.TextLoader.Column("SqftLot15", Runtime.Data.DataKind.R4, 20)
+                }, 
+                hasHeader: true,
+                separatorChar: ','
+            );
         }
 
-        private static ITransformModel CreateKcHousePricePredictorModel(string dataPath)
+        private static TransformModel CreateKcHousePricePredictorModel(string dataPath)
         {
             Experiment experiment = s_environment.CreateExperiment();
             var importData = new Legacy.Data.TextLoader(dataPath)
@@ -246,7 +263,7 @@ namespace Microsoft.ML.TestFramework
             Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output learnerOutput = experiment.Add(learner);
 
             var combineModels = new Legacy.Transforms.ManyHeterogeneousModelCombiner();
-            combineModels.TransformModels = new ArrayVar<ITransformModel>(numericalConcatenated.Model, categoryConcatenated.Model, categorized.Model, featuresConcatenated.Model);
+            combineModels.TransformModels = new ArrayVar<TransformModel>(numericalConcatenated.Model, categoryConcatenated.Model, categorized.Model, featuresConcatenated.Model);
             combineModels.PredictorModel = learnerOutput.PredictorModel;
             Legacy.Transforms.ManyHeterogeneousModelCombiner.Output combinedModels = experiment.Add(combineModels);
 

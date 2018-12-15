@@ -28,7 +28,7 @@ using System;
 namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PoissonRegression"]/*' />
-    public sealed class PoissonRegression : LbfgsTrainerBase<PoissonRegression.Arguments, RegressionPredictionTransformer<PoissonRegressionPredictor>, PoissonRegressionPredictor>
+    public sealed class PoissonRegression : LbfgsTrainerBase<PoissonRegression.Arguments, RegressionPredictionTransformer<PoissonRegressionModelParameters>, PoissonRegressionModelParameters>
     {
         internal const string LoadNameValue = "PoissonRegression";
         internal const string UserNameValue = "Poisson Regression";
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public PoissonRegression(IHostEnvironment env,
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), weights, advancedSettings,
+            : base(env, featureColumn, TrainerUtils.MakeR4ScalarColumn(labelColumn), weights, advancedSettings,
                    l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -75,13 +75,13 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="PoissonRegression"/>
         /// </summary>
         internal PoissonRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
+            : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
         {
         }
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override void CheckLabel(RoleMappedData data)
+        private protected override void CheckLabel(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckRegressionLabel();
@@ -95,16 +95,16 @@ namespace Microsoft.ML.Trainers
             };
         }
 
-        protected override RegressionPredictionTransformer<PoissonRegressionPredictor> MakeTransformer(PoissonRegressionPredictor model, Schema trainSchema)
-            => new RegressionPredictionTransformer<PoissonRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override RegressionPredictionTransformer<PoissonRegressionModelParameters> MakeTransformer(PoissonRegressionModelParameters model, Schema trainSchema)
+            => new RegressionPredictionTransformer<PoissonRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<PoissonRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+        public RegressionPredictionTransformer<PoissonRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionPredictor srcPredictor)
+        protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionModelParameters srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
-            return InitializeWeights(srcPredictor.Weights2, new[] { srcPredictor.Bias });
+            return InitializeWeights(srcPredictor.Weights, new[] { srcPredictor.Bias });
         }
 
         protected override void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
@@ -153,16 +153,16 @@ namespace Microsoft.ML.Trainers
             return -(y * dot - lambda) * weight;
         }
 
-        protected override PoissonRegressionPredictor CreatePredictor()
+        protected override PoissonRegressionModelParameters CreatePredictor()
         {
             VBuffer<float> weights = default(VBuffer<float>);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             float bias = 0;
             CurrentWeights.GetItemOrDefault(0, ref bias);
-            return new PoissonRegressionPredictor(Host, in weights, bias);
+            return new PoissonRegressionModelParameters(Host, in weights, bias);
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory factory, float loss, int numParams)
+        private protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory factory, float loss, int numParams)
         {
             // No-op by design.
         }

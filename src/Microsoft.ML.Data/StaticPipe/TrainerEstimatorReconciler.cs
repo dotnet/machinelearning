@@ -56,7 +56,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
         /// <summary>
         /// Produces the estimator. Note that this is made out of <see cref="ReconcileCore(IHostEnvironment, string[])"/>'s
-        /// return value, plus whatever usages of <see cref="ColumnsCopyingEstimator"/> are necessary to avoid collisions with
+        /// return value, plus whatever usages of <see cref="ColumnCopyingEstimator"/> are necessary to avoid collisions with
         /// the output names fed to the constructor. This class provides the implementation, and subclasses should instead
         /// override <see cref="ReconcileCore(IHostEnvironment, string[])"/>.
         /// </summary>
@@ -103,7 +103,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                         newInputNames[p.Key] = old2New.ContainsKey(p.Value) ? old2New[p.Value] : p.Value;
                     inputNames = newInputNames;
                 }
-                result = new ColumnsCopyingEstimator(env, old2New.Select(p => (p.Key, p.Value)).ToArray());
+                result = new ColumnCopyingEstimator(env, old2New.Select(p => (p.Key, p.Value)).ToArray());
             }
 
             // Map the inputs to the names.
@@ -129,7 +129,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             foreach (var p in old2New)
                 toRename.Add((p.Value, p.Key));
             if (toRename.Count > 0)
-                result = result.Append(new ColumnsCopyingEstimator(env, toRename.ToArray()));
+                result = result.Append(new ColumnCopyingEstimator(env, toRename.ToArray()));
 
             return result;
         }

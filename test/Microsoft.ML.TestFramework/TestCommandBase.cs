@@ -672,16 +672,15 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [TestCategory(Cat)]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandShowSchemaModel()
         {
-            string trainDataPath = GetDataPath(@"..\UCI", "adult.test.tiny");
+            string trainDataPath = GetDataPath("adult.tiny.with-schema.txt");
             string modelPath = ModelPath().Path;
             string args =
                 string.Format(
                     @"train data={{{0}}}
                      loader=Text{{
-                        sep=, 
                         header=+ 
                         col=NumFeatures:Num:9-14 
                         col=CatFeaturesText:TX:0~* 
@@ -922,29 +921,27 @@ namespace Microsoft.ML.Runtime.RunTests
         // multiple different FastTree (Ranking and Classification for example) instances in different threads.
         // FastTree internally fails if we try to run it simultaneously and if this happens we wouldn't get model file for training.
         [TestCategory(Cat)]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainFastTreeInDifferentThreads()
         {
-            var dataPath = GetDataPath("vw.dat");
-            var firstModelOutPath = CreateOutputPath("TreeTransform-model2.zip");
-            var secondModelOutPath = CreateOutputPath("TreeTransform-model1.zip");
-            var trainArgs = "Train tr=SDCA loader=TextLoader{sep=space col=Label:R4:0 col=Features:R4:1 col=Name:TX:2,5-17 col=Cat:TX:3 col=Cat01:TX:4}" + "xf=CategoricalTransform{col=Cat col=Cat01} xf=Concat{col=Features:Features,Cat,Cat01} xf=TreeFeat{tr=FastTreeBinaryClassification} xf=TreeFeat" + "{tr=FastTreeRanking} xf=Concat{col=Features:Features,Leaves,Paths,Trees}";
+            var dataPath = GetDataPath(TestDatasets.adult.testFilename);
+            var firstModelOutPath = DeleteOutputPath("TreeTransform-model2.zip");
+            var secondModelOutPath = DeleteOutputPath("TreeTransform-model1.zip");
+            var trainArgs = $"Train tr=SDCA {TestDatasets.adult.loaderSettings} {TestDatasets.adult.mamlExtraSettings[0]} {TestDatasets.adult.mamlExtraSettings[1]}" +
+                " xf=TreeFeat{tr=FastTreeBinaryClassification} xf=TreeFeat{tr=FastTreeRanking} xf=Concat{col=Features:Features,Leaves,Paths,Trees}";
 
-            var firsttrainArgs = string.Format("{0} data={1} out={2}", trainArgs, dataPath, firstModelOutPath.Path);
-            var secondTrainArgs = string.Format("{0} data={1} out={2}", trainArgs, dataPath, secondModelOutPath.Path);
+            var firsttrainArgs = $"{trainArgs} data={dataPath} out={firstModelOutPath}";
+            var secondTrainArgs = $"{trainArgs} data={dataPath} out={secondModelOutPath}";
 
-            var t = new Task[2];
-            t[0] = new Task(() => { MainForTest(firsttrainArgs); });
-            t[1] = new Task(() => { MainForTest(secondTrainArgs); });
+            var t = new Task<int>[2];
+            t[0] = new Task<int>(() => MainForTest(firsttrainArgs));
+            t[1] = new Task<int>(() => MainForTest(secondTrainArgs));
             t[0].Start();
             t[1].Start();
             Task.WaitAll(t);
 
-            if (!File.Exists(firstModelOutPath.Path))
-                Fail("First model doesn't exist");
-            if (!File.Exists(secondModelOutPath.Path))
-                Fail("Second model doesn't exist");
-            Done();
+            Assert.Equal(0, t[0].Result);
+            Assert.Equal(0, t[1].Result);
         }
 
         [TestCategory(Cat), TestCategory("FastTree")]
@@ -1172,7 +1169,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         [TestCategory(Cat), TestCategory("Multiclass"), TestCategory("Logistic Regression")]
         public void CommandTrainMlrWithStats()
         {

@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public sealed class State : StateBase
         {
-            private IRandom _randomGen;
+            private Random _randomGen;
 
             private PValueTransform _parent;
 

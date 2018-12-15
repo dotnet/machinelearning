@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 for (int i = startingSchemaIndex; i < _sources.Length; i++)
                 {
-                    ISchema schema = _sources[i].Schema;
+                    var schema = _sources[i].Schema;
                     _host.Check(schema.GetColumnName(c) == name, errMsg);
                     _host.Check(schema.GetColumnType(c).SameSizeAndItemType(type), errMsg);
                 }
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.Data
             return sum;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             _host.CheckValue(needCol, nameof(needCol));
             if (rand == null || !_canShuffle)
@@ -154,20 +154,20 @@ namespace Microsoft.ML.Runtime.Data
             return new RandCursor(this, needCol, rand, _counts);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        private abstract class CursorBase : RootCursorBase, IRowCursor
+        private abstract class CursorBase : RootCursorBase
         {
             protected readonly IDataView[] Sources;
             protected readonly Delegate[] Getters;
 
             public override long Batch => 0;
 
-            public Schema Schema { get; }
+            public sealed override Schema Schema { get; }
 
             public CursorBase(AppendRowsDataView parent)
                 : base(parent._host)
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.Data
 
             protected abstract ValueGetter<TValue> CreateTypedGetter<TValue>(int col);
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col), "The column must be active against the defined predicate.");
                 if (!(Getters[col] is ValueGetter<TValue>))
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Runtime.Data
                 return Getters[col] as ValueGetter<TValue>;
             }
 
-            public bool IsColumnActive(int col)
+            public sealed override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < Schema.ColumnCount, "Column index is out of range");
                 return Getters[col] != null;
@@ -209,8 +209,8 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class Cursor : CursorBase
         {
-            private IRowCursor _currentCursor;
-            private ValueGetter<UInt128> _currentIdGetter;
+            private RowCursor _currentCursor;
+            private ValueGetter<RowId> _currentIdGetter;
             private int _currentSourceIndex;
 
             public Cursor(AppendRowsDataView parent, Func<int, bool> needCol)
@@ -228,17 +228,17 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         _currentIdGetter(ref val);
                         // While the union of all IDs may not be acceptable, by taking each
                         // data views IDs and combining them against their source index, the
                         // union of these IDs becomes acceptable.
-                        // REVIEW: Convenience UInt128 constructor for this scenario?
-                        val = val.Combine(new UInt128((ulong)_currentSourceIndex, 0));
+                        // REVIEW: Convenience RowId constructor for this scenario?
+                        val = val.Combine(new RowId((ulong)_currentSourceIndex, 0));
                     };
             }
 
@@ -280,15 +280,16 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (State != CursorState.Done)
+                if (State == CursorState.Done)
+                    return;
+                if (disposing)
                 {
                     Ch.Dispose();
-                    if (_currentCursor != null)
-                        _currentCursor.Dispose();
-                    base.Dispose();
+                    _currentCursor?.Dispose();
                 }
+                base.Dispose(disposing);
             }
         }
 
@@ -299,12 +300,12 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class RandCursor : CursorBase
         {
-            private readonly IRowCursor[] _cursorSet;
+            private readonly RowCursor[] _cursorSet;
             private readonly MultinomialWithoutReplacementSampler _sampler;
-            private readonly IRandom _rand;
+            private readonly Random _rand;
             private int _currentSourceIndex;
 
-            public RandCursor(AppendRowsDataView parent, Func<int, bool> needCol, IRandom rand, int[] counts)
+            public RandCursor(AppendRowsDataView parent, Func<int, bool> needCol, Random rand, int[] counts)
                 : base(parent)
             {
                 Ch.AssertValue(needCol);
@@ -313,7 +314,7 @@ namespace Microsoft.ML.Runtime.Data
                 _rand = rand;
                 Ch.AssertValue(counts);
                 Ch.Assert(Sources.Length == counts.Length);
-                _cursorSet = new IRowCursor[counts.Length];
+                _cursorSet = new RowCursor[counts.Length];
                 for (int i = 0; i < counts.Length; i++)
                 {
                     Ch.Assert(counts[i] >= 0);
@@ -328,17 +329,17 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
-                ValueGetter<UInt128>[] idGetters = new ValueGetter<UInt128>[_cursorSet.Length];
+                ValueGetter<RowId>[] idGetters = new ValueGetter<RowId>[_cursorSet.Length];
                 for (int i = 0; i < _cursorSet.Length; ++i)
                     idGetters[i] = _cursorSet[i].GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
                         idGetters[_currentSourceIndex](ref val);
-                        val = val.Combine(new UInt128((ulong)_currentSourceIndex, 0));
+                        val = val.Combine(new RowId((ulong)_currentSourceIndex, 0));
                     };
             }
 
@@ -369,15 +370,17 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (State != CursorState.Done)
+                if (State == CursorState.Done)
+                    return;
+                if (disposing)
                 {
                     Ch.Dispose();
-                    foreach (IRowCursor c in _cursorSet)
+                    foreach (RowCursor c in _cursorSet)
                         c.Dispose();
-                    base.Dispose();
                 }
+                base.Dispose(disposing);
             }
         }
 
@@ -397,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
             private const int BatchSize = 1000;
 
             private readonly int[] _rowsLeft;
-            private readonly IRandom _rand;
+            private readonly Random _rand;
             private readonly int[] _batch;
             private readonly IExceptionContext _ectx;
 
@@ -405,7 +408,7 @@ namespace Microsoft.ML.Runtime.Data
             private int _batchPos;
             private int _totalLeft;
 
-            public MultinomialWithoutReplacementSampler(IExceptionContext context, int[] counts, IRandom rand)
+            public MultinomialWithoutReplacementSampler(IExceptionContext context, int[] counts, Random rand)
             {
                 Contracts.AssertValue(context);
                 _ectx = context;
@@ -444,7 +447,7 @@ namespace Microsoft.ML.Runtime.Data
                     _batchEnd = newEnd;
                 }
                 _totalLeft -= _batchEnd;
-                Utils.Shuffle(_rand, _batch, 0, _batchEnd);
+                Utils.Shuffle(_rand, _batch.AsSpan(0, _batchEnd));
             }
 
             public int Next()

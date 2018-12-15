@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Data
             return names;
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Host.AssertValue(schema.Label);
                 Host.Assert(PassNum < 1);
@@ -791,141 +791,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Evaluation results for binary classifiers, excluding probabilistic metrics.
-        /// </summary>
-        public class Result
-        {
-            /// <summary>
-            /// Gets the area under the ROC curve.
-            /// </summary>
-            /// <remarks>
-            /// The area under the ROC curve is equal to the probability that the classifier ranks
-            /// a randomly chosen positive instance higher than a randomly chosen negative one
-            /// (assuming 'positive' ranks higher than 'negative').
-            /// </remarks>
-            public double Auc { get; }
-
-            /// <summary>
-            /// Gets the accuracy of a classifier which is the proportion of correct predictions in the test set.
-            /// </summary>
-            public double Accuracy { get; }
-
-            /// <summary>
-            /// Gets the positive precision of a classifier which is the proportion of correctly predicted
-            /// positive instances among all the positive predictions (i.e., the number of positive instances
-            /// predicted as positive, divided by the total number of instances predicted as positive).
-            /// </summary>
-            public double PositivePrecision { get; }
-
-            /// <summary>
-            /// Gets the positive recall of a classifier which is the proportion of correctly predicted
-            /// positive instances among all the positive instances (i.e., the number of positive instances
-            /// predicted as positive, divided by the total number of positive instances).
-            /// </summary>
-            public double PositiveRecall { get; private set; }
-
-            /// <summary>
-            /// Gets the negative precision of a classifier which is the proportion of correctly predicted
-            /// negative instances among all the negative predictions (i.e., the number of negative instances
-            /// predicted as negative, divided by the total number of instances predicted as negative).
-            /// </summary>
-            public double NegativePrecision { get; }
-
-            /// <summary>
-            /// Gets the negative recall of a classifier which is the proportion of correctly predicted
-            /// negative instances among all the negative instances (i.e., the number of negative instances
-            /// predicted as negative, divided by the total number of negative instances).
-            /// </summary>
-            public double NegativeRecall { get; }
-
-            /// <summary>
-            /// Gets the F1 score of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// F1 score is the harmonic mean of precision and recall: 2 * precision * recall / (precision + recall).
-            /// </remarks>
-            public double F1Score { get; }
-
-            /// <summary>
-            /// Gets the area under the precision/recall curve of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// The area under the precision/recall curve is a single number summary of the information in the
-            /// precision/recall curve. It is increasingly used in the machine learning community, particularly
-            /// for imbalanced datasets where one class is observed more frequently than the other. On these
-            /// datasets, AUPRC can highlight performance differences that are lost with AUC.
-            /// </remarks>
-            public double Auprc { get; }
-
-            protected private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
-            {
-                if (!row.Schema.TryGetColumnIndex(name, out int col))
-                    throw ectx.Except($"Could not find column '{name}'");
-                T val = default;
-                row.GetGetter<T>(col)(ref val);
-                return val;
-            }
-
-            internal Result(IExceptionContext ectx, IRow overallResult)
-            {
-                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-                Auc = Fetch(BinaryClassifierEvaluator.Auc);
-                Accuracy = Fetch(BinaryClassifierEvaluator.Accuracy);
-                PositivePrecision = Fetch(BinaryClassifierEvaluator.PosPrecName);
-                PositiveRecall = Fetch(BinaryClassifierEvaluator.PosRecallName);
-                NegativePrecision = Fetch(BinaryClassifierEvaluator.NegPrecName);
-                NegativeRecall = Fetch(BinaryClassifierEvaluator.NegRecallName);
-                F1Score = Fetch(BinaryClassifierEvaluator.F1);
-                Auprc = Fetch(BinaryClassifierEvaluator.AuPrc);
-            }
-        }
-
-        /// <summary>
-        /// Evaluation results for binary classifiers, including probabilistic metrics.
-        /// </summary>
-        public sealed class CalibratedResult : Result
-        {
-            /// <summary>
-            /// Gets the log-loss of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// The log-loss metric, is computed as follows:
-            /// LL = - (1/m) * sum( log(p[i]))
-            /// where m is the number of instances in the test set.
-            /// p[i] is the probability returned by the classifier if the instance belongs to class 1,
-            /// and 1 minus the probability returned by the classifier if the instance belongs to class 0.
-            /// </remarks>
-            public double LogLoss { get; }
-
-            /// <summary>
-            /// Gets the log-loss reduction (also known as relative log-loss, or reduction in information gain - RIG)
-            /// of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
-            /// (LL(prior) - LL(classifier)) / LL(prior)
-            /// This metric can be interpreted as the advantage of the classifier over a random prediction.
-            /// For example, if the RIG equals 20, it can be interpreted as &quot;the probability of a correct prediction is
-            /// 20% better than random guessing.&quot;
-            /// </remarks>
-            public double LogLossReduction { get; }
-
-            /// <summary>
-            /// Gets the test-set entropy (prior Log-Loss/instance) of the classifier.
-            /// </summary>
-            public double Entropy { get; }
-
-            internal CalibratedResult(IExceptionContext ectx, IRow overallResult)
-                : base(ectx, overallResult)
-            {
-                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-                LogLoss = Fetch(BinaryClassifierEvaluator.LogLoss);
-                LogLossReduction = Fetch(BinaryClassifierEvaluator.LogLossReduction);
-                Entropy = Fetch(BinaryClassifierEvaluator.Entropy);
-            }
-        }
-
-        /// <summary>
         /// Evaluates scored binary classification data.
         /// </summary>
         /// <param name="data">The scored data.</param>
@@ -934,7 +799,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public CalibratedResult Evaluate(IDataView data, string label, string score, string probability, string predictedLabel)
+        public CalibratedBinaryClassificationMetrics Evaluate(IDataView data, string label, string score, string probability, string predictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -948,16 +813,16 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probability),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            CalibratedResult result;
+            CalibratedBinaryClassificationMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new CalibratedResult(Host, cursor);
+                result = new CalibratedBinaryClassificationMetrics(Host, cursor);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -973,7 +838,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
         /// <seealso cref="Evaluate(IDataView, string, string, string)"/>
-        public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
+        public BinaryClassificationMetrics Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -985,16 +850,16 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            Result result;
+            BinaryClassificationMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new Result(Host, cursor);
+                result = new BinaryClassificationMetrics(Host, cursor);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -1028,7 +893,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool _useRaw;
         private readonly ColumnType[] _types;
 
-        public BinaryPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
+        public BinaryPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
             : base(env, schema, scoreCol, labelCol)
         {
             _threshold = threshold;
@@ -1048,7 +913,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             // *** Binary format **
@@ -1074,7 +939,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1103,7 +968,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.WriteBoolByte(_useRaw);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             if (_probIndex >= 0)
             {
@@ -1116,7 +981,7 @@ namespace Microsoft.ML.Runtime.Data
             return col => activeOutput(AssignedCol) && col == ScoreIndex;
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);
@@ -1214,7 +1079,7 @@ namespace Microsoft.ML.Runtime.Data
             return Single.IsNaN(val) ? false : val > _threshold;
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             if (_probIndex >= 0)
             {
@@ -1226,7 +1091,7 @@ namespace Microsoft.ML.Runtime.Data
             return new[] { new Schema.DetachedColumn(Assigned, _types[AssignedCol], null), };
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertValueOrNull(_probCol);
@@ -1287,7 +1152,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly string _prFileName;
         private readonly string _probCol;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public BinaryClassifierMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.BinaryClassification, "BinaryClassifierMamlEvaluator")
@@ -1356,7 +1221,7 @@ namespace Microsoft.ML.Runtime.Data
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out index))
                 colsToKeep.Add(MetricKinds.ColumnNames.StratVal);
 
-            fold = new ColumnsCopyingTransformer(Host, cols).Transform(fold);
+            fold = new ColumnCopyingTransformer(Host, cols).Transform(fold);
 
             // Select the columns that are specified in the Copy
             fold = ColumnSelectingTransformer.CreateKeep(Host, fold, colsToKeep.ToArray());
@@ -1656,7 +1521,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new BinaryClassifierMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new BinaryClassifierMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 
@@ -1676,7 +1541,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static void MatchColumns(IHost host, MamlEvaluatorBase.ArgumentsBase input, out string label, out string weight, out string name)
         {
-            ISchema schema = input.Data.Schema;
+            var schema = input.Data.Schema;
             label = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
                 nameof(BinaryClassifierMamlEvaluator.Arguments.LabelColumn),
                 input.LabelColumn, DefaultColumnNames.Label);
