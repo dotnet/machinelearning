@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Multiplies a matrix times a source.
         /// </summary>
-        /// <param name="transpose">Boolean to transpose the matrix or not.</param>
+        /// <param name="transpose"><see langword="true"/> to transpose the matrix; otherwise <see langword="false"/>.</param>
         /// <param name="matrix">The input matrix.</param>
         /// <param name="source">The source matrix.</param>
         /// <param name="destination">The destination matrix.</param>
@@ -238,8 +238,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         /// <summary>
         /// Add to the destination by scale with an addend value.
-        /// destination[i] = scale * (destination[i] + addend)
         /// </summary>
+        /// <code>
+        /// destination[i] = scale * (destination[i] + addend)
+        /// </code>
         /// <param name="scale">The scale to add by.</param>
         /// <param name="addend">The added value.</param>
         /// <param name="destination">The destination.</param>
@@ -471,7 +473,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// Sum the values in the source.
         /// </summary>
         /// <param name="source">The source values.</param>
-        /// <returns>The sum of all items in the source.</returns>
+        /// <returns>The sum of all items in <paramref name="source"/>.</returns>
         public static float Sum(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -499,7 +501,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// Sum the squares of each item in the source.
         /// </summary>
         /// <param name="source">The source values.</param>
-        /// <returns>The sum of all items squared in the source.</returns>
+        /// <returns>The sum of the squares of all items in <paramref name="source"/>.</returns>
         public static float SumSq(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -528,7 +530,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// </summary>
         /// <param name="mean">The mean value.</param>
         /// <param name="source">The source values.</param>
-        /// <returns>The sum of all items in the source by the mean.</returns>
+        /// <returns>The sum of all items in <paramref name="source"/> by <paramref name="mean"/>.</returns>
         public static float SumSq(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -556,7 +558,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// Sum the absolute value of each item in the source.
         /// </summary>
         /// <param name="source">The source values.</param>
-        /// <returns>The sum of all absolute value of the items in the source.</returns>
+        /// <returns>The sum of all absolute value of the items in <paramref name="source"/>.</returns>
         public static float SumAbs(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -585,7 +587,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// </summary>
         /// <param name="mean">The mean value.</param>
         /// <param name="source">The source values.</param>
-        /// <returns>The sum of all items in the source subtracted by the mean.</returns>
+        /// <returns>The sum of all items by absolute value in <paramref name="source"/> subtracted by <paramref name="mean"/>.</returns>
         public static float SumAbs(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -613,7 +615,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// Take the maximum absolute value within the source.
         /// </summary>
         /// <param name="source">The source values.</param>
-        /// <returns>The max of all absolute value items in the source.</returns>
+        /// <returns>The max of all absolute value items in <paramref name="source"/>.</returns>
         public static float MaxAbs(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -646,7 +648,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// </summary>
         /// <param name="mean">The mean value.</param>
         /// <param name="source">The source values.</param>
-        /// <returns>The sum of all absolute value items in the source subtracted by the mean.</returns>
+        /// <returns>The sum of all absolute value items in <paramref name="source"/> subtracted by <paramref name="mean"/>.</returns>
         public static float MaxAbsDiff(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
