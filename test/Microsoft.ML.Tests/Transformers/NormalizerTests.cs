@@ -257,14 +257,6 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        /// <summary>
-        /// Class to contain the output values from the transformation.
-        /// </summary>
-        class OutputScore
-        {
-            public float[] float4_1 { get; set; }
-        }
-
         [Fact]
         public void LpGcNormAndWhiteningWorkout()
         {
