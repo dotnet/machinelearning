@@ -246,9 +246,9 @@ namespace Microsoft.ML.Tests.Transformers
             var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumn("float4"));
             var est8 = ML.Transforms.Normalize(NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
 
-            var data6 = est1.Fit(data).Transform(data);
-            var data7 = est2.Fit(data).Transform(data);
-            var data8 = est2.Fit(data).Transform(data);
+            var data6 = est6.Fit(data).Transform(data);
+            var data7 = est7.Fit(data).Transform(data);
+            var data8 = est8.Fit(data).Transform(data);
             CheckSameSchemas(data6.Schema, data7.Schema);
             CheckSameSchemas(data6.Schema, data8.Schema);
             CheckSameValues(data6, data7);
