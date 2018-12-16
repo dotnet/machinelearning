@@ -32,15 +32,27 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Bindings
         {
-            // A collection of source column indexes after removing those we want to drop. Specifically, j=_sources[i] means
-            // that the i-th output column in the output schema is the j-th column in the input schema.
+            /// <summary>
+            /// A collection of source column indexes after removing those we want to drop. Specifically, j=_sources[i] means
+            /// that the i-th output column in the output schema is the j-th column in the input schema.
+            /// </summary>
             private readonly int[] _sources;
 
-            // Input schema of this transform. It's useful when determining column dependencies and other
-            // relations between input and output schemas.
+            /// <summary>
+            /// Input schema of this transform. It's useful when determining column dependencies and other
+            /// relations between input and output schemas.
+            /// </summary>
             private readonly Schema _sourceSchema;
 
-            // Variable used for saving in backward-compatible format. It's not needed actually.
+            /// <summary>
+            /// Some column indexes in the input schema. <see cref="_sources"/> is computed from <see cref="_selectedColumnIndexes"/>
+            /// and <see cref="_drop"/>.
+            /// </summary>
+            private readonly int[] _selectedColumnIndexes;
+
+            /// <summary>
+            /// True, if this transform drops selected columns indexed by <see cref="_selectedColumnIndexes"/>.
+            /// </summary>
             private readonly bool _drop;
 
             // This transform's output schema.
@@ -52,20 +64,34 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(sourceSchema);
 
                 _sourceSchema = sourceSchema;
+
+                // Store user-specified arguments as the major state of this transform. Only the major states will
+                // be saved and all other attributes can be reconstructed from them.
                 _drop = args.Drop;
+                _selectedColumnIndexes = args.Index;
 
-                if (args.Drop)
-                    // Drop columns indexed by args.Index
-                    _sources = Enumerable.Range(0, _sourceSchema.ColumnCount).Except(args.Index).ToArray();
-                else
-                    // Keep columns indexed by args.Index
-                    _sources = args.Index.ToArray();
-
-                // Make sure the output of this transform is meaningful.
-                Contracts.Check(_sources.Length > 0, "Choose columns by index has no output column.");
+                // Compute actually used attributes in runtime from those major states.
+                ComputeSources(_drop, _selectedColumnIndexes, _sourceSchema, out _sources);
 
                 // All necessary fields in this class are set, so we can compute output schema now.
                 OutputSchema = ComputeOutputSchema();
+            }
+
+            /// <summary>
+            /// Common method of computing <see cref="_sources"/> from necessary parameters. This function is used in constructors.
+            /// </summary>
+            private static void ComputeSources(bool drop, int[] selectedColumnIndexes, Schema sourceSchema, out int[] sources)
+            {
+                // Compute the mapping, <see cref="_sources"/>, from output column index to input column index.
+                if (drop)
+                    // Drop columns indexed by args.Index
+                    sources = Enumerable.Range(0, sourceSchema.ColumnCount).Except(selectedColumnIndexes).ToArray();
+                else
+                    // Keep columns indexed by args.Index
+                    sources = selectedColumnIndexes;
+
+                // Make sure the output of this transform is meaningful.
+                Contracts.Check(sources.Length > 0, "Choose columns by index has no output column.");
             }
 
             /// <summary>
@@ -97,11 +123,16 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(sourceSchema);
 
+                _sourceSchema = sourceSchema;
+
                 // *** Binary format ***
                 // bool (as byte): operation mode
                 // int[]: selected source column indices
                 _drop = ctx.Reader.ReadBoolByte();
-                _sources = ctx.Reader.ReadIntArray();
+                _selectedColumnIndexes = ctx.Reader.ReadIntArray();
+
+                // Compute actually used attributes in runtime from those major states.
+                ComputeSources(_drop, _selectedColumnIndexes, _sourceSchema, out _sources);
 
                 _sourceSchema = sourceSchema;
                 OutputSchema = ComputeOutputSchema();
@@ -115,7 +146,7 @@ namespace Microsoft.ML.Runtime.Data
                 // bool (as byte): operation mode
                 // int[]: selected source column indices
                 ctx.Writer.WriteBoolByte(_drop);
-                ctx.Writer.WriteIntArray(_sources);
+                ctx.Writer.WriteIntArray(_selectedColumnIndexes);
             }
 
             internal bool[] GetActive(Func<int, bool> predicate)
