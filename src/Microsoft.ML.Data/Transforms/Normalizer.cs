@@ -57,7 +57,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             /// </summary>
             Binning = 3,
             /// <summary>
-            /// Bucketize and then rescale to between -1 and 1.
+            /// Bucketize and then rescale to between -1 and 1. Calculates bins based on correlation with the Label column.
             /// </summary>
             SupervisedBinning = 4
         }
@@ -175,10 +175,10 @@ namespace Microsoft.ML.Transforms.Normalizers
             public readonly int MinBinSize;
 
             public SupervisedBinningColumn(string input, string output = null,
+                string labelColumn = DefaultColumnNames.Label,
                 long maxTrainingExamples = Defaults.MaxTrainingExamples,
                 bool fixZero = true,
                 int numBins = Defaults.NumBins,
-                string labelColumn = "Label",
                 int minBinSize = Defaults.MinBinSize)
                 : base(input, output ?? input, maxTrainingExamples, fixZero)
             {
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public sealed partial class NormalizingTransformer : RowToRowTransformerBase
+    public sealed partial class NormalizingTransformer : OneToOneTransformerBase
     {
         public const string LoaderSignature = "Normalizer";
         private static VersionInfo GetVersionInfo()
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         public readonly ImmutableArray<ColumnInfo> Columns;
         private NormalizingTransformer(IHostEnvironment env, ColumnInfo[] columns)
-            : base(env.Register(nameof(NormalizingTransformer)))
+            : base(env.Register(nameof(NormalizingTransformer)), columns.Select(x => (x.Input, x.Output)).ToArray())
         {
             Columns = ImmutableArray.Create(columns);
             ColumnFunctions = new ColumnFunctionAccessor(Columns);
@@ -446,37 +446,22 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         private NormalizingTransformer(IHost host, ModelLoadContext ctx)
-            : base(host)
+            : base(host, ctx)
         {
-            // *** Binary format ***
-            // int: number of added columns
-            // for each added column
-            //   int: id of output column name
-            //   int: id of input column name
-
-            int n = ctx.Reader.ReadInt32();
-            var columnPairs = new (string input, string output)[n];
-            for (int i = 0; i < n; i++)
-            {
-                string output = ctx.LoadNonEmptyString();
-                string input = ctx.LoadNonEmptyString();
-                columnPairs[i] = (input, output);
-            }
-
             // *** Binary format ***
             // <base>
             // for each added column:
             //   - source type
             //   - separate model for column function
 
-            var cols = new ColumnInfo[columnPairs.Length];
+            var cols = new ColumnInfo[ColumnPairs.Length];
             ColumnFunctions = new ColumnFunctionAccessor(Columns);
-            for (int iinfo = 0; iinfo < columnPairs.Length; iinfo++)
+            for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
             {
                 var dir = string.Format("Normalizer_{0:000}", iinfo);
                 var typeSrc = ColumnInfo.LoadType(ctx);
                 ctx.LoadModel<IColumnFunction, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
-                cols[iinfo] = new ColumnInfo(columnPairs[iinfo].input, columnPairs[iinfo].output, typeSrc, function);
+                cols[iinfo] = new ColumnInfo(ColumnPairs[iinfo].input, ColumnPairs[iinfo].output, typeSrc, function);
             }
 
             Columns = ImmutableArray.Create(cols);
@@ -501,23 +486,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: number of added columns
-            // for each added column
-            //   int: id of output column name
-            //   int: id of input column name
-
-            ctx.Writer.Write(Columns.Length);
-            for (int i = 0; i < Columns.Length; i++)
-            {
-                ctx.SaveNonEmptyString(Columns[i].Output);
-                ctx.SaveNonEmptyString(Columns[i].Input);
-            }
-
-            // *** Binary format ***
             // <base>
             // for each added column:
             //   - source type
             //   - separate model for column function
+            base.SaveColumns(ctx);
 
             // Individual normalization models.
             for (int iinfo = 0; iinfo < Columns.Length; iinfo++)
@@ -528,25 +501,15 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        private void CheckInput(Schema inputSchema, int col, out int srcCol)
-        {
-            Contracts.AssertValue(inputSchema);
-            Contracts.Assert(0 <= col && col < Columns.Length);
-
-            if (!inputSchema.TryGetColumnIndex(Columns[col].Input, out srcCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Columns[col].Input);
-            CheckInputColumn(inputSchema, col, srcCol);
-        }
-
-        private void CheckInputColumn(Schema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             const string expectedType = "scalar or known-size vector of R4";
 
             var colType = inputSchema.GetColumnType(srcCol);
             if (colType.IsVector && !colType.IsKnownSizeVector)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Columns[col].Input, expectedType, "variable-size vector");
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, expectedType, "variable-size vector");
             if (!colType.ItemType.Equals(NumberType.R4) && !colType.ItemType.Equals(NumberType.R8))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Columns[col].Input, expectedType, colType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, expectedType, colType.ToString());
         }
 
         // Temporary: enables SignatureDataTransform factory methods.
@@ -555,25 +518,17 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {
-            private readonly Dictionary<int, int> _colMapNewToOld;
             private NormalizingTransformer _parent;
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
             public Mapper(NormalizingTransformer parent, Schema schema)
-                : base(parent.Host.Register(nameof(Mapper)), schema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, schema)
             {
                 _parent = parent;
-
-                _colMapNewToOld = new Dictionary<int, int>();
-                for (int i = 0; i < _parent.Columns.Length; i++)
-                {
-                    _parent.CheckInput(schema, i, out int srcCol);
-                    _colMapNewToOld.Add(i, srcCol);
-                }
             }
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
@@ -590,7 +545,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 var builder = new MetadataBuilder();
 
                 builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ValueGetter<bool>)IsNormalizedGetter);
-                builder.Add(InputSchema[_colMapNewToOld[iinfo]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                builder.Add(InputSchema[ColMapNewToOld[iinfo]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
                 return builder.GetMetadata();
             }
 
@@ -602,7 +557,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                return _parent.Columns[iinfo].ColumnFunction.GetGetter(input, _colMapNewToOld[iinfo]);
+                return _parent.Columns[iinfo].ColumnFunction.GetGetter(input, ColMapNewToOld[iinfo]);
             }
 
             public void SaveAsOnnx(OnnxContext ctx)
@@ -685,20 +640,6 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
 
                 return false;
-            }
-
-            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
-            {
-                var active = new bool[InputSchema.ColumnCount];
-                foreach (var pair in _colMapNewToOld)
-                    if (activeOutput(pair.Key))
-                        active[pair.Value] = true;
-                return col => active[col];
-            }
-
-            public override void Save(ModelSaveContext ctx)
-            {
-                _parent.Save(ctx);
             }
         }
 

@@ -55,7 +55,6 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.SupervisedBinningColumn("float4", "float4supervisedbin", labelColumn: "int1"),
                 new NormalizingEstimator.SupervisedBinningColumn("double1", "double1supervisedbin", labelColumn: "int1"),
                 new NormalizingEstimator.SupervisedBinningColumn("double4", "double4supervisedbin", labelColumn: "int1"),
-
                 new NormalizingEstimator.MeanVarColumn("float1", "float1mv"),
                 new NormalizingEstimator.MeanVarColumn("float4", "float4mv"),
                 new NormalizingEstimator.MeanVarColumn("double1", "double1mv"),
@@ -214,6 +213,7 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
                 Column = new[] {
+                    new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
                 }
             });
@@ -241,81 +241,21 @@ namespace Microsoft.ML.Tests.Transformers
             CheckSameValues(data1, data4);
             CheckSameValues(data1, data5);
 
+            // Tests for SupervisedBinning
+            var est6 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
+            var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumn("float4"));
+            var est8 = ML.Transforms.Normalize(NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
+
+            var data6 = est1.Fit(data).Transform(data);
+            var data7 = est2.Fit(data).Transform(data);
+            var data8 = est2.Fit(data).Transform(data);
+            CheckSameSchemas(data6.Schema, data7.Schema);
+            CheckSameSchemas(data6.Schema, data8.Schema);
+            CheckSameValues(data6, data7);
+            CheckSameValues(data6, data8);
+
             Done();
         }
-
-        [Fact]
-        public void SupervisedBin()
-        {
-            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
-
-            var loader = new TextLoader(Env, new TextLoader.Arguments
-            {
-                Column = new[] {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
-                }
-            });
-
-            var data = loader.Read(dataPath);
-
-            //var est1 = new NormalizingEstimator(Env, "float4");
-            //var trans1 = est1.Fit(data);
-            //var data1 = trans1.Transform(data);
-
-            var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
-            var trans2 = est2.Fit(data);
-            var data2 = trans2.Transform(data);
-
-            //var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumn("float4"));
-            //var trans3 = est3.Fit(data);
-            //var data3 = trans3.Transform(data);
-
-            var est4 = new NormalizingEstimator(Env,
-                new NormalizingEstimator.SupervisedBinningColumn("float4", "float4_1"),
-                new NormalizingEstimator.SupervisedBinningColumn("float4", "float4_2"));
-            var trans4 = est4.Fit(data);
-            var data4 = trans4.Transform(data);
-            // 'transformedData' is a 'promise' of data. Let's actually read it.
-            var someRows = data4.AsEnumerable<OutputScore>(Env, reuseRowObject: false);
-
-            // Extract the 'AllFeatures' column.
-            // This will give the entire dataset: make sure to only take several row
-            // in case the dataset is huge. The is similar to the static API, except
-            // you have to specify the column name and type.
-            var featureColumns = data4.GetColumn<float[]>(Env, "float4_1");
-
-            var cursorable = data4.AsCursorable<OutputScore>(Env);
-            using (var cursor = cursorable.GetCursor())
-            {
-                // We are now in charge of creating the row object.
-                var myRow = new OutputScore();
-                while (cursor.MoveNext())
-                {
-                    // Populate the values of the row object.
-                    cursor.FillValues(myRow);
-                    var name = myRow.float4_1;
-                }
-            }
-
-            data4.Schema.TryGetColumnIndex("float4_1", out int output);
-            using (var cursor = data4.GetRowCursor(col => col == output))
-            {
-                var buffer = default(VBuffer<float>);
-                var getter = cursor.GetGetter<VBuffer<float>>(output);
-                var numRows = 0;
-                while (cursor.MoveNext())
-                {
-                    getter(ref buffer);
-                    numRows += 1;
-                }
-            }
-
-
-            //var est5 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
-            //var data5 = est5.Fit(data).Transform(data);
-        }
-
 
         /// <summary>
         /// Class to contain the output values from the transformation.

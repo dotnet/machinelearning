@@ -1072,9 +1072,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                     new NormalizingEstimator.SupervisedBinningColumn(
                         args.Column[icol].Source ?? args.Column[icol].Name,
                         args.Column[icol].Name,
+                        args.LabelColumn ?? DefaultColumnNames.Label,
                         args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                         args.Column[icol].FixZero ?? args.FixZero,
-                        args.Column[icol].NumBins ?? args.NumBins),
+                        args.Column[icol].NumBins ?? args.NumBins,
+                        args.MinBinSize),
                     host, labelColumnId, srcIndex, srcType, cursor);
             }
 
