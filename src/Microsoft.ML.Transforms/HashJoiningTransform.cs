@@ -540,23 +540,23 @@ namespace Microsoft.ML.Transforms.Conversions
             var mask = (1U << _exes[iinfo].HashBits) - 1;
             var hashSeed = _exes[iinfo].HashSeed;
             bool ordered = _exes[iinfo].Ordered;
+            var denseSource = default(VBuffer<TSrc>);
             return
                 (ref VBuffer<uint> dst) =>
                 {
                     getSrc(ref src);
                     Host.Check(src.Length == expectedSrcLength);
                     var hashes = VBufferEditor.Create(ref dst, n);
-
+                    src.CopyToDense(ref denseSource);
                     for (int i = 0; i < n; i++)
                     {
                         uint hash = hashSeed;
-
                         foreach (var srcSlot in slotMap[i])
                         {
                             // REVIEW: some legacy code hashes 0 for srcSlot in ord- case, do we need to preserve this behavior?
                             if (ordered)
                                 hash = Hashing.MurmurRound(hash, (uint)srcSlot);
-                            hash = hashFunction(src.GetItemOrDefault(srcSlot), hash);
+                            hash = hashFunction(denseSource.GetItemOrDefault(srcSlot), hash);
                         }
 
                         hashes.Values[i] = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
@@ -587,17 +587,19 @@ namespace Microsoft.ML.Transforms.Conversions
             var mask = (1U << _exes[iinfo].HashBits) - 1;
             var hashSeed = _exes[iinfo].HashSeed;
             bool ordered = _exes[iinfo].Ordered;
+            var denseSource = default(VBuffer<TSrc>);
             return
                 (ref uint dst) =>
                 {
                     getSrc(ref src);
                     Host.Check(src.Length == expectedSrcLength);
+                    src.CopyToDense(ref denseSource);
                     uint hash = hashSeed;
                     foreach (var srcSlot in slots)
                     {
                         if (ordered)
                             hash = Hashing.MurmurRound(hash, (uint)srcSlot);
-                        hash = hashFunction(src.GetItemOrDefault(srcSlot), hash);
+                        hash = hashFunction(denseSource.GetItemOrDefault(srcSlot), hash);
                     }
                     dst = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
                 };
