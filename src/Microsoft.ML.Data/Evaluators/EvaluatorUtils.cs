@@ -17,7 +17,8 @@ using System.Threading;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public static class EvaluateUtils
+    [BestFriend]
+    internal static class EvaluateUtils
     {
         public struct AggregatedMetric
         {
@@ -723,7 +724,7 @@ namespace Microsoft.ML.Runtime.Data
                         (ref VBuffer<ReadOnlyMemory<char>> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, index, ref dst);
                 }
                 views[i] = LambdaColumnMapper.Create(env, "ReconcileKeyValues", views[i], columnName, columnName,
-                    type, new VectorType(keyType, type.AsVector), mapper, keyValueGetter, slotNamesGetter);
+                    type, new VectorType(keyType, type as VectorType), mapper, keyValueGetter, slotNamesGetter);
             }
         }
 
@@ -974,7 +975,7 @@ namespace Microsoft.ML.Runtime.Data
         private static IDataView AddVarLengthColumn<TSrc>(IHostEnvironment env, IDataView idv, string variableSizeVectorColumnName, ColumnType typeSrc)
         {
             return LambdaColumnMapper.Create(env, "ChangeToVarLength", idv, variableSizeVectorColumnName,
-                       variableSizeVectorColumnName + "_VarLength", typeSrc, new VectorType(typeSrc.ItemType.AsPrimitive),
+                       variableSizeVectorColumnName + "_VarLength", typeSrc, new VectorType((PrimitiveType)typeSrc.ItemType),
                        (in VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
         }
 

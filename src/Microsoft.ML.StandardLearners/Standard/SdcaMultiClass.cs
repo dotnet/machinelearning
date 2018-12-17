@@ -124,7 +124,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <inheritdoc/>
-        protected override void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, Random rand,
+        private protected override void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, Random rand,
             IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, Float[] biasReg, Float[] invariants, Float lambdaNInv,
             VBuffer<Float>[] weights, Float[] biasUnreg, VBuffer<Float>[] l1IntermediateWeights, Float[] l1IntermediateBias, Float[] featureNormSquared)
         {
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Trainers
                 if (pch != null)
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, rowCount));
 
-                Func<UInt128, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
+                Func<RowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <inheritdoc/>
-        protected override bool CheckConvergence(
+        private protected override bool CheckConvergence(
             IProgressChannel pch,
             int iter,
             FloatLabelCursor.Factory cursorFactory,
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Trainers
             using (var cursor = cursorFactory.Create())
             {
                 long row = 0;
-                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Trainers
             return new MulticlassLogisticRegressionPredictor(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
         }
 
-        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
+        private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckMultiClassLabel(out weightSetCount);
         }
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Trainers
             return new Float[length];
         }
 
-        protected override Float GetInstanceWeight(FloatLabelCursor cursor)
+        private protected override Float GetInstanceWeight(FloatLabelCursor cursor)
         {
             return cursor.Weight;
         }

@@ -19,6 +19,7 @@ using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,15 +77,15 @@ namespace Microsoft.ML.Trainers
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
                 var initPred = context.InitialPredictor;
-                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
-                linInitPred = linInitPred ?? initPred as LinearPredictor;
+                var linInitPred = (initPred as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
+                linInitPred = linInitPred ?? initPred as LinearModelParameters;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
                 return TrainCore(ch, preparedData, linInitPred, weightSetCount);
             }
         }
 
-        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount);
+        private protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount);
 
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="weightSetCount">Gets the length of weights and bias array. For binary classification and regression,
         /// this is 1. For multi-class classification, this equals the number of classes on the label.</param>
         /// <returns>A potentially modified version of <paramref name="examples"/></returns>
-        protected RoleMappedData PrepareDataFromTrainingExamples(IChannel ch, RoleMappedData examples, out int weightSetCount)
+        private protected RoleMappedData PrepareDataFromTrainingExamples(IChannel ch, RoleMappedData examples, out int weightSetCount)
         {
             ch.AssertValue(examples);
             CheckLabel(examples, out weightSetCount);
@@ -129,7 +130,7 @@ namespace Microsoft.ML.Trainers
             return examplesToFeedTrain;
         }
 
-        protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
+        private protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
 
         protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
@@ -141,7 +142,7 @@ namespace Microsoft.ML.Trainers
             return VectorUtils.DotProduct(in weights, in features) * (float)scaling + bias;
         }
 
-        protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
+        private protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
         {
             int maxThreads = Math.Min(8, Math.Max(1, Environment.ProcessorCount / 2));
             if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < maxThreads)
@@ -281,7 +282,7 @@ namespace Microsoft.ML.Trainers
             return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
-        protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
+        private protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
             Contracts.Assert(weightSetCount >= 1);
@@ -330,7 +331,7 @@ namespace Microsoft.ML.Trainers
             // Getting the total count of rows in data. Ignore rows with bad label and feature values.
             long count = 0;
 
-            // The maximum value of cursor.Id.Lo.
+            // The maximum value of cursor.Id.Low.
             ulong idLoMax = 0;
 
             // Counting the number of bad training examples.
@@ -347,17 +348,17 @@ namespace Microsoft.ML.Trainers
                 pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, count));
                 while (cursor.MoveNext())
                 {
-                    UInt128 id = cursor.Id;
-                    if (id.Hi > 0 || id.Lo >= (ulong)maxTrainingExamples)
+                    RowId id = cursor.Id;
+                    if (id.High > 0 || id.Low >= (ulong)maxTrainingExamples)
                     {
                         needLookup = true;
                         break;
                     }
                     else
                     {
-                        Contracts.Assert(id.Hi == 0);
-                        if (id.Lo > idLoMax)
-                            idLoMax = id.Lo;
+                        Contracts.Assert(id.High == 0);
+                        if (id.Low > idLoMax)
+                            idLoMax = id.Low;
                     }
 
                     count++;
@@ -373,7 +374,7 @@ namespace Microsoft.ML.Trainers
                     // REVIEW: Is 1024 a good lower bound to enforce sparsity?
                     if (1024 < count && count < (long)idLoMax / 5)
                     {
-                        // The distribution of id.Lo is sparse in [0, idLoMax].
+                        // The distribution of id.Low is sparse in [0, idLoMax].
                         // Building a lookup table is more memory efficient.
                         needLookup = true;
                     }
@@ -528,7 +529,7 @@ namespace Microsoft.ML.Trainers
             if (invariants != null)
             {
                 Contracts.Assert((idToIdx == null & ((long)idLoMax + 1) * weightSetCount <= Utils.ArrayMaxSize) | (idToIdx != null & count * weightSetCount <= Utils.ArrayMaxSize));
-                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 int invariantCoeff = weightSetCount == 1 ? 1 : 2;
                 using (var cursor = cursorFactory.Create())
                 using (var pch = Host.StartProgressChannel("SDCA invariants initialization"))
@@ -748,7 +749,7 @@ namespace Microsoft.ML.Trainers
         /// The array holding the pre-computed squared L2-norm of features for each training example. It may be null. It is always null for
         /// binary classification and regression because this quantity is not needed.
         /// </param>
-        protected virtual void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, Random rand,
+        private protected virtual void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, Random rand,
             IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, float[] biasReg, float[] invariants, float lambdaNInv,
             VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
@@ -769,7 +770,7 @@ namespace Microsoft.ML.Trainers
                 if (pch != null)
                     pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, rowCount));
 
-                Func<UInt128, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
+                Func<RowId, long> getIndexFromId = GetIndexFromIdGetter(idToIdx, biasReg.Length);
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
@@ -902,7 +903,7 @@ namespace Microsoft.ML.Trainers
         /// </param>
         /// <param name="bestIter">The iteration number when the best model is obtained.</param>
         /// <returns>Whether the optimization has converged.</returns>
-        protected virtual bool CheckConvergence(
+        private protected virtual bool CheckConvergence(
             IProgressChannel pch,
             int iter,
             FloatLabelCursor.Factory cursorFactory,
@@ -931,7 +932,7 @@ namespace Microsoft.ML.Trainers
             using (var cursor = cursorFactory.Create())
             {
                 long row = 0;
-                Func<UInt128, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
+                Func<RowId, long, long> getIndexFromIdAndRow = GetIndexFromIdAndRowGetter(idToIdx, biasReg.Length);
                 // Iterates through data to compute loss function.
                 while (cursor.MoveNext())
                 {
@@ -992,15 +993,15 @@ namespace Microsoft.ML.Trainers
             return null;
         }
 
-        protected abstract float GetInstanceWeight(FloatLabelCursor cursor);
+        private protected abstract float GetInstanceWeight(FloatLabelCursor cursor);
 
-        protected delegate void Visitor(long index, ref float value);
+        private protected delegate void Visitor(long index, ref float value);
 
         /// <summary>
         /// Encapsulates the common functionality of storing and
         /// retrieving the dual variables.
         /// </summary>
-        protected abstract class DualsTableBase
+        private protected abstract class DualsTableBase
         {
             public abstract float this[long index] { get; set; }
             public abstract long Length { get; }
@@ -1066,22 +1067,22 @@ namespace Microsoft.ML.Trainers
         /// Returns a function delegate to retrieve index from id.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<UInt128, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
+        protected Func<RowId, long> GetIndexFromIdGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
-                return (UInt128 id) =>
+                return (RowId id) =>
                 {
-                    Contracts.Assert(id.Hi == 0);
-                    Contracts.Assert((long)id.Lo < maxTrainingExamples);
-                    return (long)id.Lo;
+                    Contracts.Assert(id.High == 0);
+                    Contracts.Assert((long)id.Low < maxTrainingExamples);
+                    return (long)id.Low;
                 };
             }
             else
             {
-                return (UInt128 id) =>
+                return (RowId id) =>
                 {
                     long idx;
                     bool found = idToIdx.TryGetIndex(id, out idx);
@@ -1097,22 +1098,22 @@ namespace Microsoft.ML.Trainers
         /// Only works if the cursor is not shuffled.
         /// This is to avoid redundant conditional branches in the tight loop of training.
         /// </summary>
-        protected Func<UInt128, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
+        protected Func<RowId, long, long> GetIndexFromIdAndRowGetter(IdToIdxLookup idToIdx, int biasLength)
         {
             Contracts.AssertValueOrNull(idToIdx);
             long maxTrainingExamples = MaxDualTableSize / biasLength;
             if (idToIdx == null)
             {
-                return (UInt128 id, long row) =>
+                return (RowId id, long row) =>
                 {
-                    Contracts.Assert(id.Hi == 0);
-                    Contracts.Assert((long)id.Lo < maxTrainingExamples);
-                    return (long)id.Lo;
+                    Contracts.Assert(id.High == 0);
+                    Contracts.Assert((long)id.Low < maxTrainingExamples);
+                    return (long)id.Low;
                 };
             }
             else
             {
-                return (UInt128 id, long row) =>
+                return (RowId id, long row) =>
                 {
 #if DEBUG
                     long idx;
@@ -1131,7 +1132,7 @@ namespace Microsoft.ML.Trainers
         // This class can also be made to accommodate generic type, as long as the type implements a
         // good 64-bit hash function.
         /// <summary>
-        /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Runtime.Data.UInt128"/>,
+        /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Runtime.Data.RowId"/>,
         /// and accommodates size larger than 2 billion. This class is an extension based on BCL.
         /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity.
         /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than
@@ -1145,9 +1146,9 @@ namespace Microsoft.ML.Trainers
             private readonly struct Entry
             {
                 public readonly long ItNext;
-                public readonly UInt128 Value;
+                public readonly RowId Value;
 
-                public Entry(long itNext, UInt128 value)
+                public Entry(long itNext, RowId value)
                 {
                     ItNext = itNext;
                     Value = value;
@@ -1184,7 +1185,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Make sure the given id is in this lookup table and return the index of the id.
             /// </summary>
-            public long Add(UInt128 id)
+            public long Add(RowId id)
             {
                 long iit = GetIit(Get64BitHashCode(id));
                 long index = GetIndexCore(id, iit);
@@ -1199,7 +1200,7 @@ namespace Microsoft.ML.Trainers
             /// Returns a bool representing if id is present.
             /// Index outputs the index that the id, -1 otherwise.
             /// </summary>
-            public bool TryGetIndex(UInt128 id, out long index)
+            public bool TryGetIndex(RowId id, out long index)
             {
                 AssertValid();
                 index = GetIndexCore(id, GetIit(Get64BitHashCode(id)));
@@ -1214,7 +1215,7 @@ namespace Microsoft.ML.Trainers
             /// <summary>
             /// Return the index of value, -1 if it is not present.
             /// </summary>
-            private long GetIndexCore(UInt128 val, long iit)
+            private long GetIndexCore(RowId val, long iit)
             {
                 Contracts.Assert(0 <= iit & iit < _rgit.Length);
                 long it = _rgit[iit];
@@ -1235,7 +1236,7 @@ namespace Microsoft.ML.Trainers
             /// Adds the value as a TItem. Does not check whether the TItem is already present.
             /// Returns the index of the added value.
             /// </summary>
-            private long AddCore(UInt128 val, long iit)
+            private long AddCore(RowId val, long iit)
             {
                 AssertValid();
                 Contracts.Assert(0 <= iit && iit < _rgit.Length);
@@ -1283,7 +1284,7 @@ namespace Microsoft.ML.Trainers
                 _entries.ApplyRange(0, _count,
                     (long it, ref Entry entry) =>
                     {
-                        UInt128 value = entry.Value;
+                        RowId value = entry.Value;
                         long iit = GetIit(Get64BitHashCode(entry.Value));
                         entry = new Entry(_rgit[iit], value);
                         _rgit[iit] = it;
@@ -1310,11 +1311,11 @@ namespace Microsoft.ML.Trainers
                 Console.WriteLine("Table: {0} out of {1}", c, _rgit.Length);
             }
 
-            private static long Get64BitHashCode(UInt128 value)
+            private static long Get64BitHashCode(RowId value)
             {
                 // REVIEW: Is this a good way to compute hash?
-                ulong lo = value.Lo;
-                ulong hi = value.Hi;
+                ulong lo = value.Low;
+                ulong hi = value.High;
                 return (long)(lo ^ (lo >> 32) ^ (hi << 7) ^ (hi >> 57) ^ (hi >> (57 - 32)));
             }
 
@@ -1465,23 +1466,35 @@ namespace Microsoft.ML.Trainers
             Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
 
-            if (Info.NeedCalibration)
+            var outCols = new List<SchemaShape.Column>()
             {
-                _outputColumns = new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-                };
-            }
-            else
+                    new SchemaShape.Column(
+                        DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberType.R4,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
+                    ),
+                    new SchemaShape.Column(
+                        DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        BoolType.Instance,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+
+            };
+
+            if (!Info.NeedCalibration)
             {
-                _outputColumns = new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                    new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-                };
-            }
+                outCols.Insert(1, new SchemaShape.Column(
+                    DefaultColumnNames.Probability,
+                    SchemaShape.Column.VectorKind.Scalar,
+                    NumberType.R4,
+                    false,
+                    new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
+            };
+
+            _outputColumns = outCols.ToArray();
         }
 
         internal SdcaBinaryTrainer(IHostEnvironment env, Arguments args,
@@ -1493,23 +1506,35 @@ namespace Microsoft.ML.Trainers
             Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
 
-            if (Info.NeedCalibration)
+            var outCols = new List<SchemaShape.Column>()
             {
-                _outputColumns = new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-                };
-            }
-            else
+                    new SchemaShape.Column(
+                        DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberType.R4,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
+                    ),
+                    new SchemaShape.Column(
+                        DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        BoolType.Instance,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+
+            };
+
+            if (!Info.NeedCalibration)
             {
-                _outputColumns = new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                    new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-                };
-            }
+                outCols.Insert(1, new SchemaShape.Column(
+                    DefaultColumnNames.Probability,
+                    SchemaShape.Column.VectorKind.Scalar,
+                    NumberType.R4,
+                    false,
+                    new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
+            };
+
+            _outputColumns = outCols.ToArray();
 
         }
 
@@ -1532,23 +1557,6 @@ namespace Microsoft.ML.Trainers
                 error();
         }
 
-        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
-        {
-            if (weightColumn == null)
-                return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-        }
-
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-        {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
-        }
-
         protected override TScalarPredictor CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
@@ -1560,18 +1568,18 @@ namespace Microsoft.ML.Trainers
             VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
 
-            var predictor = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias[0]);
-            if (!(_loss is LogLoss))
+            var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
+            if (Info.NeedCalibration)
                 return predictor;
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
-        protected override float GetInstanceWeight(FloatLabelCursor cursor)
+        private protected override float GetInstanceWeight(FloatLabelCursor cursor)
         {
             return cursor.Label > 0 ? cursor.Weight * _positiveInstanceWeight : cursor.Weight;
         }
 
-        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
+        private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckBinaryLabel();
             weightSetCount = 1;
@@ -1748,7 +1756,7 @@ namespace Microsoft.ML.Trainers
         //For complexity analysis, we assume that
         // - The number of features is N
         // - Average number of non-zero per instance is k
-        protected override TScalarPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
+        private protected override TScalarPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             Contracts.AssertValue(data);
             Contracts.Assert(weightSetCount == 1);
@@ -1925,13 +1933,13 @@ namespace Microsoft.ML.Trainers
 
             VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
-            var pred = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias);
+            var pred = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias);
             if (!(_loss is LogLoss))
                 return pred;
             return new ParameterMixingCalibratedPredictor(Host, pred, new PlattCalibrator(Host, -1, 0));
         }
 
-        protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
+        private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
         {
             examples.CheckBinaryLabel();
             weightSetCount = 1;

@@ -469,7 +469,8 @@ namespace Microsoft.ML.Runtime.Data
     /// Note that the schema of <see cref="RoleMappedSchema.Schema"/> of <see cref="Schema"/> is
     /// guaranteed to equal the the <see cref="IDataView.Schema"/> of <see cref="Data"/>.
     /// </summary>
-    public sealed class RoleMappedData
+    [BestFriend]
+    internal sealed class RoleMappedData
     {
         /// <summary>
         /// The data.

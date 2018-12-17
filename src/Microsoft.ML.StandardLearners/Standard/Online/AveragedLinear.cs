@@ -93,7 +93,7 @@ namespace Microsoft.ML.Trainers.Online
             private readonly AveragedLinearArguments _args;
             private readonly IScalarOutputLoss _loss;
 
-            private protected AveragedTrainStateBase(IChannel ch, int numFeatures, LinearPredictor predictor, AveragedLinearTrainer<TTransformer, TModel> parent)
+            private protected AveragedTrainStateBase(IChannel ch, int numFeatures, LinearModelParameters predictor, AveragedLinearTrainer<TTransformer, TModel> parent)
                 : base(ch, numFeatures, predictor, parent)
             {
                 // Do the other initializations by setting the setters as if user had set them

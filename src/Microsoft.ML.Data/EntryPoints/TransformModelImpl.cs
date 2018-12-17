@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -17,42 +18,45 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// the initial schema, together with the sequence of transforms applied to that
     /// schema.
     /// </summary>
-    public sealed class TransformModel : ITransformModel
+    [BestFriend]
+    internal sealed class TransformModelImpl : TransformModel
     {
         // The cached schema of the root of the _chain.
         private readonly Schema _schemaRoot;
 
-        // This contains the transforms to save instantiated on an IDataView with
-        // appropriate initial schema. Note that the "root" of this is typically either
-        // an empty IDataView or a BinaryLoader with no rows. However, other root
-        // types are possible, since we don't insist on this when loading a model
-        // from a zip file. However, whenever we save, we force a BinaryLoader to
-        // be serialized for the root.
+        /// <summary>
+        /// This contains the transforms to save instantiated on an <see cref="IDataView"/> with
+        /// appropriate initial schema. Note that the "root" of this is typically either
+        /// an empty <see cref="IDataView"/> or a <see cref="BinaryLoader"/> with no rows. However, other root
+        /// types are possible, since we don't insist on this when loading a model
+        /// from a zip file. However, whenever we save, we force a <see cref="BinaryLoader"/> to
+        /// be serialized for the root.
+        /// </summary>
         private readonly IDataView _chain;
 
         /// <summary>
         /// The input schema that this transform model was originally instantiated on.
         /// Note that the schema may have columns that aren't needed by this transform model.
-        /// If an IDataView exists with this schema, then applying this transform model to it
+        /// If an <see cref="IDataView"/> exists with this schema, then applying this transform model to it
         /// shouldn't fail because of column type issues.
         /// REVIEW: Would be nice to be able to trim this to the minimum needed somehow. Note
         /// however that doing so may cause issues for composing transform models. For example,
         /// if transform model A needs column X and model B needs Y, that is NOT produced by A,
         /// then trimming A's input schema would cause composition to fail.
         /// </summary>
-        public Schema InputSchema => _schemaRoot;
+        internal override Schema InputSchema => _schemaRoot;
 
         /// <summary>
         /// The resulting schema once applied to this model. The <see cref="InputSchema"/> might have
         /// columns that are not needed by this transform and these columns will be seen in the
         /// <see cref="OutputSchema"/> produced by this transform.
         /// </summary>
-        public Schema OutputSchema => _chain.Schema;
+        internal override Schema OutputSchema => _chain.Schema;
 
         /// <summary>
         /// Create a TransformModel containing the transforms from "result" back to "input".
         /// </summary>
-        public TransformModel(IHostEnvironment env, IDataView result, IDataView input)
+        public TransformModelImpl(IHostEnvironment env, IDataView result, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(result, nameof(result));
@@ -63,7 +67,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             _chain = ApplyTransformUtils.ApplyAllTransformsToData(env, result, root, input);
         }
 
-        private TransformModel(IHostEnvironment env, Schema schemaRoot, IDataView chain)
+        private TransformModelImpl(IHostEnvironment env, Schema schemaRoot, IDataView chain)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schemaRoot);
@@ -76,7 +80,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// Create a TransformModel containing the given (optional) transforms applied to the
         /// given root schema.
         /// </summary>
-        public TransformModel(IHostEnvironment env, Schema schemaRoot, IDataTransform[] xfs)
+        public TransformModelImpl(IHostEnvironment env, Schema schemaRoot, IDataTransform[] xfs)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(schemaRoot, nameof(schemaRoot));
@@ -100,7 +104,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// <summary>
         /// Load a transform model.
         /// </summary>
-        public TransformModel(IHostEnvironment env, Stream stream)
+        public TransformModelImpl(IHostEnvironment env, Stream stream)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(stream, nameof(stream));
@@ -128,7 +132,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// <summary>
         /// Apply this transform model to the given input data.
         /// </summary>
-        public IDataView Apply(IHostEnvironment env, IDataView input)
+        internal override IDataView Apply(IHostEnvironment env, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
@@ -138,14 +142,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// <summary>
         /// Apply this transform model to the given input transform model to produce a composite transform model.
         /// </summary>
-        public ITransformModel Apply(IHostEnvironment env, ITransformModel input)
+        internal override TransformModel Apply(IHostEnvironment env, TransformModel input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             IDataView view;
             Schema schemaRoot = input.InputSchema;
-            var mod = input as TransformModel;
+            var mod = input as TransformModelImpl;
             if (mod != null)
                 view = ApplyTransformUtils.ApplyAllTransformsToData(env, _chain, mod._chain);
             else
@@ -155,13 +159,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 view = Apply(env, view);
             }
 
-            return new TransformModel(env, schemaRoot, view);
+            return new TransformModelImpl(env, schemaRoot, view);
         }
 
         /// <summary>
         /// Save this transform model.
         /// </summary>
-        public void Save(IHostEnvironment env, Stream stream)
+        internal override void Save(IHostEnvironment env, Stream stream)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(stream, nameof(stream));
@@ -177,7 +181,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        public IRowToRowMapper AsRowToRowMapper(IExceptionContext ectx)
+        internal override IRowToRowMapper AsRowToRowMapper(IExceptionContext ectx)
         {
             return
                 CompositeRowToRowMapper.IsCompositeRowToRowMapper(_chain)

@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
-    public abstract class SubModelDataSelector<TOutput> : BaseSubModelSelector<TOutput>
+    internal abstract class SubModelDataSelector<TOutput> : BaseSubModelSelector<TOutput>
     {
         public abstract class ArgumentsBase
         {

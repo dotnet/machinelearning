@@ -140,11 +140,11 @@ namespace Microsoft.ML.Transforms
                 // This ensures that our feature count doesn't overflow.
                 Host.Check(type.ValueCount < int.MaxValue / 2);
 
-                if (!type.IsVector)
+                if (!(type is VectorType vectorType))
                     types[iinfo] = new VectorType(NumberType.Float, 2);
                 else
                 {
-                    types[iinfo] = new VectorType(NumberType.Float, type.AsVector, 2);
+                    types[iinfo] = new VectorType(NumberType.Float, vectorType, 2);
 
                     // Produce slot names metadata iff the source has (valid) slot names.
                     ColumnType typeNames;

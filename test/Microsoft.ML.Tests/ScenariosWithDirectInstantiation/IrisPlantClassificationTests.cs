@@ -113,7 +113,7 @@ namespace Microsoft.ML.Scenarios
             // It does not work. It throws error "Failed to find 'Score' column" when Evaluate is called
             //var evaluator = new MultiClassClassifierEvaluator(env, new MultiClassClassifierEvaluator.Arguments() { OutputTopKAcc = 3 });
 
-            var evaluator = new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments() { OutputTopKAcc = 3 });
+            IMamlEvaluator evaluator = new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments() { OutputTopKAcc = 3 });
             var metricsDic = evaluator.Evaluate(dataEval);
 
             return ClassificationMetrics.FromMetrics(env, metricsDic["OverallMetrics"], metricsDic["ConfusionMatrix"])[0];

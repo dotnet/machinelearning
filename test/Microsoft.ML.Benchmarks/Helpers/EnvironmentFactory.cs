@@ -28,7 +28,6 @@ namespace Microsoft.ML.Benchmarks
         }
 
         internal static MLContext CreateRankingEnvironment<TEvaluator, TLoader, TTransformer, TTrainer>()
-            where TEvaluator : IEvaluator
             where TLoader : IDataReader<IMultiStreamSource>
             where TTransformer : ITransformer
             where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor>

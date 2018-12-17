@@ -82,7 +82,7 @@ namespace Microsoft.ML.Legacy.Models
                 Model = output.PredictorModel;
             }
 
-            public Var<IPredictorModel> Model { get; }
+            public Var<PredictorModel> Model { get; }
         }
     }
 }

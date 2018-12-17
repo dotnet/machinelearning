@@ -233,7 +233,8 @@ namespace Microsoft.ML.Runtime
     /// that do not belong in more specific areas, for example, <see cref="Contracts"/> or
     /// component creation.
     /// </summary>
-    public static class HostExtensions
+    [BestFriend]
+    internal static class HostExtensions
     {
         public static T Apply<T>(this IHost host, string channelName, Func<IChannel, T> func)
         {

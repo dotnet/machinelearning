@@ -104,7 +104,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
         }
 
-        protected override PkpdPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override PkpdPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train M * (M+1) / 2 models arranged as a lower triangular matrix.
             var predModels = new TDistPredictor[count][];
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Trainers
 
             var calibratedModel = transformer.Model as TDistPredictor;
             if (calibratedModel == null)
-                calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
+                calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
             return new BinaryPredictionTransformer<TDistPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
         }

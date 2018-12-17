@@ -33,13 +33,13 @@ namespace Microsoft.ML.Runtime.Learners
             [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
             public float L1Weight = Defaults.L1Weight;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for optimization convergence. Low = slower, more accurate",
                 ShortName = "ot", SortOrder = 50)]
             [TGUI(Label = "Optimization Tolerance", Description = "Threshold for optimizer convergence", SuggestedSweeps = "1e-4,1e-7")]
             [TlcModule.SweepableDiscreteParamAttribute(new object[] { 1e-4f, 1e-7f })]
             public float OptTol = Defaults.OptTol;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Lower=faster, less accurate",
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Low=faster, less accurate",
                 ShortName = "m", SortOrder = 50)]
             [TGUI(Description = "Memory size for L-BFGS", SuggestedSweeps = "5,20,50")]
             [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected virtual int ClassCount => 1;
         protected int BiasCount => ClassCount;
         protected int WeightCount => ClassCount * NumFeatures;
-        protected virtual Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
+        private protected virtual Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<float> init, out ITerminationCriterion terminationCriterion)
         {
             // MeanRelativeImprovementCriterion:
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Initialize weights by running SGD up to specified tolerance.
         /// </summary>
-        protected virtual VBuffer<float> InitializeWeightsSgd(IChannel ch, FloatLabelCursor.Factory cursorFactory)
+        private protected virtual VBuffer<float> InitializeWeightsSgd(IChannel ch, FloatLabelCursor.Factory cursorFactory)
         {
             if (!Quiet)
                 ch.Info("Running SGD initialization with tolerance {0}", SgdInitializationTolerance);
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected abstract VBuffer<float> InitializeWeightsFromPredictor(TModel srcPredictor);
 
-        protected abstract void CheckLabel(RoleMappedData data);
+        private protected abstract void CheckLabel(RoleMappedData data);
 
         protected virtual void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
         {
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        protected virtual void TrainCore(IChannel ch, RoleMappedData data)
+        private protected virtual void TrainCore(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected abstract float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> xDense, ref VBuffer<float> grad, ref float[] scratch);
 
-        protected abstract void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams);
+        private protected abstract void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams);
 
         protected abstract void ProcessPriorDistribution(float label, float weight);
         /// <summary>
@@ -702,7 +702,7 @@ namespace Microsoft.ML.Runtime.Learners
             return (float)loss;
         }
 
-        protected float DifferentiableFunctionStream(FloatLabelCursor.Factory cursorFactory, in VBuffer<float> xDense, ref VBuffer<float> grad, IProgressChannel pch)
+        private protected float DifferentiableFunctionStream(FloatLabelCursor.Factory cursorFactory, in VBuffer<float> xDense, ref VBuffer<float> grad, IProgressChannel pch)
         {
             Contracts.AssertValue(cursorFactory);
 

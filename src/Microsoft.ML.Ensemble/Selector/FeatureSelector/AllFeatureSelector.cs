@@ -13,7 +13,7 @@ using System;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
 {
-    public sealed class AllFeatureSelector : IFeatureSelector
+    internal sealed class AllFeatureSelector : IFeatureSelector
     {
         public const string UserName = "All Feature Selector";
         public const string LoadName = "AllFeatureSelector";

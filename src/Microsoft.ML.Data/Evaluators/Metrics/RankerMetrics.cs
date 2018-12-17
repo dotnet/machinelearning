@@ -40,5 +40,13 @@ namespace Microsoft.ML.Data
             Dcg = Fetch(RankerEvaluator.Dcg).GetValues().ToArray();
             Ndcg = Fetch(RankerEvaluator.Ndcg).GetValues().ToArray();
         }
+
+        internal RankerMetrics(double[] dcg, double[] ndcg)
+        {
+            Dcg = new double[dcg.Length];
+            dcg.CopyTo(Dcg, 0);
+            Ndcg = new double[ndcg.Length];
+            ndcg.CopyTo(Ndcg, 0);
+        }
     }
 }

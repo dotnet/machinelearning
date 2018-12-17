@@ -31,7 +31,7 @@ namespace Microsoft.ML.Trainers.Online
     //     - Feature normalization. By default, rescaling between min and max values for every feature
     //     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
     /// <include file='doc.xml' path='doc/members/member[@name="AP"]/*' />
-    public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryPredictor>, LinearBinaryPredictor>
+    public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
     {
         public const string LoadNameValue = "AveragedPerceptron";
         internal const string UserNameValue = "Averaged Perceptron";
@@ -56,12 +56,12 @@ namespace Microsoft.ML.Trainers.Online
 
         private sealed class TrainState : AveragedTrainStateBase
         {
-            public TrainState(IChannel ch, int numFeatures, LinearPredictor predictor, AveragedPerceptronTrainer parent)
+            public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, AveragedPerceptronTrainer parent)
                 : base(ch, numFeatures, predictor, parent)
             {
             }
 
-            public override LinearBinaryPredictor CreatePredictor()
+            public override LinearBinaryModelParameters CreatePredictor()
             {
                 Contracts.Assert(WeightsScale == 1);
 
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Trainers.Online
                     bias = TotalBias / (float)NumWeightUpdates;
                 }
 
-                return new LinearBinaryPredictor(ParentHost, in weights, bias);
+                return new LinearBinaryModelParameters(ParentHost, in weights, bias);
             }
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Trainers.Online
             };
         }
 
-        protected override void CheckLabels(RoleMappedData data)
+        private protected override void CheckLabels(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckBinaryLabel();
@@ -175,15 +175,15 @@ namespace Microsoft.ML.Trainers.Online
                 error();
         }
 
-        private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearPredictor predictor)
+        private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearModelParameters predictor)
         {
             return new TrainState(ch, numFeatures, predictor, this);
         }
 
-        protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, Schema trainSchema)
-        => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, Schema trainSchema)
+        => new BinaryPredictionTransformer<LinearBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<LinearBinaryPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+        public BinaryPredictionTransformer<LinearBinaryModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",

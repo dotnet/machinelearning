@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms
                 var outputNodeInfo = Model.ModelInfo.OutputsInfo[idx];
                 var shape = outputNodeInfo.Shape;
                 var dims = AdjustDimensions(shape);
-                OutputTypes[i] = new VectorType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims);
+                OutputTypes[i] = new VectorType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims.ToArray());
             }
             _args = args;
         }
@@ -223,25 +223,16 @@ namespace Microsoft.ML.Transforms
         }
         private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
-        private static int[] AdjustDimensions(OnnxShape shape)
+        private static IEnumerable<int> AdjustDimensions(OnnxShape shape)
         {
             // if the model output is of type Map or Sequence, the shape property
             // will not be filled (so count=0). Don't throw an exception here
             // it will be runtime exception, util Maps and Sequences become supported.
             if (shape.Count > 0)
             {
-                // some models may have -1 in first position.
-                // skip this dimension when setting output column dimensions.
-                if (shape[0] < 0)
-                {
-                    return shape.Skip(1).Select(x => (int)x).ToArray();
-                }
-                else
-                {
-                    return shape.Select(x => (int)x).ToArray();
-                }
+                return shape.Select(x => (x <= 0) ? 1 : x);
             }
-            return new[] { 0 };
+            return new[] { 1 };
         }
 
         private sealed class Mapper : MapperBase
@@ -274,8 +265,8 @@ namespace Microsoft.ML.Transforms
                     var shape = inputNodeInfo.Shape;
                     var inputType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
 
-                    var inputShape = inputNodeInfo.Shape;
-                    _inputTensorShapes[i] = inputShape;
+                    var inputShape = AdjustDimensions(inputNodeInfo.Shape);
+                    _inputTensorShapes[i] = inputShape.ToList();
                     _inputOnnxTypes[i] = inputNodeInfo.Type;
 
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))

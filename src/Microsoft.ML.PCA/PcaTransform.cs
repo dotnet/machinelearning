@@ -654,7 +654,7 @@ namespace Microsoft.ML.Transforms.Projections
             var view = PcaTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

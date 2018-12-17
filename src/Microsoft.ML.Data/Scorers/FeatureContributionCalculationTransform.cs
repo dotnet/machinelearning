@@ -365,7 +365,7 @@ namespace Microsoft.ML.Runtime.Data
                 else
                 {
                     _outputSchema = Schema.Create(new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
-                        new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
+                        new VectorType(NumberType.R4, schema.Feature.Type as VectorType),
                         InputSchema, InputRoleMappedSchema.Feature.Index));
                 }
 

@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -27,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
     internal sealed class NgramBufferBuilder
     {
         // This buffer builder maintains the vector of ngram-counts.
-        private readonly BufferBuilder<Float> _bldr;
+        private readonly BufferBuilder<float> _bldr;
         // A queue that holds _ngramLength+_skipLength keys, so that it contains all the ngrams starting with the
         // first key in the ngram.
         private readonly FixedSizeQueue<uint> _queue;
@@ -58,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
 
             _ngram = new uint[_ngramLength];
             _queue = new FixedSizeQueue<uint>(_ngramLength + _skipLength);
-            _bldr = BufferBuilder<Float>.CreateDefault();
+            _bldr = BufferBuilder<float>.CreateDefault();
             _finder = finder;
         }
 
@@ -131,7 +128,7 @@ namespace Microsoft.ML.Runtime.Data
             return true;
         }
 
-        public void GetResult(ref VBuffer<Float> dst)
+        public void GetResult(ref VBuffer<float> dst)
         {
             _bldr.GetResult(ref dst);
         }

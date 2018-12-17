@@ -30,9 +30,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
     using U2 = UInt16;
     using U4 = UInt32;
     using U8 = UInt64;
-    using UG = UInt128;
+    using UG = RowId;
 
-    public delegate bool TryParseMapper<T>(in TX src, out T dst);
+    [BestFriend]
+    internal delegate bool TryParseMapper<T>(in TX src, out T dst);
 
     /// <summary>
     /// This type exists to provide efficient delegates for conversion between standard ColumnTypes,
@@ -44,7 +45,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
     /// text (and StringBuilder). These are needed by the standard TextSaver, which handles
     /// differences between sparse and dense inputs in a semantically invariant way.
     /// </summary>
-    public sealed class Conversions
+    [BestFriend]
+    internal sealed class Conversions
     {
         // REVIEW: Reconcile implementations with TypeUtils, and clarify the distinction.
 
@@ -412,15 +414,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             conv = null;
             identity = false;
-            if (typeSrc.IsKey)
+            if (typeSrc is KeyType keySrc)
             {
-                var keySrc = typeSrc.AsKey;
-
                 // Key types are only convertable to compatible key types or unsigned integer
                 // types that are large enough.
-                if (typeDst.IsKey)
+                if (typeDst is KeyType keyDst)
                 {
-                    var keyDst = typeDst.AsKey;
                     // We allow the Min value to shift. We currently don't allow the counts to vary.
                     // REVIEW: Should we allow the counts to vary? Allowing the dst to be bigger is trivial.
                     // Smaller dst means mapping values to NA.
@@ -451,11 +450,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 // REVIEW: Should we look for illegal values and force them to zero? If so, then
                 // we'll need to set identity to false.
             }
-            else if (typeDst.IsKey)
+            else if (typeDst is KeyType keyDst)
             {
                 if (!typeSrc.IsText)
                     return false;
-                conv = GetKeyParse(typeDst.AsKey);
+                conv = GetKeyParse(keyDst);
                 return true;
             }
             else if (!typeDst.IsStandardScalar)
@@ -490,10 +489,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             Contracts.CheckValue(type, nameof(type));
             Contracts.Check(type.RawType == typeof(TSrc), "Wrong TSrc type argument");
 
-            if (type.IsKey)
+            if (type is KeyType keyType)
             {
                 // Key string conversion always works.
-                conv = GetKeyStringConversion<TSrc>(type.AsKey);
+                conv = GetKeyStringConversion<TSrc>(keyType);
                 return true;
             }
             return TryGetStringConversion(out conv);
@@ -572,8 +571,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 "Parse conversion only supported for standard types");
             Contracts.Check(typeDst.RawType == typeof(TDst), "Wrong TDst type parameter");
 
-            if (typeDst.IsKey)
-                return GetKeyTryParse<TDst>(typeDst.AsKey);
+            if (typeDst is KeyType keyType)
+                return GetKeyTryParse<TDst>(keyType);
 
             Contracts.Assert(_tryParseDelegates.ContainsKey(typeDst.RawKind));
             return (TryParseMapper<TDst>)_tryParseDelegates[typeDst.RawKind];
@@ -892,7 +891,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(in U2 src, ref U1 dst) => dst = src <= U1.MaxValue ? (U1)src : (U1)0;
         public void Convert(in U4 src, ref U1 dst) => dst = src <= U1.MaxValue ? (U1)src : (U1)0;
         public void Convert(in U8 src, ref U1 dst) => dst = src <= U1.MaxValue ? (U1)src : (U1)0;
-        public void Convert(in UG src, ref U1 dst) => dst = src.Hi == 0 && src.Lo <= U1.MaxValue ? (U1)src.Lo : (U1)0;
+        public void Convert(in UG src, ref U1 dst) => dst = src.High == 0 && src.Low <= U1.MaxValue ? (U1)src.Low : (U1)0;
         #endregion ToU1
 
         #region ToU2
@@ -900,7 +899,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(in U2 src, ref U2 dst) => dst = src;
         public void Convert(in U4 src, ref U2 dst) => dst = src <= U2.MaxValue ? (U2)src : (U2)0;
         public void Convert(in U8 src, ref U2 dst) => dst = src <= U2.MaxValue ? (U2)src : (U2)0;
-        public void Convert(in UG src, ref U2 dst) => dst = src.Hi == 0 && src.Lo <= U2.MaxValue ? (U2)src.Lo : (U2)0;
+        public void Convert(in UG src, ref U2 dst) => dst = src.High == 0 && src.Low <= U2.MaxValue ? (U2)src.Low : (U2)0;
         #endregion ToU2
 
         #region ToU4
@@ -908,7 +907,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(in U2 src, ref U4 dst) => dst = src;
         public void Convert(in U4 src, ref U4 dst) => dst = src;
         public void Convert(in U8 src, ref U4 dst) => dst = src <= U4.MaxValue ? (U4)src : (U4)0;
-        public void Convert(in UG src, ref U4 dst) => dst = src.Hi == 0 && src.Lo <= U4.MaxValue ? (U4)src.Lo : (U4)0;
+        public void Convert(in UG src, ref U4 dst) => dst = src.High == 0 && src.Low <= U4.MaxValue ? (U4)src.Low : (U4)0;
         #endregion ToU4
 
         #region ToU8
@@ -916,7 +915,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(in U2 src, ref U8 dst) => dst = src;
         public void Convert(in U4 src, ref U8 dst) => dst = src;
         public void Convert(in U8 src, ref U8 dst) => dst = src;
-        public void Convert(in UG src, ref U8 dst) => dst = src.Hi == 0 ? src.Lo : (U8)0;
+        public void Convert(in UG src, ref U8 dst) => dst = src.High == 0 ? src.Low : (U8)0;
         #endregion ToU8
 
         #region ToUG
@@ -972,7 +971,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(in U2 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(in U4 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(in U8 src, ref SB dst) => ClearDst(ref dst).Append(src);
-        public void Convert(in UG src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("0x{0:x16}{1:x16}", src.Hi, src.Lo); }
+        public void Convert(in UG src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("0x{0:x16}{1:x16}", src.High, src.Low); }
         public void Convert(in R4 src, ref SB dst) { ClearDst(ref dst); if (R4.IsNaN(src)) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:R}", src); }
         public void Convert(in R8 src, ref SB dst) { ClearDst(ref dst); if (R8.IsNaN(src)) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:G17}", src); }
         public void Convert(in BL src, ref SB dst)
@@ -1060,7 +1059,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         }
 
         /// <summary>
-        /// A parse method that transforms a 34-length string into a <see cref="UInt128"/>.
+        /// A parse method that transforms a 34-length string into a <see cref="RowId"/>.
         /// </summary>
         /// <param name="src">What should be a 34-length hexadecimal representation, including a 0x prefix,
         /// of the 128-bit number</param>

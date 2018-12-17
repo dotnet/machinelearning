@@ -8,7 +8,7 @@ using System;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector
 {
-    public interface IFeatureSelector
+    internal interface IFeatureSelector
     {
         Subset SelectFeatures(RoleMappedData data, Random rand);
     }
@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
     public delegate void SignatureEnsembleFeatureSelector();
 
     [TlcModule.ComponentKind("EnsembleFeatureSelector")]
-    public interface ISupportFeatureSelectorFactory : IComponentFactory<IFeatureSelector>
+    internal interface ISupportFeatureSelectorFactory : IComponentFactory<IFeatureSelector>
     {
     }
 }
