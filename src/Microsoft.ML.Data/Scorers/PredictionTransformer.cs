@@ -47,7 +47,8 @@ namespace Microsoft.ML.Runtime.Data
         protected const string DirModel = "Model";
         protected const string DirTransSchema = "TrainSchema";
         protected readonly IHost Host;
-        protected ISchemaBindableMapper BindableMapper;
+        [BestFriend]
+        private protected ISchemaBindableMapper BindableMapper;
         protected Schema TrainSchema;
 
         public bool IsRowToRowMapper => true;

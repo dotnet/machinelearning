@@ -125,7 +125,8 @@ namespace Microsoft.ML.Runtime.Data
             return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.TrainingLabelValues, CanWrap);
         }
 
-        public BinaryClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        [BestFriend]
+        internal BinaryClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
             : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, MetadataUtils.Const.ScoreColumnKind.BinaryClassification,
                 Contracts.CheckRef(args, nameof(args)).ThresholdColumn, OutputTypeMatches, GetPredColType)
         {
@@ -168,7 +169,7 @@ namespace Microsoft.ML.Runtime.Data
             return h.Apply("Loading Model", ch => new BinaryClassifierScorer(h, ctx, input));
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -269,7 +270,7 @@ namespace Microsoft.ML.Runtime.Data
             value = (uint)(score > _threshold ? 2 : score <= _threshold ? 1 : 0);
         }
 
-        protected override JToken PredictedLabelPfa(string[] mapperOutputs)
+        private protected override JToken PredictedLabelPfa(string[] mapperOutputs)
         {
             Contracts.CheckParam(Utils.Size(mapperOutputs) >= 1, nameof(mapperOutputs));
 

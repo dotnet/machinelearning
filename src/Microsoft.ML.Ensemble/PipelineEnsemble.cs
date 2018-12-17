@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 ctx.SaveModel(Combiner, "Combiner");
             }
 
-            public override ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+            private protected override ISchemaBoundMapper BindCore(IHostEnvironment env, RoleMappedSchema schema)
             {
                 return new Bound(this, schema);
             }
@@ -558,7 +558,9 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
         }
 
-        public abstract ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema);
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema) => BindCore(env, schema);
+
+        private protected abstract ISchemaBoundMapper BindCore(IHostEnvironment env, RoleMappedSchema schema);
 
         void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {

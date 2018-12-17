@@ -19,7 +19,8 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public abstract class RowToRowScorerBase : RowToRowMapperTransformBase, IDataScorerTransform
     {
-        public abstract class BindingsBase : ScorerBindingsBase
+        [BestFriend]
+        private protected abstract class BindingsBase : ScorerBindingsBase
         {
             public readonly ISchemaBoundRowMapper RowMapper;
 
@@ -30,16 +31,19 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected readonly ISchemaBindableMapper Bindable;
+        [BestFriend]
+        private protected readonly ISchemaBindableMapper Bindable;
 
-        protected RowToRowScorerBase(IHostEnvironment env, IDataView input, string registrationName, ISchemaBindableMapper bindable)
+        [BestFriend]
+        private protected RowToRowScorerBase(IHostEnvironment env, IDataView input, string registrationName, ISchemaBindableMapper bindable)
             : base(env, registrationName, input)
         {
             Contracts.AssertValue(bindable);
             Bindable = bindable;
         }
 
-        protected RowToRowScorerBase(IHost host, ModelLoadContext ctx, IDataView input)
+        [BestFriend]
+        private protected RowToRowScorerBase(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, input)
         {
             ctx.LoadModel<ISchemaBindableMapper, SignatureLoadModel>(host, out Bindable, "SchemaBindableMapper");
@@ -56,7 +60,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The main save method handles saving the _bindable. This should do everything else.
         /// </summary>
-        protected abstract void SaveCore(ModelSaveContext ctx);
+        [BestFriend]
+        private protected abstract void SaveCore(ModelSaveContext ctx);
 
         /// <summary>
         /// For the ITransformTemplate implementation.
@@ -66,7 +71,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Derived classes provide the specific bindings object.
         /// </summary>
-        protected abstract BindingsBase GetBindings();
+        [BestFriend]
+        private protected abstract BindingsBase GetBindings();
 
         /// <summary>
         /// Produces the set of active columns for the scorer (as a bool[] of length bindings.ColumnCount),
@@ -296,11 +302,12 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Base bindings for a scorer based on an ISchemaBoundMapper. This assumes that input schema columns
+    /// Base bindings for a scorer based on an <see cref="ISchemaBoundMapper"/>. This assumes that input schema columns
     /// are echoed, followed by zero or more derived columns, followed by the mapper generated columns.
     /// The names of the derived columns and mapper generated columns have an optional suffix appended.
     /// </summary>
-    public abstract class ScorerBindingsBase : ColumnBindingsBase
+    [BestFriend]
+    internal abstract class ScorerBindingsBase : ColumnBindingsBase
     {
         /// <summary>
         /// The schema bound mapper.
