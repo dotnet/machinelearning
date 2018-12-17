@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Newtonsoft.Json.Linq;
 using Microsoft.ML.Runtime.Model.Pfa;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(typeof(BinaryClassifierScorer), typeof(BinaryClassifierScorer.Arguments), typeof(SignatureDataScorer),
     "Binary Classifier Scorer", "BinaryClassifierScorer", "BinaryClassifier", "Binary",

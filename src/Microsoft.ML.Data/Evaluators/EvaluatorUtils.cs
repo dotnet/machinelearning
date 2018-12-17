@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.Data
                 ectx.Assert(ReadOnlyMemoryUtils.EqualsStr(kind, tmp));
 #endif
                 // REVIEW: What should this do about hidden columns? Currently we ignore them.
-                if (schema.IsHidden(col))
+                if (schema[col].IsHidden)
                     continue;
                 if (schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreValueKind, col, ref tmp) &&
                     ReadOnlyMemoryUtils.EqualsStr(valueKind, tmp))
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Runtime.Data
             foreach (var col in schema.GetColumnSet(MetadataUtils.Kinds.ScoreColumnSetId, setId))
             {
                 // REVIEW: What should this do about hidden columns? Currently we ignore them.
-                if (schema.IsHidden(col))
+                if (schema[col].IsHidden)
                     continue;
                 if (schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreValueKind, col, ref tmp) &&
                     ReadOnlyMemoryUtils.EqualsStr(valueKind, tmp))
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 for (int i = 0; i < schema.ColumnCount; i++)
                 {
-                    if (schema.IsHidden(i) || hasWeighted && i == isWeightedCol ||
+                    if (schema[i].IsHidden || hasWeighted && i == isWeightedCol ||
                         hasStrats && (i == stratCol || i == stratVal))
                         continue;
 
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Runtime.Data
             // We use the first column in the data view as an input column to the LambdaColumnMapper,
             // because it must have an input.
             int inputCol = 0;
-            while (inputCol < input.Schema.ColumnCount && input.Schema.IsHidden(inputCol))
+            while (inputCol < input.Schema.ColumnCount && input.Schema[inputCol].IsHidden)
                 inputCol++;
             env.Assert(inputCol < input.Schema.ColumnCount);
 
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Runtime.Data
             // We use the first column in the data view as an input column to the LambdaColumnMapper,
             // because it must have an input.
             int inputCol = 0;
-            while (inputCol < input.Schema.ColumnCount && input.Schema.IsHidden(inputCol))
+            while (inputCol < input.Schema.ColumnCount && input.Schema[inputCol].IsHidden)
                 inputCol++;
             env.Assert(inputCol < input.Schema.ColumnCount);
 
@@ -473,7 +473,7 @@ namespace Microsoft.ML.Runtime.Data
                     throw env.Except("Data view number {0} does not contain column '{1}'", i, columnName);
 
                 var type = typeSrc[i] = idv.Schema.GetColumnType(col);
-                if (!idv.Schema.HasSlotNames(col, type.VectorSize))
+                if (!idv.Schema[col].HasSlotNames(type.VectorSize))
                     throw env.Except("Column '{0}' in data view number {1} did not contain slot names metadata", columnName, i);
                 idv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref slotNamesCur);
 
@@ -716,7 +716,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null;
                 var type = views[i].Schema.GetColumnType(columnIndices[i]);
-                if (views[i].Schema.HasSlotNames(columnIndices[i], type.VectorSize))
+                if (views[i].Schema[columnIndices[i]].HasSlotNames(type.VectorSize))
                 {
                     var schema = views[i].Schema;
                     int index = columnIndices[i];
@@ -817,7 +817,7 @@ namespace Microsoft.ML.Runtime.Data
                 var hidden = new List<int>();
                 for (int i = 0; i < dv.Schema.ColumnCount; i++)
                 {
-                    if (dv.Schema.IsHidden(i))
+                    if (dv.Schema[i].IsHidden)
                     {
                         hidden.Add(i);
                         continue;
@@ -829,10 +829,10 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema.HasKeyValues(i, type.ItemType.KeyCount))
+                            if (dv.Schema[i].HasKeyValues(type.ItemType.KeyCount))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
-                            if (dv.Schema.HasSlotNames(i, type.VectorSize))
+                            if (dv.Schema[i].HasSlotNames(type.VectorSize))
                             {
                                 VBuffer<ReadOnlyMemory<char>> slotNames = default;
                                 dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref slotNames);
@@ -858,9 +858,9 @@ namespace Microsoft.ML.Runtime.Data
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
                         labelColKeyValuesType = dv.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
                     }
-                    else if (dvNumber == 0 && dv.Schema.HasKeyValues(i, type.KeyCount))
+                    else if (dvNumber == 0 && dv.Schema[i].HasKeyValues(type.KeyCount))
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyValues(i, type.KeyCount))
+                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema[i].HasKeyValues(type.KeyCount))
                     {
                         // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
                         if (!firstDvKeyNoNamesColumns.ContainsKey(name))
@@ -895,7 +895,7 @@ namespace Microsoft.ML.Runtime.Data
             Func<IDataView, int, IDataView> keyToValue =
                 (idv, i) =>
                 {
-                    foreach (var keyCol in firstDvVectorKeyColumns.Concat(firstDvKeyWithNamesColumns).Prepend(labelColName))
+                    foreach (var keyCol in MetadataUtils.Prepend(firstDvVectorKeyColumns.Concat(firstDvKeyWithNamesColumns), labelColName))
                     {
                         if (keyCol == labelColName && labelColKeyValuesType == null)
                             continue;
@@ -937,7 +937,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             for (int i = 0; i < schema.ColumnCount; i++)
             {
-                if (schema.IsHidden(i) && schema.GetColumnName(i) == colName)
+                if (schema[i].IsHidden && schema.GetColumnName(i) == colName)
                     yield return i;
             }
         }
@@ -949,7 +949,7 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
 
             // If we detect mismatch it a sign that slots reshuffling has happened.
-            if (dv.Schema.HasSlotNames(col, type.VectorSize))
+            if (dv.Schema[col].HasSlotNames(type.VectorSize))
             {
                 // Verify that slots match with slots from 1st idv.
                 VBuffer<ReadOnlyMemory<char>> currSlotNames = default;
@@ -994,7 +994,7 @@ namespace Microsoft.ML.Runtime.Data
             var metricNames = new List<string>();
             for (int i = 0; i < schema.ColumnCount; i++)
             {
-                if (schema.IsHidden(i) || ignoreCol(i))
+                if (schema[i].IsHidden || ignoreCol(i))
                     continue;
 
                 var type = schema.GetColumnType(i);
@@ -1208,7 +1208,7 @@ namespace Microsoft.ML.Runtime.Data
             int iMetric = 0;
             for (int i = 0; i < colCount; i++)
             {
-                if (schema.IsHidden(i))
+                if (schema[i].IsHidden)
                     continue;
 
                 var type = schema.GetColumnType(i);

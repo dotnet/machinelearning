@@ -575,7 +575,7 @@ namespace Microsoft.ML.Runtime.Data
             _numClasses = scoreInfo.Type.VectorSize;
             _types = new ColumnType[4];
 
-            if (schema.HasSlotNames(ScoreIndex, _numClasses))
+            if (schema[(int) ScoreIndex].HasSlotNames(_numClasses))
             {
                 var classNames = default(VBuffer<ReadOnlyMemory<char>>);
                 schema.GetMetadata(MetadataUtils.Kinds.SlotNames, ScoreIndex, ref classNames);
@@ -926,7 +926,7 @@ namespace Microsoft.ML.Runtime.Data
                     // Find the old per-class log-loss column and drop it.
                     for (int col = 0; col < idv.Schema.ColumnCount; col++)
                     {
-                        if (idv.Schema.IsHidden(col) &&
+                        if (idv.Schema[col].IsHidden &&
                             idv.Schema.GetColumnName(col).Equals(MultiClassClassifierEvaluator.PerClassLogLoss))
                         {
                             idv = new ChooseColumnsByIndexTransform(Host,
@@ -1001,7 +1001,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!perInst.Schema.TryGetColumnIndex(schema.Label.Name, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", schema.Label.Name);
             var labelType = perInst.Schema.GetColumnType(labelCol);
-            if (labelType is KeyType keyType && (!perInst.Schema.HasKeyValues(labelCol, keyType.KeyCount) || labelType.RawKind != DataKind.U4))
+            if (labelType is KeyType keyType && (!(bool) perInst.Schema[labelCol].HasKeyValues(keyType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
                     schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,

@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
@@ -417,7 +418,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Contracts.Assert(feat.Type.ValueCount > 0);
 
             var sch = schema.Schema;
-            if (sch.HasSlotNames(feat.Index, feat.Type.ValueCount))
+            if (sch[feat.Index].HasSlotNames(feat.Type.ValueCount))
                 sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref _names);
             else
                 _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);

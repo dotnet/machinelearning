@@ -4,6 +4,7 @@
 
 using System;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Model;
 

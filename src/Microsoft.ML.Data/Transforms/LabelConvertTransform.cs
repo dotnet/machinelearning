@@ -11,6 +11,7 @@ using Microsoft.ML.Transforms;
 using System;
 using System.Text;
 using System.Threading;
+using Microsoft.ML.Data;
 using Float = System.Single;
 
 [assembly: LoadableClass(LabelConvertTransform.Summary, typeof(LabelConvertTransform), typeof(LabelConvertTransform.Arguments), typeof(SignatureDataTransform),

@@ -381,9 +381,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("features", out int featCol));
             Assert.True(schema.TryGetColumnIndex("bin", out int binCol));
             Assert.True(schema.TryGetColumnIndex("mm", out int mmCol));
-            Assert.False(schema.IsNormalized(featCol));
-            Assert.True(schema.IsNormalized(binCol));
-            Assert.True(schema.IsNormalized(mmCol));
+            Assert.False(schema[featCol].IsNormalized());
+            Assert.True(schema[binCol].IsNormalized());
+            Assert.True(schema[mmCol].IsNormalized());
         }
 
         [Fact]

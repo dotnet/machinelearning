@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -111,7 +112,7 @@ namespace Microsoft.ML.Runtime.Data
                 : StratCols.Select(col => RoleMappedSchema.CreatePair(Strat, col));
 
             if (needName && schema.Name != null)
-                roles = roles.Prepend(RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Name));
+                roles = MetadataUtils.Prepend(roles, RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Name));
 
             return roles.Concat(GetInputColumnRolesCore(schema));
         }

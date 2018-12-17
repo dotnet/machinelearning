@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Legacy.Models
 {

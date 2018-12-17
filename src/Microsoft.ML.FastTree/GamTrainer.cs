@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.ML.Data;
 using Timer = Microsoft.ML.Trainers.FastTree.Internal.Timer;
 
 [assembly: LoadableClass(typeof(GamPredictorBase.VisualizationCommand), typeof(GamPredictorBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
@@ -1120,7 +1121,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     ch.Check(schema.Feature.Type.ValueCount == _pred._inputLength);
 
                     int len = schema.Feature.Type.ValueCount;
-                    if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
+                    if (schema.Schema[schema.Feature.Index].HasSlotNames(len))
                         schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref _featNames);
                     else
                         _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);

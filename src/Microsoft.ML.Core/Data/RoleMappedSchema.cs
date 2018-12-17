@@ -229,7 +229,7 @@ namespace Microsoft.ML.Runtime.Data
                 var cols = kvp.Value;
 #if DEBUG
                 foreach (var info in cols)
-                    Contracts.Assert(!schema.IsHidden(info.Index), "How did a hidden column sneak in?");
+                    Contracts.Assert(!schema[info.Index].IsHidden, "How did a hidden column sneak in?");
 #endif
                 if (cols.Count == 1)
                 {

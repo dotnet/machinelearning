@@ -418,7 +418,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     inputCols = new HashSet<string>();
                     for (int j = 0; j < inputSchema.ColumnCount; j++)
                     {
-                        if (inputSchema.IsHidden(j))
+                        if (inputSchema[j].IsHidden)
                             continue;
                         inputCols.Add(inputSchema.GetColumnName(j));
                     }
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     int nonHiddenCols = 0;
                     for (int j = 0; j < inputSchema.ColumnCount; j++)
                     {
-                        if (inputSchema.IsHidden(j))
+                        if (inputSchema[j].IsHidden)
                             continue;
                         var name = inputSchema.GetColumnName(j);
                         if (!inputCols.Contains(name))

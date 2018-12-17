@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {

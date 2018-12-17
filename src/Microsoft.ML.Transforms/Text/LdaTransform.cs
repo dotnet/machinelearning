@@ -945,7 +945,7 @@ namespace Microsoft.ML.Transforms.Text
                 numVocabs[i] = 0;
 
                 VBuffer<ReadOnlyMemory<char>> dst = default;
-                if (inputSchema.HasSlotNames(srcCol, srcColType.ValueCount))
+                if (inputSchema[srcCol].HasSlotNames(srcColType.ValueCount))
                     inputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, srcCol, ref dst);
                 else
                     dst = default(VBuffer<ReadOnlyMemory<char>>);

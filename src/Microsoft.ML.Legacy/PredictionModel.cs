@@ -42,7 +42,7 @@ namespace Microsoft.ML.Legacy
                 return false;
 
             int expectedLabelCount = schema.GetColumnType(colIndex).ValueCount;
-            if (!schema.HasSlotNames(colIndex, expectedLabelCount))
+            if (!schema[colIndex].HasSlotNames(expectedLabelCount))
                 return false;
 
             VBuffer<ReadOnlyMemory<char>> labels = default;

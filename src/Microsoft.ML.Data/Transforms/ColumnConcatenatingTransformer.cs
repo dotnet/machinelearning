@@ -474,7 +474,7 @@ namespace Microsoft.ML.Runtime.Data
                     else
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, itemType.ToString(), curType.ToString());
 
-                    if (isNormalized && !inputSchema.IsNormalized(srcCol))
+                    if (isNormalized && !inputSchema[srcCol].IsNormalized())
                         isNormalized = false;
 
                     if (MetadataUtils.TryGetCategoricalFeatureIndices(inputSchema, srcCol, out int[] typeCat))
@@ -484,7 +484,7 @@ namespace Microsoft.ML.Runtime.Data
                         hasCategoricals = true;
                     }
 
-                    if (!hasSlotNames && !curType.IsVector || inputSchema.HasSlotNames(srcCol, curType.VectorSize))
+                    if (!hasSlotNames && !curType.IsVector || inputSchema[srcCol].HasSlotNames(curType.VectorSize))
                         hasSlotNames = true;
                 }
 

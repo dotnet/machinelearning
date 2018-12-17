@@ -11,6 +11,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -191,7 +192,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             int len = schema.Feature.Type.ValueCount;
-            if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
+            if (schema.Schema[schema.Feature.Index].HasSlotNames(len))
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref slotNames);
             else
                 slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);

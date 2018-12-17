@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.LightGBM
 {

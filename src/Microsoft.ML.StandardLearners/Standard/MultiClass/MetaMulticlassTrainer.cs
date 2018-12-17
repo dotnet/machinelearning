@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers.Online;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.Learners
 {

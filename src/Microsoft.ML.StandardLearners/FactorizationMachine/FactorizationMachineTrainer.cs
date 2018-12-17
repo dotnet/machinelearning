@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Training;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
     typeof(FieldAwareFactorizationMachineTrainer.Arguments), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
@@ -301,7 +302,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 var col = featureColumns[f];
                 if (col == null)
                     throw ch.ExceptParam(nameof(data), "Empty feature column not allowed");
-                Host.Assert(!data.Schema.Schema.IsHidden(col.Index));
+                Host.Assert(!data.Schema.Schema[col.Index].IsHidden);
                 if (!(col.Type is VectorType vectorType) ||
                     !vectorType.IsKnownSizeVector ||
                     vectorType.ItemType != NumberType.Float)

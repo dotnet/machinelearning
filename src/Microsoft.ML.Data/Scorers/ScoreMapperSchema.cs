@@ -5,6 +5,7 @@
 using Float = System.Single;
 using System.Collections.Generic;
 using System;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.Data
 {

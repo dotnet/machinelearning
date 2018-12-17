@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
