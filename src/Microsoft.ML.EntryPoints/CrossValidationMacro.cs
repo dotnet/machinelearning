@@ -470,7 +470,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     // Find the old Count column and drop it.
                     for (int col = 0; col < idv.Schema.ColumnCount; col++)
                     {
-                        if (idv.Schema.IsHidden(col) &&
+                        if (idv.Schema[col].IsHidden &&
                             idv.Schema.GetColumnName(col).Equals(MetricKinds.ColumnNames.Count))
                         {
                             input.ConfusionMatrix[i] = new ChooseColumnsByIndexTransform(env,

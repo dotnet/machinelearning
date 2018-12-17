@@ -65,7 +65,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             var fieldNames = new HashSet<string>();
             for (int c = 0; c < schema.ColumnCount; ++c)
             {
-                if (schema.IsHidden(c))
+                if (schema[c].IsHidden)
                     continue;
                 string name = schema.GetColumnName(c);
                 if (toDrop.Contains(name))

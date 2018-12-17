@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -417,7 +418,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Contracts.Assert(feat.Type.ValueCount > 0);
 
             var sch = schema.Schema;
-            if (sch.HasSlotNames(feat.Index, feat.Type.ValueCount))
+            if (sch[feat.Index].HasSlotNames(feat.Type.ValueCount))
                 sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref _names);
             else
                 _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);

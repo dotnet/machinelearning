@@ -356,9 +356,8 @@ namespace Microsoft.ML.Runtime.Data
                     var builder = new SchemaBuilder();
                     builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
                     _outputSchema = builder.GetSchema();
-                    if (InputSchema.HasSlotNames(InputRoleMappedSchema.Feature.Index, InputRoleMappedSchema.Feature.Type.VectorSize))
-                        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index,
-                            ref _slotNames);
+                    if (InputSchema[InputRoleMappedSchema.Feature.Index].HasSlotNames(InputRoleMappedSchema.Feature.Type.VectorSize))
+                        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index, ref _slotNames);
                     else
                         _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(InputRoleMappedSchema.Feature.Type.VectorSize);
                 }
@@ -443,7 +442,7 @@ namespace Microsoft.ML.Runtime.Data
                 _parentSchema = parentSchema;
                 _featureCol = featureCol;
                 _featureVectorSize = _parentSchema.GetColumnType(_featureCol).VectorSize;
-                _hasSlotNames = _parentSchema.HasSlotNames(_featureCol, _featureVectorSize);
+                _hasSlotNames = _parentSchema[_featureCol].HasSlotNames(_featureVectorSize);
 
                 _names = new string[] { columnName };
                 _types = new ColumnType[] { columnType };

@@ -93,7 +93,7 @@ namespace Microsoft.ML.Legacy
                 if (dataView.Schema.GetColumnType(colIndex).IsVector)
                 {
                     var n = dataView.Schema.GetColumnType(colIndex).VectorSize;
-                    if (dataView.Schema.HasSlotNames(colIndex, n))
+                    if (dataView.Schema[colIndex].HasSlotNames(n))
                     {
                         var slots = default(VBuffer<ReadOnlyMemory<char>>);
                         dataView.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref slots);

@@ -186,7 +186,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             var toExport = new List<string>();
             for (int i = 0; i < end.Schema.ColumnCount; ++i)
             {
-                if (end.Schema.IsHidden(i))
+                if (end.Schema[i].IsHidden)
                     continue;
                 var name = end.Schema.GetColumnName(i);
                 if (_outputsToDrop.Contains(name))

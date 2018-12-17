@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Feature;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
                 throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.Training
             // If the above function is generalized, this needs to be as well.
             Contracts.AssertValue(data);
             Contracts.Assert(data.Schema.Feature != null);
-            Contracts.Assert(!data.Schema.Schema.IsHidden(data.Schema.Feature.Index));
+            Contracts.Assert(!data.Schema.Schema[data.Schema.Feature.Index].IsHidden);
             Contracts.Assert(data.Schema.Feature.Type.IsKnownSizeVector);
             Contracts.Assert(data.Schema.Feature.Type.ItemType == NumberType.Float);
             length = data.Schema.Feature.Type.VectorSize;
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Label;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (!col.Type.IsBool && col.Type != NumberType.R4 && col.Type != NumberType.R8 && col.Type.KeyCount != 2)
             {
                 if (col.Type.IsKey)
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Label;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type != NumberType.R4 && col.Type != NumberType.R8)
             {
                 throw Contracts.ExceptParam(nameof(data),
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Label;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type.KeyCount > 0)
             {
                 count = col.Type.KeyCount;
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Label;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Weight;
             if (col == null)
                 return;
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type != NumberType.R4 && col.Type != NumberType.R8)
                 throw Contracts.ExceptParam(nameof(data), "Training weight column '{0}' must be of floating point numeric type, but has type: {1}.", col.Name, col.Type);
         }
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Group;
             if (col == null)
                 return;
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type.IsKey)
                 return;
             throw Contracts.ExceptParam(nameof(data), "Training group column '{0}' type is invalid: {1}. Must be Key type.", col.Name, col.Type);

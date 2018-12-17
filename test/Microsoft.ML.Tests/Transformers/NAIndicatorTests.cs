@@ -129,7 +129,7 @@ namespace Microsoft.ML.Tests.Transformers
             var result = newpipe.Fit(dataView).Transform(dataView);
             Assert.True(result.Schema.TryGetColumnIndex("NAA", out var col));
             // Check that the column is normalized.
-            Assert.True(result.Schema.IsNormalized(col));
+            Assert.True(result.Schema[col].IsNormalized());
             // Check that slot names metadata was correctly created.
             var value = new VBuffer<ReadOnlyMemory<char>>();
             var type = result.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, col);

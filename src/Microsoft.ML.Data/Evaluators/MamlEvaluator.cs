@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
@@ -111,7 +112,7 @@ namespace Microsoft.ML.Runtime.Data
                 : StratCols.Select(col => RoleMappedSchema.CreatePair(Strat, col));
 
             if (needName && schema.Name != null)
-                roles = roles.Prepend(RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Name));
+                roles = MetadataUtils.Prepend(roles, RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Name));
 
             return roles.Concat(GetInputColumnRolesCore(schema));
         }
