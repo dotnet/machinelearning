@@ -40,7 +40,8 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Interface to define an aggregate function over values
     /// </summary>
-    public interface IColumnAggregator<T>
+    [BestFriend]
+    internal interface IColumnAggregator<T>
     {
         /// <summary>
         /// Updates the aggregate function with a value
@@ -68,7 +69,7 @@ namespace Microsoft.ML.Runtime.Data
         NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
     }
 
-    public static class NormalizeUtils
+    internal static class NormalizeUtils
     {
         /// <summary>
         /// Returns whether the feature column in the schema is indicated to be normalized. If the features column is not

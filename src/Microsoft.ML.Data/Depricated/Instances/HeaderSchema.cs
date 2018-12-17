@@ -16,7 +16,8 @@ using System.Threading;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn
 {
-    public abstract class FeatureNameCollection : IEnumerable<string>
+    [BestFriend]
+    internal abstract class FeatureNameCollection : IEnumerable<string>
     {
         private sealed class FeatureNameCollectionSchema : ISchema
         {
