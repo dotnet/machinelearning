@@ -97,13 +97,23 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var subGraphNodes = new List<EntryPointNode>();
 
             // Split the input data into folds.
-            var exp = new Experiment(env);
-            var cvSplit = new Legacy.Models.CrossValidatorDatasetSplitter();
-            cvSplit.Data.VarName = node.GetInputVariable("Data").ToJson();
-            cvSplit.NumFolds = input.NumFolds;
-            cvSplit.StratificationColumn = input.StratificationColumn;
-            var cvSplitOutput = exp.Add(cvSplit);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+            var splitArgs = new CVSplit.Input();
+            splitArgs.NumFolds = input.NumFolds;
+            splitArgs.StratificationColumn = input.StratificationColumn;
+            var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+            var inputData = node.GetInputVariable(nameof(splitArgs.Data));
+            ParameterBinding paramBinding = new SimpleParameterBinding(nameof(splitArgs.Data));
+            inputBindingMap.Add(nameof(splitArgs.Data), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, inputData);
+            var outputMap = new Dictionary<string, string>();
+            var splitOutputTrainData = new ArrayVar<IDataView>();
+            var splitOutputTestData = new ArrayVar<IDataView>();
+            outputMap.Add(nameof(CVSplit.Output.TrainData), splitOutputTrainData.VarName);
+            outputMap.Add(nameof(CVSplit.Output.TestData), splitOutputTestData.VarName);
+            var splitNode = EntryPointNode.Create(env, "Models.CrossValidatorDatasetSplitter", splitArgs,
+                node.Context, inputBindingMap, inputMap, outputMap);
+            subGraphNodes.Add(splitNode);
 
             var predModelVars = new Var<PredictorModel>[input.NumFolds];
             var warningsVars = new Var<IDataView>[input.NumFolds];
@@ -137,15 +147,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 };
 
                 // Set the input bindings for the TrainTest entry point.
-                var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
-                var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+                inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+                inputMap = new Dictionary<ParameterBinding, VariableBinding>();
                 var trainingData = new SimpleParameterBinding(nameof(args.TrainingData));
                 inputBindingMap.Add(nameof(args.TrainingData), new List<ParameterBinding> { trainingData });
-                inputMap.Add(trainingData, new ArrayIndexVariableBinding(cvSplitOutput.TrainData.VarName, k));
+                inputMap.Add(trainingData, new ArrayIndexVariableBinding(splitOutputTrainData.VarName, k));
                 var testingData = new SimpleParameterBinding(nameof(args.TestingData));
                 inputBindingMap.Add(nameof(args.TestingData), new List<ParameterBinding> { testingData });
-                inputMap.Add(testingData, new ArrayIndexVariableBinding(cvSplitOutput.TestData.VarName, k));
-                var outputMap = new Dictionary<string, string>();
+                inputMap.Add(testingData, new ArrayIndexVariableBinding(splitOutputTestData.VarName, k));
+                outputMap = new Dictionary<string, string>();
                 var predModelVar = new Var<PredictorModel>();
                 outputMap.Add(nameof(TrainTestBinaryMacro.Output.PredictorModel), predModelVar.VarName);
                 predModelVars[k] = predModelVar;
@@ -164,76 +174,26 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 subGraphNodes.Add(EntryPointNode.Create(env, "Models.TrainTestBinaryEvaluator", args, node.Context, inputBindingMap, inputMap, outputMap));
             }
 
-            exp.Reset();
-
-            var outModels = new Legacy.Data.PredictorModelArrayConverter
-            {
-                Model = new ArrayVar<PredictorModel>(predModelVars)
-            };
-            var outModelsOutput = new Legacy.Data.PredictorModelArrayConverter.Output();
-            outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
-            exp.Add(outModels, outModelsOutput);
-
-            var warnings = new Legacy.Data.IDataViewArrayConverter
-            {
-                Data = new ArrayVar<IDataView>(warningsVars)
-            };
-            var warningsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
-            warningsOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.Warnings));
-            exp.Add(warnings, warningsOutput);
-
-            var overallMetrics = new Legacy.Data.IDataViewArrayConverter
-            {
-                Data = new ArrayVar<IDataView>(overallMetricsVars)
-            };
-            var overallMetricsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
-            overallMetricsOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.OverallMetrics));
-            exp.Add(overallMetrics, overallMetricsOutput);
-
-            var instanceMetrics = new Legacy.Data.IDataViewArrayConverter
-            {
-                Data = new ArrayVar<IDataView>(instanceMetricsVars)
-            };
-            var instanceMetricsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
-            instanceMetricsOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.PerInstanceMetrics));
-            exp.Add(instanceMetrics, instanceMetricsOutput);
-
-            var confusionMatrices = new Legacy.Data.IDataViewArrayConverter
-            {
-                Data = new ArrayVar<IDataView>(confusionMatrixVars)
-            };
-            var confusionMatricesOutput = new Legacy.Data.IDataViewArrayConverter.Output();
-            confusionMatricesOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
-            exp.Add(confusionMatrices, confusionMatricesOutput);
-
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+            ConvertOutputsToArrays(env, node, subGraphNodes, predModelVars, warningsVars, overallMetricsVars, instanceMetricsVars, confusionMatrixVars);
 
             return new CommonOutputs.MacroOutput<Output>() { Nodes = subGraphNodes };
         }
 
-        public sealed class ArrayIPredictorModelInput
+        private static void ConvertOutputsToArrays(IHostEnvironment env, EntryPointNode node, List<EntryPointNode> subGraphNodes,
+            Var<PredictorModel>[] predModelVars, Var<IDataView>[] warningsVars, Var<IDataView>[] overallMetricsVars,
+            Var<IDataView>[] instanceMetricsVars, Var<IDataView>[] confusionMatrixVars)
         {
-            [Argument(ArgumentType.Required, HelpText = "The models", SortOrder = 1)]
-            public PredictorModel[] Model;
+            // Convert the predictor models to an array of predictor models.
+            MacroUtils.ConvertIPredictorModelsToArray(env, node.Context, subGraphNodes, predModelVars, node.GetOutputVariableName(nameof(Output.PredictorModel)));
+
+            // Convert the warnings, overall, per instance and confusion matrix data views into an array.
+            MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, warningsVars, node.GetOutputVariableName(nameof(Output.Warnings)));
+            MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, overallMetricsVars, node.GetOutputVariableName(nameof(Output.OverallMetrics)));
+            MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, instanceMetricsVars, node.GetOutputVariableName(nameof(Output.PerInstanceMetrics)));
+            MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, confusionMatrixVars, node.GetOutputVariableName(nameof(Output.ConfusionMatrix)));
         }
 
-        public sealed class ArrayPredictorModelOutput
-        {
-            [TlcModule.Output(Desc = "The model array", SortOrder = 1)]
-            public PredictorModel[] OutputModel;
-        }
-
-        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(PredictorModel), Name = "Data.PredictorModelArrayConverter")]
-        public static ArrayPredictorModelOutput MakeArray(IHostEnvironment env, ArrayIPredictorModelInput input)
-        {
-            var result = new ArrayPredictorModelOutput
-            {
-                OutputModel = input.Model
-            };
-            return result;
-        }
-
-        public sealed class ArrayTransformModelInput
+        public sealed class ArrayITransformModelInput
         {
             [Argument(ArgumentType.Required, HelpText = "The models", SortOrder = 1)]
             public TransformModel[] TransformModel;
@@ -245,34 +205,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public TransformModel[] OutputModel;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(TransformModel), Name = "Data.TransformModelArrayConverter")]
-        public static ArrayITransformModelOutput MakeArray(IHostEnvironment env, ArrayTransformModelInput input)
+        [TlcModule.EntryPoint(Desc = "Create an array variable of ITransformModel", Name = "Data.TransformModelArrayConverter")]
+        public static ArrayITransformModelOutput MakeArray(IHostEnvironment env, ArrayITransformModelInput input)
         {
             var result = new ArrayITransformModelOutput
             {
                 OutputModel = input.TransformModel
-            };
-            return result;
-        }
-
-        public sealed class ArrayIDataViewInput
-        {
-            [Argument(ArgumentType.Required, HelpText = "The data sets", SortOrder = 1)]
-            public IDataView[] Data;
-        }
-
-        public sealed class ArrayIDataViewOutput
-        {
-            [TlcModule.Output(Desc = "The data set array", SortOrder = 1)]
-            public IDataView[] OutputData;
-        }
-
-        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(IDataView), Name = "Data.IDataViewArrayConverter")]
-        public static ArrayIDataViewOutput MakeArray(IHostEnvironment env, ArrayIDataViewInput input)
-        {
-            var result = new ArrayIDataViewOutput
-            {
-                OutputData = input.Data
             };
             return result;
         }

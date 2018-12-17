@@ -35,9 +35,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
             public Var<PredictorModel> PredictorModel;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The transform model", SortOrder = 2)]
-            public Var<TransformModel> TransformModel;
         }
 
         public sealed class Arguments
@@ -102,10 +99,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
                 "provided as the Input.TransformModel.", SortOrder = 1)]
             public PredictorModel[] PredictorModel;
-
-            [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
-                "provided as the Input.TransformModel.", SortOrder = 2)]
-            public TransformModel[] TransformModel;
 
             [TlcModule.Output(Desc = "Warning dataset", SortOrder = 3)]
             public IDataView Warnings;
@@ -182,16 +175,25 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 transformModelVarName = node.GetInputVariable(nameof(input.TransformModel));
 
             // Split the input data into folds.
-            var exp = new Experiment(env);
-            var cvSplit = new Legacy.Models.CrossValidatorDatasetSplitter();
-            cvSplit.Data.VarName = node.GetInputVariable("Data").ToJson();
-            cvSplit.NumFolds = input.NumFolds;
-            cvSplit.StratificationColumn = input.StratificationColumn;
-            var cvSplitOutput = exp.Add(cvSplit);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+            var splitArgs = new CVSplit.Input();
+            splitArgs.NumFolds = input.NumFolds;
+            splitArgs.StratificationColumn = input.StratificationColumn;
+            var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+            var inputData = node.GetInputVariable(nameof(splitArgs.Data));
+            ParameterBinding paramBinding = new SimpleParameterBinding(nameof(splitArgs.Data));
+            inputBindingMap.Add(nameof(splitArgs.Data), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, inputData);
+            var outputMap = new Dictionary<string, string>();
+            var splitOutputTrainData = new ArrayVar<IDataView>();
+            var splitOutputTestData = new ArrayVar<IDataView>();
+            outputMap.Add(nameof(CVSplit.Output.TrainData), splitOutputTrainData.VarName);
+            outputMap.Add(nameof(CVSplit.Output.TestData), splitOutputTestData.VarName);
+            var splitNode = EntryPointNode.Create(env, "Models.CrossValidatorDatasetSplitter", splitArgs,
+                node.Context, inputBindingMap, inputMap, outputMap);
+            subGraphNodes.Add(splitNode);
 
             var predModelVars = new Var<PredictorModel>[input.NumFolds];
-            var transformModelVars = new Var<TransformModel>[input.NumFolds];
             var inputTransformModelVars = new Var<PredictorModel>[input.NumFolds];
             var warningsVars = new Var<IDataView>[input.NumFolds];
             var overallMetricsVars = new Var<IDataView>[input.NumFolds];
@@ -227,82 +229,50 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     VarName = mapping[input.Inputs.Data.VarName]
                 };
-
-                if (input.Outputs.PredictorModel != null && mapping.ContainsKey(input.Outputs.PredictorModel.VarName))
+                args.Outputs.PredictorModel = new Var<PredictorModel>
                 {
-                    args.Outputs.PredictorModel = new Var<PredictorModel>
-                    {
-                        VarName = mapping[input.Outputs.PredictorModel.VarName]
-                    };
-                }
-                else
-                    args.Outputs.PredictorModel = null;
-
-                if (input.Outputs.TransformModel != null && mapping.ContainsKey(input.Outputs.TransformModel.VarName))
-                {
-                    args.Outputs.TransformModel = new Var<TransformModel>
-                    {
-                        VarName = mapping[input.Outputs.TransformModel.VarName]
-                    };
-                }
-                else
-                    args.Outputs.TransformModel = null;
+                    VarName = mapping[input.Outputs.PredictorModel.VarName]
+                };
 
                 // Set train/test trainer kind to match.
                 args.Kind = input.Kind;
 
                 // Set the input bindings for the TrainTest entry point.
-                var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
-                var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+                inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+                inputMap = new Dictionary<ParameterBinding, VariableBinding>();
                 var trainingData = new SimpleParameterBinding(nameof(args.TrainingData));
                 inputBindingMap.Add(nameof(args.TrainingData), new List<ParameterBinding> { trainingData });
-                inputMap.Add(trainingData, new ArrayIndexVariableBinding(cvSplitOutput.TrainData.VarName, k));
+                inputMap.Add(trainingData, new ArrayIndexVariableBinding(splitOutputTrainData.VarName, k));
                 var testingData = new SimpleParameterBinding(nameof(args.TestingData));
                 inputBindingMap.Add(nameof(args.TestingData), new List<ParameterBinding> { testingData });
-                inputMap.Add(testingData, new ArrayIndexVariableBinding(cvSplitOutput.TestData.VarName, k));
-                var outputMap = new Dictionary<string, string>();
+                inputMap.Add(testingData, new ArrayIndexVariableBinding(splitOutputTestData.VarName, k));
+                outputMap = new Dictionary<string, string>();
                 var transformModelVar = new Var<TransformModel>();
                 var predModelVar = new Var<PredictorModel>();
-                if (input.Outputs.PredictorModel == null)
+                outputMap.Add(nameof(TrainTestMacro.Output.PredictorModel), predModelVar.VarName);
+                predModelVars[k] = predModelVar;
+                if (transformModelVarName != null && transformModelVarName.VariableName != null)
                 {
-                    outputMap.Add(nameof(TrainTestMacro.Output.TransformModel), transformModelVar.VarName);
-                    transformModelVars[k] = transformModelVar;
-                    Legacy.Transforms.ModelCombiner.Output modelCombineOutput = null;
-                    if (transformModelVarName != null && transformModelVarName.VariableName != null)
-                    {
-                        var modelCombine = new Legacy.Transforms.ModelCombiner
-                        {
-                            Models = new ArrayVar<TransformModel>(
-                                new Var<TransformModel>[] {
-                                    new Var<TransformModel> { VarName = transformModelVarName.VariableName },
-                                    transformModelVar }
-                                )
-                        };
+                    var combineModelsArgs = new ModelOperations.SimplePredictorModelInput();
+                    inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+                    inputMap = new Dictionary<ParameterBinding, VariableBinding>();
 
-                        exp.Reset();
-                        modelCombineOutput = exp.Add(modelCombine);
-                        subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
-                        transformModelVars[k] = modelCombineOutput.OutputModel;
-                    }
-                }
-                else
-                {
-                    outputMap.Add(nameof(TrainTestMacro.Output.PredictorModel), predModelVar.VarName);
-                    predModelVars[k] = predModelVar;
-                    Legacy.Transforms.TwoHeterogeneousModelCombiner.Output modelCombineOutput = null;
-                    if (transformModelVarName != null && transformModelVarName.VariableName != null)
-                    {
-                        var modelCombine = new Legacy.Transforms.TwoHeterogeneousModelCombiner
-                        {
-                            TransformModel = { VarName = transformModelVarName.VariableName },
-                            PredictorModel = predModelVar
-                        };
+                    var inputTransformModel = new SimpleVariableBinding(transformModelVarName.VariableName);
+                    var inputPredictorModel = new SimpleVariableBinding(predModelVar.VarName);
+                    paramBinding = new SimpleParameterBinding(nameof(combineModelsArgs.TransformModel));
+                    inputBindingMap.Add(nameof(combineModelsArgs.TransformModel), new List<ParameterBinding>() { paramBinding });
+                    inputMap.Add(paramBinding, inputTransformModel);
+                    paramBinding = new SimpleParameterBinding(nameof(combineModelsArgs.PredictorModel));
+                    inputBindingMap.Add(nameof(combineModelsArgs.PredictorModel), new List<ParameterBinding>() { paramBinding });
+                    inputMap.Add(paramBinding, inputPredictorModel);
+                    outputMap = new Dictionary<string, string>();
 
-                        exp.Reset();
-                        modelCombineOutput = exp.Add(modelCombine);
-                        subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
-                        predModelVars[k] = modelCombineOutput.PredictorModel;
-                    }
+                    var combineNodeOutputPredictorModel = new Var<PredictorModel>();
+                    predModelVars[k] = combineNodeOutputPredictorModel;
+                    outputMap.Add(nameof(ModelOperations.PredictorModelOutput.PredictorModel), combineNodeOutputPredictorModel.VarName);
+                    EntryPointNode combineNode = EntryPointNode.Create(env, "Transforms.TwoHeterogeneousModelCombiner", combineModelsArgs,
+                        node.Context, inputBindingMap, inputMap, outputMap);
+                    subGraphNodes.Add(combineNode);
                 }
 
                 var warningVar = new Var<IDataView>();
@@ -321,66 +291,22 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 subGraphNodes.Add(EntryPointNode.Create(env, trainTestEvaluatorMacroEntryPoint, args, node.Context, inputBindingMap, inputMap, outputMap));
             }
 
-            exp.Reset();
+            // Convert the predictor models to an array of predictor models.
+            MacroUtils.ConvertIPredictorModelsToArray(env, node.Context, subGraphNodes, predModelVars, node.GetOutputVariableName(nameof(Output.PredictorModel)));
 
-            // Convert predictors from all folds into an array of predictors.
-
-            if (input.Outputs.PredictorModel == null)
-            {
-                var outModels = new Legacy.Data.TransformModelArrayConverter
-                {
-                    TransformModel = new ArrayVar<TransformModel>(transformModelVars)
-                };
-                var outModelsOutput = new Legacy.Data.TransformModelArrayConverter.Output();
-                outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.TransformModel));
-                exp.Add(outModels, outModelsOutput);
-            }
-            else
-            {
-                var outModels = new Legacy.Data.PredictorModelArrayConverter
-                {
-                    Model = new ArrayVar<PredictorModel>(predModelVars)
-                };
-                var outModelsOutput = new Legacy.Data.PredictorModelArrayConverter.Output();
-                outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
-                exp.Add(outModels, outModelsOutput);
-            }
-
-            // Convert warnings data views from all folds into an array of data views.
-            var warnings = new Legacy.Data.IDataViewArrayConverter
-            {
-                Data = new ArrayVar<IDataView>(warningsVars)
-            };
-            var warningsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
-            exp.Add(warnings, warningsOutput);
-
-            // Convert overall metrics data views from all folds into an array of data views.
-            var overallMetrics = new Legacy.Data.IDataViewArrayConverter
-            {
-                Data = new ArrayVar<IDataView>(overallMetricsVars)
-            };
-            var overallMetricsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
-            exp.Add(overallMetrics, overallMetricsOutput);
-
-            // Convert per instance data views from all folds into an array of data views.
-            var instanceMetrics = new Legacy.Data.IDataViewArrayConverter
-            {
-                Data = new ArrayVar<IDataView>(instanceMetricsVars)
-            };
-            var instanceMetricsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
-            exp.Add(instanceMetrics, instanceMetricsOutput);
-
-            Legacy.Data.IDataViewArrayConverter.Output confusionMatricesOutput = null;
+            // Convert the warnings, overall, per instance and confusion matrix data views into an array.
+            var warningsArrayVar = new ArrayVar<IDataView>();
+            var overallArrayVar = new ArrayVar<IDataView>();
+            var instanceArrayVar = new ArrayVar<IDataView>();
+            ArrayVar<IDataView> confusionMatrixArrayVar = null;
+            MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, warningsVars, warningsArrayVar.VarName);
+            MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, overallMetricsVars, overallArrayVar.VarName);
+            MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, instanceMetricsVars, instanceArrayVar.VarName);
             if (input.Kind == MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer ||
                 input.Kind == MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer)
             {
-                // Convert confusion matrix data views from all folds into an array of data views.
-                var confusionMatrices = new Legacy.Data.IDataViewArrayConverter
-                {
-                    Data = new ArrayVar<IDataView>(confusionMatrixVars)
-                };
-                confusionMatricesOutput = new Legacy.Data.IDataViewArrayConverter.Output();
-                exp.Add(confusionMatrices, confusionMatricesOutput);
+                confusionMatrixArrayVar = new ArrayVar<IDataView>();
+                MacroUtils.ConvertIdataViewsToArray(env, node.Context, subGraphNodes, confusionMatrixVars, confusionMatrixArrayVar.VarName);
             }
 
             var combineArgs = new CombineMetricsInput();
@@ -396,18 +322,18 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             var warningsArray = new SimpleParameterBinding(nameof(combineArgs.Warnings));
             combineInputBindingMap.Add(nameof(combineArgs.Warnings), new List<ParameterBinding> { warningsArray });
-            combineInputMap.Add(warningsArray, new SimpleVariableBinding(warningsOutput.OutputData.VarName));
+            combineInputMap.Add(warningsArray, new SimpleVariableBinding(warningsArrayVar.VarName));
             var overallArray = new SimpleParameterBinding(nameof(combineArgs.OverallMetrics));
             combineInputBindingMap.Add(nameof(combineArgs.OverallMetrics), new List<ParameterBinding> { overallArray });
-            combineInputMap.Add(overallArray, new SimpleVariableBinding(overallMetricsOutput.OutputData.VarName));
+            combineInputMap.Add(overallArray, new SimpleVariableBinding(overallArrayVar.VarName));
             var combinePerInstArray = new SimpleParameterBinding(nameof(combineArgs.PerInstanceMetrics));
             combineInputBindingMap.Add(nameof(combineArgs.PerInstanceMetrics), new List<ParameterBinding> { combinePerInstArray });
-            combineInputMap.Add(combinePerInstArray, new SimpleVariableBinding(instanceMetricsOutput.OutputData.VarName));
-            if (confusionMatricesOutput != null)
+            combineInputMap.Add(combinePerInstArray, new SimpleVariableBinding(instanceArrayVar.VarName));
+            if (confusionMatrixArrayVar != null)
             {
                 var combineConfArray = new SimpleParameterBinding(nameof(combineArgs.ConfusionMatrix));
                 combineInputBindingMap.Add(nameof(combineArgs.ConfusionMatrix), new List<ParameterBinding> { combineConfArray });
-                combineInputMap.Add(combineConfArray, new SimpleVariableBinding(confusionMatricesOutput.OutputData.VarName));
+                combineInputMap.Add(combineConfArray, new SimpleVariableBinding(confusionMatrixArrayVar.VarName));
             }
 
             var combineOutputMap = new Dictionary<string, string>();
@@ -420,14 +346,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var combineInstanceMetric = new Var<IDataView>();
             combineInstanceMetric.VarName = node.GetOutputVariableName(nameof(Output.PerInstanceMetrics));
             combineOutputMap.Add(nameof(Output.PerInstanceMetrics), combineInstanceMetric.VarName);
-            if (confusionMatricesOutput != null)
+            if (confusionMatrixArrayVar != null)
             {
                 var combineConfusionMatrix = new Var<IDataView>();
                 combineConfusionMatrix.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
                 combineOutputMap.Add(nameof(TrainTestMacro.Output.ConfusionMatrix), combineConfusionMatrix.VarName);
             }
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
-            subGraphNodes.Add(EntryPointNode.Create(env, "Models.CrossValidationResultsCombiner", combineArgs, node.Context, combineInputBindingMap, combineInputMap, combineOutputMap));
+            var combineMetricsNode = EntryPointNode.Create(env, "Models.CrossValidationResultsCombiner",
+                combineArgs, node.Context, combineInputBindingMap, combineInputMap, combineOutputMap);
+            subGraphNodes.Add(combineMetricsNode);
             return new CommonOutputs.MacroOutput<Output>() { Nodes = subGraphNodes };
         }
 
@@ -498,22 +425,22 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             switch (kind)
             {
-                case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
-                    return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
-                    return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
-                    return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureRankerTrainer:
-                    return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
-                    return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
-                    return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
-                case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
-                    return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
-                default:
-                    throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
+            case MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer:
+                return new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer:
+                return new MultiClassMamlEvaluator(env, new MultiClassMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureRegressorTrainer:
+                return new RegressionMamlEvaluator(env, new RegressionMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureRankerTrainer:
+                return new RankerMamlEvaluator(env, new RankerMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureAnomalyDetectorTrainer:
+                return new AnomalyDetectionMamlEvaluator(env, new AnomalyDetectionMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureClusteringTrainer:
+                return new ClusteringMamlEvaluator(env, new ClusteringMamlEvaluator.Arguments());
+            case MacroUtils.TrainerKinds.SignatureMultiOutputRegressorTrainer:
+                return new MultiOutputRegressionMamlEvaluator(env, new MultiOutputRegressionMamlEvaluator.Arguments());
+            default:
+                throw env.ExceptParam(nameof(kind), $"Trainer kind {kind} does not have an evaluator");
             }
         }
     }

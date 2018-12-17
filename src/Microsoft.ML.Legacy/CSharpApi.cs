@@ -1976,7 +1976,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
-        [Obsolete("Use TextLoader instead.")]
+        [Obsolete]
         public sealed partial class CustomTextLoader
         {
 
@@ -2070,7 +2070,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create an array variable of PredictorModel
+        /// Create an array variable of IPredictorModel
         /// </summary>
         [Obsolete]
         public sealed partial class PredictorModelArrayConverter
@@ -2361,7 +2361,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create an array variable of TransformModel
+        /// Create an array variable of ITransformModel
         /// </summary>
         [Obsolete]
         public sealed partial class TransformModelArrayConverter
@@ -3144,12 +3144,6 @@ namespace Microsoft.ML
             [Obsolete]
             public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
-            /// <summary>
-            /// The transform model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
-
         }
 
         /// <summary>
@@ -3240,11 +3234,6 @@ namespace Microsoft.ML
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
                 public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
                 /// <summary>
                 /// Warning dataset
@@ -4647,12 +4636,6 @@ namespace Microsoft.ML
             [Obsolete]
             public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
-            /// <summary>
-            /// Transform model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
-
         }
 
         /// <summary>
@@ -4749,11 +4732,6 @@ namespace Microsoft.ML
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
                 /// <summary>
                 /// Warning dataset

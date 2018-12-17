@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -106,29 +107,48 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Add the scoring node.
             var testingVar = node.GetInputVariable("TestingData");
-            var exp = new Experiment(env);
-            var scoreNode = new Legacy.Transforms.DatasetScorer();
-            scoreNode.Data.VarName = testingVar.ToJson();
-            scoreNode.PredictorModel.VarName = outputVarName;
-            var scoreNodeOutput = exp.Add(scoreNode);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+            var args = new ScoreModel.Input();
+            var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+            var paramBinding = new SimpleParameterBinding(nameof(args.Data));
+            inputBindingMap.Add(nameof(args.Data), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, testingVar);
+            var scoreNodeInputPredictorModel = new SimpleVariableBinding(outputVarName);
+            paramBinding = new SimpleParameterBinding(nameof(args.PredictorModel));
+            inputBindingMap.Add(nameof(args.PredictorModel), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, scoreNodeInputPredictorModel);
+
+            var scoreNodeOutputScoredData = new Var<IDataView>();
+            var scoreNodeOutputScoringTransform = new Var<TransformModel>();
+            var outputMap = new Dictionary<string, string>();
+            outputMap.Add(nameof(ScoreModel.Output.ScoredData), scoreNodeOutputScoredData.VarName);
+            outputMap.Add(nameof(ScoreModel.Output.ScoringTransform), scoreNodeOutputScoringTransform.VarName);
+
+            EntryPointNode scoreNode = EntryPointNode.Create(env, "Transforms.DatasetScorer", args,
+                node.Context, inputBindingMap, inputMap, outputMap);
+            subGraphNodes.Add(scoreNode);
 
             // Add the evaluator node.
-            exp.Reset();
-            var evalNode = new Legacy.Models.BinaryClassificationEvaluator();
-            evalNode.Data.VarName = scoreNodeOutput.ScoredData.VarName;
-            var evalOutput = new Legacy.Models.BinaryClassificationEvaluator.Output();
-            string outVariableName;
-            if (node.OutputMap.TryGetValue("Warnings", out outVariableName))
-                evalOutput.Warnings.VarName = outVariableName;
+            var evalArgs = new BinaryClassifierMamlEvaluator.Arguments();
+            inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+            var evalNodeInputData = new SimpleVariableBinding(scoreNodeOutputScoredData.VarName);
+            paramBinding = new SimpleParameterBinding(nameof(evalArgs.Data));
+            inputBindingMap.Add(nameof(evalArgs.Data), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, evalNodeInputData);
+
+            outputMap = new Dictionary<string, string>();
+            if (node.OutputMap.TryGetValue("Warnings", out var outVariableName))
+                outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.Warnings), outVariableName);
             if (node.OutputMap.TryGetValue("OverallMetrics", out outVariableName))
-                evalOutput.OverallMetrics.VarName = outVariableName;
+                outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.OverallMetrics), outVariableName);
             if (node.OutputMap.TryGetValue("PerInstanceMetrics", out outVariableName))
-                evalOutput.PerInstanceMetrics.VarName = outVariableName;
+                outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.PerInstanceMetrics), outVariableName);
             if (node.OutputMap.TryGetValue("ConfusionMatrix", out outVariableName))
-                evalOutput.ConfusionMatrix.VarName = outVariableName;
-            exp.Add(evalNode, evalOutput);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+                outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.ConfusionMatrix), outVariableName);
+            EntryPointNode evalNode = EntryPointNode.Create(env, "Models.BinaryClassificationEvaluator", evalArgs,
+                node.Context, inputBindingMap, inputMap, outputMap);
+            subGraphNodes.Add(evalNode);
 
             var stageId = Guid.NewGuid().ToString("N");
             foreach (var subGraphNode in subGraphNodes)

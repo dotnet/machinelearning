@@ -92,7 +92,7 @@
     },
     {
       "Name": "Data.PredictorModelArrayConverter",
-      "Desc": "Create an array variable of PredictorModel",
+      "Desc": "Create an array variable of IPredictorModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -471,7 +471,7 @@
     },
     {
       "Name": "Data.TransformModelArrayConverter",
-      "Desc": "Create an array variable of TransformModel",
+      "Desc": "Create an array variable of ITransformModel",
       "FriendlyName": null,
       "ShortName": null,
       "Inputs": [
@@ -1647,15 +1647,6 @@
                 "SortOrder": 1.0,
                 "IsNullable": false,
                 "Default": null
-              },
-              {
-                "Name": "TransformModel",
-                "Type": "TransformModel",
-                "Desc": "The transform model",
-                "Required": false,
-                "SortOrder": 2.0,
-                "IsNullable": false,
-                "Default": null
               }
             ]
           },
@@ -1763,14 +1754,6 @@
           "Type": {
             "Kind": "Array",
             "ItemType": "PredictorModel"
-          },
-          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
-        },
-        {
-          "Name": "TransformModel",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "TransformModel"
           },
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
@@ -3473,15 +3456,6 @@
                 "SortOrder": 1.0,
                 "IsNullable": false,
                 "Default": null
-              },
-              {
-                "Name": "TransformModel",
-                "Type": "TransformModel",
-                "Desc": "Transform model",
-                "Required": false,
-                "SortOrder": 2.0,
-                "IsNullable": false,
-                "Default": null
               }
             ]
           },
@@ -3581,11 +3555,6 @@
         {
           "Name": "PredictorModel",
           "Type": "PredictorModel",
-          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
-        },
-        {
-          "Name": "TransformModel",
-          "Type": "TransformModel",
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
         {

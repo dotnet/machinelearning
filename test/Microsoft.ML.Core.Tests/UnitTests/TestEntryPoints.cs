@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Legacy.EntryPoints;
 using Microsoft.ML.Runtime.Core.Tests.UnitTests;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -52,7 +53,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            return ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            return Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -72,7 +73,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            return ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            return Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -986,7 +987,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("lm.sample.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -1200,7 +1201,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("iris.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -1347,8 +1348,8 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             var dataView =
-                ImportTextData.TextLoader(Env,
-                    new ImportTextData.LoaderInput
+                Legacy.EntryPoints.ImportTextData.TextLoader(Env,
+                    new Legacy.EntryPoints.ImportTextData.LoaderInput
                     {
                         InputFile = inputFile,
                         Arguments =
@@ -3552,7 +3553,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
 
-            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -3626,7 +3627,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("MNIST.Train.0-class.tiny.txt");
             using (var inputFile = new SimpleFileHandle(Env, dataPath, false, false))
             {
-                var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+                var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
                 {
                     Arguments =
                 {
@@ -3763,7 +3764,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
 #pragma warning disable 0618
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
+            var dataView = EntryPoints.ImportTextData.ImportText(Env, new EntryPoints.ImportTextData.Input { InputFile = inputFile }).Data;
 #pragma warning restore 0618
             var cat = Categorical.CatTransformDict(Env, new OneHotEncodingTransformer.Arguments()
             {
@@ -3833,7 +3834,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 "The five boxing wizards jump quickly."
             });
             var inputFile = new SimpleFileHandle(Env, dataFile, false, false);
-            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
