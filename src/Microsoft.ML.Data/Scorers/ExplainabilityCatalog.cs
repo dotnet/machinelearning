@@ -22,7 +22,7 @@ namespace Microsoft.ML
         /// <param name="bottom">The number of least contributing features for each data sample that will be retained in the FeatureContribution column.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
-        /// string(key)-values, set stringify to <langword>true</langword></param>
+        /// "feature name:feature contribution" pairs for each feature, set stringify to <langword>true</langword></param>
         public static FeatureContributionCalculatingEstimator FeatureContributionCalculation(this ModelOperationsCatalog.ExplainabilityTransforms catalog,
             IFeatureContributionMappable predictor,
             string featureColumn = DefaultColumnNames.Features,
