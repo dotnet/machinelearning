@@ -18,7 +18,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="predictionKind">The learning task that is being performed.</param>
         /// <param name="isNormalized">Whether the probability column (if generated) will be normalized or not.</param>
         /// <param name="labelColumn"></param>
-        /// <returns></returns>
         public static SchemaShape GetPredictorOutputColumns(PredictionKind predictionKind, bool isNormalized = true, SchemaShape.Column? labelColumn = null)
         {
             var columns = new List<SchemaShape.Column>();

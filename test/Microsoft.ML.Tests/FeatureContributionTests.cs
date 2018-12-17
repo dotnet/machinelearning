@@ -177,7 +177,7 @@ namespace Microsoft.ML.Tests
             ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
             IDataView data,
             string testFile,
-            int precision = 6)
+            int precision = 5)
         {
             // Train the model.
             var model = trainer.Fit(data);

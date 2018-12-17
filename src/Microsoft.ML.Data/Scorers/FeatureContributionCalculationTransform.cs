@@ -691,7 +691,7 @@ namespace Microsoft.ML.Runtime.Data
             foreach (var column in ScoringUtils.GetPredictorOutputColumns(_predictor.PredictionKind))
                 result[column.Name] = column;
 
-            // REVIEW: We should change the scorers so that they produce consistently probabilities and predicted labels for binary classification.
+            // REVIEW: We should change the scorers so that they produce probability and predicted label columns consistently for binary classification.
             // Notice that the generic scorer used here will not produce label column. If the predictor is not IValueMapperDist it does not produce probability either.
             if (!(_predictor is IValueMapperDist))
                 result.Remove(DefaultColumnNames.Probability);
