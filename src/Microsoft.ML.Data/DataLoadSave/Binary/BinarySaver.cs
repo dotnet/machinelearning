@@ -280,7 +280,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _host.Check(!string.IsNullOrEmpty(pair.Key), "Metadata with null or empty kind detected, disallowed");
                 _host.Check(pair.Value != null, "Metadata with null type detected, disallowed");
                 if (!kinds.Add(pair.Key))
-                    throw _host.Except("Metadata with duplicate kind '{0}' encountered, disallowed", pair.Key, schema.GetColumnName(col));
+                    throw _host.Except("Metadata with duplicate kind '{0}' encountered, disallowed", pair.Key, schema[col].Name);
                 args[3] = pair.Key;
                 args[4] = pair.Value;
                 IValueCodec codec = (IValueCodec)methInfo.MakeGenericMethod(pair.Value.RawType).Invoke(this, args);
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     // Nothing was written.
                     ch.Warning("Could not get codec for type {0}, dropping column '{1}' index {2} metadata kind '{3}'",
-                        pair.Value, schema.GetColumnName(col), col, pair.Key);
+                        pair.Value, schema[col].Name, col, pair.Key);
                     continue;
                 }
                 offsets.Add(writer.BaseStream.Position);
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                                 // long: Offset to the start of the lookup table
                                 // long: Offset to the start of the metadata TOC entries, or 0 if this has no metadata
 
-                                string name = sourceSchema.GetColumnName(active.SourceIndex);
+                                string name = sourceSchema[active.SourceIndex].Name;
                                 writer.Write(name);
                                 int nameLen = Encoding.UTF8.GetByteCount(name);
                                 expectedPosition += Utils.Leb128IntLength((uint)nameLen) + nameLen;
@@ -720,10 +720,10 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             for (int c = 0; c < colIndices.Length; ++c)
             {
-                ColumnType type = schema.GetColumnType(colIndices[c]);
+                ColumnType type = schema[colIndices[c]].Type;
                 IValueCodec codec;
                 if (!_factory.TryGetCodec(type, out codec))
-                    throw _host.Except("Could not get codec for requested column {0} of type {1}", schema.GetColumnName(c), type);
+                    throw _host.Except("Could not get codec for requested column {0} of type {1}", schema[c].Name, type);
                 _host.Assert(type.Equals(codec.Type));
                 activeSourceColumns[c] = new ColumnCodec(colIndices[c], codec);
             }

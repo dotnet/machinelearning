@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             Func<Row, int, Delegate> getGetter = GetGetterAsDelegateCore<int>;
-            return Utils.MarshalInvoke(getGetter, row.Schema.GetColumnType(col).RawType, row, col);
+            return Utils.MarshalInvoke(getGetter, row.Schema[col].Type.RawType, row, col);
         }
 
         private static Delegate GetGetterAsDelegateCore<TValue>(Row row, int col)
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
+            var typeSrc = row.Schema[col].Type;
             Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<int>> del = GetGetterAsCore<int, int>;
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
+            var typeSrc = row.Schema[col].Type;
             Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<TDst>> del = GetGetterAsCore<int, TDst>;
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
+            var typeSrc = row.Schema[col].Type;
             Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
             return Utils.MarshalInvoke(GetGetterAsStringBuilderCore<int>, typeSrc.RawType, typeSrc, row, col);
         }
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
+            var typeSrc = row.Schema[col].Type;
             Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
+            var typeSrc = row.Schema[col].Type;
             Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(cursor, nameof(cursor));
             Contracts.Check(0 <= col && col < cursor.Schema.Count);
-            ColumnType type = cursor.Schema.GetColumnType(col);
+            ColumnType type = cursor.Schema[col].Type;
             Contracts.Check(type.IsKey);
             return Utils.MarshalInvoke(GetIsNewGroupDelegateCore<int>, type.RawType, cursor, col);
         }
@@ -368,7 +368,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public static ValueGetter<Single> GetLabelGetter(Row cursor, int labelIndex)
         {
-            var type = cursor.Schema.GetColumnType(labelIndex);
+            var type = cursor.Schema[labelIndex].Type;
 
             if (type == NumberType.R4)
                 return cursor.GetGetter<Single>(labelIndex);
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static ValueGetter<Single> GetLabelGetterNotFloat(Row cursor, int labelIndex)
         {
-            var type = cursor.Schema.GetColumnType(labelIndex);
+            var type = cursor.Schema[labelIndex].Type;
 
             Contracts.Assert(type != NumberType.R4 && type != NumberType.R8);
 

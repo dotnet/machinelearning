@@ -399,7 +399,7 @@ namespace Microsoft.ML.Runtime.RunTests
             List<int> savable = new List<int>();
             for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema.GetColumnType(c);
+                ColumnType type = schema[c].Type;
                 if (saver.IsColumnSavable(type) && (hidden || !schema[c].IsHidden))
                     savable.Add(c);
             }
@@ -554,15 +554,15 @@ namespace Microsoft.ML.Runtime.RunTests
 
             for (int col = 0; col < sch1.Count; col++)
             {
-                string name1 = sch1.GetColumnName(col);
-                string name2 = sch2.GetColumnName(col);
+                string name1 = sch1[col].Name;
+                string name2 = sch2[col].Name;
                 if (name1 != name2)
                 {
                     Fail("column name mismatch at index {0}: {1} vs {2}", col, name1, name2);
                     return Failed();
                 }
-                var type1 = sch1.GetColumnType(col);
-                var type2 = sch2.GetColumnType(col);
+                var type1 = sch1[col].Type;
+                var type2 = sch2[col].Type;
                 if (!EqualTypes(type1, type2, exactTypes))
                 {
                     Fail("column type mismatch at index {0}", col);
@@ -684,7 +684,7 @@ namespace Microsoft.ML.Runtime.RunTests
             List<int> savable = new List<int>();
             for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema.GetColumnType(c);
+                ColumnType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -730,7 +730,7 @@ namespace Microsoft.ML.Runtime.RunTests
             List<int> savable = new List<int>();
             for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema.GetColumnType(c);
+                ColumnType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -864,8 +864,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 if (f1 && f2)
                 {
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = curs2.Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = curs2.Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");
@@ -954,8 +954,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 for (int col = 0; col < colLim; col++)
                 {
                     Contracts.Assert(cursors[col] != null);
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = cursors[col].Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = cursors[col].Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");

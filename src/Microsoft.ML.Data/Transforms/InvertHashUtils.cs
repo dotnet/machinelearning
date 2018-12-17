@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(schema);
             Contracts.Assert(0 <= col && col < schema.Count);
-            var type = schema.GetColumnType(col).ItemType;
+            var type = schema[col].Type.ItemType;
             Contracts.Assert(type.RawType == typeof(T));
             var conv = Conversion.Conversions.Instance;
 

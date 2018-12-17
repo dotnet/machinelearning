@@ -1016,7 +1016,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             var saver = new BinarySaver(env, saverArgs);
 
             var cols = Enumerable.Range(0, schema.Count)
-                .Select(x => new { col = x, isSavable = saver.IsColumnSavable(schema.GetColumnType(x)) });
+                .Select(x => new { col = x, isSavable = saver.IsColumnSavable(schema[x].Type) });
             int[] toSave = cols.Where(x => x.isSavable).Select(x => x.col).ToArray();
             unsavableColIndices = cols.Where(x => !x.isSavable).Select(x => x.col).ToArray();
             ctx.SaveBinaryStream("Schema.idv", w => saver.SaveData(w.BaseStream, noRows, toSave));

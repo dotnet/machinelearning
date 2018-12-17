@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!schema.TryGetColumnIndex(name, out int index))
                 return false;
 
-            colInfo = new ColumnInfo(name, index, schema.GetColumnType(index));
+            colInfo = new ColumnInfo(name, index, schema[index].Type);
             return true;
         }
 

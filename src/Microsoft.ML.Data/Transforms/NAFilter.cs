@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
                 if (_srcIndexToInfoIndex.ContainsKey(index))
                     throw Host.ExceptUserArg(nameof(args.Column), "Source column '{0}' specified multiple times", src);
 
-                var type = schema.GetColumnType(index);
+                var type = schema[index].Type;
                 if (!TestType(type))
                     throw Host.ExceptUserArg(nameof(args.Column), $"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
 
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms
                 if (_srcIndexToInfoIndex.ContainsKey(index))
                     throw Host.Except("Source column '{0}' specified multiple times", src);
 
-                var type = schema.GetColumnType(index);
+                var type = schema[index].Type;
                 if (!TestType(type))
                     throw Host.Except($"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
 
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms
             Host.Assert(_infos.Length > 0);
             ctx.Writer.Write(_infos.Length);
             foreach (var info in _infos)
-                ctx.SaveNonEmptyString(Source.Schema.GetColumnName(info.Index));
+                ctx.SaveNonEmptyString(Source.Schema[info.Index].Name);
         }
 
         private static bool TestType(ColumnType type)

@@ -132,7 +132,7 @@ namespace Microsoft.ML.Data
 
             for (int c = 0; c < schema.Count; ++c)
             {
-                var type = schema.GetColumnType(c);
+                var type = schema[c].Type;
                 env.Assert(ip == prefetch.Length || c <= prefetch[ip]);
                 if (!type.IsCachable())
                 {
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Data
                     {
                         throw env.Except(
                             "Asked to prefetch column '{0}' into cache, but it is of unhandled type '{1}'",
-                            schema.GetColumnName(c), type);
+                            schema[c].Name, type);
                     }
                 }
                 else
@@ -1315,14 +1315,14 @@ namespace Microsoft.ML.Data
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                return Utils.MarshalInvoke(CreateGetterDelegate<int>, Schema.GetColumnType(col).RawType, col);
+                return Utils.MarshalInvoke(CreateGetterDelegate<int>, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetterDelegate<TValue>(int col)
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                Ch.Assert(Schema.GetColumnType(col).RawType == typeof(TValue));
+                Ch.Assert(Schema[col].Type.RawType == typeof(TValue));
 
                 var cache = (ColumnCache<TValue>)Parent._caches[col];
                 return CreateGetterDelegateCore(cache);
@@ -1381,7 +1381,7 @@ namespace Microsoft.ML.Data
                 host.Assert(0 <= srcCol & srcCol < input.Schema.Count);
                 host.Assert(input.IsColumnActive(srcCol));
 
-                var type = input.Schema.GetColumnType(srcCol);
+                var type = input.Schema[srcCol].Type;
                 Type pipeType;
                 if (type.IsVector)
                     pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
@@ -1444,7 +1444,7 @@ namespace Microsoft.ML.Data
                 public ImplVec(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
                     : base(parent, input, srcCol, waiter)
                 {
-                    var type = input.Schema.GetColumnType(srcCol);
+                    var type = input.Schema[srcCol].Type;
                     Ctx.Assert(type.IsVector);
                     _uniformLength = type.VectorSize;
                     _indices = new BigArray<int>();
@@ -1564,7 +1564,7 @@ namespace Microsoft.ML.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= srcCol & srcCol < input.Schema.Count);
-                Contracts.Assert(input.Schema.GetColumnType(srcCol).RawType == typeof(T));
+                Contracts.Assert(input.Schema[srcCol].Type.RawType == typeof(T));
             }
 
             /// <summary>

@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             {
                 if (schema[c].IsHidden)
                     continue;
-                string name = schema.GetColumnName(c);
+                string name = schema[c].Name;
                 if (toDrop.Contains(name))
                     continue;
                 JToken pfaType = PfaTypeOrNullForColumn(schema, c);
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             _host.AssertValue(schema);
             _host.Assert(0 <= col && col < schema.Count);
 
-            ColumnType type = schema.GetColumnType(col);
+            ColumnType type = schema[col].Type;
             return T.PfaTypeOrNullForColumnType(type);
         }
 

@@ -356,8 +356,8 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         if (!input.Schema.TryGetColumnIndex(_columns[i].Inputs[j], out int srcCol))
                             throw Host.ExceptSchemaMismatch(nameof(input), "input", _columns[i].Inputs[j]);
-                        var columnType = input.Schema.GetColumnType(srcCol);
-                        if (!NgramHashingEstimator.IsColumnTypeValid(input.Schema.GetColumnType(srcCol)))
+                        var columnType = input.Schema[srcCol].Type;
+                        if (!NgramHashingEstimator.IsColumnTypeValid(input.Schema[srcCol].Type))
                             throw Host.ExceptSchemaMismatch(nameof(input), "input", _columns[i].Inputs[j], NgramHashingEstimator.ExpectedColumnType, columnType.ToString());
                         sourceColumnsForInvertHash.Add(srcCol);
                     }
@@ -500,10 +500,10 @@ namespace Microsoft.ML.Transforms.Text
                         var srcName = _parent._columns[i].Inputs[j];
                         if (!inputSchema.TryGetColumnIndex(srcName, out int srcCol))
                             throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
-                        var columnType = inputSchema.GetColumnType(srcCol);
+                        var columnType = inputSchema[srcCol].Type;
                         if (!NgramHashingEstimator.IsColumnTypeValid(columnType))
                             throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, NgramHashingEstimator.ExpectedColumnType, columnType.ToString());
-                        var srcType = inputSchema.GetColumnType(srcCol);
+                        var srcType = inputSchema[srcCol].Type;
                         _srcIndices[i][j] = srcCol;
                         _srcTypes[i][j] = srcType;
                     }

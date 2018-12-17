@@ -329,12 +329,12 @@ namespace Microsoft.ML.Trainers.Recommender
             private void CheckInputSchema(Schema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
             {
                 // See if matrix-column-index role's type matches the one expected in the trained predictor
-                var type = schema.GetColumnType(matrixColumnIndexCol);
+                var type = schema[matrixColumnIndexCol].Type;
                 string msg = string.Format("Input column index type '{0}' incompatible with predictor's column index type '{1}'", type, _parent.MatrixColumnIndexType);
                 _env.CheckParam(type.Equals(_parent.MatrixColumnIndexType), nameof(schema), msg);
 
                 // See if matrix-column-index  role's type matches the one expected in the trained predictor
-                type = schema.GetColumnType(matrixRowIndexCol);
+                type = schema[matrixRowIndexCol].Type;
                 msg = string.Format("Input row index type '{0}' incompatible with predictor' row index type '{1}'", type, _parent.MatrixRowIndexType);
                 _env.CheckParam(type.Equals(_parent.MatrixRowIndexType), nameof(schema), msg);
             }
@@ -402,10 +402,10 @@ namespace Microsoft.ML.Trainers.Recommender
 
             if (!trainSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
                 throw Host.ExceptSchemaMismatch(nameof(MatrixColumnIndexColumnName), RecommenderUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
-            MatrixColumnIndexColumnType = trainSchema.GetColumnType(xCol);
+            MatrixColumnIndexColumnType = trainSchema[xCol].Type;
             if (!trainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
                 throw Host.ExceptSchemaMismatch(nameof(yCol), RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
-            MatrixRowIndexColumnType = trainSchema.GetColumnType(yCol);
+            MatrixRowIndexColumnType = trainSchema[yCol].Type;
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 
@@ -440,11 +440,11 @@ namespace Microsoft.ML.Trainers.Recommender
 
             if (!TrainSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
                 throw Host.ExceptSchemaMismatch(nameof(MatrixColumnIndexColumnName), RecommenderUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
-            MatrixColumnIndexColumnType = TrainSchema.GetColumnType(xCol);
+            MatrixColumnIndexColumnType = TrainSchema[xCol].Type;
 
             if (!TrainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
                 throw Host.ExceptSchemaMismatch(nameof(MatrixRowIndexColumnName), RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
-            MatrixRowIndexColumnType = TrainSchema.GetColumnType(yCol);
+            MatrixRowIndexColumnType = TrainSchema[yCol].Type;
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
 

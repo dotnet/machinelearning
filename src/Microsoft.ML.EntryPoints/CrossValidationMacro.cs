@@ -471,7 +471,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     for (int col = 0; col < idv.Schema.Count; col++)
                     {
                         if (idv.Schema[col].IsHidden &&
-                            idv.Schema.GetColumnName(col).Equals(MetricKinds.ColumnNames.Count))
+                            idv.Schema[col].Name.Equals(MetricKinds.ColumnNames.Count))
                         {
                             input.ConfusionMatrix[i] = new ChooseColumnsByIndexTransform(env,
                                 new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { col } }, idv);

@@ -26,7 +26,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var schema = reader.AsDynamic.GetOutputSchema();
             Assert.True(schema.TryGetColumnIndex("Data", out int col), "Could not find 'Data' column");
-            var type = schema.GetColumnType(col);
+            var type = schema[col].Type;
             var vecType = type as VectorType;
             Assert.True(vecType?.Size > 0, $"Type was supposed to be known size vector but was instead '{type}'");
             Assert.Equal(NumberType.R4, vecType.ItemType);

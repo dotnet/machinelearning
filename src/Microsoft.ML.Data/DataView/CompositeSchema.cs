@@ -93,13 +93,13 @@ namespace Microsoft.ML.Runtime.Data
         public string GetColumnName(int col)
         {
             GetColumnSource(col, out int dv, out int srcCol);
-            return _sources[dv].GetColumnName(srcCol);
+            return _sources[dv][srcCol].Name;
         }
 
         public ColumnType GetColumnType(int col)
         {
             GetColumnSource(col, out int dv, out int srcCol);
-            return _sources[dv].GetColumnType(srcCol);
+            return _sources[dv][srcCol].Type;
         }
 
         public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)

@@ -185,13 +185,13 @@ namespace Microsoft.ML.Runtime.Data
                     continue;
                 if (!(outputAllColumns || ShouldAddColumn(loader.Schema, i, maxScoreId, outputNamesAndLabels)))
                     continue;
-                var type = loader.Schema.GetColumnType(i);
+                var type = loader.Schema[i].Type;
                 if (writer.IsColumnSavable(type))
                     cols.Add(i);
                 else
                 {
                     ch.Warning("The column '{0}' will not be written as it has unsavable column type.",
-                        loader.Schema.GetColumnName(i));
+                        loader.Schema[i].Name);
                 }
             }
 
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             if (outputNamesAndLabels)
             {
-                switch (schema.GetColumnName(i))
+                switch (schema[i].Name)
                 {
                     case "Label":
                     case "Name":
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Runtime.Data
                         break;
                 }
             }
-            if (Args.OutputColumn != null && Array.FindIndex(Args.OutputColumn, schema.GetColumnName(i).Equals) >= 0)
+            if (Args.OutputColumn != null && Array.FindIndex(Args.OutputColumn, schema[i].Name.Equals) >= 0)
                 return true;
             return false;
         }

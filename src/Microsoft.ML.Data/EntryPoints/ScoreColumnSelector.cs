@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 return true;
             }
-            var columnName = schema.GetColumnName(i);
+            var columnName = schema[i].Name;
             if (extraColumns != null && Array.FindIndex(extraColumns, columnName.Equals) >= 0)
                 return true;
             return false;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             continue;
                         }
-                        var source = input.Data.Schema.GetColumnName(i);
+                        var source = input.Data.Schema[i].Name;
                         var name = source + "." + positiveClass;
                         copyCols.Add((source, name));
                     }

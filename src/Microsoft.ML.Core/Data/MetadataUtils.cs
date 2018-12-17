@@ -447,7 +447,7 @@ namespace Microsoft.ML.Data
 
             bool isValid = false;
             categoricalFeatures = null;
-            if (!(schema.GetColumnType(colIndex) is VectorType vecType && vecType.Size > 0))
+            if (!(schema[colIndex].Type is VectorType vecType && vecType.Size > 0))
                 return isValid;
 
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex);

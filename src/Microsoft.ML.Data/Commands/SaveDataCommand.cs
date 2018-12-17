@@ -146,11 +146,11 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!Args.KeepHidden && data.Schema[i].IsHidden)
                     continue;
-                var type = data.Schema.GetColumnType(i);
+                var type = data.Schema[i].Type;
                 if (saver.IsColumnSavable(type))
                     cols.Add(i);
                 else
-                    ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", data.Schema.GetColumnName(i));
+                    ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", data.Schema[i].Name);
             }
             Host.NotSensitive().Check(cols.Count > 0, "No valid columns to save");
 
@@ -207,11 +207,11 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!keepHidden && view.Schema[i].IsHidden)
                     continue;
-                var type = view.Schema.GetColumnType(i);
+                var type = view.Schema[i].Type;
                 if (saver.IsColumnSavable(type))
                     cols.Add(i);
                 else
-                    ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", view.Schema.GetColumnName(i));
+                    ch.Info(MessageSensitivity.Schema, "The column '{0}' will not be written as it has unsavable column type.", view.Schema[i].Name);
             }
 
             ch.Check(cols.Count > 0, "No valid columns to save");

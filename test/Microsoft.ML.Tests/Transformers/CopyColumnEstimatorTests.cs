@@ -139,10 +139,10 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("T1", out int copyIndex);
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
-            var type1 = result.Schema.GetColumnType(termIndex);
+            var type1 = result.Schema[termIndex].Type;
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
             int size = (itemType1 as KeyType)?.Count ?? -1;
-            var type2 = result.Schema.GetColumnType(copyIndex);
+            var type2 = result.Schema[copyIndex].Type;
             result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
             result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, copyIndex, ref names2);
             Assert.True(CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));

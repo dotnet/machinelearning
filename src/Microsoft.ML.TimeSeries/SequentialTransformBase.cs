@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             if (!_transform.Schema.TryGetColumnIndex(OutputColumnName, out colIndex))
                 throw Host.Except(String.Format("The column {0} does not exist in the schema.", OutputColumnName));
 
-            bs.TryWriteTypeDescription(ctx.Writer.BaseStream, _transform.Schema.GetColumnType(colIndex), out byteWritten);
+            bs.TryWriteTypeDescription(ctx.Writer.BaseStream, _transform.Schema[colIndex].Type, out byteWritten);
         }
 
         private static void MapFunction(DataBox<TInput> input, DataBox<TOutput> output, TState state)

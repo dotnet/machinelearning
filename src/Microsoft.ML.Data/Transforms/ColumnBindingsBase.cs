@@ -839,7 +839,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!input.TryGetColumnIndex(src[j], out srcIndices[j]))
                         throw Contracts.ExceptUserArg(standardColumnArgName, "Source column '{0}' not found", src[j]);
 #pragma warning restore MSML_ContractsNameUsesNameof
-                    srcTypes[j] = input.GetColumnType(srcIndices[j]);
+                    srcTypes[j] = input[srcIndices[j]].Type;
                     var size = srcTypes[j].ValueCount;
                     srcSize = size == 0 ? null : checked(srcSize + size);
                 }
@@ -941,7 +941,7 @@ namespace Microsoft.ML.Runtime.Data
                         string src = ctx.LoadNonEmptyString();
                         if (!input.TryGetColumnIndex(src, out indices[j]))
                             throw Contracts.Except("Source column '{0}' is required but not found", src);
-                        srcTypes[j] = input.GetColumnType(indices[j]);
+                        srcTypes[j] = input[indices[j]].Type;
                         var size = srcTypes[j].ValueCount;
                         srcSize = size == 0 ? null : checked(srcSize + size);
                     }
@@ -952,7 +952,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (reason != null)
                         {
                             throw Contracts.Except("Source columns '{0}' have invalid types: {1}. Source types: '{2}'.",
-                                string.Join(", ", indices.Select(k => input.GetColumnName(k))),
+                                string.Join(", ", indices.Select(k => input[k].Name)),
                                 reason,
                                 string.Join(", ", srcTypes.Select(type => type.ToString())));
                         }

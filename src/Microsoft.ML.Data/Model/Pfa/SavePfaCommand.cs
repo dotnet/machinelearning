@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             {
                 if (end.Schema[i].IsHidden)
                     continue;
-                var name = end.Schema.GetColumnName(i);
+                var name = end.Schema[i].Name;
                 if (_outputsToDrop.Contains(name))
                     continue;
                 if (!ctx.IsInput(name) || _keepInput)

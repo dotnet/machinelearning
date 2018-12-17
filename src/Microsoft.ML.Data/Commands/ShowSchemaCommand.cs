@@ -136,8 +136,8 @@ namespace Microsoft.ML.Runtime.Data
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
                 for (int col = 0; col < colLim; col++)
                 {
-                    var name = schema.GetColumnName(col);
-                    var type = schema.GetColumnType(col);
+                    var name = schema[col].Name;
+                    var type = schema[col].Type;
                     var slotType = tschema == null ? null : tschema.GetSlotType(col);
                     itw.WriteLine("{0}: {1}{2}", name, type, slotType == null ? "" : " (T)");
 

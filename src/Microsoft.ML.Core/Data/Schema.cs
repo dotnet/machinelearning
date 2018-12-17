@@ -306,9 +306,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         int ISchema.ColumnCount => _columns.Length;
 
-        public string GetColumnName(int col) => this[col].Name;
+        string ISchema.GetColumnName(int col) => this[col].Name;
 
-        public ColumnType GetColumnType(int col) => this[col].Type;
+        ColumnType ISchema.GetColumnType(int col) => this[col].Type;
 
         public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
         {

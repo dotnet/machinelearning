@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(input);
             Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema.GetColumnType(colSrc);
+            var typeSrc = input.Schema[colSrc].Type;
             Func<Row, int, ValueGetter<int>> del = GetValueGetter<int, int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, ScoreType.RawType);
             return (Delegate)meth.Invoke(this, new object[] { input, colSrc });
@@ -660,7 +660,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(input);
             Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema.GetColumnType(colSrc);
+            var typeSrc = input.Schema[colSrc].Type;
             Contracts.Assert(typeSrc.IsVector && typeSrc.ItemType == NumberType.Float);
             Contracts.Assert(ValueMapper == null ||
                 typeSrc.VectorSize == ValueMapper.InputType.VectorSize || ValueMapper.InputType.VectorSize == 0);

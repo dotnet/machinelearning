@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.Equal(5, schema.Count);
             var expected = new[] { "Label", "Workclass", "Categories", "NumericFeatures", "NumericFeatures" };
             for (int i = 0; i < schema.Count; i++)
-                Assert.Equal(expected[i], schema.GetColumnName(i));
+                Assert.Equal(expected[i], schema[i].Name);
         }
 
         [Fact]
@@ -976,8 +976,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var schema = data.Schema;
             Assert.Equal(3, schema.Count);
-            Assert.Equal("Softmax", schema.GetColumnName(2));
-            Assert.Equal(10, (schema.GetColumnType(2) as VectorType)?.Size);
+            Assert.Equal("Softmax", schema[2].Name);
+            Assert.Equal(10, (schema[2].Type as VectorType)?.Size);
         }
     }
 #pragma warning restore 612, 618

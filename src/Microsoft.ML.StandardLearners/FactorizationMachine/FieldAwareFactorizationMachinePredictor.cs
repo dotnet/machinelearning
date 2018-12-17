@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             {
                 if (!trainSchema.TryGetColumnIndex(feat, out int col))
                     throw Host.ExceptSchemaMismatch(nameof(featureColumns), RoleMappedSchema.ColumnRole.Feature.Value, feat);
-                FeatureColumnTypes[i++] = trainSchema.GetColumnType(col);
+                FeatureColumnTypes[i++] = trainSchema[col].Type;
             }
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 FeatureColumns[i] = ctx.LoadString();
                 if (!TrainSchema.TryGetColumnIndex(FeatureColumns[i], out int col))
                     throw Host.ExceptSchemaMismatch(nameof(FeatureColumns), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumns[i]);
-                FeatureColumnTypes[i] = TrainSchema.GetColumnType(col);
+                FeatureColumnTypes[i] = TrainSchema[col].Type;
             }
 
             _threshold = ctx.Reader.ReadSingle();
@@ -286,8 +286,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 if (!inputSchema.TryGetColumnIndex(feat, out int col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, feat, FeatureColumnTypes[i].ToString(), null);
 
-                if (!inputSchema.GetColumnType(col).Equals(FeatureColumnTypes[i]))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, feat, FeatureColumnTypes[i].ToString(), inputSchema.GetColumnType(col).ToString());
+                if (!inputSchema[col].Type.Equals(FeatureColumnTypes[i]))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, feat, FeatureColumnTypes[i].ToString(), inputSchema[col].Type.ToString());
             }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;

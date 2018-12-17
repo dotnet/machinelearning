@@ -185,8 +185,8 @@ namespace Microsoft.ML.Tests.Transformers
                 var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
                 var result = loadedTransformer.Transform(dataView);
                 Assert.Equal(2, result.Schema.Count);
-                Assert.Equal("A", result.Schema.GetColumnName(0));
-                Assert.Equal("B", result.Schema.GetColumnName(1));
+                Assert.Equal("A", result.Schema[0].Name);
+                Assert.Equal("B", result.Schema[1].Name);
             }
         }
 
@@ -205,8 +205,8 @@ namespace Microsoft.ML.Tests.Transformers
                 var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
                 var result = loadedTransformer.Transform(dataView);
                 Assert.Equal(2, result.Schema.Count);
-                Assert.Equal("A", result.Schema.GetColumnName(0));
-                Assert.Equal("B", result.Schema.GetColumnName(1));
+                Assert.Equal("A", result.Schema[0].Name);
+                Assert.Equal("B", result.Schema[1].Name);
             }
         }
 

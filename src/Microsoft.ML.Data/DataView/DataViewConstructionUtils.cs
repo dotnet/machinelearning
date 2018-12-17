@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.Data
                 Schema = schema;
                 _getters = new Delegate[_colCount];
                 for (int c = 0; c < _colCount; c++)
-                    _getters[c] = predicate(c) ? CreateGetter(schema.GetColumnType(c), schemaDef.Columns[c], peeks[c]) : null;
+                    _getters[c] = predicate(c) ? CreateGetter(schema[c].Type, schemaDef.Columns[c], peeks[c]) : null;
             }
 
             //private Delegate CreateGetter(SchemaProxy schema, int index, Delegate peek)

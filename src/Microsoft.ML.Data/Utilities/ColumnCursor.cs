@@ -39,7 +39,7 @@ namespace Microsoft.ML.Data
             //     - If this is the same type, we can map directly.
             //     - Otherwise, we need a conversion delegate.
 
-            var colType = data.Schema.GetColumnType(col);
+            var colType = data.Schema[col].Type;
             if (colType.RawType == typeof(T))
             {
                 // Direct mapping is possible.

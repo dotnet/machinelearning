@@ -408,7 +408,7 @@ namespace Microsoft.ML.Runtime.Data
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
             if (outSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreIdx) != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
-            var scoreType = outSchema.GetColumnType(scoreIdx);
+            var scoreType = outSchema[scoreIdx].Type;
 
             // Check that the type is vector, and is of compatible size with the score output.
             return labelNameType.IsVector && labelNameType.VectorSize == scoreType.VectorSize;

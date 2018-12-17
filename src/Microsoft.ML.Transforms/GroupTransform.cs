@@ -286,7 +286,7 @@ namespace Microsoft.ML.Transforms
                 var types = new ColumnType[ids.Length];
                 for (int i = 0; i < ids.Length; i++)
                 {
-                    var srcType = input.GetColumnType(ids[i]);
+                    var srcType = input[ids[i]].Type;
                     var primitiveType = srcType as PrimitiveType;
                     Contracts.Assert(primitiveType != null);
                     types[i] = new VectorType(primitiveType, size: 0);
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Transforms
                     if (!schema.TryGetColumnIndex(names[i], out col))
                         throw except(string.Format("Could not find column '{0}'", names[i]));
 
-                    var colType = schema.GetColumnType(col);
+                    var colType = schema[col].Type;
                     if (!colType.IsPrimitive)
                         throw except(string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType));
 
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Transforms
             {
                 CheckColumnInRange(col);
                 if (col < _groupCount)
-                    return _input.GetColumnType(GroupIds[col]);
+                    return _input[GroupIds[col]].Type;
                 return _columnTypes[col - _groupCount];
             }
 
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms
                 public GroupKeyColumnChecker(Row row, int col)
                 {
                     Contracts.AssertValue(row);
-                    var type = row.Schema.GetColumnType(col);
+                    var type = row.Schema[col].Type;
 
                     Func<Row, int, Func<bool>> del = MakeSameChecker<int>;
                     var mi = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Transforms
                 public static KeepColumnAggregator Create(Row row, int col)
                 {
                     Contracts.AssertValue(row);
-                    var colType = row.Schema.GetColumnType(col);
+                    var colType = row.Schema[col].Type;
                     Contracts.Assert(colType.IsPrimitive);
 
                     var type = typeof(ListAggregator<>);

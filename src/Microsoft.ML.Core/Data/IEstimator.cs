@@ -184,8 +184,8 @@ namespace Microsoft.ML.Core.Data
                     }
                     var metadata = mCols.Count > 0 ? new SchemaShape(mCols) : _empty;
                     // Next create the single column.
-                    GetColumnTypeShape(schema.GetColumnType(iCol), out var vecKind, out var itemType, out var isKey);
-                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, itemType, isKey, metadata));
+                    GetColumnTypeShape(schema[iCol].Type, out var vecKind, out var itemType, out var isKey);
+                    cols.Add(new Column(schema[iCol].Name, vecKind, itemType, isKey, metadata));
                 }
             }
             return new SchemaShape(cols);

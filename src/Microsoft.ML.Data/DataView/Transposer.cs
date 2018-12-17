@@ -134,7 +134,7 @@ namespace Microsoft.ML.Runtime.Data
                     // since it would be strange if the same type failed or not in the
                     // transposer depending on the size. At least as a user, that would
                     // surprise me. Also I expect this to never happen...
-                    var type = schema.GetColumnType(_cols[c].Index);
+                    var type = schema[_cols[c].Index].Type;
                     if (!saver.IsColumnSavable(type))
                         throw ch.ExceptParam(nameof(view), "Column named '{0}' is not serializable by the transposer", _cols[c].Name);
                     if (type.IsVector && !type.IsKnownSizeVector)
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 var slicer = new DataViewSlicer(_host, view, columns);
                 var slicerSchema = slicer.Schema;
-                ch.Assert(Enumerable.Range(0, slicerSchema.Count).All(c => saver.IsColumnSavable(slicerSchema.GetColumnType(c))));
+                ch.Assert(Enumerable.Range(0, slicerSchema.Count).All(c => saver.IsColumnSavable(slicerSchema[c].Type)));
                 _splitLim = new int[_cols.Length];
                 List<int> toSave = new List<int>();
                 int offset = 0;
@@ -322,12 +322,12 @@ namespace Microsoft.ML.Runtime.Data
 
             public string GetColumnName(int col)
             {
-                return InputSchema.GetColumnName(col);
+                return InputSchema[col].Name;
             }
 
             public ColumnType GetColumnType(int col)
             {
-                return InputSchema.GetColumnType(col);
+                return InputSchema[col].Type;
             }
 
             public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
@@ -417,8 +417,8 @@ namespace Microsoft.ML.Runtime.Data
                     Ch.Assert(parent._splitLim[iinfo] - _col == 1);
                 }
                 Ch.AssertValue(_view);
-                Ch.Assert(_view.Schema.GetColumnType(_col).IsPrimitive);
-                Ch.Assert(_view.Schema.GetColumnType(_col).RawType == typeof(T));
+                Ch.Assert(_view.Schema[_col].Type.IsPrimitive);
+                Ch.Assert(_view.Schema[_col].Type.RawType == typeof(T));
                 _len = parent.RowCount;
             }
 
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Runtime.Data
 
             protected override ValueGetter<VBuffer<T>> GetGetterCore()
             {
-                var isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_view.Schema.GetColumnType(_col));
+                var isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_view.Schema[_col].Type);
                 bool valid = false;
                 VBuffer<T> cached = default(VBuffer<T>);
                 return
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (_colStored == _colCurr)
                     return;
 
-                var type = _view.Schema.GetColumnType(_colCurr);
+                var type = _view.Schema[_colCurr].Type;
                 Ch.Assert(type.ItemType.RawType == typeof(T));
                 Ch.Assert(type.ValueCount > 0);
                 InPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
@@ -743,7 +743,7 @@ namespace Microsoft.ML.Runtime.Data
                 _slotCurr = 0;
                 if (++_colCurr == _colLim)
                     return false;
-                _slotLim = _view.Schema.GetColumnType(_colCurr).ValueCount;
+                _slotLim = _view.Schema[_colCurr].Type.ValueCount;
                 Ch.Assert(_slotLim > 0);
                 return true;
             }
@@ -812,7 +812,7 @@ namespace Microsoft.ML.Runtime.Data
                     var splitter = _splitters[c] = Splitter.Create(_input, toSlice[c]);
                     _host.Assert(splitter.ColumnCount >= 1);
                     _incolToLim[c] = outputColumnCount += splitter.ColumnCount;
-                    nameToCol[_input.Schema.GetColumnName(toSlice[c])] = outputColumnCount - 1;
+                    nameToCol[_input.Schema[toSlice[c]].Name] = outputColumnCount - 1;
                 }
                 _colToSplitIndex = new int[outputColumnCount];
                 _colToSplitCol = new int[outputColumnCount];
@@ -1015,7 +1015,7 @@ namespace Microsoft.ML.Runtime.Data
                 /// </summary>
                 public static Splitter Create(IDataView view, int col)
                 {
-                    var type = view.Schema.GetColumnType(col);
+                    var type = view.Schema[col].Type;
                     Contracts.Assert(type.IsPrimitive || type.VectorSize > 0);
                     const int defaultSplitThreshold = 16;
                     if (type.VectorSize <= defaultSplitThreshold)
@@ -1069,7 +1069,7 @@ namespace Microsoft.ML.Runtime.Data
                 public override bool TryGetColumnIndex(string name, out int col)
                 {
                     Contracts.CheckNonEmpty(name, nameof(name));
-                    if (name != _view.Schema.GetColumnName(SrcCol))
+                    if (name != _view.Schema[SrcCol].Name)
                     {
                         col = default(int);
                         return false;
@@ -1083,7 +1083,7 @@ namespace Microsoft.ML.Runtime.Data
                 public override string GetColumnName(int col)
                 {
                     Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                    return _view.Schema.GetColumnName(SrcCol);
+                    return _view.Schema[SrcCol].Name;
                 }
                 #endregion
 
@@ -1118,14 +1118,14 @@ namespace Microsoft.ML.Runtime.Data
                     public NoSplitter(IDataView view, int col)
                         : base(view, col)
                     {
-                        Contracts.Assert(_view.Schema.GetColumnType(col).RawType == typeof(T));
+                        Contracts.Assert(_view.Schema[col].Type.RawType == typeof(T));
                         AsSchema = Schema.Create(this);
                     }
 
                     public override ColumnType GetColumnType(int col)
                     {
                         Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                        return _view.Schema.GetColumnType(SrcCol);
+                        return _view.Schema[SrcCol].Type;
                     }
 
                     public override Row Bind(Row row, Func<int, bool> pred)
@@ -1190,7 +1190,7 @@ namespace Microsoft.ML.Runtime.Data
                     public ColumnSplitter(IDataView view, int col, int[] lims)
                         : base(view, col)
                     {
-                        var type = _view.Schema.GetColumnType(SrcCol) as VectorType;
+                        var type = _view.Schema[SrcCol].Type as VectorType;
                         // Only valid use is for two or more slices.
                         Contracts.Assert(Utils.Size(lims) >= 2);
                         Contracts.AssertValue(type);
@@ -1416,10 +1416,10 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var getter = cursor.GetGetter<T>();
                 if (!cursor.MoveNext())
-                    throw Contracts.Except("Could not get single value on column '{0}' because there are no slots", view.Schema.GetColumnName(col));
+                    throw Contracts.Except("Could not get single value on column '{0}' because there are no slots", view.Schema[col].Name);
                 getter(ref dst);
                 if (cursor.MoveNext())
-                    throw Contracts.Except("Could not get single value on column '{0}' because there is more than one slot", view.Schema.GetColumnName(col));
+                    throw Contracts.Except("Could not get single value on column '{0}' because there is more than one slot", view.Schema[col].Name);
             }
         }
 
@@ -1510,7 +1510,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public long? GetRowCount()
             {
-                var type = _data.Schema.GetColumnType(_col);
+                var type = _data.Schema[_col].Type;
                 int valueCount = type.ValueCount;
                 _host.Assert(valueCount > 0);
                 return valueCount;
@@ -1646,7 +1646,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public string GetColumnName(int col)
             {
-                return _schema.GetColumnName(col);
+                return _schema[col].Name;
             }
 
             public bool TryGetColumnIndex(string name, out int col)
@@ -1656,7 +1656,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public ColumnType GetColumnType(int col)
             {
-                return _schema.GetColumnType(col);
+                return _schema[col].Type;
             }
 
             public VectorType GetSlotType(int col)

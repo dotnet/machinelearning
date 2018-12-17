@@ -272,7 +272,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             string reason = TestColumnType(type);
             if (reason != null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms.Projections
             for (int i = 0; i < columns.Length; i++)
             {
                 input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
-                var typeSrc = input.Schema.GetColumnType(srcCol);
+                var typeSrc = input.Schema[srcCol].Type;
                 _transformInfos[i] = new TransformInfo(Host.Register(string.Format("column{0}", i)), columns[i],
                     typeSrc.ValueCount, avgDistances[i]);
             }
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
-                var type = input.Schema.GetColumnType(srcCol);
+                var type = input.Schema[srcCol].Type;
                 string reason = TestColumnType(type);
                 if (reason != null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input, reason, type.ToString());
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Transforms.Projections
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var rng = columns[i].Seed.HasValue ? RandomUtils.Create(columns[i].Seed.Value) : Host.Rand;
-                    var srcType = input.Schema.GetColumnType(srcCols[i]);
+                    var srcType = input.Schema[srcCols[i]].Type;
                     if (srcType.IsVector)
                     {
                         var get = cursor.GetGetter<VBuffer<float>>(srcCols[i]);

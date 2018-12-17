@@ -447,11 +447,11 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(LabelIndex);
+            var t = schema[(int) LabelIndex].Type;
             if (t != NumberType.R4)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4", LabelCol, t);
 
-            t = schema.GetColumnType(ScoreIndex);
+            t = schema[ScoreIndex].Type;
             if (t.VectorSize == 0 || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
             {
                 throw Host.Except(
@@ -515,10 +515,10 @@ namespace Microsoft.ML.Runtime.Data
             IDataView output = data;
             for (int i = 0; i < data.Schema.Count; i++)
             {
-                var type = data.Schema.GetColumnType(i);
+                var type = data.Schema[i].Type;
                 if (type.IsKnownSizeVector && type.ItemType == NumberType.R8)
                 {
-                    var name = data.Schema.GetColumnName(i);
+                    var name = data.Schema[i].Name;
                     var index = _index ?? type.VectorSize / 2;
                     output = LambdaColumnMapper.Create(Host, "Quantile Regression", output, name, name, type, NumberType.R8,
                         (in VBuffer<Double> src, ref Double dst) => dst = src.GetItemOrDefault(index));

@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             int labelCol;
             if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
-            var labelType = input.Data.Schema.GetColumnType(labelCol);
+            var labelType = input.Data.Schema[labelCol].Type;
             if (labelType.IsKey || labelType.IsBool)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             int predictedLabelCol;
             if (!input.Data.Schema.TryGetColumnIndex(input.PredictedLabelColumn, out predictedLabelCol))
                 throw host.Except($"Column '{input.PredictedLabelColumn}' not found.");
-            var predictedLabelType = input.Data.Schema.GetColumnType(predictedLabelCol);
+            var predictedLabelType = input.Data.Schema[predictedLabelCol].Type;
             if (predictedLabelType.IsNumber || predictedLabelType.IsBool)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             int labelCol;
             if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
-            var labelType = input.Data.Schema.GetColumnType(labelCol);
+            var labelType = input.Data.Schema[labelCol].Type;
             if (labelType == NumberType.R4 || !labelType.IsNumber)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);

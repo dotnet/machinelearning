@@ -228,7 +228,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     // Construct kvMaps.
                     Contracts.Assert(types[iinfo] == null);
-                    var typeSrc = schema.GetColumnType(ColMapNewToOld[iinfo]);
+                    var typeSrc = schema[ColMapNewToOld[iinfo]].Type;
                     var typeVals = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, ColMapNewToOld[iinfo]);
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
                     Host.Check(typeVals.VectorSize == typeSrc.ItemType.KeyCount, "KeyValues metadata size does not match column type key count");

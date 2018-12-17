@@ -112,7 +112,7 @@ namespace Microsoft.ML.Runtime.Data
                 env.AssertValue(input);
                 env.AssertValue(bindable);
 
-                string scoreCol = RowMapper.OutputSchema.GetColumnName(ScoreColumnIndex);
+                string scoreCol = RowMapper.OutputSchema[ScoreColumnIndex].Name;
                 var schema = new RoleMappedSchema(input, RowMapper.GetInputColumnRoles());
 
                 // Checks compatibility of the predictor input types.
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Runtime.Data
                 int scoreColIndex;
                 env.CheckDecode(mapper.OutputSchema.TryGetColumnIndex(scoreCol, out scoreColIndex));
 
-                var scoreType = mapper.OutputSchema.GetColumnType(scoreColIndex);
+                var scoreType = mapper.OutputSchema[scoreColIndex].Type;
                 env.CheckDecode(outputTypeMatches(scoreType));
                 var predColType = getPredColType(scoreType, rowMapper);
 
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.Data
                 // int: id of the column used for deriving the predicted label column
                 SaveBase(ctx);
                 ctx.SaveNonEmptyString(ScoreColumnKind);
-                ctx.SaveNonEmptyString(RowMapper.OutputSchema.GetColumnName(ScoreColumnIndex));
+                ctx.SaveNonEmptyString(RowMapper.OutputSchema[ScoreColumnIndex].Name);
             }
 
             protected override ColumnType GetColumnTypeCore(int iinfo)
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         var sch = _predColMetadata.Schema;
                         for (int i = 0; i < sch.Count; ++i)
-                            yield return new KeyValuePair<string, ColumnType>(sch.GetColumnName(i), sch.GetColumnType(i));
+                            yield return new KeyValuePair<string, ColumnType>(sch[i].Name, sch[i].Type);
                     }
                 }
                 foreach (var pair in base.GetMetadataTypesCore(iinfo))
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     int mcol;
                     if (_predColMetadata.Schema.TryGetColumnIndex(kind, out mcol))
-                        return _predColMetadata.Schema.GetColumnType(mcol);
+                        return _predColMetadata.Schema[mcol].Type;
                 }
                 return base.GetMetadataTypeCore(kind, iinfo);
             }
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!mapper.OutputSchema.TryGetColumnIndex(scoreColName, out scoreColIndex))
                 throw Host.ExceptParam(nameof(scoreColName), "mapper does not contain a column '{0}'", scoreColName);
 
-            var scoreType = mapper.OutputSchema.GetColumnType(scoreColIndex);
+            var scoreType = mapper.OutputSchema[scoreColIndex].Type;
             Host.Check(outputTypeMatches(scoreType), "Unexpected predictor output type");
             var predColType = getPredColType(scoreType, rowMapper);
 

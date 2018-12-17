@@ -243,7 +243,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             using (var fs = handle.CreateWriteStream())
             {
                 saver.SaveData(fs, idv, Utils.GetIdentityPermutation(idv.Schema.Count)
-                    .Where(x => saver.IsColumnSavable(idv.Schema.GetColumnType(x))).ToArray());
+                    .Where(x => saver.IsColumnSavable(idv.Schema[x].Type)).ToArray());
             }
         }
     }

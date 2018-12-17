@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
-                var typeSrc = input.Schema.GetColumnType(colSrc);
+                var typeSrc = input.Schema[colSrc].Type;
 
                 Func<Row, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
                 var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType);
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
 
-                var typeSrc = input.Schema.GetColumnType(colSrc);
+                var typeSrc = input.Schema[colSrc].Type;
                 Func<Row, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Runtime.Data
                 _ectx.CheckNonEmpty(columnName, nameof(columnName));
                 _parentSchema = parentSchema;
                 _featureCol = featureCol;
-                _featureVectorSize = _parentSchema.GetColumnType(_featureCol).VectorSize;
+                _featureVectorSize = _parentSchema[_featureCol].Type.VectorSize;
                 _hasSlotNames = _parentSchema[_featureCol].HasSlotNames(_featureVectorSize);
 
                 _names = new string[] { columnName };

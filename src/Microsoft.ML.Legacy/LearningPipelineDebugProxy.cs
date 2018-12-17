@@ -86,13 +86,13 @@ namespace Microsoft.ML.Legacy
                 var colIndex = colIndices[i];
                 result[i] = new PipelineItemDebugColumn()
                 {
-                    Name = dataView.Schema.GetColumnName(colIndex),
-                    Type = dataView.Schema.GetColumnType(colIndex).ToString()
+                    Name = dataView.Schema[colIndex].Name,
+                    Type = dataView.Schema[colIndex].Type.ToString()
                 };
 
-                if (dataView.Schema.GetColumnType(colIndex).IsVector)
+                if (dataView.Schema[colIndex].Type.IsVector)
                 {
-                    var n = dataView.Schema.GetColumnType(colIndex).VectorSize;
+                    var n = dataView.Schema[colIndex].Type.VectorSize;
                     if (dataView.Schema[colIndex].HasSlotNames(n))
                     {
                         var slots = default(VBuffer<ReadOnlyMemory<char>>);
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Legacy
             var colIndices = new List<int>();
             for (int i = totalColCount - 1; i >= 0; i--)
             {
-                var name = dataView.Schema.GetColumnName(i);
+                var name = dataView.Schema[i].Name;
                 if (columnNames.Add(name))
                     colIndices.Add(i);
             }

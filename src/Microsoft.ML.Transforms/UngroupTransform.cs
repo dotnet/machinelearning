@@ -287,7 +287,7 @@ namespace Microsoft.ML.Transforms
                     int col;
                     if (!inputSchema.TryGetColumnIndex(name, out col))
                         throw ectx.ExceptUserArg(nameof(Arguments.Column), "Pivot column '{0}' is not found", name);
-                    var colType = inputSchema.GetColumnType(col);
+                    var colType = inputSchema[col].Type;
                     if (!colType.IsVector || !colType.ItemType.IsPrimitive)
                         throw ectx.ExceptUserArg(nameof(Arguments.Column),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, colType);
@@ -401,14 +401,14 @@ namespace Microsoft.ML.Transforms
 
             public string GetColumnName(int col)
             {
-                return _inputSchema.GetColumnName(col);
+                return _inputSchema[col].Name;
             }
 
             public ColumnType GetColumnType(int col)
             {
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (!IsPivot(col))
-                    return _inputSchema.GetColumnType(col);
+                    return _inputSchema[col].Type;
                 _ectx.Assert(0 <= _pivotIndex[col] && _pivotIndex[col] < _infos.Length);
                 return _infos[_pivotIndex[col]].ItemType;
             }

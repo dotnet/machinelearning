@@ -273,7 +273,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             if (!NgramExtractingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, NgramExtractingEstimator.ExpectedColumnType, type.ToString());
         }
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int i = 0; i < columns.Length; i++)
             {
                 input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
-                var typeSrc = input.Schema.GetColumnType(srcCol);
+                var typeSrc = input.Schema[srcCol].Type;
                 transformInfos[i] = new TransformInfo(columns[i]);
             }
             _transformInfos = transformInfos.ToImmutableArray();
@@ -563,7 +563,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     _types[i] = new VectorType(NumberType.Float, _parent._ngramMaps[i].Count);
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
-                    _srcTypes[i] = inputSchema.GetColumnType(_srcCols[i]);
+                    _srcTypes[i] = inputSchema[_srcCols[i]].Type;
                 }
             }
 

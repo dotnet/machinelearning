@@ -686,7 +686,7 @@ namespace Microsoft.ML.Runtime.Data
                 ValueGetter<uint> stratGetter = null;
                 if (hasStrat)
                 {
-                    var type = cursor.Schema.GetColumnType(stratCol);
+                    var type = cursor.Schema[stratCol].Type;
                     stratGetter = RowCursorUtils.GetGetterAs<uint>(type, cursor, stratCol);
                 }
                 bool foundRow = false;

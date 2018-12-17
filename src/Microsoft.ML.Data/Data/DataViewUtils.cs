@@ -184,7 +184,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!predicate(col))
                     continue;
-                var type = schema.GetColumnType(col);
+                var type = schema[col].Type;
                 if (!IsCachable(type))
                     return false;
             }
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Runtime.Data
                     for (int i = 0; i < activeToCol.Length; ++i)
                     {
                         int c = activeToCol[i];
-                        ColumnType type = schema.GetColumnType(c);
+                        ColumnType type = schema[c].Type;
                         var pool = GetPool(type, ourPools, c);
                         outPipes[i] = OutPipe.Create(type, pool);
                     }
@@ -540,7 +540,7 @@ namespace Microsoft.ML.Runtime.Data
                     ch.Assert(0 <= activeToCol[c] && activeToCol[c] < _schema.Count);
                     ch.Assert(c == 0 || activeToCol[c - 1] < activeToCol[c]);
                     ch.Assert(input.IsColumnActive(activeToCol[c]));
-                    var type = input.Schema.GetColumnType(activeToCol[c]);
+                    var type = input.Schema[activeToCol[c]].Type;
                     ch.Assert(type.IsCachable());
                     arguments[1] = activeToCol[c];
                     var inPipe = inPipes[c] =
@@ -1233,21 +1233,21 @@ namespace Microsoft.ML.Runtime.Data
 
             private Delegate CreateGetter(int col)
             {
-                var methInfo = _methInfo.MakeGenericMethod(Schema.GetColumnType(col).RawType);
+                var methInfo = _methInfo.MakeGenericMethod(Schema[col].Type.RawType);
                 return (Delegate)methInfo.Invoke(this, new object[] { col });
             }
 
             private Delegate CreateGetter<T>(int col)
             {
                 ValueGetter<T>[] getters = new ValueGetter<T>[_cursors.Length];
-                var type = Schema.GetColumnType(col);
+                var type = Schema[col].Type;
                 for (int i = 0; i < _cursors.Length; ++i)
                 {
                     var cursor = _cursors[i];
                     Ch.AssertValue(cursor);
                     Ch.Assert(col < cursor.Schema.Count);
                     Ch.Assert(cursor.IsColumnActive(col));
-                    Ch.Assert(type.Equals(cursor.Schema.GetColumnType(col)));
+                    Ch.Assert(type.Equals(cursor.Schema[col].Type));
                     getters[i] = _cursors[i].GetGetter<T>(col);
                 }
                 ValueGetter<T> mine =
@@ -1314,7 +1314,7 @@ namespace Microsoft.ML.Runtime.Data
                 ValueGetter<ReadOnlyMemory<char>> getter;
                 var srcColIndex = colIndices[i];
 
-                var colType = cursor.Schema.GetColumnType(srcColIndex);
+                var colType = cursor.Schema[srcColIndex].Type;
                 if (colType.IsVector)
                 {
                     getter = Utils.MarshalInvoke(GetVectorFlatteningGetter<int>, colType.ItemType.RawType,

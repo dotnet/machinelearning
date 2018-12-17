@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(0 <= col && col < row.Schema.Count);
             Contracts.Assert(row.IsColumnActive(col));
 
-            var type = row.Schema.GetColumnType(col);
+            var type = row.Schema[col].Type;
             Func<Row, int, ValueGetter<int>> del = GetGetterFromRow<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
             return (Delegate)meth.Invoke(null, new object[] { row, col });
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < namesDerived.Length; i++)
                 res[dst++] = namesDerived[i] + suffix;
             for (int i = 0; i < schema.Count; i++)
-                res[dst++] = schema.GetColumnName(i) + suffix;
+                res[dst++] = schema[i].Name + suffix;
             Contracts.Assert(dst == count);
             return res;
         }
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override ColumnType GetColumnTypeCore(int iinfo)
         {
             Contracts.Assert(DerivedColumnCount <= iinfo && iinfo < InfoCount);
-            return Mapper.OutputSchema.GetColumnType(iinfo - DerivedColumnCount);
+            return Mapper.OutputSchema[iinfo - DerivedColumnCount].Type;
         }
 
         protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)

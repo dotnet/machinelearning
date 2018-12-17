@@ -190,7 +190,7 @@ namespace Microsoft.ML.Transforms
             if (!type.IsVector)
             {
                 Host.Assert(_types[iinfo].VectorSize == 2);
-                var columnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
+                var columnName = Source.Schema[Infos[iinfo].Source].Name;
                 editor.Values[0] = columnName.AsMemory();
                 editor.Values[1] = (columnName + IndicatorSuffix).AsMemory();
             }

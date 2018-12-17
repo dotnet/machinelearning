@@ -41,7 +41,7 @@ namespace Microsoft.ML.Legacy
             if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
                 return false;
 
-            int expectedLabelCount = schema.GetColumnType(colIndex).ValueCount;
+            int expectedLabelCount = schema[colIndex].Type.ValueCount;
             if (!schema[colIndex].HasSlotNames(expectedLabelCount))
                 return false;
 

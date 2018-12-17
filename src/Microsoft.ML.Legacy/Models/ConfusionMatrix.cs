@@ -63,7 +63,7 @@ namespace Microsoft.ML.Legacy.Models
                 classNames[i] = slotsValues[i].ToString();
             }
 
-            ColumnType type = confusionMatrix.Schema.GetColumnType(countColumn);
+            ColumnType type = confusionMatrix.Schema[countColumn].Type;
             env.Assert(type.IsVector);
             ValueGetter<VBuffer<double>> countGetter = cursor.GetGetter<VBuffer<double>>(countColumn);
             VBuffer<double> countValues = default;

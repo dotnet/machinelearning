@@ -414,7 +414,7 @@ namespace Microsoft.ML.Transforms.Conversions
             int n = _exes[iinfo].OutputValueCount;
             var dstEditor = VBufferEditor.Create(ref dst, n);
 
-            var srcColumnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
+            var srcColumnName = Source.Schema[Infos[iinfo].Source].Name;
             bool useDefaultSlotNames = !Source.Schema[Infos[iinfo].Source].HasSlotNames(Infos[iinfo].TypeSrc.VectorSize);
             VBuffer<ReadOnlyMemory<char>> srcSlotNames = default;
             if (!useDefaultSlotNames)

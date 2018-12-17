@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(count > 0);
                 Contracts.AssertValue(bldr);
 
-                var type = schema.GetColumnType(col);
+                var type = schema[col].Type;
                 Contracts.Assert(autoConvert || bldr.ItemType == type.ItemType);
                 // Auto conversion should only be possible when the type is text.
                 Contracts.Assert(type.IsText || !autoConvert);

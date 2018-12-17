@@ -214,11 +214,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             //Create graph inputs.
             for (int i = 0; i < source.Schema.Count; i++)
             {
-                string colName = source.Schema.GetColumnName(i);
+                string colName = source.Schema[i].Name;
                 if(_inputsToDrop.Contains(colName))
                     continue;
 
-                ctx.AddInputVariable(source.Schema.GetColumnType(i), colName);
+                ctx.AddInputVariable(source.Schema[i].Type, colName);
                 inputColumns.Add(colName);
             }
 
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 if (end.Schema[i].IsHidden)
                     continue;
 
-                var idataviewColumnName = end.Schema.GetColumnName(i);
+                var idataviewColumnName = end.Schema[i].Name;
 
                 // Since the last IDataView also contains columns of the initial IDataView, last IDataView's columns found in
                 // _inputToDrop should be removed too.
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 var variableName = ctx.TryGetVariableName(idataviewColumnName);
                 var trueVariableName = ctx.AddIntermediateVariable(null, idataviewColumnName, true);
                 ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"), "");
-                ctx.AddOutputVariable(end.Schema.GetColumnType(i), trueVariableName);
+                ctx.AddOutputVariable(end.Schema[i].Type, trueVariableName);
             }
 
             var model = ctx.MakeModel();

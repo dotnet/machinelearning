@@ -534,7 +534,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 env.Check(_predictor != null, "Predictor is not a row-to-row mapper");
                 if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
-                var scoreType = _predictor.OutputSchema.GetColumnType(_scoreCol);
+                var scoreType = _predictor.OutputSchema[_scoreCol].Type;
                 env.Check(!scoreType.IsVector && scoreType.IsNumber);
                 OutputSchema = Schema.Create(new BinaryClassifierSchema());
             }
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 var getters = new Delegate[OutputSchema.Count];
                 for (int i = 0; i < OutputSchema.Count - 1; i++)
                 {
-                    var type = predictorRow.Schema.GetColumnType(i);
+                    var type = predictorRow.Schema[i].Type;
                     if (!predicate(i))
                         continue;
                     getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 ch.Info("Not training a calibrator because the predictor does not output a score column.");
                 return false;
             }
-            var type = outputSchema.GetColumnType(scoreCol);
+            var type = outputSchema[scoreCol].Type;
             if (type != NumberType.Float)
             {
                 ch.Info("Not training a calibrator because the predictor output is {0}, but expected to be {1}.", type, NumberType.R4);

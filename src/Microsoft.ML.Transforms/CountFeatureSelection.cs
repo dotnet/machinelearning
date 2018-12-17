@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Source column '{0}' not found", colName);
 
-                var colType = schema.GetColumnType(colSrc);
+                var colType = schema[colSrc].Type;
                 if (colType.IsVector && !colType.IsKnownSizeVector)
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
 
