@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Data
             return result;
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             ColumnType type;
             if (schema.Label != null && (type = schema.Label.Type) != NumberType.Float && type.KeyCount == 0)
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.Except("Scores column '{0}' type must be a float vector of known size", score.Name);
         }
 
-        protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
+        private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
             if (_calculateDbi)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
+        private protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var pred = base.GetActiveColsCore(schema);
             // We also need the features column for dbi calculation.
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.Data
             return i => _calculateDbi && i == schema.Feature.Index || pred(i);
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             Host.AssertValue(schema);
             Host.Assert(!_calculateDbi || (schema.Feature != null && schema.Feature.Type.IsKnownSizeVector));
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("DBI", Dbi, MetricColumn.Objective.Minimize);
         }
 
-        protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
+        private protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
@@ -484,7 +484,7 @@ namespace Microsoft.ML.Runtime.Data
                     WeightedCounters.UpdateSecondPass(in _features, _indicesArr);
             }
 
-            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 AssertValid(assertGetters: false);
 
@@ -796,7 +796,7 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new ClusteringEvaluator(Host, evalArgs);
         }
 
-        protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
+        private protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
         {
             foreach (var col in base.GetInputColumnRolesCore(schema))
             {
@@ -816,7 +816,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Clustering evaluator adds three per-instance columns: "ClusterId", "Top clusters" and "Top cluster scores".
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
 
@@ -830,7 +830,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return ClusteringPerInstanceEvaluator.SortedClusterScores;
         }
 
-        protected override IDataView GetPerInstanceMetricsCore(IDataView perInst, RoleMappedSchema schema)
+        private protected override IDataView GetPerInstanceMetricsCore(IDataView perInst, RoleMappedSchema schema)
         {
             // Wrap with a DropSlots transform to pick only the first _numTopClusters slots.
             if (perInst.Schema.TryGetColumnIndex(ClusteringPerInstanceEvaluator.SortedClusters, out int index))

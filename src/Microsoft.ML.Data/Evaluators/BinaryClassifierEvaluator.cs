@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Data
             _auPrcCount = args.NumAuPrcExamples;
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var host = Host.SchemaSensitive();
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw host.SchemaSensitive().Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", schema.Label.Name, t);
         }
 
-        protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
+        private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
             var prob = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
             var host = Host.SchemaSensitive();
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Add also the probability column.
-        protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
+        private protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var pred = base.GetActiveColsCore(schema);
             var prob = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.Data
             return i => Utils.Size(prob) > 0 && i == prob[0].Index || pred(i);
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var classNames = GetClassNames(schema);
             return new Aggregator(Host, classNames, schema.Weight != null, _aucCount, _auPrcCount, _threshold, _useRaw, _prCount, stratName);
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("AUPRC", AuPrc);
         }
 
-        protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
+        private protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Host.AssertValue(schema.Label);
                 Host.Assert(PassNum < 1);
@@ -1172,7 +1172,7 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new BinaryClassifierEvaluator(Host, evalArgs);
         }
 
-        protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
+        private protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
         {
             var cols = base.GetInputColumnRolesCore(schema);
 
@@ -1187,7 +1187,7 @@ namespace Microsoft.ML.Runtime.Data
             return cols;
         }
 
-        protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
+        private protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
         {
             ch.AssertValue(metrics);
 
@@ -1240,12 +1240,12 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(MessageSensitivity.None, unweightedFold);
         }
 
-        protected override IDataView GetOverallResultsCore(IDataView overall)
+        private protected override IDataView GetOverallResultsCore(IDataView overall)
         {
             return ColumnSelectingTransformer.CreateDrop(Host, overall, BinaryClassifierEvaluator.Entropy);
         }
 
-        protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
+        private protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
         {
             ch.AssertNonEmpty(metrics);
 
@@ -1479,7 +1479,7 @@ namespace Microsoft.ML.Runtime.Data
             return avgPoints;
         }
 #endif
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
             Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
