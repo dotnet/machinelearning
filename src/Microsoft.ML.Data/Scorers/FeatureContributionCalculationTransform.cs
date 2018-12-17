@@ -38,9 +38,20 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// The FeatureContributionCalculationTransformer scores the model on an input dataset and
-    /// computes model-specific contribution scores for each feature.
+    /// computes model-specific contribution scores for each feature. See the list of currently supported predictors below.
     /// </summary>
     /// <remarks>
+    /// Feature Contribution Calculation is currently supported for the following Predictors:
+    ///     Regression:
+    ///         OrdinaryLeastSquares, StochasticDualCoordinateAscent (SDCA), OnlineGradientDescent, PoissonRegression,
+    ///         GeneralizedAdditiveModels (GAM), LightGbm, FastTree, FastForest, FastTreeTweedie
+    ///     Binary Classification:
+    ///         AveragedPerceptron, LinearSupportVectorMachines, LogisticRegression, StochasticDualCoordinateAscent (SDCA),
+    ///         StochasticGradientDescent (SGD), SymbolicStochasticGradientDescent, GeneralizedAdditiveModels (GAM),
+    ///         FastForest, FastTree, LightGbm
+    ///     Ranking:
+    ///         FastTree, LightGbm
+    ///
     /// See the sample below for an example of how to compute feature importance using the FeatureContributionCalculatingTransformer.
     /// </remarks>
     /// <example>
@@ -93,8 +104,9 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// The Feature Contribution Calculation Transform scores the model on an input dataset and
-        /// computes model-specific contribution scores for each feature.
+        /// Feature Contribution Calculation scores the model on an input dataset and
+        /// computes model-specific contribution scores for each feature. Note that this functionality is not supported by all the predictos.
+        /// See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported predictors.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
@@ -649,8 +661,9 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// The Feature Contribution Calculation Transform scores the model on an input dataset and
-        /// computes model-specific contribution scores for each feature.
+        /// Feature Contribution Calculation scores the model on an input dataset and
+        /// computes model-specific contribution scores for each feature. Note that this functionality is not supported by all the predictos.
+        /// See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported predictors.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>

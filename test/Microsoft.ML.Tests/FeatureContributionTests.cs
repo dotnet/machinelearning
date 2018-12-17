@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.Regression.Trainers.OrdinaryLeastSquares(), GetSparseDataset(numberOfInstances: 100), "LeastSquaresRegression");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void TestLightGbmRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.LightGbm(), GetSparseDataset(numberOfInstances: 100), "LightGbmRegression");
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.Ranking.Trainers.FastTree(), GetSparseDataset(TaskType.Ranking, 100), "FastTreeRanking");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void TestLightGbmRanking()
         {
             TestFeatureContribution(ML.Ranking.Trainers.LightGbm(), GetSparseDataset(TaskType.Ranking, 100), "LightGbmRanking");
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.BinaryClassification.Trainers.FastTree(), GetSparseDataset(TaskType.BinaryClassification, 100), "FastTreeBinary");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void TestLightGbmBinary()
         {
             TestFeatureContribution(ML.BinaryClassification.Trainers.LightGbm(), GetSparseDataset(TaskType.BinaryClassification, 100), "LightGbmBinary");
@@ -177,10 +177,10 @@ namespace Microsoft.ML.Tests
             ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
             IDataView data,
             string testFile,
-            int precision = 5)
+            int precision = 4)
         {
             // Train the model.
-            var model = trainer.Fit(data);
+                var model = trainer.Fit(data);
 
             // Extract the predictor, check that it supports feature contribution.
             var predictor = model.Model as IFeatureContributionMappable;
