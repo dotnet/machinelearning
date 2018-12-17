@@ -493,7 +493,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                var active = new bool[InputSchema.ColumnCount];
+                var active = new bool[InputSchema.Count];
                 foreach (var pair in _colMapNewToOld)
                     if (activeOutput(pair.Key))
                     {

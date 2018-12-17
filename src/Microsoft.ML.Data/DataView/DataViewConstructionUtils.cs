@@ -148,10 +148,10 @@ namespace Microsoft.ML.Runtime.Data
                 Host.AssertValue(schemaDef);
                 Host.AssertValue(peeks);
                 Host.AssertValue(predicate);
-                Host.Assert(schema.ColumnCount == schemaDef.Columns.Length);
-                Host.Assert(schema.ColumnCount == peeks.Length);
+                Host.Assert(schema.Count == schemaDef.Columns.Length);
+                Host.Assert(schema.Count == peeks.Length);
 
-                _colCount = schema.ColumnCount;
+                _colCount = schema.Count;
                 Schema = schema;
                 _getters = new Delegate[_colCount];
                 for (int c = 0; c < _colCount; c++)

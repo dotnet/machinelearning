@@ -191,7 +191,7 @@ namespace Microsoft.ML.Transforms
         {
             List<int> columnsToDrop = null;
             var schema = data.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
                 var type = schema.GetColumnType(c);
                 if (!type.IsCachable())
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         internal static bool CanShuffleAll(Schema schema)
         {
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
                 var type = schema.GetColumnType(c);
                 if (!type.IsCachable())
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Transforms
 
                 _pipeIndices = Utils.GetIdentityPermutation(_poolRows - 1 + _bufferDepth * _blockSize);
 
-                int colLim = Schema.ColumnCount;
+                int colLim = Schema.Count;
                 int numActive = 0;
                 _colToActivesIndex = new int[colLim];
                 for (int c = 0; c < colLim; ++c)

@@ -30,11 +30,6 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Number of columns in the schema.
         /// </summary>
-        public int ColumnCount => _columns.Length;
-
-        /// <summary>
-        /// Number of columns in the schema.
-        /// </summary>
         public int Count => _columns.Length;
 
         /// <summary>
@@ -249,7 +244,7 @@ namespace Microsoft.ML.Data
                 GetGetter<TValue>(column.Value.Index)(ref value);
             }
 
-            public override string ToString() => string.Join(", ", Schema.GetColumns().Select(x => x.column.Name));
+            public override string ToString() => string.Join(", ", Schema.Select(x => x.Name));
 
         }
 
@@ -269,11 +264,6 @@ namespace Microsoft.ML.Data
                 _nameMap[_columns[i].Name] = i;
             }
         }
-
-        /// <summary>
-        /// Get all non-hidden columns as pairs of (index, <see cref="Column"/>).
-        /// </summary>
-        public IEnumerable<(int index, Column column)> GetColumns() => _nameMap.Values.Select(idx => (idx, _columns[idx]));
 
         /// <summary>
         /// Manufacture an instance of <see cref="Schema"/> out of any <see cref="ISchema"/>.
@@ -311,6 +301,11 @@ namespace Microsoft.ML.Data
         }
 
         #region Legacy schema API to be removed
+        /// <summary>
+        /// Number of columns in the schema.
+        /// </summary>
+        int ISchema.ColumnCount => _columns.Length;
+
         public string GetColumnName(int col) => this[col].Name;
 
         public ColumnType GetColumnType(int col) => this[col].Type;
@@ -320,7 +315,7 @@ namespace Microsoft.ML.Data
             var meta = this[col].Metadata;
             if (meta == null)
                 return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
-            return meta.Schema.GetColumns().Select(c => new KeyValuePair<string, ColumnType>(c.column.Name, c.column.Type));
+            return meta.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
         }
 
         public ColumnType GetMetadataTypeOrNull(string kind, int col)

@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeInput = new bool[schema.ColumnCount];
+            var activeInput = new bool[schema.Count];
             var colSrcs = new int[size];
             var colTypes = new ColumnType[size];
             colSizes = new int[size];

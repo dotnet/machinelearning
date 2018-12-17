@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var scored2 = ScoreModel.Score(Env, new ScoreModel.Input() { Data = dataView, PredictorModel = lrModel.Apply(Env, trainData.Model) }).ScoredData;
             scored2 = ScoreModel.SelectColumns(Env, new ScoreModel.ScoreColumnSelectorInput() { Data = scored2, ExtraColumns = new[] { "Label" } }).OutputData;
 
-            Assert.Equal(4, scored1.Schema.ColumnCount);
+            Assert.Equal(4, scored1.Schema.Count);
             CheckSameValues(scored1, scored2);
             Done();
         }
@@ -721,7 +721,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var scored2 = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = calibratedLrModel }).ScoredData;
             scored2 = ScoreModel.SelectColumns(Env, new ScoreModel.ScoreColumnSelectorInput() { Data = scored2, ExtraColumns = new[] { "Label" } }).OutputData;
 
-            Assert.Equal(4, scored1.Schema.ColumnCount);
+            Assert.Equal(4, scored1.Schema.Count);
             CheckSameValues(scored1, scored2);
 
             var input = new Calibrate.NoArgumentsInput() { Data = splitOutput.TestData[1], UncalibratedPredictorModel = lrModel };

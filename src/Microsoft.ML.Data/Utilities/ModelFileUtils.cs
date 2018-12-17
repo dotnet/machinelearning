@@ -247,7 +247,7 @@ namespace Microsoft.ML.Runtime.Model
                 // ever go ahead and do something so stupid as that.
                 var saver = new TextSaver(env, new TextSaver.Arguments() { Dense = true, Silent = true });
                 var view = builder.GetDataView();
-                saver.SaveData(entry.Stream, view, Utils.GetIdentityPermutation(view.Schema.ColumnCount));
+                saver.SaveData(entry.Stream, view, Utils.GetIdentityPermutation(view.Schema.Count));
             }
         }
 

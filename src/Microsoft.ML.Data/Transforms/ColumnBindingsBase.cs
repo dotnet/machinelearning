@@ -679,7 +679,7 @@ namespace Microsoft.ML.Runtime.Data
             // Construct the indices.
             var indices = new List<int>();
             var namesUsed = new HashSet<string>();
-            for (int i = 0; i < input.ColumnCount; i++)
+            for (int i = 0; i < input.Count; i++)
             {
                 namesUsed.Add(input[i].Name);
                 indices.Add(i);
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
             }
-            Contracts.Assert(indices.Count == addedColumns.Length + input.ColumnCount);
+            Contracts.Assert(indices.Count == addedColumns.Length + input.Count);
 
             // Create the output schema.
             var schemaColumns = indices.Select(idx => idx >= 0 ? new Schema.DetachedColumn(input[idx]) : addedColumns[~idx]);
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                Contracts.Assert(index < InputSchema.ColumnCount);
+                Contracts.Assert(index < InputSchema.Count);
                 isSrcColumn = true;
             }
             return index;
@@ -764,11 +764,11 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(predicate);
 
-            var active = new bool[InputSchema.ColumnCount];
+            var active = new bool[InputSchema.Count];
             for (int dst = 0; dst < _colMap.Length; dst++)
             {
                 int src = _colMap[dst];
-                Contracts.Assert(-AddedColumnIndices.Count <= src && src < InputSchema.ColumnCount);
+                Contracts.Assert(-AddedColumnIndices.Count <= src && src < InputSchema.Count);
                 if (src >= 0 && predicate(dst))
                     active[src] = true;
             }

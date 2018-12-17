@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => _inputColIndices.Contains(col);
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (inputCols == null)
                 {
                     inputCols = new HashSet<string>();
-                    for (int j = 0; j < inputSchema.ColumnCount; j++)
+                    for (int j = 0; j < inputSchema.Count; j++)
                     {
                         if (inputSchema[j].IsHidden)
                             continue;
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 else
                 {
                     int nonHiddenCols = 0;
-                    for (int j = 0; j < inputSchema.ColumnCount; j++)
+                    for (int j = 0; j < inputSchema.Count; j++)
                     {
                         if (inputSchema[j].IsHidden)
                             continue;

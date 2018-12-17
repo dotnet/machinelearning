@@ -381,7 +381,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public Cursor(SequentialTransformBase<TInput, TOutput, TState> parent, RowCursor input)
                 : base(parent.Host, input)
             {
-                Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);
+                Ch.Assert(input.Schema.Count == parent.OutputSchema.Count);
                 _parent = parent;
             }
 
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount, "col");
+                Ch.Check(0 <= col && col < Schema.Count, "col");
                 return Input.IsColumnActive(col);
             }
 

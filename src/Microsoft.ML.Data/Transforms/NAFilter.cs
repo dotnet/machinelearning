@@ -236,8 +236,8 @@ namespace Microsoft.ML.Transforms
         private Func<int, bool> GetActive(Func<int, bool> predicate, out bool[] active)
         {
             Host.AssertValue(predicate);
-            active = new bool[Source.Schema.ColumnCount];
-            bool[] activeInput = new bool[Source.Schema.ColumnCount];
+            active = new bool[Source.Schema.Count];
+            bool[] activeInput = new bool[Source.Schema.Count];
             for (int i = 0; i < active.Length; i++)
                 activeInput[i] = active[i] = predicate(i);
             for (int i = 0; i < _infos.Length; i++)

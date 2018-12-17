@@ -638,12 +638,12 @@ namespace Microsoft.ML.Runtime.Data
 
             private bool SchemasMatch(Schema schema1, Schema schema2)
             {
-                if (schema1.ColumnCount != schema2.ColumnCount)
+                if (schema1.Count != schema2.Count)
                 {
                     return false;
                 }
 
-                int colLim = schema1.ColumnCount;
+                int colLim = schema1.Count;
                 for (int col = 0; col < colLim; col++)
                 {
                     var type1 = schema1.GetColumnType(col);

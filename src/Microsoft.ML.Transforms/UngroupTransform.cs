@@ -201,15 +201,15 @@ namespace Microsoft.ML.Transforms
             {
                 switch (kind)
                 {
-                case MetadataUtils.Kinds.IsNormalized:
-                case MetadataUtils.Kinds.KeyValues:
-                case MetadataUtils.Kinds.ScoreColumnSetId:
-                case MetadataUtils.Kinds.ScoreColumnKind:
-                case MetadataUtils.Kinds.ScoreValueKind:
-                case MetadataUtils.Kinds.IsUserVisible:
-                    return true;
-                default:
-                    return false;
+                    case MetadataUtils.Kinds.IsNormalized:
+                    case MetadataUtils.Kinds.KeyValues:
+                    case MetadataUtils.Kinds.ScoreColumnSetId:
+                    case MetadataUtils.Kinds.ScoreColumnKind:
+                    case MetadataUtils.Kinds.ScoreValueKind:
+                    case MetadataUtils.Kinds.IsUserVisible:
+                        return true;
+                    default:
+                        return false;
                 }
             }
 
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Transforms
                 CheckAndBind(_ectx, inputSchema, pivotColumns, out _infos);
 
                 _pivotColMap = new Dictionary<string, int>();
-                _pivotIndex = Utils.CreateArray(_inputSchema.ColumnCount, -1);
+                _pivotIndex = Utils.CreateArray(_inputSchema.Count, -1);
                 for (int i = 0; i < _infos.Length; i++)
                 {
                     var info = _infos[i];
@@ -392,10 +392,7 @@ namespace Microsoft.ML.Transforms
                 return size;
             }
 
-            public int ColumnCount
-            {
-                get { return _inputSchema.ColumnCount; }
-            }
+            public int ColumnCount => _inputSchema.Count;
 
             public bool TryGetColumnIndex(string name, out int col)
             {

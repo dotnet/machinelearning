@@ -65,9 +65,9 @@ namespace Microsoft.ML.Runtime.Data
         public static ColumnInfo CreateFromIndex(Schema schema, int index)
         {
             Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(0 <= index && index < schema.ColumnCount, nameof(index));
+            Contracts.CheckParam(0 <= index && index < schema.Count, nameof(index));
 
-            return new ColumnInfo(schema.GetColumnName(index), index, schema.GetColumnType(index));
+            return new ColumnInfo(schema[index].Name, index, schema[index].Type);
         }
     }
 

@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.Data
             if (InnerMappers.Length == 0)
             {
                 bool differentActive = false;
-                for (int c = 0; c < input.Schema.ColumnCount; ++c)
+                for (int c = 0; c < input.Schema.Count; ++c)
                 {
                     bool wantsActive = active(c);
                     bool isActive = input.IsColumnActive(c);

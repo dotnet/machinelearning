@@ -212,7 +212,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
             HashSet<string> inputColumns = new HashSet<string>();
             //Create graph inputs.
-            for (int i = 0; i < source.Schema.ColumnCount; i++)
+            for (int i = 0; i < source.Schema.Count; i++)
             {
                 string colName = source.Schema.GetColumnName(i);
                 if(_inputsToDrop.Contains(colName))
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             }
 
             //Add graph outputs.
-            for (int i = 0; i < end.Schema.ColumnCount; ++i)
+            for (int i = 0; i < end.Schema.Count; ++i)
             {
                 if (end.Schema[i].IsHidden)
                     continue;

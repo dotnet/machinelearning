@@ -385,7 +385,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             ch.AssertNonEmpty(cols);
 
             // Determine the active columns and whether there is header information.
-            bool[] active = new bool[data.Schema.ColumnCount];
+            bool[] active = new bool[data.Schema.Count];
             for (int i = 0; i < cols.Length; i++)
             {
                 ch.Check(0 <= cols[i] && cols[i] < active.Length);

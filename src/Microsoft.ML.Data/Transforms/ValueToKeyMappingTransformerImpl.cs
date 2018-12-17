@@ -284,7 +284,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 Contracts.AssertValue(row);
                 var schema = row.Schema;
-                Contracts.Assert(0 <= col && col < schema.ColumnCount);
+                Contracts.Assert(0 <= col && col < schema.Count);
                 Contracts.Assert(count > 0);
                 Contracts.AssertValue(bldr);
 

@@ -541,7 +541,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return _predictor.GetDependencies(col => true);
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 Func<int, bool> predictorPredicate = col => false;
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                     {
@@ -566,16 +566,16 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     }
                 }
                 var predictorRow = _predictor.GetRow(input, predictorPredicate);
-                var getters = new Delegate[OutputSchema.ColumnCount];
-                for (int i = 0; i < OutputSchema.ColumnCount - 1; i++)
+                var getters = new Delegate[OutputSchema.Count];
+                for (int i = 0; i < OutputSchema.Count - 1; i++)
                 {
                     var type = predictorRow.Schema.GetColumnType(i);
                     if (!predicate(i))
                         continue;
                     getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
                 }
-                if (predicate(OutputSchema.ColumnCount - 1))
-                    getters[OutputSchema.ColumnCount - 1] = GetProbGetter(predictorRow);
+                if (predicate(OutputSchema.Count - 1))
+                    getters[OutputSchema.Count - 1] = GetProbGetter(predictorRow);
                 return new SimpleRow(OutputSchema, predictorRow, getters);
             }
 

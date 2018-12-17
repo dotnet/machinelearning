@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Data
                 return;
             }
 #endif
-            int colLim = schema.ColumnCount;
+            int colLim = schema.Count;
 
             var itw = new IndentedTextWriter(writer, "  ");
             itw.WriteLine("{0} columns:", colLim);
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
 
             using (itw.Nest())
             {
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
             Contracts.Assert(!type.IsVector);
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
             Contracts.Assert(!type.IsVector);
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
             Contracts.Assert(type.IsVector);
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
             Contracts.Assert(type.IsVector);

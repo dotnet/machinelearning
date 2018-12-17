@@ -425,7 +425,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     Separator = ",",
                     OutputHeader = false
                 });
-                saver.SaveData(stream, v, Utils.GetIdentityPermutation(v.Schema.ColumnCount));
+                saver.SaveData(stream, v, Utils.GetIdentityPermutation(v.Schema.Count));
                 Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
             }
         }

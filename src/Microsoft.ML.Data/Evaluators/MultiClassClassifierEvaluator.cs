@@ -924,7 +924,7 @@ namespace Microsoft.ML.Runtime.Data
                     var idv = views[i];
 
                     // Find the old per-class log-loss column and drop it.
-                    for (int col = 0; col < idv.Schema.ColumnCount; col++)
+                    for (int col = 0; col < idv.Schema.Count; col++)
                     {
                         if (idv.Schema[col].IsHidden &&
                             idv.Schema.GetColumnName(col).Equals(MultiClassClassifierEvaluator.PerClassLogLoss))

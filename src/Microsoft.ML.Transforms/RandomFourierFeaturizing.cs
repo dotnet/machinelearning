@@ -311,7 +311,7 @@ namespace Microsoft.ML.Transforms.Projections
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
-            bool[] activeColumns = new bool[input.Schema.ColumnCount];
+            bool[] activeColumns = new bool[input.Schema.Count];
             int[] srcCols = new int[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {

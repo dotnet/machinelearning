@@ -246,8 +246,8 @@ namespace Microsoft.ML.Transforms
         private Func<int, bool> GetActive(Func<int, bool> predicate, out bool[] active)
         {
             Host.AssertValue(predicate);
-            active = new bool[Source.Schema.ColumnCount];
-            bool[] activeInput = new bool[Source.Schema.ColumnCount];
+            active = new bool[Source.Schema.Count];
+            bool[] activeInput = new bool[Source.Schema.Count];
             for (int i = 0; i < active.Length; i++)
                 activeInput[i] = active[i] = predicate(i);
             activeInput[_index] = true;
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Transforms
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount);
+                Ch.Check(0 <= col && col < Schema.Count);
                 Ch.Check(IsColumnActive(col));
 
                 if (col != Parent._index)

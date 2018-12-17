@@ -924,7 +924,7 @@ namespace Microsoft.ML.Transforms.Text
             ch.AssertValue(states);
             ch.Assert(states.Length == columns.Length);
 
-            bool[] activeColumns = new bool[inputData.Schema.ColumnCount];
+            bool[] activeColumns = new bool[inputData.Schema.Count];
             int[] numVocabs = new int[columns.Length];
             int[] srcCols = new int[columns.Length];
 

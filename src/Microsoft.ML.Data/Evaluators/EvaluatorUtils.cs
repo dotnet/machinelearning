@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
             ectx.CheckValue(schema, nameof(schema));
             ectx.CheckValueOrNull(name);
             ectx.CheckNonEmpty(argName, nameof(argName));
-            ectx.CheckParam(0 <= colScore && colScore < schema.ColumnCount, nameof(colScore));
+            ectx.CheckParam(0 <= colScore && colScore < schema.Count, nameof(colScore));
             ectx.CheckNonEmpty(valueKind, nameof(valueKind));
 
             if (!string.IsNullOrWhiteSpace(name))
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));
-            ectx.CheckParam(0 <= col && col < schema.ColumnCount, nameof(col));
+            ectx.CheckParam(0 <= col && col < schema.Count, nameof(col));
             ectx.CheckNonEmpty(kind, nameof(kind));
 
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, col);
@@ -293,11 +293,11 @@ namespace Microsoft.ML.Runtime.Data
                     stratColGetter = (ref uint dst) => dst = 0;
 
                 // We currently have only double valued or vector of double valued metrics.
-                var colCount = schema.ColumnCount;
+                var colCount = schema.Count;
                 var getters = new ValueGetter<double>[colCount];
                 var vBufferGetters = getVectorMetrics ? new ValueGetter<VBuffer<double>>[colCount] : null;
 
-                for (int i = 0; i < schema.ColumnCount; i++)
+                for (int i = 0; i < schema.Count; i++)
                 {
                     if (schema[i].IsHidden || hasWeighted && i == isWeightedCol ||
                         hasStrats && (i == stratCol || i == stratVal))
@@ -393,9 +393,9 @@ namespace Microsoft.ML.Runtime.Data
             // We use the first column in the data view as an input column to the LambdaColumnMapper,
             // because it must have an input.
             int inputCol = 0;
-            while (inputCol < input.Schema.ColumnCount && input.Schema[inputCol].IsHidden)
+            while (inputCol < input.Schema.Count && input.Schema[inputCol].IsHidden)
                 inputCol++;
-            env.Assert(inputCol < input.Schema.ColumnCount);
+            env.Assert(inputCol < input.Schema.Count);
 
             var inputColName = input.Schema.GetColumnName(0);
             var inputColType = input.Schema.GetColumnType(0);
@@ -435,9 +435,9 @@ namespace Microsoft.ML.Runtime.Data
             // We use the first column in the data view as an input column to the LambdaColumnMapper,
             // because it must have an input.
             int inputCol = 0;
-            while (inputCol < input.Schema.ColumnCount && input.Schema[inputCol].IsHidden)
+            while (inputCol < input.Schema.Count && input.Schema[inputCol].IsHidden)
                 inputCol++;
-            env.Assert(inputCol < input.Schema.ColumnCount);
+            env.Assert(inputCol < input.Schema.Count);
 
             var inputColName = input.Schema.GetColumnName(inputCol);
             var inputColType = input.Schema.GetColumnType(inputCol);
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Runtime.Data
             foreach (var dv in foldDataViews)
             {
                 var hidden = new List<int>();
-                for (int i = 0; i < dv.Schema.ColumnCount; i++)
+                for (int i = 0; i < dv.Schema.Count; i++)
                 {
                     if (dv.Schema[i].IsHidden)
                     {
@@ -935,7 +935,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static IEnumerable<int> FindHiddenColumns(Schema schema, string colName)
         {
-            for (int i = 0; i < schema.ColumnCount; i++)
+            for (int i = 0; i < schema.Count; i++)
             {
                 if (schema[i].IsHidden && schema.GetColumnName(i) == colName)
                     yield return i;
@@ -984,15 +984,15 @@ namespace Microsoft.ML.Runtime.Data
         {
             ch.AssertValue(schema);
             ch.AssertValue(row);
-            ch.Assert(Utils.Size(getters) == schema.ColumnCount);
-            ch.Assert(Utils.Size(vBufferGetters) == schema.ColumnCount);
+            ch.Assert(Utils.Size(getters) == schema.Count);
+            ch.Assert(Utils.Size(vBufferGetters) == schema.Count);
 
             // Get the names of the metrics. For R8 valued columns the metric name is the column name. For R8 vector valued columns
             // the names of the metrics are the column name, followed by the slot name if it exists, or "Label_i" if it doesn't.
             VBuffer<ReadOnlyMemory<char>> names = default;
             int metricCount = 0;
             var metricNames = new List<string>();
-            for (int i = 0; i < schema.ColumnCount; i++)
+            for (int i = 0; i < schema.Count; i++)
             {
                 if (schema[i].IsHidden || ignoreCol(i))
                     continue;
@@ -1078,7 +1078,7 @@ namespace Microsoft.ML.Runtime.Data
             foldCol = hasFoldCol ? fcol : -1;
 
             // We currently have only double valued or vector of double valued metrics.
-            int colCount = data.Schema.ColumnCount;
+            int colCount = data.Schema.Count;
             var getters = new ValueGetter<double>[colCount];
             var vBufferGetters = new ValueGetter<VBuffer<double>>[colCount];
             int numResults = 0;
@@ -1200,7 +1200,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(env);
 
-            int colCount = schema.ColumnCount;
+            int colCount = schema.Count;
 
             var dvBldr = new ArrayDataViewBuilder(env);
             var weightedDvBldr = isWeightedCol >= 0 ? new ArrayDataViewBuilder(env) : null;

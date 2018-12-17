@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < sources.Length; i++)
             {
                 var schema = sources[i];
-                _cumulativeColCounts[i + 1] = _cumulativeColCounts[i] + schema.ColumnCount;
+                _cumulativeColCounts[i + 1] = _cumulativeColCounts[i] + schema.Count;
             }
             AsSchema = Schema.Create(this);
         }
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
                 srcIndex--;
             Contracts.Assert(0 <= srcIndex && srcIndex < _cumulativeColCounts.Length);
             srcCol = col - _cumulativeColCounts[srcIndex];
-            Contracts.Assert(0 <= srcCol && srcCol < _sources[srcIndex].ColumnCount);
+            Contracts.Assert(0 <= srcCol && srcCol < _sources[srcIndex].Count);
         }
 
         public bool TryGetColumnIndex(string name, out int col)

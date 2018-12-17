@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms.Text
             // i in _counts counts how many (i+1)-grams are in the pool for column iinfo.
             var counts = new int[columns.Length][];
             var ngramMaps = new SequencePool[columns.Length];
-            var activeInput = new bool[trainingData.Schema.ColumnCount];
+            var activeInput = new bool[trainingData.Schema.Count];
             var srcTypes = new ColumnType[columns.Length];
             var srcCols = new int[columns.Length];
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)

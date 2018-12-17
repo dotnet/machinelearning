@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Host.CheckDecode(rowCount == 0 || _parent._header.RowCount == rowCount);
 
                     var schema = view.Schema;
-                    Host.CheckDecode(schema.ColumnCount == _parent._header.ColumnCount);
+                    Host.CheckDecode(schema.Count == _parent._header.ColumnCount);
                 }
             }
 
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     // The correctness of this relies upon the schema entry being read first.
                     Host.AssertValue(parent._schemaEntry);
-                    Host.Assert(0 <= col && col < parent.Schema.ColumnCount);
+                    Host.Assert(0 <= col && col < parent.Schema.Count);
                     _col = col;
 
                     // Either we have to have data, or the parent has to have explicit row data.
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Host.AssertValue(view);
                     // This must have precisely one column, of type vector.
                     var schema = view.Schema;
-                    Host.CheckDecode(schema.ColumnCount == 1);
+                    Host.CheckDecode(schema.Count == 1);
                     var ttype = schema.GetColumnType(0);
                     Host.CheckDecode(ttype.IsVector);
                     // We have no way to encode a type of zero length vectors per se in the case
@@ -470,7 +470,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             _header = new Header()
             {
-                ColumnCount = schemaView.Schema.ColumnCount
+                ColumnCount = schemaView.Schema.Count
             };
             _schemaEntry = new SubIdvEntry.SchemaSubIdv(this, schemaView);
             _host.Assert(_schemaEntry.GetViewOrNull() == schemaView);
@@ -551,8 +551,8 @@ namespace Microsoft.ML.Runtime.Data.IO
             var saver = new BinarySaver(env, saverArgs);
 
             // We load our schema from what amounts to a binary loader, so all columns should likewise be savable.
-            env.Assert(Enumerable.Range(0, schema.ColumnCount).All(c => saver.IsColumnSavable(schema.GetColumnType(c))));
-            ctx.SaveBinaryStream("Schema.idv", w => saver.SaveData(w.BaseStream, noRows, Utils.GetIdentityPermutation(schema.ColumnCount)));
+            env.Assert(Enumerable.Range(0, schema.Count).All(c => saver.IsColumnSavable(schema.GetColumnType(c))));
+            ctx.SaveBinaryStream("Schema.idv", w => saver.SaveData(w.BaseStream, noRows, Utils.GetIdentityPermutation(schema.Count)));
         }
 
         private unsafe Header InitHeader(BinaryReader reader)
@@ -614,7 +614,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private readonly TransposeLoader _parent;
             private Schema Schema { get { return _parent.Schema; } }
             private IHost Host { get { return _parent._host; } }
-            public int ColumnCount { get { return Schema.ColumnCount; } }
+            public int ColumnCount { get { return Schema.Count; } }
 
             public SchemaImpl(TransposeLoader parent)
             {
@@ -781,7 +781,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                         var view = _entries[col].GetViewOrNull();
                         // Since we don't have row-wise data, this view must exist.
                         _host.AssertValue(view);
-                        _host.Assert(view.Schema.ColumnCount == 1);
+                        _host.Assert(view.Schema.Count == 1);
                         var trans = _colTransposers[col] = Transposer.Create(_host, view, false, new int[] { 0 });
                         _host.Assert(trans.TransposeSchema.ColumnCount == 1);
                         _host.Assert(trans.TransposeSchema.GetSlotType(0).ValueCount == Schema.GetColumnType(col).ValueCount);
@@ -842,7 +842,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             /// </summary>
             private void Init(int col)
             {
-                Ch.Assert(0 <= col && col < Schema.ColumnCount);
+                Ch.Assert(0 <= col && col < Schema.Count);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
                 var type = Schema.GetColumnType(col);
                 Ch.Assert(_parent.TransposeSchema.GetSlotType(col).ValueCount == _parent._header.RowCount);

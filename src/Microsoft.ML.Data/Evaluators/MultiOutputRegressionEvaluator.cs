@@ -673,7 +673,7 @@ namespace Microsoft.ML.Runtime.Data
             bool hasStratVals = fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             ch.Assert(hasStrats == hasStratVals);
 
-            var colCount = fold.Schema.ColumnCount;
+            var colCount = fold.Schema.Count;
             var vBufferGetters = new ValueGetter<VBuffer<double>>[colCount];
 
             using (var cursor = fold.GetRowCursor(col => true))
@@ -695,7 +695,7 @@ namespace Microsoft.ML.Runtime.Data
                     stratGetter = (ref uint dst) => dst = 0;
 
                 int labelCount = 0;
-                for (int i = 0; i < fold.Schema.ColumnCount; i++)
+                for (int i = 0; i < fold.Schema.Count; i++)
                 {
                     if (fold.Schema[i].IsHidden || (needWeighted && i == isWeightedCol) ||
                         (hasStrats && (i == stratCol || i == stratVal)))

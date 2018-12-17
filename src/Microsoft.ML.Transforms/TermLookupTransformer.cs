@@ -142,9 +142,9 @@ namespace Microsoft.ML.Transforms.Categorical
                 ectx.Assert(_terms == null);
                 ectx.Assert(_values == null);
                 ectx.AssertValue(cursor);
-                ectx.Assert(0 <= colTerm && colTerm < cursor.Schema.ColumnCount);
+                ectx.Assert(0 <= colTerm && colTerm < cursor.Schema.Count);
                 ectx.Assert(cursor.Schema.GetColumnType(colTerm).IsText);
-                ectx.Assert(0 <= colValue && colValue < cursor.Schema.ColumnCount);
+                ectx.Assert(0 <= colValue && colValue < cursor.Schema.Count);
                 ectx.Assert(cursor.Schema.GetColumnType(colValue).Equals(Type));
 
                 var getTerm = cursor.GetGetter<ReadOnlyMemory<char>>(colTerm);
@@ -570,7 +570,7 @@ namespace Microsoft.ML.Transforms.Categorical
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(ldr);
-            ectx.Assert(ldr.Schema.ColumnCount == 2);
+            ectx.Assert(ldr.Schema.Count == 2);
 
             // REVIEW: Should we allow term to be a vector of text (each term in the vector
             // would map to the same value)?
@@ -659,7 +659,7 @@ namespace Microsoft.ML.Transforms.Categorical
         private static void DebugValidateLoader(BinaryLoader ldr)
         {
             Contracts.Assert(ldr != null);
-            Contracts.Assert(ldr.Schema.ColumnCount == 2);
+            Contracts.Assert(ldr.Schema.Count == 2);
             Contracts.Assert(ldr.Schema.GetColumnType(0).IsText);
         }
 
@@ -667,7 +667,7 @@ namespace Microsoft.ML.Transforms.Categorical
         {
             if (ldr == null)
                 return;
-            ectx.CheckDecode(ldr.Schema.ColumnCount == 2);
+            ectx.CheckDecode(ldr.Schema.Count == 2);
             ectx.CheckDecode(ldr.Schema.GetColumnType(0).IsText);
         }
 

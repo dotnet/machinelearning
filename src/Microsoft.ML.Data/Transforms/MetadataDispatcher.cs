@@ -162,7 +162,7 @@ namespace Microsoft.ML.Runtime.Data
             Func<string, int, bool> filterSrc = null)
         {
             Contracts.Check(!_sealed, "MetadataDispatcher sealed");
-            Contracts.Check(schemaSrc == null || (0 <= indexSrc && indexSrc < schemaSrc.ColumnCount), "indexSrc out of range");
+            Contracts.Check(schemaSrc == null || (0 <= indexSrc && indexSrc < schemaSrc.Count), "indexSrc out of range");
             Contracts.Check(filterSrc == null || schemaSrc != null, "filterSrc should be null if schemaSrc is null");
             return new ColInfo(schemaSrc, indexSrc, filterSrc);
         }

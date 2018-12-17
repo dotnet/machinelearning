@@ -208,7 +208,7 @@ namespace Microsoft.ML.Legacy
 
         private static List<int> GetColIndices(IDataView dataView)
         {
-            int totalColCount = dataView.Schema.ColumnCount;
+            int totalColCount = dataView.Schema.Count;
             // getting distinct columns
             HashSet<string> columnNames = new HashSet<string>();
             var colIndices = new List<int>();

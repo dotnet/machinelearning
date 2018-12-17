@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.RunTests
             else if (!CheckSameValues(pipe1, pipe2, checkId: checkId))
                 Failed();
 
-            if (pipe1.Schema.ColumnCount > 0)
+            if (pipe1.Schema.Count > 0)
             {
                 // The text saver fails if there are no columns, so we cannot check in that case.
                 if (!SaveLoadText(pipe1, _env, keepHidden, suffix, suffixBase, checkBaseline, forceDense, roundTripText))
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Runtime.RunTests
             TextSaver saver = new TextSaver(env, new TextSaver.Arguments() { Dense = forceDense, OutputSchema = outputSchema, OutputHeader = outputHeader });
             var schema = view.Schema;
             List<int> savable = new List<int>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
                 ColumnType type = schema.GetColumnType(c);
                 if (saver.IsColumnSavable(type) && (hidden || !schema[c].IsHidden))
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (!roundTrip)
                 return true;
 
-            if (savable.Count < view.Schema.ColumnCount)
+            if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Runtime.RunTests
         protected bool CheckMetadataTypes(Schema sch)
         {
             var hs = new HashSet<string>();
-            for (int col = 0; col < sch.ColumnCount; col++)
+            for (int col = 0; col < sch.Count; col++)
             {
                 var typeSlot = sch.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, col);
                 var typeKeys = sch.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, col);
@@ -546,13 +546,13 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckSameSchemas(Schema sch1, Schema sch2, bool exactTypes = true, bool keyNames = true)
         {
-            if (sch1.ColumnCount != sch2.ColumnCount)
+            if (sch1.Count != sch2.Count)
             {
-                Fail("column count mismatch: {0} vs {1}", sch1.ColumnCount, sch2.ColumnCount);
+                Fail("column count mismatch: {0} vs {1}", sch1.Count, sch2.Count);
                 return Failed();
             }
 
-            for (int col = 0; col < sch1.ColumnCount; col++)
+            for (int col = 0; col < sch1.Count; col++)
             {
                 string name1 = sch1.GetColumnName(col);
                 string name2 = sch2.GetColumnName(col);
@@ -682,7 +682,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var schema = view.Schema;
             List<int> savable = new List<int>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
                 ColumnType type = schema.GetColumnType(c);
                 if (saver.IsColumnSavable(type))
@@ -698,7 +698,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Log("View saved in {0} bytes", stream.Length);
             }
 
-            if (savable.Count < view.Schema.ColumnCount)
+            if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var schema = view.Schema;
             List<int> savable = new List<int>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
                 ColumnType type = schema.GetColumnType(c);
                 if (saver.IsColumnSavable(type))
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Log("View saved in {0} bytes", stream.Length);
             }
 
-            if (savable.Count < view.Schema.ColumnCount)
+            if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
@@ -805,7 +805,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckSameValues(IDataView view1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(view1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(view1.Schema.Count == view2.Schema.Count);
 
             bool all = true;
             bool tmp;
@@ -852,10 +852,10 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckSameValues(RowCursor curs1, RowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == curs2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == curs2.Schema.Count);
 
             // Get the comparison delegates for each column.
-            int colLim = curs1.Schema.ColumnCount;
+            int colLim = curs1.Schema.Count;
             Func<bool>[] comps = new Func<bool>[colLim];
             for (int col = 0; col < colLim; col++)
             {
@@ -933,10 +933,10 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckSameValues(RowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == view2.Schema.Count);
 
             // Get a cursor for each column.
-            int colLim = curs1.Schema.ColumnCount;
+            int colLim = curs1.Schema.Count;
             var cursors = new RowCursor[colLim];
             try
             {

@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.Data
         public static ValueMapper<T, StringBuilder> GetSimpleMapper<T>(Schema schema, int col)
         {
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
             var type = schema.GetColumnType(col).ItemType;
             Contracts.Assert(type.RawType == typeof(T));
             var conv = Conversion.Conversions.Instance;

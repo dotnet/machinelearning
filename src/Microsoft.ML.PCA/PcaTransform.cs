@@ -449,7 +449,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             Double[] totalColWeight = new Double[_numColumns];
 
-            bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
+            bool[] activeColumns = new bool[trainingData.Schema.Count];
             foreach (var sInfo in _schemaInfos)
             {
                 activeColumns[sInfo.InputIndex] = true;

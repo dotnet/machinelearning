@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.Data
             private static Schema.Metadata KeyValueMetadataFromMetadata<T>(Schema.Metadata meta, Schema.Column metaCol)
             {
                 Contracts.AssertValue(meta);
-                Contracts.Assert(0 <= metaCol.Index && metaCol.Index < meta.Schema.ColumnCount);
+                Contracts.Assert(0 <= metaCol.Index && metaCol.Index < meta.Schema.Count);
                 Contracts.Assert(metaCol.Type.RawType == typeof(T));
                 var getter = meta.GetGetter<T>(metaCol.Index);
                 var builder = new MetadataBuilder();
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (_predColMetadata != null)
                     {
                         var sch = _predColMetadata.Schema;
-                        for (int i = 0; i < sch.ColumnCount; ++i)
+                        for (int i = 0; i < sch.Count; ++i)
                             yield return new KeyValuePair<string, ColumnType>(sch.GetColumnName(i), sch.GetColumnType(i));
                     }
                 }
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(output);
             Host.AssertValue(predicate);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
-            Host.Assert(Bindings.InfoCount == output.Schema.ColumnCount + 1);
+            Host.Assert(Bindings.InfoCount == output.Schema.Count + 1);
 
             var getters = new Delegate[Bindings.InfoCount];
 

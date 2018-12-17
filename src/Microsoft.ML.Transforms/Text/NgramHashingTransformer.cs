@@ -692,7 +692,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                var active = new bool[InputSchema.ColumnCount];
+                var active = new bool[InputSchema.Count];
                 for (int i = 0; i < _srcIndices.Length; i++)
                 {
                     if (activeOutput(i))
@@ -759,7 +759,7 @@ namespace Microsoft.ML.Transforms.Text
                 // One per iinfo (some may be null).
                 _iinfoToCollector = new InvertHashCollector<NGram>[_parent._columns.Length];
                 // One per source column (some may be null).
-                _srcTextGetters = new ValueMapper<uint, StringBuilder>[inputSchema.ColumnCount];
+                _srcTextGetters = new ValueMapper<uint, StringBuilder>[inputSchema.Count];
                 _invertHashMaxCounts = invertHashMaxCounts;
                 for (int i = 0; i < _srcTextGetters.Length; ++i)
                 {

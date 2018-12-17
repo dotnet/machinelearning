@@ -513,7 +513,7 @@ namespace Microsoft.ML.Runtime.Data
         private IDataView ExtractRelevantIndex(IDataView data)
         {
             IDataView output = data;
-            for (int i = 0; i < data.Schema.ColumnCount; i++)
+            for (int i = 0; i < data.Schema.Count; i++)
             {
                 var type = data.Schema.GetColumnType(i);
                 if (type.IsKnownSizeVector && type.ItemType == NumberType.R8)

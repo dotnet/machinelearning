@@ -396,7 +396,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => col == InputRoleMappedSchema.Feature.Index;

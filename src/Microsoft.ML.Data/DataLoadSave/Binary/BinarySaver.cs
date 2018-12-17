@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         {
             _host.AssertValue(writer);
             _host.AssertValue(schema);
-            _host.Assert(0 <= col && col < schema.ColumnCount);
+            _host.Assert(0 <= col && col < schema.Count);
 
             int count = 0;
             WriteMetadataCoreDelegate del = WriteMetadataCore<int>;

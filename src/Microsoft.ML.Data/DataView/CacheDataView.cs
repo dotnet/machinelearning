@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
 
             _cacheLock = new object();
             _cacheFillerThreads = new ConcurrentBag<Thread>();
-            _caches = new ColumnCache[_subsetInput.Schema.ColumnCount];
+            _caches = new ColumnCache[_subsetInput.Schema.Count];
 
             if (Utils.Size(prefetch) > 0)
                 KickoffFiller(prefetch);
@@ -124,13 +124,13 @@ namespace Microsoft.ML.Data
                 Array.Copy(prefetch, tmp, prefetch.Length);
                 Array.Sort(tmp);
                 prefetch = tmp;
-                if (prefetch.Length > 0 && (prefetch[0] < 0 || prefetch[prefetch.Length - 1] >= schema.ColumnCount))
+                if (prefetch.Length > 0 && (prefetch[0] < 0 || prefetch[prefetch.Length - 1] >= schema.Count))
                     throw env.Except("Prefetch array had column indices out of range");
             }
             int ip = 0;
             inputToSubset = null;
 
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
                 var type = schema.GetColumnType(c);
                 env.Assert(ip == prefetch.Length || c <= prefetch[ip]);
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Data
                 {
                     if (inputToSubset == null)
                     {
-                        inputToSubset = new int[schema.ColumnCount];
+                        inputToSubset = new int[schema.Count];
                         for (int cc = 0; cc < c; ++cc)
                             inputToSubset[cc] = cc;
                     }
@@ -182,10 +182,10 @@ namespace Microsoft.ML.Data
         /// if this was cachable, or else -1 if the column was not cachable</returns>
         public int MapInputToCacheColumnIndex(int inputIndex)
         {
-            int inputIndexLim = _inputToSubsetColIndex == null ? _subsetInput.Schema.ColumnCount : _inputToSubsetColIndex.Length;
+            int inputIndexLim = _inputToSubsetColIndex == null ? _subsetInput.Schema.Count : _inputToSubsetColIndex.Length;
             _host.CheckParam(0 <= inputIndex && inputIndex < inputIndexLim, nameof(inputIndex), "Input column index not in range");
             var result = _inputToSubsetColIndex == null ? inputIndex : _inputToSubsetColIndex[inputIndex];
-            _host.Assert(-1 <= result && result < _subsetInput.Schema.ColumnCount);
+            _host.Assert(-1 <= result && result < _subsetInput.Schema.Count);
             return result;
         }
 
@@ -704,7 +704,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(pred);
                 _parent = parent;
 
-                int[] actives = Enumerable.Range(0, _parent.Schema.ColumnCount).Where(pred).ToArray();
+                int[] actives = Enumerable.Range(0, _parent.Schema.Count).Where(pred).ToArray();
                 // Kick off the thread to fill in any requested columns.
                 _parent.KickoffFiller(actives);
 
@@ -1263,7 +1263,7 @@ namespace Microsoft.ML.Data
                 PositionCore = -1;
 
                 // Set up the mapping from active columns.
-                int colLim = Schema.ColumnCount;
+                int colLim = Schema.Count;
                 int[] actives;
                 Utils.BuildSubsetMaps(colLim, predicate, out actives, out _colToActivesIndex);
                 // Construct the getters. Simultaneously collect whatever "waiters"
@@ -1378,7 +1378,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(parent);
                 var host = parent._host;
                 host.AssertValue(input);
-                host.Assert(0 <= srcCol & srcCol < input.Schema.ColumnCount);
+                host.Assert(0 <= srcCol & srcCol < input.Schema.Count);
                 host.Assert(input.IsColumnActive(srcCol));
 
                 var type = input.Schema.GetColumnType(srcCol);
@@ -1563,7 +1563,7 @@ namespace Microsoft.ML.Data
                 : base(parent._host, waiter)
             {
                 Contracts.AssertValue(input);
-                Contracts.Assert(0 <= srcCol & srcCol < input.Schema.ColumnCount);
+                Contracts.Assert(0 <= srcCol & srcCol < input.Schema.Count);
                 Contracts.Assert(input.Schema.GetColumnType(srcCol).RawType == typeof(T));
             }
 

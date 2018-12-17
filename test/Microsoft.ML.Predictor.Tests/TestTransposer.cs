@@ -237,7 +237,7 @@ namespace Microsoft.ML.Runtime.RunTests
             using (MemoryStream mem = new MemoryStream())
             {
                 TransposeSaver saver = new TransposeSaver(Env, new TransposeSaver.Arguments());
-                saver.SaveData(mem, view, Utils.GetIdentityPermutation(view.Schema.ColumnCount));
+                saver.SaveData(mem, view, Utils.GetIdentityPermutation(view.Schema.Count));
                 src = new BytesStreamSource(mem.ToArray());
             }
             TransposeLoader loader = new TransposeLoader(Env, new TransposeLoader.Arguments(), src);

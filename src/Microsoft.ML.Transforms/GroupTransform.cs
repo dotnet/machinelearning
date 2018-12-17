@@ -567,12 +567,12 @@ namespace Microsoft.ML.Transforms
                 _active = Utils.BuildArray(schema.ColumnCount, predicate);
                 _groupCount = schema.GroupIds.Length;
 
-                bool[] srcActiveLeading = new bool[_parent.Source.Schema.ColumnCount];
+                bool[] srcActiveLeading = new bool[_parent.Source.Schema.Count];
                 foreach (var col in schema.GroupIds)
                     srcActiveLeading[col] = true;
                 _leadingCursor = parent.Source.GetRowCursor(x => srcActiveLeading[x]);
 
-                bool[] srcActiveTrailing = new bool[_parent.Source.Schema.ColumnCount];
+                bool[] srcActiveTrailing = new bool[_parent.Source.Schema.Count];
                 for (int i = 0; i < _groupCount; i++)
                 {
                     if (_active[i])

@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(predicate, nameof(predicate));
 
-            for (int col = 0; col < schema.ColumnCount; col++)
+            for (int col = 0; col < schema.Count; col++)
             {
                 if (!predicate(col))
                     continue;
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Runtime.Data
                     return false;
             }
             // All cursors must have the same columns active.
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
                 bool active = firstCursor.IsColumnActive(c);
                 for (int i = 1; i < cursors.Length; ++i)
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.AssertValue(schema);
                 _schema = schema;
-                _cachePools = new object[_schema.ColumnCount + (int)ExtraIndex._Lim];
+                _cachePools = new object[_schema.Count + (int)ExtraIndex._Lim];
             }
 
             public sealed class Consolidator : IRowCursorConsolidator
@@ -336,13 +336,13 @@ namespace Microsoft.ML.Runtime.Data
 
                     int[] activeToCol;
                     int[] colToActive;
-                    Utils.BuildSubsetMaps(schema.ColumnCount, cursor.IsColumnActive, out activeToCol, out colToActive);
+                    Utils.BuildSubsetMaps(schema.Count, cursor.IsColumnActive, out activeToCol, out colToActive);
 
                     // Because the schema of the consolidator is not necessary fixed, we are merely
                     // opportunistic about buffer sharing, from cursoring to cursoring. If we can do
                     // it easily, great, if not, no big deal.
-                    if (Utils.Size(ourPools) != schema.ColumnCount)
-                        ourPools = new object[schema.ColumnCount + (int)ExtraIndex._Lim];
+                    if (Utils.Size(ourPools) != schema.Count)
+                        ourPools = new object[schema.Count + (int)ExtraIndex._Lim];
                     // Create the out pipes.
                     OutPipe[] outPipes = new OutPipe[activeToCol.Length + (int)ExtraIndex._Lim];
                     for (int i = 0; i < activeToCol.Length; ++i)
@@ -522,7 +522,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Create the mappings between active column index, and column index.
                 int[] activeToCol;
                 int[] colToActive;
-                Utils.BuildSubsetMaps(_schema.ColumnCount, input.IsColumnActive, out activeToCol, out colToActive);
+                Utils.BuildSubsetMaps(_schema.Count, input.IsColumnActive, out activeToCol, out colToActive);
 
                 Func<RowCursor, int, InPipe> createFunc = CreateInPipe<int>;
                 var inGenMethod = createFunc.GetMethodInfo().GetGenericMethodDefinition();
@@ -537,7 +537,7 @@ namespace Microsoft.ML.Runtime.Data
                 // For each column, create the InPipe, and all OutPipes per output cursor.
                 for (int c = 0; c < activeToCol.Length; ++c)
                 {
-                    ch.Assert(0 <= activeToCol[c] && activeToCol[c] < _schema.ColumnCount);
+                    ch.Assert(0 <= activeToCol[c] && activeToCol[c] < _schema.Count);
                     ch.Assert(c == 0 || activeToCol[c - 1] < activeToCol[c]);
                     ch.Assert(input.IsColumnActive(activeToCol[c]));
                     var type = input.Schema.GetColumnType(activeToCol[c]);
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Runtime.Data
             private InPipe CreateInPipe<T>(Row input, int col)
             {
                 Contracts.AssertValue(input);
-                Contracts.Assert(0 <= col && col < _schema.ColumnCount);
+                Contracts.Assert(0 <= col && col < _schema.Count);
                 return CreateInPipeCore(col, input.GetGetter<T>(col));
             }
 
@@ -657,7 +657,7 @@ namespace Microsoft.ML.Runtime.Data
             private InPipe CreateIdInPipe(Row input)
             {
                 Contracts.AssertValue(input);
-                return CreateInPipeCore(_schema.ColumnCount + (int)ExtraIndex.Id, input.GetIdGetter());
+                return CreateInPipeCore(_schema.Count + (int)ExtraIndex.Id, input.GetIdGetter());
             }
 
             private InPipe CreateInPipeCore<T>(int poolIdx, ValueGetter<T> getter)
@@ -1039,7 +1039,7 @@ namespace Microsoft.ML.Runtime.Data
                     Ch.AssertValue(pipes);
                     Ch.AssertValue(batchInputs);
                     Ch.AssertValueOrNull(quitAction);
-                    Ch.Assert(colToActive.Length == schema.ColumnCount);
+                    Ch.Assert(colToActive.Length == schema.Count);
                     Ch.Assert(activeToCol.Length + (int)ExtraIndex._Lim == pipes.Length);
                     Ch.Assert(pipes.All(p => p != null));
                     // Could also confirm the inverse mappiness of activeToCol/colToActive, but that seems like a bit much.
@@ -1175,7 +1175,7 @@ namespace Microsoft.ML.Runtime.Data
                 _cursors = cursors;
                 _schema = _cursors[0].Schema;
 
-                Utils.BuildSubsetMaps(_schema.ColumnCount, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
+                Utils.BuildSubsetMaps(_schema.Count, _cursors[0].IsColumnActive, out _activeToCol, out _colToActive);
 
                 Func<int, Delegate> func = CreateGetter<int>;
                 _methInfo = func.GetMethodInfo().GetGenericMethodDefinition();
@@ -1245,7 +1245,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var cursor = _cursors[i];
                     Ch.AssertValue(cursor);
-                    Ch.Assert(col < cursor.Schema.ColumnCount);
+                    Ch.Assert(col < cursor.Schema.Count);
                     Ch.Assert(cursor.IsColumnActive(col));
                     Ch.Assert(type.Equals(cursor.Schema.GetColumnType(col)));
                     getters[i] = _cursors[i].GetGetter<T>(col);

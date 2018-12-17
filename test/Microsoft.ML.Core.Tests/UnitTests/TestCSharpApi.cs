@@ -44,9 +44,9 @@ namespace Microsoft.ML.Runtime.RunTests
             var data = experiment.GetOutput(normalizeOutput.OutputData);
 
             var schema = data.Schema;
-            Assert.Equal(5, schema.ColumnCount);
+            Assert.Equal(5, schema.Count);
             var expected = new[] { "Label", "Workclass", "Categories", "NumericFeatures", "NumericFeatures" };
-            for (int i = 0; i < schema.ColumnCount; i++)
+            for (int i = 0; i < schema.Count; i++)
                 Assert.Equal(expected[i], schema.GetColumnName(i));
         }
 
@@ -975,7 +975,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var data = experiment.GetOutput(tfTransformOutput.OutputData);
 
             var schema = data.Schema;
-            Assert.Equal(3, schema.ColumnCount);
+            Assert.Equal(3, schema.Count);
             Assert.Equal("Softmax", schema.GetColumnName(2));
             Assert.Equal(10, (schema.GetColumnType(2) as VectorType)?.Size);
         }

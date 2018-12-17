@@ -302,7 +302,7 @@ namespace Microsoft.ML.Runtime.Data
                     var builder = new SchemaBuilder();
                     // Sequentially add columns so that the order of them is not changed comparing with the schema in the mapper
                     // that computes score column.
-                    for (int i = 0; i < partialSchema.ColumnCount; ++i)
+                    for (int i = 0; i < partialSchema.Count; ++i)
                     {
                         var meta = new MetadataBuilder();
                         if (i == scoreColumnIndex)

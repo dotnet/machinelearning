@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     using (var substream = new SubsetStream(stream))
                     {
-                        _internalSaver.SaveData(substream, view, Utils.GetIdentityPermutation(view.Schema.ColumnCount));
+                        _internalSaver.SaveData(substream, view, Utils.GetIdentityPermutation(view.Schema.Count));
                         substream.Seek(0, SeekOrigin.End);
                         ch.Info("Wrote {0} data view in {1} bytes", name, substream.Length);
                     }

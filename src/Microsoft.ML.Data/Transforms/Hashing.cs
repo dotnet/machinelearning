@@ -717,7 +717,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= srcCol && srcCol < input.Schema.ColumnCount);
+            Contracts.Assert(0 <= srcCol && srcCol < input.Schema.Count);
             Contracts.Assert(input.Schema.GetColumnType(srcCol).RawType == typeof(T));
 
             var srcGetter = input.GetGetter<T>(srcCol);

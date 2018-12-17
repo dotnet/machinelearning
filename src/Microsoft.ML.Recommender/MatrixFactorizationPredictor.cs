@@ -312,7 +312,7 @@ namespace Microsoft.ML.Trainers.Recommender
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => (col == _matrixColumnIndexColumnIndex || col == _matrixRowIndexCololumnIndex);
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Trainers.Recommender
             private Delegate[] CreateGetter(Row input, bool[] active)
             {
                 _env.CheckValue(input, nameof(input));
-                _env.Assert(Utils.Size(active) == OutputSchema.ColumnCount);
+                _env.Assert(Utils.Size(active) == OutputSchema.Count);
 
                 var getters = new Delegate[1];
                 if (active[0])
@@ -360,7 +360,7 @@ namespace Microsoft.ML.Trainers.Recommender
 
             public Row GetRow(Row input, Func<int, bool> active)
             {
-                var activeArray = Utils.BuildArray(OutputSchema.ColumnCount, active);
+                var activeArray = Utils.BuildArray(OutputSchema.Count, active);
                 var getters = CreateGetter(input, activeArray);
                 return new SimpleRow(OutputSchema, input, getters);
             }

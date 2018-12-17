@@ -368,7 +368,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(data, nameof(data));
             env.CheckValue(columns, nameof(columns));
 
-            bool[] activeInput = new bool[data.Schema.ColumnCount];
+            bool[] activeInput = new bool[data.Schema.Count];
 
             var srcCols = new int[columns.Length];
             var srcTypes = new ColumnType[columns.Length];

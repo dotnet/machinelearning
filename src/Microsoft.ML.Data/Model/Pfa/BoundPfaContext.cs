@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             recordType["name"] = "DataInput";
             var fields = new JArray();
             var fieldNames = new HashSet<string>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
                 if (schema[c].IsHidden)
                     continue;
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
         private JToken PfaTypeOrNullForColumn(Schema schema, int col)
         {
             _host.AssertValue(schema);
-            _host.Assert(0 <= col && col < schema.ColumnCount);
+            _host.Assert(0 <= col && col < schema.Count);
 
             ColumnType type = schema.GetColumnType(col);
             return T.PfaTypeOrNullForColumnType(type);

@@ -71,8 +71,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Now let's look at which features are most important to the model overall
             // First, we have to prepare the data:
             // Get the feature names as an IEnumerable
-            var featureNames = data.Schema.GetColumns()
-                .Select(tuple => tuple.column.Name) // Get the column names
+            var featureNames = data.Schema
+                .Select(column => column.Name) // Get the column names
                 .Where(name => name != labelName) // Drop the Label
                 .ToArray();
 

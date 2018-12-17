@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.CheckValue(stream, nameof(stream));
 
             var cols = new List<int>();
-            for (int i = 0; i < view.Schema.ColumnCount; i++)
+            for (int i = 0; i < view.Schema.Count; i++)
             {
                 if (!keepHidden && view.Schema[i].IsHidden)
                     continue;
