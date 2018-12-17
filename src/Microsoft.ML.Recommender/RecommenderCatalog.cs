@@ -103,7 +103,7 @@ namespace Microsoft.ML
             string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
     }
