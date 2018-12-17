@@ -1068,22 +1068,48 @@ namespace Microsoft.ML.Transforms.Normalizers
                 else
                     host.CheckUserArg(labelColumnType.IsNumber, nameof(args.LabelColumn), "Label column must be a number or a key type");
 
+                return CreateBuilder(
+                    new NormalizingEstimator.SupervisedBinningColumn(
+                        args.Column[icol].Source ?? args.Column[icol].Name,
+                        args.Column[icol].Name,
+                        args.LabelColumn ?? DefaultColumnNames.Label,
+                        args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
+                        args.Column[icol].FixZero ?? args.FixZero,
+                        args.Column[icol].NumBins ?? args.NumBins,
+                        args.MinBinSize),
+                    host, labelColumnId, srcIndex, srcType, cursor);
+            }
+
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.SupervisedBinningColumn column, IHost host,
+                 string labelColumn, int srcIndex, ColumnType srcType, RowCursor cursor)
+            {
+                int labelColumnId = GetLabelColumnId(host, cursor.Schema, labelColumn);
+                return CreateBuilder(column, host, labelColumnId, srcIndex, srcType, cursor);
+            }
+
+            private static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.SupervisedBinningColumn column, IHost host,
+                int labelColumnId, int srcIndex, ColumnType srcType, RowCursor cursor)
+            {
+                Contracts.AssertValue(host);
+
                 if (srcType.IsNumber)
                 {
                     if (srcType == NumberType.R4)
-                        return Sng.SupervisedBinOneColumnFunctionBuilder.Create(args, host, icol, srcIndex, labelColumnId, cursor);
+                        return Sng.SupervisedBinOneColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                     if (srcType == NumberType.R8)
-                        return Dbl.SupervisedBinOneColumnFunctionBuilder.Create(args, host, icol, srcIndex, labelColumnId, cursor);
+                        return Dbl.SupervisedBinOneColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                 }
                 if (srcType.IsVector && srcType.ItemType.IsNumber)
                 {
                     if (srcType.ItemType == NumberType.R4)
-                        return Sng.SupervisedBinVecColumnFunctionBuilder.Create(args, host, icol, srcIndex, labelColumnId, cursor);
+                        return Sng.SupervisedBinVecColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                     if (srcType.ItemType == NumberType.R8)
-                        return Dbl.SupervisedBinVecColumnFunctionBuilder.Create(args, host, icol, srcIndex, labelColumnId, cursor);
+                        return Dbl.SupervisedBinVecColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                 }
 
-                throw host.ExceptUserArg(nameof(args.Column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", args.Column[icol].Source, srcType.ToString());
+                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.",
+                    column.Input,
+                    srcType.ToString());
             }
 
             public static int GetLabelColumnId(IExceptionContext host, Schema schema, string labelColumnName)
