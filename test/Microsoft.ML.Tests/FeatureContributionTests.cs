@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestFastForestRegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.FastForest(), GetSparseDataset(numberOfInstances: 100), "FastForestRegression");
+            TestFeatureContribution(ML.Regression.Trainers.FastForest(), GetSparseDataset(numberOfInstances: 100), "FastForestRegression", 5);
         }
 
         [Fact]
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(), GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(), GetSparseDataset(TaskType.BinaryClassification, 100), "SSGDBinary", 4);
         }
 
         [Fact]
