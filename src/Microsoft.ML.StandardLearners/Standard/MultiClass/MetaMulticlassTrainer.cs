@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
@@ -12,7 +13,6 @@ using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers.Online;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.Learners
 {
