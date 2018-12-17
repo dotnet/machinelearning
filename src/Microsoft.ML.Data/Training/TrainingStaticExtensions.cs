@@ -5,10 +5,10 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.StaticPipe;
-using System.Linq;
+using Microsoft.ML.StaticPipe.Runtime;
 using System;
+using System.Linq;
 
 namespace Microsoft.ML
 {
@@ -26,13 +26,15 @@ namespace Microsoft.ML
         /// <param name="context">The training context.</param>
         /// <param name="data">The dataset to split.</param>
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
-        /// <param name="stratificationColumn">Optional selector for the stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional selector for the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>A pair of datasets, for the train and test set.</returns>
         public static (DataView<T> trainSet, DataView<T> testSet) TrainTestSplit<T>(this TrainContextBase context,
-            DataView<T> data, double testFraction = 0.1, Func<T, PipelineColumn> stratificationColumn = null)
+            DataView<T> data, double testFraction = 0.1, Func<T, PipelineColumn> stratificationColumn = null, uint? seed = null)
         {
             var env = StaticPipeUtils.GetEnvironment(data);
             Contracts.AssertValue(env);
@@ -49,7 +51,7 @@ namespace Microsoft.ML
                 stratName = indexer.Get(column);
             }
 
-            var (trainData, testData) = context.TrainTestSplit(data.AsDynamic, testFraction, stratName);
+            var (trainData, testData) = context.TrainTestSplit(data.AsDynamic, testFraction, stratName, seed);
             return (new DataView<T>(env, trainData, data.Shape), new DataView<T>(env, testData, data.Shape));
         }
 
@@ -66,10 +68,12 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="label">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional selector for the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (RegressionMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
             this RegressionContext context,
@@ -77,7 +81,7 @@ namespace Microsoft.ML
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<float>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -100,7 +104,7 @@ namespace Microsoft.ML
                 stratName = indexer.Get(column);
             }
 
-            var results = context.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName);
+            var results = context.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
                     x.metrics,
@@ -122,10 +126,12 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="label">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional selector for the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (MultiClassClassifierMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
             this MulticlassClassificationContext context,
@@ -133,7 +139,7 @@ namespace Microsoft.ML
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Key<uint>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -156,7 +162,7 @@ namespace Microsoft.ML
                 stratName = indexer.Get(column);
             }
 
-            var results = context.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName);
+            var results = context.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
                     x.metrics,
@@ -178,10 +184,12 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="label">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional selector for the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (BinaryClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidateNonCalibrated<TInShape, TOutShape, TTransformer>(
             this BinaryClassificationContext context,
@@ -189,7 +197,7 @@ namespace Microsoft.ML
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -212,7 +220,7 @@ namespace Microsoft.ML
                 stratName = indexer.Get(column);
             }
 
-            var results = context.CrossValidateNonCalibrated(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName);
+            var results = context.CrossValidateNonCalibrated(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
                     x.metrics,
@@ -234,10 +242,12 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="label">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional selector for the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (CalibratedBinaryClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
             this BinaryClassificationContext context,
@@ -245,7 +255,7 @@ namespace Microsoft.ML
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
             int numFolds = 5,
-            Func<TInShape, PipelineColumn> stratificationColumn = null)
+            Func<TInShape, PipelineColumn> stratificationColumn = null, uint? seed = null)
             where TTransformer : class, ITransformer
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -268,7 +278,7 @@ namespace Microsoft.ML
                 stratName = indexer.Get(column);
             }
 
-            var results = context.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName);
+            var results = context.CrossValidate(data.AsDynamic, estimator.AsDynamic, numFolds, labelName, stratName, seed);
 
             return results.Select(x => (
                     x.metrics,
