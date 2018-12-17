@@ -177,7 +177,7 @@ namespace Microsoft.ML.Tests
             ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor> trainer,
             IDataView data,
             string testFile,
-            int precision = 4)
+            int precision = 6)
         {
             // Train the model.
                 var model = trainer.Fit(data);
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Tests
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
-            CheckEquality("FeatureContribution", testFile + ".tsv");
+            CheckEquality("FeatureContribution", testFile + ".tsv", digitsOfPrecision: precision);
             Done();
         }
 
