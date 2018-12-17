@@ -1,0 +1,39 @@
+maml.exe TrainTest test=%Data% tr=MulticlassKNN{K=5} dout=%Output% loader=Text{col=Label:TX:0 col=Features:1-*} data=%Data% out=%Output% seed=1 xf=Term{col=Label}
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    50 |     0 |     0 | 1.0000
+        1 ||     0 |    47 |     3 | 0.9400
+        2 ||     0 |     3 |    47 | 0.9400
+          ||========================
+Precision ||1.0000 |0.9400 |0.9400 |
+Accuracy(micro-avg): 0.960000
+Accuracy(macro-avg): 0.960000
+Log-loss:           0.061630
+Log-loss reduction: 94.390165
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.960000 (0.0000)
+Accuracy(macro-avg): 0.960000 (0.0000)
+Log-loss:           0.061630 (0.0000)
+Log-loss reduction: 94.390165 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	150 examples	Total Terms: 3
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'Normalize' started.
+[2] (%Time%)	150 examples
+[2] 'Normalize' finished in %Time%.
+[3] 'Saving model' started.
+[3] 'Saving model' finished in %Time%.

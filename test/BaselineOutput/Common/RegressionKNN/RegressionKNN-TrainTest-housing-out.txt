@@ -1,0 +1,28 @@
+maml.exe TrainTest test=%Data% tr=RegressionKNN{K=5} dout=%Output% loader=Text{col=Label:0 col=Features:~ header=+} data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+L1(avg):            2.396680
+L2(avg):            13.838701
+RMS(avg):           3.720041
+Loss-fn(avg):       13.838701
+R Squared:          0.836072
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):            2.396680 (0.0000)
+L2(avg):            13.838701 (0.0000)
+RMS(avg):           3.720041 (0.0000)
+Loss-fn(avg):       13.838701 (0.0000)
+R Squared:          0.836072 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Normalize' started.
+[1] (%Time%)	506 examples
+[1] 'Normalize' finished in %Time%.
+[2] 'Saving model' started.
+[2] 'Saving model' finished in %Time%.

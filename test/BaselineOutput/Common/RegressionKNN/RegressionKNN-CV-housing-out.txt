@@ -1,0 +1,36 @@
+maml.exe CV tr=RegressionKNN{K=5} threads=- dout=%Output% loader=Text{col=Label:0 col=Features:~ header=+} data=%Data% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+L1(avg):            3.574642
+L2(avg):            28.630720
+RMS(avg):           5.350768
+Loss-fn(avg):       28.630720
+R Squared:          0.657910
+L1(avg):            3.690622
+L2(avg):            32.186688
+RMS(avg):           5.673331
+Loss-fn(avg):       32.186688
+R Squared:          0.622283
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):            3.632632 (0.0580)
+L2(avg):            30.408704 (1.7780)
+RMS(avg):           5.512050 (0.1613)
+Loss-fn(avg):       30.408704 (1.7780)
+R Squared:          0.640096 (0.0178)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Normalize' started.
+[1] (%Time%)	241 examples
+[1] 'Normalize' finished in %Time%.
+[2] 'Normalize #2' started.
+[2] (%Time%)	265 examples
+[2] 'Normalize #2' finished in %Time%.

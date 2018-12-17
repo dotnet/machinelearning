@@ -414,5 +414,59 @@ namespace Microsoft.ML
             Contracts.CheckValue(ctx, nameof(ctx));
             return new LinearSvm(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, weightsColumn, numIterations, advancedSettings);
         }
+
+        /// <summary>
+        /// Predict binary class based on looking for K nearest neighbors in predefined dataset.
+        /// </summary>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="labelColumn">The name of the label column. </param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="k">Number of neighbors to look at for prediction.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public static BinaryNearestNeighborTrainer NearestNeighbor(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            int k = BinaryNearestNeighborTrainer.Arguments.Defaults.K,
+             Action<BinaryNearestNeighborTrainer.Arguments> advancedSettings = null)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            return new BinaryNearestNeighborTrainer(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, k, advancedSettings);
+        }
+
+        /// <summary>
+        /// Predict multiclass based on looking for K nearest neighbors in predefined dataset.
+        /// </summary>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="labelColumn">The name of the label column. </param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="k">Number of neighbors to look at for prediction.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public static MultiClassNearestNeighborTrainer NearestNeighbor(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            int k = MultiClassNearestNeighborTrainer.Arguments.Defaults.K,
+             Action<MultiClassNearestNeighborTrainer.Arguments> advancedSettings = null)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            return new MultiClassNearestNeighborTrainer(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, k, advancedSettings);
+        }
+
+        /// <summary>
+        /// Predict regression based on looking for K nearest neighbors in predefined dataset.
+        /// </summary>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="labelColumn">The name of the label column. </param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="k">Number of neighbors to look at for prediction.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public static RegressionNearestNeighborTrainer NearestNeighbor(this RegressionContext.RegressionTrainers ctx,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            int k = RegressionNearestNeighborTrainer.Arguments.Defaults.K,
+             Action<RegressionNearestNeighborTrainer.Arguments> advancedSettings = null)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            return new RegressionNearestNeighborTrainer(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, k, advancedSettings);
+        }
     }
 }

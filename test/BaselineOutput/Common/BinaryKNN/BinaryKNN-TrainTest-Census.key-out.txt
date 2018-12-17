@@ -1,0 +1,46 @@
+maml.exe TrainTest test=%Data% tr=BinaryKNN{K=5} dout=%Output% loader=Text{header+ col=Label:0 col=Num:9-14 col=Cat:TX:1-8} data=%Data% out=%Output% seed=1 xf=Cat{col=Cat} xf=Concat{col=Features:Num,Cat}
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.2300 (115.0/(115.0+385.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       76 |       39 | 0.6609
+ negative ||       27 |      358 | 0.9299
+          ||======================
+Precision ||   0.7379 |   0.9018 |
+OVERALL 0/1 ACCURACY: 0.868000
+LOG LOSS/instance:      NaN
+Test-set entropy (prior Log-Loss/instance): 0.778011
+LOG-LOSS REDUCTION (RIG): 0.000000
+AUC:                0.912196
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.912196 (0.0000)
+Accuracy:           0.868000 (0.0000)
+Positive precision: 0.737864 (0.0000)
+Positive recall:    0.660870 (0.0000)
+Negative precision: 0.901763 (0.0000)
+Negative recall:    0.929870 (0.0000)
+Log-loss:               NaN (0.0000)
+Log-loss reduction: 0.000000 (0.0000)
+F1 Score:           0.697248 (0.0000)
+AUPRC:              0.757638 (0.0000)
+
+---------------------------------------
+Warning: Data does not contain a probability column. Will not output the Log-loss column
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	500 examples	Total Terms: 76
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'Normalize' started.
+[2] (%Time%)	500 examples
+[2] 'Normalize' finished in %Time%.
+[3] 'Saving model' started.
+[3] 'Saving model' finished in %Time%.

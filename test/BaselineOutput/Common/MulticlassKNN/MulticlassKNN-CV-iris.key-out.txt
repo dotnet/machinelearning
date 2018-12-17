@@ -1,0 +1,59 @@
+maml.exe CV tr=MulticlassKNN{K=5} threads=- dout=%Output% loader=Text{col=Label:TX:0 col=Features:1-*} data=%Data% seed=1 xf=Term{col=Label}
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    21 |     0 |     0 | 1.0000
+        1 ||     0 |    28 |     2 | 0.9333
+        2 ||     0 |     2 |    26 | 0.9286
+          ||========================
+Precision ||1.0000 |0.9333 |0.9286 |
+Accuracy(micro-avg): 0.949367
+Accuracy(macro-avg): 0.953968
+Log-loss:           0.087656
+Log-loss reduction: 91.939754
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    29 |     0 |     0 | 1.0000
+        1 ||     0 |    20 |     0 | 1.0000
+        2 ||     0 |     2 |    20 | 0.9091
+          ||========================
+Precision ||1.0000 |0.9091 |1.0000 |
+Accuracy(micro-avg): 0.971831
+Accuracy(macro-avg): 0.969697
+Log-loss:           0.069729
+Log-loss reduction: 93.577182
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.960599 (0.0112)
+Accuracy(macro-avg): 0.961833 (0.0079)
+Log-loss:           0.078693 (0.0090)
+Log-loss reduction: 92.758468 (0.8187)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	71 examples	Total Terms: 3
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'Normalize' started.
+[2] (%Time%)	71 examples
+[2] 'Normalize' finished in %Time%.
+[3] 'Building term dictionary #2' started.
+[3] (%Time%)	79 examples	Total Terms: 3
+[3] 'Building term dictionary #2' finished in %Time%.
+[4] 'Normalize #2' started.
+[4] (%Time%)	79 examples
+[4] 'Normalize #2' finished in %Time%.

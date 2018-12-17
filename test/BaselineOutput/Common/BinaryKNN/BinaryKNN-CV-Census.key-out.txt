@@ -1,0 +1,67 @@
+maml.exe CV tr=BinaryKNN{K=5} threads=- dout=%Output% loader=Text{header+ col=Label:0 col=Num:9-14 col=Cat:TX:1-8} data=%Data% seed=1 xf=Cat{col=Cat} xf=Concat{col=Features:Num,Cat}
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+Warning: Data does not contain a probability column. Will not output the Log-loss column
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Not training a calibrator because it is not needed.
+Warning: Data does not contain a probability column. Will not output the Log-loss column
+TEST POSITIVE RATIO:	0.2252 (59.0/(59.0+203.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       30 |       29 | 0.5085
+ negative ||       24 |      179 | 0.8818
+          ||======================
+Precision ||   0.5556 |   0.8606 |
+OVERALL 0/1 ACCURACY: 0.797710
+LOG LOSS/instance:      NaN
+Test-set entropy (prior Log-Loss/instance): 0.769533
+LOG-LOSS REDUCTION (RIG): 0.000000
+AUC:                0.778659
+TEST POSITIVE RATIO:	0.2353 (56.0/(56.0+182.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       24 |       32 | 0.4286
+ negative ||       19 |      163 | 0.8956
+          ||======================
+Precision ||   0.5581 |   0.8359 |
+OVERALL 0/1 ACCURACY: 0.785714
+LOG LOSS/instance:      NaN
+Test-set entropy (prior Log-Loss/instance): 0.787127
+LOG-LOSS REDUCTION (RIG): 0.000000
+AUC:                0.791111
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.784885 (0.0062)
+Accuracy:           0.791712 (0.0060)
+Positive precision: 0.556848 (0.0013)
+Positive recall:    0.468523 (0.0400)
+Negative precision: 0.848237 (0.0123)
+Negative recall:    0.888689 (0.0069)
+Log-loss:               NaN (NaN)
+Log-loss reduction: 0.000000 (0.0000)
+F1 Score:           0.507911 (0.0231)
+AUPRC:              0.498349 (0.0186)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Building term dictionary' started.
+[1] (%Time%)	238 examples	Total Terms: 66
+[1] 'Building term dictionary' finished in %Time%.
+[2] 'Normalize' started.
+[2] (%Time%)	238 examples
+[2] 'Normalize' finished in %Time%.
+[3] 'Building term dictionary #2' started.
+[3] (%Time%)	262 examples	Total Terms: 68
+[3] 'Building term dictionary #2' finished in %Time%.
+[4] 'Normalize #2' started.
+[4] (%Time%)	262 examples
+[4] 'Normalize #2' finished in %Time%.

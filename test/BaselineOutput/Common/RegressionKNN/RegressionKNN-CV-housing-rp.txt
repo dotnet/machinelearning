@@ -1,0 +1,4 @@
+RegressionKNN
+L1(avg)	L2(avg)	RMS(avg)	Loss-fn(avg)	R Squared	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+3.632632	30.4087	5.51205	30.4087	0.640096	RegressionKNN	%Data%		%Output%	99	0	0	maml.exe CV tr=RegressionKNN{K=5} threads=- dout=%Output% loader=Text{col=Label:0 col=Features:~ header=+} data=%Data% seed=1		
+

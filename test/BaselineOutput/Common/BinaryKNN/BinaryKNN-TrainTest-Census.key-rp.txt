@@ -1,0 +1,4 @@
+BinaryKNN
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.912196	0.868	0.737864	0.66087	0.901763	0.92987	NaN	0	0.697248	0.757638	BinaryKNN	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=BinaryKNN{K=5} dout=%Output% loader=Text{header+ col=Label:0 col=Num:9-14 col=Cat:TX:1-8} data=%Data% out=%Output% seed=1 xf=Cat{col=Cat} xf=Concat{col=Features:Num,Cat}		
+

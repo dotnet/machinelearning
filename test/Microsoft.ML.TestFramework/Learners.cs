@@ -481,6 +481,24 @@ namespace Microsoft.ML.Runtime.RunTests
             BaselineProgress = true,
         };
 
+        public static PredictorAndArgs KNNRegression = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("RegressionKNN", "K=5"),
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs KNNMulticlass = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("MulticlassKNN", "K=5"),
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs KNNBinary = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("BinaryKNN", "K=5"),
+            BaselineProgress = true,
+        };
+
         public static PredictorAndArgs fastRankRegression = new PredictorAndArgs
         {
             Trainer = new SubComponent("FastRankRegression", "nl=5 mil=5 lr=0.25 iter=20"),

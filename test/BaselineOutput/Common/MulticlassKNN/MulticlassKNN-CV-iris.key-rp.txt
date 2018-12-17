@@ -1,0 +1,4 @@
+MulticlassKNN
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.960599	0.961833	0.078693	92.75847	MulticlassKNN	%Data%		%Output%	99	0	0	maml.exe CV tr=MulticlassKNN{K=5} threads=- dout=%Output% loader=Text{col=Label:TX:0 col=Features:1-*} data=%Data% seed=1 xf=Term{col=Label}		
+

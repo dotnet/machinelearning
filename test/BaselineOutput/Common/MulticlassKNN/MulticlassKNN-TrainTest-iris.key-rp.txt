@@ -1,0 +1,4 @@
+MulticlassKNN
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.96	0.96	0.06163	94.39017	MulticlassKNN	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=MulticlassKNN{K=5} dout=%Output% loader=Text{col=Label:TX:0 col=Features:1-*} data=%Data% out=%Output% seed=1 xf=Term{col=Label}		
+

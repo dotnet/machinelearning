@@ -13,7 +13,6 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 [assembly: LoadableClass(MultiClassNaiveBayesTrainer.Summary, typeof(MultiClassNaiveBayesTrainer), typeof(MultiClassNaiveBayesTrainer.Arguments),

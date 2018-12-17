@@ -421,6 +421,47 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        ///<summary>
+        ///A test for regressors
+        ///</summary>
+        [Fact]
+        public void KNNRegressionTest()
+        {
+            RunMTAThread(() =>
+            {
+                var regressionPredictors = new[] {
+                    TestLearners.KNNRegression,
+                };
+                var regressionDatasets = GetDatasetsForRegressorTest();
+                RunAllTests(regressionPredictors, regressionDatasets);
+            });
+            Done();
+        }
+
+        /// <summary>
+        /// A test for multi class classifiers.
+        /// </summary>
+        [Fact]
+        public void KNNMultiClassifier()
+        {
+            var multiPredictors = new[] { TestLearners.KNNMulticlass };
+            var multiClassificationDatasets = new[] { TestDatasets.irisLoader };
+            RunAllTests(multiPredictors, multiClassificationDatasets, extraTag: "key");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for binary classifiers.
+        /// </summary>
+        [Fact]
+        public void KNNBinaryClassifier()
+        {
+            var binaryPredictors = new[] { TestLearners.KNNBinary };
+            var binaryDatasets = new[] { TestDatasets.adult };
+            RunAllTests(binaryPredictors, binaryDatasets, extraTag: "key");
+            Done();
+        }
+
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Weighting Predictors")]
         [TestCategory("FastForest")]
@@ -875,7 +916,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     var vectorScoreGetters = new ValueGetter<VBuffer<float>>[predCount];
                     var probGetters = new ValueGetter<float>[predCount];
                     var predGetters = new ValueGetter<bool>[predCount];
-                    for (int i = 0; i< predCount; i++)
+                    for (int i = 0; i < predCount; i++)
                     {
                         scoreGetters[i] = predictionKind == PredictionKind.MultiClassClassification ?
                             (ref float dst) => dst = 0 :
