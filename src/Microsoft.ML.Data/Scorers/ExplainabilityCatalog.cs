@@ -20,8 +20,10 @@ namespace Microsoft.ML
         /// <param name="catalog">The model explainability operations catalog.</param>
         /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
         /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
-        /// <param name="top">The number of top contributing features for each data sample that will be retained in the FeatureContribution column.</param>
-        /// <param name="bottom">The number of least contributing features for each data sample that will be retained in the FeatureContribution column.</param>
+        /// <param name="top">The number of features with highest positive contributions for each data sample that will be retained in the FeatureContribution column.
+        /// Note that if there are fewer features with positive contributions than <paramref name="top"/>, the rest will be returned as zeros.</param>
+        /// <param name="bottom">The number of features with least negative contributions for each data sample that will be retained in the FeatureContribution column.
+        /// Note that if there are fewer features with negative contributions than <paramref name="bottom"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         /// <param name="stringify">Since the features are converted to numbers before the algorithms use them, if you want the contributions presented as
         /// "feature name:feature contribution" pairs for each feature, set stringify to <langword>true</langword></param>

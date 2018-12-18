@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestFastForestRegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.FastForest(), GetSparseDataset(numberOfInstances: 100), "FastForestRegression", 5);
+            TestFeatureContribution(ML.Regression.Trainers.FastForest(), GetSparseDataset(numberOfInstances: 100), "FastForestRegression");
         }
 
         [Fact]
