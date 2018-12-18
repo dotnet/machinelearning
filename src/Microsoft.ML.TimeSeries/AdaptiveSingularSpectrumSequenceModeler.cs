@@ -1595,7 +1595,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
             }
         }
 
-        public AdaptiveSingularSpectrumSequenceModeler LoadFrom(IHostEnvironment env, string filePath)
+        public ICanForecast<float> LoadFrom(IHostEnvironment env, string filePath)
         {
             using (var file = File.OpenRead(filePath))
             {
