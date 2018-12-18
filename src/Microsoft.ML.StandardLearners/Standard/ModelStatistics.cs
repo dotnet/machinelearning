@@ -6,6 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.CpuMath;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
@@ -324,7 +325,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Gets the coefficient statistics as an object.
         /// </summary>
-        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
+        internal CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
@@ -345,7 +346,7 @@ namespace Microsoft.ML.Runtime.Learners
             return order.Prepend(new[] { new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue) }).ToArray();
         }
 
-        public void SaveText(TextWriter writer, LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
+        internal void SaveText(TextWriter writer, LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(writer, nameof(writer));
@@ -383,7 +384,10 @@ namespace Microsoft.ML.Runtime.Learners
             writer.WriteLine("Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1");
         }
 
-        public void SaveSummaryInKeyValuePairs(LinearBinaryModelParameters parent,
+        /// <summary>
+        /// Support method for linear models and <see cref="ICanGetSummaryInKeyValuePairs"/>.
+        /// </summary>
+        internal void SaveSummaryInKeyValuePairs(LinearBinaryModelParameters parent,
             RoleMappedSchema schema, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
         {
             Contracts.AssertValue(_env);

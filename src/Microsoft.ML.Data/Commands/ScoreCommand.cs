@@ -34,7 +34,8 @@ namespace Microsoft.ML.Runtime.Data
     /// <param name="trainSchema">This parameter holds a snapshot of the role mapped training schema as
     /// it existed at the point when <paramref name="mapper"/> was trained, or <c>null</c> if it not
     /// available for some reason</param>
-    public delegate void SignatureDataScorer(IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema);
+    [BestFriend]
+    internal delegate void SignatureDataScorer(IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema);
 
     public delegate void SignatureBindableMapper(IPredictor predictor);
 

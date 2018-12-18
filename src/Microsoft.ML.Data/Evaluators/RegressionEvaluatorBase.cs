@@ -38,12 +38,13 @@ namespace Microsoft.ML.Runtime.Data
     public abstract class RegressionEvaluatorBase<TAgg, TScore, TMetrics> : RegressionLossEvaluatorBase<TAgg>
         where TAgg : RegressionEvaluatorBase<TAgg, TScore, TMetrics>.RegressionAggregatorBase
     {
-        protected RegressionEvaluatorBase(ArgumentsBase args, IHostEnvironment env, string registrationName)
+        [BestFriend]
+        private protected RegressionEvaluatorBase(ArgumentsBase args, IHostEnvironment env, string registrationName)
             : base(args, env, registrationName)
         {
         }
 
-        protected override void GetAggregatorConsolidationFuncs(TAgg aggregator, AggregatorDictionaryBase[] dictionaries,
+        private protected override void GetAggregatorConsolidationFuncs(TAgg aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, TAgg> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
@@ -184,7 +185,8 @@ namespace Microsoft.ML.Runtime.Data
             public abstract CountersBase UnweightedCounters { get; }
             public abstract CountersBase WeightedCounters { get; }
 
-            protected RegressionAggregatorBase(IHostEnvironment env, IRegressionLoss lossFunction, bool weighted, string stratName)
+            [BestFriend]
+            private protected RegressionAggregatorBase(IHostEnvironment env, IRegressionLoss lossFunction, bool weighted, string stratName)
                 : base(env, stratName)
             {
                 Host.AssertValue(lossFunction);
@@ -192,7 +194,7 @@ namespace Microsoft.ML.Runtime.Data
                 Weighted = weighted;
             }
 
-            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Contracts.Assert(PassNum < 1);
                 Contracts.AssertValue(schema.Label);

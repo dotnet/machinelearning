@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// This is a base class for wrapping <see cref="IPredictor"/>s in an <see cref="ISchemaBindableMapper"/>.
     /// </summary>
-    public abstract class SchemaBindablePredictorWrapperBase : ISchemaBindableMapper, ICanSaveModel, ICanSaveSummary,
+    internal abstract class SchemaBindablePredictorWrapperBase : ISchemaBindableMapper, ICanSaveModel, ICanSaveSummary,
         IBindableCanSavePfa, IBindableCanSaveOnnx
     {
         // The ctor guarantees that Predictor is non-null. It also ensures that either
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
         [BestFriend]
         private protected virtual bool SaveAsOnnxCore(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames) => false;
 
-        public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
 
@@ -142,7 +142,8 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected abstract ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema);
+        [BestFriend]
+        private protected abstract ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema);
 
         protected virtual Delegate GetPredictionGetter(Row input, int colSrc)
         {
@@ -240,7 +241,7 @@ namespace Microsoft.ML.Runtime.Data
     /// This class is a wrapper for all <see cref="IPredictor"/>s except for quantile regression predictors,
     /// and calibrated binary classification predictors.
     /// </summary>
-    public sealed class SchemaBindablePredictorWrapper : SchemaBindablePredictorWrapperBase
+    internal sealed class SchemaBindablePredictorWrapper : SchemaBindablePredictorWrapperBase
     {
         public const string LoaderSignature = "SchemaBindableWrapper";
         private static VersionInfo GetVersionInfo()
@@ -316,7 +317,7 @@ namespace Microsoft.ML.Runtime.Data
             return mapper.SaveAsOnnx(ctx, outputNames, ctx.GetVariableName(schema.Feature.Name));
         }
 
-        protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
+        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
         {
             var outputSchema = Schema.Create(new ScoreMapperSchema(ScoreType, _scoreColumnKind));
             return new SingleValueRowMapper(schema, this, outputSchema);
@@ -352,7 +353,7 @@ namespace Microsoft.ML.Runtime.Data
     /// This is an <see cref="ISchemaBindableMapper"/> wrapper for calibrated binary classification predictors.
     /// They need a separate wrapper because they return two values instead of one: the raw score and the probability.
     /// </summary>
-    public sealed class SchemaBindableBinaryPredictorWrapper : SchemaBindablePredictorWrapperBase
+    internal sealed class SchemaBindableBinaryPredictorWrapper : SchemaBindablePredictorWrapperBase
     {
         public const string LoaderSignature = "BinarySchemaBindable";
         private static VersionInfo GetVersionInfo()
@@ -450,7 +451,7 @@ namespace Microsoft.ML.Runtime.Data
                 "Invalid probability type for the IValueMapperDist");
         }
 
-        protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
+        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
         {
             if (Predictor.PredictionKind != PredictionKind.BinaryClassification)
                 ch.Warning("Scoring predictor of kind '{0}' as '{1}'.", Predictor.PredictionKind, PredictionKind.BinaryClassification);
@@ -577,9 +578,10 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// This is an <see cref="ISchemaBindableMapper"/> wrapper for quantile regression predictors. They need a separate
-    /// wrapper because they need the quantiles to create the ISchemaBound.
+    /// wrapper because they need the quantiles to create the <see cref="ISchemaBoundMapper"/>.
     /// </summary>
-    public sealed class SchemaBindableQuantileRegressionPredictor : SchemaBindablePredictorWrapperBase
+    [BestFriend]
+    internal sealed class SchemaBindableQuantileRegressionPredictor : SchemaBindablePredictorWrapperBase
     {
         public const string LoaderSignature = "QuantileSchemaBindable";
         private static VersionInfo GetVersionInfo()
@@ -650,7 +652,7 @@ namespace Microsoft.ML.Runtime.Data
             return new SchemaBindableQuantileRegressionPredictor(env, ctx);
         }
 
-        protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
+        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
         {
             return new SingleValueRowMapper(schema, this, Schema.Create(new SchemaImpl(ScoreType, _quantiles)));
         }

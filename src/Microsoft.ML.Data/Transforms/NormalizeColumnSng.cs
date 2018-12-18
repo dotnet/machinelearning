@@ -316,7 +316,7 @@ namespace Microsoft.ML.Transforms.Normalizers
     /// It tracks min, max, number of non-sparse values (vCount) and number of ProcessValue() calls (trainCount).
     /// NaNs are ignored when updating min and max.
     /// </summary>
-    public sealed class MinMaxSngAggregator : IColumnAggregator<VBuffer<TFloat>>
+    internal sealed class MinMaxSngAggregator : IColumnAggregator<VBuffer<TFloat>>
     {
         private readonly TFloat[] _min;
         private readonly TFloat[] _max;

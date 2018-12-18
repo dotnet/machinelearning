@@ -43,7 +43,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return output;
         }
 
-        public static IDataView GetSummaryAndStats(IHostEnvironment env, IPredictor predictor, RoleMappedSchema schema, out IDataView stats)
+        [BestFriend]
+        internal static IDataView GetSummaryAndStats(IHostEnvironment env, IPredictor predictor, RoleMappedSchema schema, out IDataView stats)
         {
             var calibrated = predictor as CalibratedPredictorBase;
             while (calibrated != null)

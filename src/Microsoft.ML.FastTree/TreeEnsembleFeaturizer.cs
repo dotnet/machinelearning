@@ -525,7 +525,7 @@ namespace Microsoft.ML.Runtime.Data
             dst = editor.Commit();
         }
 
-        public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Runtime.Data
                             vm.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
                     }
 
-                    var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
+                    ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                     var bound = bindable.Bind(env, data.Schema);
                     xf = new GenericScorer(env, scorerArgs, input, bound, data.Schema);
                 }
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Runtime.Data
                         vm.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
                 }
 
-                var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
+                ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                 var bound = bindable.Bind(env, data.Schema);
                return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
             }

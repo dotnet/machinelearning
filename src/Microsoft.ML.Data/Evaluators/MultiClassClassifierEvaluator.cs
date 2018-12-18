@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.Data
             LogLossReduction,
         }
 
-        public const string LoadName = "MultiClassClassifierEvaluator";
+        internal const string LoadName = "MultiClassClassifierEvaluator";
 
         private readonly int? _outputTopKAcc;
         private readonly bool _names;
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
             _names = args.Names;
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.Except("Label column '{0}' has type {1} but must be a float or a known-cardinality key", schema.Label.Name, t);
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             Host.Assert(score.Type.VectorSize > 0);
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("LogLossReduction", LogLossReduction);
         }
 
-        protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
+        private protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Runtime.Data
                 ClassNames = classNames;
             }
 
-            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Host.Assert(PassNum < 1);
                 Host.AssertValue(schema.Label);
@@ -871,7 +871,7 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new MultiClassClassifierEvaluator(Host, evalArgs);
         }
 
-        protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
+        private protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
         {
             Host.AssertValue(metrics);
 
@@ -901,7 +901,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(unweightedFold);
         }
 
-        protected override IDataView CombineOverallMetricsCore(IDataView[] metrics)
+        private protected override IDataView CombineOverallMetricsCore(IDataView[] metrics)
         {
             var overallList = new List<IDataView>();
 
@@ -940,7 +940,7 @@ namespace Microsoft.ML.Runtime.Data
             return base.CombineOverallMetricsCore(views);
         }
 
-        protected override IDataView GetOverallResultsCore(IDataView overall)
+        private protected override IDataView GetOverallResultsCore(IDataView overall)
         {
             // Change the name of the Top-k-accuracy column.
             if (_outputTopKAcc != null)
@@ -978,7 +978,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("LogLossReduction", MultiClassClassifierEvaluator.LogLossReduction);
         }
 
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
             Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
@@ -994,7 +994,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Multi-class evaluator adds four per-instance columns: "Assigned", "Top scores", "Top classes" and "Log-loss".
-        protected override IDataView GetPerInstanceMetricsCore(IDataView perInst, RoleMappedSchema schema)
+        private protected override IDataView GetPerInstanceMetricsCore(IDataView perInst, RoleMappedSchema schema)
         {
             // If the label column is a key without key values, convert it to I8, just for saving the per-instance
             // text file, since if there are different key counts the columns cannot be appended.

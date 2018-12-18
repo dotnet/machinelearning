@@ -261,7 +261,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// Create a row mapper based on regression scorer. Because matrix factorization predictor maps a tuple of a row ID (u) and a column ID (v)
         /// to the expected numerical value at the u-th row and the v-th column in the considered matrix, it is essentially a regressor.
         /// </summary>
-        public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);

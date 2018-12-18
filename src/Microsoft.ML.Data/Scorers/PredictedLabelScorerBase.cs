@@ -30,7 +30,8 @@ namespace Microsoft.ML.Runtime.Data
             public string ThresholdColumn = MetadataUtils.Const.ScoreValueKind.Score;
         }
 
-        protected sealed class BindingsImpl : BindingsBase
+        [BestFriend]
+        private protected sealed class BindingsImpl : BindingsBase
         {
             // Column index of the score column in Mapper's schema.
             public readonly int ScoreColumnIndex;
@@ -272,15 +273,18 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected readonly BindingsImpl Bindings;
-        protected override BindingsBase GetBindings() => Bindings;
+        [BestFriend]
+        private protected readonly BindingsImpl Bindings;
+        [BestFriend]
+        private protected sealed override BindingsBase GetBindings() => Bindings;
         public override Schema OutputSchema { get; }
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
-        protected PredictedLabelScorerBase(ScorerArgumentsBase args, IHostEnvironment env, IDataView data,
+        [BestFriend]
+        private protected PredictedLabelScorerBase(ScorerArgumentsBase args, IHostEnvironment env, IDataView data,
             ISchemaBoundMapper mapper, RoleMappedSchema trainSchema, string registrationName, string scoreColKind, string scoreColName,
             Func<ColumnType, bool> outputTypeMatches, Func<ColumnType, ISchemaBoundRowMapper, ColumnType> getPredColType)
             : base(env, data, registrationName, Contracts.CheckRef(mapper, nameof(mapper)).Bindable)
@@ -314,7 +318,8 @@ namespace Microsoft.ML.Runtime.Data
             OutputSchema = Schema.Create(Bindings);
         }
 
-        protected PredictedLabelScorerBase(IHost host, ModelLoadContext ctx, IDataView input,
+        [BestFriend]
+        private protected PredictedLabelScorerBase(IHost host, ModelLoadContext ctx, IDataView input,
             Func<ColumnType, bool> outputTypeMatches, Func<ColumnType, ISchemaBoundRowMapper, ColumnType> getPredColType)
             : base(host, ctx, input)
         {
@@ -327,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
             OutputSchema = Schema.Create(Bindings);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
             Bindings.Save(ctx);
@@ -360,7 +365,8 @@ namespace Microsoft.ML.Runtime.Data
             ctx.DeclareVar(derivedName, predictedLabelExpression);
         }
 
-        protected abstract JToken PredictedLabelPfa(string[] mapperOutputs);
+        [BestFriend]
+        private protected abstract JToken PredictedLabelPfa(string[] mapperOutputs);
 
         void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx) => SaveAsOnnxCore(ctx);
 

@@ -64,7 +64,8 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: the scorer currently ignores the 'suffix' argument from the base class. It should respect it.
         }
 
-        public static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        [BestFriend]
+        internal static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
@@ -82,7 +83,8 @@ namespace Microsoft.ML.Runtime.Data
             return scoredPipe;
         }
 
-        public static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
+        [BestFriend]
+        internal static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -116,7 +118,10 @@ namespace Microsoft.ML.Runtime.Data
             return Create(env, args, data, boundMapper, null);
         }
 
-        public static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
+        /// <summary>
+        /// Create method corresponding to <see cref="SignatureLoadModel"/>.
+        /// </summary>
+        private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             return new BindableMapper(env, ctx);
         }
