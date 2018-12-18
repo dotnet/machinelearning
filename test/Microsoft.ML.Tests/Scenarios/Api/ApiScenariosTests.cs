@@ -19,22 +19,22 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public class IrisData : IrisDataNoLabel
         {
-            [LoadColumn("4", name: "Label")]
+            [LoadColumn(4, name: "Label")]
             public string Label;
         }
 
         public class IrisDataNoLabel
         {
-            [LoadColumn("0")]
+            [LoadColumn(0)]
             public float SepalLength;
 
-            [LoadColumn("1")]
+            [LoadColumn(1)]
             public float SepalWidth;
 
-            [LoadColumn("2")]
+            [LoadColumn(2)]
             public float PetalLength;
 
-            [LoadColumn("3")]
+            [LoadColumn(3)]
             public float PetalWidth;
         }
 
@@ -46,10 +46,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public class SentimentData
         {
-            [LoadColumn("0", name: "Label")]
+            [LoadColumn(0, name: "Label")]
             public bool Sentiment;
 
-            [LoadColumn("1")]
+            [LoadColumn(1)]
             public string SentimentText;
         }
 

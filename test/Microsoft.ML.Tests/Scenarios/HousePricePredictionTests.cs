@@ -53,67 +53,67 @@ namespace Microsoft.ML.Scenarios
 
         public class HousePriceData
         {
-            [LoadColumn(range: "0")]
+            [LoadColumn(0)]
             public string Id;
 
-            [LoadColumn(range: "1")]
+            [LoadColumn(1)]
             public string Date;
 
-            [LoadColumn(range: "2", name: "Label")]
+            [LoadColumn(2, name: "Label")]
             public float Price;
 
-            [LoadColumn(range: "3")]
+            [LoadColumn(3)]
             public float Bedrooms;
 
-            [LoadColumn(range: "4")]
+            [LoadColumn(4)]
             public float Bathrooms;
 
-            [LoadColumn(range: "5")]
+            [LoadColumn(5)]
             public float SqftLiving;
 
-            [LoadColumn(range: "6")]
+            [LoadColumn(6)]
             public float SqftLot;
 
-            [LoadColumn(range: "7")]
+            [LoadColumn(7)]
             public float Floors;
 
-            [LoadColumn(range: "8")]
+            [LoadColumn(8)]
             public float Waterfront;
 
-            [LoadColumn(range: "9")]
+            [LoadColumn(9)]
             public float View;
 
-            [LoadColumn(range: "10")]
+            [LoadColumn(10)]
             public float Condition;
 
-            [LoadColumn(range: "11")]
+            [LoadColumn(11)]
             public float Grade;
 
-            [LoadColumn(range: "12")]
+            [LoadColumn(12)]
             public float SqftAbove;
 
-            [LoadColumn(range: "13")]
+            [LoadColumn(13)]
             public float SqftBasement;
 
-            [LoadColumn(range: "14")]
+            [LoadColumn(14)]
             public float YearBuilt;
 
-            [LoadColumn(range: "15")]
+            [LoadColumn(15)]
             public float YearRenovated;
 
-            [LoadColumn(range: "16")]
+            [LoadColumn(16)]
             public float Zipcode;
 
-            [LoadColumn(range: "17")]
+            [LoadColumn(17)]
             public float Lat;
 
-            [LoadColumn(range: "18")]
+            [LoadColumn(18)]
             public float Long;
 
-            [LoadColumn(range: "19")]
+            [LoadColumn(19)]
             public float SqftLiving15;
 
-            [LoadColumn(range: "20")]
+            [LoadColumn(20)]
             public float SqftLot15;
         }
 

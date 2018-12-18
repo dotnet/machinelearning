@@ -504,9 +504,9 @@ namespace Microsoft.ML.Scenarios
 
         public class SentimentData
         {
-            [LoadColumn(range: "0", name: "Label")]
+            [LoadColumn(0, name: "Label")]
             public float Sentiment;
-            [LoadColumn(range: "1")]
+            [LoadColumn(1)]
             public string SentimentText;
         }
 

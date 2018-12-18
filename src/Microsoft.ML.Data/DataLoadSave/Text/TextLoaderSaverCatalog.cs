@@ -73,33 +73,23 @@ namespace Microsoft.ML
                 var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
                 var mptr = memberInfo.GetCustomAttributes();
 
-                if (mappingAttr == null)
-                    throw Contracts.Except($"Field or property {memberInfo.Name} is missing ColumnAttribute");
-
-                var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
-                var name = mappingAttr.Name ?? mappingNameAttr?.Name ?? memberInfo.Name;
-
-                TextLoader.Range[] sources;
-                if (!TextLoader.Column.TryParseSourceEx(mappingAttr.Range, out sources))
-                    throw Contracts.Except($"{mappingAttr.Range} could not be parsed.");
-
-                Contracts.Assert(sources != null);
+                Contracts.Assert(mappingAttr != null, $"Field or property {memberInfo.Name} is missing the LoadColumn attribute");
 
                 var column = new TextLoader.Column();
-                column.Name = name;
-                column.Source = new TextLoader.Range[sources.Length];
+                column.Name = mappingAttr.Name ?? memberInfo.Name;
+                column.Source = mappingAttr.Sources.ToArray();
                 DataKind dk;
                 switch (memberInfo)
                 {
                     case FieldInfo field:
                         if (!DataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
-                            throw Contracts.Except($"Field {name} is of unsupported type.");
+                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
 
                         break;
 
                     case PropertyInfo property:
                         if (!DataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
-                            throw Contracts.Except($"Property {name} is of unsupported type.");
+                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
                         break;
 
                     default:
@@ -108,19 +98,6 @@ namespace Microsoft.ML
                 }
 
                 column.Type = dk;
-
-                for (int indexLocal = 0; indexLocal < column.Source.Length; indexLocal++)
-                {
-                    column.Source[indexLocal] = new TextLoader.Range
-                    {
-                        AllOther = sources[indexLocal].AllOther,
-                        AutoEnd = sources[indexLocal].AutoEnd,
-                        ForceVector = sources[indexLocal].ForceVector,
-                        VariableEnd = sources[indexLocal].VariableEnd,
-                        Max = sources[indexLocal].Max,
-                        Min = sources[indexLocal].Min
-                    };
-                }
 
                 columns[index] = column;
             }

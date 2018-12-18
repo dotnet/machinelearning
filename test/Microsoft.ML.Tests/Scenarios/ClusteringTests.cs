@@ -47,16 +47,16 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
 
         public class NewsData
         {
-            [LoadColumn(range: "0")]
+            [LoadColumn(0)]
             public string Id;
 
-            [LoadColumn(range: "1", name: "Label")]
+            [LoadColumn(1, name: "Label")]
             public string Topic;
 
-            [LoadColumn(range: "2")]
+            [LoadColumn(2)]
             public string Subject;
 
-            [LoadColumn(range: "3")]
+            [LoadColumn(3)]
             public string Content;
         }
 

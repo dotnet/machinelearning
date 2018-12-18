@@ -582,10 +582,9 @@ namespace Microsoft.ML.Scenarios
 
         public class MNISTData
         {
-            [LoadColumn("0")]
+            [Column("0")]
             public long Label;
 
-            [LoadColumn(range: "1-784")]
             [VectorType(784)]
             public float[] Placeholder;
         }

@@ -146,10 +146,10 @@ namespace Microsoft.ML.Benchmarks
 
     public class SentimentData
     {
-        [ColumnName("Label"), LoadColumn("0")]
+        [ColumnName("Label"), LoadColumn(0)]
         public bool Sentiment;
 
-        [LoadColumn("1")]
+        [LoadColumn(1)]
         public string SentimentText;
     }
 

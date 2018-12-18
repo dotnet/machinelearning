@@ -70,22 +70,61 @@ namespace Microsoft.ML.Data
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class LoadColumnAttribute : Attribute
     {
-        public LoadColumnAttribute(string range = null,
-            string name = null,
-            bool loadInverseRange = false,
-            string start=null,
-            string end = null,
-            int[] columnsIndexes = null,
-            int[] inverseColumnsIndexes = null)
+
+        public LoadColumnAttribute(int ordinal, string name = null, bool loadAllOthers = false)
         {
-            Range = range;
+            Start = ordinal.ToString();
+            Sources = new List<TextLoader.Range>();
+            var range = new TextLoader.Range(ordinal);
+            range.AllOther = loadAllOthers;
+            Sources.Add(range);
+        }
+
+        public LoadColumnAttribute(string start, string end = null, string name = null, int[] columnIndexes = null)
+        {
+            Name = name;
+            Start = start;
+            End = end;
+            ColumnIndexes = columnIndexes;
+
+            Sources = new List<TextLoader.Range>();
+
+            bool hasEnd = int.TryParse(end, out int endIndex);
+            var range = hasEnd ? new TextLoader.Range(int.Parse(start), endIndex) : new TextLoader.Range(int.Parse(start));
+            Sources.Add(range);
+
+            if (columnIndexes != null)
+            {
+                foreach (var col in columnIndexes)
+                    Sources.Add(new TextLoader.Range(col));
+            }
+        }
+
+        // REVIEW : AllOther seems to work only for a single column. Verify.
+        public LoadColumnAttribute(string start, string end, string name = null, bool loadInverseRange = false)
+        {
             Name = name;
             LoadInverseRange = loadInverseRange;
             Start = start;
             End = end;
-            ColumnsIndexes = columnsIndexes;
-            InverseColumnsIndexes = inverseColumnsIndexes;
+
+            Sources = new List<TextLoader.Range>();
+            var range = new TextLoader.Range(int.Parse(start), int.Parse(end));
+            range.AllOther = loadInverseRange;
+            Sources.Add(range);
         }
+
+        public LoadColumnAttribute(int[] columnIndexes, string name = null)
+        {
+            Name = name;
+            ColumnIndexes = columnIndexes;
+
+            Sources = new List<TextLoader.Range>();
+            foreach (var col in columnIndexes)
+                Sources.Add(new TextLoader.Range(col));
+        }
+
+        internal List<TextLoader.Range> Sources;
 
         /// <summary>
         /// Column name.
@@ -93,29 +132,28 @@ namespace Microsoft.ML.Data
         public string Name { get; }
 
         /// <summary>
-        /// Contains the position of the column in the files.
-        /// It can be a single column index, or a range.
-        /// Examples of range: if we want to include just column
-        /// with index 1 we can write the range as 1, if we want to include
-        /// columns 1 to 10 then we can write the range as 1-10 and we want to include all the
-        /// columns from column with index 1 until end then we can write 1-*.
-        ///
-        /// This takes sequence of ranges that are comma seperated, example:
-        /// 1,2-5,10-*.
-        /// All the other parameters are alternatives to this one.
+        /// The optional start index for loading a contiguous range of columns, or the single index in the case
+        /// of loading a single column.
+        /// Either this parameters, or the <see cref="ColumnIndexes"/> should be specified.
         /// </summary>
-        public string Range { get; }
+        public string Start { get; }
 
         /// <summary>
-        /// If this is set to true, the columns defined in the range will be
-        /// excluded from loading, and all the other ones will be the ones loaded.
+        /// Optional field, used to set the dataset columns range end index when loading a range of columns.
+        /// </summary>
+        public string End { get; }
+
+        /// <summary>
+        /// Optional field used to specify the distinct indices of the dataset columns that need to be loaded, and mapped to this
+        /// <see cref="TextLoader.Column"/>.
+        /// </summary>
+        public int[] ColumnIndexes { get; }
+
+        /// <summary>
+        /// If this is set to true, the columns defined in the range through either the <see cref="Start"/>, <see cref="End"/> or the
+        /// <see cref="ColumnIndexes"/> will be excluded from loading, and all the other ones will loaded and mapped to the <see cref="TextLoader.Column"/>.
         /// </summary>
         public bool LoadInverseRange { get; }
-
-        public string Start { get; }
-        public string End { get; }
-        public int[] ColumnsIndexes { get; }
-        public int[] InverseColumnsIndexes { get; }
     }
 
     /// <summary>

@@ -117,19 +117,19 @@ namespace Microsoft.ML.Scenarios
 
         public class IrisData
         {
-            [LoadColumn("0")]
+            [LoadColumn(0)]
             public float Label;
 
-            [LoadColumn("1")]
+            [LoadColumn(1)]
             public float SepalLength;
 
-            [LoadColumn("2")]
+            [LoadColumn(2)]
             public float SepalWidth;
 
-            [LoadColumn("3")]
+            [LoadColumn(3)]
             public float PetalLength;
 
-            [LoadColumn("4")]
+            [LoadColumn(4)]
             public float PetalWidth;
         }
 
