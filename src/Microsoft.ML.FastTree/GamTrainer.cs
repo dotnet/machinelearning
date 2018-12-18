@@ -840,7 +840,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             double value = Intercept;
             var featuresValues = features.GetValues();
-            Console.WriteLine(string.Join("\t", featuresValues.ToArray()));
+            //Console.WriteLine(string.Join("\t", featuresValues.ToArray()));
 
             if (features.IsDense)
             {
@@ -1098,10 +1098,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 var numLeaves = effects.Length;
                 var numInternalNodes = numLeaves - 1;
 
-                var splitFeature = new int[numInternalNodes];
-                var splitGain = new double[numInternalNodes];
+                var splitFeatures = new int[numInternalNodes];
                 var rawThresholds = thresholds.Take(numInternalNodes).Select(x => (float)x).ToArray();
-                var defaultValueForMissing = new float[numInternalNodes];
                 var binIndices = Enumerable.Range(0, numInternalNodes).ToArray();
 
                 // Create a long tree
@@ -1111,21 +1109,46 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 double[] leafValues;
 
-                if (i == 0)
-                    leafValues = effects.Select(x => x + Intercept).ToArray();
-                else
-                    leafValues = effects;
+                //if (i == 0)
+                //    leafValues = effects.Select(x => x + Intercept).ToArray();
+                //else
+                //    leafValues = effects;
 
-                for (int j = 0; j < splitFeature.Length; j++)
-                    splitFeature[j] = i;
+                leafValues = effects;
 
-                var tree = RegressionTree.Create(numLeaves, splitFeature, splitGain,
-                    rawThresholds, defaultValueForMissing, lteChild, gtChild.ToArray(), leafValues,
+                for (int j = 0; j < splitFeatures.Length; j++)
+                    splitFeatures[j] = i;
+
+                var tree = RegressionTree.Create(
+                    numLeaves: numLeaves,
+                    splitFeatures: splitFeatures,
+                    rawThresholds: rawThresholds,
+                    lteChild: lteChild,
+                    gtChild: gtChild.ToArray(),
+                    leafValues: leafValues,
+                    // Ignored arguments
+                    splitGain: new double[numInternalNodes],
+                    defaultValueForMissing: new float[numInternalNodes],
                     categoricalSplitFeatures: new int[numInternalNodes][],
                     categoricalSplit: new bool[numInternalNodes]);
 
                 ensemble.AddTree(tree);
             }
+
+            var interceptTree = RegressionTree.Create(
+                numLeaves: 2,
+                splitFeatures: new [] { 0 },
+                rawThresholds: new [] { 0f },
+                lteChild: new[] { ~0 },
+                gtChild: new[] { ~1 },
+                leafValues: new[] { Intercept, Intercept },
+                // Ignored arguments
+                splitGain: new double[1],
+                defaultValueForMissing: new float[1],
+                categoricalSplitFeatures: new int[1][],
+                categoricalSplit: new bool[1]);
+
+            ensemble.AddTree(interceptTree);
 
             var ini = ensemble.ToTreeEnsembleIni(
                 new FeaturesToContentMap(schema),
