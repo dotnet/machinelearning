@@ -347,14 +347,14 @@ namespace Microsoft.ML.Transforms.Projections
             var omega = new float[_numColumns][][];
             var mean = new float[_numColumns][];
             var oversampledRank = new int[_numColumns];
-            var rnd = Host.Rand;
-            Double totalMemoryUsageEstimate = 0;
+            double totalMemoryUsageEstimate = 0;
             for (int iinfo = 0; iinfo < _numColumns; iinfo++)
             {
+                var rnd = columns[iinfo].Seed == null ? Host.Rand : new Random(columns[iinfo].Seed.Value);
                 oversampledRank[iinfo] = Math.Min(transformInfos[iinfo].Rank + columns[iinfo].Oversampling, transformInfos[iinfo].Dimension);
 
                 //exact: (size of the 2 big matrices + other minor allocations) / (2^30)
-                Double colMemoryUsageEstimate = 2.0 * transformInfos[iinfo].Dimension * oversampledRank[iinfo] * sizeof(float) / 1e9;
+                double colMemoryUsageEstimate = 2.0 * transformInfos[iinfo].Dimension * oversampledRank[iinfo] * sizeof(float) / 1e9;
                 totalMemoryUsageEstimate += colMemoryUsageEstimate;
                 if (colMemoryUsageEstimate > 2)
                 {
