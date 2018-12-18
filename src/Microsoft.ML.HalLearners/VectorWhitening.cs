@@ -45,6 +45,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
     public sealed class VectorWhiteningTransformer : OneToOneTransformerBase
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const WhiteningKind Kind = WhiteningKind.Zca;
