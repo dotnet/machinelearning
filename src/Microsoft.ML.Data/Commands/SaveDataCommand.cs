@@ -144,7 +144,7 @@ namespace Microsoft.ML.Runtime.Data
             var cols = new List<int>();
             for (int i = 0; i < data.Schema.Count; i++)
             {
-                if (!Args.KeepHidden && data.Schema.IsHidden(i))
+                if (!Args.KeepHidden && data.Schema[i].IsHidden)
                     continue;
                 var type = data.Schema.GetColumnType(i);
                 if (saver.IsColumnSavable(type))
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
             var cols = new List<int>();
             for (int i = 0; i < view.Schema.ColumnCount; i++)
             {
-                if (!keepHidden && view.Schema.IsHidden(i))
+                if (!keepHidden && view.Schema[i].IsHidden)
                     continue;
                 var type = view.Schema.GetColumnType(i);
                 if (saver.IsColumnSavable(type))

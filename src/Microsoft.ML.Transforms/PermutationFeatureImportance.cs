@@ -51,7 +51,7 @@ namespace Microsoft.ML.Transforms
                 data.Schema.TryGetColumnIndex(features, out int featuresColumnIndex);
 
                 ch.Info("Number of slots: " + numSlots);
-                if (data.Schema.HasSlotNames(featuresColumnIndex, numSlots))
+                if (data.Schema[featuresColumnIndex].HasSlotNames(numSlots))
                     data.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, featuresColumnIndex, ref slotNames);
 
                 if (slotNames.Length != numSlots)

@@ -220,12 +220,11 @@ parameter.
 
 ## How to create an entry point for an existing ML.NET component
 
-The steps to take, to create an entry point for an existing ML.NET component, are:
-1. Add the `SignatureEntryPointModule` signature to the `LoadableClass` assembly attribute.  
+1. Add a `LoadableClass` assembly attribute with the `SignatureEntryPointModule` signature as shown [here](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.StandardLearners/Standard/LogisticRegression/LogisticRegression.cs#L27).  
 2. Create a public static method, that:
-    a. Takes as input, among others, an object representing the arguments of the component you want to expose. 
-    b. Initializes and run the components, returning one of the nested classes of  `Microsoft.ML.Runtime.EntryPoints.CommonOutputs`
-    c. Is annotated with the `TlcModule.EntryPoint` attribute 
+    1. Takes an object representing the arguments of the component you want to expose as shown [here](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.StandardLearners/Standard/LogisticRegression/LogisticRegression.cs#L414)
+    2. Initializes and runs the component, returning one of the nested classes of  [`Microsoft.ML.Runtime.EntryPoints.CommonOutputs`](https://github.com/dotnet/machinelearning/blob/master/src/Microsoft.ML.Data/EntryPoints/CommonOutputs.cs)
+    3. Is annotated with the [`TlcModule.EntryPoint`](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.StandardLearners/Standard/LogisticRegression/LogisticRegression.cs#L407) attribute
 
-Based on the type of entry point being created, there are further conventions on the name of the method, for example, the Trainers entry points are typically called: 'TrainMultiClass', 'TrainBinary' etc, based on the task. 
-Look at [OnlineGradientDescent](../../src/Microsoft.ML.StandardLearners/Standard/Online/OnlineGradientDescent.cs) for an example of a component and its entry point. 
+For an example of a transformer as an entrypoint, see [OneHotVectorizer](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.Transforms/OneHotEncoding.cs#L283). 
+For a trainer-estimator, see [LogisticRegression](https://github.com/dotnet/machinelearning/blob/9db16c85888e7163c671543faee6ba1f47015d68/src/Microsoft.ML.StandardLearners/Standard/LogisticRegression/LogisticRegression.cs#L407).

@@ -173,7 +173,7 @@ namespace Microsoft.ML.Core.Data
 
             for (int iCol = 0; iCol < schema.Count; iCol++)
             {
-                if (!schema.IsHidden(iCol))
+                if (!schema[iCol].IsHidden)
                 {
                     // First create the metadata.
                     var mCols = new List<Column>();

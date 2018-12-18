@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.Data
             var cols = new List<int>();
             for (int i = 0; i < loader.Schema.Count; i++)
             {
-                if (!Args.KeepHidden && loader.Schema.IsHidden(i))
+                if (!Args.KeepHidden && loader.Schema[i].IsHidden)
                     continue;
                 if (!(outputAllColumns || ShouldAddColumn(loader.Schema, i, maxScoreId, outputNamesAndLabels)))
                     continue;

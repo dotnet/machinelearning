@@ -400,7 +400,7 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int c = 0; c < schema.ColumnCount; ++c)
             {
                 ColumnType type = schema.GetColumnType(c);
-                if (saver.IsColumnSavable(type) && (hidden || !schema.IsHidden(c)))
+                if (saver.IsColumnSavable(type) && (hidden || !schema[c].IsHidden))
                     savable.Add(c);
             }
 

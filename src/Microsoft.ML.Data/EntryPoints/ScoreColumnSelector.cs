@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             List<int> indices = new List<int>();
             for (int i = 0; i < view.Schema.ColumnCount; i++)
             {
-                if (view.Schema.IsHidden(i))
+                if (view.Schema[i].IsHidden)
                     continue;
                 if (!ShouldAddColumn(view.Schema, i, input.ExtraColumns, maxScoreId))
                     continue;
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     var copyCols = new List<(string Source, string Name)>();
                     for (int i = 0; i < input.Data.Schema.ColumnCount; i++)
                     {
-                        if (input.Data.Schema.IsHidden(i))
+                        if (input.Data.Schema[i].IsHidden)
                             continue;
                         if (!ShouldAddColumn(input.Data.Schema, i, null, maxScoreId))
                             continue;

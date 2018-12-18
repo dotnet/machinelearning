@@ -76,16 +76,16 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="schema">The role-mapped schema to query</param>
         /// <returns>Returns null if <paramref name="schema"/> does not have <see cref="RoleMappedSchema.Feature"/>
-        /// defined, and otherwise returns a Boolean value as returned from <see cref="MetadataUtils.IsNormalized(Schema, int)"/>
+        /// defined, and otherwise returns a Boolean value as returned from <see cref="MetadataUtils.IsNormalized(Schema.Column)"/>
         /// on that feature column</returns>
-        /// <seealso cref="MetadataUtils.IsNormalized(Schema, int)"/>
+        /// <seealso cref="MetadataUtils.IsNormalized(Schema.Column)"/>
         public static bool? FeaturesAreNormalized(this RoleMappedSchema schema)
         {
             // REVIEW: The role mapped data has the ability to have multiple columns fill the role of features, which is
             // useful in some trainers that are nonetheless parameteric and can therefore benefit from normalization.
             Contracts.CheckValue(schema, nameof(schema));
             var featInfo = schema.Feature;
-            return featInfo == null ? default(bool?) : schema.Schema.IsNormalized(featInfo.Index);
+            return featInfo == null ? default(bool?) : schema.Schema[featInfo.Index].IsNormalized();
         }
     }
 
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!schema.TryGetColumnIndex(column.Source, out int col))
                     throw env.ExceptUserArg(nameof(input.Column), $"Column '{column.Source}' does not exist.");
-                if (!schema.IsNormalized(col))
+                if (!schema[col].IsNormalized())
                     columnsToNormalize.Add(column);
             }
 

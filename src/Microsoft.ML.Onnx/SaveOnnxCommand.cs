@@ -232,7 +232,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             //Add graph outputs.
             for (int i = 0; i < end.Schema.ColumnCount; ++i)
             {
-                if (end.Schema.IsHidden(i))
+                if (end.Schema[i].IsHidden)
                     continue;
 
                 var idataviewColumnName = end.Schema.GetColumnName(i);

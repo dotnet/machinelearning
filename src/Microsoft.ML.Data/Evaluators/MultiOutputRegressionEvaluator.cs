@@ -697,7 +697,7 @@ namespace Microsoft.ML.Runtime.Data
                 int labelCount = 0;
                 for (int i = 0; i < fold.Schema.ColumnCount; i++)
                 {
-                    if (fold.Schema.IsHidden(i) || (needWeighted && i == isWeightedCol) ||
+                    if (fold.Schema[i].IsHidden || (needWeighted && i == isWeightedCol) ||
                         (hasStrats && (i == stratCol || i == stratVal)))
                     {
                         continue;

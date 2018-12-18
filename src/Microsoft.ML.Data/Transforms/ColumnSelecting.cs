@@ -525,7 +525,7 @@ namespace Microsoft.ML.Transforms
                     var columnDict = new Dictionary<string, List<int>>();
                     for (int colIdx = 0; colIdx < inputSchema.ColumnCount; ++colIdx)
                     {
-                        if (!keepHidden && inputSchema.IsHidden(colIdx))
+                        if (!keepHidden && inputSchema[colIdx].IsHidden)
                             continue;
 
                         var columnName = inputSchema[colIdx].Name;
