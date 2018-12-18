@@ -241,7 +241,7 @@ namespace Microsoft.ML
             MultiClassClassifierMetrics a, MultiClassClassifierMetrics b)
         {
             if (a.TopK != b.TopK)
-                Contracts.Assert(a.TopK== b.TopK, "TopK to compare must be the same length.");
+                Contracts.Assert(a.TopK == b.TopK, "TopK to compare must be the same length.");
 
             var perClassLogLoss = ComputeArrayDeltas(a.PerClassLogLoss, b.PerClassLogLoss);
 
@@ -368,12 +368,18 @@ namespace Microsoft.ML
         /// <summary>
         /// Get the standard deviation for the metric
         /// </summary>
-        public double StandardDeviation => (_statistic.RawCount <= 2) ? 0 : _statistic.SampleStdDev;
+        public double StandardDeviation => (_statistic.RawCount <= 1) ? 0 : _statistic.SampleStdDev;
 
         /// <summary>
         /// Get the standard error of the mean for the metric
         /// </summary>
-        public double StandardError => (_statistic.RawCount <= 2) ? 0 : _statistic.StandardErrorMean;
+        public double StandardError => (_statistic.RawCount <= 1) ? 0 : _statistic.StandardErrorMean;
+
+        /// <summary>
+        /// Get the count for the number of samples used. Useful for interpreting
+        /// the standard deviation and the stardard error and building confidence intervals.
+        /// </summary>
+        public int Count => (int) _statistic.RawCount;
 
         internal MetricStatistics()
         {

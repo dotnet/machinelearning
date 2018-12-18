@@ -57,6 +57,59 @@ namespace Microsoft.ML.Tests
         }
 
         /// <summary>
+        /// Test PFI Regression Standard Deviation and Standard Error for Dense Features
+        /// </summary>
+        [Fact]
+        public void TestPfiRegressionStandardDeviationAndErrorOnDenseFeatures()
+        {
+            var data = GetDenseDataset();
+            var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
+            var pfi = ML.Regression.PermutationFeatureImportance(model, data, permutationCount: 20);
+            // Keep the permutation count high so fluctuations are kept to a minimum
+            //  but not high enough to slow down the tests
+            //  (fluctuations lead to random test failures)
+
+            // Pfi Indices:
+            // X1: 0
+            // X2Important: 1
+            // X3: 2
+            // X4Rand: 3
+
+            // For these metrics, the magnitude of the difference will be greatest for 1, least for 3
+            // Stardard Deviation will scale with the magnitude of the measure
+            Assert.True(MinDeltaIndex(pfi, m => m.L1.StandardDeviation) == 3);
+            Assert.True(MaxDeltaIndex(pfi, m => m.L1.StandardDeviation) == 1);
+
+            Assert.True(MinDeltaIndex(pfi, m => m.L2.StandardDeviation) == 3);
+            Assert.True(MaxDeltaIndex(pfi, m => m.L2.StandardDeviation) == 1);
+
+            Assert.True(MinDeltaIndex(pfi, m => m.Rms.StandardDeviation) == 3);
+            Assert.True(MaxDeltaIndex(pfi, m => m.Rms.StandardDeviation) == 1);
+
+            Assert.True(MaxDeltaIndex(pfi, m => m.RSquared.StandardDeviation) == 1);
+            Assert.True(MinDeltaIndex(pfi, m => m.RSquared.StandardDeviation) == 3);
+
+            // Stardard Error will scale with the magnitude of the measure (as it's SD/sqrt(N))
+            Assert.True(MinDeltaIndex(pfi, m => m.L1.StandardError) == 3);
+            Assert.True(MaxDeltaIndex(pfi, m => m.L1.StandardError) == 1);
+
+            Assert.True(MinDeltaIndex(pfi, m => m.L2.StandardError) == 3);
+            Assert.True(MaxDeltaIndex(pfi, m => m.L2.StandardError) == 1);
+
+            Assert.True(MinDeltaIndex(pfi, m => m.Rms.StandardError) == 3);
+            Assert.True(MaxDeltaIndex(pfi, m => m.Rms.StandardError) == 1);
+
+            Assert.True(MaxDeltaIndex(pfi, m => m.RSquared.StandardError) == 1);
+            Assert.True(MinDeltaIndex(pfi, m => m.RSquared.StandardError) == 3);
+
+            // And test that the Standard Deviation and Standard Error are related as we expect
+            Assert.True(MathUtils.AlmostEqual((float)pfi[0].Rms.StandardError,
+                (float)(pfi[0].Rms.StandardDeviation / Math.Sqrt(pfi[0].Rms.Count))));
+
+            Done();
+        }
+
+        /// <summary>
         /// Test PFI Regression for Sparse Features
         /// </summary>
         [Fact]
