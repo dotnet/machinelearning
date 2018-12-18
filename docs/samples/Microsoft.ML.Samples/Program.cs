@@ -53,11 +53,16 @@ namespace Microsoft.ML.Samples
                         Column = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, 1, 9),
+                            new TextLoader.Column("F1", DataKind.R4, 1),
+                            new TextLoader.Column("F3", DataKind.R4, 3),
+                            new TextLoader.Column("F6", DataKind.R4, 6),
+                            new TextLoader.Column("F7", DataKind.R4, 7),
+                            new TextLoader.Column("F9", DataKind.R4, 9),
                         }
                     }).Read(@"F:\temp\ini\data\breast-cancer-noNan.txt");
 
-            var pipeline = mlContext.Regression.Trainers.GeneralizedAdditiveModels();
+            var pipeline = mlContext.Transforms.Concatenate("Features", "F1", "F9", "F7", "F6")
+                .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels());
 
             var model = pipeline.Fit(idv);
             var data = model.Transform(idv);
@@ -66,8 +71,8 @@ namespace Microsoft.ML.Samples
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
 
-            using (StreamWriter writer = new StreamWriter(@"F:\temp\ini\model7.ini"))
-                model.Model.SaveAsIni(writer, roleMappedSchema);
+            using (StreamWriter writer = new StreamWriter(@"F:\temp\ini\model1.ini"))
+                model.LastTransformer.Model.SaveAsIni(writer, roleMappedSchema);
 
             var results = mlContext.Regression.Evaluate(data);
         }
