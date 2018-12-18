@@ -93,20 +93,6 @@ namespace Microsoft.ML
             }
 
             [Obsolete]
-            public Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input, Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.TransformModelArrayConverter", input, output));
-            }
-
-            [Obsolete]
             public Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input)
             {
                 var output = new Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output();
@@ -146,20 +132,6 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input, Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.BinaryClassificationEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input, Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.BinaryCrossValidator", input, output));
             }
 
             [Obsolete]
@@ -496,20 +468,6 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Legacy.Models.Summarizer input, Microsoft.ML.Legacy.Models.Summarizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.Summarizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input, Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.TrainTestBinaryEvaluator", input, output));
             }
 
             [Obsolete]
@@ -2070,7 +2028,7 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Create an array variable of IPredictorModel
+        /// Create an array variable of PredictorModel
         /// </summary>
         [Obsolete]
         public sealed partial class PredictorModelArrayConverter
@@ -2357,36 +2315,6 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Legacy.Data
-    {
-
-        /// <summary>
-        /// Create an array variable of ITransformModel
-        /// </summary>
-        [Obsolete]
-        public sealed partial class TransformModelArrayConverter
-        {
-
-
-            /// <summary>
-            /// The models
-            /// </summary>
-            [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// The model array
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
-
-            }
-        }
-    }
-
     namespace Legacy.Models
     {
 
@@ -2636,108 +2564,6 @@ namespace Microsoft.ML
                 /// Per instance metrics dataset
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-    }
-
-    namespace Legacy.Models
-    {
-
-        [Obsolete]
-        public sealed partial class CrossValidationBinaryMacroSubGraphInput
-        {
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-        }
-
-        [Obsolete]
-        public sealed partial class CrossValidationBinaryMacroSubGraphOutput
-        {
-            /// <summary>
-            /// The model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-        }
-
-        /// <summary>
-        /// Cross validation for binary classification
-        /// </summary>
-        [Obsolete]
-        public sealed partial class BinaryCrossValidator
-        {
-
-
-            /// <summary>
-            /// The data set
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The training subgraph
-            /// </summary>
-            [Obsolete]
-            public Experiment Nodes { get; set; }
-
-            /// <summary>
-            /// The training subgraph inputs
-            /// </summary>
-            [Obsolete]
-            public CrossValidationBinaryMacroSubGraphInput Inputs { get; set; } = new CrossValidationBinaryMacroSubGraphInput();
-
-            /// <summary>
-            /// The training subgraph outputs
-            /// </summary>
-            [Obsolete]
-            public CrossValidationBinaryMacroSubGraphOutput Outputs { get; set; } = new CrossValidationBinaryMacroSubGraphOutput();
-
-            /// <summary>
-            /// Column to use for stratification
-            /// </summary>
-            [Obsolete]
-            public string StratificationColumn { get; set; }
-
-            /// <summary>
-            /// Number of folds in k-fold cross-validation
-            /// </summary>
-            [Obsolete]
-            public int NumFolds { get; set; } = 2;
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// Warning dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Overall metrics dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Per instance metrics dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Confusion matrix dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
 
             }
         }
@@ -4512,102 +4338,6 @@ namespace Microsoft.ML
                 /// The training set statistics. Note that this output can be null.
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> Stats { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-    }
-
-    namespace Legacy.Models
-    {
-
-        [Obsolete]
-        public sealed partial class TrainTestBinaryMacroSubGraphInput
-        {
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-        }
-
-        [Obsolete]
-        public sealed partial class TrainTestBinaryMacroSubGraphOutput
-        {
-            /// <summary>
-            /// The model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-        }
-
-        /// <summary>
-        /// Train test for binary classification
-        /// </summary>
-        [Obsolete]
-        public sealed partial class TrainTestBinaryEvaluator
-        {
-
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The data to be used for testing
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The training subgraph
-            /// </summary>
-            [Obsolete]
-            public Experiment Nodes { get; set; }
-
-            /// <summary>
-            /// The training subgraph inputs
-            /// </summary>
-            [Obsolete]
-            public TrainTestBinaryMacroSubGraphInput Inputs { get; set; } = new TrainTestBinaryMacroSubGraphInput();
-
-            /// <summary>
-            /// The training subgraph outputs
-            /// </summary>
-            [Obsolete]
-            public TrainTestBinaryMacroSubGraphOutput Outputs { get; set; } = new TrainTestBinaryMacroSubGraphOutput();
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// Warning dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Overall metrics dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Per instance metrics dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Confusion matrix dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
             }
         }

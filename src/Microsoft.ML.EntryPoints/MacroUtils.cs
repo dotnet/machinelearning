@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public PredictorModel[] OutputModel;
         }
 
-        [TlcModule.EntryPoint(Desc = "Create an array variable of IPredictorModel", Name = "Data.PredictorModelArrayConverter")]
+        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(PredictorModel), Name = "Data.PredictorModelArrayConverter")]
         public static ArrayIPredictorModelOutput MakeArray(IHostEnvironment env, ArrayIPredictorModelInput input)
         {
             var result = new ArrayIPredictorModelOutput
