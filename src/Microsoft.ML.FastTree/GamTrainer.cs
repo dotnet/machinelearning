@@ -1119,35 +1119,21 @@ namespace Microsoft.ML.Trainers.FastTree
                 for (int j = 0; j < splitFeatures.Length; j++)
                     splitFeatures[j] = i;
 
-                var tree = RegressionTree.Create(
-                    numLeaves: numLeaves,
-                    splitFeatures: splitFeatures,
-                    rawThresholds: rawThresholds,
-                    lteChild: lteChild,
-                    gtChild: gtChild.ToArray(),
-                    leafValues: leafValues,
-                    // Ignored arguments
-                    splitGain: new double[numInternalNodes],
-                    defaultValueForMissing: new float[numInternalNodes],
-                    categoricalSplitFeatures: new int[numInternalNodes][],
-                    categoricalSplit: new bool[numInternalNodes]);
-
+                var tree = CreateRegressionTree(numLeaves, splitFeatures, rawThresholds, lteChild, gtChild.ToArray(), leafValues);
                 ensemble.AddTree(tree);
             }
 
-            var interceptTree = RegressionTree.Create(
+            // Tried adding the intercept as the bias term for the final ini aggregator,
+            // but that didn't seem to have any effects during testing.
+            // Adding the intercept as a dummy tree with the output values being the model intercept,
+            // works for reaching parity.
+            var interceptTree = CreateRegressionTree(
                 numLeaves: 2,
-                splitFeatures: new [] { 0 },
-                rawThresholds: new [] { 0f },
+                splitFeatures: new[] { 0 },
+                rawThresholds: new[] { 0f },
                 lteChild: new[] { ~0 },
                 gtChild: new[] { ~1 },
-                leafValues: new[] { Intercept, Intercept },
-                // Ignored arguments
-                splitGain: new double[1],
-                defaultValueForMissing: new float[1],
-                categoricalSplitFeatures: new int[1][],
-                categoricalSplit: new bool[1]);
-
+                leafValues: new[] { Intercept, Intercept });
             ensemble.AddTree(interceptTree);
 
             var ini = ensemble.ToTreeEnsembleIni(
@@ -1159,6 +1145,23 @@ namespace Microsoft.ML.Trainers.FastTree
             writer.Write(ini);
         }
 
+        private static RegressionTree CreateRegressionTree(
+            int numLeaves, int[] splitFeatures, float[] rawThresholds, int[] lteChild, int[] gtChild, double[] leafValues)
+        {
+            var numInternalNodes = numLeaves - 1;
+            return RegressionTree.Create(
+                numLeaves: numLeaves,
+                splitFeatures: splitFeatures,
+                rawThresholds: rawThresholds,
+                lteChild: lteChild,
+                gtChild: gtChild.ToArray(),
+                leafValues: leafValues,
+                // Ignored arguments
+                splitGain: new double[numInternalNodes],
+                defaultValueForMissing: new float[numInternalNodes],
+                categoricalSplitFeatures: new int[numInternalNodes][],
+                categoricalSplit: new bool[numInternalNodes]);
+        }
         internal sealed class VisualizationCommand : DataCommand.ImplBase<VisualizationCommand.Arguments>
         {
             public const string Summary = "Loads a model trained with a GAM learner, and starts an interactive web session to visualize it.";
