@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.TensorFlow.StaticPipe;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
 using System;
