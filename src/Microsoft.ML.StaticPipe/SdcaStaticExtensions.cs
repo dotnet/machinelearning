@@ -241,7 +241,7 @@ namespace Microsoft.ML.StaticPipe
                     float? l1Threshold = null,
                     int? maxIterations = null,
                     Action<SdcaMultiClassTrainer.Arguments> advancedSettings = null,
-                    Action<MulticlassLogisticRegressionPredictor> onFit = null)
+                    Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));

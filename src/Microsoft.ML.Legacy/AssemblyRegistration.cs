@@ -41,11 +41,11 @@ namespace Microsoft.ML.Runtime
             Assembly dataAssembly = typeof(TextLoader).Assembly; // ML.Data
             AssemblyName dataAssemblyName = dataAssembly.GetName();
 
-            _ = typeof(EnsemblePredictor).Assembly; // ML.Ensemble
+            _ = typeof(EnsembleModelParameters).Assembly; // ML.Ensemble
             _ = typeof(FastTreeBinaryModelParameters).Assembly; // ML.FastTree
             _ = typeof(KMeansModelParameters).Assembly; // ML.KMeansClustering
             _ = typeof(Maml).Assembly; // ML.Maml
-            _ = typeof(PcaPredictor).Assembly; // ML.PCA
+            _ = typeof(PcaModelParameters).Assembly; // ML.PCA
             _ = typeof(SweepCommand).Assembly; // ML.Sweeper
             _ = typeof(OneHotEncodingTransformer).Assembly; // ML.Transforms
 

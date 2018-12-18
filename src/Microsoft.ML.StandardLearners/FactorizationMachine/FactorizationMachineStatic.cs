@@ -43,7 +43,7 @@ namespace Microsoft.ML.StaticPipe
             int numIterations = 5,
             int numLatentDimensions = 20,
             Action<FieldAwareFactorizationMachineTrainer.Arguments> advancedSettings = null,
-            Action<FieldAwareFactorizationMachinePredictor> onFit = null)
+            Action<FieldAwareFactorizationMachineModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckNonEmpty(features, nameof(features));

@@ -85,8 +85,8 @@ namespace Microsoft.ML.Runtime.Ensemble
         private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
         {
             if (models.All(m => m.Predictor is TDistPredictor))
-                return new EnsembleDistributionPredictor(Host, PredictionKind, CreateModels<TDistPredictor>(models), Combiner);
-            return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
+                return new EnsembleDistributionModelParameters(Host, PredictionKind, CreateModels<TDistPredictor>(models), Combiner);
+            return new EnsembleModelParameters(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }
 
         public IPredictor CombineModels(IEnumerable<IPredictor> models)
@@ -98,12 +98,12 @@ namespace Microsoft.ML.Runtime.Ensemble
             if (p is TDistPredictor)
             {
                 Host.CheckParam(models.All(m => m is TDistPredictor), nameof(models));
-                return new EnsembleDistributionPredictor(Host, p.PredictionKind,
+                return new EnsembleDistributionModelParameters(Host, p.PredictionKind,
                     models.Select(k => new FeatureSubsetModel<TDistPredictor>((TDistPredictor)k)).ToArray(), combiner);
             }
 
             Host.CheckParam(models.All(m => m is TScalarPredictor), nameof(models));
-            return new EnsemblePredictor(Host, p.PredictionKind,
+            return new EnsembleModelParameters(Host, p.PredictionKind,
                     models.Select(k => new FeatureSubsetModel<TScalarPredictor>((TScalarPredictor)k)).ToArray(), combiner);
         }
     }

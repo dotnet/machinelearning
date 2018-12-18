@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// A generic ensemble classifier for multi-class classification
     /// </summary>
     internal sealed class MulticlassDataPartitionEnsembleTrainer :
-        EnsembleTrainerBase<VBuffer<Single>, EnsembleMultiClassPredictor,
+        EnsembleTrainerBase<VBuffer<Single>, EnsembleMultiClassModelParameters,
         IMulticlassSubModelSelector, IMultiClassOutputCombiner>,
         IModelCombiner
     {
@@ -83,9 +83,9 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        private protected override EnsembleMultiClassPredictor CreatePredictor(List<FeatureSubsetModel<TVectorPredictor>> models)
+        private protected override EnsembleMultiClassModelParameters CreatePredictor(List<FeatureSubsetModel<TVectorPredictor>> models)
         {
-            return new EnsembleMultiClassPredictor(Host, CreateModels<TVectorPredictor>(models), Combiner as IMultiClassOutputCombiner);
+            return new EnsembleMultiClassModelParameters(Host, CreateModels<TVectorPredictor>(models), Combiner as IMultiClassOutputCombiner);
         }
 
         public IPredictor CombineModels(IEnumerable<IPredictor> models)
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             Host.CheckParam(models.All(m => m is TVectorPredictor), nameof(models));
 
             var combiner = _outputCombiner.CreateComponent(Host);
-            var predictor = new EnsembleMultiClassPredictor(Host,
+            var predictor = new EnsembleMultiClassModelParameters(Host,
                 models.Select(k => new FeatureSubsetModel<TVectorPredictor>((TVectorPredictor)k)).ToArray(),
                 combiner);
             return predictor;

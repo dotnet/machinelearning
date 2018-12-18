@@ -15,21 +15,21 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictor), null, typeof(SignatureLoadModel), "Field Aware Factorization Machine", FieldAwareFactorizationMachinePredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(FieldAwareFactorizationMachineModelParameters), null, typeof(SignatureLoadModel), "Field Aware Factorization Machine", FieldAwareFactorizationMachineModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictionTransformer), typeof(FieldAwareFactorizationMachinePredictionTransformer), null, typeof(SignatureLoadModel),
     "", FieldAwareFactorizationMachinePredictionTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.FactorizationMachine
 {
-    public sealed class FieldAwareFactorizationMachinePredictor : PredictorBase<float>, ISchemaBindableMapper, ICanSaveModel
+    public sealed class FieldAwareFactorizationMachineModelParameters : ModelParametersBase<float>, ISchemaBindableMapper
     {
-        public const string LoaderSignature = "FieldAwareFactMacPredict";
+        internal const string LoaderSignature = "FieldAwareFactMacPredict";
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private bool _norm;
-        internal int FieldCount { get; }
-        internal int FeatureCount { get; }
-        internal int LatentDim { get; }
+        public int FieldCount { get; }
+        public int FeatureCount { get; }
+        public int LatentDim { get; }
         internal int LatentDimAligned { get; }
         private readonly float[] _linearWeights;
         private readonly AlignedArray _latentWeightsAligned;
@@ -42,10 +42,30 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(FieldAwareFactorizationMachinePredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(FieldAwareFactorizationMachineModelParameters).Assembly.FullName);
         }
 
-        internal FieldAwareFactorizationMachinePredictor(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
+        public FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
+            float[] linearWeights, float[] latentWeightsAligned) : base(env, LoaderSignature)
+        {
+            Host.Assert(fieldCount > 0);
+            Host.Assert(featureCount > 0);
+            Host.Assert(latentDim > 0);
+            Host.Assert(Utils.Size(linearWeights) == featureCount);
+            LatentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(latentDim);
+            Host.Assert(Utils.Size(latentWeightsAligned) == checked(featureCount * fieldCount * LatentDimAligned));
+
+            _norm = norm;
+            FieldCount = FieldCount;
+            FeatureCount = featureCount;
+            LatentDim = latentDim;
+            _linearWeights = linearWeights;
+
+            _latentWeightsAligned = new AlignedArray(featureCount * fieldCount * LatentDimAligned, 16);
+            _latentWeightsAligned.CopyFrom(latentWeightsAligned.AsSpan());
+        }
+
+        internal FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
             float[] linearWeights, AlignedArray latentWeightsAligned) : base(env, LoaderSignature)
         {
             Host.Assert(fieldCount > 0);
@@ -63,7 +83,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _latentWeightsAligned = latentWeightsAligned;
         }
 
-        private FieldAwareFactorizationMachinePredictor(IHostEnvironment env, ModelLoadContext ctx) : base(env, LoaderSignature)
+        private FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, ModelLoadContext ctx) : base(env, LoaderSignature)
         {
             Host.AssertValue(ctx);
 
@@ -112,12 +132,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             }
         }
 
-        public static FieldAwareFactorizationMachinePredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static FieldAwareFactorizationMachineModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new FieldAwareFactorizationMachinePredictor(env, ctx);
+            return new FieldAwareFactorizationMachineModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -176,11 +196,18 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
             => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, Schema.Create(new BinaryClassifierSchema()), this);
 
-        internal void CopyLinearWeightsTo(float[] linearWeights)
+        public void CopyLinearWeightsTo(float[] linearWeights)
         {
             Host.AssertValue(_linearWeights);
             Host.AssertValue(linearWeights);
             Array.Copy(_linearWeights, linearWeights, _linearWeights.Length);
+        }
+
+        public void CopyLatentWeightsAlignedTo(float[] latentWeightsAligned)
+        {
+            Host.AssertValue(_latentWeightsAligned);
+            Host.AssertValue(latentWeightsAligned);
+            _latentWeightsAligned.CopyTo(latentWeightsAligned);
         }
 
         internal void CopyLatentWeightsTo(AlignedArray latentWeights)
@@ -191,7 +218,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
     }
 
-    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachinePredictor, BinaryClassifierScorer>, ICanSaveModel
+    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters, BinaryClassifierScorer>, ICanSaveModel
     {
         public const string LoaderSignature = "FAFMPredXfer";
 
@@ -210,7 +237,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         private readonly string _thresholdColumn;
         private readonly float _threshold;
 
-        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachinePredictor model, Schema trainSchema,
+        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachineModelParameters model, Schema trainSchema,
             string[] featureColumns, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
         {

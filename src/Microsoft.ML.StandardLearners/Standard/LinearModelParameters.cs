@@ -38,12 +38,11 @@ using System.Linq;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public abstract class LinearModelParameters : PredictorBase<float>,
+    public abstract class LinearModelParameters : ModelParametersBase<float>,
         IValueMapper,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
-        ICanSaveModel,
         ICanGetSummaryAsIRow,
         ICanSaveSummary,
         IPredictorWithFeatureWeights<float>,

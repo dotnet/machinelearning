@@ -31,7 +31,7 @@ namespace Microsoft.ML.Trainers
             MultiClassNaiveBayesTrainer<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
             Key<uint, TVal> label,
             Vector<float> features,
-            Action<MultiClassNaiveBayesPredictor> onFit = null)
+            Action<MultiClassNaiveBayesModelParameters> onFit = null)
         {
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValue(label, nameof(label));

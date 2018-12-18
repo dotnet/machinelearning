@@ -19,16 +19,16 @@ using System.Threading.Tasks;
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     Pkpd.UserNameValue, Pkpd.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 
-[assembly: LoadableClass(typeof(PkpdPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(PkpdModelParameters), null, typeof(SignatureLoadModel),
     "PKPD Executor",
-    PkpdPredictor.LoaderSignature)]
+    PkpdModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers
 {
     using CR = RoleMappedSchema.ColumnRole;
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
-    using TTransformer = MulticlassPredictionTransformer<PkpdPredictor>;
+    using TTransformer = MulticlassPredictionTransformer<PkpdModelParameters>;
 
     /// <summary>
     /// In this strategy, a binary classification algorithm is trained on each pair of classes.
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Trainers
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for OVA.
     /// </summary>
-    public sealed class Pkpd : MetaMulticlassTrainer<MulticlassPredictionTransformer<PkpdPredictor>, PkpdPredictor>
+    public sealed class Pkpd : MetaMulticlassTrainer<MulticlassPredictionTransformer<PkpdModelParameters>, PkpdModelParameters>
     {
         internal const string LoadNameValue = "PKPD";
         internal const string UserNameValue = "Pairwise coupling (PKPD)";
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
         }
 
-        private protected override PkpdPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override PkpdModelParameters TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train M * (M+1) / 2 models arranged as a lower triangular matrix.
             var predModels = new TDistPredictor[count][];
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            return new PkpdPredictor(Host, predModels);
+            return new PkpdModelParameters(Host, predModels);
         }
 
         private ISingleFeaturePredictionTransformer<TDistPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls1, int cls2)
@@ -210,14 +210,13 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            return new MulticlassPredictionTransformer<PkpdPredictor>(Host, new PkpdPredictor(Host, predictors), input.Schema, featureColumn, LabelColumn.Name);
+            return new MulticlassPredictionTransformer<PkpdModelParameters>(Host, new PkpdModelParameters(Host, predictors), input.Schema, featureColumn, LabelColumn.Name);
         }
     }
 
-    public sealed class PkpdPredictor :
-        PredictorBase<VBuffer<float>>,
-        IValueMapper,
-        ICanSaveModel
+    public sealed class PkpdModelParameters :
+        ModelParametersBase<VBuffer<float>>,
+        IValueMapper
     {
         internal const string LoaderSignature = "PKPDExec";
         internal const string RegistrationName = "PKPDPredictor";
@@ -230,7 +229,7 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(PkpdPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(PkpdModelParameters).Assembly.FullName);
         }
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
@@ -249,7 +248,7 @@ namespace Microsoft.ML.Trainers
         ColumnType IValueMapper.InputType => _inputType;
         ColumnType IValueMapper.OutputType => _outputType;
 
-        internal PkpdPredictor(IHostEnvironment env, TDistPredictor[][] predictors) :
+        internal PkpdModelParameters(IHostEnvironment env, TDistPredictor[][] predictors) :
             base(env, RegistrationName)
         {
             Host.Assert(Utils.Size(predictors) > 0);
@@ -273,7 +272,7 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorType(NumberType.Float, _numClasses);
         }
 
-        private PkpdPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private PkpdModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             // *** Binary format ***
@@ -331,12 +330,12 @@ namespace Microsoft.ML.Trainers
             return true;
         }
 
-        public static PkpdPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static PkpdModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new PkpdPredictor(env, ctx);
+            return new PkpdModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

@@ -56,7 +56,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
     internal sealed class FieldAwareFactorizationMachineScalarRowMapper : ISchemaBoundRowMapper
     {
-        private readonly FieldAwareFactorizationMachinePredictor _pred;
+        private readonly FieldAwareFactorizationMachineModelParameters _pred;
 
         public RoleMappedSchema InputRoleMappedSchema { get; }
 
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         private readonly IHostEnvironment _env;
 
         public FieldAwareFactorizationMachineScalarRowMapper(IHostEnvironment env, RoleMappedSchema schema,
-            Schema outputSchema, FieldAwareFactorizationMachinePredictor pred)
+            Schema outputSchema, FieldAwareFactorizationMachineModelParameters pred)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(schema);
