@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>Microsoft.ML.Tests</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

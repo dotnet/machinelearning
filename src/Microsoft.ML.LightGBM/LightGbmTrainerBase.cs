@@ -192,6 +192,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
         }
 
+        [BestFriend]
+        internal Dictionary<string, object> GetGbmParameters() => Options;
+
         private FloatLabelCursor.Factory CreateCursorFactory(RoleMappedData data)
         {
             var loadFlags = CursOpt.AllLabels | CursOpt.AllWeights | CursOpt.Features;

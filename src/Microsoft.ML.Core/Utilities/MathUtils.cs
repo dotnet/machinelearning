@@ -507,7 +507,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static Float SigmoidSlow(Float x)
         {
-            return 1 / (1 + ExpSlow(-x));
+            // The following two return statements are equivalent but one uses e^(-x) and the other one uses e^x.
+            // If x > 0, we should do e^(-x) to avoid overflow and vice versa.
+            if (x > 0)
+                return 1 / (1 + ExpSlow(-x));
+            else
+                return ExpSlow(x) / (1 + ExpSlow(x));
         }
 
         /// <summary>

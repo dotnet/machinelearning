@@ -547,8 +547,12 @@ namespace Microsoft.ML.Trainers
                             i =>
                             {
                                 float score = 0;
+                                // buffer[i] is the probability of the i-th class.
+                                // score is the raw prediction score.
                                 maps[i](in tmp, ref score, ref buffer[i]);
                             });
+
+                        // Make sure the sum of probabilities is one.
                         Normalize(buffer, maps.Length);
 
                         var editor = VBufferEditor.Create(ref dst, maps.Length);
