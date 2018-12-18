@@ -924,7 +924,7 @@ namespace Microsoft.ML.Transforms.Text
             ch.AssertValue(states);
             ch.Assert(states.Length == columns.Length);
 
-            bool[] activeColumns = new bool[inputData.Schema.ColumnCount];
+            bool[] activeColumns = new bool[inputData.Schema.Count];
             int[] numVocabs = new int[columns.Length];
             int[] srcCols = new int[columns.Length];
 
@@ -936,7 +936,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputData.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol))
                     throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].Input);
 
-                var srcColType = inputSchema.GetColumnType(srcCol);
+                var srcColType = inputSchema[srcCol].Type;
                 if (!srcColType.IsKnownSizeVector || !(srcColType.ItemType is NumberType))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats", srcColType.ToString());
 
@@ -946,7 +946,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 VBuffer<ReadOnlyMemory<char>> dst = default;
                 if (inputSchema[srcCol].HasSlotNames(srcColType.ValueCount))
-                    inputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, srcCol, ref dst);
+                    inputSchema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref dst);
                 else
                     dst = default(VBuffer<ReadOnlyMemory<char>>);
                 columnMappings.Add(dst);

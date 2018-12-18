@@ -174,7 +174,7 @@ namespace Microsoft.ML.Transforms
 
             disposer = null;
             int col = Infos[iinfo].Source;
-            var typeSrc = input.Schema.GetColumnType(col);
+            var typeSrc = input.Schema[col].Type;
             Contracts.Assert(RowCursorUtils.TestGetLabelGetter(typeSrc) == null);
             return RowCursorUtils.GetLabelGetter(input, col);
         }

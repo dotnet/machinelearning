@@ -85,7 +85,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Compute the mapping, <see cref="_sources"/>, from output column index to input column index.
                 if (drop)
                     // Drop columns indexed by args.Index
-                    sources = Enumerable.Range(0, sourceSchema.ColumnCount).Except(selectedColumnIndexes).ToArray();
+                    sources = Enumerable.Range(0, sourceSchema.Count).Except(selectedColumnIndexes).ToArray();
                 else
                     // Keep columns indexed by args.Index
                     sources = selectedColumnIndexes;
@@ -108,8 +108,8 @@ namespace Microsoft.ML.Runtime.Data
                     var selectedIndex = _sources[i];
 
                     // The dropped/kept columns are determined by user-specified arguments, so we throw if a bad configuration is provided.
-                    string fmt = string.Format("Column index {0} invalid for input with {1} columns", selectedIndex, _sourceSchema.ColumnCount);
-                    Contracts.Check(selectedIndex < _sourceSchema.ColumnCount, fmt);
+                    string fmt = string.Format("Column index {0} invalid for input with {1} columns", selectedIndex, _sourceSchema.Count);
+                    Contracts.Check(selectedIndex < _sourceSchema.Count, fmt);
 
                     // Copy the selected column into output schema.
                     var selectedColumn = _sourceSchema[selectedIndex];
@@ -151,13 +151,13 @@ namespace Microsoft.ML.Runtime.Data
 
             internal bool[] GetActive(Func<int, bool> predicate)
             {
-                return Utils.BuildArray(OutputSchema.ColumnCount, predicate);
+                return Utils.BuildArray(OutputSchema.Count, predicate);
             }
 
             internal Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
                 Contracts.AssertValue(predicate);
-                var active = new bool[_sourceSchema.ColumnCount];
+                var active = new bool[_sourceSchema.Count];
                 for (int i = 0; i < _sources.Length; i++)
                 {
                     if (predicate(i))
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.Data
                 : base(provider, input)
             {
                 Ch.AssertValue(bindings);
-                Ch.Assert(active == null || active.Length == bindings.OutputSchema.ColumnCount);
+                Ch.Assert(active == null || active.Length == bindings.OutputSchema.Count);
 
                 _bindings = bindings;
                 _active = active;
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < _bindings.OutputSchema.ColumnCount);
+                Ch.Check(0 <= col && col < _bindings.OutputSchema.Count);
                 return _active == null || _active[col];
             }
 

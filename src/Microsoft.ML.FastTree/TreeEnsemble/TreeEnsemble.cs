@@ -107,7 +107,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <summary>
         /// returns the ensemble in the production TreeEnsemble format
         /// </summary>
-        public string ToTreeEnsembleIni(FeaturesToContentMap fmap,
+        internal string ToTreeEnsembleIni(FeaturesToContentMap fmap,
             string trainingParams, bool appendFeatureGain, bool includeZeroGainFeatures = true)
         {
             StringBuilder sbEvaluator = new StringBuilder();
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = BlockingThreadPool.NumThreads }, actions);
         }
 
-        public string ToGainSummary(FeaturesToContentMap fmap, Dictionary<int, int> featureToID, int prefix, bool includeZeroGainFeatures, bool normalize, int startingCommentNumber)
+        internal string ToGainSummary(FeaturesToContentMap fmap, Dictionary<int, int> featureToID, int prefix, bool includeZeroGainFeatures, bool normalize, int startingCommentNumber)
         {
             if (_trees.Count == 0)
                 return string.Empty;
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// A class that given either a <see cref="RoleMappedSchema"/>
     /// provides a mechanism for getting the corresponding input INI content for the features.
     /// </summary>
-    public sealed class FeaturesToContentMap
+    internal sealed class FeaturesToContentMap
     {
         private readonly VBuffer<ReadOnlyMemory<char>> _content;
         private readonly VBuffer<ReadOnlyMemory<char>> _names;
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
             var sch = schema.Schema;
             if (sch[feat.Index].HasSlotNames(feat.Type.ValueCount))
-                sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref _names);
+                sch[feat.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _names);
             else
                 _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
 #if !CORECLR

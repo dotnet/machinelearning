@@ -47,7 +47,8 @@ namespace Microsoft.ML.Runtime.Data
         protected const string DirModel = "Model";
         protected const string DirTransSchema = "TrainSchema";
         protected readonly IHost Host;
-        protected ISchemaBindableMapper BindableMapper;
+        [BestFriend]
+        private protected ISchemaBindableMapper BindableMapper;
         protected Schema TrainSchema;
 
         public bool IsRowToRowMapper => true;
@@ -178,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
             else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
                 throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
             else
-                FeatureColumnType = trainSchema.GetColumnType(col);
+                FeatureColumnType = trainSchema[col].Type;
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
         }
@@ -193,7 +194,7 @@ namespace Microsoft.ML.Runtime.Data
             else if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
                 throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn);
             else
-                FeatureColumnType = TrainSchema.GetColumnType(col);
+                FeatureColumnType = TrainSchema[col].Type;
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
         }
@@ -206,8 +207,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), null);
-                if (!inputSchema.GetColumnType(col).Equals(FeatureColumnType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema.GetColumnType(col).ToString());
+                if (!inputSchema[col].Type.Equals(FeatureColumnType))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema[col].Type.ToString());
             }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;

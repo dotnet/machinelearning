@@ -414,12 +414,12 @@ namespace Microsoft.ML.Transforms.Conversions
             int n = _exes[iinfo].OutputValueCount;
             var dstEditor = VBufferEditor.Create(ref dst, n);
 
-            var srcColumnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
+            var srcColumnName = Source.Schema[Infos[iinfo].Source].Name;
             bool useDefaultSlotNames = !Source.Schema[Infos[iinfo].Source].HasSlotNames(Infos[iinfo].TypeSrc.VectorSize);
             VBuffer<ReadOnlyMemory<char>> srcSlotNames = default;
             if (!useDefaultSlotNames)
             {
-                Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref srcSlotNames);
+                Source.Schema[Infos[iinfo].Source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref srcSlotNames);
                 useDefaultSlotNames =
                     !srcSlotNames.IsDense
                     || srcSlotNames.Length != Infos[iinfo].TypeSrc.ValueCount;

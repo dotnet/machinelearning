@@ -201,15 +201,15 @@ namespace Microsoft.ML.Transforms
             {
                 switch (kind)
                 {
-                case MetadataUtils.Kinds.IsNormalized:
-                case MetadataUtils.Kinds.KeyValues:
-                case MetadataUtils.Kinds.ScoreColumnSetId:
-                case MetadataUtils.Kinds.ScoreColumnKind:
-                case MetadataUtils.Kinds.ScoreValueKind:
-                case MetadataUtils.Kinds.IsUserVisible:
-                    return true;
-                default:
-                    return false;
+                    case MetadataUtils.Kinds.IsNormalized:
+                    case MetadataUtils.Kinds.KeyValues:
+                    case MetadataUtils.Kinds.ScoreColumnSetId:
+                    case MetadataUtils.Kinds.ScoreColumnKind:
+                    case MetadataUtils.Kinds.ScoreValueKind:
+                    case MetadataUtils.Kinds.IsUserVisible:
+                        return true;
+                    default:
+                        return false;
                 }
             }
 
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Transforms
                 CheckAndBind(_ectx, inputSchema, pivotColumns, out _infos);
 
                 _pivotColMap = new Dictionary<string, int>();
-                _pivotIndex = Utils.CreateArray(_inputSchema.ColumnCount, -1);
+                _pivotIndex = Utils.CreateArray(_inputSchema.Count, -1);
                 for (int i = 0; i < _infos.Length; i++)
                 {
                     var info = _infos[i];
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Transforms
                     int col;
                     if (!inputSchema.TryGetColumnIndex(name, out col))
                         throw ectx.ExceptUserArg(nameof(Arguments.Column), "Pivot column '{0}' is not found", name);
-                    var colType = inputSchema.GetColumnType(col);
+                    var colType = inputSchema[col].Type;
                     if (!colType.IsVector || !colType.ItemType.IsPrimitive)
                         throw ectx.ExceptUserArg(nameof(Arguments.Column),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, colType);
@@ -392,10 +392,7 @@ namespace Microsoft.ML.Transforms
                 return size;
             }
 
-            public int ColumnCount
-            {
-                get { return _inputSchema.ColumnCount; }
-            }
+            public int ColumnCount => _inputSchema.Count;
 
             public bool TryGetColumnIndex(string name, out int col)
             {
@@ -404,14 +401,14 @@ namespace Microsoft.ML.Transforms
 
             public string GetColumnName(int col)
             {
-                return _inputSchema.GetColumnName(col);
+                return _inputSchema[col].Name;
             }
 
             public ColumnType GetColumnType(int col)
             {
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (!IsPivot(col))
-                    return _inputSchema.GetColumnType(col);
+                    return _inputSchema[col].Type;
                 _ectx.Assert(0 <= _pivotIndex[col] && _pivotIndex[col] < _infos.Length);
                 return _infos[_pivotIndex[col]].ItemType;
             }
@@ -420,8 +417,8 @@ namespace Microsoft.ML.Transforms
             {
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (!IsPivot(col))
-                    return _inputSchema.GetMetadataTypes(col);
-                return _inputSchema.GetMetadataTypes(col).Where(pair => ShouldPreserveMetadata(pair.Key));
+                    return _inputSchema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
+                return _inputSchema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type)).Where(pair => ShouldPreserveMetadata(pair.Key));
             }
 
             public ColumnType GetMetadataTypeOrNull(string kind, int col)
@@ -429,7 +426,7 @@ namespace Microsoft.ML.Transforms
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (IsPivot(col) && !ShouldPreserveMetadata(kind))
                     return null;
-                return _inputSchema.GetMetadataTypeOrNull(kind, col);
+                return _inputSchema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             }
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)
@@ -437,7 +434,7 @@ namespace Microsoft.ML.Transforms
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (IsPivot(col) && !ShouldPreserveMetadata(kind))
                     throw _ectx.ExceptGetMetadata();
-                _inputSchema.GetMetadata(kind, col, ref value);
+                _inputSchema[col].Metadata.GetValue(kind, ref value);
             }
         }
 

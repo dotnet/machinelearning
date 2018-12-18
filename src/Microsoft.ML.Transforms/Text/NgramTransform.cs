@@ -273,7 +273,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             if (!NgramExtractingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, NgramExtractingEstimator.ExpectedColumnType, type.ToString());
         }
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int i = 0; i < columns.Length; i++)
             {
                 input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
-                var typeSrc = input.Schema.GetColumnType(srcCol);
+                var typeSrc = input.Schema[srcCol].Type;
                 transformInfos[i] = new TransformInfo(columns[i]);
             }
             _transformInfos = transformInfos.ToImmutableArray();
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms.Text
             // i in _counts counts how many (i+1)-grams are in the pool for column iinfo.
             var counts = new int[columns.Length][];
             var ngramMaps = new SequencePool[columns.Length];
-            var activeInput = new bool[trainingData.Schema.ColumnCount];
+            var activeInput = new bool[trainingData.Schema.Count];
             var srcTypes = new ColumnType[columns.Length];
             var srcCols = new int[columns.Length];
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
@@ -563,7 +563,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     _types[i] = new VectorType(NumberType.Float, _parent._ngramMaps[i].Count);
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
-                    _srcTypes[i] = inputSchema.GetColumnType(_srcCols[i]);
+                    _srcTypes[i] = inputSchema[_srcCols[i]].Type;
                 }
             }
 
@@ -604,7 +604,7 @@ namespace Microsoft.ML.Transforms.Text
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 
                 // Get the key values of the unigrams.
-                InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, _srcCols[iinfo], ref unigramNames);
+                InputSchema[_srcCols[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref unigramNames);
                 Host.Check(unigramNames.Length == keyCount);
 
                 var pool = _parent._ngramMaps[iinfo];

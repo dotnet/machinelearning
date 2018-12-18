@@ -470,7 +470,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => true;
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(Utils.Size(getters) == schema.ColumnCount);
+                Contracts.Check(Utils.Size(getters) == schema.Count);
                 _schema = schema;
                 _input = input;
                 _getters = getters ?? new Delegate[0];
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public Cursor(IHost host, SequentialDataTransform parent, RowCursor input)
                 : base(host, input)
             {
-                Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);
+                Ch.Assert(input.Schema.Count == parent.OutputSchema.Count);
                 _parent = parent;
             }
 
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount, "col");
+                Ch.Check(0 <= col && col < Schema.Count, "col");
                 return Input.IsColumnActive(col);
             }
 
@@ -660,12 +660,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         private bool[] GetActive(Func<int, bool> predicate, out Func<int, bool> predicateInput)
         {
-            int n = _bindings.Schema.ColumnCount;
+            int n = _bindings.Schema.Count;
             var active = Utils.BuildArray(n, predicate);
             Contracts.Assert(active.Length == n);
 
             var activeInput = _bindings.GetActiveInput(predicate);
-            Contracts.Assert(activeInput.Length == _bindings.InputSchema.ColumnCount);
+            Contracts.Assert(activeInput.Length == _bindings.InputSchema.Count);
 
             // Get a predicate that determines which outputs are active.
             var predicateOut = GetActiveOutputColumns(active);
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private Func<int, bool> GetActiveOutputColumns(bool[] active)
         {
             Contracts.AssertValue(active);
-            Contracts.Assert(active.Length == _bindings.Schema.ColumnCount);
+            Contracts.Assert(active.Length == _bindings.Schema.Count);
 
             return
                 col =>
@@ -766,8 +766,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             using (var ch = Host.Start("GetEntireRow"))
             {
-                var activeArr = new bool[OutputSchema.ColumnCount];
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                var activeArr = new bool[OutputSchema.Count];
+                for (int i = 0; i < OutputSchema.Count; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out Action disp);
@@ -858,7 +858,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < _bindings.Schema.ColumnCount);
+                Ch.Check(0 <= col && col < _bindings.Schema.Count);
                 return _active[col];
             }
 

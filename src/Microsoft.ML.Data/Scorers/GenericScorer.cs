@@ -138,7 +138,7 @@ namespace Microsoft.ML.Runtime.Data
         private const string RegistrationName = "GenericScore";
 
         private readonly Bindings _bindings;
-        protected override BindingsBase GetBindings() => _bindings;
+        private protected override BindingsBase GetBindings() => _bindings;
 
         public override Schema OutputSchema { get; }
 
@@ -149,7 +149,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The <see cref="SignatureDataScorer"/> entry point for creating a <see cref="GenericScorer"/>.
         /// </summary>
-        public GenericScorer(IHostEnvironment env, ScorerArgumentsBase args, IDataView data,
+        [BestFriend]
+        internal GenericScorer(IHostEnvironment env, ScorerArgumentsBase args, IDataView data,
             ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
             : base(env, data, RegistrationName, Contracts.CheckRef(mapper, nameof(mapper)).Bindable)
         {
@@ -199,7 +200,7 @@ namespace Microsoft.ML.Runtime.Data
             return h.Apply("Loading Model", ch => new GenericScorer(h, ctx, input));
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

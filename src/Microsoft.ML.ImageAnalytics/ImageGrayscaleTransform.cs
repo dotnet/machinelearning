@@ -156,8 +156,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            if (!(inputSchema.GetColumnType(srcCol) is ImageType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "image", inputSchema.GetColumnType(srcCol).ToString());
+            if (!(inputSchema[srcCol].Type is ImageType))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "image", inputSchema[srcCol].Type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase

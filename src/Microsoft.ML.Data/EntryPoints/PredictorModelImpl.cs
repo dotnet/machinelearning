@@ -130,8 +130,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     trainRms.Schema[trainRms.Label.Index].HasKeyValues(labelType.KeyCount))
                 {
                     VBuffer<ReadOnlyMemory<char>> keyValues = default;
-                    trainRms.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, trainRms.Label.Index,
-                        ref keyValues);
+                    trainRms.Schema[trainRms.Label.Index].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
                     return keyValues.DenseValues().Select(v => v.ToString()).ToArray();
                 }
             }

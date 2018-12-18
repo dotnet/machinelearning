@@ -457,7 +457,7 @@ namespace Microsoft.ML.Runtime.Data
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
                     sources[i] = srcCol;
 
-                    var curType = inputSchema.GetColumnType(srcCol);
+                    var curType = inputSchema[srcCol].Type;
                     if (itemType == null)
                     {
                         itemType = curType.ItemType;
@@ -691,7 +691,7 @@ namespace Microsoft.ML.Runtime.Data
                                 if (type.VectorSize != 0 && type.VectorSize != tmpBufs[i].Length)
                                 {
                                     throw Contracts.Except("Column '{0}': expected {1} slots, but got {2}",
-                                        input.Schema.GetColumnName(SrcIndices[i]), type.VectorSize, tmpBufs[i].Length)
+                                        input.Schema[SrcIndices[i]].Name, type.VectorSize, tmpBufs[i].Length)
                                         .MarkSensitive(MessageSensitivity.Schema);
                                 }
                                 dstLength = checked(dstLength + tmpBufs[i].Length);
@@ -831,7 +831,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                var active = new bool[InputSchema.ColumnCount];
+                var active = new bool[InputSchema.Count];
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     if (activeOutput(i))

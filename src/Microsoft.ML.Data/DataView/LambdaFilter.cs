@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.Data
             bool tmp = input.Schema.TryGetColumnIndex(src, out colSrc);
             if (!tmp)
                 throw env.ExceptParam(nameof(src), "The input data doesn't have a column named '{0}'", src);
-            var typeOrig = input.Schema.GetColumnType(colSrc);
+            var typeOrig = input.Schema[colSrc].Type;
 
             // REVIEW: Ideally this should support vector-type conversion. It currently doesn't.
             bool ident;
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Host.AssertValue(pred);
                 Host.Assert(conv != null | typeof(T1) == typeof(T2));
-                Host.Assert(0 <= colSrc & colSrc < Source.Schema.ColumnCount);
+                Host.Assert(0 <= colSrc & colSrc < Source.Schema.Count);
 
                 _colSrc = colSrc;
                 _pred = pred;
@@ -138,8 +138,8 @@ namespace Microsoft.ML.Runtime.Data
             private Func<int, bool> GetActive(Func<int, bool> predicate, out bool[] active)
             {
                 Host.AssertValue(predicate);
-                active = new bool[Source.Schema.ColumnCount];
-                bool[] activeInput = new bool[Source.Schema.ColumnCount];
+                active = new bool[Source.Schema.Count];
+                bool[] activeInput = new bool[Source.Schema.Count];
                 for (int i = 0; i < active.Length; i++)
                     activeInput[i] = active[i] = predicate(i);
                 activeInput[_colSrc] = true;

@@ -139,7 +139,7 @@ namespace Microsoft.ML
                 if (!data.Schema.TryGetColumnIndex(stratificationColumn, out int stratCol))
                     throw Host.ExceptSchemaMismatch(nameof(stratificationColumn), "stratification", stratificationColumn);
 
-                var type = data.Schema.GetColumnType(stratCol);
+                var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(Host, type))
                 {
                     // Hash the stratification column.

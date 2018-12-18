@@ -114,7 +114,8 @@ namespace Microsoft.ML.Runtime.Tools
         }
     }
 
-    public static class SavePredictorUtils
+    [BestFriend]
+    internal static class SavePredictorUtils
     {
         public static void SavePredictor(IHostEnvironment env, Stream modelStream, Stream binaryModelStream = null, Stream summaryModelStream = null,
             Stream textModelStream = null, Stream iniModelStream = null, Stream codeModelStream = null)
