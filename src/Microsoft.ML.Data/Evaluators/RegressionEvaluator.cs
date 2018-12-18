@@ -56,12 +56,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
-            if (t.IsVector || t.ItemType != NumberType.Float)
+            if (t != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", score, t);
-            Host.Check(schema.Label != null, "Could not find the label column");
-            t = schema.Label.Type;
+            Host.Check(schema.Label.HasValue, "Could not find the label column");
+            t = schema.Label.Value.Type;
             if (t != NumberType.R4)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be R4", schema.Label.Name, t);
+                throw Host.Except("Label column '{0}' has type '{1}' but must be R4", schema.Label.Value.Name, t);
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -71,11 +71,10 @@ namespace Microsoft.ML.Runtime.Data
 
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Contracts.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
+            Contracts.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Contracts.AssertValue(scoreInfo);
 
-            return new RegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Name);
+            return new RegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -353,10 +352,10 @@ namespace Microsoft.ML.Runtime.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
 
             // The regression evaluator outputs the label and score columns.
-            yield return schema.Label.Name;
+            yield return schema.Label.Value.Name;
             var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.Regression);
             yield return scoreInfo.Name;

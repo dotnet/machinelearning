@@ -93,16 +93,17 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
-            Host.Check(data.Schema.Label != null, "Missing Label column");
-            Host.Check(data.Schema.Label.Type == NumberType.Float || data.Schema.Label.Type is KeyType,
+            Host.Check(data.Schema.Label.HasValue, "Missing Label column");
+            var labelCol = data.Schema.Label.Value;
+            Host.Check(labelCol.Type == NumberType.Float || labelCol.Type is KeyType,
                 "Invalid type for Label column, only floats and known-size keys are supported");
 
-            Host.Check(data.Schema.Feature != null, "Missing Feature column");
+            Host.Check(data.Schema.Feature.HasValue, "Missing Feature column");
             int featureCount;
             data.CheckFeatureFloatVector(out featureCount);
             int labelCount = 0;
-            if (data.Schema.Label.Type.IsKey)
-                labelCount = data.Schema.Label.Type.KeyCount;
+            if (labelCol.Type is KeyType labelKeyType)
+                labelCount = labelKeyType.Count;
 
             int[] labelHistogram = new int[labelCount];
             int[][] featureHistogram = new int[labelCount][];

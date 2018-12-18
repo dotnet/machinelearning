@@ -278,19 +278,20 @@ namespace Microsoft.ML.Trainers
 
         private protected override PriorPredictor Train(TrainContext context)
         {
-            Contracts.CheckValue(context, nameof(context));
+            Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
             data.CheckBinaryLabel();
-            Contracts.CheckParam(data.Schema.Label != null, nameof(data), "Missing Label column");
-            Contracts.CheckParam(data.Schema.Label.Type == NumberType.Float, nameof(data), "Invalid type for Label column");
+            Host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Missing Label column");
+            var labelCol = data.Schema.Label.Value;
+            Host.CheckParam(labelCol.Type == NumberType.Float, nameof(data), "Invalid type for Label column");
 
             double pos = 0;
             double neg = 0;
 
-            int col = data.Schema.Label.Index;
+            int col = labelCol.Index;
             int colWeight = -1;
             if (data.Schema.Weight?.Type == NumberType.Float)
-                colWeight = data.Schema.Weight.Index;
+                colWeight = data.Schema.Weight.Value.Index;
             using (var cursor = data.Data.GetRowCursor(c => c == col || c == colWeight))
             {
                 var getLab = cursor.GetLabelFloatGetter(data);

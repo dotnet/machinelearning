@@ -804,21 +804,21 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             env.CheckValue(ch, nameof(ch));
             ch.CheckValue(predictor, nameof(predictor));
             ch.CheckValue(data, nameof(data));
-            ch.CheckParam(data.Schema.Label != null, nameof(data), "data must have a Label column");
+            ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "data must have a Label column");
 
             var scored = ScoreUtils.GetScorer(predictor, data, env, null);
 
             if (caliTrainer.NeedsTraining)
             {
                 int labelCol;
-                if (!scored.Schema.TryGetColumnIndex(data.Schema.Label.Name, out labelCol))
+                if (!scored.Schema.TryGetColumnIndex(data.Schema.Label.Value.Name, out labelCol))
                     throw ch.Except("No label column found");
                 int scoreCol;
                 if (!scored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreCol))
                     throw ch.Except("No score column found");
-                int weightCol;
-                if (data.Schema.Weight == null || !scored.Schema.TryGetColumnIndex(data.Schema.Weight.Name, out weightCol))
-                    weightCol = -1;
+                int weightCol = -1;
+                if (data.Schema.Weight?.Name is string weightName && scored.Schema.GetColumnOrNull(weightName)?.Index is int weightIdx)
+                    weightCol = weightIdx;
                 ch.Info("Training calibrator.");
                 using (var cursor = scored.GetRowCursor(col => col == labelCol || col == scoreCol || col == weightCol))
                 {

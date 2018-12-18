@@ -226,20 +226,17 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// If str is non-empty, returns it. Otherwise if info is non-null, returns info.Name.
-        /// Otherwise, returns def.
+        /// If <paramref name="str"/> is non-empty, returns it. Otherwise if <paramref name="info"/> is non-<see langword="null"/>,
+        /// returns its <see cref="Schema.Column.Name"/>. Otherwise, returns <paramref name="def"/>.
         /// </summary>
-        public static string GetColName(string str, ColumnInfo info, string def)
+        public static string GetColName(string str, Schema.Column? info, string def)
         {
             Contracts.CheckValueOrNull(str);
-            Contracts.CheckValueOrNull(info);
             Contracts.CheckValueOrNull(def);
 
             if (!string.IsNullOrEmpty(str))
                 return str;
-            if (info != null)
-                return info.Name;
-            return def;
+            return info?.Name ?? def;
         }
 
         public static void CheckWeightType(IExceptionContext ectx, ColumnType type)

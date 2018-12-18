@@ -96,12 +96,12 @@ namespace Microsoft.ML.Runtime.Data
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
-            ColumnType type;
-            if (schema.Label != null && (type = schema.Label.Type) != NumberType.Float && type.KeyCount == 0)
+            ColumnType type = schema.Label?.Type;
+            if (type != null && type != NumberType.Float && !(type is KeyType keyType && keyType.Count > 0))
             {
                 throw Host.Except("Clustering evaluator: label column '{0}' type must be {1} or Key of known cardinality." +
                     " Provide a correct label column, or none: it is optional.",
-                    schema.Label.Name, NumberType.Float);
+                    schema.Label.Value.Name, NumberType.Float);
             }
 
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
@@ -114,12 +114,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (_calculateDbi)
             {
-                Host.AssertValue(schema.Feature);
-                var t = schema.Feature.Type;
+                Host.Assert(schema.Feature.HasValue);
+                var t = schema.Feature.Value.Type;
                 if (!t.IsKnownSizeVector || t.ItemType != NumberType.Float)
                 {
                     throw Host.Except("Features column '{0}' type must be {1} vector of known-size",
-                        schema.Feature.Name, NumberType.Float);
+                        schema.Feature.Value.Name, NumberType.Float);
                 }
             }
         }
@@ -129,13 +129,13 @@ namespace Microsoft.ML.Runtime.Data
             var pred = base.GetActiveColsCore(schema);
             // We also need the features column for dbi calculation.
             Host.Assert(!_calculateDbi || schema.Feature != null);
-            return i => _calculateDbi && i == schema.Feature.Index || pred(i);
+            return i => _calculateDbi && i == schema.Feature.Value.Index || pred(i);
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             Host.AssertValue(schema);
-            Host.Assert(!_calculateDbi || (schema.Feature != null && schema.Feature.Type.IsKnownSizeVector));
+            Host.Assert(!_calculateDbi || schema.Feature?.Type.IsKnownSizeVector == true);
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             Host.Assert(score.Type.VectorSize > 0);
             int numClusters = score.Type.VectorSize;
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public Counters(int numClusters, bool calculateDbi, ColumnInfo features)
+                public Counters(int numClusters, bool calculateDbi, Schema.Column? features)
                 {
                     _numClusters = numClusters;
                     CalculateDbi = calculateDbi;
@@ -326,10 +326,10 @@ namespace Microsoft.ML.Runtime.Data
                     _confusionMatrix = new List<Double[]>();
                     if (CalculateDbi)
                     {
-                        Contracts.AssertValue(features);
+                        Contracts.Assert(features.HasValue);
                         _clusterCentroids = new VBuffer<Single>[_numClusters];
                         for (int i = 0; i < _numClusters; i++)
-                            _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Type.VectorSize);
+                            _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.VectorSize);
                         _distancesToCentroids = new Double[_numClusters];
                     }
                 }
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly bool _calculateDbi;
 
-            public Aggregator(IHostEnvironment env, ColumnInfo features, int scoreVectorSize, bool calculateDbi, bool weighted, string stratName)
+            internal Aggregator(IHostEnvironment env, Schema.Column? features, int scoreVectorSize, bool calculateDbi, bool weighted, string stratName)
                 : base(env, stratName)
             {
                 _calculateDbi = calculateDbi;
@@ -407,10 +407,10 @@ namespace Microsoft.ML.Runtime.Data
                 WeightedCounters = Weighted ? new Counters(scoreVectorSize, _calculateDbi, features) : null;
                 if (_calculateDbi)
                 {
-                    Host.AssertValue(features);
+                    Host.Assert(features.HasValue);
                     _clusterCentroids = new VBuffer<Single>[scoreVectorSize];
                     for (int i = 0; i < scoreVectorSize; i++)
-                        _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Type.VectorSize);
+                        _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.VectorSize);
                 }
             }
 
@@ -493,8 +493,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (_calculateDbi)
                 {
-                    Host.AssertValue(schema.Feature);
-                    _featGetter = row.GetGetter<VBuffer<Single>>(schema.Feature.Index);
+                    Host.Assert(schema.Feature.HasValue);
+                    _featGetter = row.GetGetter<VBuffer<Single>>(schema.Feature.Value.Index);
                 }
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
                 Host.Assert(score.Type.VectorSize == _scoresArr.Length);
@@ -502,12 +502,12 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (PassNum == 0)
                 {
-                    if (schema.Label != null)
-                        _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Index);
+                    if (schema.Label.HasValue)
+                        _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                     else
                         _labelGetter = (ref Single value) => value = Single.NaN;
-                    if (schema.Weight != null)
-                        _weightGetter = row.GetGetter<Single>(schema.Weight.Index);
+                    if (schema.Weight.HasValue)
+                        _weightGetter = row.GetGetter<Single>(schema.Weight.Value.Index);
                 }
                 else
                 {
@@ -821,8 +821,8 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(schema, nameof(schema));
 
             // Output the label column if it exists.
-            if (schema.Label != null)
-                yield return schema.Label.Name;
+            if (schema.Label.HasValue)
+                yield return schema.Label.Value.Name;
 
             // Return the output columns.
             yield return ClusteringPerInstanceEvaluator.ClusterId;

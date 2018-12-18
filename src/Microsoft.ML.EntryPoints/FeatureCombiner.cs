@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return viewTrain;
         }
 
-        private static List<KeyToVectorMappingTransformer.ColumnInfo> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
+        private static List<KeyToVectorMappingTransformer.ColumnInfo> ConvertFeatures(IEnumerable<Schema.Column> feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
             out List<TypeConvertingTransformer.ColumnInfo> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);

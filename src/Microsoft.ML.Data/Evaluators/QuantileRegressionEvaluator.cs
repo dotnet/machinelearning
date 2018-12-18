@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             int scoreSize = scoreInfo.Type.VectorSize;
             var type = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Data
             schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref quantiles);
             Host.Assert(quantiles.IsDense && quantiles.Length == scoreSize);
 
-            return new QuantileRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Name, scoreSize, quantiles);
+            return new QuantileRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name, scoreSize, quantiles);
         }
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
@@ -62,10 +62,10 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.Except(
                     "Score column '{0}' has type '{1}' but must be a known length vector of type R4 or R8", score.Name, t);
             }
-            Host.Check(schema.Label != null, "Could not find the label column");
-            t = schema.Label.Type;
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
+            t = schema.Label.Value.Type;
             if (t != NumberType.R4)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be R4", schema.Label.Name, t);
+                throw Host.Except("Label column '{0}' has type '{1}' but must be R4", schema.Label.Value.Name, t);
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -541,10 +541,10 @@ namespace Microsoft.ML.Runtime.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
 
             // The quantile regression evaluator outputs the label and score columns.
-            yield return schema.Label.Name;
+            yield return schema.Label.Value.Name;
             var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.QuantileRegression);
             yield return scoreInfo.Name;

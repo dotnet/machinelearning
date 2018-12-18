@@ -185,13 +185,14 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         {
             // REVIEW: This shim should be deleted as soon as is convenient.
             Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(schema.Feature != null, nameof(schema), "Cannot create feature name collection if we have no features");
-            Contracts.CheckParam(schema.Feature.Type.ValueCount > 0, nameof(schema), "Cannot create feature name collection if our features are not of known size");
+            Contracts.CheckParam(schema.Feature.HasValue, nameof(schema), "Cannot create feature name collection if we have no features");
+            var featureCol = schema.Feature.Value;
+            Contracts.CheckParam(schema.Feature.Value.Type.ValueCount > 0, nameof(schema), "Cannot create feature name collection if our features are not of known size");
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            int len = schema.Feature.Type.ValueCount;
-            if (schema.Schema[schema.Feature.Index].HasSlotNames(len))
-                schema.Schema[schema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
+            int len = featureCol.Type.ValueCount;
+            if (featureCol.HasSlotNames(len))
+                featureCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
             else
                 slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
             var slotNameValues = slotNames.GetValues();

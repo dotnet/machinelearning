@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers
         {
             // this should not be necessary when the legacy constructor doesn't exist, and the label column is not an optional parameter on the
             // MetaMulticlassTrainer constructor.
-            string trainerLabel = data.Schema.Label.Name;
+            string trainerLabel = data.Schema.Label.Value.Name;
 
             var view = MapLabels(data, cls1, cls2);
             var transformer = trainer.Fit(view);
@@ -144,8 +144,8 @@ namespace Microsoft.ML.Trainers
 
         private IDataView MapLabels(RoleMappedData data, int cls1, int cls2)
         {
-            var lab = data.Schema.Label;
-            Host.Assert(!data.Schema.Schema[lab.Index].IsHidden);
+            var lab = data.Schema.Label.Value;
+            Host.Assert(!lab.IsHidden);
             Host.Assert(lab.Type.KeyCount > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
 
             if (lab.Type.KeyCount > 0)

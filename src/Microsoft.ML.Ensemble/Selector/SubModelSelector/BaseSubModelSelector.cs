@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
             switch (PredictionKind)
             {
                 case PredictionKind.BinaryClassification:
-                    yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Name);
+                    yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
                     var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, scoredSchema, null, nameof(BinaryClassifierMamlEvaluator.ArgumentsBase.ScoreColumn),
                         MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
                     yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreInfo.Name);
@@ -117,13 +117,13 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
                         yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probInfo.Name);
                     yield break;
                 case PredictionKind.Regression:
-                    yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Name);
+                    yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
                     scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, scoredSchema, null, nameof(RegressionMamlEvaluator.Arguments.ScoreColumn),
                         MetadataUtils.Const.ScoreColumnKind.Regression);
                     yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreInfo.Name);
                     yield break;
                 case PredictionKind.MultiClassClassification:
-                    yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Name);
+                    yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, testSchema.Label.Value.Name);
                     scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, scoredSchema, null, nameof(MultiClassMamlEvaluator.Arguments.ScoreColumn),
                         MetadataUtils.Const.ScoreColumnKind.MultiClassClassification);
                     yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreInfo.Name);

@@ -208,12 +208,12 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Info("AIC:               \t{0}", 2 * numParams + deviance);
 
             // Show the coefficients statistics table.
-            var featureColIdx = cursorFactory.Data.Schema.Feature.Index;
+            var featureCol = cursorFactory.Data.Schema.Feature.Value;
             var schema = cursorFactory.Data.Data.Schema;
             var featureLength = CurrentWeights.Length - BiasCount;
             var namesSpans = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featureLength);
-            if (schema[featureColIdx].HasSlotNames(featureLength))
-                schema[featureColIdx].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref namesSpans);
+            if (featureCol.HasSlotNames(featureLength))
+                featureCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref namesSpans);
             Host.Assert(namesSpans.Length == featureLength);
 
             // Inverse mapping of non-zero weight slots.

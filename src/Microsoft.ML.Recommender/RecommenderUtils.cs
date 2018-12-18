@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -16,10 +17,10 @@ namespace Microsoft.ML.Runtime.Recommender
         /// to the two out parameters below.
         /// </summary>
         /// <param name="data">The considered data being checked</param>
-        /// <param name="matrixColumnIndexColumn">The column as role row index in the input data</param>
-        /// <param name="matrixRowIndexColumn">The column as role column index in the input data</param>
+        /// <param name="matrixColumnIndexColumn">The schema column as the row in the input data</param>
+        /// <param name="matrixRowIndexColumn">The schema column as the column in the input data</param>
         /// <param name="isDecode">Whether a non-user error should be thrown as a decode</param>
-        public static void CheckAndGetMatrixIndexColumns(RoleMappedData data, out ColumnInfo matrixColumnIndexColumn, out ColumnInfo matrixRowIndexColumn, bool isDecode)
+        public static void CheckAndGetMatrixIndexColumns(RoleMappedData data, out Schema.Column matrixColumnIndexColumn, out Schema.Column matrixRowIndexColumn, bool isDecode)
         {
             Contracts.AssertValue(data);
             CheckRowColumnType(data, MatrixColumnIndexKind, out matrixColumnIndexColumn, isDecode);
@@ -43,10 +44,10 @@ namespace Microsoft.ML.Runtime.Recommender
         /// </summary>
         /// <param name="data">The training examples</param>
         /// <param name="role">The column role to try to extract</param>
-        /// <param name="info">The extracted column info</param>
+        /// <param name="col">The extracted schema column</param>
         /// <param name="isDecode">Whether a non-user error should be thrown as a decode</param>
         /// <returns>The type cast to a key-type</returns>
-        private static KeyType CheckRowColumnType(RoleMappedData data, RoleMappedSchema.ColumnRole role, out ColumnInfo info, bool isDecode)
+        private static KeyType CheckRowColumnType(RoleMappedData data, RoleMappedSchema.ColumnRole role, out Schema.Column col, bool isDecode)
         {
             Contracts.AssertValue(data);
             Contracts.AssertValue(role.Value);
@@ -59,17 +60,17 @@ namespace Microsoft.ML.Runtime.Recommender
                     throw Contracts.ExceptDecode(format2, role.Value, kindCount);
                 throw Contracts.Except(format2, role.Value, kindCount);
             }
-            info = data.Schema.GetColumns(role)[0];
+            col = data.Schema.GetColumns(role)[0];
 
             // REVIEW tfinley: Should we be a bit less restrictive? This doesn't seem like
             // too terrible of a restriction.
             const string format = "Column '{0}' with role {1} should be a known cardinality U4 key, but is instead '{2}'";
             KeyType keyType;
-            if (!TryMarshalGoodRowColumnType(info.Type, out keyType))
+            if (!TryMarshalGoodRowColumnType(col.Type, out keyType))
             {
                 if (isDecode)
-                    throw Contracts.ExceptDecode(format, info.Name, role.Value, info.Type);
-                throw Contracts.Except(format, info.Name, role.Value, info.Type);
+                    throw Contracts.ExceptDecode(format, col.Name, role.Value, col.Type);
+                throw Contracts.Except(format, col.Name, role.Value, col.Type);
             }
             return keyType;
         }

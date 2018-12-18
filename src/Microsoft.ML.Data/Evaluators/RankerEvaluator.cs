@@ -86,11 +86,11 @@ namespace Microsoft.ML.Runtime.Data
 
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
-            var t = schema.Label.Type;
-            if (t != NumberType.Float && !t.IsKey)
+            var t = schema.Label.Value.Type;
+            if (t != NumberType.Float && !(t is KeyType))
             {
                 throw Host.ExceptUserArg(nameof(RankerMamlEvaluator.Arguments.LabelColumn), "Label column '{0}' has type '{1}' but must be R4 or a key",
-                    schema.Label.Name, t);
+                    schema.Label.Value.Name, t);
             }
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             if (scoreInfo.Type != NumberType.Float)
@@ -102,12 +102,12 @@ namespace Microsoft.ML.Runtime.Data
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
-            var t = schema.Group.Type;
-            if (!t.IsKey)
+            var t = schema.Group.Value.Type;
+            if (!(t is KeyType))
             {
                 throw Host.ExceptUserArg(nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
                     "Group column '{0}' has type '{1}' but must be a key",
-                    schema.Group.Name, t);
+                    schema.Group.Value.Name, t);
             }
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
         private protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var pred = base.GetActiveColsCore(schema);
-            return i => i == schema.Group.Index || pred(i);
+            return i => i == schema.Group.Value.Index || pred(i);
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
@@ -126,12 +126,12 @@ namespace Microsoft.ML.Runtime.Data
         internal override IDataTransform GetPerInstanceMetricsCore(RoleMappedData data)
         {
             Host.CheckValue(data, nameof(data));
-            Host.CheckParam(data.Schema.Label != null, nameof(data), "Schema must contain a label column");
+            Host.CheckParam(data.Schema.Label.HasValue, nameof(data), "Schema must contain a label column");
             var scoreInfo = data.Schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Host.CheckParam(data.Schema.Group != null, nameof(data), "Schema must contain a group column");
+            Host.CheckParam(data.Schema.Group.HasValue, nameof(data), "Schema must contain a group column");
 
             return new RankerPerInstanceTransform(Host, data.Data,
-                data.Schema.Label.Name, scoreInfo.Name, data.Schema.Group.Name, _truncationLevel, _labelGains);
+                data.Schema.Label.Value.Name, scoreInfo.Name, data.Schema.Group.Value.Name, _truncationLevel, _labelGains);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -443,20 +443,20 @@ namespace Microsoft.ML.Runtime.Data
             internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Contracts.Assert(PassNum < 1);
-                Contracts.AssertValue(schema.Label);
-                Contracts.AssertValue(schema.Group);
+                Contracts.Assert(schema.Label.HasValue);
+                Contracts.Assert(schema.Group.HasValue);
 
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Index);
+                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<Single>(score.Index);
-                _newGroupDel = RowCursorUtils.GetIsNewGroupDelegate(row, schema.Group.Index);
-                if (schema.Weight != null)
-                    _weightGetter = row.GetGetter<Single>(schema.Weight.Index);
+                _newGroupDel = RowCursorUtils.GetIsNewGroupDelegate(row, schema.Group.Value.Index);
+                if (schema.Weight.HasValue)
+                    _weightGetter = row.GetGetter<Single>(schema.Weight.Value.Index);
 
                 if (UnweightedCounters.GroupSummary)
                 {
-                    ValueGetter<StringBuilder> groupIdBuilder = RowCursorUtils.GetGetterAsStringBuilder(row, schema.Group.Index);
+                    ValueGetter<StringBuilder> groupIdBuilder = RowCursorUtils.GetGetterAsStringBuilder(row, schema.Group.Value.Index);
                     _groupSbUpdate = () => groupIdBuilder(ref _groupSb);
                 }
                 else
@@ -932,12 +932,12 @@ namespace Microsoft.ML.Runtime.Data
         private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckValue(schema.Label, nameof(schema), "Data must contain a label column");
-            Host.CheckValue(schema.Group, nameof(schema), "Data must contain a group column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Data must contain a label column");
+            Host.CheckParam(schema.Group.HasValue, nameof(schema), "Data must contain a group column");
 
             // The ranking evaluator outputs the label, group key and score columns.
-            yield return schema.Group.Name;
-            yield return schema.Label.Name;
+            yield return schema.Group.Value.Name;
+            yield return schema.Label.Value.Name;
             var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.Ranking);
             yield return scoreInfo.Name;
