@@ -150,8 +150,7 @@ namespace Microsoft.ML.Transforms
                     // Produce slot names metadata iff the source has (valid) slot names.
                     ColumnType typeNames;
                     if (!type.IsKnownSizeVector ||
-                        (typeNames = Source.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames,
-                            Infos[iinfo].Source)) == null ||
+                        (typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null ||
                         typeNames.VectorSize != type.VectorSize ||
                         !typeNames.ItemType.IsText)
                     {
@@ -200,7 +199,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(size == 2 * type.VectorSize);
 
                 // REVIEW: Do we need to verify that there is metadata or should we just call GetMetadata?
-                var typeNames = Source.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source);
+                var typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
                 if (typeNames == null || typeNames.VectorSize != type.VectorSize || !typeNames.ItemType.IsText)
                     throw MetadataUtils.ExceptGetMetadata();
 

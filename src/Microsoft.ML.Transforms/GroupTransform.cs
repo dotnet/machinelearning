@@ -375,13 +375,13 @@ namespace Microsoft.ML.Transforms
             {
                 CheckColumnInRange(col);
                 if (col < _groupCount)
-                    return _input.GetMetadataTypes(GroupIds[col]);
+                    return _input[GroupIds[col]].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
 
                 col -= _groupCount;
                 var result = new List<KeyValuePair<string, ColumnType>>();
                 foreach (var kind in _preservedMetadata)
                 {
-                    var colType = _input.GetMetadataTypeOrNull(kind, KeepIds[col]);
+                    var colType = _input[KeepIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
                     if (colType != null)
                         result.Add(colType.GetPair(kind));
                 }
@@ -393,11 +393,11 @@ namespace Microsoft.ML.Transforms
             {
                 CheckColumnInRange(col);
                 if (col < _groupCount)
-                    return _input.GetMetadataTypeOrNull(kind, GroupIds[col]);
+                    return _input[GroupIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
 
                 col -= _groupCount;
                 if (_preservedMetadata.Contains(kind))
-                    return _input.GetMetadataTypeOrNull(kind, KeepIds[col]);
+                    return _input[KeepIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
                 return null;
             }
 

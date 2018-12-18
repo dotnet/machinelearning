@@ -177,10 +177,10 @@ namespace Microsoft.ML.Core.Data
                 {
                     // First create the metadata.
                     var mCols = new List<Column>();
-                    foreach (var metaNameType in schema.GetMetadataTypes(iCol))
+                    foreach (var metaColumn in schema[iCol].Metadata.Schema)
                     {
-                        GetColumnTypeShape(metaNameType.Value, out var mVecKind, out var mItemType, out var mIsKey);
-                        mCols.Add(new Column(metaNameType.Key, mVecKind, mItemType, mIsKey));
+                        GetColumnTypeShape(metaColumn.Type, out var mVecKind, out var mItemType, out var mIsKey);
+                        mCols.Add(new Column(metaColumn.Name, mVecKind, mItemType, mIsKey));
                     }
                     var metadata = mCols.Count > 0 ? new SchemaShape(mCols) : _empty;
                     // Next create the single column.

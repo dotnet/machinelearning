@@ -416,7 +416,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return MetadataUtils.ScoreColumnSetIdType.GetPair(MetadataUtils.Kinds.ScoreColumnSetId);
             if (iinfo < DerivedColumnCount)
                 yield break;
-            foreach (var pair in Mapper.OutputSchema.GetMetadataTypes(iinfo - DerivedColumnCount))
+            foreach (var pair in Mapper.OutputSchema[iinfo - DerivedColumnCount].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type)))
                 yield return pair;
         }
 
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Runtime.Data
                 return MetadataUtils.ScoreColumnSetIdType;
             if (iinfo < DerivedColumnCount)
                 return null;
-            return Mapper.OutputSchema.GetMetadataTypeOrNull(kind, iinfo - DerivedColumnCount);
+            return Mapper.OutputSchema[iinfo - DerivedColumnCount].Metadata.Schema.GetColumnOrNull(kind)?.Type;
         }
 
         protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)

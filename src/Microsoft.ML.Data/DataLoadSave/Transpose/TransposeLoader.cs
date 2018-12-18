@@ -640,12 +640,12 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             public ColumnType GetMetadataTypeOrNull(string kind, int col)
             {
-                return Schema.GetMetadataTypeOrNull(kind, col);
+                return Schema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             }
 
             public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
             {
-                return Schema.GetMetadataTypes(col);
+                return Schema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
             }
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)

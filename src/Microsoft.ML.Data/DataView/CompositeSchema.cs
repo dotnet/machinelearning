@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -105,13 +106,13 @@ namespace Microsoft.ML.Runtime.Data
         public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
         {
             GetColumnSource(col, out int dv, out int srcCol);
-            return _sources[dv].GetMetadataTypes(srcCol);
+            return _sources[dv][srcCol].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
         }
 
         public ColumnType GetMetadataTypeOrNull(string kind, int col)
         {
             GetColumnSource(col, out int dv, out int srcCol);
-            return _sources[dv].GetMetadataTypeOrNull(kind, srcCol);
+            return _sources[dv][srcCol].Metadata.Schema.GetColumnOrNull(kind)?.Type;
         }
 
         public void GetMetadata<TValue>(string kind, int col, ref TValue value)

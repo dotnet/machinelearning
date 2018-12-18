@@ -455,9 +455,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema[valuesCol].Type is VectorType valuesVecType && valuesVecType.ItemType is KeyType);
             Assert.True(schema[valuesKeyCol].Type is VectorType valuesKeyVecType && valuesKeyVecType.ItemType is KeyType);
 
-            var labelKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelCol);
-            var valuesKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, valuesCol);
-            var valuesKeyKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, valuesKeyCol);
+            var labelKeyType = schema[labelCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var valuesKeyType = schema[valuesCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var valuesKeyKeyType = schema[valuesKeyCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             Assert.NotNull(labelKeyType);
             Assert.NotNull(valuesKeyType);
             Assert.NotNull(valuesKeyKeyType);

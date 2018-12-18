@@ -1088,7 +1088,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
-                    ColumnType srcMetaType = _schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
+                    ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
                         TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
@@ -1168,7 +1168,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
-                    ColumnType srcMetaType = _schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
+                    ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
                         TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
                     {

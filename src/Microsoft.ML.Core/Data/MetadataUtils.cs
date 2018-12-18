@@ -239,7 +239,7 @@ namespace Microsoft.ML.Data
             colMax = -1;
             for (int col = 0; col < schema.Count; col++)
             {
-                var columnType = schema.GetMetadataTypeOrNull(metadataKind, col);
+                var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
                 if (columnType == null || !columnType.IsKey || columnType.RawKind != DataKind.U4)
                     continue;
                 if (filterFunc != null && !filterFunc(schema, col))
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Data
         {
             for (int col = 0; col < schema.Count; col++)
             {
-                var columnType = schema.GetMetadataTypeOrNull(metadataKind, col);
+                var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
                 if (columnType != null && columnType.IsKey && columnType.RawKind == DataKind.U4)
                 {
                     uint val = 0;
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Data
         {
             for (int col = 0; col < schema.Count; col++)
             {
-                var columnType = schema.GetMetadataTypeOrNull(metadataKind, col);
+                var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
                 if (columnType != null && columnType.IsText)
                 {
                     ReadOnlyMemory<char> val = default;
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Data
             if (!(schema[colIndex].Type is VectorType vecType && vecType.Size > 0))
                 return isValid;
 
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex);
+            var type = schema[colIndex].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.CategoricalSlotRanges)?.Type;
             if (type?.RawType == typeof(VBuffer<int>))
             {
                 VBuffer<int> catIndices = default(VBuffer<int>);

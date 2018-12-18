@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.Data
                 yield break;
 
             // Pass through from base, with filtering.
-            foreach (var kvp in info.SchemaSrc.GetMetadataTypes(info.IndexSrc))
+            foreach (var kvp in info.SchemaSrc[info.IndexSrc].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type)))
             {
                 if (kinds != null && kinds.Contains(kvp.Key))
                     continue;
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             if (info.FilterSrc != null && !info.FilterSrc(kind, index))
                 return null;
-            return info.SchemaSrc.GetMetadataTypeOrNull(kind, info.IndexSrc);
+            return info.SchemaSrc[info.IndexSrc].Metadata.Schema.GetColumnOrNull(kind)?.Type;
         }
 
         /// <summary>

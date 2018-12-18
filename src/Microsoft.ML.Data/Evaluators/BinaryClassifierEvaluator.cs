@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
             ColumnType type;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (schema.Label.Type.IsKey &&
-                (type = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, schema.Label.Index)) != null &&
+                (type = schema.Schema[schema.Label.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type) != null &&
                 type.ItemType.IsKnownSizeVector && type.ItemType.IsText)
             {
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, schema.Label.Index, ref labelNames);

@@ -492,7 +492,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(b);
             b = schema.TryGetColumnIndex("Fold Index", out foldCol);
             Assert.True(b);
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, countCol);
+            var type = schema[countCol].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
             Assert.True(type is VectorType vecType && vecType.ItemType is TextType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
             schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref slotNames);

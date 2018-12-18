@@ -417,8 +417,8 @@ namespace Microsoft.ML.Transforms
             {
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (!IsPivot(col))
-                    return _inputSchema.GetMetadataTypes(col);
-                return _inputSchema.GetMetadataTypes(col).Where(pair => ShouldPreserveMetadata(pair.Key));
+                    return _inputSchema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
+                return _inputSchema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type)).Where(pair => ShouldPreserveMetadata(pair.Key));
             }
 
             public ColumnType GetMetadataTypeOrNull(string kind, int col)
@@ -426,7 +426,7 @@ namespace Microsoft.ML.Transforms
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (IsPivot(col) && !ShouldPreserveMetadata(kind))
                     return null;
-                return _inputSchema.GetMetadataTypeOrNull(kind, col);
+                return _inputSchema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             }
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)

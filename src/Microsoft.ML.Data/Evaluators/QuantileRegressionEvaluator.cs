@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             int scoreSize = scoreInfo.Type.VectorSize;
-            var type = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
+            var type = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             Host.Check(type != null && type.IsKnownSizeVector && type.ItemType.IsText, "Quantile regression score column must have slot names");
             var quantiles = default(VBuffer<ReadOnlyMemory<char>>);
             schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref quantiles);
@@ -74,9 +74,9 @@ namespace Microsoft.ML.Runtime.Data
             var t = scoreInfo.Type;
             Host.Assert(t.VectorSize > 0 && (t.ItemType == NumberType.R4 || t.ItemType == NumberType.R8));
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
-            t = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
+            t = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             if (t != null && t.VectorSize == scoreInfo.Type.VectorSize && t.ItemType.IsText)
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref slotNames);
+                schema.Schema[scoreInfo.Index].GetSlotNames(ref slotNames);
             return new Aggregator(Host, LossFunction, schema.Weight != null, scoreInfo.Type.VectorSize, in slotNames, stratName);
         }
 
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema[(int) LabelIndex].Type;
+            var t = schema[(int)LabelIndex].Type;
             if (t != NumberType.R4)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4", LabelCol, t);
 

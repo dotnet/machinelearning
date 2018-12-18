@@ -275,25 +275,25 @@ namespace Microsoft.ML.Runtime.Data.IO
             // track of the location and size of each for when we write the metadata table of contents.
             // (To be clear, this specific layout is not required by the format.)
 
-            foreach (var pair in schema.GetMetadataTypes(col))
+            foreach (var metaColumn in schema[col].Metadata.Schema)
             {
-                _host.Check(!string.IsNullOrEmpty(pair.Key), "Metadata with null or empty kind detected, disallowed");
-                _host.Check(pair.Value != null, "Metadata with null type detected, disallowed");
-                if (!kinds.Add(pair.Key))
-                    throw _host.Except("Metadata with duplicate kind '{0}' encountered, disallowed", pair.Key, schema[col].Name);
-                args[3] = pair.Key;
-                args[4] = pair.Value;
-                IValueCodec codec = (IValueCodec)methInfo.MakeGenericMethod(pair.Value.RawType).Invoke(this, args);
+                _host.Check(!string.IsNullOrEmpty(metaColumn.Name), "Metadata with null or empty kind detected, disallowed");
+                _host.Check(metaColumn.Type != null, "Metadata with null type detected, disallowed");
+                if (!kinds.Add(metaColumn.Name))
+                    throw _host.Except("Metadata with duplicate kind '{0}' encountered, disallowed", metaColumn.Name, schema[col].Name);
+                args[3] = metaColumn.Name;
+                args[4] = metaColumn.Type;
+                IValueCodec codec = (IValueCodec)methInfo.MakeGenericMethod(metaColumn.Type.RawType).Invoke(this, args);
                 if (codec == null)
                 {
                     // Nothing was written.
                     ch.Warning("Could not get codec for type {0}, dropping column '{1}' index {2} metadata kind '{3}'",
-                        pair.Value, schema[col].Name, col, pair.Key);
+                        metaColumn.Type, schema[col].Name, col, metaColumn.Name);
                     continue;
                 }
                 offsets.Add(writer.BaseStream.Position);
                 _host.CheckIO(offsets[offsets.Count - 1] > offsets[offsets.Count - 2], "Bad offsets detected during write");
-                metadataInfos.Add(Tuple.Create(pair.Key, codec, (CompressionKind)args[5]));
+                metadataInfos.Add(Tuple.Create(metaColumn.Name, codec, (CompressionKind)args[5]));
                 count++;
             }
             if (metadataInfos.Count == 0)

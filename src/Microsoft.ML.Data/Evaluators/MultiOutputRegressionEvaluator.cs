@@ -592,7 +592,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(Schema schema, int column, int length, string prefix)
         {
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, column);
+            var type = schema[column].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             if (type != null && type.IsText)
             {
                 return

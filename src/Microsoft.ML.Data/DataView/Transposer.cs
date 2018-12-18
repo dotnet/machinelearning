@@ -332,12 +332,12 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
             {
-                return InputSchema.GetMetadataTypes(col);
+                return InputSchema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
             }
 
             public ColumnType GetMetadataTypeOrNull(string kind, int col)
             {
-                return InputSchema.GetMetadataTypeOrNull(kind, col);
+                return InputSchema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             }
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)
@@ -1667,12 +1667,12 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
             {
-                return _schema.GetMetadataTypes(col);
+                return _schema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
             }
 
             public ColumnType GetMetadataTypeOrNull(string kind, int col)
             {
-                return _schema.GetMetadataTypeOrNull(kind, col);
+                return _schema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             }
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)

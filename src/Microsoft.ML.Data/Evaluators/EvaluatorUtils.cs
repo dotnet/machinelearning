@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.Data
         // Lambda used as validator/filter in calls to GetMaxMetadataKind.
         private static bool CheckScoreColumnKindIsKnown(Schema schema, int col)
         {
-            var columnType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, col);
+            var columnType = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnKind)?.Type;
             if (columnType == null || !columnType.IsText)
                 return false;
             ReadOnlyMemory<char> tmp = default;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.Data
         // Lambda used as validator/filter in calls to GetMaxMetadataKind.
         private static bool CheckScoreColumnKind(Schema schema, int col)
         {
-            var columnType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, col);
+            var columnType = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnKind)?.Type;
             return columnType != null && columnType.IsText;
         }
 
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // Get the score column set id from colScore.
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnSetId, colScore);
+            var type = schema[colScore].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnSetId)?.Type;
             if (type == null || !type.IsKey || type.RawKind != DataKind.U4)
             {
                 // scoreCol is not part of a score column set, so can't determine an aux column.
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Runtime.Data
             ectx.CheckParam(0 <= col && col < schema.Count, nameof(col));
             ectx.CheckNonEmpty(kind, nameof(kind));
 
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, col);
+            var type = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnKind)?.Type;
             if (type == null || !type.IsText)
                 return false;
             var tmp = default(ReadOnlyMemory<char>);
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.Data
                             // followed by the slot name if it exists, or "Label_i" if it doesn't.
                             VBuffer<ReadOnlyMemory<char>> names = default;
                             var size = schema[i].Type.VectorSize;
-                            var slotNamesType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, i);
+                            var slotNamesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
                             if (slotNamesType != null && slotNamesType.VectorSize == size && slotNamesType.ItemType.IsText)
                                 schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
                             else
@@ -563,7 +563,7 @@ namespace Microsoft.ML.Runtime.Data
                     throw Contracts.Except($"Schema number {i} does not contain column '{columnName}'");
 
                 var type = schema[indices[i]].Type;
-                var keyValueType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, indices[i]);
+                var keyValueType = schema[indices[i]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                 if (type.IsVector != isVec)
                     throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type");
                 if (keyValueType == null || keyValueType.ItemType.RawType != typeof(T))
@@ -856,7 +856,7 @@ namespace Microsoft.ML.Runtime.Data
                     else if (dvNumber == 0 && name == labelColName)
                     {
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
-                        labelColKeyValuesType = dv.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
+                        labelColKeyValuesType = dv.Schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     }
                     else if (dvNumber == 0 && dv.Schema[i].HasKeyValues(type.KeyCount))
                         firstDvKeyWithNamesColumns.Add(name);
@@ -1015,7 +1015,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     vBufferGetters[i] = row.GetGetter<VBuffer<double>>(i);
                     metricCount += type.VectorSize;
-                    var slotNamesType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, i);
+                    var slotNamesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
                     if (slotNamesType != null && slotNamesType.VectorSize == type.VectorSize && slotNamesType.ItemType.IsText)
                         schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
                     else
@@ -1215,7 +1215,7 @@ namespace Microsoft.ML.Runtime.Data
                 var name = schema[i].Name;
                 if (i == stratCol)
                 {
-                    var keyValuesType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
+                    var keyValuesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     if (keyValuesType == null || !keyValuesType.ItemType.IsText ||
                         keyValuesType.VectorSize != type.KeyCount)
                     {
@@ -1344,7 +1344,7 @@ namespace Microsoft.ML.Runtime.Data
             // Get the class names.
             int countCol;
             host.Check(confusionDataView.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.Count, out countCol), "Did not find the count column");
-            var type = confusionDataView.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, countCol);
+            var type = confusionDataView.Schema[countCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             host.Check(type != null && type.IsKnownSizeVector && type.ItemType.IsText, "The Count column does not have a text vector metadata of kind SlotNames.");
 
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);

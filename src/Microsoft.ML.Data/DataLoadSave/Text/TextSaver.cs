@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _getSrc = cursor.GetGetter<VBuffer<T>>(source);
                 ColumnType typeNames;
                 if (type.IsKnownSizeVector &&
-                    (typeNames = cursor.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, source)) != null &&
+                    (typeNames = cursor.Schema[source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) != null &&
                     typeNames.VectorSize == type.VectorSize && typeNames.ItemType.IsText)
                 {
                     cursor.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, source, ref _slotNames);
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     }
                     if (!type.IsKnownSizeVector)
                         continue;
-                    var typeNames = data.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, cols[i]);
+                    var typeNames = data.Schema[cols[i]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
                     if (typeNames != null && typeNames.VectorSize == type.VectorSize && typeNames.ItemType.IsText)
                         hasHeader = true;
                 }

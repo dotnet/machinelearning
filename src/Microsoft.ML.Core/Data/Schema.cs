@@ -310,23 +310,11 @@ namespace Microsoft.ML.Data
 
         ColumnType ISchema.GetColumnType(int col) => this[col].Type;
 
-        public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-        {
-            var meta = this[col].Metadata;
-            if (meta == null)
-                return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
-            return meta.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
-        }
+        IEnumerable<KeyValuePair<string, ColumnType>> ISchema.GetMetadataTypes(int col)
+            => this[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
 
-        public ColumnType GetMetadataTypeOrNull(string kind, int col)
-        {
-            var meta = this[col].Metadata;
-            if (meta == null)
-                return null;
-            if (meta.Schema.TryGetColumnIndex(kind, out int metaCol))
-                return meta.Schema[metaCol].Type;
-            return null;
-        }
+        ColumnType ISchema.GetMetadataTypeOrNull(string kind, int col)
+            => this[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
 
         public void GetMetadata<TValue>(string kind, int col, ref TValue value)
         {

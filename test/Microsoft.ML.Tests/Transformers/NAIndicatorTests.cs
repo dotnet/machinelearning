@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(result.Schema[col].IsNormalized());
             // Check that slot names metadata was correctly created.
             var value = new VBuffer<ReadOnlyMemory<char>>();
-            var type = result.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, col);
+            result.Schema[col].GetSlotNames(ref value);
             result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref value);
             Assert.True(value.Length == 4);
             var mem = new ReadOnlyMemory<char>();

@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
             ReadOnlyMemory<char>[] names;
             // Get the label names from the score column if they exist, or use the default names.
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var mdType = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
+            var mdType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType.IsText)
             {

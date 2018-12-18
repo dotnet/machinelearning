@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!type.IsKnownSizeVector)
                         continue;
                     ColumnType typeNames;
-                    if ((typeNames = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, col)) == null)
+                    if ((typeNames = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null)
                         continue;
                     if (typeNames.VectorSize != type.VectorSize || !typeNames.ItemType.IsText)
                     {
@@ -188,18 +188,16 @@ namespace Microsoft.ML.Runtime.Data
 
             using (itw.Nest())
             {
-                foreach (var kvp in schema.GetMetadataTypes(col).OrderBy(p => p.Key))
+                foreach (var metaColumn in schema[col].Metadata.Schema.OrderBy(mcol => mcol.Name))
                 {
-                    Contracts.AssertNonEmpty(kvp.Key);
-                    Contracts.AssertValue(kvp.Value);
-                    var type = kvp.Value;
-                    itw.Write("Metadata '{0}': {1}", kvp.Key, type);
+                    var type = metaColumn.Type;
+                    itw.Write("Metadata '{0}': {1}", metaColumn.Name, type);
                     if (showVals)
                     {
                         if (!type.IsVector)
-                            ShowMetadataValue(itw, schema, col, kvp.Key, type);
+                            ShowMetadataValue(itw, schema, col, metaColumn.Name, type);
                         else
-                            ShowMetadataValueVec(itw, schema, col, kvp.Key, type);
+                            ShowMetadataValueVec(itw, schema, col, metaColumn.Name, type);
                     }
                     itw.WriteLine();
                 }

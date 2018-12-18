@@ -489,26 +489,25 @@ namespace Microsoft.ML.Runtime.RunTests
             var hs = new HashSet<string>();
             for (int col = 0; col < sch.Count; col++)
             {
-                var typeSlot = sch.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, col);
-                var typeKeys = sch.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, col);
-                var all = sch.GetMetadataTypes(col);
+                var typeSlot = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
+                var typeKeys = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
 
                 hs.Clear();
-                foreach (var kvp in all)
+                foreach (var metaColumn in sch[col].Metadata.Schema)
                 {
-                    if (kvp.Key == null || kvp.Value == null)
+                    if (metaColumn.Name == null || metaColumn.Type == null)
                     {
                         Fail("Null returned from GetMetadataTypes");
                         return Failed();
                     }
-                    if (!hs.Add(kvp.Key))
+                    if (!hs.Add(metaColumn.Name))
                     {
-                        Fail("Duplicate metadata type: {0}", kvp.Key);
+                        Fail("Duplicate metadata type: {0}", metaColumn.Name);
                         return Failed();
                     }
-                    if (kvp.Key == MetadataUtils.Kinds.SlotNames)
+                    if (metaColumn.Name == MetadataUtils.Kinds.SlotNames)
                     {
-                        if (typeSlot == null || !typeSlot.Equals(kvp.Value))
+                        if (typeSlot == null || !typeSlot.Equals(metaColumn.Type))
                         {
                             Fail("SlotNames types don't match");
                             return Failed();
@@ -516,22 +515,14 @@ namespace Microsoft.ML.Runtime.RunTests
                         typeSlot = null;
                         continue;
                     }
-                    if (kvp.Key == MetadataUtils.Kinds.KeyValues)
+                    if (metaColumn.Name == MetadataUtils.Kinds.KeyValues)
                     {
-                        if (typeKeys == null || !typeKeys.Equals(kvp.Value))
+                        if (typeKeys == null || !typeKeys.Equals(metaColumn.Type))
                         {
                             Fail("KeyValues types don't match");
                             return Failed();
                         }
                         typeKeys = null;
-                        continue;
-                    }
-
-                    var type = sch.GetMetadataTypeOrNull(kvp.Key, col);
-                    if (type == null || !type.Equals(kvp.Value))
-                    {
-                        Fail("{0} types don't match", kvp.Key);
-                        return Failed();
                     }
                 }
 
@@ -607,8 +598,8 @@ namespace Microsoft.ML.Runtime.RunTests
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
 
-            var t1 = sch1.GetMetadataTypeOrNull(kind, col);
-            var t2 = sch2.GetMetadataTypeOrNull(kind, col);
+            var t1 = sch1[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
+            var t2 = sch2[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             if ((t1 == null) != (t2 == null))
             {
                 Fail("Different null-ness of {0} metadata types", kind);
