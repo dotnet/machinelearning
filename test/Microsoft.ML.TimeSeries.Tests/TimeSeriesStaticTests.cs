@@ -117,10 +117,10 @@ namespace Microsoft.ML.Tests
             {
                 row = enumerator.Current;
 
-                Assert.Equal(expectedValues[index++], row.Data[0], precision: 7);  // Alert
-                Assert.Equal(expectedValues[index++], row.Data[1], precision: 7);  // Raw score
-                Assert.Equal(expectedValues[index++], row.Data[2], precision: 7);  // P-Value score
-                Assert.Equal(expectedValues[index++], row.Data[3], precision: 7);  // Martingale score
+                Assert.Equal(expectedValues[index++], row.Data[0], precision: 6);  // Alert
+                Assert.Equal(expectedValues[index++], row.Data[1], precision: 6);  // Raw score
+                Assert.Equal(expectedValues[index++], row.Data[2], precision: 6);  // P-Value score
+                Assert.Equal(expectedValues[index++], row.Data[3], precision: 6);  // Martingale score
             }
         }
 
