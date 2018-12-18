@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms
                     throw MetadataUtils.ExceptGetMetadata();
 
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
-                Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref names);
+                Source.Schema[Infos[iinfo].Source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
 
                 // We both assert and check. If this fails, there is a bug somewhere (possibly in this code
                 // but more likely in the implementation of Base. On the other hand, we don't want to proceed

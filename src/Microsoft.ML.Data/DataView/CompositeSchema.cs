@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Data
         public void GetMetadata<TValue>(string kind, int col, ref TValue value)
         {
             GetColumnSource(col, out int dv, out int srcCol);
-            _sources[dv].GetMetadata(kind, srcCol, ref value);
+            _sources[dv][srcCol].Metadata.GetValue(kind, ref value);
         }
     }
 }

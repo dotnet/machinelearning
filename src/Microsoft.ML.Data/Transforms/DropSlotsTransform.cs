@@ -528,7 +528,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
-                InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, _cols[iinfo], ref names);
+                InputSchema[_cols[iinfo]].GetSlotNames(ref names);
                 _slotDropper[iinfo].DropSlots(ref names, ref dst);
             }
 

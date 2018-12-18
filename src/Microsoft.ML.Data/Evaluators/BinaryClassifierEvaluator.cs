@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Data
                 (type = schema.Schema[schema.Label.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type) != null &&
                 type.ItemType.IsKnownSizeVector && type.ItemType.IsText)
             {
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, schema.Label.Index, ref labelNames);
+                schema.Schema[schema.Label.Index].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
             }
             else
                 labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });

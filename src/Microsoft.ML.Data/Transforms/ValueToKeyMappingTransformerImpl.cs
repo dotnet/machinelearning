@@ -1117,7 +1117,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         (ref VBuffer<TMeta> dst) =>
                         {
                             VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
-                            _schema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref srcMeta);
+                            _schema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref srcMeta);
                             _host.Assert(srcMeta.Length == srcType.Count);
 
                             VBuffer<T> keyVals = default(VBuffer<T>);
@@ -1193,7 +1193,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
 
                     VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
-                    _schema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref srcMeta);
+                    _schema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref srcMeta);
                     if (srcMeta.Length != srcType.Count)
                         return false;
 

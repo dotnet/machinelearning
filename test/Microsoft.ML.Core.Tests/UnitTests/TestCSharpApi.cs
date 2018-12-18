@@ -495,7 +495,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var type = schema[countCol].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
             Assert.True(type is VectorType vecType && vecType.ItemType is TextType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
-            schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref slotNames);
+            schema[countCol].GetSlotNames(ref slotNames);
             var slotNameValues = slotNames.GetValues();
             for (int i = 0; i < slotNameValues.Length; i++)
             {

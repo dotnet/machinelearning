@@ -946,7 +946,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 VBuffer<ReadOnlyMemory<char>> dst = default;
                 if (inputSchema[srcCol].HasSlotNames(srcColType.ValueCount))
-                    inputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, srcCol, ref dst);
+                    inputSchema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref dst);
                 else
                     dst = default(VBuffer<ReadOnlyMemory<char>>);
                 columnMappings.Add(dst);

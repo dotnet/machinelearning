@@ -852,7 +852,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var type = binaryScored.Schema[scoreIndex].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnKind)?.Type;
             Assert.True(type is TextType, "Binary ensemble scored data does not have correct type of metadata.");
             var kind = default(ReadOnlyMemory<char>);
-            binaryScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
+            binaryScored.Schema[scoreIndex].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
                 $"Binary ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.BinaryClassification}', but is instead '{kind}'");
 
@@ -860,7 +860,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(hasScoreCol, "Data scored with regression ensemble does not have a score column");
             type = regressionScored.Schema[scoreIndex].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
             Assert.True(type is TextType, "Regression ensemble scored data does not have correct type of metadata.");
-            regressionScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
+            regressionScored.Schema[scoreIndex].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
                 $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
 
@@ -868,7 +868,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(hasScoreCol, "Data scored with anomaly detection ensemble does not have a score column");
             type = anomalyScored.Schema[scoreIndex].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
             Assert.True(type is TextType, "Anomaly detection ensemble scored data does not have correct type of metadata.");
-            anomalyScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
+            anomalyScored.Schema[scoreIndex].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
                 $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
 

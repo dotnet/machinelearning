@@ -419,7 +419,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
             var sch = schema.Schema;
             if (sch[feat.Index].HasSlotNames(feat.Type.ValueCount))
-                sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref _names);
+                sch[feat.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _names);
             else
                 _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
 #if !CORECLR

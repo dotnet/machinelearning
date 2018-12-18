@@ -596,7 +596,7 @@ namespace Microsoft.ML.Runtime.Data
             if (type != null && type.IsText)
             {
                 return
-                    (ref VBuffer<ReadOnlyMemory<char>> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, column, ref dst);
+                    (ref VBuffer<ReadOnlyMemory<char>> dst) => schema[column].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref dst);
             }
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>

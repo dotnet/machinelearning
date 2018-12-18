@@ -143,8 +143,8 @@ namespace Microsoft.ML.Tests
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
             int size = (itemType1 as KeyType)?.Count ?? -1;
             var type2 = result.Schema[copyIndex].Type;
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, copyIndex, ref names2);
+            result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
+            result.Schema[copyIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names2);
             Assert.True(CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
         }
 

@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (IsPivot(col) && !ShouldPreserveMetadata(kind))
                     throw _ectx.ExceptGetMetadata();
-                _inputSchema.GetMetadata(kind, col, ref value);
+                _inputSchema[col].Metadata.GetValue(kind, ref value);
             }
         }
 

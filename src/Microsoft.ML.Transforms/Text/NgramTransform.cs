@@ -604,7 +604,7 @@ namespace Microsoft.ML.Transforms.Text
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 
                 // Get the key values of the unigrams.
-                InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, _srcCols[iinfo], ref unigramNames);
+                InputSchema[_srcCols[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref unigramNames);
                 Host.Check(unigramNames.Length == keyCount);
 
                 var pool = _parent._ngramMaps[iinfo];

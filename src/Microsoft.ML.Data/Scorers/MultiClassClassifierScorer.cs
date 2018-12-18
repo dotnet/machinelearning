@@ -430,8 +430,7 @@ namespace Microsoft.ML.Runtime.Data
             ValueGetter<VBuffer<T>> getter =
                 (ref VBuffer<T> value) =>
                 {
-                    trainSchema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues,
-                        trainSchema.Label.Index, ref value);
+                    trainSchema.Schema[trainSchema.Label.Index].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref value);
                 };
 
             return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.SlotNames, CanWrap);

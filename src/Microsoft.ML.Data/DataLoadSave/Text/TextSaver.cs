@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     (typeNames = cursor.Schema[source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) != null &&
                     typeNames.VectorSize == type.VectorSize && typeNames.ItemType.IsText)
                 {
-                    cursor.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, source, ref _slotNames);
+                    cursor.Schema[source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                     Contracts.Check(_slotNames.Length == typeNames.VectorSize, "Unexpected slot names length");
                 }
                 _slotCount = type.VectorSize;

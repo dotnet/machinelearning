@@ -96,7 +96,7 @@ namespace Microsoft.ML.Legacy
                     if (dataView.Schema[colIndex].HasSlotNames(n))
                     {
                         var slots = default(VBuffer<ReadOnlyMemory<char>>);
-                        dataView.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref slots);
+                        dataView.Schema[colIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slots);
 
                         bool appendEllipse = false;
                         IEnumerable<ReadOnlyMemory<char>> slotNames = slots.Items(true).Select(x => x.Value);

@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Assert(false, "Unexpected slot names type");
                         continue;
                     }
-                    schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref names);
+                    schema[col].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
                     if (names.Length != type.VectorSize)
                     {
                         Contracts.Assert(false, "Unexpected length of slot names vector");
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var value = default(T);
             var sb = default(StringBuilder);
-            schema.GetMetadata(kind, col, ref value);
+            schema[col].Metadata.GetValue(kind, ref value);
             conv(in value, ref sb);
 
             itw.Write(": '{0}'", sb);
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Runtime.Data
             var conv = Conversions.Instance.GetStringConversion<T>(type.ItemType);
 
             var value = default(VBuffer<T>);
-            schema.GetMetadata(kind, col, ref value);
+            schema[col].Metadata.GetValue(kind, ref value);
 
             itw.Write(": Length={0}, Count={0}", value.Length, value.GetValues().Length);
 

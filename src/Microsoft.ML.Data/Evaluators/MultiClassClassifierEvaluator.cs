@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.Data
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType.IsText)
             {
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref labelNames);
+                schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labelNames);
                 names = new ReadOnlyMemory<char>[labelNames.Length];
                 labelNames.CopyTo(names);
             }
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Runtime.Data
             if (schema[(int) ScoreIndex].HasSlotNames(_numClasses))
             {
                 var classNames = default(VBuffer<ReadOnlyMemory<char>>);
-                schema.GetMetadata(MetadataUtils.Kinds.SlotNames, ScoreIndex, ref classNames);
+                schema[(int) ScoreIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref classNames);
                 _classNames = new ReadOnlyMemory<char>[_numClasses];
                 classNames.CopyTo(_classNames);
             }

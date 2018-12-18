@@ -355,7 +355,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
             IValueCodec<T> codec = (IValueCodec<T>)generalCodec;
             T value = default(T);
-            schema.GetMetadata(kind, col, ref value);
+            schema[col].Metadata.GetValue(kind, ref value);
 
             // Metadatas will often be pretty small, so that compression makes no sense.
             // We try both a compressed and uncompressed version of metadata and

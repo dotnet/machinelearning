@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (info.SchemaSrc == null || info.FilterSrc != null && !info.FilterSrc(kind, index))
                 throw ectx.ExceptGetMetadata();
-            info.SchemaSrc.GetMetadata(kind, info.IndexSrc, ref value);
+            info.SchemaSrc[info.IndexSrc].Metadata.GetValue(kind, ref value);
         }
     }
 

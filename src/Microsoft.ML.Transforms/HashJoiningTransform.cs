@@ -419,7 +419,7 @@ namespace Microsoft.ML.Transforms.Conversions
             VBuffer<ReadOnlyMemory<char>> srcSlotNames = default;
             if (!useDefaultSlotNames)
             {
-                Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref srcSlotNames);
+                Source.Schema[Infos[iinfo].Source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref srcSlotNames);
                 useDefaultSlotNames =
                     !srcSlotNames.IsDense
                     || srcSlotNames.Length != Infos[iinfo].TypeSrc.ValueCount;

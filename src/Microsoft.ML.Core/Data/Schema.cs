@@ -300,6 +300,17 @@ namespace Microsoft.ML.Data
             return getter;
         }
 
+        /// <summary>
+        /// Legacy method to get the column index.
+        /// DO NOT USE: use <see cref="GetColumnOrNull"/> instead.
+        /// </summary>
+        [BestFriend]
+        internal bool TryGetColumnIndex(string name, out int col)
+        {
+            col = GetColumnOrNull(name)?.Index ?? -1;
+            return col >= 0;
+        }
+
         #region Legacy schema API to be removed
         /// <summary>
         /// Number of columns in the schema.
@@ -316,15 +327,10 @@ namespace Microsoft.ML.Data
         ColumnType ISchema.GetMetadataTypeOrNull(string kind, int col)
             => this[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
 
-        public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-        {
-            var meta = this[col].Metadata;
-            if (meta == null)
-                throw MetadataUtils.ExceptGetMetadata();
-            meta.GetValue(kind, ref value);
-        }
+        void ISchema.GetMetadata<TValue>(string kind, int col, ref TValue value)
+            => this[col].Metadata.GetValue(kind, ref value);
 
-        public bool TryGetColumnIndex(string name, out int col)
+        bool ISchema.TryGetColumnIndex(string name, out int col)
         {
             col = GetColumnOrNull(name)?.Index ?? -1;
             return col >= 0;

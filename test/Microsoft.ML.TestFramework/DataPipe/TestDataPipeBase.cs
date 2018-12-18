@@ -635,8 +635,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 return Failed();
             }
 
-            sch1.GetMetadata(kind, col, ref names1);
-            sch2.GetMetadata(kind, col, ref names2);
+            sch1[col].Metadata.GetValue(kind, ref names1);
+            sch2[col].Metadata.GetValue(kind, ref names2);
             if (!CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
@@ -649,7 +649,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             try
             {
-                sch.GetMetadata(kind, col, ref names);
+                sch[col].Metadata.GetValue(kind, ref names);
                 Fail("Getting {0} metadata unexpectedly succeeded", kind);
                 return Failed();
             }

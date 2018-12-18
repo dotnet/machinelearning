@@ -342,7 +342,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)
             {
-                InputSchema.GetMetadata(kind, col, ref value);
+                InputSchema[col].Metadata.GetValue(kind, ref value);
             }
 
             public VectorType GetSlotType(int col)
@@ -1677,7 +1677,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)
             {
-                _schema.GetMetadata(kind, col, ref value);
+                _schema[col].Metadata.GetValue(kind, ref value);
             }
         }
     }

@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (type == null || !type.IsKnownSizeVector || !type.ItemType.IsText)
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
-            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, col, ref metadata);
+            schema[col].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
             if (!metadata.IsDense)
                 return null;
             var sb = new StringBuilder();

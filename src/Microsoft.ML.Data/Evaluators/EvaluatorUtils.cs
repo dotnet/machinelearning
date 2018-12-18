@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
             schema.GetMaxMetadataKind(out int col, MetadataUtils.Kinds.ScoreColumnSetId, CheckScoreColumnKindIsKnown);
             if (col >= 0)
             {
-                schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
+                schema[col].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref tmp);
                 var kind = tmp.ToString();
                 var map = DefaultEvaluatorTable.Instance;
                 // The next assert is guaranteed because it is checked in CheckScoreColumnKindIsKnown which is the lambda passed to GetMaxMetadataKind.
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Data
             schema.GetMaxMetadataKind(out col, MetadataUtils.Kinds.ScoreColumnSetId, CheckScoreColumnKind);
             if (col >= 0)
             {
-                schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
+                schema[col].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref tmp);
                 throw env.ExceptUserArg(nameof(EvaluateCommand.Arguments.Evaluator), "No default evaluator found for score column kind '{0}'.", tmp.ToString());
             }
 
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
             if (columnType == null || !columnType.IsText)
                 return false;
             ReadOnlyMemory<char> tmp = default;
-            schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
+            schema[col].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref tmp);
             var map = DefaultEvaluatorTable.Instance;
             return map.ContainsKey(tmp.ToString());
         }
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.Data
             foreach (var col in schema.GetColumnSet(MetadataUtils.Kinds.ScoreColumnSetId, maxSetNum))
             {
 #if DEBUG
-                schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
+                schema[col].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref tmp);
                 ectx.Assert(ReadOnlyMemoryUtils.EqualsStr(kind, tmp));
 #endif
                 // REVIEW: What should this do about hidden columns? Currently we ignore them.
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             }
             uint setId = 0;
-            schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnSetId, colScore, ref setId);
+            schema[colScore].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnSetId, ref setId);
 
             ReadOnlyMemory<char> tmp = default;
             foreach (var col in schema.GetColumnSet(MetadataUtils.Kinds.ScoreColumnSetId, setId))
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
             if (type == null || !type.IsText)
                 return false;
             var tmp = default(ReadOnlyMemory<char>);
-            schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, col, ref tmp);
+            schema[col].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref tmp);
             return ReadOnlyMemoryUtils.EqualsStr(kind, tmp);
         }
 
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Runtime.Data
                             var size = schema[i].Type.VectorSize;
                             var slotNamesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
                             if (slotNamesType != null && slotNamesType.VectorSize == size && slotNamesType.ItemType.IsText)
-                                schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
+                                schema[i].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
                             else
                             {
                                 var namesArray = new ReadOnlyMemory<char>[size];
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Runtime.Data
                 var type = typeSrc[i] = idv.Schema[col].Type;
                 if (!idv.Schema[col].HasSlotNames(type.VectorSize))
                     throw env.Except("Column '{0}' in data view number {1} did not contain slot names metadata", columnName, i);
-                idv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref slotNamesCur);
+                idv.Schema[col].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNamesCur);
 
                 var map = maps[i] = new int[slotNamesCur.Length];
                 foreach (var kvp in slotNamesCur.Items(true))
@@ -571,7 +571,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!type.ItemType.IsKey || type.ItemType.RawKind != DataKind.U4)
                     throw Contracts.Except($"Column '{columnName}' must be a U4 key type, but is '{type.ItemType}'");
 
-                schema.GetMetadata(MetadataUtils.Kinds.KeyValues, indices[i], ref keyNamesCur);
+                schema[indices[i]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyNamesCur);
 
                 keyValueMappers[i] = new int[type.ItemType.KeyCount];
                 foreach (var kvp in keyNamesCur.Items(true))
@@ -721,7 +721,7 @@ namespace Microsoft.ML.Runtime.Data
                     var schema = views[i].Schema;
                     int index = columnIndices[i];
                     slotNamesGetter =
-                        (ref VBuffer<ReadOnlyMemory<char>> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, index, ref dst);
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) => schema[index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref dst);
                 }
                 views[i] = LambdaColumnMapper.Create(env, "ReconcileKeyValues", views[i], columnName, columnName,
                     type, new VectorType(keyType, type as VectorType), mapper, keyValueGetter, slotNamesGetter);
@@ -835,7 +835,7 @@ namespace Microsoft.ML.Runtime.Data
                             if (dv.Schema[i].HasSlotNames(type.VectorSize))
                             {
                                 VBuffer<ReadOnlyMemory<char>> slotNames = default;
-                                dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref slotNames);
+                                dv.Schema[i].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
                                 firstDvSlotNames.Add(name, slotNames);
                             }
                         }
@@ -953,7 +953,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // Verify that slots match with slots from 1st idv.
                 VBuffer<ReadOnlyMemory<char>> currSlotNames = default;
-                dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref currSlotNames);
+                dv.Schema[col].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref currSlotNames);
 
                 if (currSlotNames.Length != firstDvSlotNames.Length)
                     return false;
@@ -1017,7 +1017,7 @@ namespace Microsoft.ML.Runtime.Data
                     metricCount += type.VectorSize;
                     var slotNamesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
                     if (slotNamesType != null && slotNamesType.VectorSize == type.VectorSize && slotNamesType.ItemType.IsText)
-                        schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
+                        schema[i].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
                     else
                     {
                         var editor = VBufferEditor.Create(ref names, type.VectorSize);
@@ -1226,7 +1226,7 @@ namespace Microsoft.ML.Runtime.Data
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues =
                         (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
-                            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, stratCol, ref dst);
+                            schema[stratCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref dst);
                             Contracts.Assert(dst.IsDense);
                         };
 
@@ -1348,7 +1348,7 @@ namespace Microsoft.ML.Runtime.Data
             host.Check(type != null && type.IsKnownSizeVector && type.ItemType.IsText, "The Count column does not have a text vector metadata of kind SlotNames.");
 
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
-            confusionDataView.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref labelNames);
+            confusionDataView.Schema[countCol].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labelNames);
             host.Check(labelNames.IsDense, "Slot names vector must be dense");
 
             int numConfusionTableLabels = sample < 0 ? labelNames.Length : Math.Min(labelNames.Length, sample);

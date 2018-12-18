@@ -406,14 +406,14 @@ namespace Microsoft.ML.Transforms
                 CheckColumnInRange(col);
                 if (col < _groupCount)
                 {
-                    _input.GetMetadata(kind, GroupIds[col], ref value);
+                    _input[GroupIds[col]].Metadata.GetValue(kind, ref value);
                     return;
                 }
 
                 col -= _groupCount;
                 if (_preservedMetadata.Contains(kind))
                 {
-                    _input.GetMetadata(kind, KeepIds[col], ref value);
+                    _input[KeepIds[col]].Metadata.GetValue(kind, ref value);
                     return;
                 }
 

@@ -1122,7 +1122,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
                     int len = schema.Feature.Type.ValueCount;
                     if (schema.Schema[schema.Feature.Index].HasSlotNames(len))
-                        schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref _featNames);
+                        schema.Schema[schema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _featNames);
                     else
                         _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 

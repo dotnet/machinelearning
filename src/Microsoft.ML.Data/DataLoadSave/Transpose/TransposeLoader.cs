@@ -650,7 +650,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)
             {
-                Schema.GetMetadata<TValue>(kind, col, ref value);
+                Schema[col].Metadata.GetValue(kind, ref value);
             }
 
             public VectorType GetSlotType(int col)

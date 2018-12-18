@@ -357,7 +357,7 @@ namespace Microsoft.ML.Runtime.Data
                     builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
                     _outputSchema = builder.GetSchema();
                     if (InputSchema[InputRoleMappedSchema.Feature.Index].HasSlotNames(InputRoleMappedSchema.Feature.Type.VectorSize))
-                        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index, ref _slotNames);
+                        InputSchema[InputRoleMappedSchema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                     else
                         _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(InputRoleMappedSchema.Feature.Type.VectorSize);
                 }
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _ectx.CheckParam(col == 0, nameof(col));
                 if (kind == MetadataUtils.Kinds.SlotNames && _hasSlotNames)
-                    _parentSchema.GetMetadata(kind, _featureCol, ref value);
+                    _parentSchema[_featureCol].Metadata.GetValue(kind, ref value);
                 else
                     throw MetadataUtils.ExceptGetMetadata();
             }

@@ -642,7 +642,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
             env.AssertNonEmpty(models);
             var labelNames = default(VBuffer<T>);
-            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelIndex, ref labelNames);
+            schema[labelIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
             var classCount = labelNames.Length;
 
             var curLabelNames = default(VBuffer<T>);
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 var mdType = rmd.Schema.Schema[labelInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                 if (!mdType.Equals(keyValuesType))
                     throw env.Except("Label column of model {0} has different key value type than model 0", i);
-                rmd.Schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelInfo.Index, ref curLabelNames);
+                rmd.Schema.Schema[labelInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref curLabelNames);
                 if (!AreEqual(in labelNames, in curLabelNames))
                     throw env.Except("Label of model {0} has different values than model 0", i);
             }

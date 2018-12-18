@@ -245,7 +245,7 @@ namespace Microsoft.ML.Data
                 if (filterFunc != null && !filterFunc(schema, col))
                     continue;
                 uint value = 0;
-                schema.GetMetadata(metadataKind, col, ref value);
+                schema[col].Metadata.GetValue(metadataKind, ref value);
                 if (max < value)
                 {
                     max = value;
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Data
                 if (columnType != null && columnType.IsKey && columnType.RawKind == DataKind.U4)
                 {
                     uint val = 0;
-                    schema.GetMetadata(metadataKind, col, ref val);
+                    schema[col].Metadata.GetValue(metadataKind, ref val);
                     if (val == value)
                         yield return col;
                 }
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Data
                 if (columnType != null && columnType.IsText)
                 {
                     ReadOnlyMemory<char> val = default;
-                    schema.GetMetadata(metadataKind, col, ref val);
+                    schema[col].Metadata.GetValue(metadataKind, ref val);
                     if (ReadOnlyMemoryUtils.EqualsStr(value, val))
                         yield return col;
                 }
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Data
                 VBufferUtils.Resize(ref slotNames, vectorSize, 0);
             }
             else
-                schema.Schema.GetMetadata(Kinds.SlotNames, list[0].Index, ref slotNames);
+                schema.Schema[list[0].Index].Metadata.GetValue(Kinds.SlotNames, ref slotNames);
         }
 
         [BestFriend]
@@ -454,7 +454,7 @@ namespace Microsoft.ML.Data
             if (type?.RawType == typeof(VBuffer<int>))
             {
                 VBuffer<int> catIndices = default(VBuffer<int>);
-                schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex, ref catIndices);
+                schema[colIndex].Metadata.GetValue(MetadataUtils.Kinds.CategoricalSlotRanges, ref catIndices);
                 VBufferUtils.Densify(ref catIndices);
                 int columnSlotsCount = vecType.Size;
                 if (catIndices.Length > 0 && catIndices.Length % 2 == 0 && catIndices.Length <= columnSlotsCount * 2)

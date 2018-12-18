@@ -441,7 +441,7 @@ namespace Microsoft.ML.Runtime.Data
                 default:
                     if (iinfo < DerivedColumnCount)
                         throw MetadataUtils.ExceptGetMetadata();
-                    Mapper.OutputSchema.GetMetadata<TValue>(kind, iinfo - DerivedColumnCount, ref value);
+                    Mapper.OutputSchema[iinfo - DerivedColumnCount].Metadata.GetValue(kind, ref value);
                     break;
             }
         }

@@ -46,7 +46,7 @@ namespace Microsoft.ML.Legacy
                 return false;
 
             VBuffer<ReadOnlyMemory<char>> labels = default;
-            schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref labels);
+            schema[colIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labels);
 
             if (labels.Length != expectedLabelCount)
                 return false;

@@ -190,7 +190,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             int len = schema.Feature.Type.ValueCount;
             if (schema.Schema[schema.Feature.Index].HasSlotNames(len))
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref slotNames);
+                schema.Schema[schema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
             else
                 slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
             var slotNameValues = slotNames.GetValues();
