@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             internal ColumnInfo(Column item, Arguments args) :
-                this(item.Source, item.Name,
+                this(item.Source ?? item.Name, item.Name,
                     item.NumTopic ?? args.NumTopic,
                     item.AlphaSum ?? args.AlphaSum,
                     item.Beta ?? args.Beta,
