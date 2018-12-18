@@ -649,8 +649,11 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper,
-        IFeatureContributionMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
+        IFeatureContributionMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary,
+        ICanSaveInIniFormat
     {
+        private readonly TreeEnsemble _treeEnsemble;
+
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
         public readonly double Intercept;
@@ -738,6 +741,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 newBinEffects.Clear();
                 newBinBoundaries.Clear();
             }
+
+            _treeEnsemble = ToTreeEnsemble();
         }
 
         protected GamPredictorBase(IHostEnvironment env, string name, ModelLoadContext ctx)
@@ -789,6 +794,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
             _inputType = new VectorType(NumberType.Float, _inputLength);
             _outputType = NumberType.Float;
+
+            _treeEnsemble = ToTreeEnsemble();
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -833,12 +840,22 @@ namespace Microsoft.ML.Trainers.FastTree
 
             double value = Intercept;
             var featuresValues = features.GetValues();
+            Console.WriteLine(string.Join("\t", featuresValues.ToArray()));
+
             if (features.IsDense)
             {
                 for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        value += GetBinEffect(j, featuresValues[i]);
+                    {
+                        var gamOutput = GetBinEffect(j, featuresValues[i]);
+                        var treeOutput = _treeEnsemble.TreesArray[i].GetOutput(features);
+                        var delta = Math.Abs(treeOutput - gamOutput);
+                        if (delta > 1e-5)
+                            Console.WriteLine(delta);
+                        value += gamOutput;
+
+                    }
                 }
             }
             else
@@ -1028,11 +1045,97 @@ namespace Microsoft.ML.Trainers.FastTree
             Runtime.Numeric.VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
         }
 
-        /// <summary>
-        /// The GAM model visualization command. Because the data access commands must access private members of
-        /// <see cref="GamPredictorBase"/>, it is convenient to have the command itself nested within the base
-        /// predictor class.
-        /// </summary>
+        public TreeEnsemble ToTreeEnsemble()
+        {
+            var ensemble = new TreeEnsemble();
+
+            for (int i = 0; i < _numFeatures; i++)
+            {
+                var effects = _binEffects[i];
+                var thresholds = _binUpperBounds[i];
+
+                Host.Assert(effects.Length == thresholds.Length);
+                var numLeaves = effects.Length;
+                var numInternalNodes = numLeaves - 1;
+
+                var splitFeature = new int[numInternalNodes];
+                var splitGain = new double[numInternalNodes];
+                var rawThresholds = thresholds.Take(numInternalNodes).Select(x => (float)x).ToArray();
+                var defaultValueForMissing = new float[numInternalNodes];
+                var binIndices = Enumerable.Range(0, numInternalNodes).ToArray();
+
+                // Create a long tree
+                var lteChild = binIndices.Select(x => ~x).ToArray();
+                var gtChild = binIndices.Take(numInternalNodes - 1).Select(x => x + 1).ToList();
+                gtChild.Add(~numInternalNodes);
+
+                var leafValues = effects;
+
+                for (int j = 0; j < splitFeature.Length; j++)
+                    splitFeature[j] = i;
+
+                var tree = RegressionTree.Create(numLeaves, splitFeature, splitGain,
+                    rawThresholds, defaultValueForMissing, lteChild, gtChild.ToArray(), leafValues,
+                    categoricalSplitFeatures: new int[numInternalNodes][],
+                    categoricalSplit: new bool[numInternalNodes]);
+
+                ensemble.AddTree(tree);
+            }
+
+            return ensemble;
+        }
+
+        public void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
+        {
+            var ensemble = new TreeEnsemble();
+
+            for (int i = 0; i < _numFeatures; i++)
+            {
+                var effects = _binEffects[i];
+                var thresholds = _binUpperBounds[i];
+
+                Host.Assert(effects.Length == thresholds.Length);
+                var numLeaves = effects.Length;
+                var numInternalNodes = numLeaves - 1;
+
+                var splitFeature = new int[numInternalNodes];
+                var splitGain = new double[numInternalNodes];
+                var rawThresholds = thresholds.Take(numInternalNodes).Select(x => (float)x).ToArray();
+                var defaultValueForMissing = new float[numInternalNodes];
+                var binIndices = Enumerable.Range(0, numInternalNodes).ToArray();
+
+                // Create a long tree
+                var lteChild = binIndices.Select(x => ~x).ToArray();
+                var gtChild = binIndices.Take(numInternalNodes - 1).Select(x => x + 1).ToList();
+                gtChild.Add(~numInternalNodes);
+
+                double[] leafValues;
+
+                if (i == 0)
+                    leafValues = effects.Select(x => x + Intercept).ToArray();
+                else
+                    leafValues = effects;
+
+                for (int j = 0; j < splitFeature.Length; j++)
+                    splitFeature[j] = i;
+
+                var tree = RegressionTree.Create(numLeaves, splitFeature, splitGain,
+                    rawThresholds, defaultValueForMissing, lteChild, gtChild.ToArray(), leafValues,
+                    categoricalSplitFeatures: new int[numInternalNodes][],
+                    categoricalSplit: new bool[numInternalNodes]);
+
+                ensemble.AddTree(tree);
+            }
+
+            var ini = ensemble.ToTreeEnsembleIni(
+                new FeaturesToContentMap(schema),
+                string.Empty,
+                appendFeatureGain: true,
+                includeZeroGainFeatures: false);
+
+            writer.Write(ini);
+        }
+
         internal sealed class VisualizationCommand : DataCommand.ImplBase<VisualizationCommand.Arguments>
         {
             public const string Summary = "Loads a model trained with a GAM learner, and starts an interactive web session to visualize it.";
