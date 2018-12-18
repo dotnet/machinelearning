@@ -57,9 +57,6 @@ namespace Microsoft.ML.Samples
                         }
                     }).Read(@"F:\temp\ini\data\breast-cancer-noNan.txt");
 
-            //var pipeline = mlContext.Transforms.Normalize("Features")
-            //    .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels());
-
             var pipeline = mlContext.Regression.Trainers.GeneralizedAdditiveModels();
 
             var model = pipeline.Fit(idv);
@@ -69,32 +66,10 @@ namespace Microsoft.ML.Samples
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
 
-            //using (var fs = File.Create(@"F:\temp\ini\model3.zip"))
-            //    mlContext.Model.Save(model, fs);
-
-            using (StreamWriter writer = new StreamWriter(@"F:\temp\ini\model5.ini"))
+            using (StreamWriter writer = new StreamWriter(@"F:\temp\ini\model7.ini"))
                 model.Model.SaveAsIni(writer, roleMappedSchema);
 
             var results = mlContext.Regression.Evaluate(data);
-
-            //using (var fs = File.OpenRead(@"F:\temp\ini\model3.zip"))
-            //{
-            //    var loadedModel = mlContext.Model.Load(fs);
-            //    var testOut = loadedModel.Transform(idv);
-            //}
-
-            //var modelPath = @"F:\temp\model.zip";
-            //using (var fs = File.Create(modelPath))
-            //    mlContext.Model.Save(model, fs);
-
-            //var savePredCommand = new SavePredictorCommand(
-            //    mlContext,
-            //    new SavePredictorCommand.Arguments
-            //    {
-            //        InputModelFile = modelPath,
-            //    });
-
-            //savePredCommand.Run();
         }
     }
 }
