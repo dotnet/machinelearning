@@ -334,5 +334,50 @@ namespace Microsoft.ML.Tests
                 k += 1;
             }
         }
+
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]
+        public void Forecasting()
+        {
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+
+            List<Data> data = new List<Data>();
+
+            var ml = new MLContext(seed: 1, conc: 1);
+            var dataView = ml.CreateStreamingDataView(data);
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            // Create forecasting model.
+            var model = new AdaptiveSingularSpectrumSequenceModeler(ml, data.Count, SeasonalitySize + 1, SeasonalitySize,
+                1, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalitySize / 2, false, false);
+
+            // Train.
+            model.Train(dataView, "Value");
+
+            // Forecast.
+            var forecast = model.Forecast(5);
+
+            // Update with new observations.
+            model.Update(dataView, "Value");
+
+            // Checkpoint.
+            model.Checkpoint(ml, "model.zip");
+
+            // Load the checkpointed model from disk.
+            var modelCopy = model.LoadFrom(ml, "model.zip");
+
+            // Forecast with the checkpointed model loaded from disk.
+            var forecastCopy = modelCopy.Forecast(5);
+
+            // Forecast with the original model(that was checkpointed to disk).
+            forecast = model.Forecast(5);
+
+            // Both the forecasted values from model loaded from disk and 
+            // already in memory model should be the same.
+            Assert.Equal(forecast, forecastCopy);
+        }
     }
 }

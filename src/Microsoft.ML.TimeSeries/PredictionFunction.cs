@@ -11,6 +11,15 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Transforms.TimeSeries
 {
+    internal interface ICanForecast<out T>
+    {
+        void Train(IDataView dataView, string inputColumnName);
+        T[] Forecast(int horizon);
+        void Update(IDataView dataView, string inputColumnName);
+        void Checkpoint(IHostEnvironment env, string filePath);
+        AdaptiveSingularSpectrumSequenceModeler LoadFrom(IHostEnvironment env, string filePath);
+    }
+
     internal interface IStatefulRowToRowMapper : IRowToRowMapper
     {
     }

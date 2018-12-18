@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Numerics;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -22,7 +23,7 @@ namespace Microsoft.ML.Transforms.TimeSeries
     /// This class implements basic Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
     /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
-    internal sealed class AdaptiveSingularSpectrumSequenceModeler : SequenceModelerBase<Single, Single>
+    public sealed class AdaptiveSingularSpectrumSequenceModeler : SequenceModelerBase<Single, Single>, ICanForecast<float>
     {
         internal const string LoaderSignature = "SSAModel";
 
@@ -1545,6 +1546,65 @@ namespace Microsoft.ML.Transforms.TimeSeries
 
             forecast.UpperBound = upper.Commit();
             forecast.LowerBound = lower.Commit();
+        }
+
+        public void Train(IDataView dataView, string inputColumnName) => Train(new RoleMappedData(dataView, null, inputColumnName));
+
+        public float[] Forecast(int horizon)
+        {
+            ForecastResultBase<float> result = null;
+            Forecast(ref result, horizon);
+            return result.PointForecast.GetValues().ToArray();
+        }
+
+        public void Update(IDataView dataView, string inputColumnName)
+        {
+            _host.CheckParam(dataView != null, nameof(dataView), "The input series for updating cannot be null.");
+
+            var data = new RoleMappedData(dataView, null, inputColumnName);
+            if (data.Schema.Feature.Type != NumberType.Float)
+                throw _host.ExceptUserArg(nameof(data.Schema.Feature.Name), "The time series input column has " +
+                    "type '{0}', but must be a float.", data.Schema.Feature.Type);
+
+            int col = data.Schema.Feature.Index;
+            using (var cursor = data.Data.GetRowCursor(c => c == col))
+            {
+                var getVal = cursor.GetGetter<Single>(col);
+                Single val = default(Single);
+                while (cursor.MoveNext())
+                {
+                    getVal(ref val);
+                    if (!Single.IsNaN(val))
+                        Consume(ref val);
+                }
+            }
+        }
+
+        public void Checkpoint(IHostEnvironment env, string filePath)
+        {
+            using (var file = File.Create(filePath))
+            {
+                using (var ch = env.Start("Saving SSA forecasting model."))
+                {
+                    using (var rep = RepositoryWriter.CreateNew(file, ch))
+                    {
+                        ModelSaveContext.SaveModel(rep, this, LoaderSignature);
+                        rep.Commit();
+                    }
+                }
+            }
+        }
+
+        public AdaptiveSingularSpectrumSequenceModeler LoadFrom(IHostEnvironment env, string filePath)
+        {
+            using (var file = File.OpenRead(filePath))
+            {
+                using (var rep = RepositoryReader.Open(file, env))
+                {
+                    ModelLoadContext.LoadModel<AdaptiveSingularSpectrumSequenceModeler, SignatureLoadModel>(env, out var model, rep, LoaderSignature);
+                    return model;
+                }
+            }
         }
     }
 }
