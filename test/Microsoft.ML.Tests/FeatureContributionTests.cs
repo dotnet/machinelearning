@@ -32,13 +32,11 @@ namespace Microsoft.ML.Tests
             var data = GetSparseDataset();
             var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
 
-            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, stringify: true)
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn))
+            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn)
                 .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, normalize: false))
                 .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0))
                 .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, bottom: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 0, stringify: true));
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 0));
 
             TestEstimatorCore(estPipe, data);
             Done();
@@ -183,15 +181,14 @@ namespace Microsoft.ML.Tests
                 var model = trainer.Fit(data);
 
             // Extract the predictor, check that it supports feature contribution.
-            var predictor = model.Model as IFeatureContributionMappable;
+            var predictor = model.Model as ICalculateFeatureContribution;
             Assert.NotNull(predictor);
 
             // Calculate feature contributions.
             var est = new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 3, bottom: 0)
                 .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 0, bottom: 3))
                 .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1, stringify: true))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1, normalize: false, stringify: true));
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1, normalize: false));
 
             TestEstimatorCore(est, data);
             // Verify output.

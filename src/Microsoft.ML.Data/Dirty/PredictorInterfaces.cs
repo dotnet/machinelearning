@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// Allows support for feature contribution calculation.
     /// </summary>
-    public interface IFeatureContributionMappable : IPredictor
+    public interface ICalculateFeatureContribution : IPredictor
     {
         FeatureContributionCalculator FeatureContributionClaculator { get; }
     }

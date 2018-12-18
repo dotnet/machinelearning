@@ -2805,7 +2805,7 @@ namespace Microsoft.ML.Trainers.FastTree
         ITreeEnsemble,
         IPredictorWithFeatureWeights<Float>,
         IFeatureContributionMapper,
-        IFeatureContributionMappable,
+        ICalculateFeatureContribution,
         ICanGetSummaryAsIRow,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx

@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Learners
         ICanSaveSummary,
         IPredictorWithFeatureWeights<float>,
         IFeatureContributionMapper,
-        IFeatureContributionMappable,
+        ICalculateFeatureContribution,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {

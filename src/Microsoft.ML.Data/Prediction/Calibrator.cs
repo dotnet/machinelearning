@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
     }
 
-    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IFeatureContributionMapper, IFeatureContributionMappable,
+    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IFeatureContributionMapper, ICalculateFeatureContribution,
         IDistCanSavePfa, IDistCanSaveOnnx
     {
         private readonly IValueMapper _mapper;

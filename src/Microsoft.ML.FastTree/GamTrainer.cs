@@ -647,7 +647,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper, IFeatureContributionMappable,
+    public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper, ICalculateFeatureContribution,
         IFeatureContributionMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
     {
         private readonly double[][] _binUpperBounds;
