@@ -342,6 +342,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        [BestFriend]
         internal LdaSummary GetLdaDetails(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
@@ -1075,6 +1076,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
     public sealed class LatentDirichletAllocationEstimator : IEstimator<LatentDirichletAllocationTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const int NumTopic = 100;

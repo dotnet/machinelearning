@@ -137,7 +137,7 @@ namespace Microsoft.ML.StaticPipe
             }
         }
 
-        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="input">A vector of floats representing the document.</param>
         /// <param name="numTopic">The number of topics.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
