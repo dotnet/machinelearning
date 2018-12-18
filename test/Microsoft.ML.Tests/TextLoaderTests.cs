@@ -457,15 +457,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string Type;
         }
 
-        public class IrisStartEndInverse
-        {
-            [LoadColumn(start:"0", end:"2", loadInverseRange: true)]
-            public float Features;
-
-            [LoadColumn(4, name: "Label")]
-            public string Type;
-        }
-
         public class IrisColumnIndices
         {
             [LoadColumn(columnIndexes: new[] { 0, 2 })]
@@ -537,20 +528,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                 irisFirstRowValues.MoveNext();
                 Assert.Equal(irisFirstRowValues.Current, val);
             }
-
-            // load setting start, end and inverse = true
-            var dataIrisStartEndInverse = ml.Data.CreateTextReader<IrisStartEndInverse>(separator: ',').Read(dataPath);
-            var previewIrisStartEndInverse = dataIrisStartEndInverse.Preview(1);
-
-            Assert.Equal(2, previewIrisStartEndInverse.ColumnView.Length);
-
-            featureValue = (VBuffer<float>)previewIrisStartEndInverse.RowView[0].Values[0].Value;
-            Assert.True(featureValue.IsDense);
-           // Assert.Equal(1, featureValue.Length);  // TODO: failing. It loading all the columns. The columns created are correct. Look into. 
-            var vals3 = featureValue.GetValues();
-            irisFirstRowValues = irisFirstRow.Values.GetEnumerator(); irisFirstRowValues.MoveNext();
-            irisFirstRowValues.MoveNext(); irisFirstRowValues.MoveNext(); irisFirstRowValues.MoveNext();//skip 0, 1, 2
-           // Assert.Equal(vals3[1], irisFirstRowValues.Current);
 
             // load setting the distinct columns. Loading column 0 and 2
             var dataIrisColumnIndices = ml.Data.CreateTextReader<IrisColumnIndices>(separator: ',').Read(dataPath);

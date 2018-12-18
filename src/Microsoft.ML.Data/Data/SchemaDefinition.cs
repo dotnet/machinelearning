@@ -70,23 +70,31 @@ namespace Microsoft.ML.Data
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class LoadColumnAttribute : Attribute
     {
-
+        /// <summary>
+        /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
+        /// </summary>
+        /// <param name="ordinal">The index of the column in the text file.</param>
+        /// <param name="name">The optional name of the column, if it should be different from the name of the field or property where the attribute is positioned.</param>
+        /// <param name="loadAllOthers">Wheather to load all columns, besides the one specified in the ordinal.</param>
         public LoadColumnAttribute(int ordinal, string name = null, bool loadAllOthers = false)
+             : this(ordinal.ToString(), name)
         {
-            Start = ordinal.ToString();
             Sources = new List<TextLoader.Range>();
             var range = new TextLoader.Range(ordinal);
             range.AllOther = loadAllOthers;
             Sources.Add(range);
         }
 
+        /// <summary>
+        /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
+        /// </summary>
+        /// <param name="start">The starting column index, for the range.</param>
+        /// <param name="end">The ending column index, for the range.</param>
+        /// <param name="name">The optional name of the column, if it should be different from the name of the field or property where the attribute is positioned.</param>
+        /// <param name="columnIndexes">Distinct text file column indces to load as part of this column.</param>
         public LoadColumnAttribute(string start, string end = null, string name = null, int[] columnIndexes = null)
+             : this(start, name)
         {
-            Name = name;
-            Start = start;
-            End = end;
-            ColumnIndexes = columnIndexes;
-
             Sources = new List<TextLoader.Range>();
 
             bool hasEnd = int.TryParse(end, out int endIndex);
@@ -100,29 +108,26 @@ namespace Microsoft.ML.Data
             }
         }
 
-        // REVIEW : AllOther seems to work only for a single column. Verify.
-        public LoadColumnAttribute(string start, string end, string name = null, bool loadInverseRange = false)
-        {
-            Name = name;
-            LoadInverseRange = loadInverseRange;
-            Start = start;
-            End = end;
-
-            Sources = new List<TextLoader.Range>();
-            var range = new TextLoader.Range(int.Parse(start), int.Parse(end));
-            range.AllOther = loadInverseRange;
-            Sources.Add(range);
-        }
-
+        /// <summary>
+        /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
+        /// </summary>
+        /// <param name="columnIndexes">Distinct text file column indces to load as part of this column.</param>
+        /// <param name="name">The optional name of the column, if it should be different from the name of the field or property where the attribute is positioned.</param>
         public LoadColumnAttribute(int[] columnIndexes, string name = null)
+            : this(columnIndexes[0].ToString(), name)
         {
-            Name = name;
-            ColumnIndexes = columnIndexes;
-
             Sources = new List<TextLoader.Range>();
             foreach (var col in columnIndexes)
                 Sources.Add(new TextLoader.Range(col));
         }
+
+#pragma warning disable 618
+        private LoadColumnAttribute(string start, string name)
+        {
+            Start = start;
+            Name = name;
+        }
+#pragma warning restore 618
 
         internal List<TextLoader.Range> Sources;
 
@@ -131,29 +136,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         public string Name { get; }
 
-        /// <summary>
-        /// The optional start index for loading a contiguous range of columns, or the single index in the case
-        /// of loading a single column.
-        /// Either this parameters, or the <see cref="ColumnIndexes"/> should be specified.
-        /// </summary>
-        public string Start { get; }
-
-        /// <summary>
-        /// Optional field, used to set the dataset columns range end index when loading a range of columns.
-        /// </summary>
-        public string End { get; }
-
-        /// <summary>
-        /// Optional field used to specify the distinct indices of the dataset columns that need to be loaded, and mapped to this
-        /// <see cref="TextLoader.Column"/>.
-        /// </summary>
-        public int[] ColumnIndexes { get; }
-
-        /// <summary>
-        /// If this is set to true, the columns defined in the range through either the <see cref="Start"/>, <see cref="End"/> or the
-        /// <see cref="ColumnIndexes"/> will be excluded from loading, and all the other ones will loaded and mapped to the <see cref="TextLoader.Column"/>.
-        /// </summary>
-        public bool LoadInverseRange { get; }
+        [Obsolete("Will be deleted together with the Legacy project.")]
+        [BestFriend]
+        internal string Start { get; }
     }
 
     /// <summary>

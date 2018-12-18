@@ -89,9 +89,9 @@ namespace Microsoft.ML.Legacy.Data
                 var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
                 if (mappingAttr == null)
                     throw Contracts.Except($"Field or property {memberInfo.Name} is missing LoadColumnAttributeAttribute");
-
+#pragma warning disable 618
                 if (Regex.Match(mappingAttr.Start, @"[^(0-9,\*\-~)]+").Success)
-                    throw Contracts.Except($"{mappingAttr.Start} contains invalid characters. " +
+                throw Contracts.Except($"{mappingAttr.Start} contains invalid characters. " +
                         $"Valid characters are 0-9, *, - and ~");
 
                 var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Legacy.Data
                 Runtime.Data.TextLoader.Range[] sources;
                 if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Start, out sources))
                     throw Contracts.Except($"{mappingAttr.Start} could not be parsed.");
-
+#pragma warning restore 618
                 Contracts.Assert(sources != null);
 
                 TextLoaderColumn tlc = new TextLoaderColumn();
