@@ -398,7 +398,7 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var info in Infos)
                 {
                     ctx.SaveNonEmptyString(info.Name);
-                    ctx.SaveNonEmptyString(Input.GetColumnName(info.Source));
+                    ctx.SaveNonEmptyString(Input[info.Source].Name);
                 }
             }
 
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.AssertValue(predicate);
 
-                var active = new bool[Input.ColumnCount];
+                var active = new bool[Input.Count];
                 for (int col = 0; col < ColumnCount; col++)
                 {
                     if (!predicate(col))
@@ -471,9 +471,9 @@ namespace Microsoft.ML.Runtime.Data
         // The ColInfos are exposed to sub-classes. They should be considered readonly.
         protected readonly ColInfo[] Infos;
         // The _input as a transposed data view, non-null iff _input is a transposed data view.
-        protected readonly ITransposeDataView InputTranspose;
+        private protected readonly ITransposeDataView InputTranspose;
         // The InputTranspose transpose schema, null iff InputTranspose is null.
-        protected ITransposeSchema InputTransposeSchema => InputTranspose?.TransposeSchema;
+        private protected ITransposeSchema InputTransposeSchema => InputTranspose?.TransposeSchema;
 
         bool ICanSavePfa.CanSavePfa => CanSavePfaCore;
 
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed override Schema OutputSchema => _bindings.AsSchema;
 
-        public ITransposeSchema TransposeSchema => _bindings;
+        ITransposeSchema ITransposeDataView.TransposeSchema => _bindings;
 
         /// <summary>
         /// Return the (destination) column index for the indicated added column.

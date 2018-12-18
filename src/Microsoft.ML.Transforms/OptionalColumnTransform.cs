@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _srcColsWithOptionalColumn;
 
             private Bindings(OptionalColumnTransform parent, ColumnType[] columnTypes, int[] srcCols,
-                int[] srcColsWithOptionalColumn, ISchema input, ISchema inputWithOptionalColumn, bool user, string[] names)
+                int[] srcColsWithOptionalColumn, Schema input, Schema inputWithOptionalColumn, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.AssertValue(parent);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms
                 SrcCols = srcCols;
                 _parent = parent;
                 _metadata = new MetadataDispatcher(InfoCount);
-                _inputWithOptionalColumn = Schema.Create(inputWithOptionalColumn);
+                _inputWithOptionalColumn = inputWithOptionalColumn;
                 _srcColsWithOptionalColumn = srcColsWithOptionalColumn;
                 SetMetadata();
             }
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Transforms
                 return new Bindings(parent, columnTypes, srcCols, srcCols, input, input, true, names);
             }
 
-            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, ISchema input, OptionalColumnTransform parent)
+            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, Schema input, OptionalColumnTransform parent)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(predicate);
 
                 var active = GetActiveInput(predicate);
-                Contracts.Assert(active.Length == Input.ColumnCount);
+                Contracts.Assert(active.Length == Input.Count);
 
                 foreach (int srcCol in SrcCols)
                 {
