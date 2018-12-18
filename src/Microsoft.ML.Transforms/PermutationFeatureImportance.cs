@@ -52,7 +52,7 @@ namespace Microsoft.ML.Transforms
 
                 ch.Info("Number of slots: " + numSlots);
                 if (data.Schema[featuresColumnIndex].HasSlotNames(numSlots))
-                    data.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, featuresColumnIndex, ref slotNames);
+                    data.Schema[featuresColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
 
                 if (slotNames.Length != numSlots)
                     slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(numSlots);

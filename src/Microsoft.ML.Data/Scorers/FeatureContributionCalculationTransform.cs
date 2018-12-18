@@ -217,8 +217,8 @@ namespace Microsoft.ML.Runtime.Data
             public Delegate GetTextContributionGetter(Row input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
-                var typeSrc = input.Schema.GetColumnType(colSrc);
+                Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
+                var typeSrc = input.Schema[colSrc].Type;
 
                 Func<Row, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
                 var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType);
@@ -228,9 +228,9 @@ namespace Microsoft.ML.Runtime.Data
             public Delegate GetContributionGetter(Row input, int colSrc)
             {
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
+                Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
 
-                var typeSrc = input.Schema.GetColumnType(colSrc);
+                var typeSrc = input.Schema[colSrc].Type;
                 Func<Row, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Runtime.Data
                     builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
                     _outputSchema = builder.GetSchema();
                     if (InputSchema[InputRoleMappedSchema.Feature.Index].HasSlotNames(InputRoleMappedSchema.Feature.Type.VectorSize))
-                        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index, ref _slotNames);
+                        InputSchema[InputRoleMappedSchema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                     else
                         _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(InputRoleMappedSchema.Feature.Type.VectorSize);
                 }
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => col == InputRoleMappedSchema.Feature.Index;
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(active);
-                var totalColumnsCount = 1 + _outputGenericSchema.ColumnCount;
+                var totalColumnsCount = 1 + _outputGenericSchema.Count;
                 var getters = new Delegate[totalColumnsCount];
 
                 if (active(totalColumnsCount - 1))
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(active));
-                for (var i = 0; i < _outputGenericSchema.ColumnCount; i++)
+                for (var i = 0; i < _outputGenericSchema.Count; i++)
                 {
                     if (genericRow.IsColumnActive(i))
                         getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Runtime.Data
                 _ectx.CheckNonEmpty(columnName, nameof(columnName));
                 _parentSchema = parentSchema;
                 _featureCol = featureCol;
-                _featureVectorSize = _parentSchema.GetColumnType(_featureCol).VectorSize;
+                _featureVectorSize = _parentSchema[_featureCol].Type.VectorSize;
                 _hasSlotNames = _parentSchema[_featureCol].HasSlotNames(_featureVectorSize);
 
                 _names = new string[] { columnName };
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _ectx.CheckParam(col == 0, nameof(col));
                 if (kind == MetadataUtils.Kinds.SlotNames && _hasSlotNames)
-                    _parentSchema.GetMetadata(kind, _featureCol, ref value);
+                    _parentSchema[_featureCol].Metadata.GetValue(kind, ref value);
                 else
                     throw MetadataUtils.ExceptGetMetadata();
             }

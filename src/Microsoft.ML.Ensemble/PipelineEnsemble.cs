@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => _inputColIndices.Contains(col);
@@ -416,22 +416,22 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (inputCols == null)
                 {
                     inputCols = new HashSet<string>();
-                    for (int j = 0; j < inputSchema.ColumnCount; j++)
+                    for (int j = 0; j < inputSchema.Count; j++)
                     {
                         if (inputSchema[j].IsHidden)
                             continue;
-                        inputCols.Add(inputSchema.GetColumnName(j));
+                        inputCols.Add(inputSchema[j].Name);
                     }
                     _inputCols = inputCols.ToArray();
                 }
                 else
                 {
                     int nonHiddenCols = 0;
-                    for (int j = 0; j < inputSchema.ColumnCount; j++)
+                    for (int j = 0; j < inputSchema.Count; j++)
                     {
                         if (inputSchema[j].IsHidden)
                             continue;
-                        var name = inputSchema.GetColumnName(j);
+                        var name = inputSchema[j].Name;
                         if (!inputCols.Contains(name))
                             throw Host.Except("Inconsistent schemas: Some schemas do not contain the column '{0}'", name);
                         nonHiddenCols++;
@@ -592,14 +592,14 @@ namespace Microsoft.ML.Runtime.Ensemble
             if (labelInfo == null)
                 throw env.Except("Training schema for model 0 does not have a label column");
 
-            var labelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index);
+            var labelType = rmd.Schema.Schema[rmd.Schema.Label.Index].Type;
             if (!labelType.IsKey)
                 return CheckNonKeyLabelColumnCore(env, pred, models, isBinary, labelType);
 
             if (isBinary && labelType.KeyCount != 2)
                 throw env.Except("Label is not binary");
             var schema = rmd.Schema.Schema;
-            var mdType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelInfo.Index);
+            var mdType = schema[labelInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             if (mdType == null || !mdType.IsKnownSizeVector)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
             env.AssertNonEmpty(models);
             var labelNames = default(VBuffer<T>);
-            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelIndex, ref labelNames);
+            schema[labelIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
             var classCount = labelNames.Length;
 
             var curLabelNames = default(VBuffer<T>);
@@ -655,14 +655,14 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (labelInfo == null)
                     throw env.Except("Training schema for model {0} does not have a label column", i);
 
-                var curLabelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index) as KeyType;
+                var curLabelType = rmd.Schema.Schema[rmd.Schema.Label.Index].Type as KeyType;
                 if (!labelType.Equals(curLabelType))
                     throw env.Except("Label column of model {0} has different type than model 0", i);
 
-                var mdType = rmd.Schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelInfo.Index);
+                var mdType = rmd.Schema.Schema[labelInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                 if (!mdType.Equals(keyValuesType))
                     throw env.Except("Label column of model {0} has different key value type than model 0", i);
-                rmd.Schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelInfo.Index, ref curLabelNames);
+                rmd.Schema.Schema[labelInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref curLabelNames);
                 if (!AreEqual(in labelNames, in curLabelNames))
                     throw env.Except("Label of model {0} has different values than model 0", i);
             }

@@ -175,10 +175,10 @@ namespace Microsoft.ML.Runtime.Data
             ColumnType type;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (schema.Label.Type.IsKey &&
-                (type = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, schema.Label.Index)) != null &&
+                (type = schema.Schema[schema.Label.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type) != null &&
                 type.ItemType.IsKnownSizeVector && type.ItemType.IsText)
             {
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, schema.Label.Index, ref labelNames);
+                schema.Schema[schema.Label.Index].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
             }
             else
                 labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });
@@ -1097,18 +1097,18 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValueOrNull(_probCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(LabelIndex);
+            var t = schema[(int) LabelIndex].Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.KeyCount != 2)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", LabelCol, t);
 
-            t = schema.GetColumnType(ScoreIndex);
+            t = schema[ScoreIndex].Type;
             if (t.IsVector || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", ScoreCol, t);
 
             if (_probIndex >= 0)
             {
                 Host.Assert(!string.IsNullOrEmpty(_probCol));
-                t = schema.GetColumnType(_probIndex);
+                t = schema[_probIndex].Type;
                 if (t.IsVector || t.ItemType != NumberType.Float)
                     throw Host.Except("Probability column '{0}' has type '{1}' but must be R4", _probCol, t);
             }

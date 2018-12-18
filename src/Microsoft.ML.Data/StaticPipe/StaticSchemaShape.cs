@@ -251,7 +251,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                     var meta = col.Metadata;
                     if (meta.Schema.TryGetColumnIndex(MetadataUtils.Kinds.IsNormalized, out int normcol))
                     {
-                        var normtype = meta.Schema.GetColumnType(normcol);
+                        var normtype = meta.Schema[normcol].Type;
                         if (normtype == BoolType.Instance)
                         {
                             bool val = default;

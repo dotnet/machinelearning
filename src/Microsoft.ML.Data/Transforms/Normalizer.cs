@@ -368,7 +368,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(data, nameof(data));
             env.CheckValue(columns, nameof(columns));
 
-            bool[] activeInput = new bool[data.Schema.ColumnCount];
+            bool[] activeInput = new bool[data.Schema.Count];
 
             var srcCols = new int[columns.Length];
             var srcTypes = new ColumnType[columns.Length];
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 bool success = data.Schema.TryGetColumnIndex(info.Input, out srcCols[i]);
                 if (!success)
                     throw env.ExceptSchemaMismatch(nameof(data), "input", info.Input);
-                srcTypes[i] = data.Schema.GetColumnType(srcCols[i]);
+                srcTypes[i] = data.Schema[srcCols[i]].Type;
                 activeInput[srcCols[i]] = true;
 
                 var supervisedBinColumn = info as NormalizingEstimator.SupervisedBinningColumn;
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             const string expectedType = "scalar or known-size vector of R4";
 
-            var colType = inputSchema.GetColumnType(srcCol);
+            var colType = inputSchema[srcCol].Type;
             if (colType.IsVector && !colType.IsKnownSizeVector)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, expectedType, "variable-size vector");
             if (!colType.ItemType.Equals(NumberType.R4) && !colType.ItemType.Equals(NumberType.R8))

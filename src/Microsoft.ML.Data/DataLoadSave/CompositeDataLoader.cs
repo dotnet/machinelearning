@@ -585,11 +585,11 @@ namespace Microsoft.ML.Runtime.Data
 
         public SlotCursor GetSlotCursor(int col)
         {
-            _host.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
+            _host.CheckParam(0 <= col && col < Schema.Count, nameof(col));
             if (TransposeSchema?.GetSlotType(col) == null)
             {
                 throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
-                    Schema.GetColumnName(col));
+                    Schema[col].Name);
             }
             _host.AssertValue(_tview);
             return _tview.GetSlotCursor(col);

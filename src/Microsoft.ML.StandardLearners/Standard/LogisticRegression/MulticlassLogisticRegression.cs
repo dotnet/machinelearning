@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.Learners
             // Try to get the label key values metedata.
             var schema = data.Data.Schema;
             var labelIdx = data.Schema.Label.Index;
-            var labelMetadataType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelIdx);
+            var labelMetadataType = schema[labelIdx].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             if (labelMetadataType == null || !labelMetadataType.IsKnownSizeVector || !labelMetadataType.ItemType.IsText ||
                 labelMetadataType.VectorSize != _numClasses)
             {
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             VBuffer<ReadOnlyMemory<char>> labelNames = default;
-            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelIdx, ref labelNames);
+            schema[labelIdx].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
 
             // If label names is not dense or contain NA or default value, then it follows that
             // at least one class does not have a valid name for its label. If the label names we

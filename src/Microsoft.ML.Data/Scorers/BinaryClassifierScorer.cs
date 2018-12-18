@@ -65,7 +65,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, trainSchema.Label.Index);
+            var keyType = trainSchema.Schema[trainSchema.Label.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.Data
             int scoreIdx;
             if (!mapper.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
-            if (mapper.OutputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.TrainingLabelValues, scoreIdx) != null)
+            if (mapper.OutputSchema[scoreIdx].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.TrainingLabelValues)?.Type != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
 
             return labelNameType.IsVector && labelNameType.VectorSize == 2;
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Data
             env.Assert(mapper is ISchemaBoundRowMapper);
 
             // Key values from the training schema label, will map to slot names of the score output.
-            var type = trainSchema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, trainSchema.Label.Index);
+            var type = trainSchema.Schema[trainSchema.Label.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             env.AssertValue(type);
             env.Assert(type.IsVector);
 
@@ -119,8 +119,7 @@ namespace Microsoft.ML.Runtime.Data
             ValueGetter<VBuffer<T>> getter =
                 (ref VBuffer<T> value) =>
                 {
-                    trainSchema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues,
-                        trainSchema.Label.Index, ref value);
+                    trainSchema.Schema[trainSchema.Label.Index].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref value);
                 };
 
             return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.TrainingLabelValues, CanWrap);

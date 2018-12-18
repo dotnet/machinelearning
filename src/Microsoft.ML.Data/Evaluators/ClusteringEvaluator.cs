@@ -751,7 +751,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.AssertNonEmpty(ScoreCol);
 
-            var type = schema.GetColumnType(ScoreIndex);
+            var type = schema[(int) ScoreIndex].Type;
             if (!type.IsKnownSizeVector || type.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type {1}, but must be a float vector of known-size", ScoreCol, type);
         }
@@ -835,14 +835,14 @@ namespace Microsoft.ML.Runtime.Data
             // Wrap with a DropSlots transform to pick only the first _numTopClusters slots.
             if (perInst.Schema.TryGetColumnIndex(ClusteringPerInstanceEvaluator.SortedClusters, out int index))
             {
-                var type = perInst.Schema.GetColumnType(index);
+                var type = perInst.Schema[index].Type;
                 if (_numTopClusters < type.VectorSize)
                     perInst = new SlotsDroppingTransformer(Host, ClusteringPerInstanceEvaluator.SortedClusters, min: _numTopClusters).Transform(perInst);
             }
 
             if (perInst.Schema.TryGetColumnIndex(ClusteringPerInstanceEvaluator.SortedClusterScores, out index))
             {
-                var type = perInst.Schema.GetColumnType(index);
+                var type = perInst.Schema[index].Type;
                 if (_numTopClusters < type.VectorSize)
                     perInst = new SlotsDroppingTransformer(Host, ClusteringPerInstanceEvaluator.SortedClusterScores, min: _numTopClusters).Transform(perInst);
             }

@@ -534,14 +534,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 env.Check(_predictor != null, "Predictor is not a row-to-row mapper");
                 if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
-                var scoreType = _predictor.OutputSchema.GetColumnType(_scoreCol);
+                var scoreType = _predictor.OutputSchema[_scoreCol].Type;
                 env.Check(!scoreType.IsVector && scoreType.IsNumber);
                 OutputSchema = Schema.Create(new BinaryClassifierSchema());
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return _predictor.GetDependencies(col => true);
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 Func<int, bool> predictorPredicate = col => false;
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                     {
@@ -566,16 +566,16 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     }
                 }
                 var predictorRow = _predictor.GetRow(input, predictorPredicate);
-                var getters = new Delegate[OutputSchema.ColumnCount];
-                for (int i = 0; i < OutputSchema.ColumnCount - 1; i++)
+                var getters = new Delegate[OutputSchema.Count];
+                for (int i = 0; i < OutputSchema.Count - 1; i++)
                 {
-                    var type = predictorRow.Schema.GetColumnType(i);
+                    var type = predictorRow.Schema[i].Type;
                     if (!predicate(i))
                         continue;
                     getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
                 }
-                if (predicate(OutputSchema.ColumnCount - 1))
-                    getters[OutputSchema.ColumnCount - 1] = GetProbGetter(predictorRow);
+                if (predicate(OutputSchema.Count - 1))
+                    getters[OutputSchema.Count - 1] = GetProbGetter(predictorRow);
                 return new SimpleRow(OutputSchema, predictorRow, getters);
             }
 
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 ch.Info("Not training a calibrator because the predictor does not output a score column.");
                 return false;
             }
-            var type = outputSchema.GetColumnType(scoreCol);
+            var type = outputSchema[scoreCol].Type;
             if (type != NumberType.Float)
             {
                 ch.Info("Not training a calibrator because the predictor output is {0}, but expected to be {1}.", type, NumberType.R4);

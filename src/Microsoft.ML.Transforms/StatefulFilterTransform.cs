@@ -236,7 +236,7 @@ namespace Microsoft.ML.Transforms
 
             public override bool IsColumnActive(int col)
             {
-                Contracts.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
+                Contracts.CheckParam(0 <= col && col < Schema.Count, nameof(col));
                 bool isSrc;
                 int iCol = _parent._bindings.MapColumnIndex(out isSrc, col);
                 if (isSrc)
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Transforms
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                Contracts.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
+                Contracts.CheckParam(0 <= col && col < Schema.Count, nameof(col));
                 bool isSrc;
                 int iCol = _parent._bindings.MapColumnIndex(out isSrc, col);
                 return isSrc ?

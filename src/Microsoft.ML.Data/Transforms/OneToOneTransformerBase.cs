@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                var active = new bool[InputSchema.ColumnCount];
+                var active = new bool[InputSchema.Count];
                 foreach (var pair in ColMapNewToOld)
                     if (activeOutput(pair.Key))
                         active[pair.Value] = true;

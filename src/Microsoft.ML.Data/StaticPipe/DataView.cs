@@ -33,7 +33,7 @@ namespace Microsoft.ML.StaticPipe
         public DataView<TShape> Cache()
         {
             // Generate all column indexes in the source data.
-            var prefetched = Enumerable.Range(0, AsDynamic.Schema.ColumnCount).ToArray();
+            var prefetched = Enumerable.Range(0, AsDynamic.Schema.Count).ToArray();
             // Create a cached version of the source data by caching all columns.
             return new DataView<TShape>(Env, new CacheDataView(Env, AsDynamic, prefetched), Shape);
         }

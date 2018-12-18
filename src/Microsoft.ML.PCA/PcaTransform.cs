@@ -449,7 +449,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             Double[] totalColWeight = new Double[_numColumns];
 
-            bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
+            bool[] activeColumns = new bool[trainingData.Schema.Count];
             foreach (var sInfo in _schemaInfos)
             {
                 activeColumns[sInfo.InputIndex] = true;
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            ValidatePcaInput(Host, inputSchema.GetColumnName(srcCol), inputSchema.GetColumnType(srcCol));
+            ValidatePcaInput(Host, inputSchema[srcCol].Name, inputSchema[srcCol].Type);
         }
 
         internal static void ValidatePcaInput(IExceptionContext ectx, string name, ColumnType type)

@@ -98,11 +98,11 @@ namespace Microsoft.ML.Runtime.Data
             ReadOnlyMemory<char>[] names;
             // Get the label names from the score column if they exist, or use the default names.
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var mdType = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
+            var mdType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType.IsText)
             {
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref labelNames);
+                schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labelNames);
                 names = new ReadOnlyMemory<char>[labelNames.Length];
                 labelNames.CopyTo(names);
             }
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Runtime.Data
             if (schema[(int) ScoreIndex].HasSlotNames(_numClasses))
             {
                 var classNames = default(VBuffer<ReadOnlyMemory<char>>);
-                schema.GetMetadata(MetadataUtils.Kinds.SlotNames, ScoreIndex, ref classNames);
+                schema[(int) ScoreIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref classNames);
                 _classNames = new ReadOnlyMemory<char>[_numClasses];
                 classNames.CopyTo(_classNames);
             }
@@ -813,10 +813,10 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(ScoreIndex);
+            var t = schema[(int) ScoreIndex].Type;
             if (t.VectorSize < 2 || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be a vector of two or more items of type R4", ScoreCol, t);
-            t = schema.GetColumnType(LabelIndex);
+            t = schema[LabelIndex].Type;
             if (t != NumberType.Float && t.KeyCount <= 0)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be a float or a known-cardinality key", LabelCol, t);
         }
@@ -924,10 +924,10 @@ namespace Microsoft.ML.Runtime.Data
                     var idv = views[i];
 
                     // Find the old per-class log-loss column and drop it.
-                    for (int col = 0; col < idv.Schema.ColumnCount; col++)
+                    for (int col = 0; col < idv.Schema.Count; col++)
                     {
                         if (idv.Schema[col].IsHidden &&
-                            idv.Schema.GetColumnName(col).Equals(MultiClassClassifierEvaluator.PerClassLogLoss))
+                            idv.Schema[col].Name.Equals(MultiClassClassifierEvaluator.PerClassLogLoss))
                         {
                             idv = new ChooseColumnsByIndexTransform(Host,
                                 new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { col } }, idv);
@@ -1000,18 +1000,18 @@ namespace Microsoft.ML.Runtime.Data
             // text file, since if there are different key counts the columns cannot be appended.
             if (!perInst.Schema.TryGetColumnIndex(schema.Label.Name, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", schema.Label.Name);
-            var labelType = perInst.Schema.GetColumnType(labelCol);
+            var labelType = perInst.Schema[labelCol].Type;
             if (labelType is KeyType keyType && (!(bool) perInst.Schema[labelCol].HasKeyValues(keyType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
-                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,
+                    schema.Label.Name, perInst.Schema[labelCol].Type, NumberType.R8,
                     (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)keyType.Min);
             }
 
             var perInstSchema = perInst.Schema;
             if (perInstSchema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedClasses, out int sortedClassesIndex))
             {
-                var type = perInstSchema.GetColumnType(sortedClassesIndex);
+                var type = perInstSchema[sortedClassesIndex].Type;
                 // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
                 if (_numTopClasses < type.VectorSize)
                     perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
@@ -1020,7 +1020,7 @@ namespace Microsoft.ML.Runtime.Data
             // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
             if (perInst.Schema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedScores, out int sortedScoresIndex))
             {
-                var type = perInst.Schema.GetColumnType(sortedScoresIndex);
+                var type = perInst.Schema[sortedScoresIndex].Type;
                 if (_numTopClasses < type.VectorSize)
                    perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
             }

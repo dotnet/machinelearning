@@ -746,7 +746,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             private ValueGetter<int> GetLabelGetter(Row row, int col, out int labelCardinality)
             {
                 // The label column type is checked as part of args validation.
-                var type = row.Schema.GetColumnType(col);
+                var type = row.Schema[col].Type;
                 Host.Assert(type.IsKey || type.IsNumber);
 
                 if (type.IsKey)
@@ -849,7 +849,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 : base(host, lim, labelColId, dataRow)
             {
                 _colValueGetter = dataRow.GetGetter<VBuffer<TFloat>>(valueColId);
-                var valueColType = dataRow.Schema.GetColumnType(valueColId);
+                var valueColType = dataRow.Schema[valueColId].Type;
                 Host.Assert(valueColType.IsKnownSizeVector);
                 ColumnSlotCount = valueColType.ValueCount;
 
@@ -1062,7 +1062,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 // checking for label column
                 host.CheckUserArg(!string.IsNullOrWhiteSpace(args.LabelColumn), nameof(args.LabelColumn), "Must specify the label column name");
                 int labelColumnId = GetLabelColumnId(host, cursor.Schema, args.LabelColumn);
-                var labelColumnType = cursor.Schema.GetColumnType(labelColumnId);
+                var labelColumnType = cursor.Schema[labelColumnId].Type;
                 if (labelColumnType.IsKey)
                     host.CheckUserArg(labelColumnType.KeyCount > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
                 else

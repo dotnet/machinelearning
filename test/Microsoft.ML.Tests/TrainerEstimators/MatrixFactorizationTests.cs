@@ -82,8 +82,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Get output schema and check its column names
             var outputSchema = model.GetOutputSchema(data.Schema);
             var expectedOutputNames = new string[] { labelColumnName, userColumnName, itemColumnName, scoreColumnName };
-            foreach (var (i, col) in outputSchema.GetColumns())
-                Assert.True(col.Name == expectedOutputNames[i]);
+            foreach (var col in outputSchema)
+                Assert.True(col.Name == expectedOutputNames[col.Index]);
 
             // Retrieve label column's index from the test IDataView
             testData.Schema.TryGetColumnIndex(labelColumnName, out int labelColumnId);

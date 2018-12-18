@@ -546,7 +546,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(LabelIndex);
+            var t = schema[(int) LabelIndex].Type;
             if (!t.IsKnownSizeVector || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
                 throw Host.Except("Label column '{0}' has type '{1}' but must be a known-size vector of R4 or R8", LabelCol, t);
             labelType = new VectorType((PrimitiveType)t.ItemType, t.VectorSize);
@@ -555,7 +555,7 @@ namespace Microsoft.ML.Runtime.Data
             builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, LabelIndex, labelType.VectorSize, "True"));
             labelMetadata = builder.GetMetadata();
 
-            t = schema.GetColumnType(ScoreIndex);
+            t = schema[ScoreIndex].Type;
             if (t.VectorSize == 0 || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be a known length vector of type R4", ScoreCol, t);
             scoreType = new VectorType((PrimitiveType)t.ItemType, t.VectorSize);
@@ -592,11 +592,11 @@ namespace Microsoft.ML.Runtime.Data
 
         private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(Schema schema, int column, int length, string prefix)
         {
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, column);
+            var type = schema[column].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             if (type != null && type.IsText)
             {
                 return
-                    (ref VBuffer<ReadOnlyMemory<char>> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, column, ref dst);
+                    (ref VBuffer<ReadOnlyMemory<char>> dst) => schema[column].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref dst);
             }
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Runtime.Data
             bool hasStratVals = fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             ch.Assert(hasStrats == hasStratVals);
 
-            var colCount = fold.Schema.ColumnCount;
+            var colCount = fold.Schema.Count;
             var vBufferGetters = new ValueGetter<VBuffer<double>>[colCount];
 
             using (var cursor = fold.GetRowCursor(col => true))
@@ -688,14 +688,14 @@ namespace Microsoft.ML.Runtime.Data
                 ValueGetter<uint> stratGetter;
                 if (hasStrats)
                 {
-                    var type = cursor.Schema.GetColumnType(stratCol);
+                    var type = cursor.Schema[stratCol].Type;
                     stratGetter = RowCursorUtils.GetGetterAs<uint>(type, cursor, stratCol);
                 }
                 else
                     stratGetter = (ref uint dst) => dst = 0;
 
                 int labelCount = 0;
-                for (int i = 0; i < fold.Schema.ColumnCount; i++)
+                for (int i = 0; i < fold.Schema.Count; i++)
                 {
                     if (fold.Schema[i].IsHidden || (needWeighted && i == isWeightedCol) ||
                         (hasStrats && (i == stratCol || i == stratVal)))
@@ -703,7 +703,7 @@ namespace Microsoft.ML.Runtime.Data
                         continue;
                     }
 
-                    var type = fold.Schema.GetColumnType(i);
+                    var type = fold.Schema[i].Type;
                     if (type.IsKnownSizeVector && type.ItemType == NumberType.R8)
                     {
                         vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(i);
@@ -752,7 +752,7 @@ namespace Microsoft.ML.Runtime.Data
                             vBufferGetters[i](ref metricVals);
                             ch.Assert(metricVals.Length == labelCount);
 
-                            sb.AppendFormat("{0}{1,12}:", isWeighted ? "Weighted " : "", fold.Schema.GetColumnName(i));
+                            sb.AppendFormat("{0}{1,12}:", isWeighted ? "Weighted " : "", fold.Schema[i].Name);
                             foreach (var metric in metricVals.Items(all: true))
                                 sb.AppendFormat(" {0,20:G20}", metric.Value);
                             sb.AppendLine();

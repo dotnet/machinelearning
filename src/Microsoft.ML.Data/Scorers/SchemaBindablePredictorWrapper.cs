@@ -147,9 +147,9 @@ namespace Microsoft.ML.Runtime.Data
         protected virtual Delegate GetPredictionGetter(Row input, int colSrc)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= colSrc && colSrc < input.Schema.ColumnCount);
+            Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema.GetColumnType(colSrc);
+            var typeSrc = input.Schema[colSrc].Type;
             Func<Row, int, ValueGetter<int>> del = GetValueGetter<int, int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, ScoreType.RawType);
             return (Delegate)meth.Invoke(this, new object[] { input, colSrc });
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(schema.Feature);
-                Contracts.Assert(outputSchema.ColumnCount == 1);
+                Contracts.Assert(outputSchema.Count == 1);
 
                 _parent = parent;
                 InputRoleMappedSchema = schema;
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => col == InputRoleMappedSchema.Feature.Index;
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i) && InputRoleMappedSchema.Feature != null)
                         return col => col == InputRoleMappedSchema.Feature.Index;
@@ -568,7 +568,7 @@ namespace Microsoft.ML.Runtime.Data
             public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 Contracts.AssertValue(input);
-                var active = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
+                var active = Utils.BuildArray(OutputSchema.Count, predicate);
                 var getters = CreateGetters(input, active);
                 return new SimpleRow(OutputSchema, input, getters);
             }
@@ -658,9 +658,9 @@ namespace Microsoft.ML.Runtime.Data
         protected override Delegate GetPredictionGetter(Row input, int colSrc)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= colSrc && colSrc < input.Schema.ColumnCount);
+            Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema.GetColumnType(colSrc);
+            var typeSrc = input.Schema[colSrc].Type;
             Contracts.Assert(typeSrc.IsVector && typeSrc.ItemType == NumberType.Float);
             Contracts.Assert(ValueMapper == null ||
                 typeSrc.VectorSize == ValueMapper.InputType.VectorSize || ValueMapper.InputType.VectorSize == 0);
