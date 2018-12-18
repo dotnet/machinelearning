@@ -1010,6 +1010,23 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void SavePipeLda()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "Lda.txt");
+            File.WriteAllLines(pathData, new string[] {
+                "1\t0\t0",
+                "0\t1\t0",
+                "0\t0\t"
+            });
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{col=F1V:Num:0-2}",
+                    "xf=Lda{col={name=Result src=F1V numtopic=3 alphasum=3 ns=3 reset=+ t=1} summary=+}",
+                }, forceDense: true);
+            Done();
+        }
+
+        [Fact]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberType.R4);
