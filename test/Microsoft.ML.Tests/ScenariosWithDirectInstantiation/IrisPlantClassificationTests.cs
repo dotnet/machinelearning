@@ -53,7 +53,7 @@ namespace Microsoft.ML.Scenarios
             ComparePredictions(predictFunction);
         }
 
-        private void ComparePredictions(PredictionFunction<IrisData, IrisPrediction> model)
+        private void ComparePredictions(PredictionEngine<IrisData, IrisPrediction> model)
         {
             IrisPrediction prediction = model.Predict(new IrisData()
             {
