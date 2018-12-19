@@ -58,14 +58,11 @@ namespace Microsoft.ML.Runtime.Data
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
             if (t.VectorSize == 0 || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
-            {
-                throw Host.Except(
-                    "Score column '{0}' has type '{1}' but must be a known length vector of type R4 or R8", score.Name, t);
-            }
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of type R4 or R8", t.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.R4)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be R4", schema.Label.Value.Name, t);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", schema.Label.Value.Name, "R4", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)

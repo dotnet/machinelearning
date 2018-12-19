@@ -57,11 +57,11 @@ namespace Microsoft.ML.Runtime.Data
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
             if (t != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be R4", score, t);
-            Host.Check(schema.Label.HasValue, "Could not find the label column");
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4", t.ToString());
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.R4)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be R4", schema.Label.Value.Name, t);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "R4", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)

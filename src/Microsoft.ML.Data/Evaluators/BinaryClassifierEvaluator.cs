@@ -129,11 +129,11 @@ namespace Microsoft.ML.Runtime.Data
             var host = Host.SchemaSensitive();
             var t = score.Type;
             if (t.IsVector || t.ItemType != NumberType.Float)
-                throw host.SchemaSensitive().Except("Score column '{0}' has type '{1}' but must be R4", score, t);
+                throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4", t.ToString());
             host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.KeyCount != 2)
-                throw host.SchemaSensitive().Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", schema.Label.Value.Name, t);
+                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "R4, R8, BL or a 2-value key", t.ToString());
         }
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
@@ -142,14 +142,14 @@ namespace Microsoft.ML.Runtime.Data
             var host = Host.SchemaSensitive();
             if (prob != null)
             {
-                host.Check(prob.Count == 1, "Cannot have multiple probability columns");
+                host.CheckParam(prob.Count == 1, nameof(schema), "Cannot have multiple probability columns");
                 var probType = prob[0].Type;
                 if (probType != NumberType.Float)
-                    throw host.SchemaSensitive().Except("Probability column '{0}' has type '{1}' but must be R4", prob[0].Name, probType);
+                    throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "R4", probType.ToString());
             }
             else if (!_useRaw)
             {
-                throw host.Except(
+                throw host.ExceptParam(nameof(schema),
                     "Cannot compute the predicted label from the probability column because it does not exist");
             }
         }

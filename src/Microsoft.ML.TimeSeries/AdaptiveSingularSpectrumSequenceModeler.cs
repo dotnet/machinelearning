@@ -1229,7 +1229,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _host.CheckParam(data.Schema.Feature.HasValue, nameof(data), "Must have features column.");
             var featureCol = data.Schema.Feature.Value;
             if (featureCol.Type != NumberType.Float)
-                throw _host.ExceptParam(nameof(data), "The feature column has  type '{0}', but must be a float.", featureCol.Type);
+                throw _host.ExceptSchemaMismatch(nameof(data), "feature", featureCol.Name, "R4", featureCol.Type.ToString());
 
             Single[] dataArray = new Single[_trainSize];
             int col = featureCol.Index;

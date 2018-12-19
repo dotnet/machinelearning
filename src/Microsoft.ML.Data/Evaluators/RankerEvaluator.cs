@@ -89,14 +89,14 @@ namespace Microsoft.ML.Runtime.Data
             var t = schema.Label.Value.Type;
             if (t != NumberType.Float && !(t is KeyType))
             {
-                throw Host.ExceptUserArg(nameof(RankerMamlEvaluator.Arguments.LabelColumn), "Label column '{0}' has type '{1}' but must be R4 or a key",
-                    schema.Label.Value.Name, t);
+                throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.LabelColumn),
+                    "label", schema.Label.Value.Name, "R4 or a key", t.ToString());
             }
-            var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            if (scoreInfo.Type != NumberType.Float)
+            var scoreCol = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
+            if (scoreCol.Type != NumberType.Float)
             {
-                throw Host.ExceptUserArg(nameof(RankerMamlEvaluator.Arguments.ScoreColumn), "Score column '{0}' has type '{1}' but must be R4",
-                    scoreInfo.Name, t);
+                throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.ScoreColumn),
+                    "score", scoreCol.Name, "R4", t.ToString());
             }
         }
 
@@ -105,9 +105,8 @@ namespace Microsoft.ML.Runtime.Data
             var t = schema.Group.Value.Type;
             if (!(t is KeyType))
             {
-                throw Host.ExceptUserArg(nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
-                    "Group column '{0}' has type '{1}' but must be a key",
-                    schema.Group.Value.Name, t);
+                throw Host.ExceptSchemaMismatch(nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
+                    "group", schema.Group.Value.Name, "key", t.ToString());
             }
         }
 

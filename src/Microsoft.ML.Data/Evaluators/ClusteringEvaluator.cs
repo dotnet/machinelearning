@@ -99,15 +99,14 @@ namespace Microsoft.ML.Runtime.Data
             ColumnType type = schema.Label?.Type;
             if (type != null && type != NumberType.Float && !(type is KeyType keyType && keyType.Count > 0))
             {
-                throw Host.Except("Clustering evaluator: label column '{0}' type must be {1} or Key of known cardinality." +
-                    " Provide a correct label column, or none: it is optional.",
-                    schema.Label.Value.Name, NumberType.Float);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name,
+                    "R4 or key of known cardinality", type.ToString());
             }
 
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             type = score.Type;
             if (!type.IsKnownSizeVector || type.ItemType != NumberType.Float)
-                throw Host.Except("Scores column '{0}' type must be a float vector of known size", score.Name);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4 vector of known size", type.ToString());
         }
 
         private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
@@ -118,8 +117,8 @@ namespace Microsoft.ML.Runtime.Data
                 var t = schema.Feature.Value.Type;
                 if (!t.IsKnownSizeVector || t.ItemType != NumberType.Float)
                 {
-                    throw Host.Except("Features column '{0}' type must be {1} vector of known-size",
-                        schema.Feature.Value.Name, NumberType.Float);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "features", schema.Feature.Value.Name,
+                        "R4 vector of known size", t.ToString());
                 }
             }
         }
