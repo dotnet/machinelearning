@@ -254,6 +254,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float[] Score;
         }
 
+        [BestFriend]
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmMultiClassEstimatorCompareOva()
         {
@@ -335,6 +336,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Get parameters used in ML.NET's LightGBM
             var gbmParams = gbmTrainer.GetGbmParameters();
 
+            // Call LightGBM C-style APIs to do prediction.
             string modelString = null;
             using (var ch = (mlContext as IChannelProvider).Start("Training LightGBM..."))
             using (var pch = (mlContext as IProgressChannelProvider).StartProgressChannel("Training LightGBM..."))
@@ -350,9 +352,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     fixed (double* result1 = nativeResult1)
                     {
                         WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
-                            _rowNumber, _columnNumber, 1, 0, numberOfTrainingIterations, "", ref nativeLength, result0);
+                            _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Normal, numberOfTrainingIterations, "", ref nativeLength, result0);
                         WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
-                            _rowNumber, _columnNumber, 1, 1, numberOfTrainingIterations, "", ref nativeLength, result1);
+                            _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Raw, numberOfTrainingIterations, "", ref nativeLength, result1);
                     }
                     modelString = gbmNative.GetModelString();
                 }
