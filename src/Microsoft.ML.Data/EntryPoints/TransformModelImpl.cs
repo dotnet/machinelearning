@@ -207,7 +207,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 _ectx.CheckValue(rootSchema, nameof(rootSchema));
 
                 _chain = chain;
-                _rootSchema = Schema.Create(rootSchema);
+                _rootSchema = rootSchema;
             }
 
             public static bool IsCompositeRowToRowMapper(IDataView chain)

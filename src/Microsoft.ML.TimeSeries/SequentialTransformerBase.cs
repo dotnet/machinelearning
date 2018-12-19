@@ -386,7 +386,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
                     _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
                 _mapper = mapper;
-                _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
+                _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
             }
 
             public void CloneStateInMapper() => _mapper.CloneState();
@@ -611,7 +611,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             Contracts.CheckValue(mapper, nameof(mapper));
             _mapper = mapper;
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
 
         public static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
@@ -628,7 +628,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // _mapper
 
             ctx.LoadModel<IStatefulRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
         }
 
         public static TimeSeriesRowToRowMapperTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)

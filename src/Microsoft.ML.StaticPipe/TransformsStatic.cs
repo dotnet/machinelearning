@@ -4,73 +4,24 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
-    /// Extensions for statically typed <see cref="LpNormalizingEstimator"/>.
-    /// </summary>
-    public static class LpNormalizerExtensions
-    {
-        private sealed class OutPipelineColumn : Vector<float>
-        {
-            public readonly Vector<float> Input;
-
-            public OutPipelineColumn(Vector<float> input, LpNormalizingEstimatorBase.NormalizerKind normKind, bool subMean)
-                : base(new Reconciler(normKind, subMean), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly LpNormalizingEstimatorBase.NormalizerKind _normKind;
-            private readonly bool _subMean;
-
-            public Reconciler(LpNormalizingEstimatorBase.NormalizerKind normKind, bool subMean)
-            {
-                _normKind = normKind;
-                _subMean = subMean;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-
-                var pairs = new List<(string input, string output)>();
-                foreach (var outCol in toOutput)
-                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
-
-                return new LpNormalizingEstimator(env, pairs.ToArray(), _normKind, _subMean);
-            }
-        }
-
-        /// <include file='doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="normKind">Type of norm to use to normalize each sample.</param>
-        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
-        public static Vector<float> LpNormalize(this Vector<float> input,
-            LpNormalizingEstimatorBase.NormalizerKind normKind = LpNormalizingEstimatorBase.Defaults.NormKind,
-            bool subMean = LpNormalizingEstimatorBase.Defaults.LpSubstractMean) => new OutPipelineColumn(input, normKind, subMean);
-    }
-
-    /// <summary>
     /// Extensions for statically typed <see cref="GlobalContrastNormalizingEstimator"/>.
     /// </summary>
-    public static class GlobalContrastNormalizerExtensions
+    public static class GlobalContrastNormalizerStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -112,7 +63,7 @@ namespace Microsoft.ML.StaticPipe
             }
         }
 
-        /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
         /// <param name="input">The column to apply to.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
@@ -124,9 +75,9 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// Extensions for statically typed <see cref="MutualInformationFeatureSelectorExtensions"/>.
+    /// Extensions for statically typed <see cref="MutualInformationFeatureSelectorStaticExtensions"/>.
     /// </summary>
-    public static class MutualInformationFeatureSelectorExtensions
+    public static class MutualInformationFeatureSelectorStaticExtensions
     {
         private sealed class OutPipelineColumn<T> : Vector<T>
         {
@@ -175,7 +126,7 @@ namespace Microsoft.ML.StaticPipe
             }
         }
 
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">Name of the input column.</param>
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
@@ -193,7 +144,7 @@ namespace Microsoft.ML.StaticPipe
             int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
             int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">Name of the input column.</param>
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
@@ -211,7 +162,7 @@ namespace Microsoft.ML.StaticPipe
             int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
             int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">Name of the input column.</param>
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
@@ -229,7 +180,7 @@ namespace Microsoft.ML.StaticPipe
             int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
             int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">Name of the input column.</param>
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
@@ -247,7 +198,7 @@ namespace Microsoft.ML.StaticPipe
             int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
             int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">Name of the input column.</param>
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
@@ -265,7 +216,7 @@ namespace Microsoft.ML.StaticPipe
             int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
             int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">Name of the input column.</param>
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
@@ -285,9 +236,9 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// Extensions for statically typed <see cref="CountFeatureSelectorExtensions"/>.
+    /// Extensions for statically typed <see cref="CountFeatureSelectorStaticExtensions"/>.
     /// </summary>
-    public static class CountFeatureSelectorExtensions
+    public static class CountFeatureSelectorStaticExtensions
     {
         private sealed class OutPipelineColumn<T> : Vector<T>
         {
@@ -325,7 +276,7 @@ namespace Microsoft.ML.StaticPipe
             }
         }
 
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">Name of the input column.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         /// <example>
@@ -338,7 +289,7 @@ namespace Microsoft.ML.StaticPipe
         public static Vector<float> SelectFeaturesBasedOnCount(this Vector<float> input,
             long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<float>(input, count);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">Name of the input column.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         /// <example>
@@ -351,7 +302,7 @@ namespace Microsoft.ML.StaticPipe
         public static Vector<double> SelectFeaturesBasedOnCount(this Vector<double> input,
             long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<double>(input, count);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">Name of the input column.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         /// <example>
@@ -365,159 +316,10 @@ namespace Microsoft.ML.StaticPipe
             long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<string>(input, count);
     }
 
-    public static class CategoricalStaticExtensions
-    {
-        public enum OneHotVectorOutputKind : byte
-        {
-            /// <summary>
-            /// Output is a bag (multi-set) vector
-            /// </summary>
-            Bag = 1,
-
-            /// <summary>
-            /// Output is an indicator vector
-            /// </summary>
-            Ind = 2,
-
-            /// <summary>
-            /// Output is binary encoded
-            /// </summary>
-            Bin = 4,
-        }
-
-        public enum OneHotScalarOutputKind : byte
-        {
-            /// <summary>
-            /// Output is an indicator vector
-            /// </summary>
-            Ind = 2,
-
-            /// <summary>
-            /// Output is binary encoded
-            /// </summary>
-            Bin = 4,
-        }
-
-        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
-        private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)OneHotEncodingEstimator.Defaults.OutKind;
-
-        private readonly struct Config
-        {
-            public readonly KeyValueOrder Order;
-            public readonly int Max;
-            public readonly OneHotVectorOutputKind OutputKind;
-            public readonly Action<ValueToKeyMappingTransformer.TermMap> OnFit;
-
-            public Config(OneHotVectorOutputKind outputKind, KeyValueOrder order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
-            {
-                OutputKind = outputKind;
-                Order = order;
-                Max = max;
-                OnFit = onFit;
-            }
-        }
-
-        private static Action<ValueToKeyMappingTransformer.TermMap> Wrap<T>(ToKeyFitResult<T>.OnFit onFit)
-        {
-            if (onFit == null)
-                return null;
-            // The type T asociated with the delegate will be the actual value type once #863 goes in.
-            // However, until such time as #863 goes in, it would be too awkward to attempt to extract the metadata.
-            // For now construct the useless object then pass it into the delegate.
-            return map => onFit(new ToKeyFitResult<T>(map));
-        }
-
-        private interface ICategoricalCol
-        {
-            PipelineColumn Input { get; }
-            Config Config { get; }
-        }
-
-        private sealed class ImplScalar<T> : Vector<float>, ICategoricalCol
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-            public ImplScalar(PipelineColumn input, Config config) : base(Rec.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class ImplVector<T> : Vector<float>, ICategoricalCol
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-            public ImplVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class Rec : EstimatorReconciler
-        {
-            public static readonly Rec Inst = new Rec();
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
-            {
-                var infos = new OneHotEncodingEstimator.ColumnInfo[toOutput.Length];
-                Action<ValueToKeyMappingTransformer> onFit = null;
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var tcol = (ICategoricalCol)toOutput[i];
-                    infos[i] = new OneHotEncodingEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
-                        tcol.Config.Max, (ValueToKeyMappingTransformer.SortOrder)tcol.Config.Order);
-                    if (tcol.Config.OnFit != null)
-                    {
-                        int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.
-                        onFit += tt => tcol.Config.OnFit(tt.GetTermMap(ii));
-                    }
-                }
-                var est = new OneHotEncodingEstimator(env, infos);
-                if (onFit != null)
-                    est.WrapTermWithDelegate(onFit);
-                return est;
-            }
-        }
-
-        /// <summary>
-        /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array.
-        /// </summary>
-        /// <param name="input">Incoming data.</param>
-        /// <param name="outputKind">Specify the output type of indicator array: array or binary encoded data.</param>
-        /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
-        /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
-        /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
-        public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotScalarOutputKind outputKind = (OneHotScalarOutputKind)DefOut, KeyValueOrder order = DefSort,
-            int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new ImplScalar<string>(input, new Config((OneHotVectorOutputKind)outputKind, order, maxItems, Wrap(onFit)));
-        }
-
-        /// <summary>
-        /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array.
-        /// </summary>
-        /// <param name="input">Incoming data.</param>
-        /// <param name="outputKind">Specify the output type of indicator array: Multiarray, array or binary encoded data.</param>
-        /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
-        /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
-        /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
-        public static Vector<float> OneHotEncoding(this Vector<string> input, OneHotVectorOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax,
-            ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new ImplVector<string>(input, new Config(outputKind, order, maxItems, Wrap(onFit)));
-        }
-    }
-
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class KeyToBinaryVectorExtensions
+    public static class KeyToBinaryVectorStaticExtensions
     {
         private interface IColInput
         {
@@ -676,7 +478,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class KeyToVectorExtensions
+    public static class KeyToVectorStaticExtensions
     {
         private interface IColInput
         {
@@ -928,7 +730,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class NAReplacerExtensions
+    public static class NAReplacerStaticExtensions
     {
         private readonly struct Config
         {
@@ -1079,6 +881,641 @@ namespace Microsoft.ML.StaticPipe
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<double>(input, new Config(replacementMode, false));
+        }
+    }
+
+    public static partial class ConvertStaticExtensions
+    {
+
+        private interface IConvertCol
+        {
+            PipelineColumn Input { get; }
+            DataKind Kind { get; }
+        }
+
+        private sealed class ImplScalar<T> : Scalar<float>, IConvertCol
+        {
+            public PipelineColumn Input { get; }
+            public DataKind Kind { get; }
+            public ImplScalar(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Kind = kind;
+            }
+        }
+
+        private sealed class ImplVector<T> : Vector<float>, IConvertCol
+        {
+            public PipelineColumn Input { get; }
+            public DataKind Kind { get; }
+            public ImplVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Kind = kind;
+            }
+        }
+
+        private sealed class ImplVarVector<T> : VarVector<float>, IConvertCol
+        {
+            public PipelineColumn Input { get; }
+            public DataKind Kind { get; }
+            public ImplVarVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Kind = kind;
+            }
+        }
+
+        private sealed class Rec : EstimatorReconciler
+        {
+            public static readonly Rec Inst = new Rec();
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new TypeConvertingTransformer.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var tcol = (IConvertCol)toOutput[i];
+                    infos[i] = new TypeConvertingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Kind);
+                }
+                return new TypeConvertingEstimator(env, infos);
+            }
+        }
+    }
+
+    public static partial class TermStaticExtensions
+    {
+        // I am not certain I see a good way to cover the distinct types beyond complete enumeration.
+        // Raw generics would allow illegal possible inputs, for example, Scalar<Bitmap>. So, this is a partial
+        // class, and all the public facing extension methods for each possible type are in a T4 generated result.
+
+        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
+
+        private readonly struct Config
+        {
+            public readonly KeyValueOrder Order;
+            public readonly int Max;
+            public readonly Action<ValueToKeyMappingTransformer.TermMap> OnFit;
+
+            public Config(KeyValueOrder order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
+            {
+                Order = order;
+                Max = max;
+                OnFit = onFit;
+            }
+        }
+
+        private static Action<ValueToKeyMappingTransformer.TermMap> Wrap<T>(ToKeyFitResult<T>.OnFit onFit)
+        {
+            if (onFit == null)
+                return null;
+            // The type T asociated with the delegate will be the actual value type once #863 goes in.
+            // However, until such time as #863 goes in, it would be too awkward to attempt to extract the metadata.
+            // For now construct the useless object then pass it into the delegate.
+            return map => onFit(new ToKeyFitResult<T>(map));
+        }
+
+        private interface ITermCol
+        {
+            PipelineColumn Input { get; }
+            Config Config { get; }
+        }
+
+        private sealed class ImplScalar<T> : Key<uint, T>, ITermCol
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplScalar(PipelineColumn input, Config config) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class ImplVector<T> : Vector<Key<uint, T>>, ITermCol
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class ImplVarVector<T> : VarVector<Key<uint, T>>, ITermCol
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplVarVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class Rec : EstimatorReconciler
+        {
+            public static readonly Rec Inst = new Rec();
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new ValueToKeyMappingTransformer.ColumnInfo[toOutput.Length];
+                Action<ValueToKeyMappingTransformer> onFit = null;
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var tcol = (ITermCol)toOutput[i];
+                    infos[i] = new ValueToKeyMappingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
+                        tcol.Config.Max, (ValueToKeyMappingTransformer.SortOrder)tcol.Config.Order);
+                    if (tcol.Config.OnFit != null)
+                    {
+                        int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.
+                        onFit += tt => tcol.Config.OnFit(tt.GetTermMap(ii));
+                    }
+                }
+                var est = new ValueToKeyMappingEstimator(env, infos);
+                if (onFit == null)
+                    return est;
+                return est.WithOnFitDelegate(onFit);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class KeyToValueStaticExtensions
+    {
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+        }
+
+        private sealed class OutKeyColumn<TOuterKey, TInnerKey> : Key<TInnerKey>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutKeyColumn(Key<TOuterKey, Key<TInnerKey>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutScalarColumn<TKey, TValue> : Scalar<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutScalarColumn(Key<TKey, TValue> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVectorColumn<TKey, TValue> : Vector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVectorColumn(Vector<Key<TKey, TValue>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TKey, TValue> : VarVector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVarVectorColumn(VarVector<Key<TKey, TValue>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var cols = new (string input, string output)[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var outCol = (IColInput)toOutput[i];
+                    cols[i] = (inputNames[outCol.Input], outputNames[toOutput[i]]);
+                }
+                return new KeyToValueMappingEstimator(env, cols);
+            }
+        }
+
+        /// <summary>
+        /// Convert a key column to a column containing the corresponding value.
+        /// </summary>
+        public static Key<TInnerKey> ToValue<TOuterKey, TInnerKey>(this Key<TOuterKey, Key<TInnerKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutKeyColumn<TOuterKey, TInnerKey>(input);
+        }
+
+        /// <summary>
+        /// Convert a key column to a column containing the corresponding value.
+        /// </summary>
+        public static Scalar<TValue> ToValue<TKey, TValue>(this Key<TKey, TValue> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalarColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Convert a key column to a column containing the corresponding value.
+        /// </summary>
+        public static Vector<TValue> ToValue<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Convert a key column to a column containing the corresponding value.
+        /// </summary>
+        public static VarVector<TValue> ToValue<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<TKey, TValue>(input);
+        }
+    }
+
+    /// <summary>
+    /// The extension methods and implementation support for concatenating columns together.
+    /// </summary>
+    public static class ConcatStaticExtensions
+    {
+        /// <summary>
+        /// Given a scalar vector, produce a vector of length one.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="me">The scalar column.</param>
+        /// <returns>The vector column, whose single item has the same value as the input.</returns>
+        public static Vector<T> AsVector<T>(this Scalar<T> me)
+            => new Impl<T>(Join(me, (PipelineColumn[])null));
+
+        /// <summary>
+        /// Given a bunch of normalized vectors, concatenate them together into a normalized vector.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="me">The first input column.</param>
+        /// <param name="others">Subsequent input columns.</param>
+        /// <returns>The result of concatenating all input columns together.</returns>
+        public static NormVector<T> ConcatWith<T>(this NormVector<T> me, params NormVector<T>[] others)
+            => new ImplNorm<T>(Join(me, others));
+
+        /// <summary>
+        /// Given a set of columns, concatenate them together into a vector valued column of the same type.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="me">The first input column.</param>
+        /// <param name="others">Subsequent input columns.</param>
+        /// <returns>The result of concatenating all input columns together.</returns>
+        public static Vector<T> ConcatWith<T>(this Scalar<T> me, params ScalarOrVector<T>[] others)
+            => new Impl<T>(Join(me, others));
+
+        /// <summary>
+        /// Given a set of columns, concatenate them together into a vector valued column of the same type.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="me">The first input column.</param>
+        /// <param name="others">Subsequent input columns.</param>
+        /// <returns>The result of concatenating all input columns together.</returns>
+        public static Vector<T> ConcatWith<T>(this Vector<T> me, params ScalarOrVector<T>[] others)
+            => new Impl<T>(Join(me, others));
+
+        /// <summary>
+        /// Given a set of columns including at least one variable sized vector column, concatenate them
+        /// together into a vector valued column of the same type.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="me">The first input column.</param>
+        /// <param name="others">Subsequent input columns.</param>
+        /// <returns>The result of concatenating all input columns together.</returns>
+        public static VarVector<T> ConcatWith<T>(this Scalar<T> me, params ScalarOrVectorOrVarVector<T>[] others)
+            => new ImplVar<T>(Join(me, others));
+
+        /// <summary>
+        /// Given a set of columns including at least one variable sized vector column, concatenate them
+        /// together into a vector valued column of the same type.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="me">The first input column.</param>
+        /// <param name="others">Subsequent input columns.</param>
+        /// <returns>The result of concatenating all input columns together.</returns>
+        public static VarVector<T> ConcatWith<T>(this Vector<T> me, params ScalarOrVectorOrVarVector<T>[] others)
+            => new ImplVar<T>(Join(me, others));
+
+        /// <summary>
+        /// Given a set of columns including at least one variable sized vector column, concatenate them
+        /// together into a vector valued column of the same type.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="me">The first input column.</param>
+        /// <param name="others">Subsequent input columns.</param>
+        /// <returns>The result of concatenating all input columns together.</returns>
+        public static VarVector<T> ConcatWith<T>(this VarVector<T> me, params ScalarOrVectorOrVarVector<T>[] others)
+            => new ImplVar<T>(Join(me, others));
+
+        private interface IContainsColumn
+        {
+            PipelineColumn WrappedColumn { get; }
+        }
+
+        /// <summary>
+        /// A wrapping object for the implicit conversions in <see cref="ConcatWith{T}(Scalar{T}, ScalarOrVector{T}[])"/>
+        /// and other related methods.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        public sealed class ScalarOrVector<T> : ScalarOrVectorOrVarVector<T>
+        {
+            private ScalarOrVector(PipelineColumn col) : base(col) { }
+            public static implicit operator ScalarOrVector<T>(Scalar<T> c) => new ScalarOrVector<T>(c);
+            public static implicit operator ScalarOrVector<T>(Vector<T> c) => new ScalarOrVector<T>(c);
+            public static implicit operator ScalarOrVector<T>(NormVector<T> c) => new ScalarOrVector<T>(c);
+        }
+
+        /// <summary>
+        /// A wrapping object for the implicit conversions in <see cref="ConcatWith{T}(Scalar{T}, ScalarOrVectorOrVarVector{T}[])"/>
+        /// and other related methods.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        public class ScalarOrVectorOrVarVector<T> : IContainsColumn
+        {
+            public PipelineColumn WrappedColumn { get; }
+
+            private protected ScalarOrVectorOrVarVector(PipelineColumn col)
+            {
+                Contracts.CheckValue(col, nameof(col));
+                WrappedColumn = col;
+            }
+
+            public static implicit operator ScalarOrVectorOrVarVector<T>(VarVector<T> c)
+               => new ScalarOrVectorOrVarVector<T>(c);
+        }
+
+        #region Implementation support
+        private sealed class Rec : EstimatorReconciler
+        {
+            /// <summary>
+            /// For the moment the concat estimator can only do one at a time, so I want to apply these operations
+            /// one at a time, which means a separate reconciler. Otherwise there may be problems with name overwriting.
+            /// If that is ever adjusted, then we can make a slightly more efficient reconciler, though this is probably
+            /// not that important of a consideration from a runtime perspective.
+            /// </summary>
+            public static Rec Inst => new Rec();
+
+            private Rec() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                // For the moment, the concat estimator can only do one concatenation at a time.
+                // So we will chain the estimators.
+                Contracts.AssertNonEmpty(toOutput);
+                IEstimator<ITransformer> est = null;
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var ccol = (IConcatCol)toOutput[i];
+                    string[] inputs = ccol.Sources.Select(s => inputNames[s]).ToArray();
+                    var localEst = new ColumnConcatenatingEstimator(env, outputNames[toOutput[i]], inputs);
+                    if (i == 0)
+                        est = localEst;
+                    else
+                        est = est.Append(localEst);
+                }
+                return est;
+            }
+        }
+
+        private static PipelineColumn[] Join(PipelineColumn col, IContainsColumn[] cols)
+        {
+            if (Utils.Size(cols) == 0)
+                return new[] { col };
+            var retVal = new PipelineColumn[cols.Length + 1];
+            retVal[0] = col;
+            for (int i = 0; i < cols.Length; ++i)
+                retVal[i + 1] = cols[i].WrappedColumn;
+            return retVal;
+        }
+
+        private static PipelineColumn[] Join(PipelineColumn col, PipelineColumn[] cols)
+        {
+            if (Utils.Size(cols) == 0)
+                return new[] { col };
+            var retVal = new PipelineColumn[cols.Length + 1];
+            retVal[0] = col;
+            Array.Copy(cols, 0, retVal, 1, cols.Length);
+            return retVal;
+        }
+
+        private interface IConcatCol
+        {
+            PipelineColumn[] Sources { get; }
+        }
+
+        private sealed class Impl<T> : Vector<T>, IConcatCol
+        {
+            public PipelineColumn[] Sources { get; }
+            public Impl(PipelineColumn[] cols)
+                : base(Rec.Inst, cols)
+            {
+                Sources = cols;
+            }
+        }
+
+        private sealed class ImplVar<T> : VarVector<T>, IConcatCol
+        {
+            public PipelineColumn[] Sources { get; }
+            public ImplVar(PipelineColumn[] cols)
+                : base(Rec.Inst, cols)
+            {
+                Sources = cols;
+            }
+        }
+
+        private sealed class ImplNorm<T> : NormVector<T>, IConcatCol
+        {
+            public PipelineColumn[] Sources { get; }
+            public ImplNorm(PipelineColumn[] cols)
+                : base(Rec.Inst, cols)
+            {
+                Sources = cols;
+            }
+        }
+        #endregion
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class NAIndicatorStaticExtensions
+    {
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+        }
+
+        private sealed class OutScalar<TValue> : Scalar<bool>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutScalar(Scalar<TValue> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVectorColumn<TValue> : Vector<bool>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVectorColumn(Vector<TValue> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TValue> : VarVector<bool>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVarVectorColumn(VarVector<TValue> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var columnPairs = new (string input, string output)[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    columnPairs[i] = (inputNames[col.Input], outputNames[toOutput[i]]);
+                }
+                return new MissingValueIndicatorEstimator(env, columnPairs);
+            }
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static Scalar<bool> IsMissingValue(this Scalar<float> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<float>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static Scalar<bool> IsMissingValue(this Scalar<double> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<double>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static Vector<bool> IsMissingValue(this Vector<float> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<float>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static Vector<bool> IsMissingValue(this Vector<double> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<double>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static VarVector<bool> IsMissingValue(this VarVector<float> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<float>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static VarVector<bool> IsMissingValue(this VarVector<double> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<double>(input);
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class TextFeaturizerStaticExtensions
+    {
+        /// <summary>
+        /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
+        /// </summary>
+        /// <param name="input">Input data.</param>
+        /// <param name="otherInputs">Additional data.</param>
+        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
+        /// <returns></returns>
+        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextFeaturizingEstimator.Settings> advancedSettings = null)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckValueOrNull(otherInputs);
+            otherInputs = otherInputs ?? new Scalar<string>[0];
+            return new TextFeaturizingEstimator.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
         }
     }
 }

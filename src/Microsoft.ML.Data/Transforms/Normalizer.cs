@@ -24,10 +24,14 @@ using static Microsoft.ML.Transforms.Normalizers.NormalizeTransform;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(NormalizingTransformer), null, typeof(SignatureLoadRowMapper),
     "", NormalizingTransformer.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(IDataTransform), typeof(NormalizingTransformer), null, typeof(SignatureLoadDataTransform),
+    "", NormalizingTransformer.LoaderSignature, "NormalizeTransform")]
+
 namespace Microsoft.ML.Transforms.Normalizers
 {
     public sealed class NormalizingEstimator : IEstimator<NormalizingTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const bool FixZero = true;
@@ -271,6 +275,23 @@ namespace Microsoft.ML.Transforms.Normalizers
     public sealed partial class NormalizingTransformer : OneToOneTransformerBase
     {
         public const string LoaderSignature = "Normalizer";
+
+        internal const string LoaderSignatureOld = "NormalizeFunction";
+
+        private static VersionInfo GetOldVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "NORMFUNC",
+                // verWrittenCur: 0x00010001, // Initial
+                // verWrittenCur: 0x00010002, // Changed to OneToOneColumn
+                verWrittenCur: 0x00010003,    // Support generic column functions
+                verReadableCur: 0x00010003,
+                verWeCanReadBack: 0x00010003,
+                loaderSignature: LoaderSignature,
+                loaderSignatureAlt: LoaderSignatureOld,
+                 loaderAssemblyName: typeof(NormalizingTransformer).Assembly.FullName);
+        }
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -352,6 +373,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>An accessor of the column functions within <see cref="Columns"/>.</summary>
+        [BestFriend]
         internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
 
         public readonly ImmutableArray<ColumnInfo> Columns;
@@ -467,12 +489,45 @@ namespace Microsoft.ML.Transforms.Normalizers
             Columns = ImmutableArray.Create(cols);
         }
 
+        // This constructor for models in old format.
+        private NormalizingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
+          : base(host, ctx)
+        {
+            // *** Binary format ***
+            // <base>
+            // for each added column:
+            //   - separate model for column function
+            var cols = new ColumnInfo[ColumnPairs.Length];
+            ColumnFunctions = new ColumnFunctionAccessor(Columns);
+            for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
+            {
+                var dir = string.Format("Normalizer_{0:000}", iinfo);
+                var typeSrc = input.Schema[ColumnPairs[iinfo].input].Type;
+                ctx.LoadModel<IColumnFunction, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
+                cols[iinfo] = new ColumnInfo(ColumnPairs[iinfo].input, ColumnPairs[iinfo].output, typeSrc, function);
+            }
+
+            Columns = ImmutableArray.Create(cols);
+        }
+
         public static NormalizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             return new NormalizingTransformer(env.Register(nameof(NormalizingTransformer)), ctx);
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetOldVersionInfo());
+            int cbFloat = ctx.Reader.ReadInt32();
+            env.CheckDecode(cbFloat == sizeof(float));
+            var transformer = new NormalizingTransformer(env.Register(nameof(NormalizingTransformer)), ctx, input);
+            return transformer.MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadRowMapper.

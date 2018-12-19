@@ -15,7 +15,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Float = System.Single;
 
 [assembly: LoadableClass(HashJoiningTransform.Summary, typeof(HashJoiningTransform), typeof(HashJoiningTransform.Arguments), typeof(SignatureDataTransform),
     HashJoiningTransform.UserName, "HashJoinTransform", HashJoiningTransform.RegistrationName)]
@@ -542,40 +541,23 @@ namespace Microsoft.ML.Transforms.Conversions
             var mask = (1U << _exes[iinfo].HashBits) - 1;
             var hashSeed = _exes[iinfo].HashSeed;
             bool ordered = _exes[iinfo].Ordered;
-            TSrc[] denseValues = null;
+            var denseSource = default(VBuffer<TSrc>);
             return
                 (ref VBuffer<uint> dst) =>
                 {
                     getSrc(ref src);
                     Host.Check(src.Length == expectedSrcLength);
-                    ReadOnlySpan<TSrc> values;
-
-                    // force-densify the input
-                    // REVIEW: this performs poorly if only a fraction of sparse vector is used for hashing.
-                    // This scenario was unlikely at the time of writing. Regardless of performance, the hash value
-                    // needs to be consistent across equivalent representations - sparse vs dense.
-                    if (src.IsDense)
-                        values = src.GetValues();
-                    else
-                    {
-                        if (denseValues == null)
-                            denseValues = new TSrc[expectedSrcLength];
-                        src.CopyTo(denseValues);
-                        values = denseValues;
-                    }
-
                     var hashes = VBufferEditor.Create(ref dst, n);
-
+                    src.CopyToDense(ref denseSource);
                     for (int i = 0; i < n; i++)
                     {
                         uint hash = hashSeed;
-
                         foreach (var srcSlot in slotMap[i])
                         {
                             // REVIEW: some legacy code hashes 0 for srcSlot in ord- case, do we need to preserve this behavior?
                             if (ordered)
                                 hash = Hashing.MurmurRound(hash, (uint)srcSlot);
-                            hash = hashFunction(in values[srcSlot], hash);
+                            hash = hashFunction(denseSource.GetItemOrDefault(srcSlot), hash);
                         }
 
                         hashes.Values[i] = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
@@ -606,34 +588,19 @@ namespace Microsoft.ML.Transforms.Conversions
             var mask = (1U << _exes[iinfo].HashBits) - 1;
             var hashSeed = _exes[iinfo].HashSeed;
             bool ordered = _exes[iinfo].Ordered;
-            TSrc[] denseValues = null;
+            var denseSource = default(VBuffer<TSrc>);
             return
                 (ref uint dst) =>
                 {
                     getSrc(ref src);
                     Host.Check(src.Length == expectedSrcLength);
-
-                    ReadOnlySpan<TSrc> values;
-                    // force-densify the input
-                    // REVIEW: this performs poorly if only a fraction of sparse vector is used for hashing.
-                    // This scenario was unlikely at the time of writing. Regardless of performance, the hash value
-                    // needs to be consistent across equivalent representations - sparse vs dense.
-                    if (src.IsDense)
-                        values = src.GetValues();
-                    else
-                    {
-                        if (denseValues == null)
-                            denseValues = new TSrc[expectedSrcLength];
-                        src.CopyTo(denseValues);
-                        values = denseValues;
-                    }
-
+                    src.CopyToDense(ref denseSource);
                     uint hash = hashSeed;
                     foreach (var srcSlot in slots)
                     {
                         if (ordered)
                             hash = Hashing.MurmurRound(hash, (uint)srcSlot);
-                        hash = hashFunction(in values[srcSlot], hash);
+                        hash = hashFunction(denseSource.GetItemOrDefault(srcSlot), hash);
                     }
                     dst = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
                 };
@@ -644,11 +611,11 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         private HashDelegate<TSrc> ComposeHashDelegate<TSrc>()
         {
-            // REVIEW: Add a specialized hashing for ints, once numeric bin mapper is done http://sqlbuvsts01:8080/Main/Advanced%20Analytics/_workitems/edit/5823788
-            if (typeof(TSrc) == typeof(Float))
+            // REVIEW: Add a specialized hashing for ints, once numeric bin mapper is done.
+            if (typeof(TSrc) == typeof(float))
                 return (HashDelegate<TSrc>)(Delegate)ComposeFloatHashDelegate();
 
-            if (typeof(TSrc) == typeof(Double))
+            if (typeof(TSrc) == typeof(double))
                 return (HashDelegate<TSrc>)(Delegate)ComposeDoubleHashDelegate();
 
             // Default case: convert to text and hash as a string.
@@ -665,7 +632,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Generate a specialized hash function for floats
         /// </summary>
-        private HashDelegate<Float> ComposeFloatHashDelegate()
+        private HashDelegate<float> ComposeFloatHashDelegate()
         {
             return Hash;
         }
@@ -673,15 +640,9 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Generate a specialized hash function for doubles
         /// </summary>
-        private HashDelegate<Double> ComposeDoubleHashDelegate()
-        {
-            return Hash;
-        }
+        private HashDelegate<double> ComposeDoubleHashDelegate() => Hash;
 
-        private uint Hash(in float value, uint seed)
-        {
-            return Hashing.MurmurRound(seed, FloatUtils.GetBits(value));
-        }
+        private uint Hash(in float value, uint seed) => Hashing.MurmurRound(seed, FloatUtils.GetBits(value));
 
         private uint Hash(in double value, uint seed)
         {

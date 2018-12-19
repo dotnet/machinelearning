@@ -4037,6 +4037,33 @@ namespace Microsoft.ML.Runtime.RunTests
                       'L': '1'"
                 });
         }
+
+        [Fact]
+        public void EntryPointHashJoinCountTable()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Text:Text:1-9 col=Label:0",
+                new[]
+                {
+                    "Transforms.HashConverter",
+                },
+                new[]
+                {
+                    @"'Column': [
+                      {
+                        'Name': 'Temp',
+                        'Src': 'Text'
+                      },
+                      {
+                        'Name': 'Temp2',
+                        'Src': 'Text',
+                        'CustomSlotMap': '0,1;2,3,4,5'
+                      }
+
+                      ]"
+                });
+        }
+
+
     }
 #pragma warning restore 612
 }

@@ -15,13 +15,13 @@ namespace Microsoft.ML.Benchmarks
     public class PredictionEngineBench
     {
         private IrisData _irisExample;
-        private PredictionFunction<IrisData, IrisPrediction> _irisModel;
+        private PredictionEngine<IrisData, IrisPrediction> _irisModel;
 
         private SentimentData _sentimentExample;
-        private PredictionFunction<SentimentData, SentimentPrediction> _sentimentModel;
+        private PredictionEngine<SentimentData, SentimentPrediction> _sentimentModel;
 
         private BreastCancerData _breastCancerExample;
-        private PredictionFunction<BreastCancerData, BreastCancerPrediction> _breastCancerModel;
+        private PredictionEngine<BreastCancerData, BreastCancerPrediction> _breastCancerModel;
 
         [GlobalSetup(Target = nameof(MakeIrisPredictions))]
         public void SetupIrisPipeline()
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Benchmarks
 
             var model = pipeline.Fit(data);
 
-            _irisModel = model.MakePredictionFunction<IrisData, IrisPrediction>(env);
+            _irisModel = model.CreatePredictionEngine<IrisData, IrisPrediction>(env);
         }
 
         [GlobalSetup(Target = nameof(MakeSentimentPredictions))]
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Benchmarks
 
             var model = pipeline.Fit(data);
 
-            _sentimentModel = model.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
+            _sentimentModel = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(env);
         }
 
         [GlobalSetup(Target = nameof(MakeBreastCancerPredictions))]
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Benchmarks
 
             var model = pipeline.Fit(data);
 
-            _breastCancerModel = model.MakePredictionFunction<BreastCancerData, BreastCancerPrediction>(env);
+            _breastCancerModel = model.CreatePredictionEngine<BreastCancerData, BreastCancerPrediction>(env);
         }
 
         [Benchmark]

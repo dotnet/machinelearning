@@ -45,6 +45,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
     public sealed class VectorWhiteningTransformer : OneToOneTransformerBase
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const WhiteningKind Kind = WhiteningKind.Zca;
@@ -305,7 +306,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         // Factory method for SignatureLoadRowMapper.
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
             => columns.Select(c => (c.Input, c.Output ?? c.Input)).ToArray();

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Data
     /// and values.
     /// </summary>
     [System.Diagnostics.DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
-    public sealed class Schema : ISchema, IReadOnlyList<Schema.Column>
+    public sealed class Schema : IReadOnlyList<Schema.Column>
     {
         private readonly Column[] _columns;
         private readonly Dictionary<string, int> _nameMap;
@@ -273,9 +273,6 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (inputSchema is Schema s)
-                return s;
-
             var builder = new SchemaBuilder();
             for (int i = 0; i < inputSchema.ColumnCount; i++)
             {
@@ -310,31 +307,5 @@ namespace Microsoft.ML.Data
             col = GetColumnOrNull(name)?.Index ?? -1;
             return col >= 0;
         }
-
-        #region Legacy schema API to be removed
-        /// <summary>
-        /// Number of columns in the schema.
-        /// </summary>
-        int ISchema.ColumnCount => _columns.Length;
-
-        string ISchema.GetColumnName(int col) => this[col].Name;
-
-        ColumnType ISchema.GetColumnType(int col) => this[col].Type;
-
-        IEnumerable<KeyValuePair<string, ColumnType>> ISchema.GetMetadataTypes(int col)
-            => this[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
-
-        ColumnType ISchema.GetMetadataTypeOrNull(string kind, int col)
-            => this[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-
-        void ISchema.GetMetadata<TValue>(string kind, int col, ref TValue value)
-            => this[col].Metadata.GetValue(kind, ref value);
-
-        bool ISchema.TryGetColumnIndex(string name, out int col)
-        {
-            col = GetColumnOrNull(name)?.Index ?? -1;
-            return col >= 0;
-        }
-        #endregion
     }
 }

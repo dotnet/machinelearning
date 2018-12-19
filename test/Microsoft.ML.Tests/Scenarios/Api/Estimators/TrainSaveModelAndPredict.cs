@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 loadedModel = TransformerChain.LoadFrom(ml, file);
 
             // Create prediction engine and test predictions.
-            var engine = loadedModel.MakePredictionFunction<SentimentData, SentimentPrediction>(ml);
+            var engine = loadedModel.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
 
             // Take a couple examples out of the test data and run predictions on top.
             var testData = reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename))

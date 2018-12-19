@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.Data
             var rowMapper = mapper as ISchemaBoundRowMapper;
             Host.CheckParam(rowMapper != null, nameof(mapper), "mapper should implement ISchemaBoundRowMapper");
             _bindings = Bindings.Create(data.Schema, rowMapper, args.Suffix);
-            OutputSchema = Schema.Create(_bindings);
+            OutputSchema = _bindings.AsSchema;
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, data, RegistrationName, transform.Bindable)
         {
             _bindings = transform._bindings.ApplyToSchema(env, data.Schema);
-            OutputSchema = Schema.Create(_bindings);
+            OutputSchema = _bindings.AsSchema;
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(ctx);
             _bindings = Bindings.Create(ctx, host, Bindable, input.Schema);
-            OutputSchema = Schema.Create(_bindings);
+            OutputSchema = _bindings.AsSchema;
         }
 
         /// <summary>
