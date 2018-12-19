@@ -468,5 +468,18 @@ namespace Microsoft.ML.Tests.Transformers
                 var loadedView = ModelFileUtils.LoadTransforms(ML, dataView, ms);
             }
         }
+
+        [Fact]
+        void TestNormalizeBackCompatibility()
+        {
+            var dataFile = GetDataPath("breast-cancer.txt");
+            var dataView = TextLoader.Create(ML, new TextLoader.Arguments(), new MultiFileSource(dataFile));
+            string chooseModelPath = GetDataPath("backcompat/ap_with_norm.zip");
+            using (FileStream fs = File.OpenRead(chooseModelPath))
+            {
+                var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
+                Assert.Equal(3, result.Schema.Count);
+            }
+        }
     }
 }
