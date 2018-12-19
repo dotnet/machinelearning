@@ -254,8 +254,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float[] Score;
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
-        public void LightGbmMultiClassEstimatorCompareOva()
+        private void LightGbmHelper(bool useSoftmax, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities)
         {
             //////////////////////////////////////////////////////////////////////////////////////////////
             // Prepare data and train LightGBM model via ML.NET
@@ -286,10 +285,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var dataView = ComponentCreation.CreateDataView(mlContext, dataList);
             int numberOfTrainingIterations = 3;
             var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, labelColumn: "Label", featureColumn: "Features", numBoostRound: numberOfTrainingIterations,
-                advancedSettings: s => { s.MinDataPerGroup = 1; s.MinDataPerLeaf = 1; });
+                advancedSettings: s => { s.MinDataPerGroup = 1; s.MinDataPerLeaf = 1; s.UseSoftmax = useSoftmax; });
             var gbm = gbmTrainer.Fit(dataView);
             var predicted = gbm.Transform(dataView);
-            var predictions = new List<GbmExample>(predicted.AsEnumerable<GbmExample>(mlContext, false));
+            mlnetPredictions = new List<GbmExample>(predicted.AsEnumerable<GbmExample>(mlContext, false));
 
             //////////////////////////////////////////////////////////////////////////////////////////////
             // Convert training to LightGBM's native format and train LightGBM model via its APIs
@@ -328,15 +327,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             gbmDataSet.PushRows(dataMatrix, _rowNumber, _columnNumber, 0);
 
             // Probability output.
-            var nativeResult0 = new double[_rowNumber * _classNumber];
+            lgbmProbabilities = new double[_rowNumber * _classNumber];
             // Raw score.
-            var nativeResult1 = new double[_rowNumber * _classNumber];
+            lgbmRawScores = new double[_rowNumber * _classNumber];
 
             // Get parameters used in ML.NET's LightGBM
             var gbmParams = gbmTrainer.GetGbmParameters();
 
             // Call LightGBM C-style APIs to do prediction.
-            string modelString = null;
+            modelString = null;
             using (var ch = (mlContext as IChannelProvider).Start("Training LightGBM..."))
             using (var pch = (mlContext as IProgressChannelProvider).StartProgressChannel("Training LightGBM..."))
             {
@@ -347,8 +346,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 unsafe
                 {
                     fixed (float* data = dataMatrix)
-                    fixed (double* result0 = nativeResult0)
-                    fixed (double* result1 = nativeResult1)
+                    fixed (double* result0 = lgbmProbabilities)
+                    fixed (double* result1 = lgbmRawScores)
                     {
                         WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
                             _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Normal, numberOfTrainingIterations, "", ref nativeLength, result0);
@@ -358,25 +357,35 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     modelString = gbmNative.GetModelString();
                 }
             }
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        public void LightGbmMultiClassEstimatorCompareOva()
+        {
+            // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
+            LightGbmHelper(useSoftmax: false, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////
             // Compare native LightGBM's and ML.NET's LightGBM results
             //////////////////////////////////////////////////////////////////////////////////////////////
 
+            // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
+            // Assume that we have n classes in total. The i-th class probability can be computed via
+            // p_i = sigmoid(sigmoidScale * z_i) / (sigmoid(sigmoidScale * z_1) + ... + sigmoid(sigmoidScale * z_n)).
             Assert.True(modelString != null);
-            float sigmoidScale = (float)(double)gbmParams["sigmoid"]; // Parameter passed to LightGBM
+            float sigmoidScale = 0.5f; // Constant used train LightGBM. See gbmParams["sigmoid"] in the helper function.
             for (int i = 0; i < _rowNumber; ++i)
             {
                 double sum = 0;
                 for (int j = 0; j < _classNumber; ++j)
                 {
-                    Assert.Equal(nativeResult0[j + i * _classNumber], predictions[i].Score[j], 6);
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
                     sum += MathUtils.SigmoidSlow(sigmoidScale* (float)nativeResult1[j + i * _classNumber]);
                 }
                 for (int j = 0; j < _classNumber; ++j)
                 {
                     double prob = MathUtils.SigmoidSlow(sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
-                    Assert.Equal(prob / sum, predictions[i].Score[j], 6);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
                 }
             }
 
@@ -385,126 +394,29 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmMultiClassEstimatorCompareSoftMax()
         {
-            //////////////////////////////////////////////////////////////////////////////////////////////
-            // Prepare data and train LightGBM model via ML.NET
-            //////////////////////////////////////////////////////////////////////////////////////////////
-
-            // Training matrix. It contains all feature vectors.
-            var dataMatrix = new float[_rowNumber * _columnNumber];
-            // Labels for multi-class classification
-            var labels = new uint[_rowNumber];
-            // Training list, which is equivalent to the training matrix above.
-            var dataList = new List<GbmExample>();
-            for (/*row index*/ int i = 0; i < _rowNumber; ++i)
-            {
-                int featureSum = 0;
-                var featureVector = new float[_columnNumber];
-                for (/*column index*/ int j = 0; j < _columnNumber; ++j)
-                {
-                    int featureValue = (j + i * _columnNumber) % 10;
-                    featureSum += featureValue;
-                    dataMatrix[j + i * _columnNumber] = featureValue;
-                    featureVector[j] = featureValue;
-                }
-                labels[i] = (uint)featureSum % _classNumber;
-                dataList.Add(new GbmExample { Features = featureVector, Label = labels[i], Score = new float[_classNumber] });
-            }
-
-            var mlContext = new MLContext(seed: 0, conc: 1);
-            var dataView = ComponentCreation.CreateDataView(mlContext, dataList);
-            int numberOfTrainingIterations = 3;
-            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, labelColumn: "Label", featureColumn: "Features", numBoostRound: numberOfTrainingIterations,
-                advancedSettings: s => { s.MinDataPerGroup = 1; s.MinDataPerLeaf = 1; s.UseSoftmax = true; });
-            var gbm = gbmTrainer.Fit(dataView);
-            var predicted = gbm.Transform(dataView);
-            var predictions = new List<GbmExample>(predicted.AsEnumerable<GbmExample>(mlContext, false));
-
-            //////////////////////////////////////////////////////////////////////////////////////////////
-            // Convert training to LightGBM's native format and train LightGBM model via its APIs
-            //////////////////////////////////////////////////////////////////////////////////////////////
-
-            // Convert the whole training matrix to CSC format required by LightGBM interface. Notice that the training matrix
-            // is dense so this conversion is simply a matrix transpose.
-            double[][] sampleValueGroupedByColumn = new double[_columnNumber][];
-            int[][] sampleIndicesGroupedByColumn = new int[_columnNumber][];
-            int[] sampleNonZeroCntPerColumn = new int[_columnNumber];
-            for (int j = 0; j < _columnNumber; ++j)
-            {
-                // Allocate memory for the j-th column in the training matrix
-                sampleValueGroupedByColumn[j] = new double[_rowNumber];
-                sampleIndicesGroupedByColumn[j] = new int[_rowNumber];
-                sampleNonZeroCntPerColumn[j] = _rowNumber;
-                // Copy the j-th column in training matrix
-                for (int i = 0; i < _rowNumber; ++i)
-                {
-                    // data[j + i * _columnNumber] is the value at the j-th column and the i-th row.
-                    sampleValueGroupedByColumn[j][i] = dataMatrix[j + i * _columnNumber];
-                    // Row index of the assigned value.
-                    sampleIndicesGroupedByColumn[j][i] = i;
-                }
-            }
-
-            // LightGBM only accepts float labels.
-            float[] floatLabels = new float[_rowNumber];
-            for (int i = 0; i < _rowNumber; ++i)
-                floatLabels[i] = labels[i];
-
-            // Allocate LightGBM data container (called Dataset in LightGBM world).
-            var gbmDataSet = new Dataset(sampleValueGroupedByColumn, sampleIndicesGroupedByColumn, _columnNumber, sampleNonZeroCntPerColumn, _rowNumber, _rowNumber, "", floatLabels);
-
-            // Push training examples into LightGBM data container.
-            gbmDataSet.PushRows(dataMatrix, _rowNumber, _columnNumber, 0);
-
-            // Probability output.
-            var nativeResult0 = new double[_rowNumber * _classNumber];
-            // Raw score.
-            var nativeResult1 = new double[_rowNumber * _classNumber];
-
-            // Get parameters used in ML.NET's LightGBM
-            var gbmParams = gbmTrainer.GetGbmParameters();
-
-            // Call LightGBM C-style APIs to do prediction.
-            string modelString = null;
-            using (var ch = (mlContext as IChannelProvider).Start("Training LightGBM..."))
-            using (var pch = (mlContext as IProgressChannelProvider).StartProgressChannel("Training LightGBM..."))
-            {
-                var host = (mlContext as IHostEnvironment).Register("Training LightGBM...");
-                var gbmNative = WrappedLightGbmTraining.Train(ch, pch, gbmParams, gbmDataSet, numIteration : numberOfTrainingIterations);
-
-                int nativeLength = 0;
-                unsafe
-                {
-                    fixed (float* data = dataMatrix)
-                    fixed (double* result0 = nativeResult0)
-                    fixed (double* result1 = nativeResult1)
-                    {
-                        WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
-                            _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Normal, numberOfTrainingIterations, "", ref nativeLength, result0);
-                        WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
-                            _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Raw, numberOfTrainingIterations, "", ref nativeLength, result1);
-                    }
-                    modelString = gbmNative.GetModelString();
-                }
-            }
+            // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
+            LightGbmHelper(useSoftmax: true, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
 
             //////////////////////////////////////////////////////////////////////////////////////////////
             // Compare native LightGBM's and ML.NET's LightGBM results
             //////////////////////////////////////////////////////////////////////////////////////////////
 
+            // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
+            // Assume that we have n classes in total. The i-th class probability can be computed via
+            // p_i = exp(z_i) / (exp(z_1) + ... + exp(z_n)).
             Assert.True(modelString != null);
-            float sigmoidScale = (float)(double)gbmParams["sigmoid"]; // Parameter passed to LightGBM
             for (int i = 0; i < _rowNumber; ++i)
             {
                 double sum = 0;
                 for (int j = 0; j < _classNumber; ++j)
                 {
-                    Assert.Equal(nativeResult0[j + i * _classNumber], predictions[i].Score[j], 6);
-                    sum += MathUtils.SigmoidSlow(sigmoidScale* (float)nativeResult1[j + i * _classNumber]);
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    sum += Math.Exp((float)nativeResult1[j + i * _classNumber]);
                 }
                 for (int j = 0; j < _classNumber; ++j)
                 {
-                    double prob = MathUtils.SigmoidSlow(sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
-                    Assert.Equal(prob / sum, predictions[i].Score[j], 6);
+                    double prob = Math.Exp(nativeResult1[j + i * _classNumber]);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
                 }
             }
 
