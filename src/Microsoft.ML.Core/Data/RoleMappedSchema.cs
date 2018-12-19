@@ -9,57 +9,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// This contains information about a column in an <see cref="IDataView"/>. It is essentially a convenience cache
-    /// containing the name, column index, and column type for the column. The intended usage is that users of <see cref="RoleMappedSchema"/>
-    /// will have a convenient method of getting the index and type without having to separately query it through the <see cref="Schema"/>,
-    /// since practically the first thing a consumer of a <see cref="RoleMappedSchema"/> will want to do once they get a mappping is get
-    /// the type and index of the corresponding column.
-    /// </summary>
-    public sealed class ColumnInfo
-    {
-        public readonly string Name;
-        public readonly int Index;
-        public readonly ColumnType Type;
-
-        private ColumnInfo(string name, int index, ColumnType type)
-        {
-            Name = name;
-            Index = index;
-            Type = type;
-        }
-
-        /// <summary>
-        /// Tries to create a ColumnInfo for the column with the given name in the given schema. Returns
-        /// false if the name doesn't map to a column.
-        /// </summary>
-        public static bool TryCreateFromName(Schema schema, string name, out ColumnInfo colInfo)
-        {
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckNonEmpty(name, nameof(name));
-
-            colInfo = null;
-            if (!schema.TryGetColumnIndex(name, out int index))
-                return false;
-
-            colInfo = new ColumnInfo(name, index, schema[index].Type);
-            return true;
-        }
-
-        /// <summary>
-        /// Creates a ColumnInfo for the column with the given column index. Note that the name
-        /// of the column might actually map to a different column, so this should be used with care
-        /// and rarely.
-        /// </summary>
-        public static ColumnInfo CreateFromIndex(Schema schema, int index)
-        {
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(0 <= index && index < schema.Count, nameof(index));
-
-            return new ColumnInfo(schema[index].Name, index, schema[index].Type);
-        }
-    }
-
-    /// <summary>
     /// Encapsulates an <see cref="Schema"/> plus column role mapping information. The purpose of role mappings is to
     /// provide information on what the intended usage is for. That is: while a given data view may have a column named
     /// "Features", by itself that is insufficient: the trainer must be fed a role mapping that says that the role
