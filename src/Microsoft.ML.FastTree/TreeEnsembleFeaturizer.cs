@@ -396,7 +396,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => col == InputRoleMappedSchema.Feature.Index;
@@ -525,7 +525,7 @@ namespace Microsoft.ML.Runtime.Data
             dst = editor.Commit();
         }
 
-        public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Runtime.Data
                             vm.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
                     }
 
-                    var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
+                    ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                     var bound = bindable.Bind(env, data.Schema);
                     xf = new GenericScorer(env, scorerArgs, input, bound, data.Schema);
                 }
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Runtime.Data
                         vm.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
                 }
 
-                var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
+                ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                 var bound = bindable.Bind(env, data.Schema);
                return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
             }
@@ -780,7 +780,7 @@ namespace Microsoft.ML.Runtime.Data
             int col;
             if (!input.Schema.TryGetColumnIndex(labelName, out col))
                 throw ch.Except("Label column '{0}' not found.", labelName);
-            ColumnType labelType = input.Schema.GetColumnType(col);
+            ColumnType labelType = input.Schema[col].Type;
             if (!labelType.IsKey)
             {
                 if (labelPermutationSeed != 0)

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.LightGBM.StaticPipe;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FactorizationMachine;
@@ -15,8 +16,6 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.Recommender;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Linq;
 using Xunit;
@@ -69,8 +68,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
 
         [Fact]
@@ -97,10 +96,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Now, let's see if that column is still there, and still text!
             var schema = data.AsDynamic.Schema;
             Assert.True(schema.TryGetColumnIndex("Score", out int scoreCol), "Score column not present!");
-            Assert.Equal(TextType.Instance, schema.GetColumnType(scoreCol));
+            Assert.Equal(TextType.Instance, schema[scoreCol].Type);
 
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
 
         [Fact]
@@ -145,8 +144,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
 
         [Fact]
@@ -189,8 +188,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
 
         [Fact]
@@ -339,8 +338,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
@@ -652,8 +651,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
@@ -870,8 +869,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
@@ -915,8 +914,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);

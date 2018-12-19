@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.Transformers
             ColumnType GetType(Schema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
-                return schema.GetColumnType(cIdx);
+                return schema[cIdx].Type;
             }
             var pipe = new ColumnConcatenatingEstimator(Env, "f1", "float1")
                 .Append(new ColumnConcatenatingEstimator(Env, "f2", "float1", "float1"))
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests.Transformers
             ColumnType GetType(Schema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
-                return schema.GetColumnType(cIdx);
+                return schema[cIdx].Type;
             }
 
             data = TakeFilter.Create(Env, data, 10);

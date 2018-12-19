@@ -228,8 +228,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     // Construct kvMaps.
                     Contracts.Assert(types[iinfo] == null);
-                    var typeSrc = schema.GetColumnType(ColMapNewToOld[iinfo]);
-                    var typeVals = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, ColMapNewToOld[iinfo]);
+                    var typeSrc = schema[ColMapNewToOld[iinfo]].Type;
+                    var typeVals = schema[ColMapNewToOld[iinfo]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
                     Host.Check(typeVals.VectorSize == typeSrc.ItemType.KeyCount, "KeyValues metadata size does not match column type key count");
                     if (!(typeSrc is VectorType vectorType))
@@ -531,119 +531,6 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             return new SchemaShape(result.Values);
-        }
-    }
-
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class KeyToValueStaticExtensions
-    {
-        private interface IColInput
-        {
-            PipelineColumn Input { get; }
-        }
-
-        private sealed class OutKeyColumn<TOuterKey, TInnerKey> : Key<TInnerKey>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutKeyColumn(Key<TOuterKey, Key<TInnerKey>> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutScalarColumn<TKey, TValue> : Scalar<TValue>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutScalarColumn(Key<TKey, TValue> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutVectorColumn<TKey, TValue> : Vector<TValue>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutVectorColumn(Vector<Key<TKey, TValue>> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutVarVectorColumn<TKey, TValue> : VarVector<TValue>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutVarVectorColumn(VarVector<Key<TKey, TValue>> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            public static Reconciler Inst = new Reconciler();
-
-            private Reconciler() { }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                var cols = new (string input, string output)[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var outCol = (IColInput)toOutput[i];
-                    cols[i] = (inputNames[outCol.Input], outputNames[toOutput[i]]);
-                }
-                return new KeyToValueMappingEstimator(env, cols);
-            }
-        }
-
-        /// <summary>
-        /// Convert a key column to a column containing the corresponding value.
-        /// </summary>
-        public static Key<TInnerKey> ToValue<TOuterKey, TInnerKey>(this Key<TOuterKey, Key<TInnerKey>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutKeyColumn<TOuterKey, TInnerKey>(input);
-        }
-
-        /// <summary>
-        /// Convert a key column to a column containing the corresponding value.
-        /// </summary>
-        public static Scalar<TValue> ToValue<TKey, TValue>(this Key<TKey, TValue> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutScalarColumn<TKey, TValue>(input);
-        }
-
-        /// <summary>
-        /// Convert a key column to a column containing the corresponding value.
-        /// </summary>
-        public static Vector<TValue> ToValue<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input);
-        }
-
-        /// <summary>
-        /// Convert a key column to a column containing the corresponding value.
-        /// </summary>
-        public static VarVector<TValue> ToValue<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<TKey, TValue>(input);
         }
     }
 }

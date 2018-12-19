@@ -45,6 +45,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
     public sealed class VectorWhiteningTransformer : OneToOneTransformerBase
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const WhiteningKind Kind = WhiteningKind.Zca;
@@ -305,14 +306,14 @@ namespace Microsoft.ML.Transforms.Projections
 
         // Factory method for SignatureLoadRowMapper.
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
             => columns.Select(c => (c.Input, c.Output ?? c.Input)).ToArray();
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var inType = inputSchema.GetColumnType(srcCol);
+            var inType = inputSchema[srcCol].Type;
             var reason = TestColumn(inType);
             if (reason != null)
                 throw Host.ExceptParam(nameof(inputSchema), reason);
@@ -383,7 +384,7 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 if (!inputSchema.TryGetColumnIndex(columns[i].Input, out cols[i]))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input);
-                srcTypes[i] = inputSchema.GetColumnType(cols[i]);
+                srcTypes[i] = inputSchema[cols[i]].Type;
                 var reason = TestColumn(srcTypes[i]);
                 if (reason != null)
                     throw env.ExceptParam(nameof(inputData.Schema), reason);
@@ -659,7 +660,7 @@ namespace Microsoft.ML.Transforms.Projections
                 {
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
-                    _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
+                    _srcTypes[i] = inputSchema[_cols[i]].Type;
                     ValidateModel(Host, _parent._models[i], _srcTypes[i]);
                     if (_parent._columns[i].SaveInv)
                         ValidateModel(Host, _parent._invModels[i], _srcTypes[i]);

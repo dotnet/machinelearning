@@ -2093,5 +2093,40 @@ namespace Microsoft.ML.Runtime.RunTests
             TestCore("savedata", intermediateData.Path, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
             Done();
         }
+
+        [TestCategory("DataPipeSerialization")]
+        [Fact()]
+        public void SavePipeChooseColumnsByIndex()
+        {
+            string dataPath = GetDataPath("adult.tiny.with-schema.txt");
+            const string loaderArgs = "loader=text{header+ col=Label:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9}";
+
+            OutputPath modelPath = ModelPath();
+            string extraArgs = "xf=ChooseColumnsByIndex{ind=3 ind=0}";
+            TestCore("showdata", dataPath, loaderArgs, extraArgs);
+
+            _step++;
+
+            TestCore("showdata", dataPath, string.Format("in={{{0}}}", modelPath.Path), "");
+            Done();
+        }
+
+        [TestCategory("DataPipeSerialization")]
+        [Fact()]
+        public void SavePipeChooseColumnsByIndexDrop()
+        {
+            string dataPath = GetDataPath("adult.tiny.with-schema.txt");
+            const string loaderArgs = "loader=text{header+ col=Label:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9}";
+
+            OutputPath modelPath = ModelPath();
+
+            string extraArgs = "xf=ChooseColumnsByIndex{ind=3 ind=0 drop+}";
+            TestCore("showdata", dataPath, loaderArgs, extraArgs);
+
+            _step++;
+
+            TestCore("showdata", dataPath, string.Format("in={{{0}}}", modelPath.Path), "");
+            Done();
+        }
     }
 }

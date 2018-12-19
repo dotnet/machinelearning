@@ -463,7 +463,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 {
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
-                    _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
+                    _srcTypes[i] = inputSchema[_cols[i]].Type;
                     if (!IsValidColumnType(_srcTypes[i].ItemType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _slotDropper[i] = new SlotDropper(_srcTypes[i].ValueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 {
                     Host.Assert(typeSrc.IsKnownSizeVector);
                     var dstLength = slotDropper.DstLength;
-                    var hasSlotNames = input.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
+                    var hasSlotNames = input[_cols[iinfo]].HasSlotNames(_srcTypes[iinfo].VectorSize);
                     type = new VectorType((PrimitiveType)typeSrc.ItemType, Math.Max(dstLength, 1));
                     suppressed = dstLength == 0;
                 }
@@ -528,7 +528,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
-                InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, _cols[iinfo], ref names);
+                InputSchema[_cols[iinfo]].GetSlotNames(ref names);
                 _slotDropper[iinfo].DropSlots(ref names, ref dst);
             }
 
@@ -821,7 +821,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     if (_srcTypes[iinfo].IsVector && _srcTypes[iinfo].IsKnownSizeVector)
                     {
                         var dstLength = _slotDropper[iinfo].DstLength;
-                        var hasSlotNames = InputSchema.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
+                        var hasSlotNames = InputSchema[_cols[iinfo]].HasSlotNames(_srcTypes[iinfo].VectorSize);
                         var type = new VectorType((PrimitiveType)_srcTypes[iinfo].ItemType, Math.Max(dstLength, 1));
 
                         if (hasSlotNames && dstLength > 0)

@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
@@ -272,7 +273,7 @@ namespace Microsoft.ML.Tests.Transformers
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
 
-                Assert.Equal(10, (savedData.Schema.GetColumnType(0) as VectorType)?.Size);
+                Assert.Equal(10, (savedData.Schema[0].Type as VectorType)?.Size);
             }
 
             // Diabling this check due to the following issue with consitency of output.

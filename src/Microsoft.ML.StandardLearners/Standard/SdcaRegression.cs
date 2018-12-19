@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers
             float? l1Threshold = null,
             int? maxIterations = null,
             Action<Arguments> advancedSettings = null)
-             : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weights), advancedSettings,
+             : base(env, featureColumn, TrainerUtils.MakeR4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weights), advancedSettings,
                   l2Const, l1Threshold, maxIterations)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaRegressionTrainer(IHostEnvironment env, Arguments args, string featureColumn, string labelColumn, string weightColumn = null)
-            : base(env, args, TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            : base(env, args, TrainerUtils.MakeR4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));

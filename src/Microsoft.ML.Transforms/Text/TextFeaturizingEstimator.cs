@@ -623,6 +623,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        [BestFriend]
         internal sealed class OutPipelineColumn : Vector<float>
         {
             public readonly Scalar<string>[] Inputs;
@@ -655,27 +656,6 @@ namespace Microsoft.ML.Transforms.Text
                 var inputs = outCol.Inputs.Select(x => inputNames[x]);
                 return new TextFeaturizingEstimator(env, inputs, outputNames[outCol], _settings);
             }
-        }
-    }
-
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class TextFeaturizerStaticPipe
-    {
-        /// <summary>
-        /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
-        /// </summary>
-        /// <param name="input">Input data.</param>
-        /// <param name="otherInputs">Additional data.</param>
-        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
-        /// <returns></returns>
-        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextFeaturizingEstimator.Settings> advancedSettings = null)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckValueOrNull(otherInputs);
-            otherInputs = otherInputs ?? new Scalar<string>[0];
-            return new TextFeaturizingEstimator.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
         }
     }
 }

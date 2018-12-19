@@ -186,21 +186,15 @@ namespace Microsoft.ML.Tests.Transformers
 
         private void ValidateMetadata(IDataView result)
         {
-            Assert.True(result.Schema.TryGetColumnIndex("ConvA", out int colA));
-            Assert.True(result.Schema.TryGetColumnIndex("ConvB", out int colB));
-            var types = result.Schema.GetMetadataTypes(colA);
-            Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(result.Schema["ConvA"].Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
             VBuffer<ReadOnlyMemory<char>> slots = default;
-            bool normalized = default;
-            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colA, ref slots);
+            result.Schema["ConvA"].GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "1", "2" });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colA, ref normalized);
-            Assert.True(normalized);
+            Assert.True(result.Schema["ConvA"].IsNormalized());
 
-            types = result.Schema.GetMetadataTypes(colB);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, colB, ref slots);
+            Assert.Equal(result.Schema["ConvB"].Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
+            result.Schema["ConvB"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
         }

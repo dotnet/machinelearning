@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
@@ -28,6 +29,7 @@ namespace Microsoft.ML.TestFramework
 #pragma warning disable 612
             env.ComponentCatalog.RegisterAssembly(typeof(Experiment).Assembly); // ML.Legacy
 #pragma warning restore 612
+            env.ComponentCatalog.RegisterAssembly(typeof(CVSplit).Assembly); // ML.EntryPoints
             return env;
         }
     }
