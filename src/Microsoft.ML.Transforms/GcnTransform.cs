@@ -305,9 +305,9 @@ namespace Microsoft.ML.Transforms.Projections
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var inType = inputSchema.GetColumnType(srcCol);
+            var inType = inputSchema[srcCol].Type;
             if (!LpNormalizingEstimatorBase.IsColumnTypeValid(inType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema.GetColumnName(srcCol), LpNormalizingEstimatorBase.ExpectedColumnType, inType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema[srcCol].Name, LpNormalizingEstimatorBase.ExpectedColumnType, inType.ToString());
         }
         /// <summary>
         /// Create a <see cref="LpNormalizingTransformer"/> that takes multiple pairs of columns.
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Transforms.Projections
                 col.Save(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -758,6 +758,7 @@ namespace Microsoft.ML.Transforms.Projections
             LInf = 3
         }
 
+        [BestFriend]
         internal static class Defaults
         {
             public const NormalizerKind NormKind = NormalizerKind.L2Norm;

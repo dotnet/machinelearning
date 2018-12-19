@@ -56,7 +56,7 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.AssertValue(schema);
                 Ch.AssertValue(needCol);
                 Schema = schema;
-                _active = Utils.BuildArray(Schema.ColumnCount, needCol);
+                _active = Utils.BuildArray(Schema.Count, needCol);
             }
 
             public override ValueGetter<RowId> GetIdGetter()

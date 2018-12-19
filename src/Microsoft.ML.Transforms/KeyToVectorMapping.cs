@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             string reason = TestIsKey(type);
             if (reason != null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
-                    var type = inputSchema.GetColumnType(colSrc);
+                    var type = inputSchema[colSrc].Type;
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].output, _parent.ColumnPairs[i].input, type);
                 }

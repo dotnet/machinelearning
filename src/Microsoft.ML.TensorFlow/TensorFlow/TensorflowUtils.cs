@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -9,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
 
@@ -20,7 +20,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public const string OpType = "OpType";
         public const string InputOps = "InputOps";
 
-        internal static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
+        internal static Schema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
             var res = new List<KeyValuePair<string, ColumnType>>();
             var opTypeGetters = new List<MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>>();
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                         : new VectorType(mlType);
                 res.Add(new KeyValuePair<string, ColumnType>(op.Name, columnType));
             }
-            return new TensorFlowSchema(ectx, res.ToArray(), opTypeGetters.ToArray(), inputOpsGetters.ToArray(), inputOpsLengths.ToArray());
+            return Schema.Create(new TensorFlowSchema(ectx, res.ToArray(), opTypeGetters.ToArray(), inputOpsGetters.ToArray(), inputOpsLengths.ToArray()));
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <param name="ectx">An <see cref="IExceptionContext"/>.</param>
         /// <param name="modelFile">The name of the file containing the TensorFlow model. Currently only frozen model
         /// format is supported.</param>
-        public static ISchema GetModelSchema(IExceptionContext ectx, string modelFile)
+        public static Schema GetModelSchema(IExceptionContext ectx, string modelFile)
         {
             var bytes = File.ReadAllBytes(modelFile);
             var session = LoadTFSession(ectx, bytes, modelFile);
@@ -99,21 +99,21 @@ namespace Microsoft.ML.Transforms.TensorFlow
         {
             var schema = GetModelSchema(null, modelFile);
 
-            for (int i = 0; i < schema.ColumnCount; i++)
+            for (int i = 0; i < schema.Count; i++)
             {
-                var name = schema.GetColumnName(i);
-                var type = schema.GetColumnType(i);
+                var name = schema[i].Name;
+                var type = schema[i].Type;
 
-                var metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, i);
+                var metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.OpType)?.Type;
                 Contracts.Assert(metadataType != null && metadataType.IsText);
                 ReadOnlyMemory<char> opType = default;
-                schema.GetMetadata(TensorFlowUtils.OpType, i, ref opType);
-                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, i);
+                schema[i].Metadata.GetValue(TensorFlowUtils.OpType, ref opType);
+                metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.InputOps)?.Type;
                 VBuffer<ReadOnlyMemory<char>> inputOps = default;
                 if (metadataType != null)
                 {
                     Contracts.Assert(metadataType.IsKnownSizeVector && metadataType.ItemType.IsText);
-                    schema.GetMetadata(TensorFlowUtils.InputOps, i, ref inputOps);
+                    schema[i].Metadata.GetValue(TensorFlowUtils.InputOps, ref inputOps);
                 }
 
                 string[] inputOpsResult = inputOps.DenseValues()

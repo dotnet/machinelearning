@@ -145,10 +145,10 @@ namespace Microsoft.ML.Tests
             var result = termTransformer.Transform(dataView);
             result.Schema.TryGetColumnIndex("T", out int termIndex);
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
-            var type1 = result.Schema.GetColumnType(termIndex);
+            var type1 = result.Schema[termIndex].Type;
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
             int size = itemType1 is KeyType keyType ? keyType.Count : -1;
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
+            result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
             Assert.True(names1.GetValues().Length > 0);
         }
 

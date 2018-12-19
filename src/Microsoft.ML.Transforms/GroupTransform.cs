@@ -286,7 +286,7 @@ namespace Microsoft.ML.Transforms
                 var types = new ColumnType[ids.Length];
                 for (int i = 0; i < ids.Length; i++)
                 {
-                    var srcType = input.GetColumnType(ids[i]);
+                    var srcType = input[ids[i]].Type;
                     var primitiveType = srcType as PrimitiveType;
                     Contracts.Assert(primitiveType != null);
                     types[i] = new VectorType(primitiveType, size: 0);
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Transforms
                     if (!schema.TryGetColumnIndex(names[i], out col))
                         throw except(string.Format("Could not find column '{0}'", names[i]));
 
-                    var colType = schema.GetColumnType(col);
+                    var colType = schema[col].Type;
                     if (!colType.IsPrimitive)
                         throw except(string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType));
 
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Transforms
             {
                 CheckColumnInRange(col);
                 if (col < _groupCount)
-                    return _input.GetColumnType(GroupIds[col]);
+                    return _input[GroupIds[col]].Type;
                 return _columnTypes[col - _groupCount];
             }
 
@@ -375,13 +375,13 @@ namespace Microsoft.ML.Transforms
             {
                 CheckColumnInRange(col);
                 if (col < _groupCount)
-                    return _input.GetMetadataTypes(GroupIds[col]);
+                    return _input[GroupIds[col]].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
 
                 col -= _groupCount;
                 var result = new List<KeyValuePair<string, ColumnType>>();
                 foreach (var kind in _preservedMetadata)
                 {
-                    var colType = _input.GetMetadataTypeOrNull(kind, KeepIds[col]);
+                    var colType = _input[KeepIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
                     if (colType != null)
                         result.Add(colType.GetPair(kind));
                 }
@@ -393,11 +393,11 @@ namespace Microsoft.ML.Transforms
             {
                 CheckColumnInRange(col);
                 if (col < _groupCount)
-                    return _input.GetMetadataTypeOrNull(kind, GroupIds[col]);
+                    return _input[GroupIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
 
                 col -= _groupCount;
                 if (_preservedMetadata.Contains(kind))
-                    return _input.GetMetadataTypeOrNull(kind, KeepIds[col]);
+                    return _input[KeepIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
                 return null;
             }
 
@@ -406,14 +406,14 @@ namespace Microsoft.ML.Transforms
                 CheckColumnInRange(col);
                 if (col < _groupCount)
                 {
-                    _input.GetMetadata(kind, GroupIds[col], ref value);
+                    _input[GroupIds[col]].Metadata.GetValue(kind, ref value);
                     return;
                 }
 
                 col -= _groupCount;
                 if (_preservedMetadata.Contains(kind))
                 {
-                    _input.GetMetadata(kind, KeepIds[col], ref value);
+                    _input[KeepIds[col]].Metadata.GetValue(kind, ref value);
                     return;
                 }
 
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms
                 public GroupKeyColumnChecker(Row row, int col)
                 {
                     Contracts.AssertValue(row);
-                    var type = row.Schema.GetColumnType(col);
+                    var type = row.Schema[col].Type;
 
                     Func<Row, int, Func<bool>> del = MakeSameChecker<int>;
                     var mi = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Transforms
                 public static KeepColumnAggregator Create(Row row, int col)
                 {
                     Contracts.AssertValue(row);
-                    var colType = row.Schema.GetColumnType(col);
+                    var colType = row.Schema[col].Type;
                     Contracts.Assert(colType.IsPrimitive);
 
                     var type = typeof(ListAggregator<>);
@@ -567,12 +567,12 @@ namespace Microsoft.ML.Transforms
                 _active = Utils.BuildArray(schema.ColumnCount, predicate);
                 _groupCount = schema.GroupIds.Length;
 
-                bool[] srcActiveLeading = new bool[_parent.Source.Schema.ColumnCount];
+                bool[] srcActiveLeading = new bool[_parent.Source.Schema.Count];
                 foreach (var col in schema.GroupIds)
                     srcActiveLeading[col] = true;
                 _leadingCursor = parent.Source.GetRowCursor(x => srcActiveLeading[x]);
 
-                bool[] srcActiveTrailing = new bool[_parent.Source.Schema.ColumnCount];
+                bool[] srcActiveTrailing = new bool[_parent.Source.Schema.Count];
                 for (int i = 0; i < _groupCount; i++)
                 {
                     if (_active[i])

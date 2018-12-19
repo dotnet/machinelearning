@@ -85,7 +85,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 var value = row.Features[featureOfInterest];
                 var contribution = row.FeatureContributions[featureOfInterest];
                 var percentContribution = 100 * contribution / row.Score;
-                var name = data.Schema.GetColumnName(featureOfInterest + 1);
+                var name = data.Schema[(int) (featureOfInterest + 1)].Name;
                 var weight = weights.GetValues()[featureOfInterest];
 
                 Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}\t{6:0.00}",

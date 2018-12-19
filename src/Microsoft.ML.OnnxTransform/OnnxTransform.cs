@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms
                 var outputNodeInfo = Model.ModelInfo.OutputsInfo[idx];
                 var shape = outputNodeInfo.Shape;
                 var dims = AdjustDimensions(shape);
-                OutputTypes[i] = new VectorType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims);
+                OutputTypes[i] = new VectorType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims.ToArray());
             }
             _args = args;
         }
@@ -223,25 +223,16 @@ namespace Microsoft.ML.Transforms
         }
         private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
-        private static int[] AdjustDimensions(OnnxShape shape)
+        private static IEnumerable<int> AdjustDimensions(OnnxShape shape)
         {
             // if the model output is of type Map or Sequence, the shape property
             // will not be filled (so count=0). Don't throw an exception here
             // it will be runtime exception, util Maps and Sequences become supported.
             if (shape.Count > 0)
             {
-                // some models may have -1 in first position.
-                // skip this dimension when setting output column dimensions.
-                if (shape[0] < 0)
-                {
-                    return shape.Skip(1).Select(x => (int)x).ToArray();
-                }
-                else
-                {
-                    return shape.Select(x => (int)x).ToArray();
-                }
+                return shape.Select(x => (x <= 0) ? 1 : x);
             }
-            return new[] { 0 };
+            return new[] { 1 };
         }
 
         private sealed class Mapper : MapperBase
@@ -274,14 +265,14 @@ namespace Microsoft.ML.Transforms
                     var shape = inputNodeInfo.Shape;
                     var inputType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
 
-                    var inputShape = inputNodeInfo.Shape;
-                    _inputTensorShapes[i] = inputShape;
+                    var inputShape = AdjustDimensions(inputNodeInfo.Shape);
+                    _inputTensorShapes[i] = inputShape.ToList();
                     _inputOnnxTypes[i] = inputNodeInfo.Type;
 
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
                         throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
-                    var type = inputSchema.GetColumnType(_inputColIndices[i]);
+                    var type = inputSchema[_inputColIndices[i]].Type;
                     _isInputVector[i] = type.IsVector;
 
                     if (type.IsVector && type.VectorSize == 0)
@@ -509,55 +500,6 @@ namespace Microsoft.ML.Transforms
                     : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
             }
             return new SchemaShape(resultDic.Values);
-        }
-    }
-
-    public static class OnnxStaticExtensions
-    {
-
-        private sealed class OutColumn : Vector<float>
-        {
-            public PipelineColumn Input { get; }
-
-            public OutColumn(Vector<float> input, string modelFile)
-                : base(new Reconciler(modelFile), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly string _modelFile;
-
-            public Reconciler(string modelFile)
-            {
-                Contracts.AssertNonEmpty(modelFile);
-                _modelFile = modelFile;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-
-                var outCol = (OutColumn)toOutput[0];
-                return new OnnxScoringEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
-            }
-        }
-
-        /// <summary>
-        /// Run a Onnx model on the input column and extract one output column.
-        /// The inputs and outputs are matched to Onnx graph nodes by name.
-        /// </summary>
-        public static Vector<float> ApplyOnnxModel(this Vector<float> input, string modelFile)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckNonEmpty(modelFile, nameof(modelFile));
-            return new OutColumn(input, modelFile);
         }
     }
 }

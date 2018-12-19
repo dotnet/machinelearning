@@ -102,7 +102,11 @@ namespace Microsoft.ML.Runtime.LightGBM
                 var cali = new PlattCalibrator(Host, -0.5, 0);
                 predictors[i] = new FeatureWeightsCalibratedPredictor(Host, pred, cali);
             }
-            return OvaPredictor.Create(Host, predictors);
+            string obj = (string)GetGbmParameters()["objective"];
+            if (obj == "multiclass")
+                return OvaPredictor.Create(Host, OvaPredictor.OutputFormula.Softmax, predictors);
+            else
+                return OvaPredictor.Create(Host, predictors);
         }
 
         private protected override void CheckDataValid(IChannel ch, RoleMappedData data)

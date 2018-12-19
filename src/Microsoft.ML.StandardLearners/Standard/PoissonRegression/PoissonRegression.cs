@@ -64,7 +64,7 @@ namespace Microsoft.ML.Trainers
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), weights, advancedSettings,
+            : base(env, featureColumn, TrainerUtils.MakeR4ScalarColumn(labelColumn), weights, advancedSettings,
                    l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="PoissonRegression"/>
         /// </summary>
         internal PoissonRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
+            : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
         {
         }
 

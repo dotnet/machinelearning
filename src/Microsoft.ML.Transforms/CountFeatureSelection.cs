@@ -29,6 +29,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         private readonly IHost _host;
         private readonly ColumnInfo[] _columns;
 
+        [BestFriend]
         internal static class Defaults
         {
             public const long Count = 1;
@@ -234,7 +235,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeInput = new bool[schema.ColumnCount];
+            var activeInput = new bool[schema.Count];
             var colSrcs = new int[size];
             var colTypes = new ColumnType[size];
             colSizes = new int[size];
@@ -245,7 +246,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Source column '{0}' not found", colName);
 
-                var colType = schema.GetColumnType(colSrc);
+                var colType = schema[colSrc].Type;
                 if (colType.IsVector && !colType.IsKnownSizeVector)
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
 

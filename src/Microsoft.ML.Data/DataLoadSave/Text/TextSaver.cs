@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             {
                 Contracts.AssertValue(cursor);
 
-                ColumnType type = cursor.Schema.GetColumnType(col);
+                ColumnType type = cursor.Schema[col].Type;
                 Type writePipeType;
                 if (type.IsVector)
                     writePipeType = typeof(VecValueWriter<>).MakeGenericType(type.ItemType.RawType);
@@ -155,10 +155,10 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _getSrc = cursor.GetGetter<VBuffer<T>>(source);
                 ColumnType typeNames;
                 if (type.IsKnownSizeVector &&
-                    (typeNames = cursor.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, source)) != null &&
+                    (typeNames = cursor.Schema[source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) != null &&
                     typeNames.VectorSize == type.VectorSize && typeNames.ItemType.IsText)
                 {
-                    cursor.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, source, ref _slotNames);
+                    cursor.Schema[source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                     Contracts.Check(_slotNames.Length == typeNames.VectorSize, "Unexpected slot names length");
                 }
                 _slotCount = type.VectorSize;
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 : base(type, source, sep)
             {
                 _getSrc = cursor.GetGetter<T>(source);
-                _columnName = cursor.Schema.GetColumnName(source);
+                _columnName = cursor.Schema[source].Name;
             }
 
             public override void WriteData(Action<StringBuilder, int> appendItem, out int length)
@@ -385,11 +385,11 @@ namespace Microsoft.ML.Runtime.Data.IO
             ch.AssertNonEmpty(cols);
 
             // Determine the active columns and whether there is header information.
-            bool[] active = new bool[data.Schema.ColumnCount];
+            bool[] active = new bool[data.Schema.Count];
             for (int i = 0; i < cols.Length; i++)
             {
                 ch.Check(0 <= cols[i] && cols[i] < active.Length);
-                ch.Check(data.Schema.GetColumnType(cols[i]).ItemType.RawKind != 0);
+                ch.Check(data.Schema[cols[i]].Type.ItemType.RawKind != 0);
                 active[cols[i]] = true;
             }
 
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     if (hasHeader)
                         continue;
-                    var type = data.Schema.GetColumnType(cols[i]);
+                    var type = data.Schema[cols[i]].Type;
                     if (!type.IsVector)
                     {
                         hasHeader = true;
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     }
                     if (!type.IsKnownSizeVector)
                         continue;
-                    var typeNames = data.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, cols[i]);
+                    var typeNames = data.Schema[cols[i]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
                     if (typeNames != null && typeNames.VectorSize == type.VectorSize && typeNames.ItemType.IsText)
                         hasHeader = true;
                 }
@@ -463,8 +463,8 @@ namespace Microsoft.ML.Runtime.Data.IO
             for (int i = 0; i < pipes.Length; i++)
             {
                 int src = pipes[i].Source;
-                string name = schema.GetColumnName(src);
-                var type = schema.GetColumnType(src);
+                string name = schema[src].Name;
+                var type = schema[src].Type;
 
                 var column = GetColumn(name, type, index);
                 sb.Append(" col=");

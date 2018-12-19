@@ -584,7 +584,7 @@ Since any ML.NET model is a transformer, you can of course use `model.Transform`
 
 A more typical case, though, is when there is no 'dataset' that we want to predict on, but instead we receive one example at a time. For instance, we run the model as part of the ASP.NET website, and we need to make a prediction for an incoming HTTP request.
 
-For this case, ML.NET offers a convenient `PredictionFunction` component, that essentially runs one example at a time through the prediction pipeline. 
+For this case, ML.NET offers a convenient `PredictionEngine` component, that essentially runs one example at a time through the prediction pipeline. 
 
 Here is the full example. Let's imagine that we have built a model for the famous Iris prediction dataset:
 
@@ -707,10 +707,10 @@ var mlContext = new MLContext();
 // Make the prediction function object. Note that, on average, this call takes around 200x longer
 // than one prediction, so you might want to cache and reuse the prediction function, instead of
 // creating one per prediction.
-var predictionFunc = model.MakePredictionFunction<IrisInput, IrisPrediction>(mlContext);
+var predictionFunc = model.CreatePredictionEngine<IrisInput, IrisPrediction>(mlContext);
 
 // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
-// for simultaneous prediction, make sure each thread is using its own PredictionFunction.
+// for simultaneous prediction, make sure each thread is using its own PredictionEngine.
 var prediction = predictionFunc.Predict(new IrisInput
 {
     SepalLength = 4.1f,
