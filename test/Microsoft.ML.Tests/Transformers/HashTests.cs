@@ -80,29 +80,21 @@ namespace Microsoft.ML.Tests.Transformers
 
         private void ValidateMetadata(IDataView result)
         {
-
-            Assert.True(result.Schema.TryGetColumnIndex("HashA", out int HashA));
-            Assert.True(result.Schema.TryGetColumnIndex("HashAUnlim", out int HashAUnlim));
-            Assert.True(result.Schema.TryGetColumnIndex("HashAUnlimOrdered", out int HashAUnlimOrdered));
             VBuffer<ReadOnlyMemory<char>> keys = default;
-            var types = result.Schema.GetMetadataTypes(HashA);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);
-            Assert.True(keys.Length == 1024);
-            //REVIEW: This is weird. I specified invertHash to 1 so I expect only one value to be in key values, but i got two.
+            var column = result.Schema["HashA"];
+            Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
+            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
-            types = result.Schema.GetMetadataTypes(HashAUnlim);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);
-            Assert.True(keys.Length == 1024);
+            column = result.Schema["HashAUnlim"];
+            Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
+            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
-            types = result.Schema.GetMetadataTypes(HashAUnlimOrdered);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);
-            Assert.True(keys.Length == 1024);
-            Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
+            column = result.Schema["HashAUnlimOrdered"];
+            Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
+            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
+            Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "0:3.5", "1:2.5" });
         }
 
         [Fact]

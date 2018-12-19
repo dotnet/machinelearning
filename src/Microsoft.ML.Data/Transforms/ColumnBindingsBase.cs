@@ -679,7 +679,7 @@ namespace Microsoft.ML.Runtime.Data
             // Construct the indices.
             var indices = new List<int>();
             var namesUsed = new HashSet<string>();
-            for (int i = 0; i < input.ColumnCount; i++)
+            for (int i = 0; i < input.Count; i++)
             {
                 namesUsed.Add(input[i].Name);
                 indices.Add(i);
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
             }
-            Contracts.Assert(indices.Count == addedColumns.Length + input.ColumnCount);
+            Contracts.Assert(indices.Count == addedColumns.Length + input.Count);
 
             // Create the output schema.
             var schemaColumns = indices.Select(idx => idx >= 0 ? new Schema.DetachedColumn(input[idx]) : addedColumns[~idx]);
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                Contracts.Assert(index < InputSchema.ColumnCount);
+                Contracts.Assert(index < InputSchema.Count);
                 isSrcColumn = true;
             }
             return index;
@@ -764,11 +764,11 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(predicate);
 
-            var active = new bool[InputSchema.ColumnCount];
+            var active = new bool[InputSchema.Count];
             for (int dst = 0; dst < _colMap.Length; dst++)
             {
                 int src = _colMap[dst];
-                Contracts.Assert(-AddedColumnIndices.Count <= src && src < InputSchema.ColumnCount);
+                Contracts.Assert(-AddedColumnIndices.Count <= src && src < InputSchema.Count);
                 if (src >= 0 && predicate(dst))
                     active[src] = true;
             }
@@ -839,7 +839,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!input.TryGetColumnIndex(src[j], out srcIndices[j]))
                         throw Contracts.ExceptUserArg(standardColumnArgName, "Source column '{0}' not found", src[j]);
 #pragma warning restore MSML_ContractsNameUsesNameof
-                    srcTypes[j] = input.GetColumnType(srcIndices[j]);
+                    srcTypes[j] = input[srcIndices[j]].Type;
                     var size = srcTypes[j].ValueCount;
                     srcSize = size == 0 ? null : checked(srcSize + size);
                 }
@@ -941,7 +941,7 @@ namespace Microsoft.ML.Runtime.Data
                         string src = ctx.LoadNonEmptyString();
                         if (!input.TryGetColumnIndex(src, out indices[j]))
                             throw Contracts.Except("Source column '{0}' is required but not found", src);
-                        srcTypes[j] = input.GetColumnType(indices[j]);
+                        srcTypes[j] = input[indices[j]].Type;
                         var size = srcTypes[j].ValueCount;
                         srcSize = size == 0 ? null : checked(srcSize + size);
                     }
@@ -952,7 +952,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (reason != null)
                         {
                             throw Contracts.Except("Source columns '{0}' have invalid types: {1}. Source types: '{2}'.",
-                                string.Join(", ", indices.Select(k => input.GetColumnName(k))),
+                                string.Join(", ", indices.Select(k => input[k].Name)),
                                 reason,
                                 string.Join(", ", srcTypes.Select(type => type.ToString())));
                         }

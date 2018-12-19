@@ -75,9 +75,9 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(schema);
-            Contracts.CheckParam(outputSchema.ColumnCount == 2, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema.GetColumnType(0).IsNumber, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema.GetColumnType(1).IsNumber, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema.Count == 2, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[0].Type.IsNumber, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[1].Type.IsNumber, nameof(outputSchema));
             Contracts.AssertValue(pred);
 
             _env = env;
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
-            if (Enumerable.Range(0, OutputSchema.ColumnCount).Any(predicate))
+            if (Enumerable.Range(0, OutputSchema.Count).Any(predicate))
                 return index => _inputColumnIndexes.Any(c => c == index);
             else
                 return index => false;

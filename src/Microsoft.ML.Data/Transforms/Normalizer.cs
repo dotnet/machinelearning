@@ -16,6 +16,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using static Microsoft.ML.Transforms.Normalizers.NormalizeTransform;
 
 [assembly: LoadableClass(typeof(NormalizingTransformer), null, typeof(SignatureLoadModel),
     "", NormalizingTransformer.LoaderSignature)]
@@ -57,7 +58,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             /// <summary>
             /// Bucketize and then rescale to between -1 and 1.
             /// </summary>
-            Binning = 3
+            Binning = 3,
+            /// <summary>
+            /// Bucketize and then rescale to between -1 and 1. Calculates bins based on correlation with the Label column.
+            /// </summary>
+            SupervisedBinning = 4
         }
 
         public abstract class ColumnBase
@@ -91,6 +96,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                         return new LogMeanVarColumn(input, output);
                     case NormalizerMode.Binning:
                         return new BinningColumn(input, output);
+                    case NormalizerMode.SupervisedBinning:
+                        return new SupervisedBinningColumn(input, output);
                     default:
                         throw Contracts.ExceptParam(nameof(mode), "Unknown normalizer mode");
                 }
@@ -162,6 +169,29 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
                 => NormalizeTransform.BinUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
+        }
+
+        public sealed class SupervisedBinningColumn : FixZeroColumnBase
+        {
+            public readonly int NumBins;
+            public readonly string LabelColumn;
+            public readonly int MinBinSize;
+
+            public SupervisedBinningColumn(string input, string output = null,
+                string labelColumn = DefaultColumnNames.Label,
+                long maxTrainingExamples = Defaults.MaxTrainingExamples,
+                bool fixZero = true,
+                int numBins = Defaults.NumBins,
+                int minBinSize = Defaults.MinBinSize)
+                : base(input, output ?? input, maxTrainingExamples, fixZero)
+            {
+                NumBins = numBins;
+                LabelColumn = labelColumn;
+                MinBinSize = minBinSize;
+            }
+
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
+                => NormalizeTransform.SupervisedBinUtils.CreateBuilder(this, host, LabelColumn, srcIndex, srcType, cursor);
         }
 
         private readonly IHost _host;
@@ -358,7 +388,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(data, nameof(data));
             env.CheckValue(columns, nameof(columns));
 
-            bool[] activeInput = new bool[data.Schema.ColumnCount];
+            bool[] activeInput = new bool[data.Schema.Count];
 
             var srcCols = new int[columns.Length];
             var srcTypes = new ColumnType[columns.Length];
@@ -368,8 +398,15 @@ namespace Microsoft.ML.Transforms.Normalizers
                 bool success = data.Schema.TryGetColumnIndex(info.Input, out srcCols[i]);
                 if (!success)
                     throw env.ExceptSchemaMismatch(nameof(data), "input", info.Input);
-                srcTypes[i] = data.Schema.GetColumnType(srcCols[i]);
+                srcTypes[i] = data.Schema[srcCols[i]].Type;
                 activeInput[srcCols[i]] = true;
+
+                var supervisedBinColumn = info as NormalizingEstimator.SupervisedBinningColumn;
+                if(supervisedBinColumn != null)
+                {
+                    var labelColumnId = SupervisedBinUtils.GetLabelColumnId(env, data.Schema, supervisedBinColumn.LabelColumn);
+                    activeInput[labelColumnId] = true;
+                }
             }
 
             var functionBuilders = new IColumnFunctionBuilder[columns.Length];
@@ -436,6 +473,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             // for each added column:
             //   - source type
             //   - separate model for column function
+
             var cols = new ColumnInfo[ColumnPairs.Length];
             ColumnFunctions = new ColumnFunctionAccessor(Columns);
             for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
@@ -520,7 +558,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             const string expectedType = "scalar or known-size vector of R4";
 
-            var colType = inputSchema.GetColumnType(srcCol);
+            var colType = inputSchema[srcCol].Type;
             if (colType.IsVector && !colType.IsKnownSizeVector)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, expectedType, "variable-size vector");
             if (!colType.ItemType.Equals(NumberType.R4) && !colType.ItemType.Equals(NumberType.R8))

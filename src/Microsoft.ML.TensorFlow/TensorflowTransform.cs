@@ -795,7 +795,7 @@ namespace Microsoft.ML.Transforms
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
                         throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
-                    var type = inputSchema.GetColumnType(_inputColIndices[i]);
+                    var type = inputSchema[_inputColIndices[i]].Type;
                     if (type is VectorType vecType && vecType.Size == 0)
                         throw Host.Except("Variable length input columns not supported");
 

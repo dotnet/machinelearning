@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (group != null && schema.TryGetColumnIndex(group, out index))
                 {
                     // Check if group column key type with known cardinality.
-                    var type = schema.GetColumnType(index);
+                    var type = schema[index].Type;
                     if (type.KeyCount > 0)
                         stratificationColumn = group;
                 }
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Runtime.Data
                 int col;
                 if (!input.Schema.TryGetColumnIndex(stratificationColumn, out col))
                     throw ch.ExceptUserArg(nameof(Arguments.StratificationColumn), "Column '{0}' does not exist", stratificationColumn);
-                var type = input.Schema.GetColumnType(col);
+                var type = input.Schema[col].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(ch, type))
                 {
                     ch.Info("Hashing the stratification column");

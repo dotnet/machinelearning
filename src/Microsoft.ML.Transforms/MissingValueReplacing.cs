@@ -236,7 +236,7 @@ namespace Microsoft.ML.Transforms
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             string reason = TestType(type);
             if (reason != null)
                 throw Host.ExceptParam(nameof(inputSchema), reason);
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms
             {
                 input.Schema.TryGetColumnIndex(columns[iinfo].Input, out int colSrc);
                 sources[iinfo] = colSrc;
-                var type = input.Schema.GetColumnType(colSrc);
+                var type = input.Schema[colSrc].Type;
                 if (type is VectorType vectorType)
                      type = new VectorType((PrimitiveType)type.ItemType, vectorType);
                 Delegate isNa = GetIsNADelegate(type);
@@ -627,7 +627,7 @@ namespace Microsoft.ML.Transforms
                     if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
-                    var type = inputSchema.GetColumnType(colSrc);
+                    var type = inputSchema[colSrc].Type;
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].output, _parent.ColumnPairs[i].input, type);
                 }
                 return infos;

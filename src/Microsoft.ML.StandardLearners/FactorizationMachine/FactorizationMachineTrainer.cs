@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -301,7 +302,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 var col = featureColumns[f];
                 if (col == null)
                     throw ch.ExceptParam(nameof(data), "Empty feature column not allowed");
-                Host.Assert(!data.Schema.Schema.IsHidden(col.Index));
+                Host.Assert(!data.Schema.Schema[col.Index].IsHidden);
                 if (!(col.Type is VectorType vectorType) ||
                     !vectorType.IsKnownSizeVector ||
                     vectorType.ItemType != NumberType.Float)

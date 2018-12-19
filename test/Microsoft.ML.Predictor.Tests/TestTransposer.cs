@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private static T[] NaiveTranspose<T>(IDataView view, int col)
         {
-            var type = view.Schema.GetColumnType(col);
+            var type = view.Schema[col].Type;
             int rc = checked((int)DataViewUtils.ComputeRowCount(view));
             var vecType = type as VectorType;
             var itemType = vecType?.ItemType ?? type;
@@ -65,11 +65,11 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             int col = viewCol;
             VectorType type = trans.TransposeSchema.GetSlotType(col);
-            ColumnType colType = trans.Schema.GetColumnType(col);
-            Assert.Equal(view.Schema.GetColumnName(viewCol), trans.Schema.GetColumnName(col));
-            ColumnType expectedType = view.Schema.GetColumnType(viewCol);
+            ColumnType colType = trans.Schema[col].Type;
+            Assert.Equal(view.Schema[viewCol].Name, trans.Schema[col].Name);
+            ColumnType expectedType = view.Schema[viewCol].Type;
             Assert.Equal(expectedType, colType);
-            string desc = string.Format("Column {0} named '{1}'", col, trans.Schema.GetColumnName(col));
+            string desc = string.Format("Column {0} named '{1}'", col, trans.Schema[col].Name);
             Assert.Equal(DataViewUtils.ComputeRowCount(view), (long)type.Size);
             Assert.True(typeof(T) == type.ItemType.RawType, $"{desc} had wrong type for slot cursor");
             Assert.True(type.Size > 0, $"{desc} expected to be known sized vector but is not");
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Runtime.RunTests
             using (MemoryStream mem = new MemoryStream())
             {
                 TransposeSaver saver = new TransposeSaver(Env, new TransposeSaver.Arguments());
-                saver.SaveData(mem, view, Utils.GetIdentityPermutation(view.Schema.ColumnCount));
+                saver.SaveData(mem, view, Utils.GetIdentityPermutation(view.Schema.Count));
                 src = new BytesStreamSource(mem.ToArray());
             }
             TransposeLoader loader = new TransposeLoader(Env, new TransposeLoader.Arguments(), src);

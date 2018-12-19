@@ -322,7 +322,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!input.TryGetColumnIndex(item.Source, out colSrc))
                         throw host.ExceptUserArg(nameof(OneToOneColumn.Source), "Source column '{0}' not found", item.Source);
 
-                    var type = input.GetColumnType(colSrc);
+                    var type = input[colSrc].Type;
                     if (testType != null)
                     {
                         string reason = testType(type);
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Runtime.Data
                     int colSrc;
                     if (!input.TryGetColumnIndex(src, out colSrc))
                         throw host.Except("Source column '{0}' is required but not found", src);
-                    var type = input.GetColumnType(colSrc);
+                    var type = input[colSrc].Type;
                     if (testType != null)
                     {
                         string reason = testType(type);

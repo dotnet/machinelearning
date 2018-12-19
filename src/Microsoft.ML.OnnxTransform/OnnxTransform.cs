@@ -272,7 +272,7 @@ namespace Microsoft.ML.Transforms
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
                         throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
-                    var type = inputSchema.GetColumnType(_inputColIndices[i]);
+                    var type = inputSchema[_inputColIndices[i]].Type;
                     _isInputVector[i] = type.IsVector;
 
                     if (type.IsVector && type.VectorSize == 0)

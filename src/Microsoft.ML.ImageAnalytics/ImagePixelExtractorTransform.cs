@@ -405,9 +405,9 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].Input;
-            var imageType = inputSchema.GetColumnType(srcCol) as ImageType;
+            var imageType = inputSchema[srcCol].Type as ImageType;
             if (imageType == null)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema.GetColumnType(srcCol).ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema[srcCol].Type.ToString());
             if (imageType.Height <= 0 || imageType.Width <= 0)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "known-size image", "unknown-size image");
             if ((long)imageType.Height * imageType.Width > int.MaxValue / 4)

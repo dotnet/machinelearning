@@ -322,9 +322,9 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var colType = inputSchema.GetColumnType(srcCol);
+            var colType = inputSchema[srcCol].Type;
             if (!(colType.IsVector && colType.ItemType.IsText))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "Text", inputSchema.GetColumnType(srcCol).ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "Text", inputSchema[srcCol].Type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var colType = input.Schema.GetColumnType(ColMapNewToOld[iinfo]);
+                var colType = input.Schema[ColMapNewToOld[iinfo]].Type;
                 Host.Assert(colType.IsVector);
                 Host.Assert(colType.ItemType.IsText);
 

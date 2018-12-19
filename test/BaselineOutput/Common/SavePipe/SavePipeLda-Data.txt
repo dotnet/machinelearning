@@ -1,0 +1,8 @@
+#@ TextLoader{
+#@   sep=tab
+#@   col=F1V:R4:0-2
+#@   col=Result:R4:3-5
+#@ }
+1	0	0	0	1	0
+0	1	0	0	1	0
+0	0	0	0	0	0

@@ -19,7 +19,8 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public abstract class RowToRowScorerBase : RowToRowMapperTransformBase, IDataScorerTransform
     {
-        public abstract class BindingsBase : ScorerBindingsBase
+        [BestFriend]
+        private protected abstract class BindingsBase : ScorerBindingsBase
         {
             public readonly ISchemaBoundRowMapper RowMapper;
 
@@ -30,16 +31,19 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected readonly ISchemaBindableMapper Bindable;
+        [BestFriend]
+        private protected readonly ISchemaBindableMapper Bindable;
 
-        protected RowToRowScorerBase(IHostEnvironment env, IDataView input, string registrationName, ISchemaBindableMapper bindable)
+        [BestFriend]
+        private protected RowToRowScorerBase(IHostEnvironment env, IDataView input, string registrationName, ISchemaBindableMapper bindable)
             : base(env, registrationName, input)
         {
             Contracts.AssertValue(bindable);
             Bindable = bindable;
         }
 
-        protected RowToRowScorerBase(IHost host, ModelLoadContext ctx, IDataView input)
+        [BestFriend]
+        private protected RowToRowScorerBase(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, input)
         {
             ctx.LoadModel<ISchemaBindableMapper, SignatureLoadModel>(host, out Bindable, "SchemaBindableMapper");
@@ -56,7 +60,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The main save method handles saving the _bindable. This should do everything else.
         /// </summary>
-        protected abstract void SaveCore(ModelSaveContext ctx);
+        [BestFriend]
+        private protected abstract void SaveCore(ModelSaveContext ctx);
 
         /// <summary>
         /// For the ITransformTemplate implementation.
@@ -66,7 +71,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Derived classes provide the specific bindings object.
         /// </summary>
-        protected abstract BindingsBase GetBindings();
+        [BestFriend]
+        private protected abstract BindingsBase GetBindings();
 
         /// <summary>
         /// Produces the set of active columns for the scorer (as a bool[] of length bindings.ColumnCount),
@@ -181,7 +187,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(row);
             Contracts.AssertValue(predicate);
 
-            var getters = new Delegate[row.Schema.ColumnCount];
+            var getters = new Delegate[row.Schema.Count];
             for (int col = 0; col < getters.Length; col++)
             {
                 if (predicate(col))
@@ -193,10 +199,10 @@ namespace Microsoft.ML.Runtime.Data
         protected static Delegate GetGetterFromRow(Row row, int col)
         {
             Contracts.AssertValue(row);
-            Contracts.Assert(0 <= col && col < row.Schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < row.Schema.Count);
             Contracts.Assert(row.IsColumnActive(col));
 
-            var type = row.Schema.GetColumnType(col);
+            var type = row.Schema[col].Type;
             Func<Row, int, ValueGetter<int>> del = GetGetterFromRow<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
             return (Delegate)meth.Invoke(null, new object[] { row, col });
@@ -205,7 +211,7 @@ namespace Microsoft.ML.Runtime.Data
         protected static ValueGetter<T> GetGetterFromRow<T>(Row output, int col)
         {
             Contracts.AssertValue(output);
-            Contracts.Assert(0 <= col && col < output.Schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < output.Schema.Count);
             Contracts.Assert(output.IsColumnActive(col));
             return output.GetGetter<T>(col);
         }
@@ -296,11 +302,12 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Base bindings for a scorer based on an ISchemaBoundMapper. This assumes that input schema columns
+    /// Base bindings for a scorer based on an <see cref="ISchemaBoundMapper"/>. This assumes that input schema columns
     /// are echoed, followed by zero or more derived columns, followed by the mapper generated columns.
     /// The names of the derived columns and mapper generated columns have an optional suffix appended.
     /// </summary>
-    public abstract class ScorerBindingsBase : ColumnBindingsBase
+    [BestFriend]
+    internal abstract class ScorerBindingsBase : ColumnBindingsBase
     {
         /// <summary>
         /// The schema bound mapper.
@@ -344,13 +351,13 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(namesDerived);
 
             var schema = mapper.OutputSchema;
-            int count = namesDerived.Length + schema.ColumnCount;
+            int count = namesDerived.Length + schema.Count;
             var res = new string[count];
             int dst = 0;
             for (int i = 0; i < namesDerived.Length; i++)
                 res[dst++] = namesDerived[i] + suffix;
-            for (int i = 0; i < schema.ColumnCount; i++)
-                res[dst++] = schema.GetColumnName(i) + suffix;
+            for (int i = 0; i < schema.Count; i++)
+                res[dst++] = schema[i].Name + suffix;
             Contracts.Assert(dst == count);
             return res;
         }
@@ -406,7 +413,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override ColumnType GetColumnTypeCore(int iinfo)
         {
             Contracts.Assert(DerivedColumnCount <= iinfo && iinfo < InfoCount);
-            return Mapper.OutputSchema.GetColumnType(iinfo - DerivedColumnCount);
+            return Mapper.OutputSchema[iinfo - DerivedColumnCount].Type;
         }
 
         protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)
@@ -416,7 +423,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return MetadataUtils.ScoreColumnSetIdType.GetPair(MetadataUtils.Kinds.ScoreColumnSetId);
             if (iinfo < DerivedColumnCount)
                 yield break;
-            foreach (var pair in Mapper.OutputSchema.GetMetadataTypes(iinfo - DerivedColumnCount))
+            foreach (var pair in Mapper.OutputSchema[iinfo - DerivedColumnCount].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type)))
                 yield return pair;
         }
 
@@ -427,7 +434,7 @@ namespace Microsoft.ML.Runtime.Data
                 return MetadataUtils.ScoreColumnSetIdType;
             if (iinfo < DerivedColumnCount)
                 return null;
-            return Mapper.OutputSchema.GetMetadataTypeOrNull(kind, iinfo - DerivedColumnCount);
+            return Mapper.OutputSchema[iinfo - DerivedColumnCount].Metadata.Schema.GetColumnOrNull(kind)?.Type;
         }
 
         protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
@@ -441,7 +448,7 @@ namespace Microsoft.ML.Runtime.Data
                 default:
                     if (iinfo < DerivedColumnCount)
                         throw MetadataUtils.ExceptGetMetadata();
-                    Mapper.OutputSchema.GetMetadata<TValue>(kind, iinfo - DerivedColumnCount, ref value);
+                    Mapper.OutputSchema[iinfo - DerivedColumnCount].Metadata.GetValue(kind, ref value);
                     break;
             }
         }
@@ -458,8 +465,8 @@ namespace Microsoft.ML.Runtime.Data
             return
                 col =>
                 {
-                    Contracts.Assert(0 <= col && col < Mapper.OutputSchema.ColumnCount);
-                    return 0 <= col && col < Mapper.OutputSchema.ColumnCount &&
+                    Contracts.Assert(0 <= col && col < Mapper.OutputSchema.Count);
+                    return 0 <= col && col < Mapper.OutputSchema.Count &&
                         active[MapIinfoToCol(col + DerivedColumnCount)];
                 };
         }

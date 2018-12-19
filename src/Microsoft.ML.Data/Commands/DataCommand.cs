@@ -165,8 +165,8 @@ namespace Microsoft.ML.Runtime.Data
                         {
                             for (int currentIndex = 0; currentIndex < cursor.Schema.Count; currentIndex++)
                             {
-                                var nameOfMetric = "TLC_" + cursor.Schema.GetColumnName(currentIndex);
-                                var type = cursor.Schema.GetColumnType(currentIndex);
+                                var nameOfMetric = "TLC_" + cursor.Schema[currentIndex].Name;
+                                var type = cursor.Schema[currentIndex].Type;
                                 if (type.IsNumber)
                                 {
                                     var getter = RowCursorUtils.GetGetterAs<double>(NumberType.R8, cursor, currentIndex);
