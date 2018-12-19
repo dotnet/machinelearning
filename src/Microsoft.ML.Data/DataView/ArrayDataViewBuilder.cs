@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Data
         public void AddColumn(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyMin, int keyCount, params uint[] values)
         {
             _host.CheckValue(getKeyValues, nameof(getKeyValues));
-            _host.CheckParam(keyCount > 0, nameof(keyCount));
+            //_host.CheckParam(keyCount > 0, nameof(keyCount));
             CheckLength(name, values);
             _columns.Add(new AssignmentColumn<uint>(new KeyType(DataKind.U4, keyMin, keyCount), values));
             _getKeyValues.Add(name, getKeyValues);
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
         public void AddColumn(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyMin, int keyCount, params ulong[] values)
         {
             _host.CheckValue(getKeyValues, nameof(getKeyValues));
-            _host.CheckParam(keyCount > 0, nameof(keyCount));
+            //_host.CheckParam(keyCount > 0, nameof(keyCount));
             CheckLength(name, values);
             _columns.Add(new AssignmentColumn<ulong>(new KeyType(DataKind.U8, keyMin, keyCount), values));
             _getKeyValues.Add(name, getKeyValues);

@@ -143,6 +143,18 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        void TestDuplicateKeys()
+        {
+            var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+
+            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "foo".AsMemory() };
+            IEnumerable<int> values = new List<int>() { 1, 2 };
+
+            Assert.Throws<InvalidOperationException>(() => new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") }));
+        }
+
+        [Fact]
         public void ValueMappingOutputSchema()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
@@ -199,7 +211,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void ValueMappingValuesAsUintKeyTypes()
         {
-            var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
+            var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
             IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
@@ -222,19 +234,61 @@ namespace Microsoft.ML.Tests.Transformers
             uint dValue = 1;
             getterD(ref dValue);
             Assert.Equal<uint>(25, dValue);
+
+            // Should be 0 as test2 is a missing key
             uint eValue = 0;
             getterE(ref eValue);
-            Assert.Equal<uint>(42, eValue);
+            Assert.Equal<uint>(0, eValue);
+
+            // Testing the last key
             uint fValue = 0;
             getterF(ref fValue);
-            Assert.Equal<uint>(51, fValue);
+            Assert.Equal<uint>(61, fValue);
         }
 
 
         [Fact]
+        public void ValueMappingValuesAsUlongKeyTypes()
+        {
+            var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+
+            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+
+            // These are the expected key type values
+            IEnumerable<ulong> values = new List<ulong>() { 51, Int32.MaxValue, 42, 61 };
+
+            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ulong>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            var cursor = result.GetRowCursor((col) => true);
+            var getterD = cursor.GetGetter<ulong>(3);
+            var getterE = cursor.GetGetter<ulong>(4);
+            var getterF = cursor.GetGetter<ulong>(5);
+            cursor.MoveNext();
+            
+            // The expected values will contain the actual uints and are not generated.
+            ulong dValue = 1;
+            getterD(ref dValue);
+            Assert.Equal<ulong>(Int32.MaxValue, dValue);
+
+            // Should be 0 as test2 is a missing key
+            ulong eValue = 0;
+            getterE(ref eValue);
+            Assert.Equal<ulong>(0, eValue);
+
+            // Testing the last key
+            ulong fValue = 0;
+            getterF(ref fValue);
+            Assert.Equal<ulong>(61, fValue);
+        }
+
+        [Fact]
         public void ValueMappingValuesAsStringKeyTypes()
         {
-            var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
+            var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
             IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
@@ -252,16 +306,20 @@ namespace Microsoft.ML.Tests.Transformers
             var getterF = cursor.GetGetter<uint>(5);
             cursor.MoveNext();
 
-            // The expected values will contain the generated key type values.
+            // The expected values will contain the generated key type values starting from 1.
             uint dValue = 1;
             getterD(ref dValue);
             Assert.Equal<uint>(2, dValue);
+
+            // eValue will equal 1 since foo1 occurs first.
             uint eValue = 0;
             getterE(ref eValue);
             Assert.Equal<uint>(1, eValue);
+
+            // fValue will be 0 since its missing
             uint fValue = 0;
             getterF(ref fValue);
-            Assert.Equal<uint>(1, fValue);
+            Assert.Equal<uint>(0, fValue);
         }
 
         [Fact]
@@ -338,6 +396,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
+
         [Fact]
         void TestValueMapBackCompatTermLookup()
         {
@@ -370,12 +429,8 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(result.Schema.TryGetColumnIndex("Label", out int labelIdx));
                 Assert.True(result.Schema.TryGetColumnIndex("GroupId", out int groupIdx));
                 
-                /*
                 Assert.True(result.Schema[labelIdx].Type.IsKey);
-                var keyType = result.Schema[labelIdx].Type.AsKey;
-                Assert.Equal((ulong)0, keyType.Min);
-                Assert.Equal(5, keyType.KeyCount);
-                */
+                Assert.Equal(5, result.Schema[labelIdx].Type.ItemType.KeyCount);
 
                 var t = result.GetColumn<uint>(Env, "Label");
                 uint s = t.First();
