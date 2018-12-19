@@ -27,8 +27,8 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// The FeatureContributionCalculationTransformer scores the model on an input dataset and
-    /// computes model-specific contribution scores for each feature. See the list of currently supported predictors below.
+    /// The FeatureContributionCalculationTransformer computes model-specific contribution scores for each feature.
+    /// See the list of currently supported predictors below.
     /// </summary>
     /// <remarks>
     /// Feature Contribution Calculation is currently supported for the following Predictors:
@@ -95,9 +95,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Feature Contribution Calculation scores the model on an input dataset and
-        /// computes model-specific contribution scores for each feature. Note that this functionality is not supported by all the predictos.
-        /// See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported predictors.
+        /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
+        /// Note that this functionality is not supported by all the predictors. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported predictors.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
@@ -302,9 +301,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Feature Contribution Calculation scores the model on an input dataset and
-        /// computes model-specific contribution scores for each feature. Note that this functionality is not supported by all the predictos.
-        /// See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported predictors.
+        /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
+        /// Note that this functionality is not supported by all the predictors. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported predictors.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>

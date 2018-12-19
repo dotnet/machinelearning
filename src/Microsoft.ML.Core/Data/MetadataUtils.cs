@@ -506,7 +506,7 @@ namespace Microsoft.ML.Data
         internal static IEnumerable<SchemaShape.Column> MetadataForMulticlassScoreColumn(SchemaShape.Column? labelColumn = null)
         {
             var cols = new List<SchemaShape.Column>();
-            if (labelColumn == null || (labelColumn.Value.IsKey && HasKeyValues(labelColumn.Value)))
+            if (labelColumn != null && labelColumn.Value.IsKey && HasKeyValues(labelColumn.Value))
                 cols.Add(new SchemaShape.Column(Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
             cols.AddRange(GetTrainerOutputMetadata());
             return cols;

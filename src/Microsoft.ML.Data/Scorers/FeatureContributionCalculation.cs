@@ -15,20 +15,26 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionScorer.BindableMapper), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
+    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "FeatureContributionCalculationScorer", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer.BindableMapper), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
+    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer.BindableMapper), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), null, typeof(SignatureLoadModel),
     "Feature Contribution Mapper", FeatureContributionScorer.MapperLoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
+    /// <summary>
+    /// Used only by the command line API for scoring and calculation of feature contribution.
+    /// </summary>
     internal sealed class FeatureContributionScorer
     {
-        public sealed class Arguments : ScorerArgumentsBase
+        // Apparently, loader signature is limited in length to 24 characters.
+        internal const string MapperLoaderSignature = "WTFBindable";
+
+        internal sealed class Arguments : ScorerArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of top contributions", SortOrder = 1)]
             public int Top = 10;
@@ -45,13 +51,44 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: the scorer currently ignores the 'suffix' argument from the base class. It should respect it.
         }
 
-        internal const string MapperLoaderSignature = "WTFBindable";
+        // Factory method for SignatureDataScorer.
+        private static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(data, nameof(data));
+            env.CheckValue(mapper, nameof(mapper));
+            if (args.Top< 0)
+                throw env.Except($"Number of top contribution must be non negative");
+            if (args.Bottom < 0)
+                throw env.Except($"Number of bottom contribution must be non negative");
+
+            var contributionMapper = mapper as RowMapper;
+            env.CheckParam(mapper != null, nameof(mapper), "Unexpected mapper");
+
+            var scorer = ScoreUtils.GetScorerComponent(env, contributionMapper);
+            var scoredPipe = scorer.CreateComponent(env, data, contributionMapper, trainSchema);
+            return scoredPipe;
+        }
+
+        // Factory method for SignatureBindableMapper.
+        private static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(predictor, nameof(predictor));
+            var pred = predictor as IFeatureContributionMapper;
+            env.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
+            return new BindableMapper(env, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
+        }
+
+        // Factory constructor for SignatureLoadModel.
+        private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new BindableMapper(env, ctx);
 
         /// <summary>
         /// Holds the definition of the getters for the FeatureContribution column. It also contains the generic mapper that is used to score the Predictor.
         /// This is only used by the command line API.
         /// </summary>
-        internal sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
+        private sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
         {
             private readonly int _topContributionsCount;
             private readonly int _bottomContributionsCount;
@@ -94,7 +131,6 @@ namespace Microsoft.ML.Runtime.Data
                 GenericMapper = ScoreUtils.GetSchemaBindableMapper(_env, Predictor, null);
             }
 
-            // Factory constructor for SignatureLoadModel.
             public BindableMapper(IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.CheckValue(env, nameof(env));
@@ -117,31 +153,6 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.CheckDecode(0 <= _bottomContributionsCount);
                 _normalize = ctx.Reader.ReadBoolByte();
                 Stringify = ctx.Reader.ReadBoolByte();
-            }
-
-            // Factory method for SignatureDataScorer.
-            private static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
-            {
-                Contracts.CheckValue(env, nameof(env));
-                env.CheckValue(data, nameof(data));
-                env.CheckValue(mapper, nameof(mapper));
-
-                var contributionMapper = mapper as RowMapper;
-                env.CheckParam(mapper != null, nameof(mapper), "Unexpected mapper");
-
-                var scorer = ScoreUtils.GetScorerComponent(env, contributionMapper);
-                var scoredPipe = scorer.CreateComponent(env, data, contributionMapper, trainSchema);
-                return scoredPipe;
-            }
-
-            // Factory method for SignatureBindableMapper.
-            private static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
-            {
-                Contracts.CheckValue(env, nameof(env));
-                env.CheckValue(predictor, nameof(predictor));
-                var pred = predictor as IFeatureContributionMapper;
-                env.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
-                return new BindableMapper(env, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
             }
 
             public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
@@ -279,7 +290,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Maps a schema from input columns to output columns. Keeps track of the input columns that are needed for the mapping.
         /// </summary>
-        internal sealed class RowMapper : ISchemaBoundRowMapper
+        private sealed class RowMapper : ISchemaBoundRowMapper
         {
             private readonly IHostEnvironment _env;
             private readonly ISchemaBoundRowMapper _genericRowMapper;
@@ -377,7 +388,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        internal sealed class FeatureContributionSchema : ISchema
+        private sealed class FeatureContributionSchema : ISchema
         {
             private readonly Schema _parentSchema;
             private readonly IExceptionContext _ectx;
