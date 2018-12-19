@@ -365,15 +365,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
             LightGbmHelper(useSoftmax: false, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
 
-            //////////////////////////////////////////////////////////////////////////////////////////////
-            // Compare native LightGBM's and ML.NET's LightGBM results
-            //////////////////////////////////////////////////////////////////////////////////////////////
-
             // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
             // Assume that we have n classes in total. The i-th class probability can be computed via
             // p_i = sigmoid(sigmoidScale * z_i) / (sigmoid(sigmoidScale * z_1) + ... + sigmoid(sigmoidScale * z_n)).
             Assert.True(modelString != null);
             float sigmoidScale = 0.5f; // Constant used train LightGBM. See gbmParams["sigmoid"] in the helper function.
+            // Compare native LightGBM's and ML.NET's LightGBM results example by example
             for (int i = 0; i < _rowNumber; ++i)
             {
                 double sum = 0;
@@ -389,6 +386,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }
             }
 
+            Done();
         }
 
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
@@ -397,14 +395,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
             LightGbmHelper(useSoftmax: true, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
 
-            //////////////////////////////////////////////////////////////////////////////////////////////
-            // Compare native LightGBM's and ML.NET's LightGBM results
-            //////////////////////////////////////////////////////////////////////////////////////////////
-
             // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
             // Assume that we have n classes in total. The i-th class probability can be computed via
             // p_i = exp(z_i) / (exp(z_1) + ... + exp(z_n)).
             Assert.True(modelString != null);
+            // Compare native LightGBM's and ML.NET's LightGBM results example by example
             for (int i = 0; i < _rowNumber; ++i)
             {
                 double sum = 0;
@@ -420,6 +415,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }
             }
 
+            Done();
         }
     }
 }
