@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {

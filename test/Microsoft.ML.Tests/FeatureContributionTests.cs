@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using System;
@@ -15,8 +14,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Transforms;
 using System.IO;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
 
 namespace Microsoft.ML.Tests
 {
@@ -73,10 +70,10 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.Regression.Trainers.FastTreeTweedie(), GetSparseDataset(numberOfInstances: 100), "FastTreeTweedieRegression");
         }
 
-        [Fact(Skip = "Results vary a lot from run to run, need to investigate error.")]
+        [Fact]
         public void TestSDCARegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.StochasticDualCoordinateAscent(), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
+            TestFeatureContribution(ML.Regression.Trainers.StochasticDualCoordinateAscent(advancedSettings: args => { args.NumThreads = 1; }), GetSparseDataset(numberOfInstances: 100), "SDCARegression");
         }
 
         [Fact]
@@ -85,7 +82,6 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.Regression.Trainers.OnlineGradientDescent(), GetSparseDataset(numberOfInstances: 100), "OnlineGradientDescentRegression");
         }
 
-        //[Fact(Skip = "Results vary a lot from run to run, need to investigate error.")]
         [Fact]
         public void TestPoissonRegression()
         {
@@ -148,16 +144,16 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.BinaryClassification.Trainers.LightGbm(), GetSparseDataset(TaskType.BinaryClassification, 100), "LightGbmBinary");
         }
 
-        [Fact(Skip = "Results vary a lot from run to run, need to investigate error.")]
+        [Fact]
         public void TestSDCABinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: args => { args.NumThreads = 1; }), GetSparseDataset(TaskType.BinaryClassification, 100), "SDCABinary");
         }
 
-        [Fact(Skip = "Results vary a lot from run to run, need to investigate error.")]
+        [Fact]
         public void TestSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(), GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(advancedSettings: args => { args.NumThreads = 1; }), GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
         [Fact]

@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(FeatureContributionCalculatingTransformer.Summary, typeof(FeatureContributionCalculatingTransformer), null, typeof(SignatureLoadModel),
     FeatureContributionCalculatingTransformer.FriendlyName, FeatureContributionCalculatingTransformer.LoaderSignature)]
@@ -24,7 +25,7 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(void), typeof(FeatureContributionEntryPoint), null, typeof(SignatureEntryPointModule), FeatureContributionCalculatingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// The FeatureContributionCalculationTransformer scores the model on an input dataset and
@@ -53,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </example>
     public sealed class FeatureContributionCalculatingTransformer : RowToRowTransformerBase
     {
-        internal sealed class Arguments : TransformInputBase
+        public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The predictor model to apply to data", SortOrder = 1)]
             public PredictorModel PredictorModel;
@@ -162,6 +163,7 @@ namespace Microsoft.ML.Runtime.Data
         // Factory method for Entrypoints.
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
+            env.CheckValue(args.PredictorModel, nameof(args.PredictorModel));
             var predictor = args.PredictorModel.Predictor as ICalculateFeatureContribution;
             if (predictor == null)
                 throw env.ExceptUserArg(nameof(predictor), "The provided predictor does not support feature contribution calculation.");

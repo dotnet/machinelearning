@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Numeric;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(BindableMapper), typeof(BindableMapper.Arguments),
     typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
@@ -34,13 +35,13 @@ namespace Microsoft.ML.Runtime.Data
         public sealed class Arguments : ScorerArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of top contributions", SortOrder = 1)]
-            public int Top = FeatureContributionCalculatingEstimator.Defaults.Top;
+            public int Top = 10;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bottom contributions", SortOrder = 2)]
-            public int Bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom;
+            public int Bottom = 10;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution should be normalized", ShortName = "norm", SortOrder = 3)]
-            public bool Normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize;
+            public bool Normalize = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution in string key-value format", ShortName = "str", SortOrder = 4)]
             public bool Stringify = false;
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: MapperLoaderSignature,
-                loaderAssemblyName: typeof(FeatureContributionCalculatingTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(BindableMapper).Assembly.FullName);
         }
 
         public PredictionKind PredictionKind => Predictor.PredictionKind;
@@ -219,15 +220,12 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     featureGetter(ref features);
                     map(in features, ref contributions);
-                    int[] indices;
-                    float[] values = contributions.GetValues().ToArray();
-                    if (contributions.IsDense)
-                        indices = Utils.GetIdentityPermutation(contributions.Length);
-                    else
-                        indices = contributions.GetIndices().ToArray();
+                    var editor = VBufferEditor.CreateFromBuffer(ref contributions);
+                    var indices = contributions.IsDense ? Utils.GetIdentityPermutation(contributions.Length) : editor.Indices;
+                    var values = editor.Values;
                     var count = values.Length;
                     var sb = new StringBuilder();
-                    Array.Sort(indices, values, 0, count);
+                    GenericSpanSortHelper<int>.Sort(indices, values, 0, count);
                     for (var i = 0; i < count; i++)
                     {
                         var val = values[i];
