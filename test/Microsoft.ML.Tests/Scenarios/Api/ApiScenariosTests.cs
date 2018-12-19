@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public class IrisData : IrisDataNoLabel
         {
-            [LoadColumn(4, name: "Label")]
+            [LoadColumn(4), ColumnName("Label")]
             public string Label;
         }
 
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public class SentimentData
         {
-            [LoadColumn(0, name: "Label")]
+            [LoadColumn(0), ColumnName("Label")]
             public bool Sentiment;
 
             [LoadColumn(1)]

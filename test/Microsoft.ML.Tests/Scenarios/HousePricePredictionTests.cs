@@ -59,7 +59,7 @@ namespace Microsoft.ML.Scenarios
             [LoadColumn(1)]
             public string Date;
 
-            [LoadColumn(2, name: "Label")]
+            [LoadColumn(2), ColumnName("Label")]
             public float Price;
 
             [LoadColumn(3)]

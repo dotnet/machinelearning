@@ -139,7 +139,7 @@ namespace Microsoft.ML.Scenarios
             [LoadColumn(3)]
             public float PetalWidth;
 
-            [LoadColumn(4, name: "Label")]
+            [LoadColumn(4), ColumnName("Label")]
             public string IrisPlantType;
         }
     }

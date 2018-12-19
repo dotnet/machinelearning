@@ -50,7 +50,7 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
             [LoadColumn(0)]
             public string Id;
 
-            [LoadColumn(1, name: "Label")]
+            [LoadColumn(1) , ColumnName("Label")]
             public string Topic;
 
             [LoadColumn(2)]

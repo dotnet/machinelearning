@@ -401,7 +401,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class ModelWithColumnNameAttribute
         {
-            [LoadColumn(0, "Col1")]
+            [LoadColumn(0), ColumnName("Col1")]
             public string String_1;
 
             [LoadColumn(1)]
@@ -439,21 +439,12 @@ namespace Microsoft.ML.EntryPoints.Tests
             public string Type;
         }
 
-        public class IrisAllOther
-        {
-            [LoadColumn(4, loadAllOthers: true)]
-            public string Features;
-
-            [LoadColumn(4)]
-            public string Type;
-        }
-
         public class IrisStartEnd
         {
-            [LoadColumn(start:"0", end:"3", name:"Features", columnIndexes:null)]
+            [LoadColumn(start:0, end:3), ColumnName("Features")]
             public float Features;
 
-            [LoadColumn(4, name: "Label")]
+            [LoadColumn(4), ColumnName("Label")]
             public string Type;
         }
 
@@ -462,7 +453,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             [LoadColumn(columnIndexes: new[] { 0, 2 })]
             public float Features;
 
-            [LoadColumn(4, name: "Label")]
+            [LoadColumn(4), ColumnName("Label")]
             public string Type;
         }
 
@@ -496,29 +487,13 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Type", previewIris.RowView[0].Values[index].Key);
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
 
-            // Load allOther
-            var dataIrisAllOther = ml.Data.CreateTextReader<IrisStartEnd>(separator: ',').Read(dataPath);
-            var previewdataIrisAllOther = dataIrisAllOther.Preview(1);
-
-            Assert.Equal(2, previewdataIrisAllOther.ColumnView.Length);
-            Assert.Equal("Features", previewdataIrisAllOther.RowView[0].Values[0].Key);
-            VBuffer<float> featureValue = (VBuffer<float>)previewdataIrisAllOther.RowView[0].Values[0].Value;
-            Assert.True(featureValue.IsDense);
-            Assert.Equal(4, featureValue.Length);
-
-            foreach (var val in featureValue.GetValues())
-            {
-                irisFirstRowValues.MoveNext();
-                Assert.Equal(irisFirstRowValues.Current, val);
-            }
-
             // Load with start and end indexes
             var dataIrisStartEnd = ml.Data.CreateTextReader<IrisStartEnd>(separator: ',').Read(dataPath);
             var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
 
             Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
             Assert.Equal("Features", previewIrisStartEnd.RowView[0].Values[0].Key);
-            featureValue = (VBuffer<float>)previewIrisStartEnd.RowView[0].Values[0].Value;
+            var featureValue = (VBuffer<float>)previewIrisStartEnd.RowView[0].Values[0].Value;
             Assert.True(featureValue.IsDense);
             Assert.Equal(4, featureValue.Length);
 

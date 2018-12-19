@@ -2,16 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace Microsoft.ML
 {
@@ -64,67 +58,7 @@ namespace Microsoft.ML
             bool allowQuotedStrings = TextLoader.DefaultArguments.AllowQuoting,
             bool supportSparse = TextLoader.DefaultArguments.AllowSparse,
             bool trimWhitespace = TextLoader.DefaultArguments.TrimWhitespace)
-        {
-            var userType = typeof(TInput);
-
-            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-            var propertyInfos =
-                userType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
-
-            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
-
-            var columns = new TextLoader.Column[memberInfos.Length];
-
-            for (int index = 0; index < memberInfos.Length; index++)
-            {
-                var memberInfo = memberInfos[index];
-                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
-                var mptr = memberInfo.GetCustomAttributes();
-
-                Contracts.Assert(mappingAttr != null, $"Field or property {memberInfo.Name} is missing the LoadColumn attribute");
-
-                var column = new TextLoader.Column();
-                column.Name = mappingAttr.Name ?? memberInfo.Name;
-                column.Source = mappingAttr.Sources.ToArray();
-                DataKind dk;
-                switch (memberInfo)
-                {
-                    case FieldInfo field:
-                        if (!DataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
-                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
-
-                        break;
-
-                    case PropertyInfo property:
-                        if (!DataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
-                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
-                        break;
-
-                    default:
-                        Contracts.Assert(false);
-                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
-                }
-
-                column.Type = dk;
-
-                columns[index] = column;
-            }
-
-            TextLoader.Arguments args = new TextLoader.Arguments
-            {
-                HasHeader = hasHeader,
-                SeparatorChars = new[] { separator },
-                AllowQuoting = allowQuotedStrings,
-                AllowSparse = supportSparse,
-                TrimWhitespace = trimWhitespace,
-                Column = columns
-            };
-
-            return new TextLoader(CatalogUtils.GetEnvironment(catalog), args);
-        }
+            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separator, allowQuotedStrings, supportSparse, trimWhitespace);
 
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
@@ -138,8 +72,8 @@ namespace Microsoft.ML
         public static IDataView ReadFromTextFile(this DataOperations catalog,
             string path,
             TextLoader.Column[] columns,
-            bool hasHeader = false,
-            char separatorChar = '\t')
+            bool hasHeader = TextLoader.DefaultArguments.HasHeader,
+            char separatorChar = TextLoader.DefaultArguments.Separator)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
@@ -149,6 +83,39 @@ namespace Microsoft.ML
             // Therefore, we are going to disallow data sample.
             var reader = new TextLoader(env, columns, hasHeader, separatorChar, dataSample: null);
             return reader.Read(new MultiFileSource(path));
+        }
+
+        /// <summary>
+        /// Read a data view from a text file using <see cref="TextLoader"/>.
+        /// </summary>
+        /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
+        /// <param name="hasHeader">Does the file contains header?</param>
+        /// <param name="separator">Column separator character. Default is '\t'</param>
+        /// <param name="allowQuotedStrings">Whether the input may include quoted values,
+        /// which can contain separator characters, colons,
+        /// and distinguish empty values from missing values. When true, consecutive separators
+        /// denote a missing value and an empty value is denoted by \"\".
+        /// When false, consecutive separators denote an empty value.</param>
+        /// <param name="supportSparse">Whether the input may include sparse representations for example,
+        /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
+        /// except for 3rd and 5th columns which have values 6 and 3</param>
+        /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
+        /// <param name="path">The path to the file.</param>
+        /// <returns>The data view.</returns>
+        public static IDataView ReadFromTextFile<TInput>(this DataOperations catalog,
+            string path,
+            bool hasHeader = TextLoader.DefaultArguments.HasHeader,
+            char separator = TextLoader.DefaultArguments.Separator,
+            bool allowQuotedStrings = TextLoader.DefaultArguments.AllowQuoting,
+            bool supportSparse = TextLoader.DefaultArguments.AllowSparse,
+            bool trimWhitespace = TextLoader.DefaultArguments.TrimWhitespace)
+        {
+            Contracts.CheckNonEmpty(path, nameof(path));
+
+            // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
+            // Therefore, we are going to disallow data sample.
+            return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separator, allowQuotedStrings, supportSparse, trimWhitespace)
+                             .Read(new MultiFileSource(path));
         }
 
         /// <summary>

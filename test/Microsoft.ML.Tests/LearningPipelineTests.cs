@@ -49,7 +49,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         private class InputData
         {
-            [LoadColumn(ordinal: 1)]
+            [LoadColumn(columnIndex: 1)]
             public string F1;
         }
 

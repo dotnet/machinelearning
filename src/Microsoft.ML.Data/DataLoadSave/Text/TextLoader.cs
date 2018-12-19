@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Float = System.Single;
 
@@ -1361,6 +1362,76 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
         public IDataView Read(string path) => Read(new MultiFileSource(path));
+
+        internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
+           bool hasHeader = DefaultArguments.HasHeader,
+           char separator = DefaultArguments.Separator,
+           bool allowQuotedStrings = DefaultArguments.AllowQuoting,
+           bool supportSparse = DefaultArguments.AllowSparse,
+           bool trimWhitespace = DefaultArguments.TrimWhitespace)
+        {
+            var userType = typeof(TInput);
+
+            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            var propertyInfos =
+                userType
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
+
+            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
+
+            var columns = new List<Column>();
+
+            for (int index = 0; index < memberInfos.Length; index++)
+            {
+                var memberInfo = memberInfos[index];
+                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
+
+                if(mappingAttr == null)
+                    continue;
+
+                var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+
+                var column = new Column();
+                column.Name = mappingAttrName?.Name ?? memberInfo.Name;
+                column.Source = mappingAttr.Sources.ToArray();
+                DataKind dk;
+                switch (memberInfo)
+                {
+                    case FieldInfo field:
+                        if (!DataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
+
+                        break;
+
+                    case PropertyInfo property:
+                        if (!DataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
+                        break;
+
+                    default:
+                        Contracts.Assert(false);
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                }
+
+                column.Type = dk;
+
+                columns.Add(column);
+            }
+
+            Arguments args = new Arguments
+            {
+                HasHeader = hasHeader,
+                SeparatorChars = new[] { separator },
+                AllowQuoting = allowQuotedStrings,
+                AllowSparse = supportSparse,
+                TrimWhitespace = trimWhitespace,
+                Column = columns.ToArray()
+            };
+
+            return new TextLoader(host, args);
+        }
 
         private sealed class BoundLoader : IDataLoader
         {
