@@ -512,7 +512,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (x > 0)
                 return 1 / (1 + ExpSlow(-x));
             else
-                return ExpSlow(x) / (1 + ExpSlow(x));
+            {
+                var ex = ExpSlow(x);
+                return  ex / (1 + ex);
+            }
         }
 
         /// <summary>
