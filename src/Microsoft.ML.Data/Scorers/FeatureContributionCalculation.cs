@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.Data
             return new BindableMapper(env, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
         }
 
-        // Factory constructor for SignatureLoadModel.
+        // Factory method for SignatureLoadModel.
         private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
             => new BindableMapper(env, ctx);
 
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
                     verReadableCur: 0x00010001,
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: MapperLoaderSignature,
-                    loaderAssemblyName: typeof(BindableMapper).Assembly.FullName);
+                    loaderAssemblyName: typeof(FeatureContributionScorer).Assembly.FullName);
             }
 
             public PredictionKind PredictionKind => Predictor.PredictionKind;
