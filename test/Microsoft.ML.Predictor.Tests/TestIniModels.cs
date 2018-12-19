@@ -7,7 +7,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Tools;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -504,4 +508,60 @@ namespace Microsoft.ML.Runtime.RunTests
         }
     }
 #endif
+
+    public sealed class TestIniModels : TestDataPipeBase
+    {
+        public TestIniModels(ITestOutputHelper output) : base(output)
+        {
+        }
+
+        [Fact]
+        public void TestGamRegressionIni()
+        {
+            var mlContext = new MLContext(seed: 0, conc: 0);
+
+            var idv = mlContext.Data.CreateTextReader(
+                    new TextLoader.Arguments()
+                    {
+                        HasHeader = false,
+                        Column = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.R4, 0),
+                            new TextLoader.Column("Features", DataKind.R4, 1, 9)
+                        }
+                    }).Read(GetDataPath("breast-cancer.txt"));
+
+            var pipeline = mlContext.Regression.Trainers.GeneralizedAdditiveModels();
+            var model = pipeline.Fit(idv);
+            var data = model.Transform(idv);
+
+            //var roleMappedSchema = new RoleMappedSchema(data.Schema, false,
+            //    new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
+            //    new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
+
+            string modelZipPath = GetOutputPath(FullTestName + "-model3.zip");
+            string modelIniPath = GetOutputPath(FullTestName + "-model3.ini");
+
+            using (var fs = File.Create(modelZipPath))
+                mlContext.Model.Save(model, fs);
+
+            var savePredCommand = new SavePredictorCommand(
+                mlContext,
+                new SavePredictorCommand.Arguments
+                {
+                    InputModelFile = modelZipPath,
+                    IniFile = modelIniPath
+                });
+
+            savePredCommand.Run();
+
+            //string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
+            //using (StreamWriter writer = Utils.OpenWriter(modelIniPath))
+            //using (StreamWriter writer = new StreamWriter(modelIniPath))
+            //    model.Model.SaveAsIni(writer, roleMappedSchema);
+
+            //var results = mlContext.Regression.Evaluate(data);
+        }
+    }
+
 }
