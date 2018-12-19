@@ -1366,7 +1366,10 @@ namespace Microsoft.ML.Runtime.Data.IO
             protected override void Dispose(bool disposing)
             {
                 if (_disposed)
+                {
+                    base.Dispose(disposing);
                     return;
+                }
                 if (disposing)
                 {
                     if (_readerThread != null)

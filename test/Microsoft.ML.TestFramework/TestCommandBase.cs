@@ -1817,23 +1817,22 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [TestCategory(Cat), TestCategory("Ranking"), TestCategory("FastTree")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainRanking()
         {
             // First run a training.
-            const string loaderCmdline = @"loader=Text{header+ col=Label:U4[0-4]:0 col=GroupId:U4[0-130]:1 col=Features:2-6}";
-            string pathTrain = GetDataPath("ranking-sample-processed.txt");
+            var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
             OutputPath trainModel = ModelPath();
-            const string trainArgs = "tr=frrank{mil=30 lr=0.1 iter=10 dt+}";
-            RunMTAThread(() => TestCore("train", pathTrain, loaderCmdline, trainArgs));
+            const string extraArgs = "xf=Term{col=Label col=GroupId:Workclass} xf=Copy{col=Features:NumericFeatures} tr=frrank{mil=30 lr=0.1 iter=10 dt+}";
+            RunMTAThread(() => TestCore("train", dataPath, TestDatasets.adultRanking.loaderSettings, extraArgs));
 
             // Then, run the score.
             _step++;
             OutputPath scorePath = CreateOutputPath("data.idv");
             OutputPath scoreModel = ModelPath();
             string extraScore = string.Format("all=+ feat=Features {0}", scorePath.ArgStr("dout"));
-            TestInOutCore("score", pathTrain, trainModel, extraScore);
-            TestPipeFromModel(pathTrain, scoreModel);
+            TestInOutCore("score", dataPath, trainModel, extraScore);
+            TestPipeFromModel(dataPath, scoreModel);
 
             // Transform the score output to txt for baseline
             _step++;
@@ -1851,11 +1850,10 @@ namespace Microsoft.ML.Runtime.RunTests
             // Now, evaluate the text saved scores. Also exercise the gsf evaluator option while we're at it.
             _step++;
             OutputPath outputFile2 = StdoutPath();
-            string loaderTextEval = "loader=Text{header+ col=Label:U4[0-4]:0 col=GroupId:U4[0-130]:1 col=Score:Num:7}";
             OutputPath summaryFile2 = CreateOutputPath("summary2.txt");
             OutputPath metricsFile2 = MetricsPath();
             OutputPath groupSummaryFile2 = CreateOutputPath("gsummary2.txt");
-            TestCore("evaluate", scorePathTxt.Path, loaderTextEval, "eval=Ranking{score=Score}",
+            TestCore("evaluate", scorePathTxt.Path, "loader=Text", "eval=Ranking{score=Score}",
                 groupSummaryFile2.Arg("eval", "gsf"), summaryFile2.ArgOnly("sf"), metricsFile2.ArgOnly("dout"));
             // Check that the evaluations produced the same result.
             CheckEqualityFromPathsCore(TestName, outputFile1.Path, outputFile2.Path);
@@ -1864,8 +1862,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
             //// Run a train-test. The output should be the same as the train output, plus the test output.
             _step++;
-            string trainTestExtra = string.Format("{0} test={1}", trainArgs, pathTrain);
-            RunMTAThread(() => TestCore("traintest", pathTrain, loaderCmdline, trainTestExtra));
+            string trainTestExtra = string.Format("{0} test={1}", extraArgs, dataPath);
+            RunMTAThread(() => TestCore("traintest", dataPath, TestDatasets.adultRanking.loaderSettings, trainTestExtra));
 
             Done();
         }
