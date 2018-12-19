@@ -412,14 +412,14 @@ namespace Microsoft.ML.Runtime.Data
                 return getter;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
 
-                        val = new UInt128(0, (ulong)Position);
+                        val = new RowId(0, (ulong)Position);
                     };
             }
 
@@ -526,7 +526,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (_subActive[i])
                     {
-                        var type = _subCursor.Schema.GetColumnType(i);
+                        var type = _subCursor.Schema[i].Type;
                         _subGetters[i] = MarshalGetter(_subCursor.GetGetter<int>, type.RawType, i);
                     }
                 }
@@ -561,7 +561,7 @@ namespace Microsoft.ML.Runtime.Data
                         continue;
                     }
 
-                    var type = Schema.GetColumnType(i);
+                    var type = Schema[i].Type;
 
                     // Use sub-cursor for all sub-columns.
                     if (IsSubColumn(i))
@@ -638,16 +638,16 @@ namespace Microsoft.ML.Runtime.Data
 
             private bool SchemasMatch(Schema schema1, Schema schema2)
             {
-                if (schema1.ColumnCount != schema2.ColumnCount)
+                if (schema1.Count != schema2.Count)
                 {
                     return false;
                 }
 
-                int colLim = schema1.ColumnCount;
+                int colLim = schema1.Count;
                 for (int col = 0; col < colLim; col++)
                 {
-                    var type1 = schema1.GetColumnType(col);
-                    var type2 = schema2.GetColumnType(col);
+                    var type1 = schema1[col].Type;
+                    var type2 = schema2[col].Type;
                     if (!type1.Equals(type2))
                     {
                         return false;

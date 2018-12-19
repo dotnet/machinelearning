@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public MulticlassLogisticRegression(IHostEnvironment env,
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        protected override void CheckLabel(RoleMappedData data)
+        private protected override void CheckLabel(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             // REVIEW: For floating point labels, this will make a pass over the data.
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.Learners
             // Try to get the label key values metedata.
             var schema = data.Data.Schema;
             var labelIdx = data.Schema.Label.Index;
-            var labelMetadataType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelIdx);
+            var labelMetadataType = schema[labelIdx].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             if (labelMetadataType == null || !labelMetadataType.IsKnownSizeVector || !labelMetadataType.ItemType.IsText ||
                 labelMetadataType.VectorSize != _numClasses)
             {
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             VBuffer<ReadOnlyMemory<char>> labelNames = default;
-            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelIdx, ref labelNames);
+            schema[labelIdx].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
 
             // If label names is not dense or contain NA or default value, then it follows that
             // at least one class does not have a valid name for its label. If the label names we
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         //Override default termination criterion MeanRelativeImprovementCriterion with
-        protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
+        private protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<float> init, out ITerminationCriterion terminationCriterion)
         {
             var opt = base.InitializeOptimizer(ch, cursorFactory, out init, out terminationCriterion);
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new MulticlassLogisticRegressionPredictor(Host, in CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
+        private protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(cursorFactory);
@@ -970,7 +970,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public IDataView GetSummaryDataView(RoleMappedSchema schema)
+        IDataView ICanGetSummaryAsIDataView.GetSummaryDataView(RoleMappedSchema schema)
         {
             var bldr = new ArrayDataViewBuilder(Host);
 

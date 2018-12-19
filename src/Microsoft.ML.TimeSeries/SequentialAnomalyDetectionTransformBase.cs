@@ -592,7 +592,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 if (!inputSchema.TryGetColumnIndex(parent.InputColumnName, out _inputColumnIndex))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName);
 
-                var colType = inputSchema.GetColumnType(_inputColumnIndex);
+                var colType = inputSchema[_inputColumnIndex].Type;
                 if (colType != NumberType.R4)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, NumberType.R4.ToString(), colType.ToString());
 

@@ -4,21 +4,20 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Float = System.Single;
-
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn
 {
-    public abstract class FeatureNameCollection : IEnumerable<string>
+    [BestFriend]
+    internal abstract class FeatureNameCollection : IEnumerable<string>
     {
         private sealed class FeatureNameCollectionSchema : ISchema
         {
@@ -191,8 +190,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             int len = schema.Feature.Type.ValueCount;
-            if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref slotNames);
+            if (schema.Schema[schema.Feature.Index].HasSlotNames(len))
+                schema.Schema[schema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
             else
                 slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
             var slotNameValues = slotNames.GetValues();

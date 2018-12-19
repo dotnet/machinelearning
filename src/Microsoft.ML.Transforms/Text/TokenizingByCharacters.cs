@@ -12,7 +12,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
@@ -119,7 +118,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             if (!TokenizingByCharactersEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptParam(nameof(inputSchema), TokenizingByCharactersEstimator.ExpectedColumnType);
         }
@@ -442,7 +441,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Host.AssertValue(input);
 
-                int cv = input.Schema.GetColumnType(ColMapNewToOld[iinfo]).VectorSize;
+                int cv = input.Schema[ColMapNewToOld[iinfo]].Type.VectorSize;
                 Contracts.Assert(cv >= 0);
 
                 var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);

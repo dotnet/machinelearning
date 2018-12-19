@@ -22,15 +22,10 @@ namespace Microsoft.ML.Data
     /// and values.
     /// </summary>
     [System.Diagnostics.DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
-    public sealed class Schema : ISchema, IReadOnlyList<Schema.Column>
+    public sealed class Schema : IReadOnlyList<Schema.Column>
     {
         private readonly Column[] _columns;
         private readonly Dictionary<string, int> _nameMap;
-
-        /// <summary>
-        /// Number of columns in the schema.
-        /// </summary>
-        public int ColumnCount => _columns.Length;
 
         /// <summary>
         /// Number of columns in the schema.
@@ -249,7 +244,7 @@ namespace Microsoft.ML.Data
                 GetGetter<TValue>(column.Value.Index)(ref value);
             }
 
-            public override string ToString() => string.Join(", ", Schema.GetColumns().Select(x => x.column.Name));
+            public override string ToString() => string.Join(", ", Schema.Select(x => x.Name));
 
         }
 
@@ -271,20 +266,12 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Get all non-hidden columns as pairs of (index, <see cref="Column"/>).
-        /// </summary>
-        public IEnumerable<(int index, Column column)> GetColumns() => _nameMap.Values.Select(idx => (idx, _columns[idx]));
-
-        /// <summary>
         /// Manufacture an instance of <see cref="Schema"/> out of any <see cref="ISchema"/>.
         /// </summary>
         [BestFriend]
         internal static Schema Create(ISchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
-
-            if (inputSchema is Schema s)
-                return s;
 
             var builder = new SchemaBuilder();
             for (int i = 0; i < inputSchema.ColumnCount; i++)
@@ -310,42 +297,15 @@ namespace Microsoft.ML.Data
             return getter;
         }
 
-        #region Legacy schema API to be removed
-        public string GetColumnName(int col) => this[col].Name;
-
-        public ColumnType GetColumnType(int col) => this[col].Type;
-
-        public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-        {
-            var meta = this[col].Metadata;
-            if (meta == null)
-                return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
-            return meta.Schema.GetColumns().Select(c => new KeyValuePair<string, ColumnType>(c.column.Name, c.column.Type));
-        }
-
-        public ColumnType GetMetadataTypeOrNull(string kind, int col)
-        {
-            var meta = this[col].Metadata;
-            if (meta == null)
-                return null;
-            if (meta.Schema.TryGetColumnIndex(kind, out int metaCol))
-                return meta.Schema[metaCol].Type;
-            return null;
-        }
-
-        public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-        {
-            var meta = this[col].Metadata;
-            if (meta == null)
-                throw MetadataUtils.ExceptGetMetadata();
-            meta.GetValue(kind, ref value);
-        }
-
-        public bool TryGetColumnIndex(string name, out int col)
+        /// <summary>
+        /// Legacy method to get the column index.
+        /// DO NOT USE: use <see cref="GetColumnOrNull"/> instead.
+        /// </summary>
+        [BestFriend]
+        internal bool TryGetColumnIndex(string name, out int col)
         {
             col = GetColumnOrNull(name)?.Index ?? -1;
             return col >= 0;
         }
-        #endregion
     }
 }

@@ -126,7 +126,7 @@ namespace Microsoft.ML.Transforms
 
         // Factory method for SignatureLoadRowMapper.
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
         /// Saves the transform.
@@ -180,12 +180,12 @@ namespace Microsoft.ML.Transforms
                     if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
-                    var inType = inputSchema.GetColumnType(colSrc);
+                    var inType = inputSchema[colSrc].Type;
                     ColumnType outType;
-                    if (!inType.IsVector)
+                    if (!(inType is VectorType vectorType))
                         outType = BoolType.Instance;
                     else
-                        outType = new VectorType(BoolType.Instance, inType.AsVector);
+                        outType = new VectorType(BoolType.Instance, vectorType);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].input, _parent.ColumnPairs[i].output, inType, outType);
                 }
                 return infos;
@@ -469,142 +469,12 @@ namespace Microsoft.ML.Transforms
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
                 metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
-                ColumnType type = !col.ItemType.IsVector ? (ColumnType)BoolType.Instance : new VectorType(BoolType.Instance, col.ItemType.AsVector);
+                ColumnType type = !(col.ItemType is VectorType vectorType) ?
+                    (ColumnType)BoolType.Instance :
+                    new VectorType(BoolType.Instance, vectorType);
                 result[colPair.output] = new SchemaShape.Column(colPair.output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
-        }
-    }
-
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class NAIndicatorExtensions
-    {
-        private interface IColInput
-        {
-            PipelineColumn Input { get; }
-        }
-
-        private sealed class OutScalar<TValue> : Scalar<bool>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutScalar(Scalar<TValue> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutVectorColumn<TValue> : Vector<bool>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutVectorColumn(Vector<TValue> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutVarVectorColumn<TValue> : VarVector<bool>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutVarVectorColumn(VarVector<TValue> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            public static Reconciler Inst = new Reconciler();
-
-            private Reconciler() { }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                var columnPairs = new (string input, string output)[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var col = (IColInput)toOutput[i];
-                    columnPairs[i] = (inputNames[col.Input], outputNames[toOutput[i]]);
-                }
-                return new MissingValueIndicatorEstimator(env, columnPairs);
-            }
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static Scalar<bool> IsMissingValue(this Scalar<float> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutScalar<float>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static Scalar<bool> IsMissingValue(this Scalar<double> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutScalar<double>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static Vector<bool> IsMissingValue(this Vector<float> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<float>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static Vector<bool> IsMissingValue(this Vector<double> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<double>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static VarVector<bool> IsMissingValue(this VarVector<float> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<float>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static VarVector<bool> IsMissingValue(this VarVector<double> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<double>(input);
         }
     }
 }

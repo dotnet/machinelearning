@@ -3,19 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -648,8 +649,8 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class GamPredictorBase : PredictorBase<float>,
-        IValueMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
+    public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper,
+        IFeatureContributionMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
@@ -818,7 +819,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(float));
@@ -855,60 +856,6 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             response = (float)value;
-        }
-
-        /// <summary>
-        /// Returns a vector of feature contributions for a given example.
-        /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
-        /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
-        /// </summary>
-        internal void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
-        {
-            if (builder == null)
-                builder = new BufferBuilder<float>(R4Adder.Instance);
-
-            // The model is Intercept + Features
-            builder.Reset(features.Length + 1, false);
-            builder.AddFeature(0, (float)Intercept);
-
-            var featuresValues = features.GetValues();
-            if (features.IsDense)
-            {
-                for (int i = 0; i < featuresValues.Length; ++i)
-                {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        builder.AddFeature(i+1, (float) GetBinEffect(j, featuresValues[i]));
-                }
-            }
-            else
-            {
-                int k = -1;
-                var featuresIndices = features.GetIndices();
-                int index = featuresIndices[++k];
-                for (int i = 0; i < _numFeatures; ++i)
-                {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                    {
-                        double value;
-                        if (i == index)
-                        {
-                            // Get the computed value
-                            value = GetBinEffect(j, featuresValues[index]);
-                            // Increment index to the next feature
-                            if (k < featuresIndices.Length - 1)
-                                index = featuresIndices[++k];
-                        }
-                        else
-                            // For features not defined, the impact is the impact at 0
-                            value = GetBinEffect(i, 0);
-                        builder.AddFeature(i + 1, (float)value);
-                    }
-                }
-            }
-
-            builder.GetResult(ref contribs);
-
-            return;
         }
 
         internal double GetFeatureBinsAndScore(in VBuffer<float> features, int[] bins)
@@ -1048,6 +995,40 @@ namespace Microsoft.ML.Trainers.FastTree
             ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
 
+        ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDstContributions>
+            (int top, int bottom, bool normalize)
+        {
+            Contracts.Check(typeof(TSrc) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<float>));
+
+            ValueMapper<VBuffer<float>, VBuffer<float>> del =
+                (in VBuffer<float> srcFeatures, ref VBuffer<float> dstContributions) =>
+                {
+                    GetFeatureContributions(in srcFeatures, ref dstContributions, top, bottom, normalize);
+                };
+            return (ValueMapper<TSrc, VBuffer<float>>)(Delegate)del;
+        }
+
+        private void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contributions,
+                        int top, int bottom, bool normalize)
+        {
+            var editor = VBufferEditor.Create(ref contributions, features.Length);
+
+            // We need to use dense value of features, b/c the feature contributions could be significant
+            // even for features with value 0.
+            var featureIndex = 0;
+            foreach (var featureValue in features.DenseValues())
+            {
+                float contribution = 0;
+                if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+                    contribution = (float)GetBinEffect(j, featureValue);
+                editor.Values[featureIndex] = contribution;
+                featureIndex++;
+            }
+            contributions = editor.Commit();
+            Runtime.Numeric.VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
+        }
+
         /// <summary>
         /// The GAM model visualization command. Because the data access commands must access private members of
         /// <see cref="GamPredictorBase"/>, it is convenient to have the command itself nested within the base
@@ -1140,8 +1121,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     ch.Check(schema.Feature.Type.ValueCount == _pred._inputLength);
 
                     int len = schema.Feature.Type.ValueCount;
-                    if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
-                        schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref _featNames);
+                    if (schema.Schema[schema.Feature.Index].HasSlotNames(len))
+                        schema.Schema[schema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _featNames);
                     else
                         _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 

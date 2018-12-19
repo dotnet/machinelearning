@@ -1,0 +1,82 @@
+---- BoundLoader ----
+2 columns:
+  One: Text
+  Vec: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+---- RowToRowMapperTransform ----
+3 columns:
+  One: Text
+  Vec: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  WB2: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'One', [1] 'One'
+---- RowToRowMapperTransform ----
+5 columns:
+  One: Text
+  Vec: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  WB2: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'One', [1] 'One'
+  WB2: Vec<Text>
+  WB1: Vec<Text>
+---- RowToRowMapperTransform ----
+7 columns:
+  One: Text
+  Vec: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  WB2: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'One', [1] 'One'
+  WB2: Vec<Text>
+  WB2: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
+  WB1: Vec<Text>
+  WB1: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
+---- RowToRowMapperTransform ----
+9 columns:
+  One: Text
+  Vec: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  WB2: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'One', [1] 'One'
+  WB2: Vec<Text>
+  WB2: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
+  WB2: Vec<R4, 30>
+    Metadata 'SlotNames': Vec<Text, 30>: Length=30, Count=30
+      [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|ein', [4] 'lediglich|air|spezialist', [5] 'lediglich|worldwide', [6] 'lediglich|worldwide|ein', [7] 'lediglich|worldwide|spezialist', [8] 'lediglich|ein', [9] 'lediglich|ein|spezialist'
+      [10] 'air', [11] 'air|worldwide', [12] 'air|worldwide|ein', [13] 'air|worldwide|spezialist', [14] 'air|worldwide|fuer', [15] 'air|ein', [16] 'air|ein|spezialist', [17] 'air|spezialist', [18] 'worldwide', [19] 'worldwide|ein'
+      [20] 'worldwide|spezialist', [21] 'worldwide|fuer', [22] 'ein', [23] 'ein|spezialist', [24] 'spezialist', [25] 'fuer', [26] 'risikomodelle', [27] 'wagte', [28] 'sich', [29] 'schnell'
+  WB1: Vec<Text>
+  WB1: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'lediglich', [1] 'air', [2] 'worldwide', [3] 'ein', [4] 'spezialist', [5] 'fuer', [6] 'risikomodelle', [7] 'wagte', [8] 'sich', [9] 'schnell'
+  WB1: Vec<R4, 30>
+    Metadata 'SlotNames': Vec<Text, 30>: Length=30, Count=30
+      [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|ein', [4] 'lediglich|air|spezialist', [5] 'lediglich|worldwide', [6] 'lediglich|worldwide|ein', [7] 'lediglich|worldwide|spezialist', [8] 'lediglich|ein', [9] 'lediglich|ein|spezialist'
+      [10] 'air', [11] 'air|worldwide', [12] 'air|worldwide|ein', [13] 'air|worldwide|spezialist', [14] 'air|worldwide|fuer', [15] 'air|ein', [16] 'air|ein|spezialist', [17] 'air|spezialist', [18] 'worldwide', [19] 'worldwide|ein'
+      [20] 'worldwide|spezialist', [21] 'worldwide|fuer', [22] 'ein', [23] 'ein|spezialist', [24] 'spezialist', [25] 'fuer', [26] 'risikomodelle', [27] 'wagte', [28] 'sich', [29] 'schnell'
+---- SelectColumnsDataTransform ----
+2 columns:
+  WB1: Vec<R4, 30>
+    Metadata 'SlotNames': Vec<Text, 30>: Length=30, Count=30
+      [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|ein', [4] 'lediglich|air|spezialist', [5] 'lediglich|worldwide', [6] 'lediglich|worldwide|ein', [7] 'lediglich|worldwide|spezialist', [8] 'lediglich|ein', [9] 'lediglich|ein|spezialist'
+      [10] 'air', [11] 'air|worldwide', [12] 'air|worldwide|ein', [13] 'air|worldwide|spezialist', [14] 'air|worldwide|fuer', [15] 'air|ein', [16] 'air|ein|spezialist', [17] 'air|spezialist', [18] 'worldwide', [19] 'worldwide|ein'
+      [20] 'worldwide|spezialist', [21] 'worldwide|fuer', [22] 'ein', [23] 'ein|spezialist', [24] 'spezialist', [25] 'fuer', [26] 'risikomodelle', [27] 'wagte', [28] 'sich', [29] 'schnell'
+  WB2: Vec<R4, 30>
+    Metadata 'SlotNames': Vec<Text, 30>: Length=30, Count=30
+      [0] 'lediglich', [1] 'lediglich|air', [2] 'lediglich|air|worldwide', [3] 'lediglich|air|ein', [4] 'lediglich|air|spezialist', [5] 'lediglich|worldwide', [6] 'lediglich|worldwide|ein', [7] 'lediglich|worldwide|spezialist', [8] 'lediglich|ein', [9] 'lediglich|ein|spezialist'
+      [10] 'air', [11] 'air|worldwide', [12] 'air|worldwide|ein', [13] 'air|worldwide|spezialist', [14] 'air|worldwide|fuer', [15] 'air|ein', [16] 'air|ein|spezialist', [17] 'air|spezialist', [18] 'worldwide', [19] 'worldwide|ein'
+      [20] 'worldwide|spezialist', [21] 'worldwide|fuer', [22] 'ein', [23] 'ein|spezialist', [24] 'spezialist', [25] 'fuer', [26] 'risikomodelle', [27] 'wagte', [28] 'sich', [29] 'schnell'

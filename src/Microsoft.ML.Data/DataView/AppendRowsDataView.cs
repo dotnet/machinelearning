@@ -109,10 +109,10 @@ namespace Microsoft.ML.Runtime.Data
             const string errMsg = "Inconsistent schema: all source dataviews must have identical column names, sizes, and item types.";
 
             int startingSchemaIndex = _schema == _sources[0].Schema ? 1 : 0;
-            int colCount = _schema.ColumnCount;
+            int colCount = _schema.Count;
 
             // Check if the column counts are identical.
-            _host.Check(_sources.All(source => source.Schema.ColumnCount == colCount), errMsg);
+            _host.Check(_sources.All(source => source.Schema.Count == colCount), errMsg);
 
             for (int c = 0; c < colCount; c++)
             {
@@ -122,8 +122,8 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = startingSchemaIndex; i < _sources.Length; i++)
                 {
                     var schema = _sources[i].Schema;
-                    _host.Check(schema.GetColumnName(c) == name, errMsg);
-                    _host.Check(schema.GetColumnType(c).SameSizeAndItemType(type), errMsg);
+                    _host.Check(schema[c].Name == name, errMsg);
+                    _host.Check(schema[c].Type.SameSizeAndItemType(type), errMsg);
                 }
             }
         }
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
                 Sources = parent._sources;
                 Ch.AssertNonEmpty(Sources);
                 Schema = parent._schema;
-                Getters = new Delegate[Schema.ColumnCount];
+                Getters = new Delegate[Schema.Count];
             }
 
             protected Delegate CreateGetter(int col)
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public sealed override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount, "Column index is out of range");
+                Ch.Check(0 <= col && col < Schema.Count, "Column index is out of range");
                 return Getters[col] != null;
             }
         }
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class Cursor : CursorBase
         {
             private RowCursor _currentCursor;
-            private ValueGetter<UInt128> _currentIdGetter;
+            private ValueGetter<RowId> _currentIdGetter;
             private int _currentSourceIndex;
 
             public Cursor(AppendRowsDataView parent, Func<int, bool> needCol)
@@ -228,17 +228,17 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         _currentIdGetter(ref val);
                         // While the union of all IDs may not be acceptable, by taking each
                         // data views IDs and combining them against their source index, the
                         // union of these IDs becomes acceptable.
-                        // REVIEW: Convenience UInt128 constructor for this scenario?
-                        val = val.Combine(new UInt128((ulong)_currentSourceIndex, 0));
+                        // REVIEW: Convenience RowId constructor for this scenario?
+                        val = val.Combine(new RowId((ulong)_currentSourceIndex, 0));
                     };
             }
 
@@ -329,17 +329,17 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
-                ValueGetter<UInt128>[] idGetters = new ValueGetter<UInt128>[_cursorSet.Length];
+                ValueGetter<RowId>[] idGetters = new ValueGetter<RowId>[_cursorSet.Length];
                 for (int i = 0; i < _cursorSet.Length; ++i)
                     idGetters[i] = _cursorSet[i].GetIdGetter();
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
                         idGetters[_currentSourceIndex](ref val);
-                        val = val.Combine(new UInt128((ulong)_currentSourceIndex, 0));
+                        val = val.Combine(new RowId((ulong)_currentSourceIndex, 0));
                     };
             }
 

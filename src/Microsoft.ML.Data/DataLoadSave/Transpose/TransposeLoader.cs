@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Host.CheckDecode(rowCount == 0 || _parent._header.RowCount == rowCount);
 
                     var schema = view.Schema;
-                    Host.CheckDecode(schema.ColumnCount == _parent._header.ColumnCount);
+                    Host.CheckDecode(schema.Count == _parent._header.ColumnCount);
                 }
             }
 
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     // The correctness of this relies upon the schema entry being read first.
                     Host.AssertValue(parent._schemaEntry);
-                    Host.Assert(0 <= col && col < parent.Schema.ColumnCount);
+                    Host.Assert(0 <= col && col < parent.Schema.Count);
                     _col = col;
 
                     // Either we have to have data, or the parent has to have explicit row data.
@@ -293,8 +293,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Host.AssertValue(view);
                     // This must have precisely one column, of type vector.
                     var schema = view.Schema;
-                    Host.CheckDecode(schema.ColumnCount == 1);
-                    var ttype = schema.GetColumnType(0);
+                    Host.CheckDecode(schema.Count == 1);
+                    var ttype = schema[0].Type;
                     Host.CheckDecode(ttype.IsVector);
                     // We have no way to encode a type of zero length vectors per se in the case
                     // when there are no rows in the original dataset, but accept that if the vector
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     long rowCount = rowCountNull.Value;
                     // There must be one "row" per "slot" on the column this is a transpose of.
                     // Check that.
-                    var type = _parent.Schema.GetColumnType(_col);
+                    var type = _parent.Schema[_col].Type;
                     Host.CheckDecode(type.ValueCount == rowCount);
                     // The item types should be the same.
                     Host.CheckDecode(type.ItemType.Equals(ttype.ItemType));
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private readonly object _colTransposersLock;
 
         /// <summary>
-        /// Lower inclusive bound of versions this reader can read.
+        /// Low inclusive bound of versions this reader can read.
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010001;
 
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         // to use the cursors from the schema view if convenient to do so.
         public Schema Schema { get { return _schemaEntry.GetView().Schema; } }
 
-        public ITransposeSchema TransposeSchema { get { return _schema; } }
+        ITransposeSchema ITransposeDataView.TransposeSchema { get { return _schema; } }
 
         /// <summary>
         /// Whether the master schema sub-IDV has the actual data.
@@ -470,7 +470,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             _header = new Header()
             {
-                ColumnCount = schemaView.Schema.ColumnCount
+                ColumnCount = schemaView.Schema.Count
             };
             _schemaEntry = new SubIdvEntry.SchemaSubIdv(this, schemaView);
             _host.Assert(_schemaEntry.GetViewOrNull() == schemaView);
@@ -551,8 +551,8 @@ namespace Microsoft.ML.Runtime.Data.IO
             var saver = new BinarySaver(env, saverArgs);
 
             // We load our schema from what amounts to a binary loader, so all columns should likewise be savable.
-            env.Assert(Enumerable.Range(0, schema.ColumnCount).All(c => saver.IsColumnSavable(schema.GetColumnType(c))));
-            ctx.SaveBinaryStream("Schema.idv", w => saver.SaveData(w.BaseStream, noRows, Utils.GetIdentityPermutation(schema.ColumnCount)));
+            env.Assert(Enumerable.Range(0, schema.Count).All(c => saver.IsColumnSavable(schema[c].Type)));
+            ctx.SaveBinaryStream("Schema.idv", w => saver.SaveData(w.BaseStream, noRows, Utils.GetIdentityPermutation(schema.Count)));
         }
 
         private unsafe Header InitHeader(BinaryReader reader)
@@ -614,7 +614,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private readonly TransposeLoader _parent;
             private Schema Schema { get { return _parent.Schema; } }
             private IHost Host { get { return _parent._host; } }
-            public int ColumnCount { get { return Schema.ColumnCount; } }
+            public int ColumnCount { get { return Schema.Count; } }
 
             public SchemaImpl(TransposeLoader parent)
             {
@@ -625,7 +625,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             public string GetColumnName(int col)
             {
-                return Schema.GetColumnName(col);
+                return Schema[col].Name;
             }
 
             public bool TryGetColumnIndex(string name, out int col)
@@ -635,22 +635,22 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             public ColumnType GetColumnType(int col)
             {
-                return Schema.GetColumnType(col);
+                return Schema[col].Type;
             }
 
             public ColumnType GetMetadataTypeOrNull(string kind, int col)
             {
-                return Schema.GetMetadataTypeOrNull(kind, col);
+                return Schema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             }
 
             public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
             {
-                return Schema.GetMetadataTypes(col);
+                return Schema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
             }
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)
             {
-                Schema.GetMetadata<TValue>(kind, col, ref value);
+                Schema[col].Metadata.GetValue(kind, ref value);
             }
 
             public VectorType GetSlotType(int col)
@@ -659,7 +659,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 var view = _parent._entries[col].GetViewOrNull();
                 if (view == null)
                     return null;
-                return view.Schema.GetColumnType(0).AsVector;
+                return view.Schema[0].Type as VectorType;
             }
         }
 
@@ -693,12 +693,12 @@ namespace Microsoft.ML.Runtime.Data.IO
             if (view == null)
             {
                 throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
-                    Schema.GetColumnName(col));
+                    Schema[col].Name);
             }
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
-            ColumnType cursorType = TransposeSchema.GetSlotType(col).ItemType;
+            ColumnType cursorType = _schema.GetSlotType(col).ItemType;
             RowCursor inputCursor = view.GetRowCursor(c => true);
             try
             {
@@ -781,10 +781,10 @@ namespace Microsoft.ML.Runtime.Data.IO
                         var view = _entries[col].GetViewOrNull();
                         // Since we don't have row-wise data, this view must exist.
                         _host.AssertValue(view);
-                        _host.Assert(view.Schema.ColumnCount == 1);
+                        _host.Assert(view.Schema.Count == 1);
                         var trans = _colTransposers[col] = Transposer.Create(_host, view, false, new int[] { 0 });
-                        _host.Assert(trans.TransposeSchema.ColumnCount == 1);
-                        _host.Assert(trans.TransposeSchema.GetSlotType(0).ValueCount == Schema.GetColumnType(col).ValueCount);
+                        _host.Assert(((ITransposeDataView)trans).TransposeSchema.ColumnCount == 1);
+                        _host.Assert(((ITransposeDataView)trans).TransposeSchema.GetSlotType(0).ValueCount == Schema[col].Type.ValueCount);
                     }
                 }
             }
@@ -842,10 +842,10 @@ namespace Microsoft.ML.Runtime.Data.IO
             /// </summary>
             private void Init(int col)
             {
-                Ch.Assert(0 <= col && col < Schema.ColumnCount);
+                Ch.Assert(0 <= col && col < Schema.Count);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                var type = Schema.GetColumnType(col);
-                Ch.Assert(_parent.TransposeSchema.GetSlotType(col).ValueCount == _parent._header.RowCount);
+                var type = Schema[col].Type;
+                Ch.Assert(((ITransposeDataView)_parent).TransposeSchema.GetSlotType(col).ValueCount == _parent._header.RowCount);
                 Action<int> func = InitOne<int>;
                 if (type.IsVector)
                     func = InitVec<int>;
@@ -855,7 +855,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             private void InitOne<T>(int col)
             {
-                var type = Schema.GetColumnType(col);
+                var type = Schema[col].Type;
                 Ch.Assert(typeof(T) == type.RawType);
                 var trans = _parent.EnsureAndGetTransposer(col);
                 SlotCursor cursor = trans.GetSlotCursor(0);
@@ -875,7 +875,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             private void InitVec<T>(int col)
             {
-                var type = Schema.GetColumnType(col);
+                var type = Schema[col].Type;
                 Ch.Assert(type.IsVector);
                 Ch.Assert(typeof(T) == type.ItemType.RawType);
                 var trans = _parent.EnsureAndGetTransposer(col);
@@ -886,13 +886,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _transCursors[i] = cursor;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)Position, 0);
+                        val = new RowId((ulong)Position, 0);
                     };
             }
 

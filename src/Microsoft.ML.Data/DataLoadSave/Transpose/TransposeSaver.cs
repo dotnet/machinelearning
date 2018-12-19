@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             // an artificial vector type out of this. Obviously if you can't make a vector
             // out of the items, then you could not save each slot's values.
             var itemType = type.ItemType;
-            var primitiveType = itemType.AsPrimitive;
+            var primitiveType = itemType as PrimitiveType;
             if (primitiveType == null)
                 return false;
             var vectorType = new VectorType(primitiveType, size: 2);
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     using (var substream = new SubsetStream(stream))
                     {
-                        _internalSaver.SaveData(substream, view, Utils.GetIdentityPermutation(view.Schema.ColumnCount));
+                        _internalSaver.SaveData(substream, view, Utils.GetIdentityPermutation(view.Schema.Count));
                         substream.Seek(0, SeekOrigin.End);
                         ch.Info("Wrote {0} data view in {1} bytes", name, substream.Length);
                     }
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             string msg = _writeRowData ? "row-wise data, schema, and metadata" : "schema and metadata";
             viewAction(msg, subdata);
             foreach (var col in cols)
-                viewAction(data.Schema.GetColumnName(col), new TransposerUtils.SlotDataView(_host, data, col));
+                viewAction(data.Schema[col].Name, new TransposerUtils.SlotDataView(_host, data, col));
 
             // Wrote out the dataview. Write out the table offset.
             using (var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true))

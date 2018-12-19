@@ -96,5 +96,18 @@ namespace Microsoft.ML.Data
             PerClassLogLoss = new double[perClassLogLoss.Length];
             perClassLogLoss.CopyTo(PerClassLogLoss);
         }
+
+        internal MultiClassClassifierMetrics(double accuracyMicro, double accuracyMacro, double logLoss, double logLossReduction,
+            int topK, double topKAccuracy, double[] perClassLogLoss)
+        {
+            AccuracyMicro = accuracyMicro;
+            AccuracyMacro = accuracyMacro;
+            LogLoss = logLoss;
+            LogLossReduction = logLossReduction;
+            TopK = topK;
+            TopKAccuracy = topKAccuracy;
+            PerClassLogLoss = new double[perClassLogLoss.Length];
+            perClassLogLoss.CopyTo(PerClassLogLoss, 0);
+        }
     }
 }

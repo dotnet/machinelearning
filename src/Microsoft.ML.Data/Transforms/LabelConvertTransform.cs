@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -173,7 +174,7 @@ namespace Microsoft.ML.Transforms
 
             disposer = null;
             int col = Infos[iinfo].Source;
-            var typeSrc = input.Schema.GetColumnType(col);
+            var typeSrc = input.Schema[col].Type;
             Contracts.Assert(RowCursorUtils.TestGetLabelGetter(typeSrc) == null);
             return RowCursorUtils.GetLabelGetter(input, col);
         }

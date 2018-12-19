@@ -13,14 +13,13 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-
-using System.Collections.Generic;
-using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -34,10 +33,10 @@ using Microsoft.ML.Trainers;
 [assembly: EntryPointModule(typeof(OvaPredictor))]
 namespace Microsoft.ML.Trainers
 {
+    using CR = RoleMappedSchema.ColumnRole;
+    using TDistPredictor = IDistPredictorProducing<float, float>;
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
-    using TDistPredictor = IDistPredictorProducing<float, float>;
-    using CR = RoleMappedSchema.ColumnRole;
 
     public sealed class Ova : MetaMulticlassTrainer<MulticlassPredictionTransformer<OvaPredictor>, OvaPredictor>
     {
@@ -103,7 +102,7 @@ namespace Microsoft.ML.Trainers
             _args.UseProbabilities = useProbabilities;
         }
 
-        protected override OvaPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override OvaPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train one-vs-all models.
             var predictors = new TScalarPredictor[count];
@@ -134,7 +133,7 @@ namespace Microsoft.ML.Trainers
                 var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
 
                 if (calibratedModel == null)
-                    calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
+                    calibratedModel = CalibratorUtils.GetCalibratedPredictor(Host, ch, Calibrator, transformer.Model, trainedData, Args.MaxCalibrationExamples) as TDistPredictor;
 
                 Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
                 return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
@@ -146,7 +145,7 @@ namespace Microsoft.ML.Trainers
         private IDataView MapLabels(RoleMappedData data, int cls)
         {
             var lab = data.Schema.Label;
-            Host.Assert(!data.Schema.Schema.IsHidden(lab.Index));
+            Host.Assert(!data.Schema.Schema[lab.Index].IsHidden);
             Host.Assert(lab.Type.KeyCount > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
 
             if (lab.Type.KeyCount > 0)

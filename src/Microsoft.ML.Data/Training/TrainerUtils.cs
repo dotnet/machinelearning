@@ -38,7 +38,8 @@ namespace Microsoft.ML.Runtime.Training
         AllFeatures = Features | AllowBadFeatures,
     }
 
-    public static class TrainerUtils
+    [BestFriend]
+    internal static class TrainerUtils
     {
         /// <summary>
         /// Check for a standard (known-length vector of float) feature column.
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Feature;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
                 throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
@@ -65,7 +66,7 @@ namespace Microsoft.ML.Runtime.Training
             // If the above function is generalized, this needs to be as well.
             Contracts.AssertValue(data);
             Contracts.Assert(data.Schema.Feature != null);
-            Contracts.Assert(!data.Schema.Schema.IsHidden(data.Schema.Feature.Index));
+            Contracts.Assert(!data.Schema.Schema[data.Schema.Feature.Index].IsHidden);
             Contracts.Assert(data.Schema.Feature.Type.IsKnownSizeVector);
             Contracts.Assert(data.Schema.Feature.Type.ItemType == NumberType.Float);
             length = data.Schema.Feature.Type.VectorSize;
@@ -81,7 +82,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Label;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (!col.Type.IsBool && col.Type != NumberType.R4 && col.Type != NumberType.R8 && col.Type.KeyCount != 2)
             {
                 if (col.Type.IsKey)
@@ -115,7 +116,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Label;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type != NumberType.R4 && col.Type != NumberType.R8)
             {
                 throw Contracts.ExceptParam(nameof(data),
@@ -135,7 +136,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Label;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type.KeyCount > 0)
             {
                 count = col.Type.KeyCount;
@@ -181,7 +182,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Label;
             if (col == null)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
@@ -193,7 +194,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Weight;
             if (col == null)
                 return;
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type != NumberType.R4 && col.Type != NumberType.R8)
                 throw Contracts.ExceptParam(nameof(data), "Training weight column '{0}' must be of floating point numeric type, but has type: {1}.", col.Name, col.Type);
         }
@@ -205,7 +206,7 @@ namespace Microsoft.ML.Runtime.Training
             var col = data.Schema.Group;
             if (col == null)
                 return;
-            Contracts.Assert(!data.Schema.Schema.IsHidden(col.Index));
+            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type.IsKey)
                 return;
             throw Contracts.ExceptParam(nameof(data), "Training group column '{0}' type is invalid: {1}. Must be Key type.", col.Name, col.Type);
@@ -353,11 +354,11 @@ namespace Microsoft.ML.Runtime.Training
             => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
 
         /// <summary>
-        /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.
+        /// The <see cref="SchemaShape.Column"/> for the float type columns.
         /// </summary>
-        /// <param name="labelColumn">name of the weight column</param>
-        public static SchemaShape.Column MakeR4ScalarLabel(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        /// <param name="columnName">name of the column</param>
+        public static SchemaShape.Column MakeR4ScalarColumn(string columnName)
+            => new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
 
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.
@@ -402,18 +403,16 @@ namespace Microsoft.ML.Runtime.Training
     /// repeated accesses, is to use a cursor factory (usually a nested class of the cursor
     /// class). This keeps track of what filtering options were actually useful.
     /// </summary>
-    public abstract class TrainingCursorBase : IDisposable
+    [BestFriend]
+    internal abstract class TrainingCursorBase : IDisposable
     {
-        public Row Row { get { return _cursor; } }
+        public Row Row => _cursor;
 
         private readonly RowCursor _cursor;
         private readonly Action<CursOpt> _signal;
 
-        private long _skipCount;
-        private long _keptCount;
-
-        public long SkippedRowCount { get { return _skipCount; } }
-        public long KeptRowCount { get { return _keptCount; } }
+        public long SkippedRowCount { get; private set; }
+        public long KeptRowCount { get; private set; }
 
         /// <summary>
         /// The base constructor class for the factory-based cursor creation.
@@ -471,10 +470,10 @@ namespace Microsoft.ML.Runtime.Training
                 }
                 if (Accept())
                 {
-                    _keptCount++;
+                    KeptRowCount++;
                     return true;
                 }
-                _skipCount++;
+                SkippedRowCount++;
             }
         }
 
@@ -634,24 +633,23 @@ namespace Microsoft.ML.Runtime.Training
     }
 
     /// <summary>
-    /// This supports Weight (float), Group (ulong), and Id (UInt128) columns.
+    /// This supports Weight (float), Group (ulong), and Id (RowId) columns.
     /// </summary>
-    public class StandardScalarCursor : TrainingCursorBase
+    [BestFriend]
+    internal class StandardScalarCursor : TrainingCursorBase
     {
         private readonly ValueGetter<float> _getWeight;
         private readonly ValueGetter<ulong> _getGroup;
-        private readonly ValueGetter<UInt128> _getId;
+        private readonly ValueGetter<RowId> _getId;
         private readonly bool _keepBadWeight;
         private readonly bool _keepBadGroup;
 
-        private long _badWeightCount;
-        private long _badGroupCount;
-        public long BadWeightCount { get { return _badWeightCount; } }
-        public long BadGroupCount { get { return _badGroupCount; } }
+        public long BadWeightCount { get; private set; }
+        public long BadGroupCount { get; private set; }
 
         public float Weight;
         public ulong Group;
-        public UInt128 Id;
+        public RowId Id;
 
         public StandardScalarCursor(RoleMappedData data, CursOpt opt, Random rand = null, params int[] extraCols)
             : this(CreateCursor(data, opt, rand, extraCols), data, opt)
@@ -698,7 +696,7 @@ namespace Microsoft.ML.Runtime.Training
                 _getWeight(ref Weight);
                 if (!_keepBadWeight && !(0 < Weight && Weight < float.PositiveInfinity))
                 {
-                    _badWeightCount++;
+                    BadWeightCount++;
                     return false;
                 }
             }
@@ -707,7 +705,7 @@ namespace Microsoft.ML.Runtime.Training
                 _getGroup(ref Group);
                 if (!_keepBadGroup && Group == 0)
                 {
-                    _badGroupCount++;
+                    BadGroupCount++;
                     return false;
                 }
             }
@@ -732,13 +730,13 @@ namespace Microsoft.ML.Runtime.Training
     /// This derives from <see cref="StandardScalarCursor"/> and adds the feature column
     /// as a <see cref="VBuffer{Float}"/>.
     /// </summary>
-    public class FeatureFloatVectorCursor : StandardScalarCursor
+    [BestFriend]
+    internal class FeatureFloatVectorCursor : StandardScalarCursor
     {
         private readonly ValueGetter<VBuffer<float>> _get;
         private readonly bool _keepBad;
 
-        private long _badCount;
-        public long BadFeaturesRowCount { get { return _badCount; } }
+        public long BadFeaturesRowCount { get; private set; }
 
         public VBuffer<float> Features;
 
@@ -775,7 +773,7 @@ namespace Microsoft.ML.Runtime.Training
                 _get(ref Features);
                 if (!_keepBad && !FloatUtils.IsFinite(Features.GetValues()))
                 {
-                    _badCount++;
+                    BadFeaturesRowCount++;
                     return false;
                 }
             }
@@ -799,14 +797,13 @@ namespace Microsoft.ML.Runtime.Training
     /// <summary>
     /// This derives from the FeatureFloatVectorCursor and adds the Label (float) column.
     /// </summary>
-    public class FloatLabelCursor : FeatureFloatVectorCursor
+    [BestFriend]
+    internal class FloatLabelCursor : FeatureFloatVectorCursor
     {
         private readonly ValueGetter<float> _get;
         private readonly bool _keepBad;
 
-        private long _badCount;
-
-        public long BadLabelCount { get { return _badCount; } }
+        public long BadLabelCount { get; private set; }
 
         public float Label;
 
@@ -842,7 +839,7 @@ namespace Microsoft.ML.Runtime.Training
                 _get(ref Label);
                 if (!_keepBad && !FloatUtils.IsFinite(Label))
                 {
-                    _badCount++;
+                    BadLabelCount++;
                     return false;
                 }
             }
@@ -867,14 +864,14 @@ namespace Microsoft.ML.Runtime.Training
     /// This derives from the FeatureFloatVectorCursor and adds the Label (int) column,
     /// enforcing multi-class semantics.
     /// </summary>
-    public class MultiClassLabelCursor : FeatureFloatVectorCursor
+    [BestFriend]
+    internal class MultiClassLabelCursor : FeatureFloatVectorCursor
     {
         private readonly int _classCount;
         private readonly ValueGetter<float> _get;
         private readonly bool _keepBad;
 
-        private long _badCount;
-        public long BadLabelCount { get { return _badCount; } }
+        public long BadLabelCount { get; private set; }
 
         private float _raw;
         public int Label;
@@ -915,7 +912,7 @@ namespace Microsoft.ML.Runtime.Training
                 Label = (int)_raw;
                 if (!_keepBad && !(Label == _raw && (0 <= _raw && (_raw < _classCount || _classCount == 0))))
                 {
-                    _badCount++;
+                    BadLabelCount++;
                     return false;
                 }
             }

@@ -116,8 +116,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            if (!inputSchema.GetColumnType(srcCol).IsText)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextType.Instance.ToString(), inputSchema.GetColumnType(srcCol).ToString());
+            if (!inputSchema[srcCol].Type.IsText)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextType.Instance.ToString(), inputSchema[srcCol].Type.ToString());
         }
 
         public override void Save(ModelSaveContext ctx)

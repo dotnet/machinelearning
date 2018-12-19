@@ -375,7 +375,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         "Label column '{0}' not found", labelColumnName);
                 }
 
-                var labelType = schema.GetColumnType(labelCol);
+                var labelType = schema[labelCol].Type;
                 if (!IsValidColumnType(labelType))
                 {
                     throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.LabelColumn),
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             "Source column '{0}' not found", colName);
                     }
 
-                    var colType = schema.GetColumnType(colSrc);
+                    var colType = schema[colSrc].Type;
                     if (colType.IsVector && !colType.IsKnownSizeVector)
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
@@ -521,7 +521,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             private Single[] ComputeMutualInformation(Transposer trans, int col)
             {
                 // Note: NAs have their own separate bin.
-                var type = trans.Schema.GetColumnType(col);
+                var type = trans.Schema[col].Type;
                 if (type.ItemType == NumberType.I4)
                 {
                     return ComputeMutualInformation(trans, col,
@@ -586,7 +586,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// </summary>
             private float[] ComputeMutualInformation<T>(Transposer trans, int col, Mapper<T> mapper)
             {
-                var slotCount = trans.Schema.GetColumnType(col).ValueCount;
+                var slotCount = trans.Schema[col].Type.ValueCount;
                 var scores = new float[slotCount];
                 int iScore = 0;
                 VBuffer<int> slotValues = default(VBuffer<int>);

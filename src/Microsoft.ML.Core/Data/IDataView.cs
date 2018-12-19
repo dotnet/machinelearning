@@ -12,7 +12,8 @@ namespace Microsoft.ML.Runtime.Data
     /// Legacy interface for schema information.
     /// Please avoid implementing this interface, use <see cref="Schema"/>.
     /// </summary>
-    public interface ISchema
+    [BestFriend]
+    internal interface ISchema
     {
         /// <summary>
         /// Number of columns.
@@ -182,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
         /// all that if the "same" data were presented in a different data view (as by, say, being transformed,
         /// cached, saved, or whatever), that the IDs between the two different data views would have any
         /// discernable relationship.</summary>
-        public abstract ValueGetter<UInt128> GetIdGetter();
+        public abstract ValueGetter<RowId> GetIdGetter();
 
         /// <summary>
         /// Returns whether the given column is active in this row.

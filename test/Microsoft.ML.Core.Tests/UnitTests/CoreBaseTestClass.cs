@@ -34,13 +34,13 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
             return !exactTypes && type1 is VectorType vt1 && type2 is VectorType vt2 && vt1.ItemType.Equals(vt2.ItemType) && vt1.Size == vt2.Size;
         }
 
-        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<UInt128> idGetter)
+        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<RowId> idGetter)
         {
             var g1 = r1.GetIdGetter();
             idGetter = g1;
             var g2 = r2.GetIdGetter();
-            UInt128 v1 = default(UInt128);
-            UInt128 v2 = default(UInt128);
+            RowId v1 = default(RowId);
+            RowId v2 = default(RowId);
             return
                 () =>
                 {
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     case DataKind.DZ:
                         return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.UG:
-                        return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }
             }
             else
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     case DataKind.DZ:
                         return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.UG:
-                        return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<RowId>(r1, r2, col, (x, y) => x.Equals(y));
                 }
             }
 
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
 
         protected bool CheckSameValues(IDataView view1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(view1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(view1.Schema.Count == view2.Schema.Count);
 
             bool all = true;
             bool tmp;
@@ -314,10 +314,10 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
 
         protected bool CheckSameValues(RowCursor curs1, RowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == curs2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == curs2.Schema.Count);
 
             // Get the comparison delegates for each column.
-            int colLim = curs1.Schema.ColumnCount;
+            int colLim = curs1.Schema.Count;
             Func<bool>[] comps = new Func<bool>[colLim];
             for (int col = 0; col < colLim; col++)
             {
@@ -326,8 +326,8 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
 
                 if (f1 && f2)
                 {
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = curs2.Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = curs2.Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail($"Different types {type1} and {type2}");
@@ -336,13 +336,13 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     comps[col] = GetColumnComparer(curs1, curs2, col, type1, exactDoubles);
                 }
             }
-            ValueGetter<UInt128> idGetter = null;
+            ValueGetter<RowId> idGetter = null;
             Func<bool> idComp = checkId ? GetIdComparer(curs1, curs2, out idGetter) : null;
-            HashSet<UInt128> idsSeen = null;
+            HashSet<RowId> idsSeen = null;
             if (checkIdCollisions && idGetter == null)
                 idGetter = curs1.GetIdGetter();
             long idCollisions = 0;
-            UInt128 id = default(UInt128);
+            RowId id = default(RowId);
 
             for (; ; )
             {
@@ -394,10 +394,10 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
 
         protected bool CheckSameValues(RowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == view2.Schema.Count);
 
             // Get a cursor for each column.
-            int colLim = curs1.Schema.ColumnCount;
+            int colLim = curs1.Schema.Count;
             var cursors = new RowCursor[colLim];
             try
             {
@@ -415,15 +415,15 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                 for (int col = 0; col < colLim; col++)
                 {
                     Contracts.Assert(cursors[col] != null);
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = cursors[col].Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = cursors[col].Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");
                         return Failed();
                     }
                     comps[col] = GetColumnComparer(curs1, cursors[col], col, type1, exactDoubles);
-                    ValueGetter<UInt128> idGetter;
+                    ValueGetter<RowId> idGetter;
                     idComps[col] = checkId ? GetIdComparer(curs1, cursors[col], out idGetter) : null;
                 }
 

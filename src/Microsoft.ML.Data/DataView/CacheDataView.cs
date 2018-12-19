@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
 
             _cacheLock = new object();
             _cacheFillerThreads = new ConcurrentBag<Thread>();
-            _caches = new ColumnCache[_subsetInput.Schema.ColumnCount];
+            _caches = new ColumnCache[_subsetInput.Schema.Count];
 
             if (Utils.Size(prefetch) > 0)
                 KickoffFiller(prefetch);
@@ -124,21 +124,21 @@ namespace Microsoft.ML.Data
                 Array.Copy(prefetch, tmp, prefetch.Length);
                 Array.Sort(tmp);
                 prefetch = tmp;
-                if (prefetch.Length > 0 && (prefetch[0] < 0 || prefetch[prefetch.Length - 1] >= schema.ColumnCount))
+                if (prefetch.Length > 0 && (prefetch[0] < 0 || prefetch[prefetch.Length - 1] >= schema.Count))
                     throw env.Except("Prefetch array had column indices out of range");
             }
             int ip = 0;
             inputToSubset = null;
 
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                var type = schema.GetColumnType(c);
+                var type = schema[c].Type;
                 env.Assert(ip == prefetch.Length || c <= prefetch[ip]);
                 if (!type.IsCachable())
                 {
                     if (inputToSubset == null)
                     {
-                        inputToSubset = new int[schema.ColumnCount];
+                        inputToSubset = new int[schema.Count];
                         for (int cc = 0; cc < c; ++cc)
                             inputToSubset[cc] = cc;
                     }
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Data
                     {
                         throw env.Except(
                             "Asked to prefetch column '{0}' into cache, but it is of unhandled type '{1}'",
-                            schema.GetColumnName(c), type);
+                            schema[c].Name, type);
                     }
                 }
                 else
@@ -182,10 +182,10 @@ namespace Microsoft.ML.Data
         /// if this was cachable, or else -1 if the column was not cachable</returns>
         public int MapInputToCacheColumnIndex(int inputIndex)
         {
-            int inputIndexLim = _inputToSubsetColIndex == null ? _subsetInput.Schema.ColumnCount : _inputToSubsetColIndex.Length;
+            int inputIndexLim = _inputToSubsetColIndex == null ? _subsetInput.Schema.Count : _inputToSubsetColIndex.Length;
             _host.CheckParam(0 <= inputIndex && inputIndex < inputIndexLim, nameof(inputIndex), "Input column index not in range");
             var result = _inputToSubsetColIndex == null ? inputIndex : _inputToSubsetColIndex[inputIndex];
-            _host.Assert(-1 <= result && result < _subsetInput.Schema.ColumnCount);
+            _host.Assert(-1 <= result && result < _subsetInput.Schema.Count);
             return result;
         }
 
@@ -481,7 +481,7 @@ namespace Microsoft.ML.Data
                 _index = index;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
 
             public override RowCursor GetRootCursor() => this;
 
@@ -566,7 +566,7 @@ namespace Microsoft.ML.Data
             public override Schema Schema => _internal.Schema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _internal.GetGetter<TValue>(col);
-            public override ValueGetter<UInt128> GetIdGetter() => _internal.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _internal.GetIdGetter();
             public override bool IsColumnActive(int col) => _internal.IsColumnActive(col);
             public override bool MoveTo(long rowIndex) => _internal.MoveTo(rowIndex);
         }
@@ -580,13 +580,13 @@ namespace Microsoft.ML.Data
 
             public override CursorState State => throw new NotImplementedException();
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(Position >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)Position, 0);
+                        val = new RowId((ulong)Position, 0);
                     };
             }
 
@@ -704,7 +704,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(pred);
                 _parent = parent;
 
-                int[] actives = Enumerable.Range(0, _parent.Schema.ColumnCount).Where(pred).ToArray();
+                int[] actives = Enumerable.Range(0, _parent.Schema.Count).Where(pred).ToArray();
                 // Kick off the thread to fill in any requested columns.
                 _parent.KickoffFiller(actives);
 
@@ -774,7 +774,7 @@ namespace Microsoft.ML.Data
             /// An ID getter, which should be based on the value that would be returned
             /// from <see cref="GetIndex"/>, if valid, and otherwise have undefined behavior.
             /// </summary>
-            ValueGetter<UInt128> GetIdGetter();
+            ValueGetter<RowId> GetIdGetter();
 
             /// <summary>
             /// Moves to the next index. Once this or <see cref="MoveMany"/> has returned
@@ -819,13 +819,13 @@ namespace Microsoft.ML.Data
                 return _curr;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_curr, 0);
+                        val = new RowId((ulong)_curr, 0);
                     };
             }
 
@@ -865,7 +865,7 @@ namespace Microsoft.ML.Data
 
                 public long Batch => _index.Batch;
                 public long GetIndex() => _index.GetIndex();
-                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
                 public bool MoveMany(long count) => _index.MoveMany(count);
             }
@@ -894,13 +894,13 @@ namespace Microsoft.ML.Data
                 return _perm[_curr];
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_perm[_curr], 0);
+                        val = new RowId((ulong)_perm[_curr], 0);
                     };
             }
 
@@ -956,7 +956,7 @@ namespace Microsoft.ML.Data
 
                 public long Batch => _index.Batch;
                 public long GetIndex() => _index.GetIndex();
-                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+                public ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
                 public bool MoveNext() => _index.MoveNext();
                 public bool MoveMany(long count) => _index.MoveMany(count);
             }
@@ -1050,13 +1050,13 @@ namespace Microsoft.ML.Data
                 return _curr;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_curr, 0);
+                        val = new RowId((ulong)_curr, 0);
                     };
             }
 
@@ -1124,11 +1124,11 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch => _index.Batch;
-                public long GetIndex() => _index.GetIndex();
-                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
-                public bool MoveNext() => _index.MoveNext();
-                public bool MoveMany(long count) => _index.MoveMany(count);
+                public long Batch { get { return _index.Batch; } }
+                public long GetIndex() { return _index.GetIndex(); }
+                public ValueGetter<RowId> GetIdGetter() { return _index.GetIdGetter(); }
+                public bool MoveNext() { return _index.MoveNext(); }
+                public bool MoveMany(long count) { return _index.MoveMany(count); }
             }
         }
 
@@ -1169,13 +1169,13 @@ namespace Microsoft.ML.Data
                 return _perm[_curr];
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Contracts.Check(_curr >= 0, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_perm[_curr], 0);
+                        val = new RowId((ulong)_perm[_curr], 0);
                     };
             }
 
@@ -1232,11 +1232,11 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch => _index.Batch;
-                public long GetIndex() => _index.GetIndex();
-                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
-                public bool MoveNext() => _index.MoveNext();
-                public bool MoveMany(long count) => _index.MoveMany(count);
+                public long Batch { get { return _index.Batch; } }
+                public long GetIndex() { return _index.GetIndex(); }
+                public ValueGetter<RowId> GetIdGetter() { return _index.GetIdGetter(); }
+                public bool MoveNext() { return _index.MoveNext(); }
+                public bool MoveMany(long count) { return _index.MoveMany(count); }
             }
         }
 
@@ -1263,7 +1263,7 @@ namespace Microsoft.ML.Data
                 PositionCore = -1;
 
                 // Set up the mapping from active columns.
-                int colLim = Schema.ColumnCount;
+                int colLim = Schema.Count;
                 int[] actives;
                 Utils.BuildSubsetMaps(colLim, predicate, out actives, out _colToActivesIndex);
                 // Construct the getters. Simultaneously collect whatever "waiters"
@@ -1315,14 +1315,14 @@ namespace Microsoft.ML.Data
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                return Utils.MarshalInvoke(CreateGetterDelegate<int>, Schema.GetColumnType(col).RawType, col);
+                return Utils.MarshalInvoke(CreateGetterDelegate<int>, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetterDelegate<TValue>(int col)
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                Ch.Assert(Schema.GetColumnType(col).RawType == typeof(TValue));
+                Ch.Assert(Schema[col].Type.RawType == typeof(TValue));
 
                 var cache = (ColumnCache<TValue>)Parent._caches[col];
                 return CreateGetterDelegateCore(cache);
@@ -1378,10 +1378,10 @@ namespace Microsoft.ML.Data
                 Contracts.AssertValue(parent);
                 var host = parent._host;
                 host.AssertValue(input);
-                host.Assert(0 <= srcCol & srcCol < input.Schema.ColumnCount);
+                host.Assert(0 <= srcCol & srcCol < input.Schema.Count);
                 host.Assert(input.IsColumnActive(srcCol));
 
-                var type = input.Schema.GetColumnType(srcCol);
+                var type = input.Schema[srcCol].Type;
                 Type pipeType;
                 if (type.IsVector)
                     pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
@@ -1444,7 +1444,7 @@ namespace Microsoft.ML.Data
                 public ImplVec(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
                     : base(parent, input, srcCol, waiter)
                 {
-                    var type = input.Schema.GetColumnType(srcCol);
+                    var type = input.Schema[srcCol].Type;
                     Ctx.Assert(type.IsVector);
                     _uniformLength = type.VectorSize;
                     _indices = new BigArray<int>();
@@ -1563,8 +1563,8 @@ namespace Microsoft.ML.Data
                 : base(parent._host, waiter)
             {
                 Contracts.AssertValue(input);
-                Contracts.Assert(0 <= srcCol & srcCol < input.Schema.ColumnCount);
-                Contracts.Assert(input.Schema.GetColumnType(srcCol).RawType == typeof(T));
+                Contracts.Assert(0 <= srcCol & srcCol < input.Schema.Count);
+                Contracts.Assert(input.Schema[srcCol].Type.RawType == typeof(T));
             }
 
             /// <summary>

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -58,12 +59,12 @@ namespace Microsoft.ML.Trainers.FastTree
         protected readonly bool AllowGC;
         protected TreeEnsemble TrainedEnsemble;
         protected int FeatureCount;
-        protected RoleMappedData ValidData;
+        private protected RoleMappedData ValidData;
         /// <summary>
         /// If not null, it's a test data set passed in from training context. It will be converted to one element in
         /// <see cref="Tests"/> by calling <see cref="ExamplesToFastTreeBins.GetCompatibleDataset"/> in <see cref="InitializeTests"/>.
         /// </summary>
-        protected RoleMappedData TestData;
+        private protected RoleMappedData TestData;
         protected IParallelTraining ParallelTraining;
         protected OptimizationAlgorithm OptimizationAlgorithm;
         protected Dataset TrainSet;
@@ -209,7 +210,7 @@ namespace Microsoft.ML.Trainers.FastTree
             InitializeThreads(numThreads);
         }
 
-        protected void ConvertData(RoleMappedData trainData)
+        private protected void ConvertData(RoleMappedData trainData)
         {
             MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Index, out CategoricalFeatures);
             var useTranspose = UseTranspose(Args.DiskTranspose, trainData) && (ValidData == null || UseTranspose(Args.DiskTranspose, ValidData));

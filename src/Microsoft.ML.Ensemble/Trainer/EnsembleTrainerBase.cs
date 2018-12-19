@@ -20,13 +20,14 @@ namespace Microsoft.ML.Runtime.Ensemble
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner> : TrainerBase<TPredictor>
+    internal abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner> : TrainerBase<TPredictor>
          where TPredictor : class, IPredictorProducing<TOutput>
          where TSelector : class, ISubModelSelector<TOutput>
          where TCombiner : class, IOutputCombiner<TOutput>
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithLabel
         {
+#pragma warning disable CS0649 // These are set via reflection.
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of models per batch. If not specified, will default to 50 if there is only one base predictor, " +
                 "or the number of base predictors otherwise.", ShortName = "nm", SortOrder = 3)]
@@ -54,6 +55,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             public bool ShowMetrics;
 
             internal abstract IComponentFactory<ITrainer<IPredictorProducing<TOutput>>>[] GetPredictorFactories();
+#pragma warning restore CS0649
         }
 
         private const int DefaultNumModels = 50;

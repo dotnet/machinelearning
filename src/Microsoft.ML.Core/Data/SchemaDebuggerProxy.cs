@@ -39,10 +39,10 @@ namespace Microsoft.ML.Data
         private static List<KeyValuePair<string, object>> BuildValues(Schema.Metadata metadata)
         {
             var result = new List<KeyValuePair<string, object>>();
-            foreach ((var index, var column) in metadata.Schema.GetColumns())
+            foreach (var column in metadata.Schema)
             {
                 var name = column.Name;
-                var value = Utils.MarshalInvoke(GetValue<int>, column.Type.RawType, metadata, index);
+                var value = Utils.MarshalInvoke(GetValue<int>, column.Type.RawType, metadata, column.Index);
                 result.Add(new KeyValuePair<string, object>(name, value));
             }
             return result;

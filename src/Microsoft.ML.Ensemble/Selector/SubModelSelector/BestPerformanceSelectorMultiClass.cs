@@ -16,7 +16,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
 {
-    public class BestPerformanceSelectorMultiClass : BaseBestPerformanceSelector<VBuffer<Single>>, IMulticlassSubModelSelector
+    internal sealed class BestPerformanceSelectorMultiClass : BaseBestPerformanceSelector<VBuffer<Single>>, IMulticlassSubModelSelector
     {
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportMulticlassSubModelSelectorFactory

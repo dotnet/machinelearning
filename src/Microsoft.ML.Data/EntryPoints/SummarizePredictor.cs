@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public abstract class InputBase
         {
             [Argument(ArgumentType.Required, ShortName = "predictorModel", HelpText = "The predictor to summarize")]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         public sealed class Input : InputBase
@@ -43,7 +43,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return output;
         }
 
-        public static IDataView GetSummaryAndStats(IHostEnvironment env, IPredictor predictor, RoleMappedSchema schema, out IDataView stats)
+        [BestFriend]
+        internal static IDataView GetSummaryAndStats(IHostEnvironment env, IPredictor predictor, RoleMappedSchema schema, out IDataView stats)
         {
             var calibrated = predictor as CalibratedPredictorBase;
             while (calibrated != null)

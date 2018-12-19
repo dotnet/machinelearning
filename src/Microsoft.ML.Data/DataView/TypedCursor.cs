@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
                         continue;
                     throw _host.Except("Column '{0}' not found in the data view", col.ColumnName);
                 }
-                var realColType = _data.Schema.GetColumnType(colIndex);
+                var realColType = _data.Schema[colIndex].Type;
                 if (!IsCompatibleType(realColType, col.MemberInfo))
                 {
                     throw _host.Except(
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Data
 
             private Action<TRow> GenerateSetter(Row input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
-                var colType = input.Schema.GetColumnType(index);
+                var colType = input.Schema[index].Type;
                 var fieldType = column.OutputType;
                 var genericType = fieldType;
                 Func<Row, int, Delegate, Delegate, Action<TRow>> del;
@@ -480,7 +480,7 @@ namespace Microsoft.ML.Data
             public Schema Schema => _row.Schema;
             public void FillValues(TRow row) => _row.FillValues(row);
             public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
-            public ValueGetter<UInt128> GetIdGetter() => _row.GetIdGetter();
+            public ValueGetter<RowId> GetIdGetter() => _row.GetIdGetter();
             public bool IsColumnActive(int col) => _row.IsColumnActive(col);
         }
 
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Data
 
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
-            public override ValueGetter<UInt128> GetIdGetter() => _cursor.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _cursor.GetIdGetter();
             public override RowCursor GetRootCursor() => _cursor.GetRootCursor();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
             public override bool MoveMany(long count) => _cursor.MoveMany(count);

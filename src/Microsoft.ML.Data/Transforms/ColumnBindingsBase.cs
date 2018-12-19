@@ -264,9 +264,10 @@ namespace Microsoft.ML.Runtime.Data
     /// the input column, and is placed immediately after the input column. Otherwise, the added column is placed
     /// at the end. By default, newly added columns have no metadata (but this can be overriden).
     /// </summary>
-    public abstract class ColumnBindingsBase : ISchema
+    [BestFriend]
+    internal abstract class ColumnBindingsBase
     {
-        public readonly ISchema Input;
+        public readonly Schema Input;
 
         // Mapping from name to index into Infos for the columns that we "generate".
         // Some of these might "hide" input columns.
@@ -287,22 +288,29 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema AsSchema => _convertedSchema.Value;
 
-        /// <summary>
-        /// Constructor that takes an input schema and adds no new columns.
-        /// This is utilized by lambda transforms if the output happens to have no columns.
-        /// </summary>
-        /// <param name="input"></param>
-        protected ColumnBindingsBase(ISchema input)
+        private static Schema CreateSchema(ColumnBindingsBase inputBindings)
         {
-            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckValue(inputBindings, nameof(inputBindings));
 
-            Input = input;
+            var builder = new SchemaBuilder();
+            for (int i = 0; i < inputBindings.ColumnCount; i++)
+            {
+                var meta = new MetadataBuilder();
+                foreach (var kvp in inputBindings.GetMetadataTypes(i))
+                {
+                    var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputBindings, i, kvp.Key);
+                    meta.Add(kvp.Key, kvp.Value, getter);
+                }
+                builder.AddColumn(inputBindings.GetColumnName(i), inputBindings.GetColumnType(i), meta.GetMetadata());
+            }
 
-            _names = new string[0];
-            _nameToInfoIndex = new Dictionary<string, int>();
-            Contracts.Assert(_nameToInfoIndex.Count == _names.Length);
-            ComputeColumnMapping(Input, _names, out _colMap, out _mapIinfoToCol);
-            _convertedSchema = new Lazy<Schema>(() => Schema.Create(this), LazyThreadSafetyMode.PublicationOnly);
+            return builder.GetSchema();
+        }
+
+        private static Delegate GetMetadataGetterDelegate<TValue>(ColumnBindingsBase bindings, int col, string kind)
+        {
+            ValueGetter<TValue> getter = (ref TValue value) => bindings.GetMetadata(kind, col, ref value);
+            return getter;
         }
 
         /// <summary>
@@ -311,7 +319,7 @@ namespace Microsoft.ML.Runtime.Data
         /// in schemaInput. For error reporting, this assumes that the names come from a user-supplied
         /// parameter named "column". This takes ownership of the params array of names.
         /// </summary>
-        protected ColumnBindingsBase(ISchema input, bool user, params string[] names)
+        protected ColumnBindingsBase(Schema input, bool user, params string[] names)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckNonEmpty(names, nameof(names));
@@ -351,15 +359,15 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(_nameToInfoIndex.Count == names.Length);
 
             ComputeColumnMapping(Input, names, out _colMap, out _mapIinfoToCol);
-            _convertedSchema = new Lazy<Schema>(() => Schema.Create(this), LazyThreadSafetyMode.PublicationOnly);
+            _convertedSchema = new Lazy<Schema>(() => CreateSchema(this), LazyThreadSafetyMode.PublicationOnly);
         }
 
-        private static void ComputeColumnMapping(ISchema input, string[] names, out int[] colMap, out int[] mapIinfoToCol)
+        private static void ComputeColumnMapping(Schema input, string[] names, out int[] colMap, out int[] mapIinfoToCol)
         {
             // To compute the column mapping information, first populate:
             // * _colMap[src] with the ~ of the iinfo that hides src (zero for none).
             // * _mapIinfoToCol[iinfo] with the ~ of the source column that iinfo hides (zero for none).
-            colMap = new int[input.ColumnCount + names.Length];
+            colMap = new int[input.Count + names.Length];
             mapIinfoToCol = new int[names.Length];
             for (int iinfo = 0; iinfo < names.Length; iinfo++)
             {
@@ -367,8 +375,8 @@ namespace Microsoft.ML.Runtime.Data
                 int colHidden;
                 if (input.TryGetColumnIndex(name, out colHidden))
                 {
-                    Contracts.Check(0 <= colHidden && colHidden < input.ColumnCount);
-                    var str = input.GetColumnName(colHidden);
+                    Contracts.Check(0 <= colHidden && colHidden < input.Count);
+                    var str = input[colHidden].Name;
                     Contracts.Check(str == name);
                     Contracts.Check(colMap[colHidden] == 0);
                     mapIinfoToCol[iinfo] = ~colHidden;
@@ -387,7 +395,7 @@ namespace Microsoft.ML.Runtime.Data
                     mapIinfoToCol[iinfo] = colDst;
                 }
             }
-            for (int colSrc = input.ColumnCount; --colSrc >= 0;)
+            for (int colSrc = input.Count; --colSrc >= 0;)
             {
                 Contracts.Assert(colMap[colSrc] <= 0);
                 if (colMap[colSrc] < 0)
@@ -436,7 +444,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                Contracts.Assert(index < Input.ColumnCount);
+                Contracts.Assert(index < Input.Count);
                 isSrcColumn = true;
             }
             return index;
@@ -476,7 +484,7 @@ namespace Microsoft.ML.Runtime.Data
             int src;
             if (Input.TryGetColumnIndex(name, out src))
             {
-                Contracts.Assert(0 <= src && src < Input.ColumnCount);
+                Contracts.Assert(0 <= src && src < Input.Count);
                 int res = src;
                 for (; ; res++)
                 {
@@ -501,7 +509,7 @@ namespace Microsoft.ML.Runtime.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input.GetColumnName(index);
+                return Input[index].Name;
             return GetColumnNameCore(index);
         }
 
@@ -512,7 +520,7 @@ namespace Microsoft.ML.Runtime.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input.GetColumnType(index);
+                return Input[index].Type;
             return GetColumnTypeCore(index);
         }
 
@@ -523,7 +531,7 @@ namespace Microsoft.ML.Runtime.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input.GetMetadataTypes(index);
+                return Input[index].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
             Contracts.Assert(0 <= index && index < InfoCount);
             return GetMetadataTypesCore(index);
         }
@@ -536,7 +544,7 @@ namespace Microsoft.ML.Runtime.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                return Input.GetMetadataTypeOrNull(kind, index);
+                return Input[index].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             Contracts.Assert(0 <= index && index < InfoCount);
             return GetMetadataTypeCore(kind, index);
         }
@@ -549,7 +557,7 @@ namespace Microsoft.ML.Runtime.Data
             bool isSrc;
             int index = MapColumnIndex(out isSrc, col);
             if (isSrc)
-                Input.GetMetadata(kind, index, ref value);
+                Input[index].Metadata.GetValue(kind, ref value);
             else
             {
                 Contracts.Assert(0 <= index && index < InfoCount);
@@ -610,11 +618,11 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(predicate);
 
-            var active = new bool[Input.ColumnCount];
+            var active = new bool[Input.Count];
             for (int dst = 0; dst < _colMap.Length; dst++)
             {
                 int src = _colMap[dst];
-                Contracts.Assert(-InfoCount <= src && src < Input.ColumnCount);
+                Contracts.Assert(-InfoCount <= src && src < Input.Count);
                 if (src >= 0 && predicate(dst))
                     active[src] = true;
             }
@@ -679,7 +687,7 @@ namespace Microsoft.ML.Runtime.Data
             // Construct the indices.
             var indices = new List<int>();
             var namesUsed = new HashSet<string>();
-            for (int i = 0; i < input.ColumnCount; i++)
+            for (int i = 0; i < input.Count; i++)
             {
                 namesUsed.Add(input[i].Name);
                 indices.Add(i);
@@ -707,7 +715,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
             }
-            Contracts.Assert(indices.Count == addedColumns.Length + input.ColumnCount);
+            Contracts.Assert(indices.Count == addedColumns.Length + input.Count);
 
             // Create the output schema.
             var schemaColumns = indices.Select(idx => idx >= 0 ? new Schema.DetachedColumn(input[idx]) : addedColumns[~idx]);
@@ -749,7 +757,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                Contracts.Assert(index < InputSchema.ColumnCount);
+                Contracts.Assert(index < InputSchema.Count);
                 isSrcColumn = true;
             }
             return index;
@@ -764,248 +772,15 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(predicate);
 
-            var active = new bool[InputSchema.ColumnCount];
+            var active = new bool[InputSchema.Count];
             for (int dst = 0; dst < _colMap.Length; dst++)
             {
                 int src = _colMap[dst];
-                Contracts.Assert(-AddedColumnIndices.Count <= src && src < InputSchema.ColumnCount);
+                Contracts.Assert(-AddedColumnIndices.Count <= src && src < InputSchema.Count);
                 if (src >= 0 && predicate(dst))
                     active[src] = true;
             }
             return active;
-        }
-    }
-
-    /// <summary>
-    /// Base type for bindings with multiple new columns, each mapping from multiple source columns.
-    /// The column strings are parsed as D:S where D is the name of the new column and S is a comma separated
-    /// list of source columns. A column string S with no colon is interpreted as S:S, so the destination
-    /// column has the same name as the source column. This form requires S to not contain commas.
-    /// Note that this base type requires columns of type typeMulti to have known size.
-    /// </summary>
-    public abstract class ManyToOneColumnBindingsBase : ColumnBindingsBase
-    {
-        public sealed class ColInfo
-        {
-            // Total size of all source columns, zero for variable (non-vector columns contribute 1).
-            public readonly int SrcSize;
-            // Indices of the source columns
-            public readonly int[] SrcIndices;
-            // Types of the source columns.
-            public readonly ColumnType[] SrcTypes;
-
-            public ColInfo(int srcSize, int[] srcIndices, ColumnType[] srcTypes)
-            {
-                Contracts.Assert(srcSize >= 0); // Zero means variable.
-                Contracts.AssertNonEmpty(srcIndices);
-                Contracts.Assert(Utils.Size(srcTypes) == srcIndices.Length);
-
-                SrcSize = srcSize;
-                SrcIndices = srcIndices;
-                SrcTypes = srcTypes;
-            }
-        }
-
-        public readonly ColInfo[] Infos;
-
-        protected ManyToOneColumnBindingsBase(ManyToOneColumn[] column, Schema input, Func<ColumnType[], string> testTypes)
-            : base(input, true, GetNamesAndSanitize(column))
-        {
-            Contracts.AssertNonEmpty(column);
-            Contracts.Assert(column.Length == InfoCount);
-
-            // In lieu of actual protections, I have the following silly asserts, so we can have some
-            // warning if we decide to rename this argument, and so know to change the below hard-coded
-            // standard column name.
-            const string standardColumnArgName = "Column";
-            Contracts.Assert(nameof(ValueToKeyMappingTransformer.Arguments.Column) == standardColumnArgName);
-            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Arguments.Column) == standardColumnArgName);
-
-            Infos = new ColInfo[InfoCount];
-            for (int i = 0; i < Infos.Length; i++)
-            {
-                var item = column[i];
-                Contracts.AssertNonEmpty(item.Name);
-                Contracts.AssertNonEmpty(item.Source);
-
-                var src = item.Source;
-                var srcIndices = new int[src.Length];
-                var srcTypes = new ColumnType[src.Length];
-                int? srcSize = 0;
-                for (int j = 0; j < src.Length; j++)
-                {
-                    Contracts.CheckUserArg(!string.IsNullOrWhiteSpace(src[j]), nameof(ManyToOneColumn.Source));
-#pragma warning disable MSML_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
-                    if (!input.TryGetColumnIndex(src[j], out srcIndices[j]))
-                        throw Contracts.ExceptUserArg(standardColumnArgName, "Source column '{0}' not found", src[j]);
-#pragma warning restore MSML_ContractsNameUsesNameof
-                    srcTypes[j] = input.GetColumnType(srcIndices[j]);
-                    var size = srcTypes[j].ValueCount;
-                    srcSize = size == 0 ? null : checked(srcSize + size);
-                }
-
-                if (testTypes != null)
-                {
-                    string reason = testTypes(srcTypes);
-                    if (reason != null)
-                    {
-#pragma warning disable MSML_ContractsNameUsesNameof // Unfortunately, there is no base class for the columns bindings.
-                        throw Contracts.ExceptUserArg(standardColumnArgName, "Column '{0}' has invalid source types: {1}. Source types: '{2}'.",
-                            item.Name, reason, string.Join(", ", srcTypes.Select(type => type.ToString())));
-#pragma warning restore MSML_ContractsNameUsesNameof
-                    }
-                }
-                Infos[i] = new ColInfo(srcSize.GetValueOrDefault(), srcIndices, srcTypes);
-            }
-        }
-
-        /// <summary>
-        /// Gather the names from the <see cref="ManyToOneColumn"/> objects. Also, cleanse the column
-        /// objects (propagate values that are shared).
-        /// </summary>
-        private static string[] GetNamesAndSanitize(ManyToOneColumn[] column)
-        {
-            Contracts.CheckUserArg(Utils.Size(column) > 0, nameof(column));
-
-            var names = new string[column.Length];
-            for (int i = 0; i < column.Length; i++)
-            {
-                var item = column[i];
-                if (string.IsNullOrWhiteSpace(item.Name))
-                {
-                    Contracts.CheckUserArg(Utils.Size(item.Source) > 0, nameof(item.Name), "Must specify name");
-                    Contracts.CheckUserArg(item.Source.Length == 1, nameof(item.Name), "New name is required when multiple source columns are specified");
-                    item.Name = item.Source[0];
-                }
-                else if (Utils.Size(item.Source) == 0)
-                    item.Source = new string[] { item.Name };
-                names[i] = item.Name;
-            }
-
-            return names;
-        }
-
-        // Read everything into a new Contents object and pass it to the constructor below.
-        protected ManyToOneColumnBindingsBase(ModelLoadContext ctx, Schema input, Func<ColumnType[], string> testTypes)
-            : this(new Contents(ctx, input, testTypes))
-        {
-        }
-
-        private ManyToOneColumnBindingsBase(Contents contents)
-            : base(contents.Input, false, contents.Names)
-        {
-            Contracts.Assert(InfoCount == Utils.Size(contents.Infos));
-            Infos = contents.Infos;
-        }
-
-        /// <summary>
-        /// This class is used to deserialize. We read everything into an instance of this
-        /// and pass that to another constructor.
-        /// </summary>
-        private sealed class Contents
-        {
-            public Schema Input;
-            public ColInfo[] Infos;
-            public string[] Names;
-
-            public Contents(ModelLoadContext ctx, Schema input, Func<ColumnType[], string> testTypes)
-            {
-                Contracts.CheckValue(ctx, nameof(ctx));
-                Contracts.CheckValue(input, nameof(input));
-                Contracts.CheckValueOrNull(testTypes);
-
-                Input = input;
-
-                // *** Binary format ***
-                // int: number of added columns
-                // for each added column
-                //   int: id of output column name
-                //   int: number of input column names
-                //   int[]: ids of input column names
-                int cinfo = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(cinfo > 0);
-
-                Infos = new ColInfo[cinfo];
-                Names = new string[cinfo];
-                for (int i = 0; i < cinfo; i++)
-                {
-                    Names[i] = ctx.LoadNonEmptyString();
-
-                    int csrc = ctx.Reader.ReadInt32();
-                    Contracts.CheckDecode(csrc > 0);
-                    int[] indices = new int[csrc];
-                    var srcTypes = new ColumnType[csrc];
-                    int? srcSize = 0;
-                    for (int j = 0; j < csrc; j++)
-                    {
-                        string src = ctx.LoadNonEmptyString();
-                        if (!input.TryGetColumnIndex(src, out indices[j]))
-                            throw Contracts.Except("Source column '{0}' is required but not found", src);
-                        srcTypes[j] = input.GetColumnType(indices[j]);
-                        var size = srcTypes[j].ValueCount;
-                        srcSize = size == 0 ? null : checked(srcSize + size);
-                    }
-
-                    if (testTypes != null)
-                    {
-                        string reason = testTypes(srcTypes);
-                        if (reason != null)
-                        {
-                            throw Contracts.Except("Source columns '{0}' have invalid types: {1}. Source types: '{2}'.",
-                                string.Join(", ", indices.Select(k => input.GetColumnName(k))),
-                                reason,
-                                string.Join(", ", srcTypes.Select(type => type.ToString())));
-                        }
-                    }
-
-                    Infos[i] = new ColInfo(srcSize.GetValueOrDefault(), indices, srcTypes);
-                }
-            }
-        }
-
-        public virtual void Save(ModelSaveContext ctx)
-        {
-            Contracts.AssertValue(ctx);
-
-            // *** Binary format ***
-            // int: number of added columns
-            // for each added column
-            //   int: id of output column name
-            //   int: number of input column names
-            //   int[]: ids of input column names
-            ctx.Writer.Write(Infos.Length);
-            for (int i = 0; i < Infos.Length; i++)
-            {
-                var info = Infos[i];
-                ctx.SaveNonEmptyString(GetColumnNameCore(i));
-                ctx.Writer.Write(info.SrcIndices.Length);
-                foreach (int src in info.SrcIndices)
-                    ctx.SaveNonEmptyString(Input.GetColumnName(src));
-            }
-        }
-
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
-        {
-            Contracts.AssertValue(predicate);
-
-            var active = new bool[Input.ColumnCount];
-            for (int col = 0; col < ColumnCount; col++)
-            {
-                if (!predicate(col))
-                    continue;
-
-                bool isSrc;
-                int index = MapColumnIndex(out isSrc, col);
-                if (isSrc)
-                    active[index] = true;
-                else
-                {
-                    foreach (var i in Infos[index].SrcIndices)
-                        active[i] = true;
-                }
-            }
-
-            return col => 0 <= col && col < active.Length && active[col];
         }
     }
 

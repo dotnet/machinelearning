@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.Training
 
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
 
-        protected virtual RoleMappedData MakeRoles(IDataView data) =>
+        private protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, weight: WeightColumn.Name);
 
         IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Runtime.Training
             GroupIdColumn = groupId;
         }
 
-        protected override RoleMappedData MakeRoles(IDataView data) =>
+        private protected override RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, group: GroupIdColumn.Name, weight: WeightColumn.Name);
 
     }

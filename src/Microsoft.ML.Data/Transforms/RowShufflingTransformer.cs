@@ -191,9 +191,9 @@ namespace Microsoft.ML.Transforms
         {
             List<int> columnsToDrop = null;
             var schema = data.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                var type = schema.GetColumnType(c);
+                var type = schema[c].Type;
                 if (!type.IsCachable())
                     Utils.Add(ref columnsToDrop, c);
             }
@@ -211,9 +211,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         internal static bool CanShuffleAll(Schema schema)
         {
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                var type = schema.GetColumnType(c);
+                var type = schema[c].Type;
                 if (!type.IsCachable())
                     return false;
             }
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Transforms
             // Each delegate here corresponds to a pipe holding column data.
             private readonly Delegate[] _getters;
             // This delegate corresponds to the pipe holding ID data.
-            private readonly ValueGetter<UInt128> _idGetter;
+            private readonly ValueGetter<RowId> _idGetter;
 
             // The current position of the output cursor in circular "space".
             private int _circularIndex;
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Transforms
 
                 _pipeIndices = Utils.GetIdentityPermutation(_poolRows - 1 + _bufferDepth * _blockSize);
 
-                int colLim = Schema.ColumnCount;
+                int colLim = Schema.Count;
                 int numActive = 0;
                 _colToActivesIndex = new int[colLim];
                 for (int c = 0; c < colLim; ++c)
@@ -531,11 +531,11 @@ namespace Microsoft.ML.Transforms
                     if (ia < 0)
                         continue;
                     _pipes[ia] = ShufflePipe.Create(_pipeIndices.Length,
-                        input.Schema.GetColumnType(c), RowCursorUtils.GetGetterAsDelegate(input, c));
+                        input.Schema[c].Type, RowCursorUtils.GetGetterAsDelegate(input, c));
                     _getters[ia] = CreateGetterDelegate(c);
                 }
                 var idPipe = _pipes[numActive + (int)ExtraIndex.Id] = ShufflePipe.Create(_pipeIndices.Length, NumberType.UG, input.GetIdGetter());
-                _idGetter = CreateGetterDelegate<UInt128>(idPipe);
+                _idGetter = CreateGetterDelegate<RowId>(idPipe);
                 // Initially, after the preamble to MoveNextCore, we want:
                 // liveCount=0, deadCount=0, circularIndex=0. So we set these
                 // funky values accordingly.
@@ -574,7 +574,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(retval);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return _idGetter;
             }
@@ -682,14 +682,14 @@ namespace Microsoft.ML.Transforms
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
                 Func<int, Delegate> createDel = CreateGetterDelegate<int>;
-                return Utils.MarshalInvoke(createDel, Schema.GetColumnType(col).RawType, col);
+                return Utils.MarshalInvoke(createDel, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetterDelegate<TValue>(int col)
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                Ch.Assert(Schema.GetColumnType(col).RawType == typeof(TValue));
+                Ch.Assert(Schema[col].Type.RawType == typeof(TValue));
                 return CreateGetterDelegate<TValue>(_pipes[_colToActivesIndex[col]]);
             }
 

@@ -103,9 +103,9 @@ namespace Microsoft.ML.Transforms
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var inType = inputSchema.GetColumnType(srcCol);
+            var inType = inputSchema[srcCol].Type;
             if (!inType.IsVector)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema.GetColumnName(srcCol), "Vector", inType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema[srcCol].Name, "Vector", inType.ToString());
         }
 
         // Factory method for SignatureLoadModel
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
-                    _types[i] = new VectorType(srcCol.Type.ItemType.AsPrimitive);
+                    _types[i] = new VectorType((PrimitiveType)srcCol.Type.ItemType);
                     _isNAs[i] = GetIsNADelegate(srcCol.Type);
                 }
             }

@@ -29,6 +29,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         private readonly IHost _host;
         private readonly ColumnInfo[] _columns;
 
+        [BestFriend]
         internal static class Defaults
         {
             public const long Count = 1;
@@ -55,7 +56,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// Describes the parameters of the feature selection process for a column pair.
             /// </summary>
             /// <param name="input">Name of the input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="minCount">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
             public ColumnInfo(string input, string output = null, long minCount = Defaults.Count)
             {
@@ -234,7 +235,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeInput = new bool[schema.ColumnCount];
+            var activeInput = new bool[schema.Count];
             var colSrcs = new int[size];
             var colTypes = new ColumnType[size];
             colSizes = new int[size];
@@ -245,7 +246,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Source column '{0}' not found", colName);
 
-                var colType = schema.GetColumnType(colSrc);
+                var colType = schema[colSrc].Type;
                 if (colType.IsVector && !colType.IsKnownSizeVector)
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
 

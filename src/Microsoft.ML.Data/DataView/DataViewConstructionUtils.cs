@@ -110,12 +110,12 @@ namespace Microsoft.ML.Runtime.Data
                 _position++;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return IdGetter;
             }
 
-            private void IdGetter(ref UInt128 val) => val = new UInt128((ulong)Position, 0);
+            private void IdGetter(ref RowId val) => val = new RowId((ulong)Position, 0);
 
             protected override TRow GetCurrentRowObject()
             {
@@ -148,14 +148,14 @@ namespace Microsoft.ML.Runtime.Data
                 Host.AssertValue(schemaDef);
                 Host.AssertValue(peeks);
                 Host.AssertValue(predicate);
-                Host.Assert(schema.ColumnCount == schemaDef.Columns.Length);
-                Host.Assert(schema.ColumnCount == peeks.Length);
+                Host.Assert(schema.Count == schemaDef.Columns.Length);
+                Host.Assert(schema.Count == peeks.Length);
 
-                _colCount = schema.ColumnCount;
+                _colCount = schema.Count;
                 Schema = schema;
                 _getters = new Delegate[_colCount];
                 for (int c = 0; c < _colCount; c++)
-                    _getters[c] = predicate(c) ? CreateGetter(schema.GetColumnType(c), schemaDef.Columns[c], peeks[c]) : null;
+                    _getters[c] = predicate(c) ? CreateGetter(schema[c].Type, schemaDef.Columns[c], peeks[c]) : null;
             }
 
             //private Delegate CreateGetter(SchemaProxy schema, int index, Delegate peek)
@@ -208,12 +208,12 @@ namespace Microsoft.ML.Runtime.Data
                     else
                         Host.Assert(colType.RawType == outputType);
 
-                    if (!colType.IsKey)
+                    if (!(colType is KeyType keyType))
                         del = CreateDirectGetterDelegate<int>;
                     else
                     {
                         var keyRawType = colType.RawType;
-                        Host.Assert(colType.AsKey.Contiguous);
+                        Host.Assert(keyType.Contiguous);
                         Func<Delegate, ColumnType, Delegate> delForKey = CreateKeyGetterDelegate<uint>;
                         return Utils.MarshalInvoke(delForKey, keyRawType, peek, colType);
                     }
@@ -299,9 +299,10 @@ namespace Microsoft.ML.Runtime.Data
             private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, ColumnType colType)
             {
                 // Make sure the function is dealing with key.
-                Host.Check(colType.IsKey);
+                KeyType keyType = colType as KeyType;
+                Host.Check(keyType != null);
                 // Following equations work only with contiguous key type.
-                Host.Check(colType.AsKey.Contiguous);
+                Host.Check(keyType.Contiguous);
                 // Following equations work only with unsigned integers.
                 Host.Check(typeof(TDst) == typeof(ulong) || typeof(TDst) == typeof(uint) ||
                     typeof(TDst) == typeof(byte) || typeof(TDst) == typeof(bool));
@@ -312,8 +313,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 TDst rawKeyValue = default;
                 ulong key = 0; // the raw key value as ulong
-                ulong min = colType.AsKey.Min;
-                ulong max = min + (ulong)colType.AsKey.Count - 1;
+                ulong min = keyType.Min;
+                ulong max = min + (ulong)keyType.Count - 1;
                 ulong result = 0; // the result as ulong
                 ValueGetter<TDst> getter = (ref TDst dst) =>
                 {
@@ -424,7 +425,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     => _toWrap.GetGetter<TValue>(col);
-                public override ValueGetter<UInt128> GetIdGetter() => _toWrap.GetIdGetter();
+                public override ValueGetter<RowId> GetIdGetter() => _toWrap.GetIdGetter();
                 public override RowCursor GetRootCursor() => this;
                 public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
                 public override bool MoveMany(long count) => _toWrap.MoveMany(count);
@@ -601,24 +602,24 @@ namespace Microsoft.ML.Runtime.Data
                         _permutation = Utils.GetRandomPermutation(rand, dataView._data.Count);
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
+                public override ValueGetter<RowId> GetIdGetter()
                 {
                     if (_permutation == null)
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)Position, 0);
+                                val = new RowId((ulong)Position, 0);
                             };
                     }
                     else
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)Index, 0);
+                                val = new RowId((ulong)Index, 0);
                             };
                     }
                 }
@@ -703,13 +704,13 @@ namespace Microsoft.ML.Runtime.Data
                     _currentRow = null;
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
+                public override ValueGetter<RowId> GetIdGetter()
                 {
                     return
-                        (ref UInt128 val) =>
+                        (ref RowId val) =>
                         {
                             Ch.Check(IsGood, "Cannot call ID getter in current state");
-                            val = new UInt128((ulong)Position, 0);
+                            val = new RowId((ulong)Position, 0);
                         };
                 }
 
@@ -771,13 +772,13 @@ namespace Microsoft.ML.Runtime.Data
                     _currentRow = dataView._current;
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
+                public override ValueGetter<RowId> GetIdGetter()
                 {
                     return
-                        (ref UInt128 val) =>
+                        (ref RowId val) =>
                         {
                             Ch.Check(IsGood, "Cannot call ID getter in current state");
-                            val = new UInt128((ulong)Position, 0);
+                            val = new RowId((ulong)Position, 0);
                         };
                 }
 

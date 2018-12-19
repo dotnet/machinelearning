@@ -322,9 +322,9 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var colType = inputSchema.GetColumnType(srcCol);
+            var colType = inputSchema[srcCol].Type;
             if (!(colType.IsVector && colType.ItemType.IsText))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "Text", inputSchema.GetColumnType(srcCol).ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "Text", inputSchema[srcCol].Type.ToString());
         }
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var colType = input.Schema.GetColumnType(ColMapNewToOld[iinfo]);
+                var colType = input.Schema[ColMapNewToOld[iinfo]].Type;
                 Host.Assert(colType.IsVector);
                 Host.Assert(colType.ItemType.IsText);
 
@@ -867,85 +867,6 @@ namespace Microsoft.ML.Transforms.Text
                 return new WordEmbeddingsExtractingTransformer(_host, _customLookupTable, _columns);
             else
                 return new WordEmbeddingsExtractingTransformer(_host, _modelKind.Value, _columns);
-        }
-    }
-
-    public static class WordEmbeddingsStaticExtensions
-    {
-        /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
-        /// <param name="input">Vector of tokenized text.</param>
-        /// <param name="modelKind">The pretrained word embedding model.</param>
-        /// <returns></returns>
-        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutColumn(input, modelKind);
-        }
-
-        /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
-        /// <param name="input">Vector of tokenized text.</param>
-        /// <param name="customModelFile">The custom word embedding model file.</param>
-        public static Vector<float> WordEmbeddings(this VarVector<string> input, string customModelFile)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutColumn(input, customModelFile);
-        }
-
-        private sealed class OutColumn : Vector<float>
-        {
-            public PipelineColumn Input { get; }
-
-            public OutColumn(VarVector<string> input, WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
-                : base(new Reconciler(modelKind), input)
-            {
-                Input = input;
-            }
-
-            public OutColumn(VarVector<string> input, string customModelFile = null)
-                : base(new Reconciler(customModelFile), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly WordEmbeddingsExtractingTransformer.PretrainedModelKind? _modelKind;
-            private readonly string _customLookupTable;
-
-            public Reconciler(WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
-            {
-                _modelKind = modelKind;
-                _customLookupTable = null;
-            }
-
-            public Reconciler(string customModelFile)
-            {
-                _modelKind = null;
-                _customLookupTable = customModelFile;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-
-                var cols = new WordEmbeddingsExtractingTransformer.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var outCol = (OutColumn)toOutput[i];
-                    cols[i] = new WordEmbeddingsExtractingTransformer.ColumnInfo(inputNames[outCol.Input], outputNames[outCol]);
-                }
-
-                bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);
-                if (customLookup)
-                    return new WordEmbeddingsExtractingEstimator(env, _customLookupTable, cols);
-                else
-                    return new WordEmbeddingsExtractingEstimator(env, _modelKind.Value, cols);
-            }
         }
     }
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -90,7 +91,7 @@ namespace Microsoft.ML.Runtime.Data
             _aucCount = args.MaxAucExamples;
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
@@ -102,12 +103,12 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4 or a 2-value key", schema.Label.Name, t).MarkSensitive(MessageSensitivity.Schema);
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             return new Aggregator(Host, _aucCount, _numTopResults, _k, _p, _streaming, schema.Name == null ? -1 : schema.Name.Index, stratName);
         }
 
-        public override IDataTransform GetPerInstanceMetrics(RoleMappedData data)
+        internal override IDataTransform GetPerInstanceMetricsCore(RoleMappedData data)
         {
             return NopTransform.CreateIfNeeded(Host, data.Data);
         }
@@ -123,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("ThreshAtNumPos", OverallMetrics.ThreshAtNumPos, MetricColumn.Objective.Info, canBeWeighted: false);
         }
 
-        protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
+        private protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
@@ -497,7 +498,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Host.Assert(!_streaming && PassNum < 2 || PassNum < 1);
                 Host.AssertValue(schema.Label);
@@ -605,7 +606,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int _k;
         private readonly Double _p;
 
-        protected override IEvaluator Evaluator => _evaluator;
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public AnomalyDetectionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, "AnomalyDetectionMamlEvaluator")
@@ -620,7 +621,7 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new AnomalyDetectionEvaluator(Host, evalArgs);
         }
 
-        protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
+        private protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
         {
             IDataView top;
             if (!metrics.TryGetValue(AnomalyDetectionEvaluator.TopKResults, out top))
@@ -685,7 +686,7 @@ namespace Microsoft.ML.Runtime.Data
                 ValueGetter<uint> stratGetter = null;
                 if (hasStrat)
                 {
-                    var type = cursor.Schema.GetColumnType(stratCol);
+                    var type = cursor.Schema[stratCol].Type;
                     stratGetter = RowCursorUtils.GetGetterAs<uint>(type, cursor, stratCol);
                 }
                 bool foundRow = false;
@@ -731,7 +732,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(MetricWriter.GetPerFoldResults(Host, fold, out weightedFold));
         }
 
-        protected override IDataView GetOverallResultsCore(IDataView overall)
+        private protected override IDataView GetOverallResultsCore(IDataView overall)
         {
             return ColumnSelectingTransformer.CreateDrop(Host,
                                                     overall,
@@ -741,7 +742,7 @@ namespace Microsoft.ML.Runtime.Data
                                                     AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
         }
 
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
             Host.CheckValue(schema.Label, nameof(schema), "Data must contain a label column");
@@ -777,7 +778,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new AnomalyDetectionMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new AnomalyDetectionMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

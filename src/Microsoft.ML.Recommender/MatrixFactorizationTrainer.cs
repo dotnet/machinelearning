@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -347,7 +348,7 @@ namespace Microsoft.ML.Trainers
                     using (var buffer = PrepareBuffer())
                     {
                         buffer.Train(ch, rowCount, colCount, cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter);
-                        predictor = new MatrixFactorizationPredictor(Host, buffer, matrixColumnIndexColInfo.Type.AsKey, matrixRowIndexColInfo.Type.AsKey);
+                        predictor = new MatrixFactorizationPredictor(Host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
                     }
                 }
                 else
@@ -365,7 +366,7 @@ namespace Microsoft.ML.Trainers
                             buffer.TrainWithValidation(ch, rowCount, colCount,
                                 cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter,
                                 validCursor, validLabelGetter, validMatrixRowIndexGetter, validMatrixColumnIndexGetter);
-                            predictor = new MatrixFactorizationPredictor(Host, buffer, matrixColumnIndexColInfo.Type.AsKey, matrixRowIndexColInfo.Type.AsKey);
+                            predictor = new MatrixFactorizationPredictor(Host, buffer, (KeyType)matrixColumnIndexColInfo.Type, (KeyType)matrixRowIndexColInfo.Type);
                         }
                     }
                 }

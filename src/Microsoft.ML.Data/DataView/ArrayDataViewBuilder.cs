@@ -261,52 +261,52 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Ch.AssertValue(view);
                     Ch.AssertValueOrNull(rand);
-                    Ch.Assert(view.Schema.ColumnCount >= 0);
+                    Ch.Assert(view.Schema.Count >= 0);
 
                     _view = view;
-                    _active = new BitArray(view.Schema.ColumnCount);
+                    _active = new BitArray(view.Schema.Count);
                     if (predicate == null)
                         _active.SetAll(true);
                     else
                     {
-                        for (int i = 0; i < view.Schema.ColumnCount; ++i)
+                        for (int i = 0; i < view.Schema.Count; ++i)
                             _active[i] = predicate(i);
                     }
                     if (rand != null)
                         _indices = Utils.GetRandomPermutation(rand, view._rowCount);
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
+                public override ValueGetter<RowId> GetIdGetter()
                 {
                     if (_indices == null)
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)Position, 0);
+                                val = new RowId((ulong)Position, 0);
                             };
                     }
                     else
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)MappedIndex(), 0);
+                                val = new RowId((ulong)MappedIndex(), 0);
                             };
                     }
                 }
 
                 public override bool IsColumnActive(int col)
                 {
-                    Ch.Check(0 <= col & col < Schema.ColumnCount);
+                    Ch.Check(0 <= col & col < Schema.Count);
                     return _active[col];
                 }
 
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
-                    Ch.Check(0 <= col & col < Schema.ColumnCount);
+                    Ch.Check(0 <= col & col < Schema.Count);
                     Ch.Check(_active[col], "column is not active");
                     var column = _view._columns[col] as Column<TValue>;
                     if (column == null)
