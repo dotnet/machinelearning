@@ -1062,13 +1062,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 leafValues: new[] { Intercept, Intercept });
             ensemble.AddTree(interceptTree);
 
-            var ini = ensemble.ToTreeEnsembleIni(
-                new FeaturesToContentMap(schema),
-                string.Empty,
-                appendFeatureGain: true,
-                includeZeroGainFeatures: false);
-
-            writer.Write(ini);
+            FastTreeIniFormatUtils.SaveTreeEnsembleAsIni(
+                Host, ensemble, writer, schema, calibrator, string.Empty, false, false);
         }
 
         // GAM bins should be converted to balanced trees / binary search trees

@@ -2985,40 +2985,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
-            Host.CheckValue(writer, nameof(writer));
-            Host.CheckValue(schema, nameof(schema));
-            Host.CheckValueOrNull(calibrator);
-            string ensembleIni = TrainedEnsemble.ToTreeEnsembleIni(new FeaturesToContentMap(schema),
+            FastTreeIniFormatUtils.SaveTreeEnsembleAsIni(Host, TrainedEnsemble, writer, schema, calibrator,
                 InnerArgs, appendFeatureGain: true, includeZeroGainFeatures: false);
-            ensembleIni = AddCalibrationToIni(ensembleIni, calibrator);
-            writer.WriteLine(ensembleIni);
-        }
-
-        /// <summary>
-        /// Get the calibration summary in INI format
-        /// </summary>
-        private string AddCalibrationToIni(string ini, ICalibrator calibrator)
-        {
-            Host.AssertValue(ini);
-            Host.AssertValueOrNull(calibrator);
-
-            if (calibrator == null)
-                return ini;
-
-            if (calibrator is PlattCalibrator)
-            {
-                string calibratorEvaluatorIni = IniFileUtils.GetCalibratorEvaluatorIni(ini, calibrator as PlattCalibrator);
-                return IniFileUtils.AddEvaluator(ini, calibratorEvaluatorIni);
-            }
-            else
-            {
-                StringBuilder newSection = new StringBuilder();
-                newSection.AppendLine();
-                newSection.AppendLine();
-                newSection.AppendLine("[TLCCalibration]");
-                newSection.AppendLine("Type=" + calibrator.GetType().Name);
-                return ini + newSection;
-            }
         }
 
         JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
@@ -3402,6 +3370,50 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             public Dictionary<string, object> KeyValues { get; }
+        }
+    }
+    internal static class FastTreeIniFormatUtils
+    {
+        public static void SaveTreeEnsembleAsIni(
+            IHost host, TreeEnsemble ensemble, TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator,
+            string trainingParams, bool appendFeatureGain, bool includeZeroGainFeatures)
+        {
+            host.CheckValue(ensemble, nameof(ensemble));
+            host.CheckValue(writer, nameof(writer));
+            host.CheckValue(schema, nameof(schema));
+            host.CheckValueOrNull(calibrator);
+
+            string ensembleIni = ensemble.ToTreeEnsembleIni(new FeaturesToContentMap(schema),
+                trainingParams, appendFeatureGain, includeZeroGainFeatures);
+            ensembleIni = AddCalibrationToIni(host, ensembleIni, calibrator);
+            writer.WriteLine(ensembleIni);
+        }
+
+        /// <summary>
+        /// Get the calibration summary in INI format
+        /// </summary>
+        private static string AddCalibrationToIni(IHost host, string ini, ICalibrator calibrator)
+        {
+            host.AssertValue(ini);
+            host.AssertValueOrNull(calibrator);
+
+            if (calibrator == null)
+                return ini;
+
+            if (calibrator is PlattCalibrator)
+            {
+                string calibratorEvaluatorIni = IniFileUtils.GetCalibratorEvaluatorIni(ini, calibrator as PlattCalibrator);
+                return IniFileUtils.AddEvaluator(ini, calibratorEvaluatorIni);
+            }
+            else
+            {
+                StringBuilder newSection = new StringBuilder();
+                newSection.AppendLine();
+                newSection.AppendLine();
+                newSection.AppendLine("[TLCCalibration]");
+                newSection.AppendLine("Type=" + calibrator.GetType().Name);
+                return ini + newSection;
+            }
         }
     }
 }

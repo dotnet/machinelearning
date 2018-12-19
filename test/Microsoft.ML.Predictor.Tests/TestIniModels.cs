@@ -9,7 +9,9 @@ using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Tools;
 using Xunit;
 using Xunit.Abstractions;
@@ -519,8 +521,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestGamRegressionIni()
         {
-            var mlContext = new MLContext(seed: 0, conc: 0);
-
+            var mlContext = new MLContext(seed: 0);
             var idv = mlContext.Data.CreateTextReader(
                     new TextLoader.Arguments()
                     {
@@ -550,27 +551,55 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Getting parity results from maml.exe:
             // maml.exe ini ini=model.ini out=model_ini.zip data=breast-cancer.txt  loader=TextLoader{col=Label:R4:0 col=Features:R4:1-9} xf=NAHandleTransform{col=Features slot=- ind=-} kind=Regression
-            var expectedResults = new RegressionMetrics(
-                    l1: 0.093256807643323947,
-                    l2: 0.025707474358979077,
-                    rms: 0.16033550560926635,
-                    rSquared: 0.88620288753853549,
-                    lossFunction: 0.025707474380004879);
-
-            Assert.Equal(results.L1, expectedResults.L1);
-            Assert.Equal(results.L2, expectedResults.L2);
-            Assert.Equal(results.Rms, expectedResults.Rms);
-            Assert.Equal(results.RSquared, expectedResults.RSquared);
-            Assert.Equal(results.LossFn, expectedResults.LossFn);
+            Assert.Equal(0.093256807643323947, results.L1);
+            Assert.Equal(0.025707474358979077, results.L2);
+            Assert.Equal(0.16033550560926635, results.Rms);
+            Assert.Equal(0.88620288753853549, results.RSquared);
         }
 
-        //private void AssertEqual(double v1, double v2)
-        //{
-        //    //Assert.Equal(v1, v2, 5);
-        //    Assert.Equal(v1, v2);
+        [Fact]
+        public void TestGamBinaryClassificationIni()
+        {
+            var mlContext = new MLContext(seed: 0);
+            var idv = mlContext.Data.CreateTextReader(
+                    new TextLoader.Arguments()
+                    {
+                        HasHeader = false,
+                        Column = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.BL, 0),
+                            new TextLoader.Column("Features", DataKind.R4, 1, 9)
+                        }
+                    }).Read(GetDataPath("breast-cancer.txt"));
 
-        //}
+            var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
+                .Append(mlContext.BinaryClassification.Trainers.GeneralizedAdditiveModels());
+            var model = pipeline.Fit(idv);
+            var data = model.Transform(idv);
 
+            var roleMappedSchema = new RoleMappedSchema(data.Schema, false,
+                new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
+                new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
+
+            var calibratedPredictor = model.LastTransformer.Model as CalibratedPredictor;
+            var predictor = calibratedPredictor.SubPredictor as BinaryClassificationGamPredictor;
+            string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
+
+            using (Stream iniStream = File.Create(modelIniPath))
+            using (StreamWriter iniWriter = Utils.OpenWriter(iniStream))
+                predictor.SaveAsIni(iniWriter, roleMappedSchema, calibratedPredictor.Calibrator);
+
+            var results = mlContext.BinaryClassification.Evaluate(data);
+
+            // Getting parity results from maml.exe:
+            // maml.exe ini ini=model.ini out=model_ini.zip data=breast-cancer.txt  loader=TextLoader{col=Label:R4:0 col=Features:R4:1-9} xf=NAHandleTransform{col=Features slot=- ind=-} kind=Binary
+            Assert.Equal(0.99545199224483139, results.Auc);
+            Assert.Equal(0.96995708154506433, results.Accuracy);
+            Assert.Equal(0.95081967213114749, results.PositivePrecision);
+            Assert.Equal(0.96265560165975106, results.PositiveRecall);
+            Assert.Equal(0.95670103092783509, results.F1Score);
+            Assert.Equal(0.11594021906091197, results.LogLoss);
+        }
     }
 
 }
