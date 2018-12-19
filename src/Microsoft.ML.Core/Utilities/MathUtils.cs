@@ -507,7 +507,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static Float SigmoidSlow(Float x)
         {
-            return 1 / (1 + ExpSlow(-x));
+            // The following two expressions are mathematically equivalent. Due to the potential of getting overflow we should
+            // not call exp(x) for large positive x: instead, we modify the expression to compute exp(-x).
+            if (x > 0)
+                return 1 / (1 + ExpSlow(-x));
+            else
+            {
+                var ex = ExpSlow(x);
+                return  ex / (1 + ex);
+            }
         }
 
         /// <summary>
