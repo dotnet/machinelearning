@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -106,7 +107,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <summary>
         /// returns the ensemble in the production TreeEnsemble format
         /// </summary>
-        public string ToTreeEnsembleIni(FeaturesToContentMap fmap,
+        internal string ToTreeEnsembleIni(FeaturesToContentMap fmap,
             string trainingParams, bool appendFeatureGain, bool includeZeroGainFeatures = true)
         {
             StringBuilder sbEvaluator = new StringBuilder();
@@ -305,7 +306,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = BlockingThreadPool.NumThreads }, actions);
         }
 
-        public string ToGainSummary(FeaturesToContentMap fmap, Dictionary<int, int> featureToID, int prefix, bool includeZeroGainFeatures, bool normalize, int startingCommentNumber)
+        internal string ToGainSummary(FeaturesToContentMap fmap, Dictionary<int, int> featureToID, int prefix, bool includeZeroGainFeatures, bool normalize, int startingCommentNumber)
         {
             if (_trees.Count == 0)
                 return string.Empty;
@@ -396,7 +397,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// A class that given either a <see cref="RoleMappedSchema"/>
     /// provides a mechanism for getting the corresponding input INI content for the features.
     /// </summary>
-    public sealed class FeaturesToContentMap
+    internal sealed class FeaturesToContentMap
     {
         private readonly VBuffer<ReadOnlyMemory<char>> _content;
         private readonly VBuffer<ReadOnlyMemory<char>> _names;
@@ -417,8 +418,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Contracts.Assert(feat.Type.ValueCount > 0);
 
             var sch = schema.Schema;
-            if (sch.HasSlotNames(feat.Index, feat.Type.ValueCount))
-                sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref _names);
+            if (sch[feat.Index].HasSlotNames(feat.Type.ValueCount))
+                sch[feat.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _names);
             else
                 _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
 #if !CORECLR

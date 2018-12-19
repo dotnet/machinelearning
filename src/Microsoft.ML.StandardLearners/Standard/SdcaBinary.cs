@@ -19,6 +19,7 @@ using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1465,23 +1466,35 @@ namespace Microsoft.ML.Trainers
             Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
 
-            if (Info.NeedCalibration)
+            var outCols = new List<SchemaShape.Column>()
             {
-                _outputColumns = new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-                };
-            }
-            else
+                    new SchemaShape.Column(
+                        DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberType.R4,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
+                    ),
+                    new SchemaShape.Column(
+                        DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        BoolType.Instance,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+
+            };
+
+            if (!Info.NeedCalibration)
             {
-                _outputColumns = new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                    new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-                };
-            }
+                outCols.Insert(1, new SchemaShape.Column(
+                    DefaultColumnNames.Probability,
+                    SchemaShape.Column.VectorKind.Scalar,
+                    NumberType.R4,
+                    false,
+                    new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
+            };
+
+            _outputColumns = outCols.ToArray();
         }
 
         internal SdcaBinaryTrainer(IHostEnvironment env, Arguments args,
@@ -1493,23 +1506,35 @@ namespace Microsoft.ML.Trainers
             Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
 
-            if (Info.NeedCalibration)
+            var outCols = new List<SchemaShape.Column>()
             {
-                _outputColumns = new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-                };
-            }
-            else
+                    new SchemaShape.Column(
+                        DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberType.R4,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())
+                    ),
+                    new SchemaShape.Column(
+                        DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        BoolType.Instance,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+
+            };
+
+            if (!Info.NeedCalibration)
             {
-                _outputColumns = new[]
-                {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                    new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-                };
-            }
+                outCols.Insert(1, new SchemaShape.Column(
+                    DefaultColumnNames.Probability,
+                    SchemaShape.Column.VectorKind.Scalar,
+                    NumberType.R4,
+                    false,
+                    new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))));
+            };
+
+            _outputColumns = outCols.ToArray();
 
         }
 
@@ -1532,23 +1557,6 @@ namespace Microsoft.ML.Trainers
                 error();
         }
 
-        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
-        {
-            if (weightColumn == null)
-                return default;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-        }
-
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-        {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
-        }
-
         protected override TScalarPredictor CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
@@ -1561,7 +1569,7 @@ namespace Microsoft.ML.Trainers
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
 
             var predictor = new LinearBinaryModelParameters(Host, in maybeSparseWeights, bias[0]);
-            if (!(_loss is LogLoss))
+            if (Info.NeedCalibration)
                 return predictor;
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }

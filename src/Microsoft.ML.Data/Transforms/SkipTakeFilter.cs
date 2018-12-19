@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms
             Host.AssertValueOrNull(rand);
 
             var input = Source.GetRowCursor(predicate);
-            var activeColumns = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
+            var activeColumns = Utils.BuildArray(OutputSchema.Count, predicate);
             return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 

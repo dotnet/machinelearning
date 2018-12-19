@@ -12,7 +12,8 @@ namespace Microsoft.ML.Runtime.Data
     /// Legacy interface for schema information.
     /// Please avoid implementing this interface, use <see cref="Schema"/>.
     /// </summary>
-    public interface ISchema
+    [BestFriend]
+    internal interface ISchema
     {
         /// <summary>
         /// Number of columns.

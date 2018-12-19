@@ -9,10 +9,11 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn
 {
-    public static class PredictorUtils
+    [BestFriend]
+    internal static class PredictorUtils
     {
         /// <summary>
-        /// Save the model summary
+        /// Save the model summary.
         /// </summary>
         public static void SaveSummary(IChannel ch, IPredictor predictor, RoleMappedSchema schema, TextWriter writer)
         {

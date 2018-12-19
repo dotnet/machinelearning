@@ -530,7 +530,7 @@ namespace Microsoft.ML.Trainers.PCA
             }
         }
 
-        public IDataView GetSummaryDataView(RoleMappedSchema schema)
+        IDataView ICanGetSummaryAsIDataView.GetSummaryDataView(RoleMappedSchema schema)
         {
             var bldr = new ArrayDataViewBuilder(Host);
 

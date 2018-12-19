@@ -75,12 +75,12 @@ namespace Microsoft.ML.Benchmarks
             var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
             var xf = new HashingTransformer(_env, new[] { info });
             var mapper = xf.GetRowToRowMapper(_inRow.Schema);
-            mapper.OutputSchema.TryGetColumnIndex("Bar", out int outCol);
-            var outRow = mapper.GetRow(_inRow, c => c == outCol);
+            var column = mapper.OutputSchema["Bar"];
+            var outRow = mapper.GetRow(_inRow, c => c == column.Index);
             if (type is VectorType)
-                _vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
+                _vecGetter = outRow.GetGetter<VBuffer<uint>>(column.Index);
             else
-                _getter = outRow.GetGetter<uint>(outCol);
+                _getter = outRow.GetGetter<uint>(column.Index);
         }
 
         /// <summary>

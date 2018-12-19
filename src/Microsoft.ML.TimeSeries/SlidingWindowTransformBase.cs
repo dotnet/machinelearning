@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var sch = OutputSchema;
             int index;
             sch.TryGetColumnIndex(InputColumnName, out index);
-            ColumnType col = sch.GetColumnType(index);
+            ColumnType col = sch[index].Type;
             TInput nanValue = Conversions.Instance.GetNAOrDefault<TInput>(col);
 
             // We store the nan_value here to avoid getting it each time a state is instanciated.

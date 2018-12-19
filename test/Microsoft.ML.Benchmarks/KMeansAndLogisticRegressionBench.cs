@@ -19,7 +19,7 @@ namespace Microsoft.ML.Benchmarks
             // Pipeline
 
             var input = ml.Data.ReadFromTextFile(_dataPath, new[] {
-                            new TextLoader.Column("Label", DataKind.R4, 0),
+                            new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("CatFeatures", DataKind.TX,
                                 new [] {
                                     new TextLoader.Range() { Min = 1, Max = 8 },
