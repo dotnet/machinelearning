@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -531,37 +532,45 @@ namespace Microsoft.ML.Runtime.RunTests
                         }
                     }).Read(GetDataPath("breast-cancer.txt"));
 
-            var pipeline = mlContext.Regression.Trainers.GeneralizedAdditiveModels();
+            var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
+                .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels());
             var model = pipeline.Fit(idv);
             var data = model.Transform(idv);
 
-            //var roleMappedSchema = new RoleMappedSchema(data.Schema, false,
-            //    new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
-            //    new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
+            var roleMappedSchema = new RoleMappedSchema(data.Schema, false,
+                new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
+                new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
 
-            string modelZipPath = GetOutputPath(FullTestName + "-model3.zip");
-            string modelIniPath = GetOutputPath(FullTestName + "-model3.ini");
+            string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
+            using (Stream iniStream = File.Create(modelIniPath))
+            using (StreamWriter iniWriter = Utils.OpenWriter(iniStream))
+                model.LastTransformer.Model.SaveAsIni(iniWriter, roleMappedSchema);
 
-            using (var fs = File.Create(modelZipPath))
-                mlContext.Model.Save(model, fs);
+            var results = mlContext.Regression.Evaluate(data);
 
-            var savePredCommand = new SavePredictorCommand(
-                mlContext,
-                new SavePredictorCommand.Arguments
-                {
-                    InputModelFile = modelZipPath,
-                    IniFile = modelIniPath
-                });
+            // Getting parity results from maml.exe:
+            // maml.exe ini ini=model.ini out=model_ini.zip data=breast-cancer.txt  loader=TextLoader{col=Label:R4:0 col=Features:R4:1-9} xf=NAHandleTransform{col=Features slot=- ind=-} kind=Regression
+            var expectedResults = new RegressionMetrics(
+                    l1: 0.093256807643323947,
+                    l2: 0.025707474358979077,
+                    rms: 0.16033550560926635,
+                    rSquared: 0.88620288753853549,
+                    lossFunction: 0.025707474380004879);
 
-            savePredCommand.Run();
-
-            //string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
-            //using (StreamWriter writer = Utils.OpenWriter(modelIniPath))
-            //using (StreamWriter writer = new StreamWriter(modelIniPath))
-            //    model.Model.SaveAsIni(writer, roleMappedSchema);
-
-            //var results = mlContext.Regression.Evaluate(data);
+            Assert.Equal(results.L1, expectedResults.L1);
+            Assert.Equal(results.L2, expectedResults.L2);
+            Assert.Equal(results.Rms, expectedResults.Rms);
+            Assert.Equal(results.RSquared, expectedResults.RSquared);
+            Assert.Equal(results.LossFn, expectedResults.LossFn);
         }
+
+        //private void AssertEqual(double v1, double v2)
+        //{
+        //    //Assert.Equal(v1, v2, 5);
+        //    Assert.Equal(v1, v2);
+
+        //}
+
     }
 
 }
