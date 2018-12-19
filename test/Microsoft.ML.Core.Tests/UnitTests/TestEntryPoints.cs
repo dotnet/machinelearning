@@ -3887,8 +3887,8 @@ namespace Microsoft.ML.RunTests
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS1.csv")), "sep=, col=Features:R4:1 header=+",
                 new[]
                 {
-                    "TimeSeriesProcessing.SsaChangePointDetector",
-                    "TimeSeriesProcessing.SsaChangePointDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaChangePointDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaChangePointDetector",
                 },
                 new[]
                 {
@@ -3916,8 +3916,8 @@ namespace Microsoft.ML.RunTests
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "real_1.csv")), "sep=, col=Features:R4:1 header=+",
                 new[]
                 {
-                    "TimeSeriesProcessing.IidSpikeDetector",
-                    "TimeSeriesProcessing.IidSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.IidSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.IidSpikeDetector",
                 },
                 new[]
                 {
@@ -3940,9 +3940,9 @@ namespace Microsoft.ML.RunTests
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS2.csv")), "sep=, col=Features:R4:1 header=+",
                 new[]
                 {
-                    "TimeSeriesProcessing.SsaSpikeDetector",
-                    "TimeSeriesProcessing.SsaSpikeDetector",
-                    "TimeSeriesProcessing.SsaSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaSpikeDetector",
                 },
                 new[]
                 {
@@ -3978,7 +3978,7 @@ namespace Microsoft.ML.RunTests
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
                 new[]
                 {
-                    "TimeSeriesProcessing.PercentileThresholdTransform"
+                    "TimeSeriesProcessingEntryPoints.PercentileThresholdTransform"
                 },
                 new[]
                 {
@@ -3995,7 +3995,7 @@ namespace Microsoft.ML.RunTests
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
                 new[]
                 {
-                    "TimeSeriesProcessing.PValueTransform"
+                    "TimeSeriesProcessingEntryPoints.PValueTransform"
                 },
                 new[]
                 {
@@ -4011,10 +4011,10 @@ namespace Microsoft.ML.RunTests
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
                 new[]
                 {
-                    "TimeSeriesProcessing.SlidingWindowTransform",
-                    "TimeSeriesProcessing.SlidingWindowTransform",
-                    "TimeSeriesProcessing.SlidingWindowTransform",
-                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
+                    "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
+                    "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
+                    "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
                 },
                 new[]
                 {
