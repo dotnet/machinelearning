@@ -85,7 +85,8 @@ namespace Microsoft.ML.Tests
             TestFeatureContribution(ML.Regression.Trainers.OnlineGradientDescent(), GetSparseDataset(numberOfInstances: 100), "OnlineGradientDescentRegression");
         }
 
-        [Fact(Skip = "Results vary a lot from run to run, need to investigate error.")]
+        //[Fact(Skip = "Results vary a lot from run to run, need to investigate error.")]
+        [Fact]
         public void TestPoissonRegression()
         {
             TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");

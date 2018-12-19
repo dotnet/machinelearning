@@ -208,13 +208,12 @@ namespace Microsoft.ML.Runtime.Data
                 // Check that the featureColumn is present and has the expected type.
                 if (!schema.TryGetColumnIndex(_parent.FeatureColumn, out _featureColumnIndex))
                     throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.FeatureColumn);
-                _featureColumnType = schema.GetColumnType(_featureColumnIndex);
+                _featureColumnType = schema[_featureColumnIndex].Type;
                 if (_featureColumnType.ItemType != NumberType.R4 || !_featureColumnType.IsVector)
                     throw Host.ExceptUserArg(nameof(schema), "Column '{0}' does not have compatible type. Expected type is vector of float.", _parent.FeatureColumn);
 
-                if (InputSchema.HasSlotNames(_featureColumnIndex, _featureColumnType.VectorSize))
-                    InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, _featureColumnIndex,
-                        ref _slotNames);
+                if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.VectorSize))
+                    InputSchema[_featureColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                 else
                     _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(_featureColumnType.VectorSize);
             }
@@ -224,7 +223,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                var active = new bool[InputSchema.ColumnCount];
+                var active = new bool[InputSchema.Count];
                 InputSchema.TryGetColumnIndex(_parent.FeatureColumn, out int featureCol);
                 active[featureCol] = true;
                 return col => active[col];
@@ -254,9 +253,9 @@ namespace Microsoft.ML.Runtime.Data
             public Delegate GetContributionGetter(Row input, int colSrc)
             {
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
+                Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
 
-                var typeSrc = input.Schema.GetColumnType(colSrc);
+                var typeSrc = input.Schema[colSrc].Type;
                 Func<Row, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.

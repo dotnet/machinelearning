@@ -86,13 +86,14 @@ namespace Microsoft.ML.Samples.Dynamic
                 // And the corresponding information about the feature
                 var value = row.Features[featureOfInterest];
                 var contribution = row.FeatureContributions[featureOfInterest];
-                var name = data.Schema.GetColumnName(featureOfInterest + 1);
+                //var name = data.Schema.GetTempColumnName(featureOfInterest + 1);
                 var weight = weights.GetValues()[featureOfInterest];
 
                 Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}",
                     row.MedianHomeValue,
                     row.Score,
-                    name,
+                    "TODO",
+                    //name,
                     value,
                     weight,
                     contribution

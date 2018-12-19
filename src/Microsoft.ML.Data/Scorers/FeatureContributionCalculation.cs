@@ -173,8 +173,8 @@ namespace Microsoft.ML.Runtime.Data
         public Delegate GetTextContributionGetter(Row input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
         {
             Contracts.CheckValue(input, nameof(input));
-            Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
-            var typeSrc = input.Schema.GetColumnType(colSrc);
+            Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
+            var typeSrc = input.Schema[colSrc].Type;
 
             Func<Row, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType);
@@ -184,9 +184,9 @@ namespace Microsoft.ML.Runtime.Data
         public Delegate GetContributionGetter(Row input, int colSrc)
         {
             Contracts.CheckValue(input, nameof(input));
-            Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
+            Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema.GetColumnType(colSrc);
+            var typeSrc = input.Schema[colSrc].Type;
             Func<Row, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
 
             // REVIEW: Assuming Feature contributions will be VBuffer<float>.
