@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data
         /// <param name="start">The starting column index, for the range.</param>
         /// <param name="end">The ending column index, for the range.</param>
         public LoadColumnAttribute(int start, int end)
-             : this(start) //REVIEW  this is incorrect, but it is just temporary there, until the Legacy API's TextLoader gets deleted.
+             : this(start.ToString()) //REVIEW  this is incorrect, but it is just temporary there, until the Legacy API's TextLoader gets deleted.
         {
             Sources.Add(new TextLoader.Range(start, end));
         }
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="columnIndexes">Distinct text file column indices to load as part of this column.</param>
         public LoadColumnAttribute(int[] columnIndexes)
-            : this(columnIndexes[0]) // REVIEW: this is incorrect, but it is just temporary there, until the Legacy API's TextLoader gets deleted.
+            : this(columnIndexes[0].ToString()) // REVIEW: this is incorrect, but it is just temporary there, until the Legacy API's TextLoader gets deleted.
         {
             foreach (var col in columnIndexes)
                 Sources.Add(new TextLoader.Range(col));

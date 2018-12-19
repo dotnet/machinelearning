@@ -476,8 +476,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             var previewIris = dataIris.Preview(1);
 
             Assert.Equal(5, previewIris.ColumnView.Length);
-            Assert.Equal("SepalLength", previewIris.Schema.GetColumnName(0));
-            Assert.Equal(NumberType.R4, previewIris.Schema.GetColumnType(0));
+            Assert.Equal("SepalLength", previewIris.Schema[0].Name);
+            Assert.Equal(NumberType.R4, previewIris.Schema[0].Type);
             int index = 0;
             foreach (var entry in irisFirstRow)
             {
