@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         /// <summary>
         /// Create a <see cref="Dataset"/> for storing training and prediciton data under LightGBM framework. The main goal of this function
-        /// is not marshling ML.NET data set into LightGBM format but just creates a (unmanaged) container where examples can be pushed into by calling
+        /// is not marshaling ML.NET data set into LightGBM format but just creates a (unmanaged) container where examples can be pushed into by calling
         /// <see cref="PushRows(float[], int, int, int)"/>. It also pre-allocates memory so the actual size (number of examples and number of features)
         /// of the data set is required. A sub-sampled version of the original data set is passed in to compute some statictics needed by the training
         /// procedure. Note that we use "original" to indicate a property from the unsampled data set.

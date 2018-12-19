@@ -256,10 +256,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private void LightGbmHelper(bool useSoftmax, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities)
         {
-            //////////////////////////////////////////////////////////////////////////////////////////////
             // Prepare data and train LightGBM model via ML.NET
-            //////////////////////////////////////////////////////////////////////////////////////////////
-
             // Training matrix. It contains all feature vectors.
             var dataMatrix = new float[_rowNumber * _columnNumber];
             // Labels for multi-class classification
@@ -290,10 +287,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var predicted = gbm.Transform(dataView);
             mlnetPredictions = new List<GbmExample>(predicted.AsEnumerable<GbmExample>(mlContext, false));
 
-            //////////////////////////////////////////////////////////////////////////////////////////////
             // Convert training to LightGBM's native format and train LightGBM model via its APIs
-            //////////////////////////////////////////////////////////////////////////////////////////////
-
             // Convert the whole training matrix to CSC format required by LightGBM interface. Notice that the training matrix
             // is dense so this conversion is simply a matrix transpose.
             double[][] sampleValueGroupedByColumn = new double[_columnNumber][];
