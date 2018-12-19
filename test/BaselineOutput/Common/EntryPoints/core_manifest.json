@@ -18216,18 +18216,6 @@
           "SortOrder": 5.0,
           "IsNullable": false,
           "Default": true
-        },
-        {
-          "Name": "Stringify",
-          "Type": "Bool",
-          "Desc": "Whether or not output of Features contribution in string key-value format",
-          "Aliases": [
-            "str"
-          ],
-          "Required": false,
-          "SortOrder": 6.0,
-          "IsNullable": false,
-          "Default": false
         }
       ],
       "Outputs": [
