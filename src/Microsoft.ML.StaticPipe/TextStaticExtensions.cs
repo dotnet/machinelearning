@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed word tokenizer.
     /// </summary>
-    public static class WordTokenizerExtensions
+    public static class WordTokenizerStaticExtensions
     {
         private sealed class OutPipelineColumn : VarVector<string>
         {
@@ -63,7 +63,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed character tokenizer.
     /// </summary>
-    public static class CharacterTokenizerExtensions
+    public static class CharacterTokenizerStaticExtensions
     {
         private sealed class OutPipelineColumn : VarVector<Key<ushort, string>>
         {
@@ -117,7 +117,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed stop word remover.
     /// </summary>
-    public static class StopwordRemoverExtensions
+    public static class StopwordRemoverStaticExtensions
     {
         private sealed class OutPipelineColumn : VarVector<string>
         {
@@ -172,7 +172,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed text normalizer.
     /// </summary>
-    public static class TextNormalizerExtensions
+    public static class TextNormalizerStaticExtensions
     {
         private sealed class OutPipelineColumn : Scalar<string>
         {
@@ -243,7 +243,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed bag of word converter.
     /// </summary>
-    public static class WordBagEstimatorExtensions
+    public static class WordBagEstimatorStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -326,7 +326,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed bag of wordhash converter.
     /// </summary>
-    public static class WordHashBagEstimatorExtensions
+    public static class WordHashBagEstimatorStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -422,7 +422,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed ngram estimator.
     /// </summary>
-    public static class NgramEstimatorExtensions
+    public static class NgramEstimatorStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -487,8 +487,8 @@ namespace Microsoft.ML.StaticPipe
         /// Produces a bag of counts of ngrams (sequences of consecutive words ) in a given tokenized text.
         /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
         ///
-        /// /// <see cref="ToNgrams"/> is different from <see cref="WordBagEstimatorExtensions.ToBagofWords"/>
-        /// in a way that <see cref="ToNgrams"/> takes tokenized text as input while <see cref="WordBagEstimatorExtensions.ToBagofWords"/> tokenizes text internally.
+        /// /// <see cref="ToNgrams"/> is different from <see cref="WordBagEstimatorStaticExtensions.ToBagofWords"/>
+        /// in a way that <see cref="ToNgrams"/> takes tokenized text as input while <see cref="WordBagEstimatorStaticExtensions.ToBagofWords"/> tokenizes text internally.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="ngramLength">Ngram length.</param>
@@ -508,7 +508,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed ngram hash estimator.
     /// </summary>
-    public static class NgramHashEstimatorExtensions
+    public static class NgramHashEstimatorStaticExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -573,8 +573,8 @@ namespace Microsoft.ML.StaticPipe
         /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given tokenized text.
         /// It does so by hashing each ngram and using the hash value as the index in the bag.
         ///
-        /// <see cref="ToNgramsHash"/> is different from <see cref="WordHashBagEstimatorExtensions.ToBagofHashedWords"/>
-        /// in a way that <see cref="ToNgramsHash"/> takes tokenized text as input while <see cref="WordHashBagEstimatorExtensions.ToBagofHashedWords"/> tokenizes text internally.
+        /// <see cref="ToNgramsHash"/> is different from <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/>
+        /// in a way that <see cref="ToNgramsHash"/> takes tokenized text as input while <see cref="WordHashBagEstimatorStaticExtensions.ToBagofHashedWords"/> tokenizes text internally.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>

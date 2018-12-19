@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe;
 
-namespace Microsoft.ML.Transforms.Conversions
+namespace Microsoft.ML.StaticPipe
 {
     public static partial class ConvertStaticExtensions
     {

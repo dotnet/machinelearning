@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.HalLearners.StaticPipe;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -10,9 +11,6 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using System;
