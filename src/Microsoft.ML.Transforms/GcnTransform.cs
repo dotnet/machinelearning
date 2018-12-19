@@ -758,6 +758,7 @@ namespace Microsoft.ML.Transforms.Projections
             LInf = 3
         }
 
+        [BestFriend]
         internal static class Defaults
         {
             public const NormalizerKind NormKind = NormalizerKind.L2Norm;

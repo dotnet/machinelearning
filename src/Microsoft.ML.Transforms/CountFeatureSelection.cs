@@ -29,6 +29,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         private readonly IHost _host;
         private readonly ColumnInfo[] _columns;
 
+        [BestFriend]
         internal static class Defaults
         {
             public const long Count = 1;

@@ -28,6 +28,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 {
     public sealed class NormalizingEstimator : IEstimator<NormalizingTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const bool FixZero = true;
@@ -352,6 +353,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>An accessor of the column functions within <see cref="Columns"/>.</summary>
+        [BestFriend]
         internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
 
         public readonly ImmutableArray<ColumnInfo> Columns;

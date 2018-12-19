@@ -168,6 +168,7 @@ namespace Microsoft.ML.Transforms.Categorical
     /// </summary>
     public sealed class OneHotEncodingEstimator : IEstimator<OneHotEncodingTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const OneHotEncodingTransformer.OutputKind OutKind = OneHotEncodingTransformer.OutputKind.Ind;
@@ -272,6 +273,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public OneHotEncodingTransformer Fit(IDataView input) => new OneHotEncodingTransformer(_term, _toSomething, input);
 
+        [BestFriend]
         internal void WrapTermWithDelegate(Action<ValueToKeyMappingTransformer> onFit)
         {
             _term = (ValueToKeyMappingEstimator)_term.WithOnFitDelegate(onFit);
