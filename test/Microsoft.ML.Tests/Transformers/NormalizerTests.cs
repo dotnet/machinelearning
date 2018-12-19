@@ -478,7 +478,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (FileStream fs = File.OpenRead(chooseModelPath))
             {
                 var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
-                Assert.Equal(3, result.Schema.ColumnCount);
+                Assert.Equal(3, result.Schema.Count);
             }
         }
     }
