@@ -285,7 +285,7 @@ namespace Microsoft.ML.Scenarios
 
             var oneSample = GetOneMNISTExample();
 
-            var predictFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+            var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
             var onePrediction = predictFunction.Predict(oneSample);
 
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Scenarios
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted, label: "KeyLabel");
                 Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy, 1);
                 Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy, 1);
-                var predictionFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+                var predictionFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
                 var oneSample = GetOneMNISTExample();
                 var onePrediction = predictionFunction.Predict(oneSample);
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Scenarios
                 Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy-.01, expectedMicroAccuracy+.01);
 
                 // Create prediction function and test prediction
-                var predictFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+                var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
                 var oneSample = GetOneMNISTExample();
 
@@ -507,7 +507,7 @@ namespace Microsoft.ML.Scenarios
             // An in-memory example. Its label is predicted below.
             var oneSample = GetOneMNISTExample();
 
-            var predictFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+            var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
             var onePrediction = predictFunction.Predict(oneSample);
 
