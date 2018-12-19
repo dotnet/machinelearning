@@ -14500,12 +14500,6 @@ namespace Microsoft.ML
             public bool Normalize { get; set; } = true;
 
             /// <summary>
-            /// Whether or not output of Features contribution in string key-value format
-            /// </summary>
-            [Obsolete]
-            public bool Stringify { get; set; } = false;
-
-            /// <summary>
             /// Input dataset
             /// </summary>
             [Obsolete]
