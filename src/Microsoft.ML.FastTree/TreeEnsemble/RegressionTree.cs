@@ -1119,7 +1119,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <param name="featureToId">A map of feature index (in the features array)
         /// to the ID as it will be written in the file. This instance should be
         /// used for all </param>
-        public void ToTreeEnsembleFormat(StringBuilder sbEvaluator, StringBuilder sbInput, FeaturesToContentMap featureContents,
+        internal void ToTreeEnsembleFormat(StringBuilder sbEvaluator, StringBuilder sbInput, FeaturesToContentMap featureContents,
             ref int evaluatorCounter, Dictionary<int, int> featureToId)
         {
             Contracts.AssertValue(sbEvaluator);
@@ -1259,7 +1259,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
         // prints the tree out as a string (in old Bing format used by LambdaMART and AdIndex)
-        public string ToOldIni(FeatureNameCollection featureNames)
+        internal string ToOldIni(FeatureNameCollection featureNames)
         {
             // print the root node
             StringBuilder output = new StringBuilder();

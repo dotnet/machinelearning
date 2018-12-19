@@ -233,9 +233,18 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             internal ColumnInfo(Column item, Arguments args) :
-                this(item.Source, item.Name,
-                    args.NumTopic, args.AlphaSum, args.Beta, args.Mhstep, args.NumIterations,
-                    args.LikelihoodInterval, args.NumThreads, args.NumMaxDocToken, args.NumSummaryTermPerTopic, args.NumBurninIterations, args.ResetRandomGenerator)
+                this(item.Source ?? item.Name, item.Name,
+                    item.NumTopic ?? args.NumTopic,
+                    item.AlphaSum ?? args.AlphaSum,
+                    item.Beta ?? args.Beta,
+                    item.Mhstep ?? args.Mhstep,
+                    item.NumIterations ?? args.NumIterations,
+                    item.LikelihoodInterval ?? args.LikelihoodInterval,
+                    item.NumThreads ?? args.NumThreads,
+                    item.NumMaxDocToken ?? args.NumMaxDocToken,
+                    item.NumSummaryTermPerTopic ?? args.NumSummaryTermPerTopic,
+                    item.NumBurninIterations ?? args.NumBurninIterations,
+                    item.ResetRandomGenerator ?? args.ResetRandomGenerator)
             {
             }
 
@@ -341,6 +350,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        [BestFriend]
         internal LdaSummary GetLdaDetails(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
@@ -1074,6 +1084,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
     public sealed class LatentDirichletAllocationEstimator : IEstimator<LatentDirichletAllocationTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const int NumTopic = 100;

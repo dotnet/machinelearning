@@ -20,7 +20,8 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Transforms
 {
-    public static class ScoringTransformer
+    [BestFriend]
+    internal static class ScoringTransformer
     {
         public sealed class Arguments : TransformInputBase
         {

@@ -418,7 +418,7 @@ namespace Microsoft.ML.Transforms.Projections
                 col.Save(ctx);
         }
 
-        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -755,6 +755,7 @@ namespace Microsoft.ML.Transforms.Projections
             LInf = 3
         }
 
+        [BestFriend]
         internal static class Defaults
         {
             public const NormalizerKind NormKind = NormalizerKind.L2Norm;

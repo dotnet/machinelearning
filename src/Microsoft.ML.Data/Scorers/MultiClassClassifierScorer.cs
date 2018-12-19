@@ -78,7 +78,6 @@ namespace Microsoft.ML.Data
             public VectorType Type => _type;
             bool ICanSavePfa.CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
             bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
-            public ISchemaBindableMapper InnerBindable => _bindable;
 
             private static VersionInfo GetVersionInfo()
             {
@@ -137,8 +136,6 @@ namespace Microsoft.ML.Data
                     ctx.LoadNonEmptyString() : MetadataUtils.Kinds.SlotNames;
             }
 
-            public ISchemaBindableMapper Clone(ISchemaBindableMapper inner) => new LabelNameBindableMapper(_host, inner, _type, _getter, _metadataKind, _canWrap);
-
             private Delegate DecodeInit<T>(object value)
             {
                 _host.CheckDecode(value is VBuffer<T>);
@@ -147,7 +144,10 @@ namespace Microsoft.ML.Data
                 return buffGetter;
             }
 
-            public static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
+            /// <summary>
+            /// Method corresponding to <see cref="SignatureLoadModel"/>.
+            /// </summary>
+            private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.CheckValue(env, nameof(env));
                 var h = env.Register(LoaderSignature);
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Data
                 return ((IBindableCanSaveOnnx)_bindable).SaveAsOnnx(ctx, schema, outputNames);
             }
 
-            public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+            ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
             {
                 var innerBound = _bindable.Bind(env, schema);
                 if (_canWrap != null && !_canWrap(innerBound, _type))
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Data
                 return Utils.MarshalInvoke(CreateBound<int>, _type.ItemType.RawType, env, (ISchemaBoundRowMapper)innerBound, _type, _getter, _metadataKind, _canWrap);
             }
 
-            public static ISchemaBoundMapper CreateBound<T>(IHostEnvironment env, ISchemaBoundRowMapper mapper, VectorType type, Delegate getter,
+            internal static ISchemaBoundMapper CreateBound<T>(IHostEnvironment env, ISchemaBoundRowMapper mapper, VectorType type, Delegate getter,
                 string metadataKind, Func<ISchemaBoundMapper, ColumnType, bool> canWrap)
             {
                 Contracts.AssertValue(env);
@@ -392,7 +392,7 @@ namespace Microsoft.ML.Data
         /// from the model of a bindable mapper)</param>
         /// <returns>Whether we can call <see cref="LabelNameBindableMapper.CreateBound{T}"/> with
         /// this mapper and expect it to succeed</returns>
-        public static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
+        private static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
         {
             Contracts.AssertValue(mapper);
             Contracts.AssertValue(labelNameType);
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Data
             return labelNameType.IsVector && labelNameType.VectorSize == scoreType.VectorSize;
         }
 
-        public static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        private static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(mapper);
@@ -435,7 +435,8 @@ namespace Microsoft.ML.Data
             return LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.SlotNames, CanWrap);
         }
 
-        public MultiClassClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        [BestFriend]
+        internal MultiClassClassifierScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
             : base(args, env, data, WrapIfNeeded(env, mapper, trainSchema), trainSchema, RegistrationName, MetadataUtils.Const.ScoreColumnKind.MultiClassClassification,
                 MetadataUtils.Const.ScoreValueKind.Score, OutputTypeMatches, GetPredColType)
         {
@@ -453,7 +454,10 @@ namespace Microsoft.ML.Data
             // <base info>
         }
 
-        public static MultiClassClassifierScorer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        /// <summary>
+        /// Corresponds to <see cref="SignatureLoadDataTransform"/>.
+        /// </summary>
+        private static MultiClassClassifierScorer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -463,7 +467,7 @@ namespace Microsoft.ML.Data
             return h.Apply("Loading Model", ch => new MultiClassClassifierScorer(h, ctx, input));
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -517,7 +521,7 @@ namespace Microsoft.ML.Data
             return predFn;
         }
 
-        protected override JToken PredictedLabelPfa(string[] mapperOutputs)
+        private protected override JToken PredictedLabelPfa(string[] mapperOutputs)
         {
             Contracts.Assert(Utils.Size(mapperOutputs) == 1);
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);

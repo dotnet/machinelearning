@@ -82,8 +82,10 @@ namespace Microsoft.ML.LightGBM
             return strBuf.ToString();
         }
 
+        [BestFriend]
         internal static class Defaults
         {
+            [BestFriend]
             internal const int NumBoostRound = 100;
         }
 

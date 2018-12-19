@@ -9,6 +9,7 @@ using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
+using Microsoft.ML.OnnxTransform.StaticPipe;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
@@ -258,7 +259,7 @@ namespace Microsoft.ML.Tests
                     }
                     });
 
-                var onnx = OnnxTransform.Create(env, dataView, modelFile,
+                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
                     new[] { "data_0" },
                     new[] { "softmaxout_1" });
 
@@ -296,7 +297,7 @@ namespace Microsoft.ML.Tests
                     }
                     });
 
-                var onnx = OnnxTransform.Create(env, dataView, modelFile,
+                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
                     new[] { "ina", "inb" },
                     new[] { "outa", "outb" });
 

@@ -123,8 +123,7 @@ namespace Microsoft.ML
         }
     }
 
-    [BestFriend]
-    internal sealed class PredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
+    public sealed class PredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
        where TSrc : class
        where TDst : class, new()
     {

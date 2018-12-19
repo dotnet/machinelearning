@@ -137,7 +137,7 @@ namespace Microsoft.ML.Data
         private const string RegistrationName = "GenericScore";
 
         private readonly Bindings _bindings;
-        protected override BindingsBase GetBindings() => _bindings;
+        private protected override BindingsBase GetBindings() => _bindings;
 
         public override Schema OutputSchema { get; }
 
@@ -148,7 +148,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// The <see cref="SignatureDataScorer"/> entry point for creating a <see cref="GenericScorer"/>.
         /// </summary>
-        public GenericScorer(IHostEnvironment env, ScorerArgumentsBase args, IDataView data,
+        [BestFriend]
+        internal GenericScorer(IHostEnvironment env, ScorerArgumentsBase args, IDataView data,
             ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
             : base(env, data, RegistrationName, Contracts.CheckRef(mapper, nameof(mapper)).Bindable)
         {
@@ -159,7 +160,7 @@ namespace Microsoft.ML.Data
             var rowMapper = mapper as ISchemaBoundRowMapper;
             Host.CheckParam(rowMapper != null, nameof(mapper), "mapper should implement ISchemaBoundRowMapper");
             _bindings = Bindings.Create(data.Schema, rowMapper, args.Suffix);
-            OutputSchema = Schema.Create(_bindings);
+            OutputSchema = _bindings.AsSchema;
         }
 
         /// <summary>
@@ -169,7 +170,7 @@ namespace Microsoft.ML.Data
             : base(env, data, RegistrationName, transform.Bindable)
         {
             _bindings = transform._bindings.ApplyToSchema(env, data.Schema);
-            OutputSchema = Schema.Create(_bindings);
+            OutputSchema = _bindings.AsSchema;
         }
 
         /// <summary>
@@ -180,7 +181,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(ctx);
             _bindings = Bindings.Create(ctx, host, Bindable, input.Schema);
-            OutputSchema = Schema.Create(_bindings);
+            OutputSchema = _bindings.AsSchema;
         }
 
         /// <summary>
@@ -198,7 +199,7 @@ namespace Microsoft.ML.Data
             return h.Apply("Loading Model", ch => new GenericScorer(h, ctx, input));
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

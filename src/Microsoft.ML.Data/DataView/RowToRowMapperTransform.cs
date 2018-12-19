@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValueOrNull(mapperFactory);
             _mapper = mapper;
             _mapperFactory = mapperFactory;
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
 
         [BestFriend]
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Data
             // _mapper
 
             ctx.LoadModel<IRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
         }
 
         public static RowToRowMapperTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)

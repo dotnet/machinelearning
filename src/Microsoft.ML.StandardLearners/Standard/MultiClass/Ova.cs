@@ -226,19 +226,38 @@ namespace Microsoft.ML.Trainers
         private readonly ImplBase _impl;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
+
+        /// <summary>
+        /// Function applied to output of predictors. Assume that we have n predictors (one per class) and for the i-th predictor,
+        /// y_i is its raw output and p_i is its probability output. Note that not all predictors are able to produce probability output.
+        /// <para>
+        /// <see cref="Raw"/>: output the result of predictors without post-processing. Output is [y_1, ..., y_n].
+        /// <see cref="ProbabilityNormalization"/>: fetch probability output of each class probability from provided predictors and make sure the sume of class probabilities is one.
+        /// Output is [p_1 / (p_1 + ... + p_n), ..., p_n / (p_1 + ... + p_n)].
+        /// <see cref="Softmax"/>: Generate probability by feeding raw outputs to softmax function. Output is [z_1, ..., z_n], where z_i is exp(y_i) / (exp(y_1) + ... + exp(y_n)).
+        /// </para>
+        /// </summary>
+        public enum OutputFormula { Raw = 0, ProbabilityNormalization = 1, Softmax = 2 };
         private readonly ColumnType _outputType;
         public ColumnType DistType => _outputType;
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
-        [BestFriend]
-        internal static OvaPredictor Create(IHost host, bool useProb, TScalarPredictor[] predictors)
+        public static OvaPredictor Create(IHost host, OutputFormula outputFormula, TScalarPredictor[] predictors)
         {
             ImplBase impl;
 
             using (var ch = host.Start("Creating OVA predictor"))
             {
+                if (outputFormula == OutputFormula.Softmax)
+                {
+                    impl = new ImplSoftmax(predictors);
+                    return new OvaPredictor(host, impl);
+                }
+
+                // Caller of this function asks for probability output. We check if input predictor can produce probability.
+                // If that predictor can't produce probability, ivmd will be null.
                 IValueMapperDist ivmd = null;
-                if (useProb &&
+                if (outputFormula == OutputFormula.ProbabilityNormalization &&
                     ((ivmd = predictors[0] as IValueMapperDist) == null ||
                         ivmd.OutputType != NumberType.Float ||
                         ivmd.DistType != NumberType.Float))
@@ -247,6 +266,7 @@ namespace Microsoft.ML.Trainers
                     ivmd = null;
                 }
 
+                // If ivmd is null, either the user didn't ask for probability or the provided predictors can't produce probability.
                 if (ivmd != null)
                 {
                     var dists = new IValueMapperDist[predictors.Length];
@@ -261,6 +281,14 @@ namespace Microsoft.ML.Trainers
             return new OvaPredictor(host, impl);
         }
 
+        [BestFriend]
+        internal static OvaPredictor Create(IHost host, bool useProbability, TScalarPredictor[] predictors)
+        {
+            var outputFormula = useProbability ? OutputFormula.ProbabilityNormalization : OutputFormula.Raw;
+
+            return Create(host, outputFormula, predictors);
+        }
+
         /// <summary>
         /// Create a OVA predictor from an array of predictors.
         /// </summary>
@@ -268,7 +296,7 @@ namespace Microsoft.ML.Trainers
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckNonEmpty(predictors, nameof(predictors));
-            return Create(host, true, predictors);
+            return Create(host, OutputFormula.ProbabilityNormalization, predictors);
         }
 
         private OvaPredictor(IHostEnvironment env, ImplBase impl)
@@ -528,6 +556,10 @@ namespace Microsoft.ML.Trainers
                 return base.IsValid(mapper, ref inputType) && mapper.DistType == NumberType.Float;
             }
 
+            /// <summary>
+            /// Each predictor produces a probability of a class. All classes' probabilities are normalized so that
+            /// their sum is one.
+            /// </summary>
             public override ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper()
             {
                 var maps = new ValueMapper<VBuffer<float>, float, float>[Predictors.Length];
@@ -546,9 +578,14 @@ namespace Microsoft.ML.Trainers
                             i =>
                             {
                                 float score = 0;
+                                // buffer[i] is the probability of the i-th class.
+                                // score is the raw prediction score.
                                 maps[i](in tmp, ref score, ref buffer[i]);
                             });
-                        Normalize(buffer, maps.Length);
+
+                        // buffer[i] is the probability of the i-th class.
+                        // score is the raw prediction score.
+                        NormalizeSumToOne(buffer, maps.Length);
 
                         var editor = VBufferEditor.Create(ref dst, maps.Length);
                         buffer.CopyTo(editor.Values);
@@ -556,7 +593,7 @@ namespace Microsoft.ML.Trainers
                     };
             }
 
-            private void Normalize(float[] output, int count)
+            private void NormalizeSumToOne(float[] output, int count)
             {
                 // Clamp to zero and normalize.
                 Double sum = 0;
@@ -595,6 +632,71 @@ namespace Microsoft.ML.Trainers
                 var resultVar = ctx.DeclareVar(null, rootResult);
                 var factorVar = ctx.DeclareVar(null, PfaUtils.Call("/", 1.0, PfaUtils.Call("a.sum", resultVar)));
                 return PfaUtils.Call("la.scale", resultVar, factorVar);
+            }
+        }
+
+        private sealed class ImplSoftmax : ImplBase
+        {
+            public override ColumnType InputType { get; }
+            public override IValueMapper[] Predictors { get; }
+            public override bool CanSavePfa { get; }
+
+            internal ImplSoftmax(TScalarPredictor[] predictors)
+            {
+                Contracts.CheckNonEmpty(predictors, nameof(predictors));
+
+                Predictors = new IValueMapper[predictors.Length];
+                ColumnType inputType = null;
+                for (int i = 0; i < predictors.Length; i++)
+                {
+                    var vm = predictors[i] as IValueMapper;
+                    Contracts.Check(IsValid(vm, ref inputType), "Predictor doesn't implement the expected interface");
+                    Predictors[i] = vm;
+                }
+                CanSavePfa = false;
+                Contracts.AssertValue(inputType);
+                InputType = inputType;
+            }
+
+            public override ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper()
+            {
+                var maps = new ValueMapper<VBuffer<float>, float>[Predictors.Length];
+                for (int i = 0; i < Predictors.Length; i++)
+                    maps[i] = Predictors[i].GetMapper<VBuffer<float>, float>();
+
+                var buffer = new float[maps.Length];
+                return
+                    (in VBuffer<float> src, ref VBuffer<float> dst) =>
+                    {
+                        if (InputType.VectorSize > 0)
+                            Contracts.Check(src.Length == InputType.VectorSize);
+
+                        var tmp = src;
+                        Parallel.For(0, maps.Length, i => maps[i](in tmp, ref buffer[i]));
+                        NormalizeSoftmax(buffer, maps.Length);
+
+                        var editor = VBufferEditor.Create(ref dst, maps.Length);
+                        buffer.CopyTo(editor.Values);
+                        dst = editor.Commit();
+                    };
+            }
+
+            private void NormalizeSoftmax(float[] scores, int count)
+            {
+                float sum = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    scores[i] = (float)Math.Exp(scores[i]);
+                    sum += scores[i];
+                }
+
+                for (int i = 0; i < count; i++)
+                    scores[i] = scores[i] / sum;
+            }
+
+            public override JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+            {
+                throw new NotImplementedException("Softmax's PFA exporter is not implemented yet.");
             }
         }
     }

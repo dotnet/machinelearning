@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Learners;
 using Microsoft.ML.Model;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Internallearn;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -323,7 +324,7 @@ namespace Microsoft.ML.Learners
         /// <summary>
         /// Gets the coefficient statistics as an object.
         /// </summary>
-        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
+        internal CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
@@ -344,7 +345,7 @@ namespace Microsoft.ML.Learners
             return order.Prepend(new[] { new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue) }).ToArray();
         }
 
-        public void SaveText(TextWriter writer, LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
+        internal void SaveText(TextWriter writer, LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(writer, nameof(writer));
@@ -382,7 +383,10 @@ namespace Microsoft.ML.Learners
             writer.WriteLine("Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1");
         }
 
-        public void SaveSummaryInKeyValuePairs(LinearBinaryModelParameters parent,
+        /// <summary>
+        /// Support method for linear models and <see cref="ICanGetSummaryInKeyValuePairs"/>.
+        /// </summary>
+        internal void SaveSummaryInKeyValuePairs(LinearBinaryModelParameters parent,
             RoleMappedSchema schema, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
         {
             Contracts.AssertValue(_env);

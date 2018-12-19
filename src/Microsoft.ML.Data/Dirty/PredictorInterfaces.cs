@@ -143,7 +143,8 @@ namespace Microsoft.ML.Internal.Internallearn
         Row GetStatsIRowOrNull(RoleMappedSchema schema);
     }
 
-    public interface ICanGetSummaryAsIDataView
+    [BestFriend]
+    internal interface ICanGetSummaryAsIDataView
     {
         IDataView GetSummaryDataView(RoleMappedSchema schema);
     }
