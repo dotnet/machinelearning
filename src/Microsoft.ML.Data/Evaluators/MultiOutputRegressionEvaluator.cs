@@ -422,7 +422,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new MultiOutputRegressionPerInstanceEvaluator(env, ctx, Schema.Create(schema));
+            return new MultiOutputRegressionPerInstanceEvaluator(env, ctx, schema);
         }
 
         public override void Save(ModelSaveContext ctx)
