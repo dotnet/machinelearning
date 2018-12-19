@@ -1049,11 +1049,11 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 var splitFeatures = Enumerable.Repeat(featureIndex, numInternalNodes).ToArray();
                 var (treeThresholds, lteChild, gtChild) = CreateBalancedTree(numInternalNodes, binThresholds);
-                var tree = CreateRegressionTree(numLeaves, splitFeatures, treeThresholds, lteChild, gtChild.ToArray(), effects);
+                var tree = CreateRegressionTree(numLeaves, splitFeatures, treeThresholds, lteChild, gtChild, effects);
                 ensemble.AddTree(tree);
             }
 
-            // Tried adding the intercept as the bias term for the final ini aggregator,
+            // Tried adding the intercept as the bias term in the final ini aggregator,
             // but that didn't seem to have any effects during testing.
             // Adding the intercept as a dummy tree with the output values being the model intercept,
             // works for reaching parity.
