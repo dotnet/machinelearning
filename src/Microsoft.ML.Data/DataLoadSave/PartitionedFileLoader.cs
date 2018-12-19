@@ -8,14 +8,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Data.Utilities;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Data.Utilities;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(PartitionedFileLoader.Summary, typeof(PartitionedFileLoader), typeof(PartitionedFileLoader.Arguments), typeof(SignatureDataLoader),
     PartitionedFileLoader.UserName, PartitionedFileLoader.LoadName, PartitionedFileLoader.ShortName)]
@@ -23,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(PartitionedFileLoader.Summary, typeof(PartitionedFileLoader), null, typeof(SignatureLoadDataLoader),
     PartitionedFileLoader.UserName, PartitionedFileLoader.LoadName, PartitionedFileLoader.ShortName)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a set of directory partitioned files into an IDataView.

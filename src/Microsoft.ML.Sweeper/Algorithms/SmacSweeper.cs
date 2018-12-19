@@ -7,20 +7,20 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Sweeper;
 
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Sweeper.Algorithms;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Sweeper.Algorithms;
 
 [assembly: LoadableClass(typeof(SmacSweeper), typeof(SmacSweeper.Arguments), typeof(SignatureSweeper),
     "SMAC Sweeper", "SMACSweeper", "SMAC")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     //REVIEW: Figure out better way to do this. could introduce a base class for all smart sweepers,
     //encapsulating common functionality. This seems like a good plan to persue.

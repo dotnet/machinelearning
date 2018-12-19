@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     internal static class EnsembleUtils
     {

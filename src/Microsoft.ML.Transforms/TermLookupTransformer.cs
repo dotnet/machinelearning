@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Collections.Generic;
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 // We should probably have a mapping from type to its bad value somewhere, perhaps in Conversions.
                 bool identity;
                 ValueMapper<ReadOnlyMemory<char>, TRes> conv;
-                if (Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TRes>(TextType.Instance, type,
+                if (Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TRes>(TextType.Instance, type,
                     out conv, out identity))
                 {
                     //Empty string will map to NA for R4 and R8, the only two types that can
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Transforms.Categorical
                             // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
                             // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
                             // computing max and min.
-                            if (Runtime.Data.Conversion.Conversions.Instance.TryParseKey(in txt, 1, ulong.MaxValue, out res))
+                            if (Data.Conversion.Conversions.Instance.TryParseKey(in txt, 1, ulong.MaxValue, out res))
                             {
                                 if (res < min && res != 0)
                                     min = res;
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Transforms.Categorical
                             }
                             // If parsing as key did not succeed, the value can still be 0, so we try parsing it as a ulong. If it succeeds,
                             // then the value is 0, and we update min accordingly.
-                            else if (Runtime.Data.Conversion.Conversions.Instance.TryParse(in txt, out res))
+                            else if (Data.Conversion.Conversions.Instance.TryParse(in txt, out res))
                             {
                                 ch.Assert(res == 0);
                                 min = 0;

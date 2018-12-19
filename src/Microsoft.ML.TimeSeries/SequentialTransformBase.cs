@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 using System;
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     /// <summary>
     /// The box class that is used to box the TInput and TOutput for the LambdaTransform.

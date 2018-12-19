@@ -4,8 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
 using System;
 using System.ComponentModel.Composition;

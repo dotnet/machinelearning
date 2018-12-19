@@ -4,17 +4,16 @@
 
 using System;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(NopTransform.Summary, typeof(NopTransform), null, typeof(SignatureLoadDataTransform),
     "", NopTransform.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(NopTransform), null, typeof(SignatureEntryPointModule), "NopTransform")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A transform that does nothing.

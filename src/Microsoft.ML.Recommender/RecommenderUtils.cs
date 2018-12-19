@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Recommender
+namespace Microsoft.ML.Recommender
 {
     internal static class RecommenderUtils
     {

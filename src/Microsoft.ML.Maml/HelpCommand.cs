@@ -10,11 +10,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(HelpCommand.Summary, typeof(HelpCommand), typeof(HelpCommand.Arguments), typeof(SignatureCommand),
     "MAML Help Command", "Help", "?")]
@@ -22,7 +22,7 @@ using Microsoft.ML.Runtime.Tools;
 [assembly: LoadableClass(typeof(XmlGenerator), typeof(XmlGenerator.Arguments), typeof(SignatureModuleGenerator),
     "Xml generator", "XmlGenerator", "Xml")]
 
-namespace Microsoft.ML.Runtime.Tools
+namespace Microsoft.ML.Tools
 {
     [BestFriend]
     internal interface IGenerator

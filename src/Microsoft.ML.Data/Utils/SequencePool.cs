@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 

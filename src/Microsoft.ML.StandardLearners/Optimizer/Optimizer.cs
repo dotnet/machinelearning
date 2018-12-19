@@ -6,10 +6,10 @@ using Float = System.Single;
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Numeric
+namespace Microsoft.ML.Numeric
 {
     /// <summary>
     /// Limited-memory BFGS quasi-Newton optimization routine

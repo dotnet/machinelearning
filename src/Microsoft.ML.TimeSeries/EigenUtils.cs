@@ -5,10 +5,10 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     //REVIEW: improve perf with SSE and Multithreading
     public static class EigenUtils

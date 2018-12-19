@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Various methods for creating <see cref="VBufferEditor{T}"/> instances.

@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.CommandLine
 {
     /// <summary>
     /// Indicates that this argument is the default argument.

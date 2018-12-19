@@ -1,5 +1,5 @@
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
 using Microsoft.ML.StaticPipe;
 using System;
 

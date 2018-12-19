@@ -4,8 +4,8 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using System;
@@ -15,7 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     [BestFriend]
     internal static class EvaluateUtils

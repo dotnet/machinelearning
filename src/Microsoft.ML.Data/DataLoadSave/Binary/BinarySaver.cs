@@ -13,16 +13,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
 
 [assembly: LoadableClass(BinarySaver.Summary, typeof(BinarySaver), typeof(BinarySaver.Arguments), typeof(SignatureDataSaver),
     "Binary Saver", "BinarySaver", "Binary")]
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 

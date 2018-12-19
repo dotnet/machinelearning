@@ -5,9 +5,9 @@
 using System;
 using System.IO;
 using System.Threading;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     internal sealed class MemoryStreamPool
     {

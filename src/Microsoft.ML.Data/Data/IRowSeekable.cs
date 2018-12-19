@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using System;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     // REVIEW: Would it be a better apporach to add something akin to CanSeek,
     // as we have a CanShuffle? The idea is trying to make IRowSeekable propagate along certain transforms.

@@ -3631,7 +3631,7 @@
       ]
     },
     {
-      "Name": "TimeSeriesProcessing.ExponentialAverage",
+      "Name": "TimeSeriesProcessingEntryPoints.ExponentialAverage",
       "Desc": "Applies a Exponential average on a time series.",
       "FriendlyName": "Exponential Average Transform",
       "ShortName": "ExpAvg",
@@ -3699,7 +3699,7 @@
       ]
     },
     {
-      "Name": "TimeSeriesProcessing.IidChangePointDetector",
+      "Name": "TimeSeriesProcessingEntryPoints.IidChangePointDetector",
       "Desc": "This transform detects the change-points in an i.i.d. sequence using adaptive kernel density estimation and martingales.",
       "FriendlyName": "IID Change Point Detection",
       "ShortName": "ichgpnt",
@@ -3807,7 +3807,7 @@
       ]
     },
     {
-      "Name": "TimeSeriesProcessing.IidSpikeDetector",
+      "Name": "TimeSeriesProcessingEntryPoints.IidSpikeDetector",
       "Desc": "This transform detects the spikes in a i.i.d. sequence using adaptive kernel density estimation.",
       "FriendlyName": "IID Spike Detection",
       "ShortName": "ispike",
@@ -3903,7 +3903,7 @@
       ]
     },
     {
-      "Name": "TimeSeriesProcessing.PercentileThresholdTransform",
+      "Name": "TimeSeriesProcessingEntryPoints.PercentileThresholdTransform",
       "Desc": "Detects the values of time-series that are in the top percentile of the sliding window.",
       "FriendlyName": "Percentile Threshold Transform",
       "ShortName": "TopPcnt",
@@ -3983,7 +3983,7 @@
       ]
     },
     {
-      "Name": "TimeSeriesProcessing.PValueTransform",
+      "Name": "TimeSeriesProcessingEntryPoints.PValueTransform",
       "Desc": "This P-Value transform calculates the p-value of the current input in the sequence with regard to the values in the sliding window.",
       "FriendlyName": "p-Value Transform",
       "ShortName": "PVal",
@@ -4087,7 +4087,7 @@
       ]
     },
     {
-      "Name": "TimeSeriesProcessing.SlidingWindowTransform",
+      "Name": "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
       "Desc": "Returns the last values for a time series [y(t-d-l+1), y(t-d-l+2), ..., y(t-l-1), y(t-l)] where d is the size of the window, l the lag and y is a Float.",
       "FriendlyName": "Sliding Window Transform",
       "ShortName": "SlideWin",
@@ -4179,7 +4179,7 @@
       ]
     },
     {
-      "Name": "TimeSeriesProcessing.SsaChangePointDetector",
+      "Name": "TimeSeriesProcessingEntryPoints.SsaChangePointDetector",
       "Desc": "This transform detects the change-points in a seasonal time-series using Singular Spectrum Analysis (SSA).",
       "FriendlyName": "SSA Change Point Detection",
       "ShortName": "chgpnt",
@@ -4332,7 +4332,7 @@
       ]
     },
     {
-      "Name": "TimeSeriesProcessing.SsaSpikeDetector",
+      "Name": "TimeSeriesProcessingEntryPoints.SsaSpikeDetector",
       "Desc": "This transform detects the spikes in a seasonal time-series using Singular Spectrum Analysis (SSA).",
       "FriendlyName": "SSA Spike Detection",
       "ShortName": "spike",

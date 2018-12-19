@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Ensemble;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.Online;
 
 [assembly: LoadableClass(EnsembleTrainer.Summary, typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments),
@@ -22,7 +22,7 @@ using Microsoft.ML.Trainers.Online;
 [assembly: LoadableClass(typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments), typeof(SignatureModelCombiner),
     "Binary Classification Ensemble Model Combiner", EnsembleTrainer.LoadNameValue, "pe", "ParallelEnsemble")]
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
     using TScalarPredictor = IPredictorProducing<Single>;

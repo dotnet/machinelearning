@@ -6,11 +6,10 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
@@ -693,7 +692,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// </summary>
             private static ValueMapper<VBuffer<T>, VBuffer<int>> BinKeys<T>(ColumnType colType)
             {
-                var conv = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<T, uint>(colType, NumberType.U4, out bool identity);
+                var conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, uint>(colType, NumberType.U4, out bool identity);
                 ValueMapper<T, int> mapper;
                 if (identity)
                 {

@@ -7,11 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public static class RowCursorUtils
     {
@@ -473,7 +472,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Given a row, returns a one-row data view. This is useful for cases where you have a row, and you
         /// wish to use some facility normally only exposed to dataviews. (For example, you have an <see cref="Row"/>
-        /// but want to save it somewhere using a <see cref="Microsoft.ML.Runtime.Data.IO.BinarySaver"/>.)
+        /// but want to save it somewhere using a <see cref="Microsoft.ML.Data.IO.BinarySaver"/>.)
         /// Note that it is not possible for this method to ensure that the input <paramref name="row"/> does not
         /// change, so users of this convenience must take care of what they do with the input row or the data
         /// source it came from, while the returned dataview is potentially being used.

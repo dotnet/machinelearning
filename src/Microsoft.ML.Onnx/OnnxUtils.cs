@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using Google.Protobuf;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
+using Microsoft.ML.Data;
+using Microsoft.ML.UniversalModelFormat.Onnx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Microsoft.ML.Runtime.Model.Onnx
+namespace Microsoft.ML.Model.Onnx
 {
     /// <summary>
     /// Contains methods to create ONNX models in protocol buffer.

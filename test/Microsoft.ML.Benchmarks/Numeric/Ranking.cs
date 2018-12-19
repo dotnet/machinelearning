@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms.Conversions;
 using System.IO;
 

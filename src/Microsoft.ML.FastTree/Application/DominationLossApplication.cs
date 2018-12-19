@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.CommandLine;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {

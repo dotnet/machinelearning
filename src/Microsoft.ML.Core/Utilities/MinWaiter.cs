@@ -5,7 +5,7 @@
 using System;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     /// <summary>
     /// A synchronization primitive meant to address situations where you have a set of

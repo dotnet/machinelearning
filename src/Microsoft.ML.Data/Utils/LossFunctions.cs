@@ -5,10 +5,10 @@
 using Float = System.Single;
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
 
 [assembly: LoadableClass(LogLoss.Summary, typeof(LogLoss), null, typeof(SignatureClassificationLoss),
     "Log Loss", "LogLoss", "Logistic", "CrossEntropy")]
@@ -39,7 +39,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 [assembly: EntryPointModule(typeof(SquaredLossFactory))]
 [assembly: EntryPointModule(typeof(TweedieLoss.Arguments))]
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// The loss function may know the close-form solution to the optimal dual update

@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Runtime.TreePredictor
+namespace Microsoft.ML.TreePredictor
 {
     // The interfaces contained herein are meant to allow tree visualizer to run without an explicit dependency
     // on FastTree, so as to allow it greater generality. These should probably be moved somewhere else, but where?

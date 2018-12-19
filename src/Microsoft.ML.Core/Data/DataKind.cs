@@ -5,7 +5,7 @@
 using System;
 using System.Text;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Data type specifier.

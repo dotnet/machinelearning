@@ -8,14 +8,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
+namespace Microsoft.ML.Internal.Internallearn.Test
 {
 #if OLD_TESTS // REVIEW: Should any of this be ported?
     using TestLearners = TestLearnersBase;

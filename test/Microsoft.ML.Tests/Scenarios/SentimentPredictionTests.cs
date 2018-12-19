@@ -7,7 +7,7 @@ using Microsoft.ML.Legacy;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime;
+using Microsoft.ML;
 using System;
 using System.Collections.Generic;
 using System.Linq;

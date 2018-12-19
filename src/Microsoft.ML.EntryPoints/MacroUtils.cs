@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 
 // The warning #612 is disabled because the following code uses a lot of things in Legacy.Models while Legacy.Model is marked as obsolete.
 // Because that dependency will be removed form ML.NET, one needs to rewrite all places where legacy APIs are used.
 #pragma warning disable 612
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     public static class MacroUtils
     {

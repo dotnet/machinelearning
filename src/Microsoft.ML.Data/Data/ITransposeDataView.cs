@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     // REVIEW: There are a couple problems. Firstly, what to do about cases where
     // the number of rows exceeds int.MaxValue? Right now we just fail. Practically this makes

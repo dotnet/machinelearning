@@ -4,7 +4,7 @@
 
 using System;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Runtime;
+using Microsoft.ML;
 
 namespace Microsoft.ML.Transforms.Conversions
 {

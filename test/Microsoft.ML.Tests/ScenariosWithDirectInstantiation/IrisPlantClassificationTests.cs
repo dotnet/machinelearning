@@ -4,10 +4,8 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Models;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
 using System.IO;
 using Xunit;
 

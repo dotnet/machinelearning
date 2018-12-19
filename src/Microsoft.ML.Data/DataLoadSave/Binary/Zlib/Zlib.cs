@@ -6,7 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace Microsoft.ML.Runtime.Data.IO.Zlib
+namespace Microsoft.ML.Data.IO.Zlib
 {
     internal static class Zlib
     {

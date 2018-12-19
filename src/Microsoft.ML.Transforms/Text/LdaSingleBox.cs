@@ -8,7 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.TextAnalytics
 {
 
     internal static class LdaInterface

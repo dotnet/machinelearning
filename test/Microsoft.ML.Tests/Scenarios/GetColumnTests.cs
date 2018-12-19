@@ -4,9 +4,7 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
 using System;
 using System.Linq;

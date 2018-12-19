@@ -1,5 +1,5 @@
-﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.LightGBM;
+﻿using Microsoft.ML.Data;
+using Microsoft.ML.LightGBM;
 using Microsoft.ML.StaticPipe;
 using System;
 

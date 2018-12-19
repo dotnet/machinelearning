@@ -4,12 +4,11 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
@@ -178,7 +177,7 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
             }
 
-            private Delegate GetIsNADelegate<T>(ColumnType type) => Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+            private Delegate GetIsNADelegate<T>(ColumnType type) => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
@@ -374,7 +373,7 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector || col.Kind == SchemaShape.Column.VectorKind.VariableVector))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input, "Vector", col.GetTypeString());
