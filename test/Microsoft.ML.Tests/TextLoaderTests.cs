@@ -334,13 +334,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         }
 
         [Fact]
-        public void ThrowsExceptionWithPropertyName()
-        {
-            Exception ex = Assert.Throws<InvalidOperationException>(() => new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>());
-            Assert.StartsWith("Field or property String1 is missing LoadColumn attribute", ex.Message);
-        }
-
-        [Fact]
         public void CanSuccessfullyColumnNameProperty()
         {
             var loader = new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithColumnNameAttribute>();
