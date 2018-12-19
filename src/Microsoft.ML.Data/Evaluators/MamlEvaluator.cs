@@ -134,9 +134,9 @@ namespace Microsoft.ML.Runtime.Data
         private protected virtual IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
         {
             // Get the score column information.
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(ArgumentsBase.ScoreColumn),
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(ArgumentsBase.ScoreColumn),
                 ScoreColumnKind);
-            yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreInfo.Name);
+            yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
 
             // Get the label column information.
             string label = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);

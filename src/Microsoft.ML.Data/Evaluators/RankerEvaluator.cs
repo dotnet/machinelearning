@@ -938,9 +938,9 @@ namespace Microsoft.ML.Runtime.Data
             // The ranking evaluator outputs the label, group key and score columns.
             yield return schema.Group.Value.Name;
             yield return schema.Label.Value.Name;
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.Ranking);
-            yield return scoreInfo.Name;
+            yield return scoreCol.Name;
 
             // Return the output columns.
             yield return RankerPerInstanceTransform.Ndcg;

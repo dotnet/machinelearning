@@ -1175,14 +1175,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             var cols = base.GetInputColumnRolesCore(schema);
 
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
 
             // Get the optional probability column.
-            var probInfo = EvaluateUtils.GetOptAuxScoreColumnInfo(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreInfo.Index, MetadataUtils.Const.ScoreValueKind.Probability, t => t == NumberType.Float);
-            if (probInfo != null)
-                cols = MetadataUtils.Prepend(cols, RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probInfo.Name));
+            var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
+                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberType.Float.Equals);
+            if (probCol.HasValue)
+                cols = MetadataUtils.Prepend(cols, RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probCol.Value.Name));
             return cols;
         }
 
@@ -1485,15 +1485,15 @@ namespace Microsoft.ML.Runtime.Data
 
             // The binary classifier evaluator outputs the label, score and probability columns.
             yield return schema.Label.Value.Name;
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
-            yield return scoreInfo.Name;
-            var probInfo = EvaluateUtils.GetOptAuxScoreColumnInfo(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreInfo.Index, MetadataUtils.Const.ScoreValueKind.Probability, t => t == NumberType.Float);
+            yield return scoreCol.Name;
+            var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
+                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberType.Float.Equals);
             // Return the output columns. The LogLoss column is returned only if the probability column exists.
-            if (probInfo != null)
+            if (probCol.HasValue)
             {
-                yield return probInfo.Name;
+                yield return probCol.Value.Name;
                 yield return BinaryPerInstanceEvaluator.LogLoss;
             }
 

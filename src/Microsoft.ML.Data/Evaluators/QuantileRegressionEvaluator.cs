@@ -545,9 +545,9 @@ namespace Microsoft.ML.Runtime.Data
 
             // The quantile regression evaluator outputs the label and score columns.
             yield return schema.Label.Value.Name;
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.QuantileRegression);
-            yield return scoreInfo.Name;
+            yield return scoreCol.Name;
 
             // Return the output columns.
             yield return RegressionPerInstanceEvaluator.L1;

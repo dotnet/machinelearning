@@ -749,9 +749,9 @@ namespace Microsoft.ML.Runtime.Data
 
             // The anomaly detection evaluator outputs the label and the score.
             yield return schema.Label.Value.Name;
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.AnomalyDetection);
-            yield return scoreInfo.Name;
+            yield return scoreCol.Name;
 
             // No additional output columns.
         }
