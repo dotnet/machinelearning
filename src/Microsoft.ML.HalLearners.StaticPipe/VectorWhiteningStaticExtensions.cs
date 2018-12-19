@@ -4,11 +4,12 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Projections;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.StaticPipe
+namespace Microsoft.ML.HalLearners.StaticPipe
 {
     /// <summary>
     /// Extensions for statically typed Whitening estimator.

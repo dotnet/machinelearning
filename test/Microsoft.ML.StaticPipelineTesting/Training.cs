@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.LightGBM.StaticPipe;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
@@ -21,6 +21,7 @@ using System;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {

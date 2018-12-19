@@ -7,16 +7,17 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers;
 using System;
 
-namespace Microsoft.ML.StaticPipe
+namespace Microsoft.ML.LightGBM.StaticPipe
 {
     /// <summary>
     /// Regression trainer estimators.
     /// </summary>
-    public static class LightGbmTrainers
+    public static class LightGbmStaticExtensions
     {
         /// <summary>
         /// Predict a target using a tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
