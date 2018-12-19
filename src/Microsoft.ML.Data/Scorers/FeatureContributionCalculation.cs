@@ -25,9 +25,9 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-
     /// <summary>
     /// Holds the definition of the getters for the FeatureContribution column. It also contains the generic mapper that is used to score the Predictor.
+    /// This is only used by the command line API.
     /// </summary>
     internal sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
     {
