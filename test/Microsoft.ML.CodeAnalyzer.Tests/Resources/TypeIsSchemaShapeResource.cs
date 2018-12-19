@@ -11,7 +11,7 @@ namespace Bubba
         public static void Bar()
         {
             IHostEnvironment env = null;
-            var text = TextLoader.CreateReader(env, ctx => (
+            var text = TextLoaderStatic.CreateReader(env, ctx => (
                 label: ctx.LoadBool(0),
                 text: ctx.LoadText(1),
                 numericFeatures: ctx.LoadFloat(2, 5)));
