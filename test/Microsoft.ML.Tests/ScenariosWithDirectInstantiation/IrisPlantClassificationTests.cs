@@ -49,7 +49,7 @@ namespace Microsoft.ML.Scenarios
             var predicted = trainedModel.Transform(testData);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
             CompareMatrics(metrics);
-            var predictFunction = trainedModel.MakePredictionFunction<IrisData, IrisPrediction>(mlContext);
+            var predictFunction = trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
             ComparePredictions(predictFunction);
         }
 

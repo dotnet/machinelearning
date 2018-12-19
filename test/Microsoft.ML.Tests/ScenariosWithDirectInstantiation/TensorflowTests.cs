@@ -337,7 +337,7 @@ namespace Microsoft.ML.Scenarios
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted, label: "KeyLabel");
                 Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy, 1);
                 Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy, 1);
-                var predictionFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+                var predictionFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
                 var oneSample = GetOneMNISTExample();
                 var onePrediction = predictionFunction.Predict(oneSample);
