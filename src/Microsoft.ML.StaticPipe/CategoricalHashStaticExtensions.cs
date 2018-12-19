@@ -4,11 +4,8 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Text;
-using System;
 using System.Collections.Generic;
 
 namespace Microsoft.ML.StaticPipe
