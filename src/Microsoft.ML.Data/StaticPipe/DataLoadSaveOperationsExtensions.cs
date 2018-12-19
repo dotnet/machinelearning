@@ -5,7 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System;
-using static Microsoft.ML.Runtime.Data.TextLoader;
+using static Microsoft.ML.StaticPipe.TextLoaderStatic;
 
 namespace Microsoft.ML.StaticPipe
 {

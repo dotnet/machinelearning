@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.StaticPipe
 {
-    public sealed partial class TextLoader
+    public static class TextLoaderStatic
     {
         /// <summary>
         /// Configures a reader for text files.
@@ -46,7 +47,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValueOrNull(files);
 
             // Populate all args except the columns.
-            var args = new Arguments();
+            var args = new TextLoader.Arguments();
             args.AllowQuoting = allowQuoting;
             args.AllowSparse = allowSparse;
             args.HasHeader = hasHeader;
@@ -66,10 +67,10 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class TextReconciler : ReaderReconciler<IMultiStreamSource>
         {
-            private readonly Arguments _args;
+            private readonly TextLoader.Arguments _args;
             private readonly IMultiStreamSource _files;
 
-            public TextReconciler(Arguments args, IMultiStreamSource files)
+            public TextReconciler(TextLoader.Arguments args, IMultiStreamSource files)
             {
                 Contracts.AssertValue(args);
                 Contracts.AssertValueOrNull(files);
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(outputNames);
                 Contracts.Assert(_args.Column == null);
 
-                Column Create(PipelineColumn pipelineCol)
+                TextLoader.Column Create(PipelineColumn pipelineCol)
                 {
                     var pipelineArgCol = (IPipelineArgColumn)pipelineCol;
                     var argCol = pipelineArgCol.Create();
@@ -94,7 +95,7 @@ namespace Microsoft.ML.Runtime.Data
                     return argCol;
                 }
 
-                var cols = _args.Column = new Column[toOutput.Length];
+                var cols = _args.Column = new TextLoader.Column[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                     cols[i] = Create(toOutput[i]);
 
@@ -106,16 +107,16 @@ namespace Microsoft.ML.Runtime.Data
         private interface IPipelineArgColumn
         {
             /// <summary>
-            /// Creates a <see cref="Column"/> object corresponding to the <see cref="PipelineColumn"/>, with everything
-            /// filled in except <see cref="ColInfo.Name"/>.
+            /// Creates a <see cref="TextLoader.Column"/> object corresponding to the <see cref="PipelineColumn"/>, with everything
+            /// filled in except <see cref="TextLoader.ColInfo.Name"/>.
             /// </summary>
-            Column Create();
+            TextLoader.Column Create();
         }
 
         /// <summary>
         /// Context object by which a user can indicate what fields they want to read from a text file, and what data type they ought to have.
         /// Instances of this class are never made but the user, but rather are fed into the delegate in
-        /// <see cref="TextLoader.CreateReader{TShape}(IHostEnvironment, Func{Context, TShape}, IMultiStreamSource, bool, char, bool, bool, bool)"/>.
+        /// <see cref="CreateReader{TShape}(IHostEnvironment, Func{Context, TShape}, IMultiStreamSource, bool, char, bool, bool, bool)"/>.
         /// </summary>
         public sealed class Context
         {
@@ -252,12 +253,12 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 // Translate the internal variable representation to columns of TextLoader.
-                public Column Create()
+                public TextLoader.Column Create()
                 {
-                    return new Column()
+                    return new TextLoader.Column()
                     {
                         Type = _kind,
-                        Source = new[] { new Range(_oridinal) },
+                        Source = new[] { new TextLoader.Range(_oridinal) },
                         KeyRange = new KeyRange(_minKeyValue, _maxKeyValue)
                     };
                 }
@@ -275,12 +276,12 @@ namespace Microsoft.ML.Runtime.Data
                     _ordinal = ordinal;
                 }
 
-                public Column Create()
+                public TextLoader.Column Create()
                 {
-                    return new Column()
+                    return new TextLoader.Column()
                     {
                         Type = _kind,
-                        Source = new[] { new Range(_ordinal) },
+                        Source = new[] { new TextLoader.Range(_ordinal) },
                     };
                 }
             }
@@ -299,12 +300,12 @@ namespace Microsoft.ML.Runtime.Data
                     _max = max;
                 }
 
-                public Column Create()
+                public TextLoader.Column Create()
                 {
-                    return new Column()
+                    return new TextLoader.Column()
                     {
                         Type = _kind,
-                        Source = new[] { new Range(_min, _max) },
+                        Source = new[] { new TextLoader.Range(_min, _max) },
                     };
                 }
             }

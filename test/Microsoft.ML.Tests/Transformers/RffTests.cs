@@ -4,6 +4,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Projections;
 using System;
@@ -63,7 +64,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void RffStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
                 VectorFloat: ctx.LoadFloat(1, 8),
                 Label: ctx.LoadFloat(0)
             ));

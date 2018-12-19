@@ -376,7 +376,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             );
 
             // Read the data.
-            var data = reader.Read(dataPath);
+            var data = reader.Read(new MultiFileSource(dataPath));
 
             // Inspect the first 10 records of the categorical columns to check that they are correctly read.
             var catColumns = data.GetColumn<string[]>(mlContext, "CategoricalFeatures").Take(10).ToArray();

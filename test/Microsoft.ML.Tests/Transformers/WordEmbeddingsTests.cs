@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataPath = GetDataPath(ScenariosTests.SentimentDataPath);
             var testDataPath = GetDataPath(ScenariosTests.SentimentTestPath);
 
-            var data = TextLoader.CreateReader(Env, ctx => (
+            var data = TextLoaderStatic.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath);

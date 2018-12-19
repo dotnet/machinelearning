@@ -64,7 +64,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 + "1 1 2 4 15";
             var dataSource = new BytesStreamSource(data);
 
-            var text = TextLoader.CreateReader(env, ctx => (
+            var text = TextLoaderStatic.CreateReader(env, ctx => (
                 label: ctx.LoadBool(0),
                 text: ctx.LoadText(1),
                 numericFeatures: ctx.LoadFloat(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.
@@ -173,7 +173,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 Assert.Equal(expected, thisSchema[thisCol].Type);
             }
 
-            var text = TextLoader.CreateReader(env, ctx => (
+            var text = TextLoaderStatic.CreateReader(env, ctx => (
                 yo: new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 5)),
                 dawg: new Obnoxious2() { Biz = ctx.LoadText(2), Blam = ctx.LoadDouble(1, 2) },
                 how: MakeObnoxious3(ctx.LoadBool(2), new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 4)),
@@ -366,7 +366,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
@@ -391,7 +391,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => c.LoadFloat(0, 2),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
@@ -433,7 +433,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("iris.data");
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3)),
                 separator: ',');
             var dataSource = new MultiFileSource(dataPath);
@@ -471,7 +471,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("iris.data");
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3), value: c.LoadFloat(2)),
                 separator: ',');
             var dataSource = new MultiFileSource(dataPath);
@@ -509,7 +509,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -536,7 +536,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -565,7 +565,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -594,7 +594,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -626,7 +626,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
@@ -662,7 +662,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -690,7 +690,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -723,7 +723,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));
             var data = reader.Read(dataSource);
 
@@ -751,7 +751,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
@@ -773,7 +773,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(0);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -816,7 +816,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -845,7 +845,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataSource = GetDataPath("generated_regression_dataset.csv");
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
