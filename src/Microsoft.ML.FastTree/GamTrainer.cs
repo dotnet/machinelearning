@@ -1136,6 +1136,12 @@ namespace Microsoft.ML.Trainers.FastTree
                 categoricalSplitFeatures: new int[numInternalNodes][],
                 categoricalSplit: new bool[numInternalNodes]);
         }
+
+        /// <summary>
+        /// The GAM model visualization command. Because the data access commands must access private members of
+        /// <see cref="GamPredictorBase"/>, it is convenient to have the command itself nested within the base
+        /// predictor class.
+        /// </summary>
         internal sealed class VisualizationCommand : DataCommand.ImplBase<VisualizationCommand.Arguments>
         {
             public const string Summary = "Loads a model trained with a GAM learner, and starts an interactive web session to visualize it.";
