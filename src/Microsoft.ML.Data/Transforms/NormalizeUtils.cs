@@ -54,6 +54,7 @@ namespace Microsoft.ML.Runtime.Data
         void Finish();
     }
 
+    [BestFriend]
     internal interface IColumnFunction : ICanSaveModel
     {
         Delegate GetGetter(Row input, int icol);

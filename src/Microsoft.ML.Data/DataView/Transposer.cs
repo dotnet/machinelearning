@@ -21,7 +21,8 @@ namespace Microsoft.ML.Runtime.Data
     /// were not transposable before. Note that transposition is a somewhat slow and resource intensive
     /// operation.
     /// </summary>
-    public sealed class Transposer : ITransposeDataView, IDisposable
+    [BestFriend]
+    internal sealed class Transposer : ITransposeDataView, IDisposable
     {
         private readonly IHost _host;
         // The input view.
@@ -1402,7 +1403,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public static class TransposerUtils
+    internal static class TransposerUtils
     {
         /// <summary>
         /// This is a convenience method that extracts a single slot value's vector,

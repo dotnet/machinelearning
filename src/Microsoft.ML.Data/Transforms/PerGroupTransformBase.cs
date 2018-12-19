@@ -25,13 +25,13 @@ namespace Microsoft.ML.Runtime.Data
         /// Deriving classes only need to implement <see cref="ColumnBindingsBase.GetColumnTypeCore"/>.
         /// If any of the output columns have metadata, then the metadata methods should be overridden.
         /// </summary>
-        protected abstract class BindingsBase : ColumnBindingsBase
+        private protected abstract class BindingsBase : ColumnBindingsBase
         {
             public readonly int LabelIndex;
             public readonly int ScoreIndex;
             public readonly int GroupIndex;
 
-            protected BindingsBase(IExceptionContext ectx, ISchema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
+            protected BindingsBase(IExceptionContext ectx, Schema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
                 : base(input, user, names)
             {
                 ectx.AssertNonWhiteSpace(labelCol);
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.AssertValue(predicate);
 
-                var active = new bool[Input.ColumnCount];
+                var active = new bool[Input.Count];
                 for (int col = 0; col < ColumnCount; col++)
                 {
                     if (!predicate(col))
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveNonEmptyString(GroupCol);
         }
 
-        protected abstract BindingsBase GetBindings();
+        private protected abstract BindingsBase GetBindings();
 
         public long? GetRowCount()
         {
