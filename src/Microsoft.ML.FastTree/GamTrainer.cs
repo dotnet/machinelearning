@@ -1032,6 +1032,10 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
         {
+            Host.CheckValue(writer, nameof(writer));
+            Host.CheckValue(schema, nameof(schema));
+            Host.CheckValueOrNull(calibrator);
+
             var ensemble = new TreeEnsemble();
 
             for (int featureIndex = 0; featureIndex < _numFeatures; featureIndex++)
@@ -1062,8 +1066,14 @@ namespace Microsoft.ML.Trainers.FastTree
                 leafValues: new[] { Intercept, Intercept });
             ensemble.AddTree(interceptTree);
 
-            FastTreeIniFormatUtils.SaveTreeEnsembleAsIni(
-                Host, ensemble, writer, schema, calibrator, string.Empty, false, false);
+            var ini = FastTreeIniFormatUtils.TreeEnsembleToIni(
+                Host, ensemble, schema, calibrator, string.Empty, false, false);
+
+            // Remove the SplitGain values which are all 0.
+            // It's eaiser to remove them here, than to modify the FastTree code.
+            var goodLines = ini.Split(new[] { '\n' }).Where(line => !line.StartsWith("SplitGain="));
+            ini = string.Join("\n", goodLines);
+            writer.WriteLine(ini);
         }
 
         // GAM bins should be converted to balanced trees / binary search trees

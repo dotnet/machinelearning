@@ -2985,8 +2985,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
-            FastTreeIniFormatUtils.SaveTreeEnsembleAsIni(Host, TrainedEnsemble, writer, schema, calibrator,
+            Host.CheckValue(writer, nameof(writer));
+            Host.CheckValue(schema, nameof(schema));
+            Host.CheckValueOrNull(calibrator);
+
+            var ini = FastTreeIniFormatUtils.TreeEnsembleToIni(Host, TrainedEnsemble, schema, calibrator,
                 InnerArgs, appendFeatureGain: true, includeZeroGainFeatures: false);
+            writer.WriteLine(ini);
         }
 
         JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
@@ -3374,19 +3379,18 @@ namespace Microsoft.ML.Trainers.FastTree
     }
     internal static class FastTreeIniFormatUtils
     {
-        public static void SaveTreeEnsembleAsIni(
-            IHost host, TreeEnsemble ensemble, TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator,
+        public static string TreeEnsembleToIni(
+            IHost host, TreeEnsemble ensemble, RoleMappedSchema schema, ICalibrator calibrator,
             string trainingParams, bool appendFeatureGain, bool includeZeroGainFeatures)
         {
             host.CheckValue(ensemble, nameof(ensemble));
-            host.CheckValue(writer, nameof(writer));
             host.CheckValue(schema, nameof(schema));
             host.CheckValueOrNull(calibrator);
 
             string ensembleIni = ensemble.ToTreeEnsembleIni(new FeaturesToContentMap(schema),
                 trainingParams, appendFeatureGain, includeZeroGainFeatures);
             ensembleIni = AddCalibrationToIni(host, ensembleIni, calibrator);
-            writer.WriteLine(ensembleIni);
+            return ensembleIni;
         }
 
         /// <summary>
