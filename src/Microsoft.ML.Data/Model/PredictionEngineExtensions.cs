@@ -16,6 +16,15 @@ namespace Microsoft.ML
     /// </summary>
     public static class PredictionEngineExtensions
     {
+        /// <summary>
+        /// Create a prediction engine for one-time prediction.
+        /// </summary>
+        /// <typeparam name="TSrc">The class that defines the input data.</typeparam>
+        /// <typeparam name="TDst">The class that defines the output data.</typeparam>
+        /// <param name="transformer">The transformer to use for prediction.</param>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="inputSchemaDefinition">Additional settings of the input schema.</param>
+        /// <param name="outputSchemaDefinition">Additional settings of the output schema.</param>
         public static PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(this ITransformer transformer,
             IHostEnvironment env, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
