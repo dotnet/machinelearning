@@ -115,7 +115,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             if (!TextNormalizingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextNormalizingEstimator.ExpectedColumnType, type.ToString());
         }
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < _types.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int srcCol);
-                    var srcType = inputSchema.GetColumnType(srcCol);
+                    var srcType = inputSchema[srcCol].Type;
                     _types[i] = srcType.IsVector ? new VectorType(TextType.Instance) : srcType;
                 }
             }

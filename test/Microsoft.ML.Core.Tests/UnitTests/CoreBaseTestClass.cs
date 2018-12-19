@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
 
         protected bool CheckSameValues(IDataView view1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(view1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(view1.Schema.Count == view2.Schema.Count);
 
             bool all = true;
             bool tmp;
@@ -314,10 +314,10 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
 
         protected bool CheckSameValues(RowCursor curs1, RowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == curs2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == curs2.Schema.Count);
 
             // Get the comparison delegates for each column.
-            int colLim = curs1.Schema.ColumnCount;
+            int colLim = curs1.Schema.Count;
             Func<bool>[] comps = new Func<bool>[colLim];
             for (int col = 0; col < colLim; col++)
             {
@@ -326,8 +326,8 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
 
                 if (f1 && f2)
                 {
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = curs2.Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = curs2.Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail($"Different types {type1} and {type2}");
@@ -394,10 +394,10 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
 
         protected bool CheckSameValues(RowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == view2.Schema.Count);
 
             // Get a cursor for each column.
-            int colLim = curs1.Schema.ColumnCount;
+            int colLim = curs1.Schema.Count;
             var cursors = new RowCursor[colLim];
             try
             {
@@ -415,8 +415,8 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                 for (int col = 0; col < colLim; col++)
                 {
                     Contracts.Assert(cursors[col] != null);
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = cursors[col].Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = cursors[col].Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");

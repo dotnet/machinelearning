@@ -48,8 +48,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // and use a small number of bins to make it easy to visualize in the console window.
             // For real appplications, it is recommended to start with the default number of bins.
             var labelName = "MedianHomeValue";
-            var featureNames = data.Schema.GetColumns()
-                .Select(tuple => tuple.column.Name) // Get the column names
+            var featureNames = data.Schema
+                .Select(column => column.Name) // Get the column names
                 .Where(name => name != labelName) // Drop the Label
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)

@@ -277,7 +277,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
-                var type = inputSchema.GetColumnType(colSrc);
+                var type = inputSchema[colSrc].Type;
                 string reason = TestIsKnownDataKind(type);
                 if (reason != null)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input, reason, type.ToString());
@@ -477,7 +477,7 @@ namespace Microsoft.ML.Transforms.Conversions
             int colSrc;
             if (!termData.Schema.TryGetColumnIndex(src, out colSrc))
                 throw ch.ExceptUserArg(nameof(termsColumn), "Unknown column '{0}'", src);
-            var typeSrc = termData.Schema.GetColumnType(colSrc);
+            var typeSrc = termData.Schema[colSrc].Type;
             if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
                 throw ch.ExceptUserArg(nameof(termsColumn), "Must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
 

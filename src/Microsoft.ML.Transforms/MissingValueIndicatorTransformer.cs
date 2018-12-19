@@ -126,7 +126,7 @@ namespace Microsoft.ML.Transforms
 
         // Factory method for SignatureLoadRowMapper.
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
         /// Saves the transform.
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms
                     if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _parent.CheckInputColumn(inputSchema, i, colSrc);
-                    var inType = inputSchema.GetColumnType(colSrc);
+                    var inType = inputSchema[colSrc].Type;
                     ColumnType outType;
                     if (!(inType is VectorType vectorType))
                         outType = BoolType.Instance;

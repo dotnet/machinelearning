@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 IDataLoader result = ModelFileUtils.LoadLoader(env, rep, new MultiFileSource(null), true);
 
-                Assert.Equal(2, result.Schema.ColumnCount);
+                Assert.Equal(2, result.Schema.Count);
                 Assert.Equal("Image", result.Schema[0].Name);
                 Assert.Equal("Class", result.Schema[1].Name);
             }
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var result = ModelFileUtils.LoadPipeline(env, rep, new MultiFileSource(null), true);
 
-                Assert.Equal(3, result.Schema.ColumnCount);
+                Assert.Equal(3, result.Schema.Count);
                 Assert.Equal("Label", result.Schema[0].Name);
                 Assert.Equal("Features", result.Schema[1].Name);
                 Assert.Equal("Features", result.Schema[2].Name);

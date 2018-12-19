@@ -52,14 +52,14 @@ namespace Microsoft.ML.Runtime.Data
             if (InnerMappers.Length == 0)
             {
                 bool differentActive = false;
-                for (int c = 0; c < input.Schema.ColumnCount; ++c)
+                for (int c = 0; c < input.Schema.Count; ++c)
                 {
                     bool wantsActive = active(c);
                     bool isActive = input.IsColumnActive(c);
                     differentActive |= wantsActive != isActive;
 
                     if (wantsActive && !isActive)
-                        throw Contracts.ExceptParam(nameof(input), $"Mapper required column '{input.Schema.GetColumnName(c)}' active but it was not.");
+                        throw Contracts.ExceptParam(nameof(input), $"Mapper required column '{input.Schema[c].Name}' active but it was not.");
                 }
                 return input;
             }

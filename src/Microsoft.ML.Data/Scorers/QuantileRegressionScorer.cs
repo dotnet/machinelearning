@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -17,7 +18,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public static class QuantileRegressionScorerTransform
+    internal static class QuantileRegressionScorerTransform
     {
         public sealed class Arguments : ScorerArgumentsBase
         {
@@ -25,12 +26,18 @@ namespace Microsoft.ML.Runtime.Data
             public string Quantiles = "0,0.25,0.5,0.75,1";
         }
 
-        public static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        /// <summary>
+        /// Constructor corresponding to <see cref="SignatureDataScorer"/>.
+        /// </summary>
+        private static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
         {
             return new GenericScorer(env, args, data, mapper, trainSchema);
         }
 
-        public static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
+        /// <summary>
+        /// Constructor corresponding to <see cref="SignatureBindableMapper"/>.
+        /// </summary>
+        private static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
