@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -13,7 +12,7 @@ namespace Microsoft.ML.Runtime.Recommender
     {
         /// <summary>
         /// Check if the considered data, <see cref="RoleMappedData"/>, contains column roles specified by <see cref="MatrixColumnIndexKind"/> and <see cref="MatrixRowIndexKind"/>.
-        /// If the column roles, <see cref="MatrixColumnIndexKind"/> and <see cref="MatrixRowIndexKind"/>, uniquely exist in data, their <see cref="ColumnInfo"/> would be assigned
+        /// If the column roles, <see cref="MatrixColumnIndexKind"/> and <see cref="MatrixRowIndexKind"/>, uniquely exist in data, their <see cref="Schema.Column"/> would be assigned
         /// to the two out parameters below.
         /// </summary>
         /// <param name="data">The considered data being checked</param>
@@ -39,8 +38,8 @@ namespace Microsoft.ML.Runtime.Recommender
         }
 
         /// <summary>
-        /// Checks whether a column kind in a RoleMappedData is unique, and its type
-        /// is a U4 key of known cardinality.
+        /// Checks whether a column kind in a <see cref="RoleMappedData"/> is unique, and its type
+        /// is a <see cref="DataKind.U4"/> key of known cardinality.
         /// </summary>
         /// <param name="data">The training examples</param>
         /// <param name="role">The column role to try to extract</param>
