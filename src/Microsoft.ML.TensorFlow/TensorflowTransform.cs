@@ -348,12 +348,12 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private (int, bool, TFDataType, TFShape) GetTrainingInputInfo(ISchema inputSchema, string columnName, string tfNodeName, int batchSize)
+        private (int, bool, TFDataType, TFShape) GetTrainingInputInfo(Schema inputSchema, string columnName, string tfNodeName, int batchSize)
         {
             if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
                 throw Host.Except($"Column {columnName} doesn't exist");
 
-            var type = inputSchema.GetColumnType(inputColIndex);
+            var type = inputSchema[inputColIndex].Type;
             var isInputVector = type.IsVector;
 
             var tfInput = new TFOutput(Graph[tfNodeName]);

@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms
 
             var outSchema = InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
             _addedSchema = outSchema;
-            _bindings = new ColumnBindings(Schema.Create(Source.Schema), DataViewConstructionUtils.GetSchemaColumns(outSchema));
+            _bindings = new ColumnBindings(Source.Schema, DataViewConstructionUtils.GetSchemaColumns(outSchema));
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms
             _typedSource = TypedCursorable<TSrc>.Create(Host, newSource, false, transform._inputSchemaDefinition);
 
             _addedSchema = transform._addedSchema;
-            _bindings = new ColumnBindings(Schema.Create(newSource.Schema), DataViewConstructionUtils.GetSchemaColumns(_addedSchema));
+            _bindings = new ColumnBindings(newSource.Schema, DataViewConstructionUtils.GetSchemaColumns(_addedSchema));
         }
 
         public bool CanShuffle => false;
