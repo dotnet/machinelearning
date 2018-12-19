@@ -13,6 +13,8 @@ namespace Microsoft.ML.Samples
 {
     internal static class Program
     {
+        static IHostEnvironment Host = new MLContext();
+
         static void Main(string[] args)
         {
             //MakeBinarySearchTree(10);
@@ -20,26 +22,47 @@ namespace Microsoft.ML.Samples
         }
 
 
-        private static int[] MakeBinarySearchTree(int numInternalNodes)
+        private static (int[], int[], int[]) MakeBinarySearchTree(int numInternalNodes)
         {
-            var binIndices = Enumerable.Range(0, numInternalNodes - 1).ToArray();
+            var binIndices = Enumerable.Range(0, numInternalNodes).ToArray();
             var bstIndices = new List<int>();
+            var lteChild = new List<int>();
+            var gtChild = new List<int>();
+            var internalNodeId = numInternalNodes;
 
-            MakeBinarySearchTreeRecursive(binIndices, 0, binIndices.Length - 1, bstIndices);
-            var ret = bstIndices.ToArray();
+            MakeBinarySearchTreeRecursive(binIndices, 0, binIndices.Length - 1, bstIndices, lteChild, gtChild, ref internalNodeId);
+            var ret = (bstIndices.ToArray(), lteChild.ToArray(), gtChild.ToArray());
             return ret;
         }
 
-        private static void MakeBinarySearchTreeRecursive(
-            int[] array, int lower, int upper, List<int> bstIndices)
+        private static int MakeBinarySearchTreeRecursive(
+            int[] array, int lower, int upper,
+            List<int> bstIndices, List<int> lteChild, List<int> gtChild, ref int internalNodeId)
         {
             if (lower > upper)
             {
-                var mid = (lower + upper) / 2;
-                bstIndices.Add(array[mid]);
-                MakeBinarySearchTreeRecursive(array, lower, mid - 1, bstIndices);
-                MakeBinarySearchTreeRecursive(array, mid + 1, upper, bstIndices);
+                // Base case: we've reached a leaf node
+                Assert(lower == upper + 1);
+                return lower + 100;
             }
+            else
+            {
+                var mid = (lower + upper) / 2;
+                var left = MakeBinarySearchTreeRecursive(
+                    array, lower, mid - 1, bstIndices, lteChild, gtChild, ref internalNodeId);
+                var right = MakeBinarySearchTreeRecursive(
+                    array, mid + 1, upper, bstIndices, lteChild, gtChild, ref internalNodeId);
+                bstIndices.Insert(0, array[mid]);
+                lteChild.Insert(0, left);
+                gtChild.Insert(0, right);
+                return --internalNodeId;
+            }
+        }
+
+        private static void Assert(bool v)
+        {
+            if (!v)
+                throw new NotImplementedException();
         }
 
         private static void TestGam()
@@ -71,7 +94,7 @@ namespace Microsoft.ML.Samples
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
 
-            using (StreamWriter writer = new StreamWriter(@"F:\temp\ini\model1.ini"))
+            using (StreamWriter writer = new StreamWriter(@"F:\temp\ini\model2.ini"))
                 model.LastTransformer.Model.SaveAsIni(writer, roleMappedSchema);
 
             var results = mlContext.Regression.Evaluate(data);

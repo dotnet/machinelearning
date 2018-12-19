@@ -1089,37 +1089,30 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             var ensemble = new TreeEnsemble();
 
-            for (int i = 0; i < _numFeatures; i++)
+            for (int featureIndex = 0; featureIndex < _numFeatures; featureIndex++)
             {
-                var effects = _binEffects[i];
-                var thresholds = _binUpperBounds[i];
+                var effects = _binEffects[featureIndex];
+                var thresholds = _binUpperBounds[featureIndex];
 
                 Host.Assert(effects.Length == thresholds.Length);
                 var numLeaves = effects.Length;
                 var numInternalNodes = numLeaves - 1;
 
-                var splitFeatures = new int[numInternalNodes];
-                var rawThresholds = thresholds.Take(numInternalNodes).Select(x => (float)x).ToArray();
-                var binIndices = Enumerable.Range(0, numInternalNodes).ToArray();
+                var splitFeatures = Enumerable.Repeat(featureIndex, numInternalNodes).ToArray();
+
+                var bstRet = MakeBinarySearchTree(numInternalNodes);
+                var rawThresholds = bstRet.Item1.Select(x => (float)thresholds[x]).ToArray();
+                var lteChild = bstRet.Item2;
+                var gtChild = bstRet.Item3;
+
+                //                var binIndices = Enumerable.Range(0, numInternalNodes).ToArray();
 
                 // Create a long tree
-                var lteChild = binIndices.Select(x => ~x).ToArray();
-                var gtChild = binIndices.Take(numInternalNodes - 1).Select(x => x + 1).ToList();
-                gtChild.Add(~numInternalNodes);
+                //var lteChild = binIndices.Select(x => ~x).ToArray();
+                //var gtChild = binIndices.Take(numInternalNodes - 1).Select(x => x + 1).ToList();
+                //gtChild.Add(~numInternalNodes);
 
-                double[] leafValues;
-
-                //if (i == 0)
-                //    leafValues = effects.Select(x => x + Intercept).ToArray();
-                //else
-                //    leafValues = effects;
-
-                leafValues = effects;
-
-                for (int j = 0; j < splitFeatures.Length; j++)
-                    splitFeatures[j] = i;
-
-                var tree = CreateRegressionTree(numLeaves, splitFeatures, rawThresholds, lteChild, gtChild.ToArray(), leafValues);
+                var tree = CreateRegressionTree(numLeaves, splitFeatures, rawThresholds, lteChild, gtChild.ToArray(), effects);
                 ensemble.AddTree(tree);
             }
 
@@ -1145,6 +1138,42 @@ namespace Microsoft.ML.Trainers.FastTree
             writer.Write(ini);
         }
 
+        private (int[], int[], int[]) MakeBinarySearchTree(int numInternalNodes)
+        {
+            var binIndices = Enumerable.Range(0, numInternalNodes).ToArray();
+            var bstIndices = new List<int>();
+            var lteChild = new List<int>();
+            var gtChild = new List<int>();
+            var internalNodeId = numInternalNodes;
+
+            MakeBinarySearchTreeRecursive(binIndices, 0, binIndices.Length - 1, bstIndices, lteChild, gtChild, ref internalNodeId);
+            var ret = (bstIndices.ToArray(), lteChild.ToArray(), gtChild.ToArray());
+            return ret;
+        }
+
+        private int MakeBinarySearchTreeRecursive(
+            int[] array, int lower, int upper,
+            List<int> bstIndices, List<int> lteChild, List<int> gtChild, ref int internalNodeId)
+        {
+            if (lower > upper)
+            {
+                // Base case: we've reached a leaf node
+                Host.Assert(lower == upper + 1);
+                return ~lower;
+            }
+            else
+            {
+                var mid = (lower + upper) / 2;
+                var left = MakeBinarySearchTreeRecursive(
+                    array, lower, mid - 1, bstIndices, lteChild, gtChild, ref internalNodeId);
+                var right = MakeBinarySearchTreeRecursive(
+                    array, mid + 1, upper, bstIndices, lteChild, gtChild, ref internalNodeId);
+                bstIndices.Insert(0, array[mid]);
+                lteChild.Insert(0, left);
+                gtChild.Insert(0, right);
+                return --internalNodeId;
+            }
+        }
         private static RegressionTree CreateRegressionTree(
             int numLeaves, int[] splitFeatures, float[] rawThresholds, int[] lteChild, int[] gtChild, double[] leafValues)
         {
