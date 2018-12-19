@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var inType = inputSchema.GetColumnType(srcCol);
+            var inType = inputSchema[srcCol].Type;
             var reason = TestColumn(inType);
             if (reason != null)
                 throw Host.ExceptParam(nameof(inputSchema), reason);
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 if (!inputSchema.TryGetColumnIndex(columns[i].Input, out cols[i]))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input);
-                srcTypes[i] = inputSchema.GetColumnType(cols[i]);
+                srcTypes[i] = inputSchema[cols[i]].Type;
                 var reason = TestColumn(srcTypes[i]);
                 if (reason != null)
                     throw env.ExceptParam(nameof(inputData.Schema), reason);
@@ -659,7 +659,7 @@ namespace Microsoft.ML.Transforms.Projections
                 {
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
-                    _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
+                    _srcTypes[i] = inputSchema[_cols[i]].Type;
                     ValidateModel(Host, _parent._models[i], _srcTypes[i]);
                     if (_parent._columns[i].SaveInv)
                         ValidateModel(Host, _parent._invModels[i], _srcTypes[i]);

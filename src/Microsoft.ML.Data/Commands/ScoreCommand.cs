@@ -34,7 +34,8 @@ namespace Microsoft.ML.Runtime.Data
     /// <param name="trainSchema">This parameter holds a snapshot of the role mapped training schema as
     /// it existed at the point when <paramref name="mapper"/> was trained, or <c>null</c> if it not
     /// available for some reason</param>
-    public delegate void SignatureDataScorer(IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema);
+    [BestFriend]
+    internal delegate void SignatureDataScorer(IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema);
 
     public delegate void SignatureBindableMapper(IPredictor predictor);
 
@@ -181,17 +182,17 @@ namespace Microsoft.ML.Runtime.Data
             var cols = new List<int>();
             for (int i = 0; i < loader.Schema.Count; i++)
             {
-                if (!Args.KeepHidden && loader.Schema.IsHidden(i))
+                if (!Args.KeepHidden && loader.Schema[i].IsHidden)
                     continue;
                 if (!(outputAllColumns || ShouldAddColumn(loader.Schema, i, maxScoreId, outputNamesAndLabels)))
                     continue;
-                var type = loader.Schema.GetColumnType(i);
+                var type = loader.Schema[i].Type;
                 if (writer.IsColumnSavable(type))
                     cols.Add(i);
                 else
                 {
                     ch.Warning("The column '{0}' will not be written as it has unsavable column type.",
-                        loader.Schema.GetColumnName(i));
+                        loader.Schema[i].Name);
                 }
             }
 
@@ -217,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             if (outputNamesAndLabels)
             {
-                switch (schema.GetColumnName(i))
+                switch (schema[i].Name)
                 {
                     case "Label":
                     case "Name":
@@ -227,7 +228,7 @@ namespace Microsoft.ML.Runtime.Data
                         break;
                 }
             }
-            if (Args.OutputColumn != null && Array.FindIndex(Args.OutputColumn, schema.GetColumnName(i).Equals) >= 0)
+            if (Args.OutputColumn != null && Array.FindIndex(Args.OutputColumn, schema[i].Name.Equals) >= 0)
                 return true;
             return false;
         }

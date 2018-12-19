@@ -8,7 +8,6 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using Xunit;

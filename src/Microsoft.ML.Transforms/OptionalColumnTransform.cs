@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms
                     int col;
                     bool success = input.TryGetColumnIndex(names[i], out col);
                     Contracts.CheckUserArg(success, nameof(args.Column));
-                    columnTypes[i] = input.GetColumnType(col);
+                    columnTypes[i] = input[col].Type;
                     srcCols[i] = col;
                 }
 

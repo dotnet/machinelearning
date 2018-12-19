@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System;
@@ -54,7 +55,7 @@ namespace Microsoft.ML.Legacy.Models
 
             RowCursor cursor = confusionMatrix.GetRowCursor(col => col == countColumn);
             var slots = default(VBuffer<ReadOnlyMemory<char>>);
-            confusionMatrix.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countColumn, ref slots);
+            confusionMatrix.Schema[countColumn].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slots);
             var slotsValues = slots.GetValues();
             string[] classNames = new string[slotsValues.Length];
             for (int i = 0; i < slotsValues.Length; i++)
@@ -62,7 +63,7 @@ namespace Microsoft.ML.Legacy.Models
                 classNames[i] = slotsValues[i].ToString();
             }
 
-            ColumnType type = confusionMatrix.Schema.GetColumnType(countColumn);
+            ColumnType type = confusionMatrix.Schema[countColumn].Type;
             env.Assert(type.IsVector);
             ValueGetter<VBuffer<double>> countGetter = cursor.GetGetter<VBuffer<double>>(countColumn);
             VBuffer<double> countValues = default;

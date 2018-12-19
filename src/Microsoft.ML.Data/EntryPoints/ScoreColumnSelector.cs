@@ -29,9 +29,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var view = input.Data;
             var maxScoreId = view.Schema.GetMaxMetadataKind(out int colMax, MetadataUtils.Kinds.ScoreColumnSetId);
             List<int> indices = new List<int>();
-            for (int i = 0; i < view.Schema.ColumnCount; i++)
+            for (int i = 0; i < view.Schema.Count; i++)
             {
-                if (view.Schema.IsHidden(i))
+                if (view.Schema[i].IsHidden)
                     continue;
                 if (!ShouldAddColumn(view.Schema, i, input.ExtraColumns, maxScoreId))
                     continue;
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 return true;
             }
-            var columnName = schema.GetColumnName(i);
+            var columnName = schema[i].Name;
             if (extraColumns != null && Array.FindIndex(extraColumns, columnName.Equals) >= 0)
                 return true;
             return false;
@@ -82,9 +82,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     int colMax;
                     var maxScoreId = input.Data.Schema.GetMaxMetadataKind(out colMax, MetadataUtils.Kinds.ScoreColumnSetId);
                     var copyCols = new List<(string Source, string Name)>();
-                    for (int i = 0; i < input.Data.Schema.ColumnCount; i++)
+                    for (int i = 0; i < input.Data.Schema.Count; i++)
                     {
-                        if (input.Data.Schema.IsHidden(i))
+                        if (input.Data.Schema[i].IsHidden)
                             continue;
                         if (!ShouldAddColumn(input.Data.Schema, i, null, maxScoreId))
                             continue;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             continue;
                         }
-                        var source = input.Data.Schema.GetColumnName(i);
+                        var source = input.Data.Schema[i].Name;
                         var name = source + "." + positiveClass;
                         copyCols.Add((source, name));
                     }

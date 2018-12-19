@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -45,10 +44,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var data = experiment.GetOutput(normalizeOutput.OutputData);
 
             var schema = data.Schema;
-            Assert.Equal(5, schema.ColumnCount);
+            Assert.Equal(5, schema.Count);
             var expected = new[] { "Label", "Workclass", "Categories", "NumericFeatures", "NumericFeatures" };
-            for (int i = 0; i < schema.ColumnCount; i++)
-                Assert.Equal(expected[i], schema.GetColumnName(i));
+            for (int i = 0; i < schema.Count; i++)
+                Assert.Equal(expected[i], schema[i].Name);
         }
 
         [Fact]
@@ -493,10 +492,10 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(b);
             b = schema.TryGetColumnIndex("Fold Index", out foldCol);
             Assert.True(b);
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, countCol);
+            var type = schema[countCol].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
             Assert.True(type is VectorType vecType && vecType.ItemType is TextType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
-            schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref slotNames);
+            schema[countCol].GetSlotNames(ref slotNames);
             var slotNameValues = slotNames.GetValues();
             for (int i = 0; i < slotNameValues.Length; i++)
             {
@@ -976,9 +975,9 @@ namespace Microsoft.ML.Runtime.RunTests
             var data = experiment.GetOutput(tfTransformOutput.OutputData);
 
             var schema = data.Schema;
-            Assert.Equal(3, schema.ColumnCount);
-            Assert.Equal("Softmax", schema.GetColumnName(2));
-            Assert.Equal(10, (schema.GetColumnType(2) as VectorType)?.Size);
+            Assert.Equal(3, schema.Count);
+            Assert.Equal("Softmax", schema[2].Name);
+            Assert.Equal(10, (schema[2].Type as VectorType)?.Size);
         }
     }
 #pragma warning restore 612, 618

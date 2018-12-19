@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
                         continue;
                     throw _host.Except("Column '{0}' not found in the data view", col.ColumnName);
                 }
-                var realColType = _data.Schema.GetColumnType(colIndex);
+                var realColType = _data.Schema[colIndex].Type;
                 if (!IsCompatibleType(realColType, col.MemberInfo))
                 {
                     throw _host.Except(
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Data
 
             private Action<TRow> GenerateSetter(Row input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
-                var colType = input.Schema.GetColumnType(index);
+                var colType = input.Schema[index].Type;
                 var fieldType = column.OutputType;
                 var genericType = fieldType;
                 Func<Row, int, Delegate, Delegate, Action<TRow>> del;

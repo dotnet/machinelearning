@@ -61,9 +61,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     var schema = input.Data.Schema;
 
                     var cols = new List<int>();
-                    for (int i = 0; i < schema.ColumnCount; i++)
+                    for (int i = 0; i < schema.Count; i++)
                     {
-                        var type = schema.GetColumnType(i);
+                        var type = schema[i].Type;
                         if (saver.IsColumnSavable(type))
                             cols.Add(i);
                     }
