@@ -73,10 +73,44 @@ namespace Microsoft.ML.Transforms
         public readonly List<string> InputNames;
         public readonly List<string> OutputNames;
 
+        /// <summary>
+        /// Constructs OnnxModel object from file.
+        /// </summary>
+        /// <param name="modelFile">Model file path</param>
         public OnnxModel(string modelFile)
+            : this (modelFile, -1, false)
+        {
+        }
+
+        /// <summary>
+        /// Constructs OnnxModel object from file.
+        /// </summary>
+        /// <param name="modelFile">Model file path</param>
+        /// <param name="gpuDeviceId">Gpu device ID to execute on. -1 for CPU</param>
+        /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error</param>
+        public OnnxModel(string modelFile, int gpuDeviceId = -1, bool fallbackToCpu = false)
         {
             _modelFile = modelFile;
-            _session = new InferenceSession(modelFile);
+
+            if (gpuDeviceId >= 0)
+            {
+                try
+                {
+                    _session = new InferenceSession(modelFile, SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId));
+                }
+                catch (OnnxRuntimeException e)
+                {
+                    if (fallbackToCpu)
+                        _session = new InferenceSession(modelFile);
+                    else
+                        throw e;
+                }
+            }
+            else
+            {
+                _session = new InferenceSession(modelFile);
+            }
+
             ModelInfo = new OnnxModelInfo(GetInputsInfo(), GetOutputsInfo());
             InputNames = ModelInfo.InputsInfo.Select(i => i.Name).ToList();
             OutputNames = ModelInfo.OutputsInfo.Select(i => i.Name).ToList();
@@ -85,9 +119,21 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Create an OnnxModel from a byte[]
         /// </summary>
-        /// <param name="modelBytes"></param>
+        /// <param name="modelBytes">Bytes of the serialized model</param>
         /// <returns>OnnxModel</returns>
         public static OnnxModel CreateFromBytes(byte[] modelBytes)
+        {
+            return CreateFromBytes(modelBytes, -1, false);
+        }
+
+        /// <summary>
+        /// Create an OnnxModel from a byte[]. Set execution to GPU if required.
+        /// </summary>
+        /// <param name="modelBytes">Bytes of the serialized model</param>
+        /// <param name="gpuDeviceId">Gpu device ID to execute on. -1 for CPU</param>
+        /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error</param>
+        /// <returns>OnnxModel</returns>
+        public static OnnxModel CreateFromBytes(byte[] modelBytes, int gpuDeviceId = -1, bool fallbackToCpu = false)
         {
             var tempModelDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempModelDir);

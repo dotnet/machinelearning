@@ -48,6 +48,13 @@ namespace Microsoft.ML.Transforms
     /// <p>Supports inferencing of models in 1.2 and 1.3 format, using the
     /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/'>Microsoft.ML.OnnxRuntime</a> library
     /// </p>
+    /// <p>Supports optional GPU execution via the CUDA 10.0. Requires
+    /// <a href='https://developer.nvidia.com/cuda-downloads'>CUDA 10.0 Toolkit</a>
+    /// and
+    /// <a href='https://developer.nvidia.com/cudnn'>cuDNN</a>
+    /// libraries need to be installed models can be scored in GPU. By default models are run on CPU. To execute on GPU,
+    /// set the parameter 'gpuDeviceID' to a valid non-negative number.
+    /// </p>
     /// <p>The inputs and outputs of the onnx models must of of Tensors. Sequence and Maps are not yet supported.</p>
     /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
     /// <p>Refer to http://onnx.ai' for more information about ONNX.</p>
@@ -64,6 +71,12 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
             public string[] OutputColumns;
+
+            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "GPU device id to run on (e.g. 0,1,..). -1 runs on CPU. Requires CUDA 10.0.", SortOrder = 3)]
+            public int GpuDeviceId = -1;
+
+            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "If true, resumes execution on CPU upon GPU error. If false, will raise the GPU execption.", SortOrder = 4)]
+            public bool FallbackToCpu = false;
         }
 
         private readonly Arguments _args;
@@ -91,15 +104,27 @@ namespace Microsoft.ML.Transforms
             loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, int gpuDeviceId = -1, bool fallbackToCpu = false)
         {
-            var args = new Arguments { ModelFile = modelFile, InputColumns = new string[] { }, OutputColumns = new string[] { } };
+            var args = new Arguments {
+                ModelFile = modelFile,
+                InputColumns = new string[] { },
+                OutputColumns = new string[] { },
+                GpuDeviceId = gpuDeviceId,
+                FallbackToCpu = fallbackToCpu };
+
             return Create(env, args, input);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns, int gpuDeviceId = -1, bool fallbackToCpu = false)
         {
-            var args = new Arguments { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns };
+            var args = new Arguments {
+                ModelFile = modelFile,
+                InputColumns = inputColumns,
+                OutputColumns = outputColumns,
+                GpuDeviceId = gpuDeviceId,
+                FallbackToCpu = fallbackToCpu };
+
             return Create(env, args, input);
         }
 
@@ -163,10 +188,10 @@ namespace Microsoft.ML.Transforms
             {
                 Host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
                 Host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
-                Model = new OnnxModel(args.ModelFile);
+                Model = new OnnxModel(args.ModelFile, args.GpuDeviceId, args.FallbackToCpu);
             }
             else
-                Model = OnnxModel.CreateFromBytes(modelBytes);
+                Model = OnnxModel.CreateFromBytes(modelBytes, args.GpuDeviceId, args.FallbackToCpu);
 
             var modelInfo = Model.ModelInfo;
             Inputs = (args.InputColumns.Count() == 0 ) ? Model.InputNames.ToArray() : args.InputColumns;
@@ -188,17 +213,68 @@ namespace Microsoft.ML.Transforms
         }
 
         public OnnxTransform(IHostEnvironment env, string modelFile)
-            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = new string[] { }, OutputColumns = new string[] { } })
+            : this(env, modelFile, -1, false)
+        {
+
+        }
+
+        public OnnxTransform(IHostEnvironment env, string modelFile, int gpuDeviceId = -1, bool fallbackToCpu = false)
+            : this(env, new Arguments()
+            {
+                ModelFile = modelFile,
+                InputColumns = new string[] {},
+                OutputColumns = new string[] {},
+                GpuDeviceId = gpuDeviceId,
+                FallbackToCpu = fallbackToCpu
+            })
         {
         }
 
         public OnnxTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn)
-            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = new[] { inputColumn }, OutputColumns = new[] { outputColumn } })
+            : this(env, new Arguments()
+            {
+                ModelFile = modelFile,
+                InputColumns = new[] { inputColumn },
+                OutputColumns = new[] { outputColumn },
+                GpuDeviceId = -1,
+                FallbackToCpu = false
+            })
+        {
+        }
+
+        public OnnxTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn, int gpuDeviceId = -1, bool fallbackToCpu = false)
+            : this(env, new Arguments()
+            {
+                ModelFile = modelFile,
+                InputColumns = new[] { inputColumn },
+                OutputColumns = new[] { outputColumn },
+                GpuDeviceId = gpuDeviceId,
+                FallbackToCpu = fallbackToCpu
+            })
         {
         }
 
         public OnnxTransform(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns)
-            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns })
+            : this(env, new Arguments()
+            {
+                ModelFile = modelFile,
+                InputColumns = inputColumns,
+                OutputColumns = outputColumns,
+                GpuDeviceId = -1,
+                FallbackToCpu = false
+            })
+        {
+        }
+
+        public OnnxTransform(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns, int gpuDeviceId = -1, bool fallbackToCpu = false)
+            : this(env, new Arguments()
+            {
+                ModelFile = modelFile,
+                InputColumns = inputColumns,
+                OutputColumns = outputColumns,
+                GpuDeviceId = gpuDeviceId,
+                FallbackToCpu = fallbackToCpu
+            })
         {
         }
 
