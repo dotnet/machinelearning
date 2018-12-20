@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-<<<<<<< HEAD
 using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Ensemble.EntryPoints;

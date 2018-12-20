@@ -3,11 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML;
-using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.ML
