@@ -135,7 +135,14 @@ namespace Microsoft.ML.Runtime.Data
             if (inputs.Length == 1)
                 curs = inputs[0];
             else
-                curs = DataViewUtils.ConsolidateGeneric(host, inputs, 64);
+            {
+                // We have a somewhat arbitrary batch size of about 64 for buffering results from the
+                // intermediate cursors, since that at least empirically for most datasets seems to
+                // strike a nice balance between a size large enough to benefit from parallelism but
+                // small enough so as to not be too onerous to keep in memory.
+                const int batchSize = 64;
+                curs = DataViewUtils.ConsolidateGeneric(host, inputs, batchSize);
+            }
             return true;
         }
 
