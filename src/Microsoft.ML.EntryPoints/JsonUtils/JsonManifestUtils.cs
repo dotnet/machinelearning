@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -68,7 +68,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                 {
                     var jField = new JObject();
                     jField[FieldNames.Name] = fieldInfo.Name;
-                    var type = CSharpGeneratorUtils.ExtractOptionalOrNullableType(fieldInfo.PropertyType);
+                    var type = ExtractOptionalOrNullableType(fieldInfo.PropertyType);
                     // Dive inside Var.
                     if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Var<>))
                         type = type.GetGenericArguments()[0];
@@ -85,6 +85,14 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
             jResult[FieldNames.TopComponents] = jKinds;
             jResult[FieldNames.TopEntryPointKinds] = jepKinds;
             return jResult;
+        }
+
+        private static Type ExtractOptionalOrNullableType(Type type)
+        {
+            if (type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(Optional<>) || type.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                type = type.GetGenericArguments()[0];
+
+            return type;
         }
 
         private static JObject BuildComponentManifest(IExceptionContext ectx, ComponentCatalog.ComponentInfo componentInfo, ComponentCatalog catalog)
@@ -303,7 +311,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
                 jo[FieldNames.ItemType] = typeString;
                 return jo;
             }
-            type = CSharpGeneratorUtils.ExtractOptionalOrNullableType(type);
+            type = ExtractOptionalOrNullableType(type);
 
             // Dive inside Var.
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Var<>))
