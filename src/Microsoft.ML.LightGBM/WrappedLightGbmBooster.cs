@@ -96,10 +96,10 @@ namespace Microsoft.ML.LightGBM
 
         private static double[] Str2DoubleArray(string str, char delimiter)
         {
-            return str.Split(delimiter).Select(
-                x => { double t; double.TryParse(x, out t); return t; }
-            ).ToArray();
-
+            return str.Split(delimiter)
+                      .Select(s => double.TryParse(s.Replace("inf", "∞"), out double rslt) ? rslt :
+                                    (s.Contains("nan") ? double.NaN : throw new Exception($"Cannot parse as double: {s}")))
+                      .ToArray();
         }
 
         private static int[] Str2IntArray(string str, char delimiter)
