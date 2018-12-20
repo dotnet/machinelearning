@@ -186,11 +186,11 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, inputCursor, _schemaImpl, predicate);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate,
             int n, Random rand = null)
         {
             var activeInput = _schemaImpl.GetActiveInput(predicate);
-            var inputCursors = Source.GetRowCursorSet(out consolidator, col => activeInput[col], n, null);
+            var inputCursors = Source.GetRowCursorSet(col => activeInput[col], n, null);
             return Utils.BuildArray<RowCursor>(inputCursors.Length,
                 x => new Cursor(Host, inputCursors[x], _schemaImpl, predicate));
         }

@@ -677,12 +677,11 @@ namespace Microsoft.ML.Runtime.Data.IO
             return new Cursor(this, predicate);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             if (HasRowData)
-                return _schemaEntry.GetView().GetRowCursorSet(out consolidator, predicate, n, rand);
-            consolidator = null;
+                return _schemaEntry.GetView().GetRowCursorSet(predicate, n, rand);
             return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 

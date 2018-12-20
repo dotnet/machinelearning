@@ -32,10 +32,9 @@ namespace Microsoft.ML.Runtime.Data
             return _source.GetRowCursor(predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
-            return _source.GetRowCursorSet(out consolidator, predicate, n, rand);
+            return _source.GetRowCursorSet(predicate, n, rand);
         }
     }
 }

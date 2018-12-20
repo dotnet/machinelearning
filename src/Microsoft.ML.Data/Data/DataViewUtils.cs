@@ -129,15 +129,20 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            IRowCursorConsolidator consolidator;
-            var inputs = view.GetRowCursorSet(out consolidator, predicate, cthd, rand);
+            var inputs = view.GetRowCursorSet(predicate, cthd, rand);
             host.Check(Utils.Size(inputs) > 0);
-            host.Check(inputs.Length == 1 || consolidator != null);
 
             if (inputs.Length == 1)
                 curs = inputs[0];
             else
-                curs = consolidator.CreateCursor(host, inputs);
+            {
+                // We have a somewhat arbitrary batch size of about 64 for buffering results from the
+                // intermediate cursors, since that at least empirically for most datasets seems to
+                // strike a nice balance between a size large enough to benefit from parallelism but
+                // small enough so as to not be too onerous to keep in memory.
+                const int batchSize = 64;
+                curs = DataViewUtils.ConsolidateGeneric(host, inputs, batchSize);
+            }
             return true;
         }
 
@@ -146,13 +151,11 @@ namespace Microsoft.ML.Runtime.Data
         /// cardinality. If not all the active columns are cachable, this will only
         /// produce the given input cursor.
         /// </summary>
-        public static RowCursor[] CreateSplitCursors(out IRowCursorConsolidator consolidator,
-            IChannelProvider provider, RowCursor input, int num)
+        public static RowCursor[] CreateSplitCursors(IChannelProvider provider, RowCursor input, int num)
         {
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckValue(input, nameof(input));
 
-            consolidator = null;
             if (num <= 1)
                 return new RowCursor[1] { input };
 
@@ -168,7 +171,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // REVIEW: Keep the utility method here, move this splitter stuff
             // to some other file.
-            return Splitter.Split(out consolidator, provider, input.Schema, input, num);
+            return Splitter.Split(provider, input.Schema, input, num);
         }
 
         /// <summary>
@@ -249,7 +252,7 @@ namespace Microsoft.ML.Runtime.Data
                 return inputs[0];
 
             object[] pools = null;
-            return Splitter.Consolidator.Consolidate(provider, inputs, batchSize, ref pools);
+            return Splitter.Consolidate(provider, inputs, batchSize, ref pools);
         }
 
         /// <summary>
@@ -277,7 +280,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             private readonly Schema _schema;
             private readonly object[] _cachePools;
-            private object[] _consolidateCachePools;
 
             /// <summary>
             /// Pipes, in addition to column values, will also communicate extra information
@@ -299,214 +301,198 @@ namespace Microsoft.ML.Runtime.Data
                 _cachePools = new object[_schema.Count + (int)ExtraIndex._Lim];
             }
 
-            public sealed class Consolidator : IRowCursorConsolidator
+            public static RowCursor Consolidate(IChannelProvider provider, RowCursor[] inputs, int batchSize, ref object[] ourPools)
             {
-                private readonly Splitter _splitter;
-
-                public Consolidator(Splitter splitter)
+                Contracts.AssertValue(provider);
+                using (var ch = provider.Start("Consolidate"))
                 {
-                    Contracts.AssertValue(splitter);
-                    _splitter = splitter;
+                    return ConsolidateCore(provider, inputs, ref ourPools, ch);
                 }
+            }
 
-                public RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs)
+            private static RowCursor ConsolidateCore(IChannelProvider provider, RowCursor[] inputs, ref object[] ourPools, IChannel ch)
+            {
+                ch.CheckNonEmpty(inputs, nameof(inputs));
+                if (inputs.Length == 1)
+                    return inputs[0];
+                ch.CheckParam(SameSchemaAndActivity(inputs), nameof(inputs), "Inputs not compatible for consolidation");
+
+                RowCursor cursor = inputs[0];
+                var schema = cursor.Schema;
+                ch.CheckParam(AllCachable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
+
+                int[] activeToCol;
+                int[] colToActive;
+                Utils.BuildSubsetMaps(schema.Count, cursor.IsColumnActive, out activeToCol, out colToActive);
+
+                // Because the schema of the consolidator is not necessary fixed, we are merely
+                // opportunistic about buffer sharing, from cursoring to cursoring. If we can do
+                // it easily, great, if not, no big deal.
+                if (Utils.Size(ourPools) != schema.Count)
+                    ourPools = new object[schema.Count + (int)ExtraIndex._Lim];
+                // Create the out pipes.
+                OutPipe[] outPipes = new OutPipe[activeToCol.Length + (int)ExtraIndex._Lim];
+                for (int i = 0; i < activeToCol.Length; ++i)
                 {
-                    return Consolidate(provider, inputs, 128, ref _splitter._consolidateCachePools);
+                    int c = activeToCol[i];
+                    ColumnType type = schema[c].Type;
+                    var pool = GetPool(type, ourPools, c);
+                    outPipes[i] = OutPipe.Create(type, pool);
                 }
+                int idIdx = activeToCol.Length + (int)ExtraIndex.Id;
+                outPipes[idIdx] = OutPipe.Create(NumberType.UG, GetPool(NumberType.UG, ourPools, idIdx));
 
-                public static RowCursor Consolidate(IChannelProvider provider, RowCursor[] inputs, int batchSize, ref object[] ourPools)
+                // Create the structures to synchronize between the workers and the consumer.
+                const int toConsumeBound = 4;
+                var toConsume = new BlockingCollection<Batch>(toConsumeBound);
+                var batchColumnPool = new MadeObjectPool<BatchColumn[]>(() => new BatchColumn[outPipes.Length]);
+                Thread[] workers = new Thread[inputs.Length];
+                MinWaiter waiter = new MinWaiter(workers.Length);
+                bool done = false;
+
+                for (int t = 0; t < workers.Length; ++t)
                 {
-                    Contracts.AssertValue(provider);
-                    using (var ch = provider.Start("Consolidate"))
+                    var localCursor = inputs[t];
+                    ch.Assert(localCursor.State == CursorState.NotStarted);
+                    // Note that these all take ownership of their respective cursors,
+                    // so they all handle their disposal internal to the thread.
+                    workers[t] = Utils.CreateBackgroundThread(() =>
                     {
-                        return ConsolidateCore(provider, inputs, ref ourPools, ch);
-                    }
-                }
-
-                private static RowCursor ConsolidateCore(IChannelProvider provider, RowCursor[] inputs, ref object[] ourPools, IChannel ch)
-                {
-                    ch.CheckNonEmpty(inputs, nameof(inputs));
-                    if (inputs.Length == 1)
-                        return inputs[0];
-                    ch.CheckParam(SameSchemaAndActivity(inputs), nameof(inputs), "Inputs not compatible for consolidation");
-
-                    RowCursor cursor = inputs[0];
-                    var schema = cursor.Schema;
-                    ch.CheckParam(AllCachable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
-
-                    int[] activeToCol;
-                    int[] colToActive;
-                    Utils.BuildSubsetMaps(schema.Count, cursor.IsColumnActive, out activeToCol, out colToActive);
-
-                    // Because the schema of the consolidator is not necessary fixed, we are merely
-                    // opportunistic about buffer sharing, from cursoring to cursoring. If we can do
-                    // it easily, great, if not, no big deal.
-                    if (Utils.Size(ourPools) != schema.Count)
-                        ourPools = new object[schema.Count + (int)ExtraIndex._Lim];
-                    // Create the out pipes.
-                    OutPipe[] outPipes = new OutPipe[activeToCol.Length + (int)ExtraIndex._Lim];
-                    for (int i = 0; i < activeToCol.Length; ++i)
-                    {
-                        int c = activeToCol[i];
-                        ColumnType type = schema[c].Type;
-                        var pool = GetPool(type, ourPools, c);
-                        outPipes[i] = OutPipe.Create(type, pool);
-                    }
-                    int idIdx = activeToCol.Length + (int)ExtraIndex.Id;
-                    outPipes[idIdx] = OutPipe.Create(NumberType.UG, GetPool(NumberType.UG, ourPools, idIdx));
-
-                    // Create the structures to synchronize between the workers and the consumer.
-                    const int toConsumeBound = 4;
-                    var toConsume = new BlockingCollection<Batch>(toConsumeBound);
-                    var batchColumnPool = new MadeObjectPool<BatchColumn[]>(() => new BatchColumn[outPipes.Length]);
-                    Thread[] workers = new Thread[inputs.Length];
-                    MinWaiter waiter = new MinWaiter(workers.Length);
-                    bool done = false;
-
-                    for (int t = 0; t < workers.Length; ++t)
-                    {
-                        var localCursor = inputs[t];
-                        ch.Assert(localCursor.State == CursorState.NotStarted);
-                        // Note that these all take ownership of their respective cursors,
-                        // so they all handle their disposal internal to the thread.
-                        workers[t] = Utils.CreateBackgroundThread(() =>
-                        {
                             // This will be the last batch sent in the finally. If iteration procedes without
                             // error, it will remain null, and be sent as a sentinel. If iteration results in
                             // an exception that we catch, the exception catching block will set this to an
                             // exception bearing block, and that will be passed along as the last block instead.
                             Batch lastBatch = null;
-                            try
+                        try
+                        {
+                            using (localCursor)
                             {
-                                using (localCursor)
-                                {
-                                    InPipe[] inPipes = new InPipe[outPipes.Length];
-                                    for (int i = 0; i < activeToCol.Length; ++i)
-                                        inPipes[i] = outPipes[i].CreateInPipe(RowCursorUtils.GetGetterAsDelegate(localCursor, activeToCol[i]));
-                                    inPipes[idIdx] = outPipes[idIdx].CreateInPipe(localCursor.GetIdGetter());
+                                InPipe[] inPipes = new InPipe[outPipes.Length];
+                                for (int i = 0; i < activeToCol.Length; ++i)
+                                    inPipes[i] = outPipes[i].CreateInPipe(RowCursorUtils.GetGetterAsDelegate(localCursor, activeToCol[i]));
+                                inPipes[idIdx] = outPipes[idIdx].CreateInPipe(localCursor.GetIdGetter());
 
-                                    long oldBatch = 0;
-                                    int count = 0;
+                                long oldBatch = 0;
+                                int count = 0;
                                     // This event is used to synchronize ourselves using a MinWaiter
                                     // so that we add batches to the consumer queue at the appropriate time.
                                     ManualResetEventSlim waiterEvent = null;
 
-                                    Action pushBatch = () =>
+                                Action pushBatch = () =>
+                                {
+                                    if (count > 0)
                                     {
-                                        if (count > 0)
-                                        {
-                                            var batchColumns = batchColumnPool.Get();
-                                            for (int i = 0; i < inPipes.Length; ++i)
-                                                batchColumns[i] = inPipes[i].GetBatchColumnAndReset();
+                                        var batchColumns = batchColumnPool.Get();
+                                        for (int i = 0; i < inPipes.Length; ++i)
+                                            batchColumns[i] = inPipes[i].GetBatchColumnAndReset();
                                             // REVIEW: Is it worth not allocating new Batch object for each batch?
                                             var batch = new Batch(batchColumnPool, batchColumns, count, oldBatch);
-                                            count = 0;
+                                        count = 0;
                                             // The waiter event should never be null since this is only
                                             // called after a point where waiter.Register has been called.
                                             ch.AssertValue(waiterEvent);
-                                            waiterEvent.Wait();
-                                            waiterEvent = null;
-                                            toConsume.Add(batch);
-                                        }
-                                    };
+                                        waiterEvent.Wait();
+                                        waiterEvent = null;
+                                        toConsume.Add(batch);
+                                    }
+                                };
                                     // Handle the first one separately, then go into the main loop.
                                     if (localCursor.MoveNext() && !done)
-                                    {
-                                        oldBatch = localCursor.Batch;
-                                        foreach (var pipe in inPipes)
-                                            pipe.Fill();
-                                        count++;
+                                {
+                                    oldBatch = localCursor.Batch;
+                                    foreach (var pipe in inPipes)
+                                        pipe.Fill();
+                                    count++;
                                         // Register with the min waiter that we want to wait on this batch number.
                                         waiterEvent = waiter.Register(oldBatch);
 
-                                        while (localCursor.MoveNext() && !done)
+                                    while (localCursor.MoveNext() && !done)
+                                    {
+                                        if (oldBatch != localCursor.Batch)
                                         {
-                                            if (oldBatch != localCursor.Batch)
-                                            {
-                                                ch.Assert(count == 0 || localCursor.Batch > oldBatch);
-                                                pushBatch();
-                                                oldBatch = localCursor.Batch;
-                                                waiterEvent = waiter.Register(oldBatch);
-                                            }
-                                            foreach (var pipe in inPipes)
-                                                pipe.Fill();
-                                            count++;
+                                            ch.Assert(count == 0 || localCursor.Batch > oldBatch);
+                                            pushBatch();
+                                            oldBatch = localCursor.Batch;
+                                            waiterEvent = waiter.Register(oldBatch);
                                         }
-                                        pushBatch();
+                                        foreach (var pipe in inPipes)
+                                            pipe.Fill();
+                                        count++;
                                     }
+                                    pushBatch();
                                 }
                             }
-                            catch (Exception ex)
-                            {
+                        }
+                        catch (Exception ex)
+                        {
                                 // Whoops, we won't be sending null as the sentinel now.
                                 lastBatch = new Batch(ex);
-                                toConsume.Add(new Batch(ex));
-                            }
-                            finally
+                            toConsume.Add(new Batch(ex));
+                        }
+                        finally
+                        {
+                            if (waiter.Retire() == 0)
                             {
-                                if (waiter.Retire() == 0)
+                                if (lastBatch == null)
                                 {
-                                    if (lastBatch == null)
-                                    {
                                         // If it wasn't null, this already sent along an exception bearing batch, in which
                                         // case sending the sentinel is unnecessary and unhelpful.
                                         toConsume.Add(null);
-                                    }
-                                    toConsume.CompleteAdding();
                                 }
+                                toConsume.CompleteAdding();
                             }
-                        });
-                        workers[t].Start();
-                    }
-
-                    Action quitAction = () =>
-                    {
-                        done = true;
-                        var myOutPipes = outPipes;
-                        foreach (var batch in toConsume.GetConsumingEnumerable())
-                        {
-                            if (batch == null)
-                                continue;
-                            batch.SetAll(myOutPipes);
-                            foreach (var outPipe in myOutPipes)
-                                outPipe.Unset();
                         }
-                        foreach (Thread thread in workers)
-                            thread.Join();
-                    };
-
-                    return new Cursor(provider, schema, activeToCol, colToActive, outPipes, toConsume, quitAction);
+                    });
+                    workers[t].Start();
                 }
 
-                private static object GetPool(ColumnType type, object[] pools, int poolIdx)
+                Action quitAction = () =>
                 {
-                    Func<object[], int, object> func = GetPoolCore<int>;
-                    var method = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
-                    return method.Invoke(null, new object[] { pools, poolIdx });
-                }
+                    done = true;
+                    var myOutPipes = outPipes;
+                    foreach (var batch in toConsume.GetConsumingEnumerable())
+                    {
+                        if (batch == null)
+                            continue;
+                        batch.SetAll(myOutPipes);
+                        foreach (var outPipe in myOutPipes)
+                            outPipe.Unset();
+                    }
+                    foreach (Thread thread in workers)
+                        thread.Join();
+                };
 
-                private static MadeObjectPool<T[]> GetPoolCore<T>(object[] pools, int poolIdx)
-                {
-                    var pool = pools[poolIdx] as MadeObjectPool<T[]>;
-                    if (pool == null)
-                        pools[poolIdx] = pool = new MadeObjectPool<T[]>(() => null);
-                    return pool;
-                }
+                return new Cursor(provider, schema, activeToCol, colToActive, outPipes, toConsume, quitAction);
             }
 
-            public static RowCursor[] Split(out IRowCursorConsolidator consolidator, IChannelProvider provider, Schema schema, RowCursor input, int cthd)
+            private static object GetPool(ColumnType type, object[] pools, int poolIdx)
+            {
+                Func<object[], int, object> func = GetPoolCore<int>;
+                var method = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
+                return method.Invoke(null, new object[] { pools, poolIdx });
+            }
+
+            private static MadeObjectPool<T[]> GetPoolCore<T>(object[] pools, int poolIdx)
+            {
+                var pool = pools[poolIdx] as MadeObjectPool<T[]>;
+                if (pool == null)
+                    pools[poolIdx] = pool = new MadeObjectPool<T[]>(() => null);
+                return pool;
+            }
+
+            public static RowCursor[] Split(IChannelProvider provider, Schema schema, RowCursor input, int cthd)
             {
                 Contracts.AssertValue(provider, "provider");
 
                 var splitter = new Splitter(schema);
                 using (var ch = provider.Start("CursorSplitter"))
                 {
-                    var result = splitter.SplitCore(out consolidator, provider, input, cthd);
+                    var result = splitter.SplitCore(provider, input, cthd);
                     return result;
                 }
             }
 
-            private RowCursor[] SplitCore(out IRowCursorConsolidator consolidator, IChannelProvider ch, RowCursor input, int cthd)
+            private RowCursor[] SplitCore(IChannelProvider ch, RowCursor input, int cthd)
             {
                 Contracts.AssertValue(ch);
                 ch.AssertValue(input);
@@ -637,7 +623,6 @@ namespace Microsoft.ML.Runtime.Data
                 var cursors = new Cursor[cthd];
                 for (int i = 0; i < cthd; ++i)
                     cursors[i] = new Cursor(ch, _schema, activeToCol, colToActive, outPipes[i], toConsume, quitAction);
-                consolidator = new Consolidator(this);
                 return cursors;
             }
 
