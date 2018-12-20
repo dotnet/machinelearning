@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers.Online;
 using System;
 
 namespace Microsoft.ML.StaticPipe
@@ -14,7 +13,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static class AveragedPerceptronExtensions
+    public static class AveragedPerceptronStaticExtensions
     {
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.

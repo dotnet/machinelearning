@@ -54,10 +54,14 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "The inexactness tolerance for averaging", ShortName = "avgtol")]
         public Float AveragedTolerance = (Float)1e-2;
 
+        [BestFriend]
         internal class AveragedDefaultArgs : OnlineDefaultArgs
         {
+            [BestFriend]
             internal const Float LearningRate = 1;
+            [BestFriend]
             internal const bool DecreaseLearningRate = false;
+            [BestFriend]
             internal const Float L2RegularizerWeight = 0;
         }
 

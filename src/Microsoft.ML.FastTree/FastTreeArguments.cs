@@ -139,11 +139,16 @@ namespace Microsoft.ML.Trainers.FastTree
         Adjacent = 2
     }
 
+    [BestFriend]
     internal static class Defaults
     {
+        [BestFriend]
         internal const int NumTrees = 100;
+        [BestFriend]
         internal const int NumLeaves = 20;
+        [BestFriend]
         internal const int MinDocumentsInLeaves = 10;
+        [BestFriend]
         internal const double LearningRates = 0.2;
     }
 

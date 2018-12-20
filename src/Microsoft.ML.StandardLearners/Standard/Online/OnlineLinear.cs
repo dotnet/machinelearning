@@ -42,8 +42,10 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "Size of cache when trained in Scope", ShortName = "cache")]
         public int StreamingCacheSize = 1000000;
 
+        [BestFriend]
         internal class OnlineDefaultArgs
         {
+            [BestFriend]
             internal const int NumIterations = 1;
         }
     }

@@ -92,13 +92,20 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enforce non-negative weights", ShortName = "nn", SortOrder = 90)]
             public bool EnforceNonNegativity = Defaults.EnforceNonNegativity;
 
+            [BestFriend]
             internal static class Defaults
             {
+                [BestFriend]
                 internal const float L2Weight = 1;
+                [BestFriend]
                 internal const float L1Weight = 1;
+                [BestFriend]
                 internal const float OptTol = 1e-7f;
+                [BestFriend]
                 internal const int MemorySize = 20;
+                [BestFriend]
                 internal const int MaxIterations = int.MaxValue;
+                [BestFriend]
                 internal const bool EnforceNonNegativity = false;
             }
         }

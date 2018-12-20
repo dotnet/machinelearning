@@ -45,9 +45,10 @@ namespace Microsoft.ML.Trainers.KMeans
             KMeansParallel = 2
         }
 
+        [BestFriend]
         internal static class Defaults{
-
             /// <value>The number of clusters.</value>
+            [BestFriend]
             internal const int K = 5;
         }
 
