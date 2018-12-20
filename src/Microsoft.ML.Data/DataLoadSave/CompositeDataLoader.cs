@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -12,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Float = System.Single;
+
 
 [assembly: LoadableClass(typeof(IDataLoader), typeof(CompositeDataLoader), typeof(CompositeDataLoader.Arguments), typeof(SignatureDataLoader),
     "Composite Data Loader", "CompositeDataLoader", "Composite", "PipeData", "Pipe", "PipeDataLoader")]
@@ -374,7 +375,7 @@ namespace Microsoft.ML.Runtime.Data
             //     string: args string
 
             int cbFloat = ctx.Reader.ReadInt32();
-            h.CheckDecode(cbFloat == sizeof(Float));
+            h.CheckDecode(cbFloat == sizeof(float));
 
             int cxf = ctx.Reader.ReadInt32();
             h.CheckDecode(cxf >= 0);
@@ -399,6 +400,17 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             return curView;
+        }
+
+        internal TransformerChain<ITransformer> GetTransformer()
+        {
+            var result = new TransformerChain<ITransformer>();
+            foreach (var transform in _transforms)
+            {
+                var transformer = (transform.Transform as RowToRowMapperTransform).GetTransformer();
+                result = result.Append(transformer);
+            }
+            return result;
         }
 
         private CompositeDataLoader(IHost host, TransformEx[] transforms)
@@ -445,7 +457,7 @@ namespace Microsoft.ML.Runtime.Data
             //     string: args string
 
             int cbFloat = ctx.Reader.ReadInt32();
-            host.CheckDecode(cbFloat == sizeof(Float));
+            host.CheckDecode(cbFloat == sizeof(float));
 
             int cxf = ctx.Reader.ReadInt32();
             host.CheckDecode(cxf >= 0);
@@ -532,7 +544,7 @@ namespace Microsoft.ML.Runtime.Data
             //     string: tag
             //     string: args string
 
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             ctx.Writer.Write(transforms.Length);
 
             using (var loaderCtx = new ModelSaveContext(ctx.Repository, Path.Combine(ctx.Directory ?? "", "Loader"), ModelLoadContext.ModelStreamName))

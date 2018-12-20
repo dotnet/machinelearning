@@ -161,11 +161,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 // verWrittenCur: 0x00010002, // Added support for keyRange
                 verWrittenCur: 0x00010003, // Change to transformer leads to change of saving objects.
                 verReadableCur: 0x00010003,
-                verWeCanReadBack: 0x00010003,
+                verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
                 loaderAssemblyName: typeof(TypeConvertingTransformer).Assembly.FullName);
         }
+        private const int VersionTransformer = 0x00010003;
 
         private const string RegistrationName = "Convert";
 
@@ -267,6 +268,8 @@ namespace Microsoft.ML.Transforms.Conversions
             var host = env.Register(RegistrationName);
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
+            if (ctx.Header.ModelVerWritten < VersionTransformer)
+                ctx.Reader.ReadInt32();
             return new TypeConvertingTransformer(host, ctx);
         }
 

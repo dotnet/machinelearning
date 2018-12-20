@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Core.Tests.UnitTests;
 using Microsoft.ML.Runtime.Data;
@@ -714,7 +715,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var lrModel = LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments { TrainingData = splitOutput.TestData[0] }).PredictorModel;
             var calibratedLrModel = Calibrate.FixedPlatt(Env,
                 new Calibrate.FixedPlattInput { Data = splitOutput.TestData[1], UncalibratedPredictorModel = lrModel }).PredictorModel;
-
+            using (var stream = File.OpenWrite("D:/tlc/epmodel_zip"))
+            {
+                lrModel.Save(Env, stream);
+            }
             var scored1 = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = lrModel }).ScoredData;
             scored1 = ScoreModel.SelectColumns(Env, new ScoreModel.ScoreColumnSelectorInput() { Data = scored1, ExtraColumns = new[] { "Label" } }).OutputData;
 
@@ -1370,7 +1374,7 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new OneHotEncodingEstimator(Env,"Cat").Fit(data).Transform(data);
+                data = new OneHotEncodingEstimator(Env, "Cat").Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
@@ -1379,9 +1383,9 @@ namespace Microsoft.ML.Runtime.RunTests
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
                         NumThreads = 1,
-                        ShowTrainingStats = true, 
+                        ShowTrainingStats = true,
                         StdComputer = new ComputeLRTrainingStdThroughHal()
-                };
+                    };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
@@ -1725,6 +1729,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var confusionMatrixVar = confusionMatrixPath != null ? ", 'ConfusionMatrix': '$ConfusionMatrix'" : "";
             confusionMatrixPath = confusionMatrixPath != null ? string.Format(", 'ConfusionMatrix' : '{0}'", EscapePath(confusionMatrixPath)) : "";
             var scorerModel = string.IsNullOrEmpty(transforms) ? "Model" : "CombinedModel";
+            string modelPath = DeleteOutputPath("model.zip");
             string inputGraph = $@"
                 {{
                   'Nodes': [
@@ -1776,6 +1781,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       }},
                       'Outputs': {{
                         'Warnings': '$Warnings',
+                        
                         'OverallMetrics': '$OverallMetrics',
                         'PerInstanceMetrics': '$PerInstanceMetrics'
                         {confusionMatrixVar}
@@ -1787,6 +1793,7 @@ namespace Microsoft.ML.Runtime.RunTests
                   }},
                   'Outputs' : {{
                     'Warnings' : '{EscapePath(warningsPath)}',
+                    'Model': '{EscapePath(modelPath)}',
                     'OverallMetrics' : '{EscapePath(overallMetricsPath)}',
                     'PerInstanceMetrics' : '{EscapePath(instanceMetricsPath)}'
                     {confusionMatrixPath}
@@ -3574,8 +3581,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumThreads = 1,
                 ShowTrainingStats = true,
-                StdComputer= new ComputeLRTrainingStdThroughHal()
-        };
+                StdComputer = new ComputeLRTrainingStdThroughHal()
+            };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 
             var mcLrInput = new MulticlassLogisticRegression.Arguments
@@ -4062,7 +4069,16 @@ namespace Microsoft.ML.Runtime.RunTests
                       ]"
                 });
         }
-
+        
+        [Fact]
+        public void LoadEntryPointModel()
+        {
+            var ml = new MLContext();
+            var modelPath = "D:/tlc/model1.zip";
+            ITransformer loadedModel;
+            using (var stream = File.OpenRead(modelPath))
+                loadedModel = ml.Model.Load(stream);
+        }
 
     }
 #pragma warning restore 612

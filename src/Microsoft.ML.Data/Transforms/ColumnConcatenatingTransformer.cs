@@ -275,7 +275,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            if (ctx.Header.ModelVerReadable >= VersionTransformer)
+            if (ctx.Header.ModelVerWritten >= VersionTransformer)
             {
                 // *** Binary format ***
                 // int: number of columns
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Runtime.Data
             public bool CanSavePfa => true;
 
             public Mapper(ColumnConcatenatingTransformer parent, Schema inputSchema) :
-                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema, parent)
             {
                 _parent = parent;
 

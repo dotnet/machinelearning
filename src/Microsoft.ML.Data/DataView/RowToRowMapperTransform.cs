@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
@@ -14,6 +10,9 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
+using System;
+using System.IO;
+using System.Linq;
 
 [assembly: LoadableClass(typeof(RowToRowMapperTransform), null, typeof(SignatureLoadDataTransform),
     "", RowToRowMapperTransform.LoaderSignature)]
@@ -47,6 +46,8 @@ namespace Microsoft.ML.Runtime.Data
         /// Returns information about the output columns, including their name, type and any metadata information.
         /// </summary>
         Schema.DetachedColumn[] GetOutputColumns();
+
+        ITransformer GetTransformer();
     }
 
     public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, Schema schema);
@@ -386,6 +387,11 @@ namespace Microsoft.ML.Runtime.Data
                 _disposed = true;
                 base.Dispose(disposing);
             }
+        }
+
+        internal ITransformer GetTransformer()
+        {
+            return _mapper.GetTransformer();
         }
     }
 }
