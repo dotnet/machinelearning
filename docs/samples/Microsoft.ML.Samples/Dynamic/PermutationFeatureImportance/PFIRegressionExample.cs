@@ -1,82 +1,39 @@
-﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers.HalLearners;
-using System;
+﻿using System;
 using System.Linq;
 
-namespace Microsoft.ML.Samples.Dynamic
+namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
 {
-    public class PFI_RegressionExample
+    public class PfiRegressionExample
     {
-        public static void PFI_Regression()
+        public static void RunExample()
         {
-            // Download the dataset from github.com/dotnet/machinelearning.
-            // This will create a housing.txt file in the filesystem.
-            // You can open this file to see the data. 
-            string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
-
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Step 1: Read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            // The data file is composed of rows of data, with each row having 11 numerical columns
-            // separated by whitespace.
-            var reader = mlContext.Data.CreateTextReader(
-                columns: new[]
-                    {
-                        // Read the first column (indexed by 0) in the data file as an R4 (float)
-                        new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
-                        new TextLoader.Column("CrimesPerCapita", DataKind.R4, 1),
-                        new TextLoader.Column("PercentResidental", DataKind.R4, 2),
-                        new TextLoader.Column("PercentNonRetail", DataKind.R4, 3),
-                        new TextLoader.Column("CharlesRiver", DataKind.R4, 4),
-                        new TextLoader.Column("NitricOxides", DataKind.R4, 5),
-                        new TextLoader.Column("RoomsPerDwelling", DataKind.R4, 6),
-                        new TextLoader.Column("PercentPre40s", DataKind.R4, 7),
-                        new TextLoader.Column("EmploymentDistance", DataKind.R4, 8),
-                        new TextLoader.Column("HighwayDistance", DataKind.R4, 9),
-                        new TextLoader.Column("TaxRate", DataKind.R4, 10),
-                        new TextLoader.Column("TeacherRatio", DataKind.R4, 11)
-                    },
-                hasHeader: true
-            );
-            
-            // Read the data
-            var data = reader.Read(dataFile);
+            // Step 1: Read the data
+            var data = PfiHelper.GetHousingRegressionIDataView(mlContext, out string labelName, out string[] featureNames);
 
             // Step 2: Pipeline
             // Concatenate the features to create a Feature vector.
             // Normalize the data set so that for each feature, its maximum value is 1 while its minimum value is 0.
-            // Then append a linear regression trainer, setting the "MedianHomeValue" column as the label of the dataset,
-            // the "Features" column produced by concatenation as the features of the dataset.
-            var labelName = "MedianHomeValue";
-            var pipeline = mlContext.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental",
-                        "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling", "PercentPre40s",
-                        "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio")
+            // Then append a linear regression trainer.
+            var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)
                     .Append(mlContext.Transforms.Normalize("Features"))
                     .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(
                         labelColumn: labelName, featureColumn: "Features"));
-
             var model = pipeline.Fit(data);
+
             // Extract the model from the pipeline
             var linearPredictor = model.LastTransformer;
-            var weights = GetLinearModelWeights(linearPredictor.Model);
+            var weights = PfiHelper.GetLinearModelWeights(linearPredictor.Model);
 
-            // Compute the permutation metrics using the properly-featurized data.
+            // Compute the permutation metrics using the properly normalized data.
             var transformedData = model.Transform(data);
             var permutationMetrics = mlContext.Regression.PermutationFeatureImportance(
                 linearPredictor, transformedData, label: labelName, features: "Features", permutationCount: 3);
 
             // Now let's look at which features are most important to the model overall
-            // First, we have to prepare the data:
-            // Get the feature names as an IEnumerable
-            var featureNames = data.Schema
-                .Select(column => column.Name) // Get the column names
-                .Where(name => name != labelName) // Drop the Label
-                .ToArray();
-
             // Get the feature indices sorted by their impact on R-Squared
             var sortedIndices = permutationMetrics.Select((metrics, index) => new { index, metrics.RSquared })
                 .OrderByDescending(feature => Math.Abs(feature.RSquared.Mean))
@@ -115,11 +72,6 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 Console.WriteLine($"{featureNames[i]}\t{weights[i]:0.00}\t{rSquared[i].Mean:G4}\t{1.96 * rSquared[i].StandardError:G4}");
             }
-        }
-
-        private static float[] GetLinearModelWeights(OlsLinearRegressionModelParameters linearModel)
-        {
-            return linearModel.Weights.ToArray();
         }
     }
 }
