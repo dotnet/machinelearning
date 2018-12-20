@@ -1017,10 +1017,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[]
                 {
                     "loader=Text",
-                    "xf=TrainScore{tr=FT scorer=fcc{top=4 bottom=2 norm- str+}}",
+                    "xf=TrainScore{tr=FT scorer=fcc{top=4 bottom=2 str+}}",
                     "xf=Copy{col=ContributionsStr:FeatureContributions}",
-                    "xf=TrainScore{tr=FT scorer=fcc{top=3 bottom=3 norm-}}"
-                }));
+                    "xf=TrainScore{tr=FT scorer=fcc{top=3 bottom=3}}"
+                }, digitsOfPrecision: 6));
 
             Done();
         }
@@ -1033,7 +1033,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[]
                 {
                     "loader=Text xf=TrainScore{tr=AP{shuf-} scorer=fcc{str+}}"
-                });
+                }, digitsOfPrecision: 6);
 
             Done();
         }

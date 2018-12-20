@@ -1601,13 +1601,13 @@ namespace Microsoft.ML.Runtime.RunTests
             OutputPath metricsFile = CreateOutputPath("metrics-fcc.txt");
 
             string extraArgs = string.Format("test={{{0}}} tr=AP{{shuf-}} scorer=fcc{{top=3 bottom=3}} xf=Take{{c=5}} lab=Lab feat=Feat norm=Warn", testData);
-            TestCore("traintest", trainData, loaderArgs, extraArgs, metricsFile.Arg("dout"));
+            TestCore("traintest", trainData, loaderArgs, extraArgs, digitsOfPrecision: 6, metricsFile.Arg("dout"));
 
             // Check stringify option.
             _step++;
             metricsFile = CreateOutputPath("metrics-fcc-str.txt");
             extraArgs = string.Format("test={{{0}}} tr=AP{{shuf-}} scorer=fcc{{top=3 bottom=3 str+}} xf=Take{{c=5}} lab=Lab feat=Feat norm=Warn", testData);
-            TestCore("traintest", trainData, loaderArgs, extraArgs, metricsFile.Arg("dout"));
+            TestCore("traintest", trainData, loaderArgs, extraArgs, digitsOfPrecision: 6, metricsFile.Arg("dout"));
             Done();
         }
 

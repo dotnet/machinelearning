@@ -172,7 +172,7 @@ namespace Microsoft.ML.Runtime.RunTests
         protected IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
             Action<IDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
             bool forceDense = false, bool logCurs = false, bool roundTripText = true,
-            bool checkTranspose = false, bool checkId = true, bool baselineSchema = true)
+            bool checkTranspose = false, bool checkId = true, bool baselineSchema = true, int digitsOfPrecision = DigitsOfPrecision)
         {
             Contracts.AssertValue(Env);
 
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     _env.ConcurrencyFactor = conc;
                 }
 
-                CheckEqualityNormalized("SavePipe", name);
+                CheckEqualityNormalized("SavePipe", name, digitsOfPrecision: digitsOfPrecision);
             }
 
             var pathModel = SavePipe(pipe1, suffix);
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (pipe1.Schema.Count > 0)
             {
                 // The text saver fails if there are no columns, so we cannot check in that case.
-                if (!SaveLoadText(pipe1, _env, keepHidden, suffix, suffixBase, checkBaseline, forceDense, roundTripText))
+                if (!SaveLoadText(pipe1, _env, keepHidden, suffix, suffixBase, checkBaseline, forceDense, roundTripText, digitsOfPrecision: digitsOfPrecision))
                     Failed();
                 // The transpose saver likewise fails for the same reason.
                 if (checkTranspose && !SaveLoadTransposed(pipe1, _env, suffix))
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ShowSchemaCommand.Arguments() { ShowMetadataValues = true, ShowSteps = true },
                         pipe1);
                 }
-                if (!CheckEquality("SavePipe", name))
+                if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision))
                     Log("*** ShowSchema failed on pipe1");
                 else
                 {
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             new ShowSchemaCommand.Arguments() { ShowMetadataValues = true, ShowSteps = true },
                             pipe2);
                     }
-                    if (!CheckEquality("SavePipe", name))
+                    if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision))
                         Log("*** ShowSchema failed on pipe2");
                 }
             }
@@ -392,7 +392,7 @@ namespace Microsoft.ML.Runtime.RunTests
         protected bool SaveLoadText(IDataView view, IHostEnvironment env,
             bool hidden = true, string suffix = "", string suffixBase = null,
             bool checkBaseline = true, bool forceDense = false, bool roundTrip = true,
-            bool outputSchema = true, bool outputHeader = true)
+            bool outputSchema = true, bool outputHeader = true, int digitsOfPrecision = DigitsOfPrecision)
         {
             TextSaver saver = new TextSaver(env, new TextSaver.Arguments() { Dense = forceDense, OutputSchema = outputSchema, OutputHeader = outputHeader });
             var schema = view.Schema;
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (checkBaseline)
             {
                 string nameBase = suffixBase != null ? TestName + suffixBase + "-Data" + ".txt" : name;
-                CheckEquality("SavePipe", name, nameBase);
+                CheckEquality("SavePipe", name, nameBase, digitsOfPrecision: digitsOfPrecision);
             }
 
             if (!roundTrip)
