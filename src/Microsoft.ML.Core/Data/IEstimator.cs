@@ -5,7 +5,6 @@
 using Microsoft.ML.Data;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.ML.Core.Data
