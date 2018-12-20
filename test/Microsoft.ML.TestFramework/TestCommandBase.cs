@@ -868,7 +868,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         [TestCategory(Cat)]
         [Fact(Skip = "Need CoreTLC specific baseline update")]
-        public void CommandCrossValidationWTF()
+        public void CommandCrossValidationFCC()
         {
             string pathData = GetDataPath("adult.tiny.with-schema.txt");
             var metricsFile = MetricsPath();
@@ -878,7 +878,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 " xf=Concat{col=Features:Features,workclass,education,marital_status,occupation,relationship,ethnicity,sex,native_country}" +
                 " prexf=Take{c=100}";
 
-            const string extraArgs = "tr=ap{shuf-} threads- norm=Yes scorer=wtf";
+            const string extraArgs = "tr=ap{shuf-} threads- norm=Yes scorer=fcc";
 
             var f1 = Params.InitPath("metrics.fold000.txt");
             var f2 = Params.InitPath("metrics.fold001.txt");
@@ -1567,7 +1567,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("SDCAR")]
-        public void CommandTrainScoreWTFSdcaR()
+        public void CommandTrainScoreFCCSdcaR()
         {
             // First run a training.
             string pathData = GetDataPath(@"..\Housing (regression)", "housing.txt");
@@ -1576,21 +1576,21 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Get features contributions.
             _step++;
-            OutputPath wtfScorerPath = CreateOutputPath("score-wtf.txt");
-            TestInOutCore("score", pathData, trainModel, "scorer=wtf outputColumn=FeatureContributions", wtfScorerPath.Arg("dout"));
+            OutputPath fccScorerPath = CreateOutputPath("score-fcc.txt");
+            TestInOutCore("score", pathData, trainModel, "scorer=fcc outputColumn=FeatureContributions", fccScorerPath.Arg("dout"));
 
             _step++;
-            wtfScorerPath = CreateOutputPath("score-wtf_top3.txt");
-            TestInOutCore("score", pathData, trainModel, "scorer=wtf{top=3 bottom=3} outputColumn=FeatureContributions", wtfScorerPath.Arg("dout"));
+            fccScorerPath = CreateOutputPath("score-fcc_top3.txt");
+            TestInOutCore("score", pathData, trainModel, "scorer=fcc{top=3 bottom=3} outputColumn=FeatureContributions", fccScorerPath.Arg("dout"));
 
             _step++;
-            wtfScorerPath = CreateOutputPath("score-wtf_top3_noNorm.txt");
-            TestInOutCore("score", pathData, trainModel, "scorer=wtf{top=3 bottom=3 norm-}", wtfScorerPath.Arg("dout"));
+            fccScorerPath = CreateOutputPath("score-fcc_top3_noNorm.txt");
+            TestInOutCore("score", pathData, trainModel, "scorer=fcc{top=3 bottom=3 norm-}", fccScorerPath.Arg("dout"));
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
-        public void CommandTrainTestWTFAdult()
+        [Fact]
+        public void CommandTrainTestFCCAdult()
         {
             string trainData = GetDataPath("adult.tiny.with-schema.txt");
             string testData = GetDataPath("adult.tiny.with-schema.txt");
@@ -1598,21 +1598,21 @@ namespace Microsoft.ML.Runtime.RunTests
             const string loaderArgs = "loader=text{header+ col=Lab:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9} "
               + "xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Feat:Cat,Num}";
 
-            OutputPath metricsFile = CreateOutputPath("metrics-wtf.txt");
+            OutputPath metricsFile = CreateOutputPath("metrics-fcc.txt");
 
-            string extraArgs = string.Format("test={{{0}}} tr=AP{{shuf-}} scorer=wtf{{top=3 bottom=3}} lab=Lab feat=Feat norm=Warn", testData);
-            TestCore("traintest", trainData, loaderArgs, extraArgs, metricsFile.Arg("dout"));
+            string extraArgs = string.Format("test={{{0}}} tr=AP{{shuf-}} scorer=fcc{{top=3 bottom=3}} xf=Take{{c=5}} lab=Lab feat=Feat norm=Warn", testData);
+            TestCore("traintest", trainData, loaderArgs, extraArgs, digitsOfPrecision: 6, metricsFile.Arg("dout"));
 
             // Check stringify option.
             _step++;
-            metricsFile = CreateOutputPath("metrics-wtf-str.txt");
-            extraArgs = string.Format("test={{{0}}} tr=AP{{shuf-}} scorer=wtf{{top=3 bottom=3 str+}} lab=Lab feat=Feat norm=Warn", testData);
-            TestCore("traintest", trainData, loaderArgs, extraArgs, metricsFile.Arg("dout"));
+            metricsFile = CreateOutputPath("metrics-fcc-str.txt");
+            extraArgs = string.Format("test={{{0}}} tr=AP{{shuf-}} scorer=fcc{{top=3 bottom=3 str+}} xf=Take{{c=5}} lab=Lab feat=Feat norm=Warn", testData);
+            TestCore("traintest", trainData, loaderArgs, extraArgs, digitsOfPrecision: 6, metricsFile.Arg("dout"));
             Done();
         }
 
         [Fact(Skip = "Need CoreTLC specific baseline update")]
-        public void CommandTrainScoreWTFText()
+        public void CommandTrainScoreFCCText()
         {
             // Train binary classifier on a small subset of 20NG data
             const string textTransform =
@@ -1629,8 +1629,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Get features contributions.
             _step++;
-            OutputPath wtfScorerPath = CreateOutputPath("score-wtf.txt");
-            TestInOutCore("score", pathData, trainModel, "scorer=wtf{top=3 bottom=3 str+} xf=Take{c=10} loadTrans+", wtfScorerPath.Arg("dout"));
+            OutputPath fccScorerPath = CreateOutputPath("score-fcc.txt");
+            TestInOutCore("score", pathData, trainModel, "scorer=fcc{top=3 bottom=3 str+} xf=Take{c=10} loadTrans+", fccScorerPath.Arg("dout"));
 
             Done();
         }

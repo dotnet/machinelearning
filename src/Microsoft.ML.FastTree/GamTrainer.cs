@@ -647,7 +647,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper,
+    public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper, ICalculateFeatureContribution,
         IFeatureContributionMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
     {
         private readonly double[][] _binUpperBounds;
@@ -667,6 +667,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         ColumnType IValueMapper.InputType => _inputType;
         ColumnType IValueMapper.OutputType => _outputType;
+
+        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
 
         private protected GamPredictorBase(IHostEnvironment env, string name,
             int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap)

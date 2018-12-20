@@ -18157,6 +18157,87 @@
       ]
     },
     {
+      "Name": "Transforms.FeatureContributionCalculationTransformer",
+      "Desc": "For each data point, calculates the contribution of individual features to the model prediction.",
+      "FriendlyName": "Feature Contribution Calculation",
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The predictor model to apply to data",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Name of feature column",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "Top",
+          "Type": "Int",
+          "Desc": "Number of top contributions",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 10
+        },
+        {
+          "Name": "Bottom",
+          "Type": "Int",
+          "Desc": "Number of bottom contributions",
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 10
+        },
+        {
+          "Name": "Normalize",
+          "Type": "Bool",
+          "Desc": "Whether or not output of Features contribution should be normalized",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": true
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
       "Name": "Transforms.FeatureSelectorByCount",
       "Desc": "Selects the slots for which the count of non-default values is greater than or equal to a threshold.",
       "FriendlyName": "Count Feature Selection Transform",

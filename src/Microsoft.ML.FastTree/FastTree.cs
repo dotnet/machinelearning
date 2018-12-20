@@ -2805,6 +2805,7 @@ namespace Microsoft.ML.Trainers.FastTree
         ITreeEnsemble,
         IPredictorWithFeatureWeights<Float>,
         IFeatureContributionMapper,
+        ICalculateFeatureContribution,
         ICanGetSummaryAsIRow,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
@@ -2837,7 +2838,9 @@ namespace Microsoft.ML.Trainers.FastTree
         ColumnType IValueMapper.OutputType => OutputType;
 
         bool ICanSavePfa.CanSavePfa => true;
+
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
 
         public TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)

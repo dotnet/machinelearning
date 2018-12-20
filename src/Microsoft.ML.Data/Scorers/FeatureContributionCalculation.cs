@@ -15,39 +15,26 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
-    typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
+    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "wtf", "fct", "FeatureContributionCalculationScorer", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
-    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
+    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", "wtf", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), null, typeof(SignatureLoadModel),
-    "Feature Contribution Mapper", FeatureContributionCalculationTransform.MapperLoaderSignature)]
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), null, typeof(SignatureLoadModel),
+    "Feature Contribution Mapper", FeatureContributionScorer.MapperLoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// Feature Contribution Calculation Transform.
+    /// Used only by the command line API for scoring and calculation of feature contribution.
     /// </summary>
-    /// <remarks>
-    /// The Feature Contribution Calculation Transform scores the model on an input dataset and
-    /// computes model-specific contribution scores for each feature. See the sample below for
-    /// an example of how to compute feature importance using the Feature Contribution Calculation Transform.
-    /// </remarks>
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    /// [!code-csharp[FCT](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
-    /// ]]>
-    /// </format>
-    /// </example>
-    public sealed class FeatureContributionCalculationTransform
+    internal sealed class FeatureContributionScorer
     {
         // Apparently, loader signature is limited in length to 24 characters.
         internal const string MapperLoaderSignature = "WTFBindable";
-        private const int MaxTopBottom = 1000;
 
-        public sealed class Arguments : ScorerArgumentsBase
+        internal sealed class Arguments : ScorerArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of top contributions", SortOrder = 1)]
             public int Top = 10;
@@ -64,16 +51,16 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: the scorer currently ignores the 'suffix' argument from the base class. It should respect it.
         }
 
-        [BestFriend]
-        internal static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        // Factory method for SignatureDataScorer.
+        private static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
             env.CheckValue(mapper, nameof(mapper));
-            if (args.Top <= 0 || args.Top > MaxTopBottom)
-                throw env.Except($"Number of top contribution must be in range (0,{MaxTopBottom}]");
-            if (args.Bottom <= 0 || args.Bottom > MaxTopBottom)
-                throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
+            if (args.Top< 0)
+                throw env.Except($"Number of top contribution must be non negative");
+            if (args.Bottom < 0)
+                throw env.Except($"Number of bottom contribution must be non negative");
 
             var contributionMapper = mapper as RowMapper;
             env.CheckParam(mapper != null, nameof(mapper), "Unexpected mapper");
@@ -83,49 +70,24 @@ namespace Microsoft.ML.Runtime.Data
             return scoredPipe;
         }
 
-        [BestFriend]
-        internal static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
+        // Factory method for SignatureBindableMapper.
+        private static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
         {
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
             env.CheckValue(predictor, nameof(predictor));
-            if (args.Top <= 0 || args.Top > MaxTopBottom)
-                throw env.Except($"Number of top contribution must be in range (0,{MaxTopBottom}]");
-            if (args.Bottom <= 0 || args.Bottom > MaxTopBottom)
-                throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
-
             var pred = predictor as IFeatureContributionMapper;
             env.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
             return new BindableMapper(env, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
         }
 
-        public static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, IPredictor predictor, string features = DefaultColumnNames.Features)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(args, nameof(args));
-            env.CheckValue(predictor, nameof(predictor));
-            if (args.Top <= 0 || args.Top > MaxTopBottom)
-                throw env.Except($"Number of top contribution must be in range (0,{MaxTopBottom}]");
-            if (args.Bottom <= 0 || args.Bottom > MaxTopBottom)
-                throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
-
-            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, features));
-            var schema = new RoleMappedSchema(data.Schema, roles);
-
-            var mapper = Create(env, args, predictor);
-            var boundMapper = mapper.Bind(env, schema);
-            return Create(env, args, data, boundMapper, null);
-        }
+        // Factory method for SignatureLoadModel.
+        private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new BindableMapper(env, ctx);
 
         /// <summary>
-        /// Create method corresponding to <see cref="SignatureLoadModel"/>.
+        /// Holds the definition of the getters for the FeatureContribution column. It also contains the generic mapper that is used to score the Predictor.
+        /// This is only used by the command line API.
         /// </summary>
-        private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            return new BindableMapper(env, ctx);
-        }
-
         private sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
         {
             private readonly int _topContributionsCount;
@@ -145,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
                     verReadableCur: 0x00010001,
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: MapperLoaderSignature,
-                    loaderAssemblyName: typeof(FeatureContributionCalculationTransform).Assembly.FullName);
+                    loaderAssemblyName: typeof(FeatureContributionScorer).Assembly.FullName);
             }
 
             public PredictionKind PredictionKind => Predictor.PredictionKind;
@@ -155,10 +117,10 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.CheckValue(env, nameof(env));
                 _env = env;
                 _env.CheckValue(predictor, nameof(predictor));
-                if (topContributionsCount <= 0 || topContributionsCount > MaxTopBottom)
-                    throw env.Except($"Number of top contribution must be in range (0,{MaxTopBottom}]");
-                if (bottomContributionsCount <= 0 || bottomContributionsCount > MaxTopBottom)
-                    throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
+                if (topContributionsCount < 0)
+                    throw env.Except($"Number of top contribution must be non negative");
+                if (bottomContributionsCount < 0)
+                    throw env.Except($"Number of bottom contribution must be non negative");
 
                 _topContributionsCount = topContributionsCount;
                 _bottomContributionsCount = bottomContributionsCount;
@@ -177,16 +139,18 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.CheckAtModel(GetVersionInfo());
 
                 // *** Binary format ***
+                // IFeatureContributionMapper: Predictor
                 // int: topContributionsCount
                 // int: bottomContributionsCount
                 // bool: normalize
                 // bool: stringify
+
                 ctx.LoadModel<IFeatureContributionMapper, SignatureLoadModel>(env, out Predictor, ModelFileUtils.DirPredictor);
                 GenericMapper = ScoreUtils.GetSchemaBindableMapper(_env, Predictor, null);
                 _topContributionsCount = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(0 < _topContributionsCount && _topContributionsCount <= MaxTopBottom);
+                Contracts.CheckDecode(0 <= _topContributionsCount);
                 _bottomContributionsCount = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(0 < _bottomContributionsCount && _bottomContributionsCount <= MaxTopBottom);
+                Contracts.CheckDecode(0 <= _bottomContributionsCount);
                 _normalize = ctx.Reader.ReadBoolByte();
                 Stringify = ctx.Reader.ReadBoolByte();
             }
@@ -205,15 +169,16 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.SetVersionInfo(GetVersionInfo());
 
                 // *** Binary format ***
+                // IFeatureContributionMapper: Predictor
                 // int: topContributionsCount
                 // int: bottomContributionsCount
                 // bool: normalize
                 // bool: stringify
-                ctx.SaveModel(Predictor, ModelFileUtils.DirPredictor);
 
-                Contracts.Assert(0 < _topContributionsCount && _topContributionsCount <= MaxTopBottom);
+                ctx.SaveModel(Predictor, ModelFileUtils.DirPredictor);
+                Contracts.Assert(0 <= _topContributionsCount);
                 ctx.Writer.Write(_topContributionsCount);
-                Contracts.Assert(0 < _bottomContributionsCount && _bottomContributionsCount <= MaxTopBottom);
+                Contracts.Assert(0 <= _bottomContributionsCount);
                 ctx.Writer.Write(_bottomContributionsCount);
                 ctx.Writer.WriteBoolByte(_normalize);
                 ctx.Writer.WriteBoolByte(Stringify);
@@ -246,8 +211,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private ReadOnlyMemory<char> GetSlotName(int index, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var count = slotNames.GetValues().Length;
-                _env.Assert(count > index || count == 0 && slotNames.Length > index);
+                _env.Assert(0 <= index && index < slotNames.Length);
                 var slotName = slotNames.GetItemOrDefault(index);
                 return slotName.IsEmpty
                     ? new ReadOnlyMemory<char>($"f{index}".ToCharArray())
@@ -269,16 +233,12 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         featureGetter(ref features);
                         map(in features, ref contributions);
-                        var indices = new Span<int>();
-                        var values = new Span<float>();
-                        if (contributions.IsDense)
-                            Utils.GetIdentityPermutation(contributions.Length).AsSpan().CopyTo(indices);
-                        else
-                            contributions.GetIndices().CopyTo(indices);
-                        contributions.GetValues().CopyTo(values);
+                        var editor = VBufferEditor.CreateFromBuffer(ref contributions);
+                        var indices = contributions.IsDense ? Utils.GetIdentityPermutation(contributions.Length) : editor.Indices;
+                        var values = editor.Values;
                         var count = values.Length;
                         var sb = new StringBuilder();
-                        GenericSpanSortHelper<int>.Sort(indices, values, 0, count);
+                        GenericSpanSortHelper<float>.Sort(values, indices, 0, count);
                         for (var i = 0; i < count; i++)
                         {
                             var val = values[i];
@@ -304,7 +264,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 var featureGetter = input.GetGetter<TSrc>(colSrc);
 
-                // REVIEW: Scorer can do call to Sparicification\Norm routine.
+                // REVIEW: Scorer can call Sparsification\Norm routine.
 
                 var map = Predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_topContributionsCount, _bottomContributionsCount, _normalize);
                 var features = default(TSrc);
@@ -327,6 +287,9 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        /// <summary>
+        /// Maps a schema from input columns to output columns. Keeps track of the input columns that are needed for the mapping.
+        /// </summary>
         private sealed class RowMapper : ISchemaBoundRowMapper
         {
             private readonly IHostEnvironment _env;

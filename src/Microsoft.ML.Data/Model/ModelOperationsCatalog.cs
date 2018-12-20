@@ -16,10 +16,25 @@ namespace Microsoft.ML.Runtime
     {
         internal IHostEnvironment Environment { get; }
 
+        public ExplainabilityTransforms Explainability { get; }
+
         internal ModelOperationsCatalog(IHostEnvironment env)
         {
             Contracts.AssertValue(env);
             Environment = env;
+
+            Explainability = new ExplainabilityTransforms(this);
+        }
+
+        public abstract class SubCatalogBase
+        {
+            internal IHostEnvironment Environment { get; }
+
+            protected SubCatalogBase(ModelOperationsCatalog owner)
+            {
+                Environment = owner.Environment;
+            }
+
         }
 
         /// <summary>
@@ -35,6 +50,16 @@ namespace Microsoft.ML.Runtime
         /// <param name="stream">A readable, seekable stream to load from.</param>
         /// <returns>The loaded model.</returns>
         public ITransformer Load(Stream stream) => TransformerChain.LoadFrom(Environment, stream);
+
+        /// <summary>
+        /// The catalog of model explainability operations.
+        /// </summary>
+        public sealed class ExplainabilityTransforms : SubCatalogBase
+        {
+            internal ExplainabilityTransforms(ModelOperationsCatalog owner) : base(owner)
+            {
+            }
+        }
 
         /// <summary>
         /// Create a prediction engine for one-time prediction.

@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
     }
 
-    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IFeatureContributionMapper,
+    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IFeatureContributionMapper, ICalculateFeatureContribution,
         IDistCanSavePfa, IDistCanSaveOnnx
     {
         private readonly IValueMapper _mapper;
@@ -216,6 +216,9 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         ColumnType IValueMapper.OutputType => _mapper.OutputType;
         ColumnType IValueMapperDist.DistType => NumberType.Float;
         bool ICanSavePfa.CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
+
+        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
+
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         protected ValueMapperCalibratedPredictorBase(IHostEnvironment env, string name, IPredictorProducing<float> predictor, ICalibrator calibrator)
