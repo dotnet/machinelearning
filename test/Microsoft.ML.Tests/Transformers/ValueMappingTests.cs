@@ -390,7 +390,7 @@ namespace Microsoft.ML.Tests.Transformers
                 ms.Position = 0;
                 var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
                 var result = loadedTransformer.Transform(dataView);
-                Assert.Equal(5, result.Schema.ColumnCount);
+                Assert.Equal(5, result.Schema.Count);
                 Assert.True(result.Schema.TryGetColumnIndex("D", out int col));
                 Assert.True(result.Schema.TryGetColumnIndex("E", out col));
             }

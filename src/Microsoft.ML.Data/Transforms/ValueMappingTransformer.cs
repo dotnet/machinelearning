@@ -412,8 +412,8 @@ namespace Microsoft.ML.Transforms
             // Confirm that the key and value columns exist in the dataView
             Host.Check(dataView.Schema.TryGetColumnIndex(keyColumn, out int keyIdx), "Key column " + keyColumn + " does not exist in the given dataview");
             Host.Check(dataView.Schema.TryGetColumnIndex(valueColumn, out int valueIdx), "Value column " + valueColumn + " does not exist in the given dataview");
-            var keyType = dataView.Schema.GetColumnType(keyIdx);
-            var valueType = dataView.Schema.GetColumnType(valueIdx);
+            var keyType = dataView.Schema[keyIdx].Type;
+            var valueType = dataView.Schema[valueIdx].Type;
             var valueMap = ValueMap.Create(keyType, valueType, _valueMetadata);
             using (var cursor = dataView.GetRowCursor(c=> c == keyIdx || c == valueIdx))
                 valueMap.Train(Host, cursor);
@@ -719,8 +719,8 @@ namespace Microsoft.ML.Transforms
         protected static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         protected static PrimitiveType GetPrimitiveType(Type rawType, out bool isVectorType)
         {
@@ -945,7 +945,7 @@ namespace Microsoft.ML.Transforms
 
         private protected override IRowMapper MakeRowMapper(Schema schema)
         {
-            return new Mapper(this, Schema.Create(schema), _valueMap,  _valueMetadata, ColumnPairs);
+            return new Mapper(this, schema, _valueMap,  _valueMetadata, ColumnPairs);
         }
 
         private sealed class Mapper : OneToOneMapperBase
