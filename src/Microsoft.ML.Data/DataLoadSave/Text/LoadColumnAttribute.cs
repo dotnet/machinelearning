@@ -20,6 +20,8 @@ namespace Microsoft.ML.Data
         /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
         /// </summary>
         /// <param name="columnIndex">The index of the column in the text file.</param>
+        // REVIEW: Remove calling the private constructor with just the start parameter,
+        // when the Legacy API's TextLoader gets deleted, and with it the Start field here.
         public LoadColumnAttribute(int columnIndex)
              : this(columnIndex.ToString())
         {
@@ -31,8 +33,10 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="start">The starting column index, for the range.</param>
         /// <param name="end">The ending column index, for the range.</param>
+        // REVIEW: Calling the private constructor with just the start parameter, is incorrect,
+        // but it is just temporary there, until the Legacy API's TextLoader gets deleted, together with the Start field.
         public LoadColumnAttribute(int start, int end)
-             : this(start.ToString()) //REVIEW  this is incorrect, but it is just temporary there, until the Legacy API's TextLoader gets deleted.
+             : this(start.ToString())
         {
             Sources.Add(new TextLoader.Range(start, end));
         }
@@ -41,6 +45,8 @@ namespace Microsoft.ML.Data
         /// Initializes new instance of <see cref="LoadColumnAttribute"/>.
         /// </summary>
         /// <param name="columnIndexes">Distinct text file column indices to load as part of this column.</param>
+        // REVIEW: Calling the private constructor with just the columnIndexes[0] parameter, is incorrect,
+        // but it is just temporary there, until the Legacy API's TextLoader gets deleted together with the Start field.
         public LoadColumnAttribute(int[] columnIndexes)
             : this(columnIndexes[0].ToString()) // REVIEW: this is incorrect, but it is just temporary there, until the Legacy API's TextLoader gets deleted.
         {

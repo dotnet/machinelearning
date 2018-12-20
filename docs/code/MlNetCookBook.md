@@ -137,19 +137,19 @@ You can also create a data model class, and read the data based on this type.
 // The data model. This type will be used through the document. 
 private class InspectedRow
 {
-	[LoadColumn(0)]
-	public bool IsOver50K { get; set; }
+    [LoadColumn(0)]
+    public bool IsOver50K { get; set; }
 
-	[LoadColumn(1)]
-	public string Workclass { get; set; }
+    [LoadColumn(1)]
+    public string Workclass { get; set; }
 
-	[LoadColumn(2)]
-	public string Education { get; set; }
+    [LoadColumn(2)]
+    public string Education { get; set; }
 
-	[LoadColumn(3)]
-	public string MaritalStatus { get; set; }
+    [LoadColumn(3)]
+    public string MaritalStatus { get; set; }
 
-	public string[] AllFeatures { get; set; }
+    public string[] AllFeatures { get; set; }
 }
 
 // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -158,10 +158,10 @@ var mlContext = new MLContext();
 
 // Read the data into a data view.
 var data = mlContext.Data.ReadFromTextFile<InspectedRow>(dataPath,
-	// First line of the file is a header, not a data row.
-	hasHeader: true
+    // First line of the file is a header, not a data row.
+    hasHeader: true
 )		
-		
+        
 ```
 
 ## How do I load data from multiple files?
@@ -280,11 +280,11 @@ Or by creating a data model for it:
 ```csharp
 private class AdultData
 {
-	[LoadColumn("0", "10"), ColumnName("Features")]
-	public float FeatureVector { get; }
+    [LoadColumn("0", "10"), ColumnName("Features")]
+    public float FeatureVector { get; }
 
-	[LoadColumn(11)]
-	public float Target { get; }
+    [LoadColumn(11)]
+    public float Target { get; }
 }
 
 // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -293,8 +293,8 @@ var mlContext = new MLContext();
 
 // Read the data into a data view.
 var data = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
-	// First line of the file is a header, not a data row.
-	separator: ','
+    // First line of the file is a header, not a data row.
+    separator: ','
 );		
 
 ```
@@ -512,8 +512,8 @@ var mlContext = new MLContext();
 // First, we define the reader: specify the data columns and where to find them in the text file.
 // Read the data into a data view. Remember though, readers are lazy, so the actual reading will happen when the data is accessed.
 var trainData = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
-	// First line of the file is a header, not a data row.
-	separator: ','
+    // First line of the file is a header, not a data row.
+    separator: ','
 );
 
 // Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
@@ -562,8 +562,8 @@ Calculating the metrics with the dynamic API is as follows.
 ```csharp
 // Read the test dataset.
 var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
-	// First line of the file is a header, not a data row.
-	separator: ','
+    // First line of the file is a header, not a data row.
+    separator: ','
 );
 // Calculate metrics of the model on the test data.
 var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
