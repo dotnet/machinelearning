@@ -28,10 +28,10 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// The FeatureContributionCalculationTransformer computes model-specific contribution scores for each feature.
-    /// See the list of currently supported predictors below.
+    /// See the list of currently supported models below.
     /// </summary>
     /// <remarks>
-    /// Feature Contribution Calculation is currently supported for the following Predictors:
+    /// Feature Contribution Calculation is currently supported for the following models:
     ///     Regression:
     ///         OrdinaryLeastSquares, StochasticDualCoordinateAscent (SDCA), OnlineGradientDescent, PoissonRegression,
     ///         GeneralizedAdditiveModels (GAM), LightGbm, FastTree, FastForest, FastTreeTweedie
@@ -95,24 +95,24 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
-        /// Note that this functionality is not supported by all the predictors. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported predictors.
+        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported models.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
+        /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
         /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
         /// <param name="top">The number of features with highest positive contributions for each data sample that will be retained in the FeatureContribution column.
         /// Note that if there are fewer features with positive contributions than <paramref name="top"/>, the rest will be returned as zeros.</param>
         /// <param name="bottom">The number of features with least negative contributions for each data sample that will be retained in the FeatureContribution column.
         /// Note that if there are fewer features with negative contributions than <paramref name="bottom"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
-        public FeatureContributionCalculatingTransformer(IHostEnvironment env, ICalculateFeatureContribution predictor,
+        public FeatureContributionCalculatingTransformer(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
             string featureColumn = DefaultColumnNames.Features,
             int top = FeatureContributionCalculatingEstimator.Defaults.Top,
             int bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom,
             bool normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)), new[] { (input: featureColumn, output: DefaultColumnNames.FeatureContributions) })
         {
-            Host.CheckValue(predictor, nameof(predictor));
+            Host.CheckValue(modelParameters, nameof(modelParameters));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             if (top < 0)
                 throw Host.Except($"Number of top contribution must be non negative");
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // If a predictor implements ICalculateFeatureContribution, it also implements the internal interface IFeatureContributionMapper.
             // This is how we keep the implementation of feature contribution calculation internal.
-            _predictor = predictor as IFeatureContributionMapper;
+            _predictor = modelParameters as IFeatureContributionMapper;
             Host.AssertValue(_predictor);
 
             Top = top;
@@ -227,10 +227,10 @@ namespace Microsoft.ML.Runtime.Data
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.
                 // For multiclass LR it needs to be VBuffer<float>[].
-                return Utils.MarshalInvoke(GetValueGetterVec<int>, _featureColumnType.RawType, input, ColMapNewToOld[iinfo]);
+                return Utils.MarshalInvoke(GetValueGetter<int>, _featureColumnType.RawType, input, ColMapNewToOld[iinfo]);
             }
 
-            private Delegate GetValueGetterVec<TSrc>(Row input, int colSrc)
+            private Delegate GetValueGetter<TSrc>(Row input, int colSrc)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(_parent._predictor);
@@ -246,23 +246,6 @@ namespace Microsoft.ML.Runtime.Data
                     map(in features, ref dst);
                 });
             }
-
-            //private Delegate GetValueGetterVec<TSrc>(Row input, int colSrc)
-            //{
-            //    Contracts.AssertValue(input);
-            //    Contracts.AssertValue(_parent._predictor);
-
-            //    var featureGetter = input.GetGetter<VBuffer<TSrc>>(colSrc);
-
-            //    var map = _parent._predictor.GetFeatureContributionMapper<VBuffer<TSrc>, VBuffer<float>>(_parent.Top, _parent.Bottom, _parent.Normalize);
-            //    var features = default(VBuffer<TSrc>);
-
-            //    return (ValueGetter<VBuffer<float>>)((ref VBuffer<float> dst) =>
-            //    {
-            //        featureGetter(ref features);
-            //        map(in features, ref dst);
-            //    });
-            //}
         }
     }
 
@@ -284,26 +267,26 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Feature Contribution Calculation computes model-specific contribution scores for each feature.
-        /// Note that this functionality is not supported by all the predictors. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported predictors.
+        /// Note that this functionality is not supported by all the models. See <see cref="FeatureContributionCalculatingTransformer"/> for a list of the suported models.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="predictor">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
+        /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
         /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
         /// <param name="top">The number of features with highest positive contributions for each data sample that will be retained in the FeatureContribution column.
         /// Note that if there are fewer features with positive contributions than <paramref name="top"/>, the rest will be returned as zeros.</param>
         /// <param name="bottom">The number of features with least negative contributions for each data sample that will be retained in the FeatureContribution column.
         /// Note that if there are fewer features with negative contributions than <paramref name="bottom"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
-        public FeatureContributionCalculatingEstimator(IHostEnvironment env, ICalculateFeatureContribution predictor,
+        public FeatureContributionCalculatingEstimator(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
             string featureColumn = DefaultColumnNames.Features,
             int top = Defaults.Top,
             int bottom = Defaults.Bottom,
             bool normalize = Defaults.Normalize)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)),
-                  new FeatureContributionCalculatingTransformer(env, predictor, featureColumn, top, bottom, normalize))
+                  new FeatureContributionCalculatingTransformer(env, modelParameters, featureColumn, top, bottom, normalize))
         {
             _featureColumn = featureColumn;
-            _predictor = predictor;
+            _predictor = modelParameters;
         }
 
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -345,7 +328,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var predictor = args.PredictorModel.Predictor as ICalculateFeatureContribution;
             if (predictor == null)
-                throw host.ExceptUserArg(nameof(predictor), "The provided predictor does not support feature contribution calculation.");
+                throw host.ExceptUserArg(nameof(predictor), "The provided model parameters do not support feature contribution calculation.");
             var outData = new FeatureContributionCalculatingTransformer(host, predictor, args.FeatureColumn, args.Top, args.Bottom, args.Normalize).Transform(args.Data);
 
             return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, outData, args.Data), OutputData = outData};

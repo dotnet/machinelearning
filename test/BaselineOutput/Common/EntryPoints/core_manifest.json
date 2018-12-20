@@ -18159,7 +18159,7 @@
     {
       "Name": "Transforms.FeatureContributionCalculationTransformer",
       "Desc": "For each data point, calculates the contribution of individual features to the model prediction.",
-      "FriendlyName": "Feature Contribution Transform",
+      "FriendlyName": "Feature Contribution Calculation",
       "ShortName": null,
       "Inputs": [
         {

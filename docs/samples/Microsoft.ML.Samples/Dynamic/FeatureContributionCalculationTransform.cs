@@ -53,19 +53,21 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var transformedData = transformPipeline.Fit(data).Transform(data);
 
+            // Now we train the model and score it on the transformed data.
             var model = learner.Fit(transformedData);
+            var scoredData = model.Transform(transformedData);
 
             // Create a Feature Contribution Calculator
-            // Calculate the feature contributions for all features
+            // Calculate the feature contributions for all features given trained model parameters
             // And don't normalize the contribution scores
             var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11, normalize: false);
-            var outputData = featureContributionCalculator.Fit(transformedData).Transform(transformedData);
+            var outputData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
             // FeatureContributionCalculatingEstimator can be use as an intermediary step in a pipeline. 
             // The features retained by FeatureContributionCalculatingEstimator will be in the FeatureContribution column.
             var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11)
                 .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(featureColumn: "FeatureContributions"));
-            var outData = featureContributionCalculator.Fit(transformedData).Transform(transformedData);
+            var outData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
             // Let's extract the weights from the linear model to use as a comparison
             var weights = new VBuffer<float>();
