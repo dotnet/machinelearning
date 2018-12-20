@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.Data
     /// ]]>
     /// </format>
     /// </example>
-    public sealed class FeatureContributionCalculatingTransformer : RowToRowTransformerBase
+    public sealed class FeatureContributionCalculatingTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -73,10 +73,9 @@ namespace Microsoft.ML.Runtime.Data
 
         // Apparently, loader signature is limited in length to 24 characters.
         internal const string Summary = "For each data point, calculates the contribution of individual features to the model prediction.";
-        internal const string FriendlyName = "Feature Contribution Transform";
+        internal const string FriendlyName = "Feature Contribution Calculation";
         internal const string LoaderSignature = "FeatureContribution";
 
-        public readonly string FeatureColumn;
         public readonly int Top;
         public readonly int Bottom;
         public readonly bool Normalize;
@@ -111,7 +110,7 @@ namespace Microsoft.ML.Runtime.Data
             int top = FeatureContributionCalculatingEstimator.Defaults.Top,
             int bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom,
             bool normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)), new[] { (input: featureColumn, output: DefaultColumnNames.FeatureContributions) })
         {
             Host.CheckValue(predictor, nameof(predictor));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -125,47 +124,29 @@ namespace Microsoft.ML.Runtime.Data
             _predictor = predictor as IFeatureContributionMapper;
             Host.AssertValue(_predictor);
 
-            FeatureColumn = featureColumn;
             Top = top;
             Bottom = bottom;
             Normalize = normalize;
         }
 
-        // Factory constructor for SignatureLoadModel
         private FeatureContributionCalculatingTransformer(IHostEnvironment env, ModelLoadContext ctx)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)), ctx)
         {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
+            Host.AssertValue(ctx);
 
             // *** Binary format ***
+            // base
             // IFeatureContributionMapper: predictor
-            // string: featureColumn
             // int: top
             // int: bottom
             // bool: normalize
 
             ctx.LoadModel<IFeatureContributionMapper, SignatureLoadModel>(env, out _predictor, ModelFileUtils.DirPredictor);
-            FeatureColumn = ctx.LoadNonEmptyString();
             Top = ctx.Reader.ReadInt32();
             Contracts.CheckDecode(0 <= Top);
             Bottom = ctx.Reader.ReadInt32();
             Contracts.CheckDecode(0 <= Bottom);
             Normalize = ctx.Reader.ReadBoolByte();
-        }
-
-        // Factory method for SignatureLoadRowMapper.
-        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
-            => new FeatureContributionCalculatingTransformer(env, ctx).MakeRowMapper(inputSchema);
-
-        // Factory method for Entrypoints.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
-        {
-            env.CheckValue(args.PredictorModel, nameof(args.PredictorModel));
-            var predictor = args.PredictorModel.Predictor as ICalculateFeatureContribution;
-            if (predictor == null)
-                throw env.ExceptUserArg(nameof(predictor), "The provided predictor does not support feature contribution calculation.");
-            return new FeatureContributionCalculatingTransformer(env, predictor, args.FeatureColumn, args.Top, args.Bottom, args.Normalize).MakeDataTransform(input);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -174,13 +155,13 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
+            // base
             // IFeatureContributionMapper: predictor
-            // string: featureColumn
             // int: top
             // int: bottom
             // bool: normalize
 
-            ctx.SaveNonEmptyString(FeatureColumn);
+            SaveColumns(ctx);
             ctx.SaveModel(_predictor, ModelFileUtils.DirPredictor);
             Contracts.Assert(0 <= Top);
             ctx.Writer.Write(Top);
@@ -189,10 +170,22 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.WriteBoolByte(Normalize);
         }
 
+        // Factory method for SignatureLoadModel.
+        private static FeatureContributionCalculatingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            ctx.CheckAtModel(GetVersionInfo());
+            return new FeatureContributionCalculatingTransformer(env, ctx);
+        }
+
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
         private protected override IRowMapper MakeRowMapper(Schema schema)
             => new Mapper(this, schema);
 
-        private class Mapper : MapperBase
+        private class Mapper : OneToOneMapperBase
         {
             private readonly FeatureContributionCalculatingTransformer _parent;
             private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
@@ -200,36 +193,22 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ColumnType _featureColumnType;
 
             public Mapper(FeatureContributionCalculatingTransformer parent, Schema schema)
-                : base(parent.Host, schema)
+                : base(parent.Host, parent, schema)
             {
                 _parent = parent;
 
                 // Check that the featureColumn is present and has the expected type.
-                if (!schema.TryGetColumnIndex(_parent.FeatureColumn, out _featureColumnIndex))
-                    throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.FeatureColumn);
+                if (!schema.TryGetColumnIndex(_parent.ColumnPairs[0].input, out _featureColumnIndex))
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].input);
                 _featureColumnType = schema[_featureColumnIndex].Type;
                 if (_featureColumnType.ItemType != NumberType.R4 || !_featureColumnType.IsVector)
-                    throw Host.ExceptUserArg(nameof(schema), "Column '{0}' does not have compatible type. Expected type is vector of float.", _parent.FeatureColumn);
+                    throw Host.ExceptSchemaMismatch(nameof(schema), "feature column", _parent.ColumnPairs[0].input, "Expected type is vector of float.", _featureColumnType.ItemType.ToString());
 
                 if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.VectorSize))
                     InputSchema[_featureColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                 else
                     _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(_featureColumnType.VectorSize);
             }
-
-            /// <summary>
-            /// Returns the input columns needed for the requested output columns.
-            /// </summary>
-            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
-            {
-                var active = new bool[InputSchema.Count];
-                InputSchema.TryGetColumnIndex(_parent.FeatureColumn, out int featureCol);
-                active[featureCol] = true;
-                return col => active[col];
-            }
-
-            public override void Save(ModelSaveContext ctx)
-                => _parent.Save(ctx);
 
             // The FeatureContributionCalculatingTransformer produces two sets of columns: the columns obtained from scoring and the FeatureContribution column.
             // If the argument stringify is true, the type of the FeatureContribution column is string, otherwise it is a vector of float.
@@ -244,43 +223,46 @@ namespace Microsoft.ML.Runtime.Data
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> active, out Action disposer)
             {
                 disposer = null;
-                if (active(iinfo))
-                    return GetContributionGetter(input, _featureColumnIndex);
-                return null;
-            }
-
-            public Delegate GetContributionGetter(Row input, int colSrc)
-            {
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
-
-                var typeSrc = input.Schema[colSrc].Type;
-                Func<Row, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.
-                // For multiclass LR it needs to be(VBuffer<float>[].
-                var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType);
-                return (Delegate)meth.Invoke(this, new object[] { input, colSrc });
+                // For multiclass LR it needs to be VBuffer<float>[].
+                return Utils.MarshalInvoke(GetValueGetterVec<int>, _featureColumnType.RawType, input, ColMapNewToOld[iinfo]);
             }
 
-            private ValueGetter<VBuffer<float>> GetValueGetter<TSrc>(Row input, int colSrc)
+            private Delegate GetValueGetterVec<TSrc>(Row input, int colSrc)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(_parent._predictor);
 
                 var featureGetter = input.GetGetter<TSrc>(colSrc);
 
-                // REVIEW: Scorer can do call to Sparicification\Norm routine.
-
                 var map = _parent._predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_parent.Top, _parent.Bottom, _parent.Normalize);
                 var features = default(TSrc);
-                return
-                    (ref VBuffer<float> dst) =>
-                    {
-                        featureGetter(ref features);
-                        map(in features, ref dst);
-                    };
+
+                return (ValueGetter<VBuffer<float>>)((ref VBuffer<float> dst) =>
+                {
+                    featureGetter(ref features);
+                    map(in features, ref dst);
+                });
             }
+
+            //private Delegate GetValueGetterVec<TSrc>(Row input, int colSrc)
+            //{
+            //    Contracts.AssertValue(input);
+            //    Contracts.AssertValue(_parent._predictor);
+
+            //    var featureGetter = input.GetGetter<VBuffer<TSrc>>(colSrc);
+
+            //    var map = _parent._predictor.GetFeatureContributionMapper<VBuffer<TSrc>, VBuffer<float>>(_parent.Top, _parent.Bottom, _parent.Normalize);
+            //    var features = default(VBuffer<TSrc>);
+
+            //    return (ValueGetter<VBuffer<float>>)((ref VBuffer<float> dst) =>
+            //    {
+            //        featureGetter(ref features);
+            //        map(in features, ref dst);
+            //    });
+            //}
         }
     }
 
@@ -332,7 +314,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
             // Check that the feature column is of the correct type: a vector of float.
             if (col.ItemType != NumberType.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
-                throw Host.ExceptUserArg(nameof(inputSchema), "Column '{0}' does not have compatible type. Expected type is vector of float.", _featureColumn);
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "feature column", _featureColumn, "Expected type is vector of float.", col.GetTypeString());
 
             // Build output schemaShape.
             var result = inputSchema.ToDictionary(x => x.Name);
@@ -353,15 +335,20 @@ namespace Microsoft.ML.Runtime.Data
         [TlcModule.EntryPoint(Name = "Transforms.FeatureContributionCalculationTransformer",
             Desc = FeatureContributionCalculatingTransformer.Summary,
             UserName = FeatureContributionCalculatingTransformer.FriendlyName)]
-        public static CommonOutputs.TransformOutput FeatureContributionCalculation(IHostEnvironment env, FeatureContributionCalculatingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput FeatureContributionCalculation(IHostEnvironment env, FeatureContributionCalculatingTransformer.Arguments args)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(nameof(FeatureContributionCalculatingTransformer));
-            host.CheckValue(input, nameof(input));
-            EntryPointUtils.CheckInputArgs(host, input);
+            host.CheckValue(args, nameof(args));
+            EntryPointUtils.CheckInputArgs(host, args);
+            host.CheckValue(args.PredictorModel, nameof(args.PredictorModel));
 
-            var xf = FeatureContributionCalculatingTransformer.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
+            var predictor = args.PredictorModel.Predictor as ICalculateFeatureContribution;
+            if (predictor == null)
+                throw host.ExceptUserArg(nameof(predictor), "The provided predictor does not support feature contribution calculation.");
+            var outData = new FeatureContributionCalculatingTransformer(host, predictor, args.FeatureColumn, args.Top, args.Bottom, args.Normalize).Transform(args.Data);
+
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, outData, args.Data), OutputData = outData};
         }
     }
 }

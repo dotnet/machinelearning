@@ -16,10 +16,10 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "FeatureContributionCalculationScorer", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureDataScorer), "Feature Contribution Scorer", "fcc", "wtf", "fct", "FeatureContributionCalculationScorer", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), typeof(FeatureContributionScorer.Arguments),
-    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fcc", "wtf", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionScorer), null, typeof(SignatureLoadModel),
     "Feature Contribution Mapper", FeatureContributionScorer.MapperLoaderSignature)]
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Runtime.Data
                         var values = editor.Values;
                         var count = values.Length;
                         var sb = new StringBuilder();
-                        GenericSpanSortHelper<int>.Sort(indices, values, 0, count);
+                        GenericSpanSortHelper<float>.Sort(values, indices, 0, count);
                         for (var i = 0; i < count; i++)
                         {
                             var val = values[i];
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 var featureGetter = input.GetGetter<TSrc>(colSrc);
 
-                // REVIEW: Scorer can do call to Sparicification\Norm routine.
+                // REVIEW: Scorer can call Sparsification\Norm routine.
 
                 var map = Predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_topContributionsCount, _bottomContributionsCount, _normalize);
                 var features = default(TSrc);
