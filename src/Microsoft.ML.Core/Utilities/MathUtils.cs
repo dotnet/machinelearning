@@ -507,7 +507,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static Float SigmoidSlow(Float x)
         {
-            return 1 / (1 + ExpSlow(-x));
+            // The following two expressions are mathematically equivalent. Due to the potential of getting overflow we should
+            // not call exp(x) for large positive x: instead, we modify the expression to compute exp(-x).
+            if (x > 0)
+                return 1 / (1 + ExpSlow(-x));
+            else
+            {
+                var ex = ExpSlow(x);
+                return  ex / (1 + ex);
+            }
         }
 
         /// <summary>
@@ -726,7 +734,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return (src[iv - 1] + src[iv]) / 2;
         }
 
-        public static Double CosineSimilarity(Float[] a, Float[] b, int aIdx, int bIdx, int len)
+        public static Double CosineSimilarity(ReadOnlySpan<Float> a, ReadOnlySpan<Float> b, int aIdx, int bIdx, int len)
         {
             const Double epsilon = 1e-12f;
             Contracts.Assert(len > 0);

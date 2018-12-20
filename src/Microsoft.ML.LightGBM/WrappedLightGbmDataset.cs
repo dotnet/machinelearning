@@ -17,6 +17,27 @@ namespace Microsoft.ML.Runtime.LightGBM
         private int _lastPushedRowID;
         public IntPtr Handle => _handle;
 
+        /// <summary>
+        /// Create a <see cref="Dataset"/> for storing training and prediciton data under LightGBM framework. The main goal of this function
+        /// is not marshaling ML.NET data set into LightGBM format but just creates a (unmanaged) container where examples can be pushed into by calling
+        /// <see cref="PushRows(float[], int, int, int)"/>. It also pre-allocates memory so the actual size (number of examples and number of features)
+        /// of the data set is required. A sub-sampled version of the original data set is passed in to compute some statictics needed by the training
+        /// procedure. Note that we use "original" to indicate a property from the unsampled data set.
+        /// </summary>
+        /// <param name="sampleValuePerColumn">A 2-D array which encodes the sub-sampled data matrix. sampleValuePerColumn[i] stores
+        /// all the non-zero values of the i-th feature. sampleValuePerColumn[i][j] is the j-th non-zero value of i-th feature encountered when scanning
+        /// the values row-by-row (i.e., example-by-example) in the matrix and column-by-column (i.e., feature-by-feature) within one row. It is similar
+        /// to CSC format for storing sparse matrix.</param>
+        /// <param name="sampleIndicesPerColumn">A 2-D array which encodes sub-sampled example indexes of non-zero features stored in sampleValuePerColumn.
+        /// The sampleIndicesPerColumn[i][j]-th example has a non-zero i-th feature whose value is sampleValuePerColumn[i][j].</param>
+        /// <param name="numCol">Total number of features in the original data.</param>
+        /// <param name="sampleNonZeroCntPerColumn">sampleNonZeroCntPerColumn[i] is the size of sampleValuePerColumn[i].</param>
+        /// <param name="numSampleRow">The number of sampled examples in the sub-sampled data matrix.</param>
+        /// <param name="numTotalRow">The number of original examples added using <see cref="PushRows(float[], int, int, int)"/>.</param>
+        /// <param name="param">LightGBM parameter used in https://github.com/Microsoft/LightGBM/blob/c920e6345bcb41fc1ec6ac338f5437034b9f0d38/src/c_api.cpp#L421. </param>
+        /// <param name="labels">Labels of the original data. labels[i] is the label of the i-th original example.</param>
+        /// <param name="weights">Example weights of the original data. weights[i] is the weight of the i-th original example.</param>
+        /// <param name="groups">Group identifiers of the original data. groups[i] is the group ID of the i-th original example.</param>
         public unsafe Dataset(double[][] sampleValuePerColumn,
             int[][] sampleIndicesPerColumn,
             int numCol,
@@ -44,6 +65,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 fixed (double** ptrValues = ptrArrayValues)
                 fixed (int** ptrIndices = ptrArrayIndices)
                 {
+                    // Create container. Examples will pushed in later.
                     LightGbmInterfaceUtils.Check(WrappedLightGbmInterface.DatasetCreateFromSampledColumn(
                         (IntPtr)ptrValues, (IntPtr)ptrIndices, numCol, sampleNonZeroCntPerColumn, numSampleRow, numTotalRow,
                         param, ref _handle));
@@ -59,6 +81,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                         gcIndices[i].Free();
                 };
             }
+            // Before adding examples (i.e., feature vectors of the original data set), the original labels, weights, and groups are added.
             SetLabel(labels);
             SetWeights(weights);
             SetGroup(groups);
@@ -87,6 +110,14 @@ namespace Microsoft.ML.Runtime.LightGBM
             _handle = IntPtr.Zero;
         }
 
+        /// <summary>
+        /// Append examples to LightGBM dataset.
+        /// </summary>
+        /// <param name="data">Dense (# of rows)-by-(# of columns) matrix flattened in a row-major format. One row per example.
+        /// The value at the i-th row and j-th column is stored in data[j + i * (# of columns)].</param>
+        /// <param name="numRow"># of rows of the data matrix.</param>
+        /// <param name="numCol"># of columns of the data matrix.</param>
+        /// <param name="startRowIdx">The actual row index of the first row pushed in. If it's 36, the first row in data would be the 37th row in <see cref="Dataset"/>.</param>
         public void PushRows(float[] data, int numRow, int numCol, int startRowIdx)
         {
             Contracts.Assert(startRowIdx == _lastPushedRowID);

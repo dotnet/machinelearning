@@ -5,6 +5,7 @@
 using Float = System.Single;
 
 using System;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -43,7 +44,8 @@ namespace Microsoft.ML.Runtime.Data
 
         private const string RegistrationName = "ClusteringScore";
 
-        public ClusteringScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        [BestFriend]
+        internal ClusteringScorer(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
             : base(args, env, data, mapper, trainSchema, RegistrationName, MetadataUtils.Const.ScoreColumnKind.Clustering,
                 MetadataUtils.Const.ScoreValueKind.Score, OutputTypeMatches, GetPredColType)
         {
@@ -72,7 +74,7 @@ namespace Microsoft.ML.Runtime.Data
             return h.Apply("Loading Model", ch => new ClusteringScorer(h, ctx, input));
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -91,10 +93,10 @@ namespace Microsoft.ML.Runtime.Data
             return new ClusteringScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
         {
             Contracts.AssertValue(output);
-            Contracts.Assert(output.Schema == Bindings.RowMapper.Schema);
+            Contracts.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
             Contracts.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
             ValueGetter<VBuffer<Float>> mapperScoreGetter = output.GetGetter<VBuffer<Float>>(Bindings.ScoreColumnIndex);
@@ -126,7 +128,7 @@ namespace Microsoft.ML.Runtime.Data
             return predFn;
         }
 
-        protected override JToken PredictedLabelPfa(string[] mapperOutputs)
+        private protected override JToken PredictedLabelPfa(string[] mapperOutputs)
         {
             Contracts.Assert(Utils.Size(mapperOutputs) == 1);
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);

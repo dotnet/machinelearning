@@ -5,12 +5,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.TimeSeries;
 using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Arguments), typeof(SignatureDataTransform),
@@ -133,6 +135,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new SsaSpikeDetector(env, ctx).MakeDataTransform(input);
         }
 
+        internal override IStatefulTransformer Clone()
+        {
+            var clone = (SsaSpikeDetector)MemberwiseClone();
+            clone.Model = clone.Model.Clone();
+            clone.StateRef = (State)clone.StateRef.Clone();
+            clone.StateRef.InitState(clone, Host);
+            return clone;
+        }
+
         // Factory method for SignatureLoadModel.
         private static SsaSpikeDetector Create(IHostEnvironment env, ModelLoadContext ctx)
         {
@@ -171,7 +182,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
@@ -196,7 +207,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the output column.</param>
+        /// <param name="outputColumn">Name of the output column. Column is a vector of type double and size 3.
+        /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="trainingWindowSize">The number of points from the beginning of the sequence used for training.</param>
@@ -249,7 +261,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
             resultDic[_args.Name] = new SchemaShape.Column(
                 _args.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 

@@ -226,29 +226,29 @@ namespace Microsoft.ML.Runtime.Data
                 _rowCount = rowCount;
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                return new RowCursor(_host, this, predicate, rand);
+                return new Cursor(_host, this, predicate, rand);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-                Func<int, bool> predicate, int n, IRandom rand = null)
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+                Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
                 consolidator = null;
-                return new IRowCursor[] { new RowCursor(_host, this, predicate, rand) };
+                return new RowCursor[] { new Cursor(_host, this, predicate, rand) };
             }
 
-            private sealed class RowCursor : RootCursorBase, IRowCursor
+            private sealed class Cursor : RootCursorBase
             {
                 private readonly DataView _view;
                 private readonly BitArray _active;
                 private readonly int[] _indices;
 
-                public Schema Schema => _view.Schema;
+                public override Schema Schema => _view.Schema;
 
                 public override long Batch
                 {
@@ -256,57 +256,57 @@ namespace Microsoft.ML.Runtime.Data
                     get { return 0; }
                 }
 
-                public RowCursor(IChannelProvider provider, DataView view, Func<int, bool> predicate, IRandom rand)
+                public Cursor(IChannelProvider provider, DataView view, Func<int, bool> predicate, Random rand)
                     : base(provider)
                 {
                     Ch.AssertValue(view);
                     Ch.AssertValueOrNull(rand);
-                    Ch.Assert(view.Schema.ColumnCount >= 0);
+                    Ch.Assert(view.Schema.Count >= 0);
 
                     _view = view;
-                    _active = new BitArray(view.Schema.ColumnCount);
+                    _active = new BitArray(view.Schema.Count);
                     if (predicate == null)
                         _active.SetAll(true);
                     else
                     {
-                        for (int i = 0; i < view.Schema.ColumnCount; ++i)
+                        for (int i = 0; i < view.Schema.Count; ++i)
                             _active[i] = predicate(i);
                     }
                     if (rand != null)
                         _indices = Utils.GetRandomPermutation(rand, view._rowCount);
                 }
 
-                public override ValueGetter<UInt128> GetIdGetter()
+                public override ValueGetter<RowId> GetIdGetter()
                 {
                     if (_indices == null)
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)Position, 0);
+                                val = new RowId((ulong)Position, 0);
                             };
                     }
                     else
                     {
                         return
-                            (ref UInt128 val) =>
+                            (ref RowId val) =>
                             {
                                 Ch.Check(IsGood, "Cannot call ID getter in current state");
-                                val = new UInt128((ulong)MappedIndex(), 0);
+                                val = new RowId((ulong)MappedIndex(), 0);
                             };
                     }
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
-                    Ch.Check(0 <= col & col < Schema.ColumnCount);
+                    Ch.Check(0 <= col & col < Schema.Count);
                     return _active[col];
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
-                    Ch.Check(0 <= col & col < Schema.ColumnCount);
+                    Ch.Check(0 <= col & col < Schema.Count);
                     Ch.Check(_active[col], "column is not active");
                     var column = _view._columns[col] as Column<TValue>;
                     if (column == null)

@@ -12,10 +12,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using System;
@@ -32,8 +30,6 @@ using System.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     using CaseNormalizationMode = TextNormalizingEstimator.CaseNormalizationMode;
-    using StopWordsCol = StopWordsRemovingTransformer.Column;
-
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
     // integer index mapping through hashing) as an option.
@@ -83,7 +79,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// This class exposes <see cref="NgramExtractingTransformer"/>/<see cref="NgramHashExtractingTransformer"/> arguments.
+        /// This class exposes <see cref="NgramExtractorTransform"/>/<see cref="NgramHashExtractingTransformer"/> arguments.
         /// </summary>
         public sealed class Arguments : TransformInputBase
         {
@@ -93,8 +89,8 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dataset language or 'AutoDetect' to detect language per row.", ShortName = "lang", SortOrder = 3)]
             public Language Language = DefaultLanguage;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Stopwords remover.", ShortName = "remover", NullName = "<None>", SortOrder = 4)]
-            public IStopWordsRemoverFactory StopWordsRemover;
+            [Argument(ArgumentType.Multiple, HelpText = "Use stop remover or not.", ShortName = "remover", SortOrder = 4)]
+            public bool UsePredefinedStopWordRemover = false;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 5)]
             public CaseNormalizationMode TextCase = TextNormalizingEstimator.Defaults.TextCase;
@@ -116,11 +112,11 @@ namespace Microsoft.ML.Transforms.Text
 
             [TGUI(Label = "Word Gram Extractor")]
             [Argument(ArgumentType.Multiple, HelpText = "Ngram feature extractor to use for words (WordBag/WordHashBag).", ShortName = "wordExtractor", NullName = "<None>", SortOrder = 11)]
-            public INgramExtractorFactoryFactory WordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments();
+            public INgramExtractorFactoryFactory WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
 
             [TGUI(Label = "Char Gram Extractor")]
             [Argument(ArgumentType.Multiple, HelpText = "Ngram feature extractor to use for characters (WordBag/WordHashBag).", ShortName = "charExtractor", NullName = "<None>", SortOrder = 12)]
-            public INgramExtractorFactoryFactory CharFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
+            public INgramExtractorFactoryFactory CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize vectors (rows) individually by rescaling them to unit norm.", ShortName = "norm", SortOrder = 13)]
             public TextNormKind VectorNormalizer = TextNormKind.L2;
@@ -146,7 +142,7 @@ namespace Microsoft.ML.Transforms.Text
 
         // These parameters are hardcoded for now.
         // REVIEW: expose them once sub-transforms are estimators.
-        private IStopWordsRemoverFactory _stopWordsRemover;
+        private bool _usePredefinedStopWordRemover;
         private TermLoaderArguments _dictionary;
         private INgramExtractorFactoryFactory _wordFeatureExtractor;
         private INgramExtractorFactoryFactory _charFeatureExtractor;
@@ -164,7 +160,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public readonly TextNormKind VectorNormalizer;
             public readonly Language Language;
-            public readonly IStopWordsRemoverFactory StopWordsRemover;
+            public readonly bool UsePredefinedStopWordRemover;
             public readonly CaseNormalizationMode TextCase;
             public readonly bool KeepDiacritics;
             public readonly bool KeepPunctuations;
@@ -172,8 +168,8 @@ namespace Microsoft.ML.Transforms.Text
             public readonly bool OutputTextTokens;
             public readonly TermLoaderArguments Dictionary;
 
-            public StopWordsRemovingTransformer.Language StopwordsLanguage
-                =>(StopWordsRemovingTransformer.Language) Enum.Parse(typeof(StopWordsRemovingTransformer.Language), Language.ToString());
+            public StopWordsRemovingEstimator.Language StopwordsLanguage
+                =>(StopWordsRemovingEstimator.Language) Enum.Parse(typeof(StopWordsRemovingEstimator.Language), Language.ToString());
 
             public LpNormalizingEstimatorBase.NormalizerKind LpNormalizerKind
             {
@@ -196,9 +192,7 @@ namespace Microsoft.ML.Transforms.Text
 
             // These properties encode the logic needed to determine which transforms to apply.
             #region NeededTransforms
-            public bool NeedsWordTokenizationTransform { get { return WordExtractorFactory != null || NeedsRemoveStopwordsTransform || OutputTextTokens; } }
-
-            public bool NeedsRemoveStopwordsTransform { get { return StopWordsRemover != null; } }
+            public bool NeedsWordTokenizationTransform { get { return WordExtractorFactory != null || UsePredefinedStopWordRemover || OutputTextTokens; } }
 
             public bool NeedsNormalizeTransform
             {
@@ -244,7 +238,7 @@ namespace Microsoft.ML.Transforms.Text
                 CharExtractorFactory = parent._charFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 VectorNormalizer = parent.AdvancedSettings.VectorNormalizer;
                 Language = parent.AdvancedSettings.TextLanguage;
-                StopWordsRemover = parent._stopWordsRemover;
+                UsePredefinedStopWordRemover = parent._usePredefinedStopWordRemover;
                 TextCase = parent.AdvancedSettings.TextCase;
                 KeepDiacritics = parent.AdvancedSettings.KeepDiacritics;
                 KeepPunctuations = parent.AdvancedSettings.KeepPunctuations;
@@ -287,10 +281,9 @@ namespace Microsoft.ML.Transforms.Text
             AdvancedSettings = new Settings();
             advancedSettings?.Invoke(AdvancedSettings);
 
-            _stopWordsRemover = null;
             _dictionary = null;
-            _wordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments();
-            _charFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
+            _wordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
+            _charFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
         }
 
         public ITransformer Fit(IDataView input)
@@ -346,23 +339,21 @@ namespace Microsoft.ML.Transforms.Text
                 view = new WordTokenizingEstimator(h, xfCols).Fit(view).Transform(view);
             }
 
-            if (tparams.NeedsRemoveStopwordsTransform)
+            if (tparams.UsePredefinedStopWordRemover)
             {
                 Contracts.Assert(wordTokCols != null, "StopWords transform requires that word tokenization has been applied to the input text.");
-                var xfCols = new StopWordsCol[wordTokCols.Length];
+                var xfCols = new StopWordsRemovingTransformer.ColumnInfo[wordTokCols.Length];
                 var dstCols = new string[wordTokCols.Length];
                 for (int i = 0; i < wordTokCols.Length; i++)
                 {
-                    var col = new StopWordsCol();
-                    col.Source = wordTokCols[i];
-                    col.Name = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
-                    dstCols[i] = col.Name;
-                    tempCols.Add(col.Name);
-                    col.Language = tparams.StopwordsLanguage;
+                    var tempName = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
+                    var col = new StopWordsRemovingTransformer.ColumnInfo(wordTokCols[i], tempName, tparams.StopwordsLanguage);
+                    dstCols[i] = tempName;
+                    tempCols.Add(tempName);
 
                     xfCols[i] = col;
                 }
-                view = tparams.StopWordsRemover.CreateComponent(h, view, xfCols);
+                view = new StopWordsRemovingEstimator(h, xfCols).Fit(view).Transform(view);
                 wordTokCols = dstCols;
             }
 
@@ -389,7 +380,7 @@ namespace Microsoft.ML.Transforms.Text
             if (tparams.CharExtractorFactory != null)
             {
                 {
-                    var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
+                    var srcCols = tparams.UsePredefinedStopWordRemover ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
                     var xfCols = new (string input, string output)[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
@@ -473,7 +464,7 @@ namespace Microsoft.ML.Transforms.Text
         public static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx)
             => new Transformer(env, ctx);
 
-        private static string GenerateColumnName(ISchema schema, string srcName, string xfTag)
+        private static string GenerateColumnName(Schema schema, string srcName, string xfTag)
         {
             return schema.GetTempColumnName(string.Format("{0}_{1}", srcName, xfTag));
         }
@@ -481,7 +472,7 @@ namespace Microsoft.ML.Transforms.Text
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var srcName in _inputColumns)
             {
                 if (!inputSchema.TryFindColumn(srcName, out var col))
@@ -520,7 +511,7 @@ namespace Microsoft.ML.Transforms.Text
             };
 
             var estimator = new TextFeaturizingEstimator(env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
-            estimator._stopWordsRemover = args.StopWordsRemover;
+            estimator._usePredefinedStopWordRemover = args.UsePredefinedStopWordRemover;
             estimator._dictionary = args.Dictionary;
             estimator._wordFeatureExtractor = args.WordFeatureExtractor;
             estimator._charFeatureExtractor = args.CharFeatureExtractor;
@@ -632,6 +623,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        [BestFriend]
         internal sealed class OutPipelineColumn : Vector<float>
         {
             public readonly Scalar<string>[] Inputs;
@@ -664,27 +656,6 @@ namespace Microsoft.ML.Transforms.Text
                 var inputs = outCol.Inputs.Select(x => inputNames[x]);
                 return new TextFeaturizingEstimator(env, inputs, outputNames[outCol], _settings);
             }
-        }
-    }
-
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class TextFeaturizerStaticPipe
-    {
-        /// <summary>
-        /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
-        /// </summary>
-        /// <param name="input">Input data.</param>
-        /// <param name="otherInputs">Additional data.</param>
-        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
-        /// <returns></returns>
-        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextFeaturizingEstimator.Settings> advancedSettings = null)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckValueOrNull(otherInputs);
-            otherInputs = otherInputs ?? new Scalar<string>[0];
-            return new TextFeaturizingEstimator.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
         }
     }
 }

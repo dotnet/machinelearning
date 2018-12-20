@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Transforms.Categorical;
-using System;
-using System.Linq;
-using Xunit;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms.Conversions;
+using System;
+using System.Collections.Generic;
+using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -22,28 +24,36 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void FastTreeBinaryEstimator()
         {
-            var (pipeline, data) = GetBinaryClassificationPipeline();
+            var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            pipeline.Append(new FastTreeBinaryClassificationTrainer(Env, "Label", "Features", numTrees:10, numLeaves:5,  advancedSettings: s => {
-                    s.NumThreads = 1;
-                }));
+            var trainer = new FastTreeBinaryClassificationTrainer(Env, "Label", "Features", numTrees: 10, numLeaves: 5, advancedSettings: s =>
+            {
+                s.NumThreads = 1;
+            });
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
 
-            TestEstimatorCore(pipeline, data);
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Train(transformedDataView, transformedDataView);
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMBinaryEstimator()
         {
-            var (pipeline, data) = GetBinaryClassificationPipeline();
+            var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            pipeline.Append(new LightGbmBinaryTrainer(Env, "Label", "Features", advancedSettings: s => {
+            var trainer = new LightGbmBinaryTrainer(Env, "Label", "Features", advancedSettings: s =>
+            {
                 s.NumLeaves = 10;
                 s.NThread = 1;
                 s.MinDataPerLeaf = 2;
-            }));
+            });
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
 
-            TestEstimatorCore(pipeline, data);
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Train(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -51,14 +61,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void GAMClassificationEstimator()
         {
-            var (pipeline, data) = GetBinaryClassificationPipeline();
+            var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            pipeline.Append(new BinaryClassificationGamTrainer(Env, "Label", "Features", advancedSettings: s => {
+            var trainer = new BinaryClassificationGamTrainer(Env, "Label", "Features", advancedSettings: s =>
+            {
                 s.GainConfidenceLevel = 0;
                 s.NumIterations = 15;
-            }));
+            });
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
 
-            TestEstimatorCore(pipeline, data);
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Train(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -66,44 +80,54 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void FastForestClassificationEstimator()
         {
-            var (pipeline, data) = GetBinaryClassificationPipeline();
+            var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            pipeline.Append(new FastForestClassification(Env, "Label", "Features", advancedSettings: s => {
+            var trainer = new FastForestClassification(Env, "Label", "Features", advancedSettings: s =>
+            {
                 s.NumLeaves = 10;
                 s.NumTrees = 20;
-            }));
+            });
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
 
-            TestEstimatorCore(pipeline, data);
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Train(transformedDataView, transformedDataView);
             Done();
         }
 
         /// <summary>
-        /// FastTreeBinaryClassification TrainerEstimator test 
+        /// FastTreeRankingTrainer TrainerEstimator test 
         /// </summary>
         [Fact]
         public void FastTreeRankerEstimator()
         {
-            var (pipeline, data) = GetRankingPipeline();
+            var (pipe, dataView) = GetRankingPipeline();
 
-            pipeline.Append(new FastTreeRankingTrainer(Env, "Label0", "NumericFeatures", "Group", 
-                                advancedSettings: s => { s.NumTrees = 10; }));
+            var trainer = new FastTreeRankingTrainer(Env, "Label0", "NumericFeatures", "Group",
+                                advancedSettings: s => { s.NumTrees = 10; });
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
 
-            TestEstimatorCore(pipeline, data);
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Train(transformedDataView, transformedDataView);
             Done();
         }
 
         /// <summary>
-        /// FastTreeBinaryClassification TrainerEstimator test 
+        /// LightGbmRankingTrainer TrainerEstimator test 
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMRankerEstimator()
         {
-            var (pipeline, data) = GetRankingPipeline();
+            var (pipe, dataView) = GetRankingPipeline();
 
-            pipeline.Append(new LightGbmRankingTrainer(Env, "Label0", "NumericFeatures", "Group",
-                                advancedSettings: s => { s.LearningRate = 0.4; }));
+            var trainer = new LightGbmRankingTrainer(Env, "Label0", "NumericFeatures", "Group",
+                                advancedSettings: s => { s.LearningRate = 0.4; });
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
 
-            TestEstimatorCore(pipeline, data);
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Train(transformedDataView, transformedDataView);
             Done();
         }
 
@@ -113,100 +137,278 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void FastTreeRegressorEstimator()
         {
+            var dataView = GetRegressionPipeline();
+            var trainer = new FastTreeRegressionTrainer(Env, "Label", "Features", advancedSettings: s =>
+            {
+                s.NumTrees = 10;
+                s.NumThreads = 1;
+                s.NumLeaves = 5;
+            });
 
-            // Pipeline.
-            var pipeline = new FastTreeRegressionTrainer(Env, "Label", "Features", advancedSettings: s => {
-                    s.NumTrees = 10;
-                    s.NumThreads = 1;
-                    s.NumLeaves = 5;
-                });
-
-            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            TestEstimatorCore(trainer, dataView);
+            var model = trainer.Train(dataView, dataView);
             Done();
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// LightGbmRegressorTrainer TrainerEstimator test 
         /// </summary>
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMRegressorEstimator()
         {
-
-            // Pipeline.
-            var pipeline = new LightGbmRegressorTrainer(Env, "Label", "Features", advancedSettings: s => {
+            var dataView = GetRegressionPipeline();
+            var trainer = new LightGbmRegressorTrainer(Env, "Label", "Features", advancedSettings: s =>
+            {
                 s.NThread = 1;
                 s.NormalizeFeatures = NormalizeOption.Warn;
-                s.CatL2 = 5; 
+                s.CatL2 = 5;
             });
 
-            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            TestEstimatorCore(trainer, dataView);
+            var model = trainer.Train(dataView, dataView);
             Done();
         }
 
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// RegressionGamTrainer TrainerEstimator test 
         /// </summary>
         [Fact]
         public void GAMRegressorEstimator()
         {
-
-            // Pipeline.
-            var pipeline = new RegressionGamTrainer(Env, "Label", "Features", advancedSettings: s => {
+            var dataView = GetRegressionPipeline();
+            var trainer = new RegressionGamTrainer(Env, "Label", "Features", advancedSettings: s =>
+            {
                 s.EnablePruning = false;
                 s.NumIterations = 15;
             });
 
-            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            TestEstimatorCore(trainer, dataView);
+            var model = trainer.Train(dataView, dataView);
             Done();
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// FastTreeTweedieTrainer TrainerEstimator test 
         /// </summary>
         [Fact]
         public void TweedieRegressorEstimator()
         {
-
-            // Pipeline.
-            var pipeline = new FastTreeTweedieTrainer(Env, "Label", "Features", advancedSettings: s => {
+            var dataView = GetRegressionPipeline();
+            var trainer = new FastTreeTweedieTrainer(Env, "Label", "Features", advancedSettings: s =>
+            {
                 s.EntropyCoefficient = 0.3;
                 s.OptimizationAlgorithm = BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent;
             });
 
-            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            TestEstimatorCore(trainer, dataView);
+            var model = trainer.Train(dataView, dataView);
             Done();
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// FastForestRegression TrainerEstimator test 
         /// </summary>
         [Fact]
         public void FastForestRegressorEstimator()
         {
-
-            // Pipeline.
-            var pipeline = new FastForestRegression(Env, "Label", "Features", advancedSettings: s => {
+            var dataView = GetRegressionPipeline();
+            var trainer = new FastForestRegression(Env, "Label", "Features", advancedSettings: s =>
+            {
                 s.BaggingSize = 2;
                 s.NumTrees = 10;
             });
 
-            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            TestEstimatorCore(trainer, dataView);
+            var model = trainer.Train(dataView, dataView);
             Done();
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// LightGbmMulticlass TrainerEstimator test 
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmMultiClassEstimator()
         {
-            var (pipeline, data) = GetMultiClassPipeline();
-
-            pipeline.Append(new LightGbmMulticlassTrainer(Env, "Label", "Features", advancedSettings: s => { s.LearningRate = 0.4; }))
+            var (pipeline, dataView) = GetMultiClassPipeline();
+            var trainer = new LightGbmMulticlassTrainer(Env, "Label", "Features", advancedSettings: s => { s.LearningRate = 0.4; });
+            var pipe = pipeline.Append(trainer)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+            TestEstimatorCore(pipe, dataView);
+            Done();
+        }
 
-            TestEstimatorCore(pipeline, data);
+        // Number of examples
+        private const int _rowNumber = 1000;
+        // Number of features
+        private const int _columnNumber = 5;
+        // Number of classes
+        private const int _classNumber = 3;
+        private class GbmExample
+        {
+            [VectorType(_columnNumber)]
+            public float[] Features;
+            [KeyType(Contiguous = true, Count =_classNumber, Min = 0)]
+            public uint Label;
+            [VectorType(_classNumber)]
+            public float[] Score;
+        }
+
+        private void LightGbmHelper(bool useSoftmax, out string modelString, out List<GbmExample> mlnetPredictions, out double[] lgbmRawScores, out double[] lgbmProbabilities)
+        {
+            // Prepare data and train LightGBM model via ML.NET
+            // Training matrix. It contains all feature vectors.
+            var dataMatrix = new float[_rowNumber * _columnNumber];
+            // Labels for multi-class classification
+            var labels = new uint[_rowNumber];
+            // Training list, which is equivalent to the training matrix above.
+            var dataList = new List<GbmExample>();
+            for (/*row index*/ int i = 0; i < _rowNumber; ++i)
+            {
+                int featureSum = 0;
+                var featureVector = new float[_columnNumber];
+                for (/*column index*/ int j = 0; j < _columnNumber; ++j)
+                {
+                    int featureValue = (j + i * _columnNumber) % 10;
+                    featureSum += featureValue;
+                    dataMatrix[j + i * _columnNumber] = featureValue;
+                    featureVector[j] = featureValue;
+                }
+                labels[i] = (uint)featureSum % _classNumber;
+                dataList.Add(new GbmExample { Features = featureVector, Label = labels[i], Score = new float[_classNumber] });
+            }
+
+            var mlContext = new MLContext(seed: 0, conc: 1);
+            var dataView = ComponentCreation.CreateDataView(mlContext, dataList);
+            int numberOfTrainingIterations = 3;
+            var gbmTrainer = new LightGbmMulticlassTrainer(mlContext, labelColumn: "Label", featureColumn: "Features", numBoostRound: numberOfTrainingIterations,
+                advancedSettings: s => { s.MinDataPerGroup = 1; s.MinDataPerLeaf = 1; s.UseSoftmax = useSoftmax; });
+            var gbm = gbmTrainer.Fit(dataView);
+            var predicted = gbm.Transform(dataView);
+            mlnetPredictions = new List<GbmExample>(predicted.AsEnumerable<GbmExample>(mlContext, false));
+
+            // Convert training to LightGBM's native format and train LightGBM model via its APIs
+            // Convert the whole training matrix to CSC format required by LightGBM interface. Notice that the training matrix
+            // is dense so this conversion is simply a matrix transpose.
+            double[][] sampleValueGroupedByColumn = new double[_columnNumber][];
+            int[][] sampleIndicesGroupedByColumn = new int[_columnNumber][];
+            int[] sampleNonZeroCntPerColumn = new int[_columnNumber];
+            for (int j = 0; j < _columnNumber; ++j)
+            {
+                // Allocate memory for the j-th column in the training matrix
+                sampleValueGroupedByColumn[j] = new double[_rowNumber];
+                sampleIndicesGroupedByColumn[j] = new int[_rowNumber];
+                sampleNonZeroCntPerColumn[j] = _rowNumber;
+                // Copy the j-th column in training matrix
+                for (int i = 0; i < _rowNumber; ++i)
+                {
+                    // data[j + i * _columnNumber] is the value at the j-th column and the i-th row.
+                    sampleValueGroupedByColumn[j][i] = dataMatrix[j + i * _columnNumber];
+                    // Row index of the assigned value.
+                    sampleIndicesGroupedByColumn[j][i] = i;
+                }
+            }
+
+            // LightGBM only accepts float labels.
+            float[] floatLabels = new float[_rowNumber];
+            for (int i = 0; i < _rowNumber; ++i)
+                floatLabels[i] = labels[i];
+
+            // Allocate LightGBM data container (called Dataset in LightGBM world).
+            var gbmDataSet = new Dataset(sampleValueGroupedByColumn, sampleIndicesGroupedByColumn, _columnNumber, sampleNonZeroCntPerColumn, _rowNumber, _rowNumber, "", floatLabels);
+
+            // Push training examples into LightGBM data container.
+            gbmDataSet.PushRows(dataMatrix, _rowNumber, _columnNumber, 0);
+
+            // Probability output.
+            lgbmProbabilities = new double[_rowNumber * _classNumber];
+            // Raw score.
+            lgbmRawScores = new double[_rowNumber * _classNumber];
+
+            // Get parameters used in ML.NET's LightGBM
+            var gbmParams = gbmTrainer.GetGbmParameters();
+
+            // Call LightGBM C-style APIs to do prediction.
+            modelString = null;
+            using (var ch = (mlContext as IChannelProvider).Start("Training LightGBM..."))
+            using (var pch = (mlContext as IProgressChannelProvider).StartProgressChannel("Training LightGBM..."))
+            {
+                var host = (mlContext as IHostEnvironment).Register("Training LightGBM...");
+                var gbmNative = WrappedLightGbmTraining.Train(ch, pch, gbmParams, gbmDataSet, numIteration : numberOfTrainingIterations);
+
+                int nativeLength = 0;
+                unsafe
+                {
+                    fixed (float* data = dataMatrix)
+                    fixed (double* result0 = lgbmProbabilities)
+                    fixed (double* result1 = lgbmRawScores)
+                    {
+                        WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
+                            _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Normal, numberOfTrainingIterations, "", ref nativeLength, result0);
+                        WrappedLightGbmInterface.BoosterPredictForMat(gbmNative.Handle, (IntPtr)data, WrappedLightGbmInterface.CApiDType.Float32,
+                            _rowNumber, _columnNumber, 1, (int)WrappedLightGbmInterface.CApiPredictType.Raw, numberOfTrainingIterations, "", ref nativeLength, result1);
+                    }
+                    modelString = gbmNative.GetModelString();
+                }
+            }
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        public void LightGbmMultiClassEstimatorCompareOva()
+        {
+            // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
+            LightGbmHelper(useSoftmax: false, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
+
+            // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
+            // Assume that we have n classes in total. The i-th class probability can be computed via
+            // p_i = sigmoid(sigmoidScale * z_i) / (sigmoid(sigmoidScale * z_1) + ... + sigmoid(sigmoidScale * z_n)).
+            Assert.True(modelString != null);
+            float sigmoidScale = 0.5f; // Constant used train LightGBM. See gbmParams["sigmoid"] in the helper function.
+            // Compare native LightGBM's and ML.NET's LightGBM results example by example
+            for (int i = 0; i < _rowNumber; ++i)
+            {
+                double sum = 0;
+                for (int j = 0; j < _classNumber; ++j)
+                {
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    sum += MathUtils.SigmoidSlow(sigmoidScale* (float)nativeResult1[j + i * _classNumber]);
+                }
+                for (int j = 0; j < _classNumber; ++j)
+                {
+                    double prob = MathUtils.SigmoidSlow(sigmoidScale * (float)nativeResult1[j + i * _classNumber]);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
+                }
+            }
+
+            Done();
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        public void LightGbmMultiClassEstimatorCompareSoftMax()
+        {
+            // Train ML.NET LightGBM and native LightGBM and apply the trained models to the training set.
+            LightGbmHelper(useSoftmax: true, out string modelString, out List<GbmExample> mlnetPredictions, out double[] nativeResult1, out double[] nativeResult0);
+
+            // The i-th predictor returned by LightGBM produces the raw score, denoted by z_i, of the i-th class.
+            // Assume that we have n classes in total. The i-th class probability can be computed via
+            // p_i = exp(z_i) / (exp(z_1) + ... + exp(z_n)).
+            Assert.True(modelString != null);
+            // Compare native LightGBM's and ML.NET's LightGBM results example by example
+            for (int i = 0; i < _rowNumber; ++i)
+            {
+                double sum = 0;
+                for (int j = 0; j < _classNumber; ++j)
+                {
+                    Assert.Equal(nativeResult0[j + i * _classNumber], mlnetPredictions[i].Score[j], 6);
+                    sum += Math.Exp((float)nativeResult1[j + i * _classNumber]);
+                }
+                for (int j = 0; j < _classNumber; ++j)
+                {
+                    double prob = Math.Exp(nativeResult1[j + i * _classNumber]);
+                    Assert.Equal(prob / sum, mlnetPredictions[i].Score[j], 6);
+                }
+            }
+
             Done();
         }
     }

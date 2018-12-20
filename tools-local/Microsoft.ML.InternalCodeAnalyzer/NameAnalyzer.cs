@@ -45,8 +45,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         internal static class PrivateFieldName
         {
             public const string Id = "MSML_PrivateFieldName";
-            private const string Title = "Private field name not _camelCased";
-            private const string Format = "Private field name '{0}' not _camelCased";
+            private const string Title = "Private field name not in: _camelCase format";
+            private const string Format = "Private field name '{0}' not in: _camelCase format";
             private const string Description =
                 "Private fields should have an _ prefix and be _lowerCamelCased, unless they are const.";
 

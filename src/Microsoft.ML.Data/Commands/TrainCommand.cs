@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Trace("Constructing data pipeline");
             IDataView view = CreateLoader();
 
-            ISchema schema = view.Schema;
+            var schema = view.Schema;
             var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.LabelColumn), _labelColumn, DefaultColumnNames.Label);
             var feature = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.FeatureColumn), _featureColumn, DefaultColumnNames.Features);
             var group = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Arguments.GroupColumn), _groupColumn, DefaultColumnNames.GroupId);
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Else, if the user name equals the default name return null.
         /// Else, throw an error.
         /// </summary>
-        public static string MatchNameOrDefaultOrNull(IExceptionContext ectx, ISchema schema, string argName, string userName, string defaultName)
+        public static string MatchNameOrDefaultOrNull(IExceptionContext ectx, Schema schema, string argName, string userName, string defaultName)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));
@@ -462,7 +462,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (autoNorm != NormalizeOption.Yes)
                 {
-                    if (!trainer.Info.NeedNormalization || schema.IsNormalized(featCol))
+                    if (!trainer.Info.NeedNormalization || schema[featCol].IsNormalized())
                     {
                         ch.Info("Not adding a normalizer.");
                         return false;

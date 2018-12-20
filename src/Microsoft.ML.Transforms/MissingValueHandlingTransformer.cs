@@ -158,7 +158,7 @@ namespace Microsoft.ML.Transforms
                 // so that they can be concatenated.
                 if (!input.Schema.TryGetColumnIndex(column.Source, out int inputCol))
                     throw h.Except("Column '{0}' does not exist", column.Source);
-                var replaceType = input.Schema.GetColumnType(inputCol);
+                var replaceType = input.Schema[inputCol].Type;
                 if (!Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceType.ItemType, out Delegate conv, out bool identity))
                 {
                     throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",

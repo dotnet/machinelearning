@@ -60,7 +60,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
         public RoleMappedSchema InputRoleMappedSchema { get; }
 
-        public Schema Schema { get; }
+        public Schema OutputSchema { get; }
+
         public Schema InputSchema => InputRoleMappedSchema.Schema;
 
         public ISchemaBindableMapper Bindable => _pred;
@@ -74,9 +75,9 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(schema);
-            Contracts.CheckParam(outputSchema.ColumnCount == 2, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema.GetColumnType(0).IsNumber, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema.GetColumnType(1).IsNumber, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema.Count == 2, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[0].Type.IsNumber, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[1].Type.IsNumber, nameof(outputSchema));
             Contracts.AssertValue(pred);
 
             _env = env;
@@ -85,7 +86,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             var inputFeatureColumns = _columns.Select(c => new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, c.Name)).ToList();
             InputRoleMappedSchema = new RoleMappedSchema(schema.Schema, inputFeatureColumns);
-            Schema = outputSchema;
+            OutputSchema = outputSchema;
 
             _inputColumnIndexes = new List<int>();
             foreach (var kvp in inputFeatureColumns)
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             }
         }
 
-        public IRow GetRow(IRow input, Func<int, bool> predicate, out Action action)
+        public Row GetRow(Row input, Func<int, bool> predicate)
         {
             var latentSum = new AlignedArray(_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned, 16);
             var featureBuffer = new VBuffer<float>();
@@ -110,7 +111,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                     inputGetters[f] = input.GetGetter<VBuffer<float>>(_inputColumnIndexes[f]);
             }
 
-            action = null;
             var getters = new Delegate[2];
             if (predicate(0))
             {
@@ -130,12 +130,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 getters[1] = probGetter;
             }
 
-            return new SimpleRow(Schema, input, getters);
+            return new SimpleRow(OutputSchema, input, getters);
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
-            if (Enumerable.Range(0, Schema.ColumnCount).Any(predicate))
+            if (Enumerable.Range(0, OutputSchema.Count).Any(predicate))
                 return index => _inputColumnIndexes.Any(c => c == index);
             else
                 return index => false;

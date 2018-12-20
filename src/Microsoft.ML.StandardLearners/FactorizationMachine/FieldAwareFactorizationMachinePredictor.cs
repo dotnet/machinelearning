@@ -120,7 +120,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return new FieldAwareFactorizationMachinePredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return modelResponse;
         }
 
-        public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
             => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, Schema.Create(new BinaryClassifierSchema()), this);
 
         internal void CopyLinearWeightsTo(float[] linearWeights)
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             {
                 if (!trainSchema.TryGetColumnIndex(feat, out int col))
                     throw Host.ExceptSchemaMismatch(nameof(featureColumns), RoleMappedSchema.ColumnRole.Feature.Value, feat);
-                FeatureColumnTypes[i++] = trainSchema.GetColumnType(col);
+                FeatureColumnTypes[i++] = trainSchema[col].Type;
             }
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 FeatureColumns[i] = ctx.LoadString();
                 if (!TrainSchema.TryGetColumnIndex(FeatureColumns[i], out int col))
                     throw Host.ExceptSchemaMismatch(nameof(FeatureColumns), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumns[i]);
-                FeatureColumnTypes[i] = TrainSchema.GetColumnType(col);
+                FeatureColumnTypes[i] = TrainSchema[col].Type;
             }
 
             _threshold = ctx.Reader.ReadSingle();
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         /// <summary>
-        /// Gets the <see cref="ISchema"/> result after transformation.
+        /// Gets the <see cref="Schema"/> result after transformation.
         /// </summary>
         /// <param name="inputSchema">The <see cref="Schema"/> of the input data.</param>
         /// <returns>The post transformation <see cref="Schema"/>.</returns>
@@ -286,8 +286,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 if (!inputSchema.TryGetColumnIndex(feat, out int col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, feat, FeatureColumnTypes[i].ToString(), null);
 
-                if (!inputSchema.GetColumnType(col).Equals(FeatureColumnTypes[i]))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, feat, FeatureColumnTypes[i].ToString(), inputSchema.GetColumnType(col).ToString());
+                if (!inputSchema[col].Type.Equals(FeatureColumnTypes[i]))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, feat, FeatureColumnTypes[i].ToString(), inputSchema[col].Type.ToString());
             }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;

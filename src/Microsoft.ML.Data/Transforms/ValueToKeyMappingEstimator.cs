@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Transforms.Categorical
+namespace Microsoft.ML.Transforms.Conversions
 {
     /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
     public sealed class ValueToKeyMappingEstimator: IEstimator<ValueToKeyMappingTransformer>
@@ -36,8 +36,8 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="inputColumn">Name of the column to be transformed.</param>
         /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
-        /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
-        /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
+        /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         public ValueToKeyMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
            this(env, new [] { new ValueToKeyMappingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
         {
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms.Categorical
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     kv = new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
                         colInfo.TextKeyValues ? TextType.Instance : col.ItemType, col.IsKey);
                 }
-                Contracts.AssertValue(kv);
+                Contracts.Assert(kv.IsValid);
 
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata = new SchemaShape(new[] { slotMeta, kv });
@@ -118,108 +118,9 @@ namespace Microsoft.ML.Transforms.Categorical
         // At the moment this is empty. Once PR #863 clears, we can change this class to hold the output
         // key-values metadata.
 
-        public ToKeyFitResult(ValueToKeyMappingTransformer.TermMap map)
+        [BestFriend]
+        internal ToKeyFitResult(ValueToKeyMappingTransformer.TermMap map)
         {
-        }
-    }
-
-    public static partial class TermStaticExtensions
-    {
-        // I am not certain I see a good way to cover the distinct types beyond complete enumeration.
-        // Raw generics would allow illegal possible inputs, for example, Scalar<Bitmap>. So, this is a partial
-        // class, and all the public facing extension methods for each possible type are in a T4 generated result.
-
-        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
-        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
-
-        private readonly struct Config
-        {
-            public readonly KeyValueOrder Order;
-            public readonly int Max;
-            public readonly Action<ValueToKeyMappingTransformer.TermMap> OnFit;
-
-            public Config(KeyValueOrder order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
-            {
-                Order = order;
-                Max = max;
-                OnFit = onFit;
-            }
-        }
-
-        private static Action<ValueToKeyMappingTransformer.TermMap> Wrap<T>(ToKeyFitResult<T>.OnFit onFit)
-        {
-            if (onFit == null)
-                return null;
-            // The type T asociated with the delegate will be the actual value type once #863 goes in.
-            // However, until such time as #863 goes in, it would be too awkward to attempt to extract the metadata.
-            // For now construct the useless object then pass it into the delegate.
-            return map => onFit(new ToKeyFitResult<T>(map));
-        }
-
-        private interface ITermCol
-        {
-            PipelineColumn Input { get; }
-            Config Config { get; }
-        }
-
-        private sealed class ImplScalar<T> : Key<uint, T>, ITermCol
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-            public ImplScalar(PipelineColumn input, Config config) : base(Rec.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class ImplVector<T> : Vector<Key<uint, T>>, ITermCol
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-            public ImplVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class ImplVarVector<T> : VarVector<Key<uint, T>>, ITermCol
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-            public ImplVarVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class Rec : EstimatorReconciler
-        {
-            public static readonly Rec Inst = new Rec();
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
-            {
-                var infos = new ValueToKeyMappingTransformer.ColumnInfo[toOutput.Length];
-                Action<ValueToKeyMappingTransformer> onFit = null;
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var tcol = (ITermCol)toOutput[i];
-                    infos[i] = new ValueToKeyMappingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
-                        tcol.Config.Max, (ValueToKeyMappingTransformer.SortOrder)tcol.Config.Order);
-                    if (tcol.Config.OnFit != null)
-                    {
-                        int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.
-                        onFit += tt => tcol.Config.OnFit(tt.GetTermMap(ii));
-                    }
-                }
-                var est = new ValueToKeyMappingEstimator(env, infos);
-                if (onFit == null)
-                    return est;
-                return est.WithOnFitDelegate(onFit);
-            }
         }
     }
 }

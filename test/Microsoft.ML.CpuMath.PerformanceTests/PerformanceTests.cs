@@ -17,10 +17,16 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         protected const int IndexLength = 1000003;
         protected const int Length = 1000003;
-        protected const int MatrixIndexLength = 100;
+        protected const int MatrixIndexLength = 1000;
 
         private const int DefaultSeed = 253421;
         protected const float DefaultScale = 1.11f;
+        protected int matrixLength = 1000;
+        protected virtual int align { get; set; } = 16;
+
+        internal AlignedArray testMatrixAligned;
+        internal AlignedArray testSrcVectorAligned;
+        internal AlignedArray testDstVectorAligned;
 
         protected float[] src, dst, original, src1, src2, result;
         protected int[] idx;
@@ -93,6 +99,15 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             {
                 matrixIdx[i] = rand.Next(0, 1000);
             }
+
+            testMatrixAligned = new AlignedArray(matrixLength * matrixLength, align);
+            testMatrixAligned.CopyFrom(src.AsSpan(0, (matrixLength - 1) * ( matrixLength - 1)));
+
+            testSrcVectorAligned = new AlignedArray(matrixLength, align);
+            testSrcVectorAligned.CopyFrom(src1.AsSpan(0, matrixLength - 1)); // odd input
+
+            testDstVectorAligned = new AlignedArray(matrixLength, align);
+            testDstVectorAligned.CopyFrom(dst.AsSpan(0, matrixLength));
         }
 
         [GlobalCleanup]

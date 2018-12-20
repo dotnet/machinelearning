@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System.Linq;
 
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Transforms.Text
             var xf = TextFeaturizingEstimator.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -46,23 +46,23 @@ namespace Microsoft.ML.Transforms.Text
             var xf = ML.Transforms.Text.WordTokenizingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.NGramTranslator",
-            Desc = NgramCountingTransformer.Summary,
-            UserName = NgramCountingTransformer.UserName,
-            ShortName = NgramCountingTransformer.LoaderSignature,
+            Desc = NgramExtractingTransformer.Summary,
+            UserName = NgramExtractingTransformer.UserName,
+            ShortName = NgramExtractingTransformer.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""NgramTranslator""]/*' />" })]
-        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramCountingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramExtractingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
-            var xf = NgramCountingTransformer.Create(h, input, input.Data);
+            var xf = NgramExtractingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms.Text
             var xf = ValueToKeyMappingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms.Text
             var view = SentimentAnalyzingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Transforms.Text
             var view = TokenizingByCharactersTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms.Text
 
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms.Text
             var view = WordEmbeddingsExtractingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

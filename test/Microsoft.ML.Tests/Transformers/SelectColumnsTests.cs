@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
@@ -110,16 +108,12 @@ namespace Microsoft.ML.Tests.Transformers
             var invalidDataView = ComponentCreation.CreateDataView(Env, invalidData);
 
             // Workout on keep columns
-            var est = ML.Transforms.SelectColumns(new[] {"A", "B"}, null, true, false);
+            var est = ML.Transforms.SelectColumns(new[] {"A", "B"});
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
 
-            // Workout on drop columns
-            est = ML.Transforms.SelectColumns(null, new[] {"A", "B"}, true, false);
+            // Workout on select columns with hidden: true
+            est = ML.Transforms.SelectColumns(new[] {"A", "B"}, true);
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
-
-            // Workout on keep columns with ignore mismatch -- using invalid data set
-            est = ML.Transforms.SelectColumns(new[] {"A", "B"}, null, true, true);
-            TestEstimatorCore(est, validFitInput: invalidDataView);
         }
 
         [Fact]
@@ -136,14 +130,14 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
             var chain = est.Append(ColumnSelectingEstimator.KeepColumns(Env, "C", "A"));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
 
             // Copied columns should equal AABBC, however we chose to keep A and C
             // so the result is AC
-            Assert.Equal(2, result.Schema.ColumnCount);
+            Assert.Equal(2, result.Schema.Count);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
             var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
             var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
@@ -159,14 +153,14 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(ML.Transforms.SelectColumns(new[] {"B", "A" }, null, true));
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var chain = est.Append(ML.Transforms.SelectColumns(new[] {"B", "A" }, true));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
 
             // Input for SelectColumns should be AABBC, we chose to keep A and B
             // and keep hidden columns is true, therefore the output should be AABB
-            Assert.Equal(4, result.Schema.ColumnCount);
+            Assert.Equal(4, result.Schema.Count);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
             var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
             var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
@@ -175,44 +169,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(foundColumnB);
             Assert.Equal(1, bIdx);
             Assert.False(foundColumnC);
-        }
-
-        [Fact]
-        void TestSelectColumnsDropWithKeepHidden()
-        {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(ML.Transforms.SelectColumns(null, new[] { "A" }, true));
-            var transformer = chain.Fit(dataView);
-            var result = transformer.Transform(dataView);
-
-            // Input for SelectColumns should be AABBC, we chose to drop A
-            // and keep hidden columns is true, therefore the output should be BBC
-            Assert.Equal(3, result.Schema.ColumnCount);
-            var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
-            var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
-            var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
-            Assert.False(foundColumnA);
-            Assert.True(foundColumnB);
-            Assert.Equal(1, bIdx);
-            Assert.True(foundColumnC);
-            Assert.Equal(2, cIdx);
-        }
-
-        [Fact]
-        void TestSelectWithKeepAndDropSet()
-        {
-            // Setting both keep and drop is not allowed.
-            var test = new string[]{ "D", "G"};
-            Assert.Throws<InvalidOperationException>(() => ML.Transforms.SelectColumns(test, test));
-        }
-
-        [Fact]
-        void TestSelectNoKeepAndDropSet()
-        {
-            // Passing null to both keep and drop is not allowed.
-            Assert.Throws<InvalidOperationException>(() => ML.Transforms.SelectColumns(null, null));
         }
 
         [Fact]
@@ -228,9 +184,9 @@ namespace Microsoft.ML.Tests.Transformers
                 ms.Position = 0;
                 var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
                 var result = loadedTransformer.Transform(dataView);
-                Assert.Equal(2, result.Schema.ColumnCount);
-                Assert.Equal("A", result.Schema.GetColumnName(0));
-                Assert.Equal("B", result.Schema.GetColumnName(1));
+                Assert.Equal(2, result.Schema.Count);
+                Assert.Equal("A", result.Schema[0].Name);
+                Assert.Equal("B", result.Schema[1].Name);
             }
         }
 
@@ -239,8 +195,8 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")}).Append(
-                      ML.Transforms.SelectColumns(new[] { "A", "B" }, null, false));
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")}).Append(
+                      ML.Transforms.SelectColumns(new[] { "A", "B" }, false));
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
@@ -248,9 +204,9 @@ namespace Microsoft.ML.Tests.Transformers
                 ms.Position = 0;
                 var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
                 var result = loadedTransformer.Transform(dataView);
-                Assert.Equal(2, result.Schema.ColumnCount);
-                Assert.Equal("A", result.Schema.GetColumnName(0));
-                Assert.Equal("B", result.Schema.GetColumnName(1));
+                Assert.Equal(2, result.Schema.Count);
+                Assert.Equal("A", result.Schema[0].Name);
+                Assert.Equal("B", result.Schema[1].Name);
             }
         }
 
@@ -349,7 +305,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (FileStream fs = File.OpenRead(chooseModelPath))
             {
                 var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
-                Assert.Equal(6, result.Schema.ColumnCount);
+                Assert.Equal(6, result.Schema.Count);
                 var foundColumnFeature = result.Schema.TryGetColumnIndex("Features", out int featureIdx);
                 var foundColumnLabel = result.Schema.TryGetColumnIndex("Label", out int labelIdx);
                 var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);

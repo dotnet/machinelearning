@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
 using System.Linq;
@@ -186,21 +186,15 @@ namespace Microsoft.ML.Tests.Transformers
 
         private void ValidateMetadata(IDataView result)
         {
-            Assert.True(result.Schema.TryGetColumnIndex("ConvA", out int colA));
-            Assert.True(result.Schema.TryGetColumnIndex("ConvB", out int colB));
-            var types = result.Schema.GetMetadataTypes(colA);
-            Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(result.Schema["ConvA"].Metadata.Schema.Select(x => x.Name), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
             VBuffer<ReadOnlyMemory<char>> slots = default;
-            bool normalized = default;
-            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colA, ref slots);
+            result.Schema["ConvA"].GetSlotNames(ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "1", "2" });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colA, ref normalized);
-            Assert.True(normalized);
+            Assert.True(result.Schema["ConvA"].IsNormalized());
 
-            types = result.Schema.GetMetadataTypes(colB);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, colB, ref slots);
+            Assert.Equal(result.Schema["ConvB"].Metadata.Schema.Select(x => x.Name), new string[1] { MetadataUtils.Kinds.KeyValues });
+            result.Schema["ConvB"].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
         }

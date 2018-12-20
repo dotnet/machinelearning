@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.Data
             bool tmp = input.Schema.TryGetColumnIndex(src, out colSrc);
             if (!tmp)
                 throw env.ExceptParam(nameof(src), "The input data doesn't have a column named '{0}'", src);
-            var typeOrig = input.Schema.GetColumnType(colSrc);
+            var typeOrig = input.Schema[colSrc].Type;
 
             // REVIEW: Ideally this should support vector-type conversion. It currently doesn't.
             bool ident;
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Host.AssertValue(pred);
                 Host.Assert(conv != null | typeof(T1) == typeof(T2));
-                Host.Assert(0 <= colSrc & colSrc < Source.Schema.ColumnCount);
+                Host.Assert(0 <= colSrc & colSrc < Source.Schema.Count);
 
                 _colSrc = colSrc;
                 _pred = pred;
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             }
 
-            protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+            protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
             {
                 Host.AssertValue(predicate, "predicate");
                 Host.AssertValueOrNull(rand);
@@ -114,11 +114,11 @@ namespace Microsoft.ML.Runtime.Data
                 bool[] active;
                 Func<int, bool> inputPred = GetActive(predicate, out active);
                 var input = Source.GetRowCursor(inputPred, rand);
-                return new RowCursor(this, input, active);
+                return new Cursor(this, input, active);
             }
 
-            public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-                Func<int, bool> predicate, int n, IRandom rand = null)
+            public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+                Func<int, bool> predicate, int n, Random rand = null)
             {
                 Host.CheckValue(predicate, nameof(predicate));
                 Host.CheckValueOrNull(rand);
@@ -129,17 +129,17 @@ namespace Microsoft.ML.Runtime.Data
                 Host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
-                var cursors = new IRowCursor[inputs.Length];
+                var cursors = new RowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
-                    cursors[i] = new RowCursor(this, inputs[i], active);
+                    cursors[i] = new Cursor(this, inputs[i], active);
                 return cursors;
             }
 
             private Func<int, bool> GetActive(Func<int, bool> predicate, out bool[] active)
             {
                 Host.AssertValue(predicate);
-                active = new bool[Source.Schema.ColumnCount];
-                bool[] activeInput = new bool[Source.Schema.ColumnCount];
+                active = new bool[Source.Schema.Count];
+                bool[] activeInput = new bool[Source.Schema.Count];
                 for (int i = 0; i < active.Length; i++)
                     activeInput[i] = active[i] = predicate(i);
                 activeInput[_colSrc] = true;
@@ -147,14 +147,14 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // REVIEW: Should this cache the source value like MissingValueFilter does?
-            private sealed class RowCursor : LinkedRowFilterCursorBase
+            private sealed class Cursor : LinkedRowFilterCursorBase
             {
                 private readonly ValueGetter<T1> _getSrc;
                 private readonly InPredicate<T1> _pred;
                 private T1 _src;
 
-                public RowCursor(Impl<T1, T2> parent, IRowCursor input, bool[] active)
-                    : base(parent.Host, input, parent.Schema, active)
+                public Cursor(Impl<T1, T2> parent, RowCursor input, bool[] active)
+                    : base(parent.Host, input, parent.OutputSchema, active)
                 {
                     _getSrc = Input.GetGetter<T1>(parent._colSrc);
                     if (parent._conv == null)

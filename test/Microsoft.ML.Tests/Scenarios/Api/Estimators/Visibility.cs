@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         void New_Visibility()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var pipeline = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
+            var pipeline = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features", s => s.OutputTokens = true));
 
             var src = new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename));

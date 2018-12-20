@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
     [BestFriend]
     internal static class LearnerEntryPointsUtils
     {
-        public static string FindColumn(IExceptionContext ectx, ISchema schema, Optional<string> value)
+        public static string FindColumn(IExceptionContext ectx, Schema schema, Optional<string> value)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));
@@ -133,7 +134,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             using (var ch = host.Start("Training"))
             {
-                ISchema schema = input.TrainingData.Schema;
+                var schema = input.TrainingData.Schema;
                 var feature = FindColumn(ch, schema, input.FeatureColumn);
                 var label = getLabel?.Invoke();
                 var weight = getWeight?.Invoke();
@@ -188,7 +189,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
-                return new TOut() { PredictorModel = new PredictorModel(host, roleMappedData, input.TrainingData, predictor) };
+                return new TOut() { PredictorModel = new PredictorModelImpl(host, roleMappedData, input.TrainingData, predictor) };
             }
         }
     }
@@ -211,7 +212,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// </summary>
         public interface IFeaturizerInput : ITransformInput
         {
-            Var<IPredictorModel> PredictorModel { get; set; }
+            Var<PredictorModel> PredictorModel { get; set; }
         }
 
         /// <summary>
@@ -260,7 +261,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// </summary>
         public interface ICalibratorInput : ITransformInput
         {
-            Var<IPredictorModel> UncalibratedPredictorModel { get; }
+            Var<PredictorModel> UncalibratedPredictorModel { get; }
             int MaxRows { get; }
         }
 

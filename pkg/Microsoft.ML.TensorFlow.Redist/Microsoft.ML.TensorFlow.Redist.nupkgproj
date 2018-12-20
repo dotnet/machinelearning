@@ -6,7 +6,7 @@
     <PackageDescription>$(MSBuildProjectName) contains the TensorFlow C library version $(TensorFlowVersion) redistributed as a NuGet package.</PackageDescription>
     <PackageLicenseUrl>https://github.com/tensorflow/tensorflow/blob/master/LICENSE</PackageLicenseUrl>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Copyright>Copyright 2018 The TensorFlow Authors.  All rights reserved.</Copyright>
+    <Copyright>Copyright 2018 The TensorFlow Authors. All rights reserved.</Copyright>
     <PackageProjectUrl>https://www.tensorflow.org</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/tensorflow/tensorflow/releases/tag/v$(TensorFlowVersion)</PackageReleaseNotes>
     <PackageTags>$(PackageTags) TensorFlow</PackageTags>

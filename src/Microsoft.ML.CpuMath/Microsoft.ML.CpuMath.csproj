@@ -5,11 +5,17 @@
     <TargetFrameworks Condition="'$(UseIntrinsics)' == 'true'">netstandard2.0;netcoreapp3.0</TargetFrameworks>
     <IncludeInPackage>Microsoft.ML.CpuMath</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);CPUMATH_INFRASTRUCTURE</DefineConstants>
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <Compile Include="..\Microsoft.ML.Core\Utilities\Contracts.cs" />
+    <Compile Include="..\Microsoft.ML.Core\BestFriendAttribute.cs" />
+    <Compile Include="..\Microsoft.ML.Core\PublicKey.cs" />
+
+    <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
+    <None Include="**/*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
@@ -22,10 +28,6 @@
     <Compile Remove="AvxIntrinsics.cs" />
 
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
   </ItemGroup>
 
 </Project>

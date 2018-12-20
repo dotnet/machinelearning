@@ -270,9 +270,9 @@ namespace Microsoft.ML.Transforms.Projections
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             string reason = TestColumnType(type);
             if (reason != null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms.Projections
             for (int i = 0; i < columns.Length; i++)
             {
                 input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
-                var typeSrc = input.Schema.GetColumnType(srcCol);
+                var typeSrc = input.Schema[srcCol].Type;
                 _transformInfos[i] = new TransformInfo(Host.Register(string.Format("column{0}", i)), columns[i],
                     typeSrc.ValueCount, avgDistances[i]);
             }
@@ -311,13 +311,13 @@ namespace Microsoft.ML.Transforms.Projections
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
-            bool[] activeColumns = new bool[input.Schema.ColumnCount];
+            bool[] activeColumns = new bool[input.Schema.Count];
             int[] srcCols = new int[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
-                var type = input.Schema.GetColumnType(srcCol);
+                var type = input.Schema[srcCol].Type;
                 string reason = TestColumnType(type);
                 if (reason != null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input, reason, type.ToString());
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Transforms.Projections
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var rng = columns[i].Seed.HasValue ? RandomUtils.Create(columns[i].Seed.Value) : Host.Rand;
-                    var srcType = input.Schema.GetColumnType(srcCols[i]);
+                    var srcType = input.Schema[srcCols[i]].Type;
                     if (srcType.IsVector)
                     {
                         var get = cursor.GetGetter<VBuffer<float>>(srcCols[i]);
@@ -430,8 +430,8 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private RandomFourierFeaturizingTransformer(IHost host, ModelLoadContext ctx)
          : base(host, ctx)
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Transforms.Projections
                 _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -540,7 +540,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return GetterFromFloatType(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<float>> GetterFromVectorType(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetterFromVectorType(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
                 var src = default(VBuffer<float>);
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             }
 
-            private ValueGetter<VBuffer<float>> GetterFromFloatType(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetterFromFloatType(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<float>(_srcCols[iinfo]);
                 var src = default(float);
@@ -678,7 +678,7 @@ namespace Microsoft.ML.Transforms.Projections
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

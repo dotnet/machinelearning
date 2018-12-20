@@ -29,27 +29,27 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var view = input.Data;
             var maxScoreId = view.Schema.GetMaxMetadataKind(out int colMax, MetadataUtils.Kinds.ScoreColumnSetId);
             List<int> indices = new List<int>();
-            for (int i = 0; i < view.Schema.ColumnCount; i++)
+            for (int i = 0; i < view.Schema.Count; i++)
             {
-                if (view.Schema.IsHidden(i))
+                if (view.Schema[i].IsHidden)
                     continue;
                 if (!ShouldAddColumn(view.Schema, i, input.ExtraColumns, maxScoreId))
                     continue;
                 indices.Add(i);
             }
             var newView = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Index = indices.ToArray() }, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, newView, input.Data), OutputData = newView };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, newView, input.Data), OutputData = newView };
         }
 
         private static bool ShouldAddColumn(Schema schema, int i, string[] extraColumns, uint scoreSet)
         {
             uint scoreSetId = 0;
-            if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType.AsPrimitive, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
+            if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
                 && scoreSetId == scoreSet)
             {
                 return true;
             }
-            var columnName = schema.GetColumnName(i);
+            var columnName = schema[i].Name;
             if (extraColumns != null && Array.FindIndex(extraColumns, columnName.Equals) >= 0)
                 return true;
             return false;
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public sealed class RenameBinaryPredictionScoreColumnsInput : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "The predictor model used in scoring", SortOrder = 2)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.BinaryPredictionScoreColumnsRenamer", Desc = "For binary prediction, it renames the PredictedLabel and Score columns to include the name of the positive class.", UserName = "Rename Binary Prediction Score Columns")]
@@ -82,9 +82,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     int colMax;
                     var maxScoreId = input.Data.Schema.GetMaxMetadataKind(out colMax, MetadataUtils.Kinds.ScoreColumnSetId);
                     var copyCols = new List<(string Source, string Name)>();
-                    for (int i = 0; i < input.Data.Schema.ColumnCount; i++)
+                    for (int i = 0; i < input.Data.Schema.Count; i++)
                     {
-                        if (input.Data.Schema.IsHidden(i))
+                        if (input.Data.Schema[i].IsHidden)
                             continue;
                         if (!ShouldAddColumn(input.Data.Schema, i, null, maxScoreId))
                             continue;
@@ -96,19 +96,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             continue;
                         }
-                        var source = input.Data.Schema.GetColumnName(i);
+                        var source = input.Data.Schema[i].Name;
                         var name = source + "." + positiveClass;
                         copyCols.Add((source, name));
                     }
 
-                    var copyColumn = new ColumnsCopyingTransformer(env, copyCols.ToArray()).Transform(input.Data);
+                    var copyColumn = new ColumnCopyingTransformer(env, copyCols.ToArray()).Transform(input.Data);
                     var dropColumn = ColumnSelectingTransformer.CreateDrop(env, copyColumn, copyCols.Select(c => c.Source).ToArray());
-                    return new CommonOutputs.TransformOutput { Model = new TransformModel(env, dropColumn, input.Data), OutputData = dropColumn };
+                    return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, dropColumn, input.Data), OutputData = dropColumn };
                 }
             }
 
             var newView = NopTransform.CreateIfNeeded(env, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, newView, input.Data), OutputData = newView };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, newView, input.Data), OutputData = newView };
         }
     }
 }

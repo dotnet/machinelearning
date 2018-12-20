@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
@@ -21,6 +22,8 @@ namespace Microsoft.ML
     public abstract class TrainContextBase
     {
         protected readonly IHost Host;
+
+        [BestFriend]
         internal IHostEnvironment Environment => Host;
 
         /// <summary>
@@ -29,18 +32,20 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="data">The dataset to split.</param>
         /// <param name="testFraction">The fraction of data to go into the test set.</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>A pair of datasets, for the train and test set.</returns>
-        public (IDataView trainSet, IDataView testSet) TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null)
+        public (IDataView trainSet, IDataView testSet) TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
             Host.CheckValueOrNull(stratificationColumn);
 
-            EnsureStratificationColumn(ref data, ref stratificationColumn);
+            EnsureStratificationColumn(ref data, ref stratificationColumn, seed);
 
             var trainFilter = new RangeFilter(Host, new RangeFilter.Arguments()
             {
@@ -65,14 +70,14 @@ namespace Microsoft.ML
         /// Return each model and each scored test dataset.
         /// </summary>
         protected (IDataView scoredTestSet, ITransformer model)[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
-            int numFolds, string stratificationColumn)
+            int numFolds, string stratificationColumn, uint? seed = null)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckValue(estimator, nameof(estimator));
             Host.CheckParam(numFolds > 1, nameof(numFolds), "Must be more than 1");
             Host.CheckValueOrNull(stratificationColumn);
 
-            EnsureStratificationColumn(ref data, ref stratificationColumn);
+            EnsureStratificationColumn(ref data, ref stratificationColumn, seed);
 
             Func<int, (IDataView scores, ITransformer model)> foldFunction =
                 fold =>
@@ -119,7 +124,7 @@ namespace Microsoft.ML
         /// for <see cref="RangeFilter"/>, hash it if needed, or introduce a new one
         /// if needed.
         /// </summary>
-        private void EnsureStratificationColumn(ref IDataView data, ref string stratificationColumn)
+        private void EnsureStratificationColumn(ref IDataView data, ref string stratificationColumn, uint? seed = null)
         {
             // We need to handle two cases: if the stratification column is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
@@ -127,14 +132,14 @@ namespace Microsoft.ML
             if (stratificationColumn == null)
             {
                 stratificationColumn = data.Schema.GetTempColumnName("StratificationColumn");
-                data = new GenerateNumberTransform(Host, data, stratificationColumn);
+                data = new GenerateNumberTransform(Host, data, stratificationColumn, seed);
             }
             else
             {
                 if (!data.Schema.TryGetColumnIndex(stratificationColumn, out int stratCol))
                     throw Host.ExceptSchemaMismatch(nameof(stratificationColumn), "stratification", stratificationColumn);
 
-                var type = data.Schema.GetColumnType(stratCol);
+                var type = data.Schema[stratCol].Type;
                 if (!RangeFilter.IsValidRangeFilterColumnType(Host, type))
                 {
                     // Hash the stratification column.
@@ -162,6 +167,7 @@ namespace Microsoft.ML
         /// </summary>
         public abstract class ContextInstantiatorBase
         {
+            [BestFriend]
             internal TrainContextBase Owner { get; }
 
             protected ContextInstantiatorBase(TrainContextBase ctx)
@@ -204,7 +210,7 @@ namespace Microsoft.ML
         /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public BinaryClassifierEvaluator.CalibratedResult Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+        public CalibratedBinaryClassificationMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string probability = DefaultColumnNames.Probability, string predictedLabel = DefaultColumnNames.PredictedLabel)
         {
             Host.CheckValue(data, nameof(data));
@@ -225,7 +231,7 @@ namespace Microsoft.ML
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
-        public BinaryClassifierEvaluator.Result EvaluateNonCalibrated(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+        public BinaryClassificationMetrics EvaluateNonCalibrated(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel)
         {
             Host.CheckValue(data, nameof(data));
@@ -246,16 +252,19 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (BinaryClassifierEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+        public (BinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
+            string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => (EvaluateNonCalibrated(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
 
@@ -272,12 +281,14 @@ namespace Microsoft.ML
         /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
+        /// <param name="seed">If <paramref name="stratificationColumn"/> not present in dataset we will generate random filled column based on provided <paramref name="seed"/>.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (BinaryClassifierEvaluator.CalibratedResult metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+        public (CalibratedBinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
+            string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
     }
@@ -315,19 +326,19 @@ namespace Microsoft.ML
         /// <param name="data">The scored data.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="label">The name of the optional label column in <paramref name="data"/>.
-        /// If present, the <see cref="ClusteringEvaluator.Result.Nmi"/> metric will be computed.</param>
+        /// If present, the <see cref="ClusteringMetrics.Nmi"/> metric will be computed.</param>
         /// <param name="features">The name of the optional features column in <paramref name="data"/>.
-        /// If present, the <see cref="ClusteringEvaluator.Result.Dbi"/> metric will be computed.</param>
+        /// If present, the <see cref="ClusteringMetrics.Dbi"/> metric will be computed.</param>
         /// <returns>The evaluation result.</returns>
-        public ClusteringEvaluator.Result Evaluate(IDataView data,
+        public ClusteringMetrics Evaluate(IDataView data,
             string label = null,
             string score = DefaultColumnNames.Score,
-            string features = null )
+            string features = null)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(score, nameof(score));
 
-            if(features != null)
+            if (features != null)
                 Host.CheckNonEmpty(features, nameof(features), "The features column name should be non-empty if you want to calculate the Dbi metric.");
 
             if (label != null)
@@ -347,15 +358,18 @@ namespace Microsoft.ML
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">Optional label column for evaluation (clustering tasks may not always have a label).</param>
         /// <param name="featuresColumn">Optional features column for evaluation (needed for calculating Dbi metric)</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (ClusteringEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null, string stratificationColumn = null)
+        public (ClusteringMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null,
+            string stratificationColumn = null, uint? seed = null)
         {
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => (Evaluate(x.scoredTestSet, label: labelColumn, features: featuresColumn), x.model, x.scoredTestSet)).ToArray();
         }
     }
@@ -391,11 +405,11 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierEvaluator.Result.TopKAccuracy"/> will be filled with
+        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public MultiClassClassifierEvaluator.Result Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+        public MultiClassClassifierMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel, int topK = 0)
         {
             Host.CheckValue(data, nameof(data));
@@ -419,16 +433,19 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (MultiClassClassifierEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+        public (MultiClassClassifierMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
+            string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
     }
@@ -464,7 +481,7 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public RegressionEvaluator.Result Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score)
+        public RegressionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -483,22 +500,25 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (RegressionEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+        public (RegressionMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
+            string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
     }
 
     /// <summary>
-    /// The central context for regression trainers.
+    /// The central context for ranking trainers.
     /// </summary>
     public sealed class RankingContext : TrainContextBase
     {
@@ -529,7 +549,7 @@ namespace Microsoft.ML
         /// <param name="groupId">The name of the groupId column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public RankerEvaluator.Result Evaluate(IDataView data, string label, string groupId, string score = DefaultColumnNames.Score)
+        public RankerMetrics Evaluate(IDataView data, string label, string groupId, string score = DefaultColumnNames.Score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));

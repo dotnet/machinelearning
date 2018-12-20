@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
 using Xunit;
@@ -53,20 +53,20 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestDifferentTypes()
         {
-            string dataPath = GetDataPath("adult.test");
+            string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
                 Column = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 0),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("double1", DataKind.R8, 0),
-                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("int1", DataKind.I4, 0),
+                    new TextLoader.Column("float1", DataKind.R4, 9),
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("double1", DataKind.R8, 9),
+                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("int1", DataKind.I4, 9),
                     new TextLoader.Column("text1", DataKind.TX, 1),
-                    new TextLoader.Column("text2", DataKind.TX, new[]{new TextLoader.Range(1), new TextLoader.Range(3)}),
+                    new TextLoader.Column("text2", DataKind.TX, new[]{new TextLoader.Range(1), new TextLoader.Range(2)}),
                 },
-                Separator = ",",
+                Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
 
@@ -145,10 +145,10 @@ namespace Microsoft.ML.Tests
             var result = termTransformer.Transform(dataView);
             result.Schema.TryGetColumnIndex("T", out int termIndex);
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
-            var type1 = result.Schema.GetColumnType(termIndex);
+            var type1 = result.Schema[termIndex].Type;
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
             int size = itemType1 is KeyType keyType ? keyType.Count : -1;
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
+            result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
             Assert.True(names1.GetValues().Length > 0);
         }
 

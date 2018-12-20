@@ -31,7 +31,7 @@ namespace Microsoft.ML.Trainers.Online
     /// <summary>
     /// Linear SVM that implements PEGASOS for training. See: http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf
     /// </summary>
-    public sealed class LinearSvm : OnlineLinearTrainer<BinaryPredictionTransformer<LinearBinaryPredictor>, LinearBinaryPredictor>
+    public sealed class LinearSvm : OnlineLinearTrainer<BinaryPredictionTransformer<LinearBinaryModelParameters>, LinearBinaryModelParameters>
     {
         internal const string LoadNameValue = "LinearSVM";
         internal const string ShortName = "svm";
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers.Online
             private readonly bool _performProjection;
             private readonly float _lambda;
 
-            public TrainState(IChannel ch, int numFeatures, LinearPredictor predictor, LinearSvm parent)
+            public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, LinearSvm parent)
                 : base(ch, numFeatures, predictor, parent)
             {
                 _batchSize = parent.Args.BatchSize;
@@ -212,17 +212,42 @@ namespace Microsoft.ML.Trainers.Online
             public override Float Margin(in VBuffer<Float> feat)
                 => Bias + VectorUtils.DotProduct(in feat, in Weights) * WeightsScale;
 
-            public override LinearBinaryPredictor CreatePredictor()
+            public override LinearBinaryModelParameters CreatePredictor()
             {
                 Contracts.Assert(WeightsScale == 1);
                 // below should be `in Weights`, but can't because of https://github.com/dotnet/roslyn/issues/29371
-                return new LinearBinaryPredictor(ParentHost, Weights, Bias);
+                return new LinearBinaryModelParameters(ParentHost, Weights, Bias);
             }
         }
 
         protected override bool NeedCalibration => true;
 
-        public LinearSvm(IHostEnvironment env, Arguments args)
+        /// <summary>
+        /// Initializes a new instance of <see cref="LinearSvm"/>.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="labelColumn">The name of the label column. </param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightsColumn">The optional name of the weights column.</param>
+        /// <param name="numIterations">The number of training iteraitons.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public LinearSvm(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weightsColumn = null,
+            int numIterations = Arguments.OnlineDefaultArgs.NumIterations,
+            Action<Arguments> advancedSettings = null)
+            :this(env, InvokeAdvanced(advancedSettings, new Arguments
+            {
+                LabelColumn = labelColumn,
+                FeatureColumn = featureColumn,
+                InitialWeights = weightsColumn,
+                NumIterations = numIterations,
+            }))
+        {
+        }
+
+        internal LinearSvm(IHostEnvironment env, Arguments args)
             : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
         {
             Contracts.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), UserErrorPositive);
@@ -243,13 +268,13 @@ namespace Microsoft.ML.Trainers.Online
             };
         }
 
-        protected override void CheckLabels(RoleMappedData data)
+        private protected override void CheckLabels(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckBinaryLabel();
         }
 
-        private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearPredictor predictor)
+        private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearModelParameters predictor)
         {
             return new TrainState(ch, numFeatures, predictor, this);
         }
@@ -273,7 +298,7 @@ namespace Microsoft.ML.Trainers.Online
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
 
-        protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, Schema trainSchema)
-        => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, Schema trainSchema)
+        => new BinaryPredictionTransformer<LinearBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
     }
 }

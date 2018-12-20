@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return new CommonOutputs.TransformOutput()
             {
 
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -357,10 +357,10 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         internal static bool GetNewType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyRange range, out PrimitiveType itemType)
         {
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!srcType.ItemType.IsKey && !srcType.ItemType.IsText)
                     return false;
             }
-            else if (!srcType.ItemType.IsKey)
+            else if (!(srcType.ItemType is KeyType key))
                 itemType = PrimitiveType.FromKind(kind);
             else if (!KeyType.IsValidDataKind(kind))
             {
@@ -379,7 +379,6 @@ namespace Microsoft.ML.Transforms.Conversions
             }
             else
             {
-                var key = srcType.ItemType.AsKey;
                 ectx.Assert(KeyType.IsValidDataKind(key.RawKind));
                 int count = key.Count;
                 // Technically, it's an error for the counts not to match, but we'll let the Conversions
@@ -436,8 +435,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     return false;
 
                 typeDst = itemType;
-                if (srcType.IsVector)
-                    typeDst = new VectorType(itemType, srcType.AsVector);
+                if (srcType is VectorType vectorType)
+                    typeDst = new VectorType(itemType, vectorType);
 
                 return true;
             }
@@ -468,14 +467,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
-                if (!_types[iinfo].IsVector)
+                if (!(_types[iinfo] is VectorType vectorType))
                     return RowCursorUtils.GetGetterAs(_types[iinfo], input, _srcCols[iinfo]);
-                return RowCursorUtils.GetVecGetterAs(_types[iinfo].AsVector.ItemType, input, _srcCols[iinfo]);
+                return RowCursorUtils.GetVecGetterAs(vectorType.ItemType, input, _srcCols[iinfo]);
             }
 
             public void SaveAsOnnx(OnnxContext ctx)
@@ -507,7 +506,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputKind);
                 if (_parent._columns[iinfo].OutputKeyRange != null)
                 {
-                    var key = _types[iinfo].ItemType.AsKey;
+                    var key = (KeyType)_types[iinfo].ItemType;
                     node.AddAttribute("min", key.Min);
                     node.AddAttribute("max", key.Count);
                     node.AddAttribute("contiguous", key.Contiguous);
@@ -552,7 +551,7 @@ namespace Microsoft.ML.Transforms.Conversions
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
@@ -576,66 +575,6 @@ namespace Microsoft.ML.Transforms.Conversions
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, newType, false, col.Metadata);
             }
             return new SchemaShape(result.Values);
-        }
-    }
-
-    public static partial class ConvertStaticExtensions
-    {
-
-        private interface IConvertCol
-        {
-            PipelineColumn Input { get; }
-            DataKind Kind { get; }
-        }
-
-        private sealed class ImplScalar<T> : Scalar<float>, IConvertCol
-        {
-            public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplScalar(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
-            {
-                Input = input;
-                Kind = kind;
-            }
-        }
-
-        private sealed class ImplVector<T> : Vector<float>, IConvertCol
-        {
-            public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
-            {
-                Input = input;
-                Kind = kind;
-            }
-        }
-
-        private sealed class ImplVarVector<T> : VarVector<float>, IConvertCol
-        {
-            public PipelineColumn Input { get; }
-            public DataKind Kind { get; }
-            public ImplVarVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
-            {
-                Input = input;
-                Kind = kind;
-            }
-        }
-
-        private sealed class Rec : EstimatorReconciler
-        {
-            public static readonly Rec Inst = new Rec();
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
-            {
-                var infos = new TypeConvertingTransformer.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new TypeConvertingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Kind);
-                }
-                return new TypeConvertingEstimator(env, infos);
-            }
         }
     }
 }

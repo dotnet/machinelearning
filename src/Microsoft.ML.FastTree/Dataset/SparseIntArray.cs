@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
@@ -490,12 +491,13 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
 #if USE_FASTTREENATIVE
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
+        internal const string NativePath = "FastTreeNative";
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static extern unsafe int C_SumupDeltaSparse_float(int numBits, byte* pValues, byte* pDeltas, int numDeltas, int* pIndices, float* pSampleOutputs, double* pSampleOutputWeights,
                                   float* pSumTargetsByBin, double* pSumTargets2ByBin, int* pCountByBin,
                                   int totalCount, double totalSampleOutputs, double totalSampleOutputWeights);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static extern unsafe int C_SumupDeltaSparse_double(int numBits, byte* pValues, byte* pDeltas, int numDeltas, int* pIndices, double* pSampleOutputs, double* pSampleOutputWeights,
                                   double* pSumTargetsByBin, double* pSumTargets2ByBin, int* pCountByBin,
                                   int totalCount, double totalSampleOutputs, double totalSampleOutputWeights);

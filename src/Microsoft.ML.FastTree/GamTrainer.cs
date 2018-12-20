@@ -3,19 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,8 +35,33 @@ namespace Microsoft.ML.Trainers.FastTree
     using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     /// <summary>
-    /// Generalized Additive Model Learner.
+    /// Generalized Additive Model Trainer.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Generalized Additive Models, or GAMs, model the data as a set of linearly independent features
+    /// similar to a linear model. For each feature, the GAM trainer learns a non-linear function,
+    /// called a "shape function", that computes the response as a function of the feature's value.
+    /// (In contrast, a linear model fits a linear response (e.g. a line) to each feature.)
+    /// To score an example, the outputs of all the shape functions are summed and the score is the total value.
+    /// </para>
+    /// <para>
+    /// This GAM trainer is implemented using shallow gradient boosted trees (e.g. tree stumps) to learn nonparametric
+    /// shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
+    /// <a href='http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf'>&quot;Intelligible Models for Classification and Regression.&quot;</a> KDD&apos;12, Beijing, China. 2012.
+    /// After training, an intercept is added to represent the average prediction over the training set,
+    /// and the shape functions are normalized to represent the deviation from the average prediction. This results
+    /// in models that are easily interpreted simply by inspecting the intercept and the shape functions.
+    /// See the sample below for an example of how to train a GAM model and inspect and interpret the results.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[GAM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
         where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.ArgumentsBase, new()
@@ -623,14 +649,15 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class GamPredictorBase : PredictorBase<float>,
-        IValueMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
+    public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper,
+        IFeatureContributionMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
         public readonly double Intercept;
         private readonly int _numFeatures;
         private readonly ColumnType _inputType;
+        private readonly ColumnType _outputType;
         // These would be the bins for a totally sparse input.
         private readonly int[] _binsAtAllZero;
         // The output value for all zeros
@@ -640,9 +667,8 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly int _inputLength;
         private readonly Dictionary<int, int> _inputFeatureToDatasetFeatureMap;
 
-        public ColumnType InputType => _inputType;
-
-        public ColumnType OutputType => NumberType.Float;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => _outputType;
 
         private protected GamPredictorBase(IHostEnvironment env, string name,
             int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap)
@@ -658,6 +684,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             _numFeatures = binEffects.Length;
             _inputType = new VectorType(NumberType.Float, _inputLength);
+            _outputType = NumberType.Float;
             _featureMap = featureMap;
 
             Intercept = meanEffect;
@@ -762,6 +789,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             _inputType = new VectorType(NumberType.Float, _inputLength);
+            _outputType = NumberType.Float;
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -791,7 +819,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(float));
@@ -828,60 +856,6 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             response = (float)value;
-        }
-
-        /// <summary>
-        /// Returns a vector of feature contributions for a given example.
-        /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
-        /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
-        /// </summary>
-        internal void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
-        {
-            if (builder == null)
-                builder = new BufferBuilder<float>(R4Adder.Instance);
-
-            // The model is Intercept + Features
-            builder.Reset(features.Length + 1, false);
-            builder.AddFeature(0, (float)Intercept);
-
-            var featuresValues = features.GetValues();
-            if (features.IsDense)
-            {
-                for (int i = 0; i < featuresValues.Length; ++i)
-                {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        builder.AddFeature(i+1, (float) GetBinEffect(j, featuresValues[i]));
-                }
-            }
-            else
-            {
-                int k = -1;
-                var featuresIndices = features.GetIndices();
-                int index = featuresIndices[++k];
-                for (int i = 0; i < _numFeatures; ++i)
-                {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                    {
-                        double value;
-                        if (i == index)
-                        {
-                            // Get the computed value
-                            value = GetBinEffect(j, featuresValues[index]);
-                            // Increment index to the next feature
-                            if (k < featuresIndices.Length - 1)
-                                index = featuresIndices[++k];
-                        }
-                        else
-                            // For features not defined, the impact is the impact at 0
-                            value = GetBinEffect(i, 0);
-                        builder.AddFeature(i + 1, (float)value);
-                    }
-                }
-            }
-
-            builder.GetResult(ref contribs);
-
-            return;
         }
 
         internal double GetFeatureBinsAndScore(in VBuffer<float> features, int[] bins)
@@ -975,7 +949,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return featureWeights;
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
@@ -1016,9 +990,43 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
-            SaveAsText(writer, schema);
+            ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
+        }
+
+        ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDstContributions>
+            (int top, int bottom, bool normalize)
+        {
+            Contracts.Check(typeof(TSrc) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<float>));
+
+            ValueMapper<VBuffer<float>, VBuffer<float>> del =
+                (in VBuffer<float> srcFeatures, ref VBuffer<float> dstContributions) =>
+                {
+                    GetFeatureContributions(in srcFeatures, ref dstContributions, top, bottom, normalize);
+                };
+            return (ValueMapper<TSrc, VBuffer<float>>)(Delegate)del;
+        }
+
+        private void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contributions,
+                        int top, int bottom, bool normalize)
+        {
+            var editor = VBufferEditor.Create(ref contributions, features.Length);
+
+            // We need to use dense value of features, b/c the feature contributions could be significant
+            // even for features with value 0.
+            var featureIndex = 0;
+            foreach (var featureValue in features.DenseValues())
+            {
+                float contribution = 0;
+                if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+                    contribution = (float)GetBinEffect(j, featureValue);
+                editor.Values[featureIndex] = contribution;
+                featureIndex++;
+            }
+            contributions = editor.Commit();
+            Runtime.Numeric.VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
         }
 
         /// <summary>
@@ -1097,7 +1105,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 /// These are the number of input features, as opposed to the number of features used within GAM
                 /// which may be lower.
                 /// </summary>
-                public int NumFeatures => _pred.InputType.VectorSize;
+                public int NumFeatures => _pred._inputType.VectorSize;
 
                 public Context(IChannel ch, GamPredictorBase pred, RoleMappedData data, IEvaluator eval)
                 {
@@ -1113,8 +1121,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     ch.Check(schema.Feature.Type.ValueCount == _pred._inputLength);
 
                     int len = schema.Feature.Type.ValueCount;
-                    if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
-                        schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref _featNames);
+                    if (schema.Schema[schema.Feature.Index].HasSlotNames(len))
+                        schema.Schema[schema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _featNames);
                     else
                         _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 
@@ -1317,7 +1325,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     public static FeatureInfo GetInfoForIndex(Context context, int index)
                     {
                         Contracts.AssertValue(context);
-                        Contracts.Assert(0 <= index && index < context._pred.InputType.ValueCount);
+                        Contracts.Assert(0 <= index && index < context._pred._inputType.ValueCount);
                         lock (context._pred)
                         {
                             int internalIndex;

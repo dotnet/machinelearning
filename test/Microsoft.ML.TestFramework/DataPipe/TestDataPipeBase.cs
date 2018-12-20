@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.TestFramework;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using Xunit;
 
 namespace Microsoft.ML.Runtime.RunTests
@@ -100,7 +99,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     var mapper = transformer.GetRowToRowMapper(data.Schema);
                     Check(mapper.InputSchema == data.Schema, "InputSchemas were not identical to actual input schema");
-                    CheckSameSchemas(schema, mapper.Schema);
+                    CheckSameSchemas(schema, mapper.OutputSchema);
                 }
                 else
                 {
@@ -151,9 +150,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
         {
-            Assert.True(promised.Columns.Length == delivered.Columns.Length);
-            var sortedCols1 = promised.Columns.OrderBy(x => x.Name);
-            var sortedCols2 = delivered.Columns.OrderBy(x => x.Name);
+            Assert.True(promised.Count == delivered.Count);
+            var sortedCols1 = promised.OrderBy(x => x.Name);
+            var sortedCols2 = delivered.OrderBy(x => x.Name);
 
             foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
             {
@@ -237,7 +236,7 @@ namespace Microsoft.ML.Runtime.RunTests
             else if (!CheckSameValues(pipe1, pipe2, checkId: checkId))
                 Failed();
 
-            if (pipe1.Schema.ColumnCount > 0)
+            if (pipe1.Schema.Count > 0)
             {
                 // The text saver fails if there are no columns, so we cannot check in that case.
                 if (!SaveLoadText(pipe1, _env, keepHidden, suffix, suffixBase, checkBaseline, forceDense, roundTripText))
@@ -257,7 +256,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var newPipe = ApplyTransformUtils.ApplyAllTransformsToData(_env, comp.View, cachedData);
                 if (!newPipe.CanShuffle)
                 {
-                    using (var c1 = newPipe.GetRowCursor(col => true, new SysRandom(123)))
+                    using (var c1 = newPipe.GetRowCursor(col => true, new Random(123)))
                     using (var c2 = newPipe.GetRowCursor(col => true))
                     {
                         if (!CheckSameValues(c1, c2, true, true, true))
@@ -398,10 +397,10 @@ namespace Microsoft.ML.Runtime.RunTests
             TextSaver saver = new TextSaver(env, new TextSaver.Arguments() { Dense = forceDense, OutputSchema = outputSchema, OutputHeader = outputHeader });
             var schema = view.Schema;
             List<int> savable = new List<int>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema.GetColumnType(c);
-                if (saver.IsColumnSavable(type) && (hidden || !schema.IsHidden(c)))
+                ColumnType type = schema[c].Type;
+                if (saver.IsColumnSavable(type) && (hidden || !schema[c].IsHidden))
                     savable.Add(c);
             }
 
@@ -421,7 +420,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (!roundTrip)
                 return true;
 
-            if (savable.Count < view.Schema.ColumnCount)
+            if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
@@ -438,7 +437,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loadedData = TextLoader.ReadFile(env, new TextLoader.Arguments(), new MultiFileSource(pathData));
+            var loadedData = ML.Data.ReadFromTextFile(pathData);
             if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 
@@ -485,31 +484,30 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected bool CheckMetadataTypes(ISchema sch)
+        protected bool CheckMetadataTypes(Schema sch)
         {
             var hs = new HashSet<string>();
-            for (int col = 0; col < sch.ColumnCount; col++)
+            for (int col = 0; col < sch.Count; col++)
             {
-                var typeSlot = sch.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, col);
-                var typeKeys = sch.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, col);
-                var all = sch.GetMetadataTypes(col);
+                var typeSlot = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
+                var typeKeys = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
 
                 hs.Clear();
-                foreach (var kvp in all)
+                foreach (var metaColumn in sch[col].Metadata.Schema)
                 {
-                    if (kvp.Key == null || kvp.Value == null)
+                    if (metaColumn.Name == null || metaColumn.Type == null)
                     {
                         Fail("Null returned from GetMetadataTypes");
                         return Failed();
                     }
-                    if (!hs.Add(kvp.Key))
+                    if (!hs.Add(metaColumn.Name))
                     {
-                        Fail("Duplicate metadata type: {0}", kvp.Key);
+                        Fail("Duplicate metadata type: {0}", metaColumn.Name);
                         return Failed();
                     }
-                    if (kvp.Key == MetadataUtils.Kinds.SlotNames)
+                    if (metaColumn.Name == MetadataUtils.Kinds.SlotNames)
                     {
-                        if (typeSlot == null || !typeSlot.Equals(kvp.Value))
+                        if (typeSlot == null || !typeSlot.Equals(metaColumn.Type))
                         {
                             Fail("SlotNames types don't match");
                             return Failed();
@@ -517,22 +515,14 @@ namespace Microsoft.ML.Runtime.RunTests
                         typeSlot = null;
                         continue;
                     }
-                    if (kvp.Key == MetadataUtils.Kinds.KeyValues)
+                    if (metaColumn.Name == MetadataUtils.Kinds.KeyValues)
                     {
-                        if (typeKeys == null || !typeKeys.Equals(kvp.Value))
+                        if (typeKeys == null || !typeKeys.Equals(metaColumn.Type))
                         {
                             Fail("KeyValues types don't match");
                             return Failed();
                         }
                         typeKeys = null;
-                        continue;
-                    }
-
-                    var type = sch.GetMetadataTypeOrNull(kvp.Key, col);
-                    if (type == null || !type.Equals(kvp.Value))
-                    {
-                        Fail("{0} types don't match", kvp.Key);
-                        return Failed();
                     }
                 }
 
@@ -545,25 +535,25 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckSameSchemas(ISchema sch1, ISchema sch2, bool exactTypes = true, bool keyNames = true)
+        protected bool CheckSameSchemas(Schema sch1, Schema sch2, bool exactTypes = true, bool keyNames = true)
         {
-            if (sch1.ColumnCount != sch2.ColumnCount)
+            if (sch1.Count != sch2.Count)
             {
-                Fail("column count mismatch: {0} vs {1}", sch1.ColumnCount, sch2.ColumnCount);
+                Fail("column count mismatch: {0} vs {1}", sch1.Count, sch2.Count);
                 return Failed();
             }
 
-            for (int col = 0; col < sch1.ColumnCount; col++)
+            for (int col = 0; col < sch1.Count; col++)
             {
-                string name1 = sch1.GetColumnName(col);
-                string name2 = sch2.GetColumnName(col);
+                string name1 = sch1[col].Name;
+                string name2 = sch2[col].Name;
                 if (name1 != name2)
                 {
                     Fail("column name mismatch at index {0}: {1} vs {2}", col, name1, name2);
                     return Failed();
                 }
-                var type1 = sch1.GetColumnType(col);
-                var type2 = sch2.GetColumnType(col);
+                var type1 = sch1[col].Type;
+                var type2 = sch2[col].Type;
                 if (!EqualTypes(type1, type2, exactTypes))
                 {
                     Fail("column type mismatch at index {0}", col);
@@ -603,13 +593,13 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataNames(string kind, int size, ISchema sch1, ISchema sch2, int col, bool exactTypes, bool mustBeText)
+        protected bool CheckMetadataNames(string kind, int size, Schema sch1, Schema sch2, int col, bool exactTypes, bool mustBeText)
         {
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
 
-            var t1 = sch1.GetMetadataTypeOrNull(kind, col);
-            var t2 = sch2.GetMetadataTypeOrNull(kind, col);
+            var t1 = sch1[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
+            var t2 = sch2[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             if ((t1 == null) != (t2 == null))
             {
                 Fail("Different null-ness of {0} metadata types", kind);
@@ -645,8 +635,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 return Failed();
             }
 
-            sch1.GetMetadata(kind, col, ref names1);
-            sch2.GetMetadata(kind, col, ref names2);
+            sch1[col].Metadata.GetValue(kind, ref names1);
+            sch2[col].Metadata.GetValue(kind, ref names2);
             if (!CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
@@ -655,11 +645,11 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
+        protected bool CheckMetadataCallFailure(string kind, Schema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             try
             {
-                sch.GetMetadata(kind, col, ref names);
+                sch[col].Metadata.GetValue(kind, ref names);
                 Fail("Getting {0} metadata unexpectedly succeeded", kind);
                 return Failed();
             }
@@ -683,9 +673,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var schema = view.Schema;
             List<int> savable = new List<int>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema.GetColumnType(c);
+                ColumnType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -699,7 +689,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Log("View saved in {0} bytes", stream.Length);
             }
 
-            if (savable.Count < view.Schema.ColumnCount)
+            if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
@@ -729,9 +719,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var schema = view.Schema;
             List<int> savable = new List<int>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema.GetColumnType(c);
+                ColumnType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -750,7 +740,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Log("View saved in {0} bytes", stream.Length);
             }
 
-            if (savable.Count < view.Schema.ColumnCount)
+            if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
@@ -790,20 +780,6 @@ namespace Microsoft.ML.Runtime.RunTests
             public float Score;
         }
 
-        private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
-        {
-            return new TextLoader.Arguments()
-            {
-                Separator = "tab",
-                HasHeader = true,
-                Column = new[]
-                {
-                    new TextLoader.Column("Label", DataKind.BL, 0),
-                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                }
-            };
-        }
-
         protected bool Failed()
         {
             Contracts.Assert(!IsPassing);
@@ -820,7 +796,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckSameValues(IDataView view1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(view1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(view1.Schema.Count == view2.Schema.Count);
 
             bool all = true;
             bool tmp;
@@ -865,12 +841,12 @@ namespace Microsoft.ML.Runtime.RunTests
             return all;
         }
 
-        protected bool CheckSameValues(IRowCursor curs1, IRowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
+        protected bool CheckSameValues(RowCursor curs1, RowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == curs2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == curs2.Schema.Count);
 
             // Get the comparison delegates for each column.
-            int colLim = curs1.Schema.ColumnCount;
+            int colLim = curs1.Schema.Count;
             Func<bool>[] comps = new Func<bool>[colLim];
             for (int col = 0; col < colLim; col++)
             {
@@ -879,8 +855,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 if (f1 && f2)
                 {
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = curs2.Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = curs2.Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");
@@ -889,13 +865,13 @@ namespace Microsoft.ML.Runtime.RunTests
                     comps[col] = GetColumnComparer(curs1, curs2, col, type1, exactDoubles);
                 }
             }
-            ValueGetter<UInt128> idGetter = null;
+            ValueGetter<RowId> idGetter = null;
             Func<bool> idComp = checkId ? GetIdComparer(curs1, curs2, out idGetter) : null;
-            HashSet<UInt128> idsSeen = null;
+            HashSet<RowId> idsSeen = null;
             if (checkIdCollisions && idGetter == null)
                 idGetter = curs1.GetIdGetter();
             long idCollisions = 0;
-            UInt128 id = default(UInt128);
+            RowId id = default(RowId);
 
             for (; ; )
             {
@@ -946,13 +922,13 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected bool CheckSameValues(IRowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
+        protected bool CheckSameValues(RowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == view2.Schema.Count);
 
             // Get a cursor for each column.
-            int colLim = curs1.Schema.ColumnCount;
-            var cursors = new IRowCursor[colLim];
+            int colLim = curs1.Schema.Count;
+            var cursors = new RowCursor[colLim];
             try
             {
                 for (int col = 0; col < colLim; col++)
@@ -969,15 +945,15 @@ namespace Microsoft.ML.Runtime.RunTests
                 for (int col = 0; col < colLim; col++)
                 {
                     Contracts.Assert(cursors[col] != null);
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = cursors[col].Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = cursors[col].Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");
                         return Failed();
                     }
                     comps[col] = GetColumnComparer(curs1, cursors[col], col, type1, exactDoubles);
-                    ValueGetter<UInt128> idGetter;
+                    ValueGetter<RowId> idGetter;
                     idComps[col] = checkId ? GetIdComparer(curs1, cursors[col], out idGetter) : null;
                 }
 
@@ -1029,13 +1005,13 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected Func<bool> GetIdComparer(IRow r1, IRow r2, out ValueGetter<UInt128> idGetter)
+        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<RowId> idGetter)
         {
             var g1 = r1.GetIdGetter();
             idGetter = g1;
             var g2 = r2.GetIdGetter();
-            UInt128 v1 = default(UInt128);
-            UInt128 v2 = default(UInt128);
+            RowId v1 = default(RowId);
+            RowId v2 = default(RowId);
             return
                 () =>
                 {
@@ -1045,7 +1021,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
         }
 
-        protected Func<bool> GetColumnComparer(IRow r1, IRow r2, int col, ColumnType type, bool exactDoubles)
+        protected Func<bool> GetColumnComparer(Row r1, Row r2, int col, ColumnType type, bool exactDoubles)
         {
             if (!type.IsVector)
             {
@@ -1085,7 +1061,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     case DataKind.DZ:
                         return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.UG:
-                        return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<RowId>(r1, r2, col, (x, y) => x.Equals(y));
                     case (DataKind)0:
                         // We cannot compare custom types (including image).
                         return () => true;
@@ -1134,7 +1110,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     case DataKind.DZ:
                         return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.UG:
-                        return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }
             }
 
@@ -1174,7 +1150,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < SingleEps;
         }
 
-        protected Func<bool> GetComparerOne<T>(IRow r1, IRow r2, int col, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerOne<T>(Row r1, Row r2, int col, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<T>(col);
             var g2 = r2.GetGetter<T>(col);
@@ -1191,7 +1167,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
         }
 
-        protected Func<bool> GetComparerVec<T>(IRow r1, IRow r2, int col, int size, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerVec<T>(Row r1, Row r2, int col, int size, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<VBuffer<T>>(col);
             var g2 = r2.GetGetter<VBuffer<T>>(col);

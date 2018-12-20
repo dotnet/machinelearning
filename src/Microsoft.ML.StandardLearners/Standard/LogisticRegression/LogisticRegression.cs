@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using MathNet.Numerics.LinearAlgebra;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -53,11 +52,10 @@ namespace Microsoft.ML.Runtime.Learners
             public bool ShowTrainingStats = false;
 
             /// <summary>
-            /// The instance of <see cref="ComputeLRTrainingStd"/> that computes the training statistics at the end of training.
-            /// If you have a large number of learned training parameters(more than 500),
-            /// generating the training statistics might take a few seconds.
-            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLRTrainingStd"/>
-            /// present in the Microsoft.ML.HalLearners package. That computes the statistics using hardware acceleration.
+            /// The instance of <see cref="ComputeLRTrainingStd"/> that computes the std of the training statistics, at the end of training.
+            /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
+            /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Arguments.StdComputer"/>.
+            /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HalLearners package.
             /// </summary>
             public ComputeLRTrainingStd StdComputer;
         }
@@ -75,7 +73,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public LogisticRegression(IHostEnvironment env,
@@ -89,16 +87,13 @@ namespace Microsoft.ML.Runtime.Learners
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights, advancedSettings,
-                  l1Weight, l2Weight,  optimizationTolerance, memorySize, enforceNoNegativity)
+                  l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
-
-            if (ShowTrainingStats && Args.StdComputer == null)
-                Args.StdComputer = new ComputeLRTrainingStdImpl();
         }
 
         /// <summary>
@@ -109,14 +104,11 @@ namespace Microsoft.ML.Runtime.Learners
         {
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
-
-            if (ShowTrainingStats && Args.StdComputer == null)
-                Args.StdComputer = new ComputeLRTrainingStdImpl();
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        protected override void CheckLabel(RoleMappedData data)
+        private protected override void CheckLabel(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckBinaryLabel();
@@ -134,6 +126,9 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        public BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
@@ -165,7 +160,7 @@ namespace Microsoft.ML.Runtime.Learners
             return weight * datumLoss;
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
+        private protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(cursorFactory);
@@ -217,8 +212,8 @@ namespace Microsoft.ML.Runtime.Learners
             var schema = cursorFactory.Data.Data.Schema;
             var featureLength = CurrentWeights.Length - BiasCount;
             var namesSpans = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featureLength);
-            if (schema.HasSlotNames(featureColIdx, featureLength))
-                schema.GetMetadata(MetadataUtils.Kinds.SlotNames, featureColIdx, ref namesSpans);
+            if (schema[featureColIdx].HasSlotNames(featureLength))
+                schema[featureColIdx].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref namesSpans);
             Host.Assert(namesSpans.Length == featureLength);
 
             // Inverse mapping of non-zero weight slots.
@@ -372,7 +367,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         //Override default termination criterion MeanRelativeImprovementCriterion with
-        protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
+        private protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<float> init, out ITerminationCriterion terminationCriterion)
         {
             var opt = base.InitializeOptimizer(ch, cursorFactory, out init, out terminationCriterion);
@@ -389,9 +384,9 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Contracts.AssertValue(srcPredictor);
 
-            var pred = srcPredictor.SubPredictor as LinearBinaryPredictor;
+            var pred = srcPredictor.SubPredictor as LinearBinaryModelParameters;
             Contracts.AssertValue(pred);
-            return InitializeWeights(pred.Weights2, new[] { pred.Bias });
+            return InitializeWeights(pred.Weights, new[] { pred.Bias });
         }
 
         protected override ParameterMixingCalibratedPredictor CreatePredictor()
@@ -405,7 +400,7 @@ namespace Microsoft.ML.Runtime.Learners
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedPredictor(Host,
-                new LinearBinaryPredictor(Host, in weights, bias, _stats),
+                new LinearBinaryModelParameters(Host, in weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }
 
@@ -442,112 +437,11 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
         /// p-value and z-Score.
-        /// If you need fast calculations, use the ComputeStd method from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration.
+        /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
+        /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Arguments.StdComputer"/>
+        /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HalLearners package.
         /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
         /// </summary>
         public abstract VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int parametersCount, int currentWeightsCount, IChannel ch, float l2Weight);
-
-        /// <summary>
-        /// Adjust the variance for regularized cases.
-        /// </summary>
-        [BestFriend]
-        internal void AdjustVariance(float inverseEntry, int iRow, int iCol, float l2Weight, float[] stdErrorValues2)
-        {
-            var adjustment = l2Weight * inverseEntry * inverseEntry;
-            stdErrorValues2[iRow] -= adjustment;
-
-            if (0 < iCol && iCol < iRow)
-                stdErrorValues2[iCol] -= adjustment;
-        }
-    }
-
-    /// <summary>
-    /// Extends the <see cref="ComputeLRTrainingStd"/> implementing <see cref="ComputeLRTrainingStd.ComputeStd(double[], int[], int, int, IChannel, float)"/> making use of Math.Net numeric
-    /// If you need faster calculations(have non-sparse weight vectors of more than 300 features), use the instance of ComputeLRTrainingStd from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration
-    /// for those computations.
-    /// </summary>
-    public sealed class ComputeLRTrainingStdImpl : ComputeLRTrainingStd
-    {
-        /// <summary>
-        /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
-        /// p-value and z-Score.
-        /// If you need faster calculations, use the ComputeStd method from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration.
-        /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
-        /// </summary>
-        /// <param name="hessian"></param>
-        /// <param name="weightIndices"></param>
-        /// <param name="numSelectedParams"></param>
-        /// <param name="currentWeightsCount"></param>
-        /// <param name="ch">The <see cref="IChannel"/> used for messaging.</param>
-        /// <param name="l2Weight">The L2Weight used for training. (Supply the same one that got used during training.)</param>
-        public override VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
-        {
-            Contracts.AssertValue(ch);
-            Contracts.AssertValue(hessian, nameof(hessian));
-            Contracts.Assert(numSelectedParams > 0);
-            Contracts.Assert(currentWeightsCount > 0);
-            Contracts.Assert(l2Weight > 0);
-
-            double[,] matrixHessian = new double[numSelectedParams, numSelectedParams];
-
-            int hessianLength = 0;
-            int dimension = numSelectedParams - 1;
-
-            for (int row = dimension; row >= 0; row--)
-            {
-                for (int col = 0; col <= dimension; col++)
-                {
-                    if ((row + col) <= dimension)
-                    {
-                        if ((row + col) == dimension)
-                        {
-                            matrixHessian[row, col] = hessian[hessianLength];
-                        }
-                        else
-                        {
-                            matrixHessian[row, col] = hessian[hessianLength];
-                            matrixHessian[dimension - col, dimension - row] = hessian[hessianLength];
-                        }
-                        hessianLength++;
-                    }
-                    else
-                        continue;
-                }
-            }
-
-            var h = Matrix<double>.Build.DenseOfArray(matrixHessian);
-            var invers = h.Inverse();
-
-            float[] stdErrorValues = new float[numSelectedParams];
-            stdErrorValues[0] = (float)Math.Sqrt(invers[0, numSelectedParams - 1]);
-
-            for (int i = 1; i < numSelectedParams; i++)
-            {
-                // Initialize with inverse Hessian.
-                // The diagonal of the inverse Hessian.
-                stdErrorValues[i] = (float)invers[i, numSelectedParams - i - 1];
-            }
-
-            if (l2Weight > 0)
-            {
-                // Iterate through all entries of inverse Hessian to make adjustment to variance.
-                // A discussion on ridge regularized LR coefficient covariance matrix can be found here:
-                // http://www.aloki.hu/pdf/0402_171179.pdf (Equations 11 and 25)
-                // http://www.inf.unibz.it/dis/teaching/DWDM/project2010/LogisticRegression.pdf (Section "Significance testing in ridge logistic regression")
-                for (int iRow = 1; iRow < numSelectedParams; iRow++)
-                {
-                    for (int iCol = 0; iCol <= iRow; iCol++)
-                    {
-                        float entry = (float)invers[iRow, numSelectedParams - iCol - 1];
-                        AdjustVariance(entry, iRow, iCol, l2Weight, stdErrorValues);
-                    }
-                }
-            }
-
-            for (int i = 1; i < numSelectedParams; i++)
-                stdErrorValues[i] = (float)Math.Sqrt(stdErrorValues[i]);
-
-            return new VBuffer<float>(currentWeightsCount, numSelectedParams, stdErrorValues, weightIndices);
-        }
     }
 }

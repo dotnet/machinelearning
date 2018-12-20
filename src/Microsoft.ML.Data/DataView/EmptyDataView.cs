@@ -28,14 +28,14 @@ namespace Microsoft.ML.Runtime.Data
 
         public long? GetRowCount() => 0;
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             _host.CheckValue(needCol, nameof(needCol));
             _host.CheckValueOrNull(rand);
             return new Cursor(_host, Schema, needCol);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, IRandom rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
         {
             _host.CheckValue(needCol, nameof(needCol));
             _host.CheckValueOrNull(rand);
@@ -43,11 +43,11 @@ namespace Microsoft.ML.Runtime.Data
             return new[] { new Cursor(_host, Schema, needCol) };
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly bool[] _active;
 
-            public Schema Schema { get; }
+            public override Schema Schema { get; }
             public override long Batch => 0;
 
             public Cursor(IChannelProvider provider, Schema schema, Func<int, bool> needCol)
@@ -56,13 +56,13 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.AssertValue(schema);
                 Ch.AssertValue(needCol);
                 Schema = schema;
-                _active = Utils.BuildArray(Schema.ColumnCount, needCol);
+                _active = Utils.BuildArray(Schema.Count, needCol);
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Assert(!IsGood);
                         throw Ch.Except("Cannot call ID getter in current state");
@@ -71,9 +71,9 @@ namespace Microsoft.ML.Runtime.Data
 
             protected override bool MoveNextCore() => false;
 
-            public bool IsColumnActive(int col) => 0 <= col && col < _active.Length && _active[col];
+            public override bool IsColumnActive(int col) => 0 <= col && col < _active.Length && _active[col];
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col), "Can't get getter for inactive column");
                 return

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using System.IO;
 using System.Threading.Tasks;
@@ -11,6 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
+#pragma warning disable 612
     public class PredictionModelTests : BaseTestClass
     {
         public class HousePriceData
@@ -111,4 +112,5 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
         }
     }
+#pragma warning restore 612
 }

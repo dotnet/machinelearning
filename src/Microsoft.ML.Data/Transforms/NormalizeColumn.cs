@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -361,7 +362,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
 
-            public abstract Delegate GetGetter(IRow input, int icol);
+            public abstract Delegate GetGetter(Row input, int icol);
 
             public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
@@ -480,7 +481,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
 
-            public abstract Delegate GetGetter(IRow input, int icol);
+            public abstract Delegate GetGetter(Row input, int icol);
             public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
             public abstract NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
 
@@ -609,7 +610,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
 
-            public abstract Delegate GetGetter(IRow input, int icol);
+            public abstract Delegate GetGetter(Row input, int icol);
 
             public void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
             {
@@ -732,7 +733,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             protected readonly int LabelCardinality;
             private readonly ValueGetter<int> _labelGetterSrc;
 
-            protected SupervisedBinFunctionBuilderBase(IHost host, long lim, int labelColId, IRow dataRow)
+            protected SupervisedBinFunctionBuilderBase(IHost host, long lim, int labelColId, Row dataRow)
             {
                 Contracts.CheckValue(host, nameof(host));
                 Host = host;
@@ -742,10 +743,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                 _labelGetterSrc = GetLabelGetter(dataRow, labelColId, out LabelCardinality);
             }
 
-            private ValueGetter<int> GetLabelGetter(IRow row, int col, out int labelCardinality)
+            private ValueGetter<int> GetLabelGetter(Row row, int col, out int labelCardinality)
             {
                 // The label column type is checked as part of args validation.
-                var type = row.Schema.GetColumnType(col);
+                var type = row.Schema[col].Type;
                 Host.Assert(type.IsKey || type.IsNumber);
 
                 if (type.IsKey)
@@ -816,7 +817,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             protected readonly List<TFloat> ColValues;
 
             protected OneColumnSupervisedBinFunctionBuilderBase(IHost host, long lim, int valueColId, int labelColId,
-                IRow dataRow)
+                Row dataRow)
                 : base(host, lim, labelColId, dataRow)
             {
                 _colGetterSrc = dataRow.GetGetter<TFloat>(valueColId);
@@ -844,11 +845,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             protected readonly List<TFloat>[] ColValues;
             protected readonly int ColumnSlotCount;
 
-            protected VecColumnSupervisedBinFunctionBuilderBase(IHost host, long lim, int valueColId, int labelColId, IRow dataRow)
+            protected VecColumnSupervisedBinFunctionBuilderBase(IHost host, long lim, int valueColId, int labelColId, Row dataRow)
                 : base(host, lim, labelColId, dataRow)
             {
                 _colValueGetter = dataRow.GetGetter<VBuffer<TFloat>>(valueColId);
-                var valueColType = dataRow.Schema.GetColumnType(valueColId);
+                var valueColType = dataRow.Schema[valueColId].Type;
                 Host.Assert(valueColType.IsKnownSizeVector);
                 ColumnSlotCount = valueColType.ValueCount;
 
@@ -899,7 +900,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static partial class MinMaxUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(MinMaxArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
@@ -912,7 +913,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MinMaxColumn column, IHost host,
-                int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 if (srcType.IsNumber)
                 {
@@ -935,7 +936,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static partial class MeanVarUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(MeanVarArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
@@ -949,7 +950,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MeanVarColumn column, IHost host,
-                int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
 
@@ -975,7 +976,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static partial class LogMeanVarUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(LogMeanVarArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
@@ -988,7 +989,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.LogMeanVarColumn column, IHost host,
-                int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(column);
@@ -1014,7 +1015,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static partial class BinUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(BinArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
@@ -1028,7 +1029,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.BinningColumn column, IHost host,
-                int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
 
@@ -1053,7 +1054,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static class SupervisedBinUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(SupervisedBinArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
@@ -1061,31 +1062,57 @@ namespace Microsoft.ML.Transforms.Normalizers
                 // checking for label column
                 host.CheckUserArg(!string.IsNullOrWhiteSpace(args.LabelColumn), nameof(args.LabelColumn), "Must specify the label column name");
                 int labelColumnId = GetLabelColumnId(host, cursor.Schema, args.LabelColumn);
-                var labelColumnType = cursor.Schema.GetColumnType(labelColumnId);
+                var labelColumnType = cursor.Schema[labelColumnId].Type;
                 if (labelColumnType.IsKey)
                     host.CheckUserArg(labelColumnType.KeyCount > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
                 else
                     host.CheckUserArg(labelColumnType.IsNumber, nameof(args.LabelColumn), "Label column must be a number or a key type");
 
+                return CreateBuilder(
+                    new NormalizingEstimator.SupervisedBinningColumn(
+                        args.Column[icol].Source ?? args.Column[icol].Name,
+                        args.Column[icol].Name,
+                        args.LabelColumn ?? DefaultColumnNames.Label,
+                        args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
+                        args.Column[icol].FixZero ?? args.FixZero,
+                        args.Column[icol].NumBins ?? args.NumBins,
+                        args.MinBinSize),
+                    host, labelColumnId, srcIndex, srcType, cursor);
+            }
+
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.SupervisedBinningColumn column, IHost host,
+                 string labelColumn, int srcIndex, ColumnType srcType, RowCursor cursor)
+            {
+                int labelColumnId = GetLabelColumnId(host, cursor.Schema, labelColumn);
+                return CreateBuilder(column, host, labelColumnId, srcIndex, srcType, cursor);
+            }
+
+            private static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.SupervisedBinningColumn column, IHost host,
+                int labelColumnId, int srcIndex, ColumnType srcType, RowCursor cursor)
+            {
+                Contracts.AssertValue(host);
+
                 if (srcType.IsNumber)
                 {
                     if (srcType == NumberType.R4)
-                        return Sng.SupervisedBinOneColumnFunctionBuilder.Create(args, host, icol, srcIndex, labelColumnId, cursor);
+                        return Sng.SupervisedBinOneColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                     if (srcType == NumberType.R8)
-                        return Dbl.SupervisedBinOneColumnFunctionBuilder.Create(args, host, icol, srcIndex, labelColumnId, cursor);
+                        return Dbl.SupervisedBinOneColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                 }
                 if (srcType.IsVector && srcType.ItemType.IsNumber)
                 {
                     if (srcType.ItemType == NumberType.R4)
-                        return Sng.SupervisedBinVecColumnFunctionBuilder.Create(args, host, icol, srcIndex, labelColumnId, cursor);
+                        return Sng.SupervisedBinVecColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                     if (srcType.ItemType == NumberType.R8)
-                        return Dbl.SupervisedBinVecColumnFunctionBuilder.Create(args, host, icol, srcIndex, labelColumnId, cursor);
+                        return Dbl.SupervisedBinVecColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                 }
 
-                throw host.ExceptUserArg(nameof(args.Column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", args.Column[icol].Source, srcType.ToString());
+                throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.",
+                    column.Input,
+                    srcType.ToString());
             }
 
-            public static int GetLabelColumnId(IExceptionContext host, ISchema schema, string labelColumnName)
+            public static int GetLabelColumnId(IExceptionContext host, Schema schema, string labelColumnName)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(schema);

@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 Host.Assert(args.WindowSize == 1);
                 throw Host.ExceptUserArg(nameof(args.Lag),
-                    $"If {args.Lag}=0 and {args.WindowSize}=1, the transform just copies the column. Use {ColumnsCopyingTransformer.LoaderSignature} transform instead.");
+                    $"If {args.Lag}=0 and {args.WindowSize}=1, the transform just copies the column. Use {ColumnCopyingTransformer.LoaderSignature} transform instead.");
             }
             Host.CheckUserArg(Enum.IsDefined(typeof(BeginOptions), args.Begin), nameof(args.Begin), "Undefined value.");
             _lag = args.Lag;
@@ -99,10 +99,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         private TInput GetNaValue()
         {
-            var sch = Schema;
+            var sch = OutputSchema;
             int index;
             sch.TryGetColumnIndex(InputColumnName, out index);
-            ColumnType col = sch.GetColumnType(index);
+            ColumnType col = sch[index].Type;
             TInput nanValue = Conversions.Instance.GetNAOrDefault<TInput>(col);
 
             // We store the nan_value here to avoid getting it each time a state is instanciated.

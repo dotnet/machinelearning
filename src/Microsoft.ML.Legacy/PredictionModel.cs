@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using System;
@@ -21,7 +21,7 @@ namespace Microsoft.ML.Legacy
         {
             _env = new MLContext();
             AssemblyRegistration.RegisterAssemblies(_env);
-            PredictorModel = new TransformModel(_env, stream);
+            PredictorModel = new TransformModelImpl(_env, stream);
         }
 
         internal TransformModel PredictorModel { get; }
@@ -41,12 +41,12 @@ namespace Microsoft.ML.Legacy
             if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
                 return false;
 
-            int expectedLabelCount = schema.GetColumnType(colIndex).ValueCount;
-            if (!schema.HasSlotNames(colIndex, expectedLabelCount))
+            int expectedLabelCount = schema[colIndex].Type.ValueCount;
+            if (!schema[colIndex].HasSlotNames(expectedLabelCount))
                 return false;
 
             VBuffer<ReadOnlyMemory<char>> labels = default;
-            schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref labels);
+            schema[colIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labels);
 
             if (labels.Length != expectedLabelCount)
                 return false;

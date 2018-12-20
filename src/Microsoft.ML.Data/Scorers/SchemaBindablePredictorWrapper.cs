@@ -34,14 +34,14 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// This is a base class for wrapping <see cref="IPredictor"/>s in an <see cref="ISchemaBindableMapper"/>.
     /// </summary>
-    public abstract class SchemaBindablePredictorWrapperBase : ISchemaBindableMapper, ICanSaveModel, ICanSaveSummary,
+    internal abstract class SchemaBindablePredictorWrapperBase : ISchemaBindableMapper, ICanSaveModel, ICanSaveSummary,
         IBindableCanSavePfa, IBindableCanSaveOnnx
     {
         // The ctor guarantees that Predictor is non-null. It also ensures that either
         // ValueMapper or FloatPredictor is non-null (or both). With these guarantees,
         // the score value type (_scoreType) can be determined.
         protected readonly IPredictor Predictor;
-        protected readonly IValueMapper ValueMapper;
+        private protected readonly IValueMapper ValueMapper;
         protected readonly ColumnType ScoreType;
 
         bool ICanSavePfa.CanSavePfa => (ValueMapper as ICanSavePfa)?.CanSavePfa == true;
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
         [BestFriend]
         private protected virtual bool SaveAsOnnxCore(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames) => false;
 
-        public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
 
@@ -142,20 +142,21 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected abstract ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema);
+        [BestFriend]
+        private protected abstract ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema);
 
-        protected virtual Delegate GetPredictionGetter(IRow input, int colSrc)
+        protected virtual Delegate GetPredictionGetter(Row input, int colSrc)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= colSrc && colSrc < input.Schema.ColumnCount);
+            Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema.GetColumnType(colSrc);
-            Func<IRow, int, ValueGetter<int>> del = GetValueGetter<int, int>;
+            var typeSrc = input.Schema[colSrc].Type;
+            Func<Row, int, ValueGetter<int>> del = GetValueGetter<int, int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, ScoreType.RawType);
             return (Delegate)meth.Invoke(this, new object[] { input, colSrc });
         }
 
-        private ValueGetter<TDst> GetValueGetter<TSrc, TDst>(IRow input, int colSrc)
+        private ValueGetter<TDst> GetValueGetter<TSrc, TDst>(Row input, int colSrc)
         {
             Contracts.AssertValue(input);
             Contracts.Assert(ValueMapper != null);
@@ -171,7 +172,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             var summarySaver = Predictor as ICanSaveSummary;
             if (summarySaver == null)
@@ -191,7 +192,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly SchemaBindablePredictorWrapperBase _parent;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public Schema Schema { get; }
+            public Schema OutputSchema { get; }
             public ISchemaBindableMapper Bindable => _parent;
 
             public SingleValueRowMapper(RoleMappedSchema schema, SchemaBindablePredictorWrapperBase parent, Schema outputSchema)
@@ -199,16 +200,16 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(schema.Feature);
-                Contracts.Assert(outputSchema.ColumnCount == 1);
+                Contracts.Assert(outputSchema.Count == 1);
 
                 _parent = parent;
                 InputRoleMappedSchema = schema;
-                Schema = outputSchema;
+                OutputSchema = outputSchema;
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => col == InputRoleMappedSchema.Feature.Index;
@@ -223,7 +224,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema InputSchema => InputRoleMappedSchema.Schema;
 
-            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(predicate);
@@ -231,8 +232,7 @@ namespace Microsoft.ML.Runtime.Data
                 var getters = new Delegate[1];
                 if (predicate(0))
                     getters[0] = _parent.GetPredictionGetter(input, InputRoleMappedSchema.Feature.Index);
-                disposer = null;
-                return new SimpleRow(Schema, input, getters);
+                return new SimpleRow(OutputSchema, input, getters);
             }
         }
     }
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.Data
     /// This class is a wrapper for all <see cref="IPredictor"/>s except for quantile regression predictors,
     /// and calibrated binary classification predictors.
     /// </summary>
-    public sealed class SchemaBindablePredictorWrapper : SchemaBindablePredictorWrapperBase
+    internal sealed class SchemaBindablePredictorWrapper : SchemaBindablePredictorWrapperBase
     {
         public const string LoaderSignature = "SchemaBindableWrapper";
         private static VersionInfo GetVersionInfo()
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Data
             return mapper.SaveAsOnnx(ctx, outputNames, ctx.GetVariableName(schema.Feature.Name));
         }
 
-        protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
+        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
         {
             var outputSchema = Schema.Create(new ScoreMapperSchema(ScoreType, _scoreColumnKind));
             return new SingleValueRowMapper(schema, this, outputSchema);
@@ -353,7 +353,7 @@ namespace Microsoft.ML.Runtime.Data
     /// This is an <see cref="ISchemaBindableMapper"/> wrapper for calibrated binary classification predictors.
     /// They need a separate wrapper because they return two values instead of one: the raw score and the probability.
     /// </summary>
-    public sealed class SchemaBindableBinaryPredictorWrapper : SchemaBindablePredictorWrapperBase
+    internal sealed class SchemaBindableBinaryPredictorWrapper : SchemaBindablePredictorWrapperBase
     {
         public const string LoaderSignature = "BinarySchemaBindable";
         private static VersionInfo GetVersionInfo()
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Runtime.Data
                 "Invalid probability type for the IValueMapperDist");
         }
 
-        protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
+        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
         {
             if (Predictor.PredictionKind != PredictionKind.BinaryClassification)
                 ch.Warning("Scoring predictor of kind '{0}' as '{1}'.", Predictor.PredictionKind, PredictionKind.BinaryClassification);
@@ -472,7 +472,8 @@ namespace Microsoft.ML.Runtime.Data
             public RoleMappedSchema InputRoleMappedSchema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
 
-            public Schema Schema { get; }
+            public Schema OutputSchema { get; }
+
             public ISchemaBindableMapper Bindable => _parent;
 
             public CalibratedRowMapper(RoleMappedSchema schema, SchemaBindableBinaryPredictorWrapper parent)
@@ -484,7 +485,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 _parent = parent;
                 InputRoleMappedSchema = schema;
-                Schema = Schema.Create(new BinaryClassifierSchema());
+                OutputSchema = Schema.Create(new BinaryClassifierSchema());
 
                 if (schema.Feature != null)
                 {
@@ -496,7 +497,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i) && InputRoleMappedSchema.Feature != null)
                         return col => col == InputRoleMappedSchema.Feature.Index;
@@ -509,7 +510,7 @@ namespace Microsoft.ML.Runtime.Data
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature?.Name);
             }
 
-            private Delegate[] CreateGetters(IRow input, bool[] active)
+            private Delegate[] CreateGetters(Row input, bool[] active)
             {
                 Contracts.Assert(Utils.Size(active) == 2);
                 Contracts.Assert(_parent._distMapper != null);
@@ -552,7 +553,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private static void EnsureCachedResultValueMapper(ValueMapper<VBuffer<Float>, Float, Float> mapper,
                 ref long cachedPosition, ValueGetter<VBuffer<Float>> featureGetter, ref VBuffer<Float> features,
-                ref Float score, ref Float prob, IRow input)
+                ref Float score, ref Float prob, Row input)
             {
                 Contracts.AssertValue(mapper);
                 if (cachedPosition != input.Position)
@@ -565,22 +566,22 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 Contracts.AssertValue(input);
-                var active = Utils.BuildArray(Schema.ColumnCount, predicate);
+                var active = Utils.BuildArray(OutputSchema.Count, predicate);
                 var getters = CreateGetters(input, active);
-                disposer = null;
-                return new SimpleRow(Schema, input, getters);
+                return new SimpleRow(OutputSchema, input, getters);
             }
         }
     }
 
     /// <summary>
     /// This is an <see cref="ISchemaBindableMapper"/> wrapper for quantile regression predictors. They need a separate
-    /// wrapper because they need the quantiles to create the ISchemaBound.
+    /// wrapper because they need the quantiles to create the <see cref="ISchemaBoundMapper"/>.
     /// </summary>
-    public sealed class SchemaBindableQuantileRegressionPredictor : SchemaBindablePredictorWrapperBase
+    [BestFriend]
+    internal sealed class SchemaBindableQuantileRegressionPredictor : SchemaBindablePredictorWrapperBase
     {
         public const string LoaderSignature = "QuantileSchemaBindable";
         private static VersionInfo GetVersionInfo()
@@ -651,17 +652,17 @@ namespace Microsoft.ML.Runtime.Data
             return new SchemaBindableQuantileRegressionPredictor(env, ctx);
         }
 
-        protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
+        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
         {
             return new SingleValueRowMapper(schema, this, Schema.Create(new SchemaImpl(ScoreType, _quantiles)));
         }
 
-        protected override Delegate GetPredictionGetter(IRow input, int colSrc)
+        protected override Delegate GetPredictionGetter(Row input, int colSrc)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= colSrc && colSrc < input.Schema.ColumnCount);
+            Contracts.Assert(0 <= colSrc && colSrc < input.Schema.Count);
 
-            var typeSrc = input.Schema.GetColumnType(colSrc);
+            var typeSrc = input.Schema[colSrc].Type;
             Contracts.Assert(typeSrc.IsVector && typeSrc.ItemType == NumberType.Float);
             Contracts.Assert(ValueMapper == null ||
                 typeSrc.VectorSize == ValueMapper.InputType.VectorSize || ValueMapper.InputType.VectorSize == 0);

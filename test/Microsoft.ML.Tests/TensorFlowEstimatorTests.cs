@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.TensorFlow.StaticPipe;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
 using System;
@@ -142,13 +143,13 @@ namespace Microsoft.ML.Tests
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
-            var env = new MLContext();
+            var mlContext = new MLContext(seed: 1, conc: 1);
             var imageHeight = 32;
             var imageWidth = 32;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoader.CreateReader(env, ctx => (
+            var data = TextLoader.CreateReader(mlContext, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);
@@ -175,7 +176,7 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 
@@ -184,18 +185,18 @@ namespace Microsoft.ML.Tests
         {
             const string modelLocation = "cifar_model/frozen_model.pb";
 
-            var env = new MLContext();
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, modelLocation);
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorType)schema.GetColumnType(column);
+            var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoader.CreateReader(env, ctx => (
+            var data = TextLoader.CreateReader(mlContext, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);
@@ -222,7 +223,7 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 

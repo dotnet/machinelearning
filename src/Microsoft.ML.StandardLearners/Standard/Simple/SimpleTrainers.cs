@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 
@@ -32,7 +33,7 @@ using System.Linq;
 [assembly: LoadableClass(typeof(PriorPredictor), null, typeof(SignatureLoadModel),
     "Prior predictor", PriorPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// A trainer that trains a predictor that returns random values
@@ -85,7 +86,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             var newColumns = new[]
             {
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Runtime.Learners
         IValueMapperDist,
         ICanSaveModel
     {
-        public const string LoaderSignature = "RandomPredictor";
+        internal const string LoaderSignature = "RandomPredictor";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -125,12 +126,14 @@ namespace Microsoft.ML.Runtime.Learners
         // Keep all the serializable state here.
         private readonly int _seed;
         private readonly object _instanceLock;
-        private readonly IRandom _random;
+        private readonly Random _random;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
-        public ColumnType DistType => NumberType.Float;
+
+        private readonly ColumnType _inputType;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => NumberType.Float;
+        ColumnType IValueMapperDist.DistType => NumberType.Float;
 
         public RandomPredictor(IHostEnvironment env, int seed)
             : base(env, LoaderSignature)
@@ -140,7 +143,7 @@ namespace Microsoft.ML.Runtime.Learners
             _instanceLock = new object();
             _random = RandomUtils.Create(_seed);
 
-            InputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberType.Float);
         }
 
         /// <summary>
@@ -157,10 +160,10 @@ namespace Microsoft.ML.Runtime.Learners
             _instanceLock = new object();
             _random = RandomUtils.Create(_seed);
 
-            InputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberType.Float);
         }
 
-        public static RandomPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static RandomPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -172,7 +175,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Save the predictor in the binary format.
         /// </summary>
         /// <param name="ctx"></param>
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -183,7 +186,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.Writer.Write(_seed);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));
@@ -192,7 +195,7 @@ namespace Microsoft.ML.Runtime.Learners
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
+        ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));
@@ -326,7 +329,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             var newColumns = new[]
             {
@@ -370,7 +373,7 @@ namespace Microsoft.ML.Runtime.Learners
             _prob = prob;
             _raw = 2 * _prob - 1;       // This could be other functions -- logodds for instance
 
-            InputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberType.Float);
         }
 
         private PriorPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -384,7 +387,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             _raw = 2 * _prob - 1;
 
-            InputType = new VectorType(NumberType.Float);
+            _inputType = new VectorType(NumberType.Float);
         }
 
         public static PriorPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -395,7 +398,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new PriorPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -407,13 +410,14 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.Writer.Write(_prob);
         }
 
-        public override PredictionKind PredictionKind
-        { get { return PredictionKind.BinaryClassification; } }
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
-        public ColumnType DistType => NumberType.Float;
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        private readonly ColumnType _inputType;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => NumberType.Float;
+        ColumnType IValueMapperDist.DistType => NumberType.Float;
+
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));
@@ -422,7 +426,7 @@ namespace Microsoft.ML.Runtime.Learners
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
+        ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
             Contracts.Check(typeof(TOut) == typeof(float));

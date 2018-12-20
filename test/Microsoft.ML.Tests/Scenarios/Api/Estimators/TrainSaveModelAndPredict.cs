@@ -4,9 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.RunTests;
 using System.IO;
 using System.Linq;
@@ -26,11 +24,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_TrainSaveModelAndPredict()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var reader = ml.Data.TextReader(MakeSentimentTextLoaderArgs());
+            var reader = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true);
             var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
+                .AppendCacheCheckpoint(ml)
                 .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
 
             // Train.
@@ -47,7 +46,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 loadedModel = TransformerChain.LoadFrom(ml, file);
 
             // Create prediction engine and test predictions.
-            var engine = loadedModel.MakePredictionFunction<SentimentData, SentimentPrediction>(ml);
+            var engine = loadedModel.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
 
             // Take a couple examples out of the test data and run predictions on top.
             var testData = reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename))

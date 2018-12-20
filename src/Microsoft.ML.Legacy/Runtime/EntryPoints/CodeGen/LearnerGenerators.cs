@@ -19,6 +19,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             w.WriteLine("/// Creates a {0}", component.LoadNames[0]);
             w.WriteLine("/// </summary>");
             w.WriteLine("/// <returns>A tuple containing learner name and settings.</returns>");
+            w.WriteLine("[Obsolete]");
             w.WriteLine("public Tuple<string, string> GetTlcSettings()");
         }
 
@@ -103,6 +104,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
 
         protected override void GenerateMethodSignature(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
         {
+            w.WriteLine("[Obsolete]");
             w.Write("public static Tuple<ITrainer> Create{0}{1}(", prefix, component.LoadNames[0]);
             using (w.Nest())
             {

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_ReconfigurablePrediction()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var dataReader = ml.Data.TextReader(MakeSentimentTextLoaderArgs());
+            var dataReader = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true);
 
             var data = dataReader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
             var testData = dataReader.Read(GetDataPath(TestDatasets.Sentiment.testFilename));
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Fit(data);
 
             var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: (s) => s.NumThreads = 1);
-            var trainData = pipeline.Transform(data);
+            var trainData = ml.Data.Cache(pipeline.Transform(data)); // Cache the data right before the trainer to boost the training speed.
             var model = trainer.Fit(trainData);
 
             var scoredTest = model.Transform(pipeline.Transform(testData));

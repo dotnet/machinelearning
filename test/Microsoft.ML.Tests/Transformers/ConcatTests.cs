@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
 using System.IO;
 using Xunit;
@@ -25,18 +22,18 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         void TestConcat()
         {
-            string dataPath = GetDataPath("adult.test");
+            string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
                 Column = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 0),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("float6", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10, 12) }),
+                    new TextLoader.Column("float1", DataKind.R4, 9),
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("float6", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, 14) }),
                     new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(14, null) { AutoEnd = false, VariableEnd = true } })
                 },
-                Separator = ",",
+                Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
             var data = loader.Read(source);
@@ -44,7 +41,7 @@ namespace Microsoft.ML.Tests.Transformers
             ColumnType GetType(Schema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
-                return schema.GetColumnType(cIdx);
+                return schema[cIdx].Type;
             }
             var pipe = new ColumnConcatenatingEstimator(Env, "f1", "float1")
                 .Append(new ColumnConcatenatingEstimator(Env, "f2", "float1", "float1"))
@@ -82,17 +79,17 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void ConcatWithAliases()
         {
-            string dataPath = GetDataPath("adult.test");
+            string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
                 Column = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 0),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10, null) { AutoEnd = false, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.R4, 9),
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, null) { AutoEnd = false, VariableEnd = true } })
                 },
-                Separator = ",",
+                Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
             var data = loader.Read(source);
@@ -100,7 +97,7 @@ namespace Microsoft.ML.Tests.Transformers
             ColumnType GetType(Schema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
-                return schema.GetColumnType(cIdx);
+                return schema[cIdx].Type;
             }
 
             data = TakeFilter.Create(Env, data, 10);

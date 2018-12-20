@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -25,9 +26,9 @@ using System.Linq;
     FastForestClassification.ShortName,
     "ffc")]
 
-[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(FastForestClassificationPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(FastForestClassificationModelParameters), null, typeof(SignatureLoadModel),
     "FastForest Binary Executor",
-    FastForestClassificationPredictor.LoaderSignature)]
+    FastForestClassificationModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(FastForest), null, typeof(SignatureEntryPointModule), "FastForest")]
 
@@ -46,11 +47,11 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public sealed class FastForestClassificationPredictor :
-        FastTreePredictionWrapper
+    public sealed class FastForestClassificationModelParameters :
+        TreeEnsembleModelParameters
     {
-        public const string LoaderSignature = "FastForestBinaryExec";
-        public const string RegistrationName = "FastForestClassificationPredictor";
+        internal const string LoaderSignature = "FastForestBinaryExec";
+        internal const string RegistrationName = "FastForestClassificationPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -65,7 +66,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(FastForestClassificationPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(FastForestClassificationModelParameters).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010003;
@@ -79,27 +80,27 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public FastForestClassificationPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
+        public FastForestClassificationModelParameters(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         { }
 
-        private FastForestClassificationPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private FastForestClassificationModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
         {
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            var predictor = new FastForestClassificationPredictor(env, ctx);
+            var predictor = new FastForestClassificationModelParameters(env, ctx);
             ICalibrator calibrator;
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
@@ -192,7 +193,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // calibrator, transform the scores using that.
 
             // REVIEW: Need a way to signal the outside world that we prefer simple sigmoid?
-            return new FastForestClassificationPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
+            return new FastForestClassificationModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
@@ -215,12 +216,14 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, Schema trainSchema)
          => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
 
+        public BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
+
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }

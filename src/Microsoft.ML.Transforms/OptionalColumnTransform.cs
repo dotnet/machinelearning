@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _srcColsWithOptionalColumn;
 
             private Bindings(OptionalColumnTransform parent, ColumnType[] columnTypes, int[] srcCols,
-                int[] srcColsWithOptionalColumn, ISchema input, ISchema inputWithOptionalColumn, bool user, string[] names)
+                int[] srcColsWithOptionalColumn, Schema input, Schema inputWithOptionalColumn, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.AssertValue(parent);
@@ -61,12 +61,12 @@ namespace Microsoft.ML.Transforms
                 SrcCols = srcCols;
                 _parent = parent;
                 _metadata = new MetadataDispatcher(InfoCount);
-                _inputWithOptionalColumn = Schema.Create(inputWithOptionalColumn);
+                _inputWithOptionalColumn = inputWithOptionalColumn;
                 _srcColsWithOptionalColumn = srcColsWithOptionalColumn;
                 SetMetadata();
             }
 
-            public static Bindings Create(Arguments args, ISchema input, OptionalColumnTransform parent)
+            public static Bindings Create(Arguments args, Schema input, OptionalColumnTransform parent)
             {
                 var names = new string[args.Column.Length];
                 var columnTypes = new ColumnType[args.Column.Length];
@@ -77,14 +77,14 @@ namespace Microsoft.ML.Transforms
                     int col;
                     bool success = input.TryGetColumnIndex(names[i], out col);
                     Contracts.CheckUserArg(success, nameof(args.Column));
-                    columnTypes[i] = input.GetColumnType(col);
+                    columnTypes[i] = input[col].Type;
                     srcCols[i] = col;
                 }
 
                 return new Bindings(parent, columnTypes, srcCols, srcCols, input, input, true, names);
             }
 
-            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, ISchema input, OptionalColumnTransform parent)
+            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, Schema input, OptionalColumnTransform parent)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(predicate);
 
                 var active = GetActiveInput(predicate);
-                Contracts.Assert(active.Length == Input.ColumnCount);
+                Contracts.Assert(active.Length == Input.Count);
 
                 foreach (int srcCol in SrcCols)
                 {
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(Host, ctx);
         }
 
-        public override Schema Schema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -305,18 +305,18 @@ namespace Microsoft.ML.Transforms
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
             var input = Source.GetRowCursor(inputPred);
-            return new RowCursor(Host, _bindings, input, active);
+            return new Cursor(Host, _bindings, input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            IRowCursor input;
+            RowCursor input;
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
@@ -325,9 +325,9 @@ namespace Microsoft.ML.Transforms
 
                 if (inputs.Length != 1)
                 {
-                    var cursors = new IRowCursor[inputs.Length];
+                    var cursors = new RowCursor[inputs.Length];
                     for (int i = 0; i < inputs.Length; i++)
-                        cursors[i] = new RowCursor(Host, _bindings, inputs[i], active);
+                        cursors[i] = new Cursor(Host, _bindings, inputs[i], active);
                     return cursors;
                 }
                 input = inputs[0];
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
                 input = Source.GetRowCursor(inputPred);
 
             consolidator = null;
-            return new IRowCursor[] { new RowCursor(Host, _bindings, input, active) };
+            return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
         protected override Func<int, bool> GetDependenciesCore(Func<int, bool> predicate)
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Transforms
             return _bindings.MapColumnIndex(out isSrc, col);
         }
 
-        protected override Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disposer)
+        protected override Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disposer)
         {
             Func<int, bool> activeInfos =
                 iinfo =>
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Transforms
                         getters[iinfo] = MakeGetter(iinfo);
                     else
                     {
-                        Func<IRow, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
+                        Func<Row, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
                         var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].ItemType.RawType);
                         getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
                     }
@@ -379,7 +379,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo)
+        private ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
         {
             return input.GetGetter<T>(_bindings.SrcCols[iinfo]);
         }
@@ -403,13 +403,13 @@ namespace Microsoft.ML.Transforms
                 VBufferUtils.Resize(ref value, length, 0));
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));
@@ -427,15 +427,15 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.ColumnCount);
                 return _active == null || _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Transforms
             var xf = new OptionalColumnTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }

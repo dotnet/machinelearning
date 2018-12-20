@@ -183,7 +183,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private IEnumerator<double> Geometric(double p, IRandom rgen)
+        private IEnumerator<double> Geometric(double p, Random rgen)
         {
             double denom = Math.Log(1 - p);
 
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private IEnumerable<int> CreateDocIndicesCore(double sparsity, IRandom rgen)
+        private IEnumerable<int> CreateDocIndicesCore(double sparsity, Random rgen)
         {
             _host.Assert(0 < sparsity && sparsity < 1);
             int remaining = _len;
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private IEnumerable<int> CreateDocIndices(double sparsity, IRandom rgen)
+        private IEnumerable<int> CreateDocIndices(double sparsity, Random rgen)
         {
             _host.Assert(0 <= sparsity && sparsity <= 1);
             if (sparsity == 1)
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return CreateDocIndicesCore(sparsity, rgen);
         }
 
-        private void InitSumupInputData(SumupInputData data, double sparsity, IRandom rgen)
+        private void InitSumupInputData(SumupInputData data, double sparsity, Random rgen)
         {
             int count = 0;
             foreach (int d in CreateDocIndices(sparsity, rgen))

@@ -15,7 +15,6 @@ using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using System;
 using System.Globalization;
-using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.Online
 {
@@ -34,7 +33,7 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts", SortOrder = 140)]
         [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
         [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
-        public Float InitWtsDiameter = 0;
+        public float InitWtsDiameter = 0;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf")]
         [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
@@ -58,7 +57,7 @@ namespace Microsoft.ML.Trainers.Online
 
         /// <summary>
         /// An object to hold the mutable updatable state for the online linear trainers. Specific algorithms should subclass
-        /// this, and return the instance via <see cref="MakeState(IChannel, int, LinearPredictor)"/>.
+        /// this, and return the instance via <see cref="MakeState(IChannel, int, LinearModelParameters)"/>.
         /// </summary>
         private protected abstract class TrainStateBase
         {
@@ -70,7 +69,7 @@ namespace Microsoft.ML.Trainers.Online
             public int Iteration;
 
             /// <summary>
-            /// The number of examples in the current iteration. Incremented by <see cref="ProcessDataInstance(IChannel, in VBuffer{Float}, Float, Float)"/>,
+            /// The number of examples in the current iteration. Incremented by <see cref="ProcessDataInstance(IChannel, in VBuffer{float}, float, float)"/>,
             /// and reset by <see cref="BeginIteration(IChannel)"/>.
             /// </summary>
             public long NumIterExamples;
@@ -84,21 +83,21 @@ namespace Microsoft.ML.Trainers.Online
             /// Current weights. The weights vector is considered to be scaled by <see cref="WeightsScale"/>. Storing this separately
             /// allows us to avoid the overhead of an explicit scaling, which some algorithms will attempt to do on each example's update.
             /// </summary>
-            public VBuffer<Float> Weights;
+            public VBuffer<float> Weights;
 
             /// <summary>
             /// The implicit scaling factor for <see cref="Weights"/>. Note that this does not affect <see cref="Bias"/>.
             /// </summary>
-            public Float WeightsScale;
+            public float WeightsScale;
 
             /// <summary>
             /// The intercept term.
             /// </summary>
-            public Float Bias;
+            public float Bias;
 
             protected readonly IHost ParentHost;
 
-            protected TrainStateBase(IChannel ch, int numFeatures, LinearPredictor predictor, OnlineLinearTrainer<TTransformer, TModel> parent)
+            protected TrainStateBase(IChannel ch, int numFeatures, LinearModelParameters predictor, OnlineLinearTrainer<TTransformer, TModel> parent)
             {
                 Contracts.CheckValue(ch, nameof(ch));
                 ch.Check(numFeatures > 0, "Cannot train with zero features!");
@@ -132,22 +131,22 @@ namespace Microsoft.ML.Trainers.Online
 
                     var weightValues = new float[numFeatures];
                     for (int i = 0; i < numFeatures; i++)
-                        weightValues[i] = Float.Parse(weightStr[i], CultureInfo.InvariantCulture);
+                        weightValues[i] = float.Parse(weightStr[i], CultureInfo.InvariantCulture);
                     Weights = new VBuffer<float>(numFeatures, weightValues);
-                    Bias = Float.Parse(weightStr[numFeatures], CultureInfo.InvariantCulture);
+                    Bias = float.Parse(weightStr[numFeatures], CultureInfo.InvariantCulture);
                 }
                 else if (parent.Args.InitWtsDiameter > 0)
                 {
                     var weightValues = new float[numFeatures];
                     for (int i = 0; i < numFeatures; i++)
-                        weightValues[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
+                        weightValues[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
                     Weights = new VBuffer<float>(numFeatures, weightValues);
-                    Bias = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
+                    Bias = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (float)0.5);
                 }
                 else if (numFeatures <= 1000)
-                    Weights = VBufferUtils.CreateDense<Float>(numFeatures);
+                    Weights = VBufferUtils.CreateDense<float>(numFeatures);
                 else
-                    Weights = VBufferUtils.CreateEmpty<Float>(numFeatures);
+                    Weights = VBufferUtils.CreateEmpty<float>(numFeatures);
                 WeightsScale = 1;
             }
 
@@ -170,7 +169,7 @@ namespace Microsoft.ML.Trainers.Online
             /// </summary>
             public void ScaleWeightsIfNeeded()
             {
-                Float absWeightsScale = Math.Abs(WeightsScale);
+                float absWeightsScale = Math.Abs(WeightsScale);
                 if (absWeightsScale < _minWeightScale || absWeightsScale > _maxWeightScale)
                     ScaleWeights();
             }
@@ -202,7 +201,7 @@ namespace Microsoft.ML.Trainers.Online
             /// <summary>
             /// This should be overridden by derived classes. This implementation simply increments <see cref="NumIterExamples"/>.
             /// </summary>
-            public virtual void ProcessDataInstance(IChannel ch, in VBuffer<Float> feat, Float label, Float weight)
+            public virtual void ProcessDataInstance(IChannel ch, in VBuffer<float> feat, float label, float weight)
             {
                 ch.Assert(FloatUtils.IsFinite(feat.GetValues()));
                 ++NumIterExamples;
@@ -211,23 +210,23 @@ namespace Microsoft.ML.Trainers.Online
             /// <summary>
             /// Return the raw margin from the decision hyperplane
             /// </summary>
-            public Float CurrentMargin(in VBuffer<Float> feat)
+            public float CurrentMargin(in VBuffer<float> feat)
                 => Bias + VectorUtils.DotProduct(in feat, in Weights) * WeightsScale;
 
             /// <summary>
-            /// The default implementation just calls <see cref="CurrentMargin(in VBuffer{Float})"/>.
+            /// The default implementation just calls <see cref="CurrentMargin(in VBuffer{float})"/>.
             /// </summary>
             /// <param name="feat"></param>
             /// <returns></returns>
-            public virtual Float Margin(in VBuffer<Float> feat)
+            public virtual float Margin(in VBuffer<float> feat)
                 => CurrentMargin(in feat);
 
             public abstract TModel CreatePredictor();
         }
 
         // Our tolerance for the error induced by the weight scale may depend on our precision.
-        private const Float _maxWeightScale = 1 << 10; // Exponent ranges 127 to -128, tolerate 10 being cut off that.
-        private const Float _minWeightScale = 1 / _maxWeightScale;
+        private const float _maxWeightScale = 1 << 10; // Exponent ranges 127 to -128, tolerate 10 being cut off that.
+        private const float _minWeightScale = 1 / _maxWeightScale;
 
         protected const string UserErrorPositive = "must be positive";
         protected const string UserErrorNonNegative = "must be non-negative";
@@ -260,7 +259,7 @@ namespace Microsoft.ML.Trainers.Online
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor;
-            var initLinearPred = initPredictor as LinearPredictor ?? (initPredictor as CalibratedPredictorBase)?.SubPredictor as LinearPredictor;
+            var initLinearPred = initPredictor as LinearModelParameters ?? (initPredictor as CalibratedPredictorBase)?.SubPredictor as LinearModelParameters;
             Host.CheckParam(initPredictor == null || initLinearPred != null, nameof(context), "Not a linear predictor.");
             var data = context.TrainingSet;
 
@@ -273,14 +272,14 @@ namespace Microsoft.ML.Trainers.Online
                 TrainCore(ch, data, state);
 
                 ch.Assert(state.WeightsScale == 1);
-                Float maxNorm = Math.Max(VectorUtils.MaxNorm(in state.Weights), Math.Abs(state.Bias));
+                float maxNorm = Math.Max(VectorUtils.MaxNorm(in state.Weights), Math.Abs(state.Bias));
                 ch.Check(FloatUtils.IsFinite(maxNorm),
                     "The weights/bias contain invalid values (NaN or Infinite). Potential causes: high learning rates, no normalization, high initial weights, etc.");
                 return state.CreatePredictor();
             }
         }
 
-        protected abstract void CheckLabels(RoleMappedData data);
+        private protected abstract void CheckLabels(RoleMappedData data);
 
         private void TrainCore(IChannel ch, RoleMappedData data, TrainStateBase state)
         {
@@ -316,6 +315,6 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        private protected abstract TrainStateBase MakeState(IChannel ch, int numFeatures, LinearPredictor predictor);
+        private protected abstract TrainStateBase MakeState(IChannel ch, int numFeatures, LinearModelParameters predictor);
     }
 }

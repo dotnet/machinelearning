@@ -52,10 +52,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             StringBuilder newEvaluator = new StringBuilder();
             newEvaluator.AppendLine("EvaluatorType=Aggregator");
             newEvaluator.AppendLine("Type=Sigmoid");
-            newEvaluator.AppendLine("Bias=" + -calibrator.ParamB);
+            newEvaluator.AppendLine("Bias=" + -calibrator.Offset);
             newEvaluator.AppendLine("NumNodes=1");
             newEvaluator.AppendLine("Nodes=E:" + NumEvaluators(originalIni));
-            newEvaluator.AppendLine("Weights=" + -calibrator.ParamA);
+            newEvaluator.AppendLine("Weights=" + -calibrator.Slope);
             return newEvaluator.ToString();
         }
     }

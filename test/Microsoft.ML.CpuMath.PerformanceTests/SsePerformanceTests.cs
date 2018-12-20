@@ -101,14 +101,14 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [Benchmark]
         public void MatMul()
-            => SseIntrinsics.MatMul(src, src1, dst, 1000, 1000);
+            => SseIntrinsics.MatMul(testMatrixAligned, testSrcVectorAligned, testDstVectorAligned, matrixLength, matrixLength);
 
         [Benchmark]
         public void MatMulTran()
-            => SseIntrinsics.MatMulTran(src, src1, dst, 1000, 1000);
+            => SseIntrinsics.MatMulTran(testMatrixAligned, testSrcVectorAligned, testDstVectorAligned, matrixLength, matrixLength);
 
         [Benchmark]
         public void MatMulP()
-            => SseIntrinsics.MatMulP(src, matrixIdx, src1, 0, 0, MatrixIndexLength, dst, 1000, 1000);
+           => SseIntrinsics.MatMulP(testMatrixAligned, matrixIdx, testSrcVectorAligned, 0, 0, MatrixIndexLength, testDstVectorAligned, matrixLength, matrixLength);
     }
 }

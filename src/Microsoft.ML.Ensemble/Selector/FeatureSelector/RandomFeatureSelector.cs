@@ -17,7 +17,7 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
 {
-    public class RandomFeatureSelector : IFeatureSelector
+    internal class RandomFeatureSelector : IFeatureSelector
     {
         public const string UserName = "Random Feature Selector";
         public const string LoadName = "RandomFeatureSelector";
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
                 "The feature proportion for RandomFeatureSelector should be greater than 0 and lesser than 1");
         }
 
-        public Subset SelectFeatures(RoleMappedData data, IRandom rand)
+        public Subset SelectFeatures(RoleMappedData data, Random rand)
         {
             _host.CheckValue(data, nameof(data));
             data.CheckFeatureFloatVector();

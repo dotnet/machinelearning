@@ -330,7 +330,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return _types[iinfo];
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             var ex = _exes[iinfo];
             bool needScale = ex.Offset != 0 || ex.Scale != 1;
             disposer = null;
-            var sourceType = Schema.GetColumnType(Infos[iinfo].Source);
+            var sourceType = InputSchema[Infos[iinfo].Source].Type;
             if (sourceType.ItemType == NumberType.R4 || sourceType.ItemType == NumberType.R8)
                 return GetterFromType<float>(input, iinfo, ex, needScale);
             else
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         }
 
-        private ValueGetter<Bitmap> GetterFromType<TValue>(IRow input, int iinfo, ColInfoEx ex, bool needScale) where TValue : IConvertible
+        private ValueGetter<Bitmap> GetterFromType<TValue>(Row input, int iinfo, ColInfoEx ex, bool needScale) where TValue : IConvertible
         {
             var getSrc = GetSrcGetter<VBuffer<TValue>>(input, iinfo);
             var src = default(VBuffer<TValue>);

@@ -348,12 +348,12 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private (int, bool, TFDataType, TFShape) GetTrainingInputInfo(ISchema inputSchema, string columnName, string tfNodeName, int batchSize)
+        private (int, bool, TFDataType, TFShape) GetTrainingInputInfo(Schema inputSchema, string columnName, string tfNodeName, int batchSize)
         {
             if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
                 throw Host.Except($"Column {columnName} doesn't exist");
 
-            var type = inputSchema.GetColumnType(inputColIndex);
+            var type = inputSchema[inputColIndex].Type;
             var isInputVector = type.IsVector;
 
             var tfInput = new TFOutput(Graph[tfNodeName]);
@@ -540,21 +540,21 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private static ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, TFShape tfShape)
+        private static ITensorValueGetter CreateTensorValueGetter<T>(Row input, bool isVector, int colIndex, TFShape tfShape)
         {
             if (isVector)
                 return new TensorValueGetterVec<T>(input, colIndex, tfShape);
             return new TensorValueGetter<T>(input, colIndex, tfShape);
         }
 
-        private static ITensorValueGetter CreateTensorValueGetter(IRow input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
+        private static ITensorValueGetter CreateTensorValueGetter(Row input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
         {
             var type = TFTensor.TypeFromTensorType(tfType);
             Contracts.AssertValue(type);
             return Utils.MarshalInvoke(CreateTensorValueGetter<int>, type, input, isVector, colIndex, tfShape);
         }
 
-        private static ITensorValueGetter[] GetTensorValueGetters(IRow input,
+        private static ITensorValueGetter[] GetTensorValueGetters(Row input,
             int[] inputColIndices,
             bool[] isInputVector,
             TFDataType[] tfInputTypes,
@@ -574,8 +574,8 @@ namespace Microsoft.ML.Transforms
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen)
         {
@@ -679,7 +679,7 @@ namespace Microsoft.ML.Transforms
             return (tfOutputTypes, outputTypes);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -795,7 +795,7 @@ namespace Microsoft.ML.Transforms
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
                         throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
-                    var type = inputSchema.GetColumnType(_inputColIndices[i]);
+                    var type = inputSchema[_inputColIndices[i]].Type;
                     if (type is VectorType vecType && vecType.Size == 0)
                         throw Host.Except("Variable length input columns not supported");
 
@@ -837,7 +837,7 @@ namespace Microsoft.ML.Transforms
                     else
                     {
                         if (shape.Select((dim, j) => dim != -1 && dim != colTypeDims[j]).Any(b => b))
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is {type.AsVector.ToString()}.");
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is {vecType.ToString()}.");
 
                         // Fill in the unknown dimensions.
                         var l = new long[originalShape.NumDimensions];
@@ -861,7 +861,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 Host.AssertValue(input);
@@ -875,7 +875,7 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private Delegate MakeGetter<T>(Row input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
@@ -913,7 +913,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
@@ -931,7 +931,9 @@ namespace Microsoft.ML.Transforms
             Desc = Summary,
             UserName = UserName,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name=""TensorflowTransform""]/*' />" })]
+            XmlInclude = new[] {
+                @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name=""TensorflowTransform""]/*' />",
+                @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/example[@name=""TensorflowTransform""]/*' />"})]
         public static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -941,7 +943,7 @@ namespace Microsoft.ML.Transforms
             var view = Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -962,7 +964,7 @@ namespace Microsoft.ML.Transforms
             private readonly TFShape _tfShape;
             private int _position;
 
-            public TensorValueGetter(IRow input, int colIndex, TFShape tfShape)
+            public TensorValueGetter(Row input, int colIndex, TFShape tfShape)
             {
                 _srcgetter = input.GetGetter<T>(colIndex);
                 _tfShape = tfShape;
@@ -1008,7 +1010,7 @@ namespace Microsoft.ML.Transforms
             private readonly T[] _bufferedData;
             private int _position;
 
-            public TensorValueGetterVec(IRow input, int colIndex, TFShape tfShape)
+            public TensorValueGetterVec(Row input, int colIndex, TFShape tfShape)
             {
                 _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                 _tfShape = tfShape;
@@ -1099,8 +1101,8 @@ namespace Microsoft.ML.Transforms
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
             for (var i = 0; i < _args.InputColumns.Length; i++)
             {
                 var input = _args.InputColumns[i];
@@ -1133,91 +1135,6 @@ namespace Microsoft.ML.Transforms
             // Validate input schema.
             _transformer.GetOutputSchema(input.Schema);
             return _transformer;
-        }
-    }
-
-    public static class TensorFlowStaticExtensions
-    {
-        private sealed class OutColumn : Vector<float>
-        {
-            public PipelineColumn Input { get; }
-
-            public OutColumn(Vector<float> input, string modelFile)
-                : base(new Reconciler(modelFile), input)
-            {
-                Input = input;
-            }
-
-            public OutColumn(Vector<float> input, TensorFlowModelInfo tensorFlowModel)
-                : base(new Reconciler(tensorFlowModel), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly string _modelFile;
-            private readonly TensorFlowModelInfo _tensorFlowModel;
-
-            public Reconciler(string modelFile)
-            {
-                Contracts.AssertNonEmpty(modelFile);
-                _modelFile = modelFile;
-                _tensorFlowModel = null;
-            }
-
-            public Reconciler(TensorFlowModelInfo tensorFlowModel)
-            {
-                Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));
-
-                _modelFile = null;
-                _tensorFlowModel = tensorFlowModel;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-
-                var outCol = (OutColumn)toOutput[0];
-                if (_modelFile == null)
-                {
-                    return new TensorFlowEstimator(env, _tensorFlowModel, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
-                }
-                else
-                {
-                    return new TensorFlowEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
-                }
-            }
-        }
-
-        // REVIEW: this method only covers one use case of using TensorFlow models: consuming one
-        // input and producing one output of floats.
-        // We could consider selectively adding some more extensions to enable common scenarios.
-        /// <summary>
-        /// Load the TensorFlow model from <paramref name="modelFile"/> and run it on the input column and extract one output column.
-        /// The inputs and outputs are matched to TensorFlow graph nodes by name.
-        /// </summary>
-        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, string modelFile)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckNonEmpty(modelFile, nameof(modelFile));
-            return new OutColumn(input, modelFile);
-        }
-
-        /// <summary>
-        /// Run a TensorFlow model provided through <paramref name="tensorFlowModel"/> on the input column and extract one output column.
-        /// The inputs and outputs are matched to TensorFlow graph nodes by name.
-        /// </summary>
-        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, TensorFlowModelInfo tensorFlowModel)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));
-            return new OutColumn(input, tensorFlowModel);
         }
     }
 }

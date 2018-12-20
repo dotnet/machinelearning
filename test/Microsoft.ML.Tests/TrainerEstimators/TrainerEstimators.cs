@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -86,7 +86,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            pipe = pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Label", "Features"));
+            var trainer = new StochasticGradientDescentClassificationTrainer(Env, "Label", "Features");
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
+
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Fit(transformedDataView);
+            trainer.Train(transformedDataView, model.Model);
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -98,7 +104,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMultiClassNaiveBayesTrainer()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
-            pipe = pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Features", "Label"));
+            pipe = pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Label", "Features"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }

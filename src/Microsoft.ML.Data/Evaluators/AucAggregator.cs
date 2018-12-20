@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Data
             protected IEnumerable<T> PosSample;
             protected IEnumerable<T> NegSample;
 
-            protected AucAggregatorBase(IRandom rand, int reservoirSize)
+            protected AucAggregatorBase(Random rand, int reservoirSize)
             {
                 Contracts.Assert(reservoirSize >= -1);
 
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
 
         internal sealed class UnweightedAucAggregator : AucAggregatorBase<Single>
         {
-            public UnweightedAucAggregator(IRandom rand, int reservoirSize)
+            public UnweightedAucAggregator(Random rand, int reservoirSize)
                 : base(rand, reservoirSize)
             {
             }
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private Single _weight;
 
-            public WeightedAucAggregator(IRandom rand, int reservoirSize)
+            public WeightedAucAggregator(Random rand, int reservoirSize)
                 : base(rand, reservoirSize)
             {
             }
@@ -368,7 +368,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             protected readonly ReservoirSamplerWithoutReplacement<T> Reservoir;
 
-            protected AuPrcAggregatorBase(IRandom rand, int reservoirSize)
+            protected AuPrcAggregatorBase(Random rand, int reservoirSize)
             {
                 Contracts.Assert(reservoirSize > 0);
 
@@ -401,7 +401,7 @@ namespace Microsoft.ML.Runtime.Data
                 public Single Label;
             }
 
-            public UnweightedAuPrcAggregator(IRandom rand, int reservoirSize)
+            public UnweightedAuPrcAggregator(Random rand, int reservoirSize)
                 : base(rand, reservoirSize)
             {
             }
@@ -475,7 +475,7 @@ namespace Microsoft.ML.Runtime.Data
                 public Single Weight;
             }
 
-            public WeightedAuPrcAggregator(IRandom rand, int reservoirSize)
+            public WeightedAuPrcAggregator(Random rand, int reservoirSize)
                 : base(rand, reservoirSize)
             {
             }
