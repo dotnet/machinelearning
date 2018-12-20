@@ -72,7 +72,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             return res[0];
         }
 
-        private unsafe string GetModelString()
+        [BestFriend]
+        internal unsafe string GetModelString()
         {
             int bufLen = 2 << 15;
             byte[] buffer = new byte[bufLen];

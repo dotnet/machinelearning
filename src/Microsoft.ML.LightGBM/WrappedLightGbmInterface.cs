@@ -23,6 +23,13 @@ namespace Microsoft.ML.Runtime.LightGBM
             Int64 = 3
         }
 
+        public enum CApiPredictType : int
+        {
+            Normal = 0,
+            Raw = 1,
+            LeafIndex = 2,
+        }
+
         private const string DllName = "lib_lightgbm";
 
         #region API Array
@@ -170,6 +177,12 @@ namespace Microsoft.ML.Runtime.LightGBM
         public static extern unsafe int BoosterGetEval(IntPtr handle, int dataIdx,
                                  ref int outLen, double* outResult);
 
+        #endregion
+
+        #region API predict
+        [DllImport(DllName, EntryPoint = "LGBM_BoosterPredictForMat", CallingConvention = CallingConvention.StdCall)]
+        public static extern unsafe int BoosterPredictForMat(IntPtr handle, IntPtr data, CApiDType dataType, int nRow, int nCol, int isRowMajor,
+            int predictType, int numIteration, [MarshalAs(UnmanagedType.LPStr)]string parameters, ref int outLen, double* outResult);
         #endregion
 
         #region API parallel
