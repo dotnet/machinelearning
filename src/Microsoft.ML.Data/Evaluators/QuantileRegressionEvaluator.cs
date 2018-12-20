@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
             t = schema.Label.Value.Type;
             if (t != NumberType.R4)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", schema.Label.Value.Name, "R4", t.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "R4", t.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
