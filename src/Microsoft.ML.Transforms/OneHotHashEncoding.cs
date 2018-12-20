@@ -180,8 +180,10 @@ namespace Microsoft.ML.Transforms.Categorical
 
         internal OneHotHashEncoding(HashingEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
         {
-            var chain = hash.Append(keyToVector);
-            _transformer = chain.Fit(input);
+            if (keyToVector != null)
+                _transformer = hash.Append(keyToVector).Fit(input);
+            else
+                _transformer = new TransformerChain<ITransformer>(hash.Fit(input));
         }
 
         public Schema GetOutputSchema(Schema inputSchema) => _transformer.GetOutputSchema(inputSchema);
