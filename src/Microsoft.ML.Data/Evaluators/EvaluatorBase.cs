@@ -49,8 +49,8 @@ namespace Microsoft.ML.Runtime.Data
         private protected void CheckColumnTypes(RoleMappedSchema schema)
         {
             // Check the weight column type.
-            if (schema.Weight != null)
-                EvaluateUtils.CheckWeightType(Host, schema.Weight.Type);
+            if (schema.Weight.HasValue)
+                EvaluateUtils.CheckWeightType(Host, schema.Weight.Value.Type);
             CheckScoreAndLabelTypes(schema);
             // Check the other column types.
             CheckCustomColumnTypesCore(schema);
@@ -92,8 +92,8 @@ namespace Microsoft.ML.Runtime.Data
         private protected virtual Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var label = schema.Label == null ? -1 : schema.Label.Index;
-            var weight = schema.Weight == null ? -1 : schema.Weight.Index;
+            int label = schema.Label?.Index ?? -1;
+            int weight = schema.Weight?.Index ?? -1;
             return i => i == score.Index || i == label || i == weight;
         }
 

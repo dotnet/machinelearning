@@ -70,27 +70,6 @@ namespace Microsoft.ML.Runtime.Data
         NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
     }
 
-    internal static class NormalizeUtils
-    {
-        /// <summary>
-        /// Returns whether the feature column in the schema is indicated to be normalized. If the features column is not
-        /// specified on the schema, then this will return <c>null</c>.
-        /// </summary>
-        /// <param name="schema">The role-mapped schema to query</param>
-        /// <returns>Returns null if <paramref name="schema"/> does not have <see cref="RoleMappedSchema.Feature"/>
-        /// defined, and otherwise returns a Boolean value as returned from <see cref="MetadataUtils.IsNormalized(Schema.Column)"/>
-        /// on that feature column</returns>
-        /// <seealso cref="MetadataUtils.IsNormalized(Schema.Column)"/>
-        public static bool? FeaturesAreNormalized(this RoleMappedSchema schema)
-        {
-            // REVIEW: The role mapped data has the ability to have multiple columns fill the role of features, which is
-            // useful in some trainers that are nonetheless parameteric and can therefore benefit from normalization.
-            Contracts.CheckValue(schema, nameof(schema));
-            var featInfo = schema.Feature;
-            return featInfo == null ? default(bool?) : schema.Schema[featInfo.Index].IsNormalized();
-        }
-    }
-
     /// <summary>
     /// This contains entry-point definitions related to <see cref="NormalizeTransform"/>.
     /// </summary>

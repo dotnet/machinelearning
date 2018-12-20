@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -48,11 +49,11 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(data, nameof(data));
 
-            var col = data.Schema.Feature;
-            if (col == null)
+            if (!data.Schema.Feature.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a feature column.");
-            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
-            if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
+            var col = data.Schema.Feature.Value;
+            Contracts.Assert(!col.IsHidden);
+            if (!(col.Type is VectorType vecType && vecType.Size > 0 && vecType.ItemType == NumberType.Float))
                 throw Contracts.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -65,11 +66,12 @@ namespace Microsoft.ML.Runtime.Training
 
             // If the above function is generalized, this needs to be as well.
             Contracts.AssertValue(data);
-            Contracts.Assert(data.Schema.Feature != null);
-            Contracts.Assert(!data.Schema.Schema[data.Schema.Feature.Index].IsHidden);
-            Contracts.Assert(data.Schema.Feature.Type.IsKnownSizeVector);
-            Contracts.Assert(data.Schema.Feature.Type.ItemType == NumberType.Float);
-            length = data.Schema.Feature.Type.VectorSize;
+            Contracts.Assert(data.Schema.Feature.HasValue);
+            var col = data.Schema.Feature.Value;
+            Contracts.Assert(!col.IsHidden);
+            Contracts.Assert(col.Type.IsKnownSizeVector);
+            Contracts.Assert(col.Type.ItemType == NumberType.Float);
+            length = col.Type.VectorSize;
         }
 
         /// <summary>
@@ -79,11 +81,11 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(data, nameof(data));
 
-            var col = data.Schema.Label;
-            if (col == null)
+            if (!data.Schema.Label.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
-            if (!col.Type.IsBool && col.Type != NumberType.R4 && col.Type != NumberType.R8 && col.Type.KeyCount != 2)
+            var col = data.Schema.Label.Value;
+            Contracts.Assert(!col.IsHidden);
+            if (col.Type != BoolType.Instance && col.Type != NumberType.R4 && col.Type != NumberType.R8 && !(col.Type is KeyType keyType && keyType.Count == 2))
             {
                 if (col.Type.IsKey)
                 {
@@ -113,9 +115,9 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(data, nameof(data));
 
-            var col = data.Schema.Label;
-            if (col == null)
+            if (!data.Schema.Label.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
+            var col = data.Schema.Label.Value;
             Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
             if (col.Type != NumberType.R4 && col.Type != NumberType.R8)
             {
@@ -133,13 +135,13 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(data, nameof(data));
 
-            var col = data.Schema.Label;
-            if (col == null)
+            if (!data.Schema.Label.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
-            if (col.Type.KeyCount > 0)
+            var col = data.Schema.Label.Value;
+            Contracts.Assert(!col.IsHidden);
+            if (col.Type is KeyType keyType && keyType.Count > 0)
             {
-                count = col.Type.KeyCount;
+                count = keyType.Count;
                 return;
             }
 
@@ -179,10 +181,10 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(data, nameof(data));
 
-            var col = data.Schema.Label;
-            if (col == null)
+            if (!data.Schema.Label.HasValue)
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
-            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
+            var col = data.Schema.Label.Value;
+            Contracts.Assert(!col.IsHidden);
             if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
@@ -191,10 +193,10 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(data, nameof(data));
 
-            var col = data.Schema.Weight;
-            if (col == null)
+            if (!data.Schema.Weight.HasValue)
                 return;
-            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
+            var col = data.Schema.Weight.Value;
+            Contracts.Assert(!col.IsHidden);
             if (col.Type != NumberType.R4 && col.Type != NumberType.R8)
                 throw Contracts.ExceptParam(nameof(data), "Training weight column '{0}' must be of floating point numeric type, but has type: {1}.", col.Name, col.Type);
         }
@@ -203,11 +205,11 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(data, nameof(data));
 
-            var col = data.Schema.Group;
-            if (col == null)
+            if (!data.Schema.Group.HasValue)
                 return;
-            Contracts.Assert(!data.Schema.Schema[col.Index].IsHidden);
-            if (col.Type.IsKey)
+            var col = data.Schema.Group.Value;
+            Contracts.Assert(!col.IsHidden);
+            if (col.Type is KeyType)
                 return;
             throw Contracts.ExceptParam(nameof(data), "Training group column '{0}' type is invalid: {1}. Must be Key type.", col.Name, col.Type);
         }
@@ -249,11 +251,11 @@ namespace Microsoft.ML.Runtime.Training
             CursOpt opt, int n, Random rand, IEnumerable<int> extraCols = null)
             => data.Data.GetRowCursorSet(CreatePredicate(data, opt, extraCols), n, rand);
 
-        private static void AddOpt(HashSet<int> cols, ColumnInfo info)
+        private static void AddOpt(HashSet<int> cols, Schema.Column? info)
         {
             Contracts.AssertValue(cols);
-            if (info != null)
-                cols.Add(info.Index);
+            if (info.HasValue)
+                cols.Add(info.Value.Index);
         }
 
         /// <summary>
@@ -264,9 +266,9 @@ namespace Microsoft.ML.Runtime.Training
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
-            Contracts.CheckParam(schema.Feature != null, nameof(schema), "Missing feature column");
+            Contracts.CheckParam(schema.Feature.HasValue, nameof(schema), "Missing feature column");
 
-            return row.GetGetter<VBuffer<float>>(schema.Feature.Index);
+            return row.GetGetter<VBuffer<float>>(schema.Feature.Value.Index);
         }
 
         /// <summary>
@@ -287,9 +289,9 @@ namespace Microsoft.ML.Runtime.Training
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
-            Contracts.CheckParam(schema.Label != null, nameof(schema), "Missing label column");
+            Contracts.CheckParam(schema.Label.HasValue, nameof(schema), "Missing label column");
 
-            return RowCursorUtils.GetLabelGetter(row, schema.Label.Index);
+            return RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
         }
 
         /// <summary>
@@ -310,12 +312,11 @@ namespace Microsoft.ML.Runtime.Training
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Check(schema.Schema == row.Schema, "schemas don't match!");
-            Contracts.CheckValueOrNull(schema.Weight);
 
             var col = schema.Weight;
-            if (col == null)
+            if (!col.HasValue)
                 return null;
-            return RowCursorUtils.GetGetterAs<float>(NumberType.Float, row, col.Index);
+            return RowCursorUtils.GetGetterAs<float>(NumberType.Float, row, col.Value.Index);
         }
 
         public static ValueGetter<float> GetOptWeightFloatGetter(this Row row, RoleMappedData data)
@@ -332,12 +333,11 @@ namespace Microsoft.ML.Runtime.Training
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Check(schema.Schema == row.Schema, "schemas don't match!");
-            Contracts.CheckValueOrNull(schema.Group);
 
             var col = schema.Group;
-            if (col == null)
+            if (!col.HasValue)
                 return null;
-            return RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col.Index);
+            return RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col.Value.Index);
         }
 
         public static ValueGetter<ulong> GetOptGroupGetter(this Row row, RoleMappedData data)

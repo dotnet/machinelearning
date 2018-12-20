@@ -227,7 +227,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 DefineScoreTrackers();
                 if (HasValidSet)
                     DefinePruningTest();
-                InputLength = context.TrainingSet.Schema.Feature.Type.ValueCount;
+                InputLength = context.TrainingSet.Schema.Feature.Value.Type.ValueCount;
 
                 TrainCore(ch);
             }
@@ -264,13 +264,11 @@ namespace Microsoft.ML.Trainers.FastTree
         private bool UseTranspose(bool? useTranspose, RoleMappedData data)
         {
             Host.AssertValue(data);
-            Host.AssertValue(data.Schema.Feature);
+            Host.Assert(data.Schema.Feature.HasValue);
 
             if (useTranspose.HasValue)
                 return useTranspose.Value;
-
-            ITransposeDataView td = data.Data as ITransposeDataView;
-            return td != null && td.TransposeSchema.GetSlotType(data.Schema.Feature.Index) != null;
+            return data.Data is ITransposeDataView td && td.TransposeSchema.GetSlotType(data.Schema.Feature.Value.Index) != null;
         }
 
         private void TrainCore(IChannel ch)
@@ -1118,11 +1116,12 @@ namespace Microsoft.ML.Trainers.FastTree
                     _pred = pred;
                     _data = data;
                     var schema = _data.Schema;
-                    ch.Check(schema.Feature.Type.ValueCount == _pred._inputLength);
+                    var featCol = schema.Feature.Value;
+                    ch.Check(featCol.Type.ValueCount == _pred._inputLength);
 
-                    int len = schema.Feature.Type.ValueCount;
-                    if (schema.Schema[schema.Feature.Index].HasSlotNames(len))
-                        schema.Schema[schema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _featNames);
+                    int len = featCol.Type.ValueCount;
+                    if (featCol.HasSlotNames(len))
+                        featCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _featNames);
                     else
                         _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 

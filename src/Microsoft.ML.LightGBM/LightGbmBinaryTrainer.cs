@@ -142,11 +142,11 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
-            var labelType = data.Schema.Label.Type;
-            if (!(labelType.IsBool || labelType.IsKey || labelType == NumberType.R4))
+            var labelType = data.Schema.Label.Value.Type;
+            if (!(labelType is BoolType || labelType is KeyType || labelType == NumberType.R4))
             {
                 throw ch.ExceptParam(nameof(data),
-                    $"Label column '{data.Schema.Label.Name}' is of type '{labelType}', but must be key, boolean or R4.");
+                    $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType}', but must be key, boolean or R4.");
             }
         }
 

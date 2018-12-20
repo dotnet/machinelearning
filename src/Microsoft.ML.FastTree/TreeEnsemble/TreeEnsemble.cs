@@ -413,8 +413,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         public FeaturesToContentMap(RoleMappedSchema schema)
         {
             Contracts.AssertValue(schema);
-            var feat = schema.Feature;
-            Contracts.AssertValue(feat);
+            Contracts.Assert(schema.Feature.HasValue);
+            var feat = schema.Feature.Value;
             Contracts.Assert(feat.Type.ValueCount > 0);
 
             var sch = schema.Schema;

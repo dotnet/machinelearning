@@ -120,13 +120,12 @@ namespace Microsoft.ML.Trainers
             var roles = examples.Schema.GetColumnRoleNames();
             var examplesToFeedTrain = new RoleMappedData(idvToFeedTrain, roles);
 
-            ch.AssertValue(examplesToFeedTrain.Schema.Label);
-            ch.AssertValue(examplesToFeedTrain.Schema.Feature);
-            if (examples.Schema.Weight != null)
-                ch.AssertValue(examplesToFeedTrain.Schema.Weight);
+            ch.Assert(examplesToFeedTrain.Schema.Label.HasValue);
+            ch.Assert(examplesToFeedTrain.Schema.Feature.HasValue);
+            if (examples.Schema.Weight.HasValue)
+                ch.Assert(examplesToFeedTrain.Schema.Weight.HasValue);
 
-            int numFeatures = examplesToFeedTrain.Schema.Feature.Type.VectorSize;
-            ch.Check(numFeatures > 0, "Training set has no features, aborting training.");
+            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
             return examplesToFeedTrain;
         }
 
@@ -287,7 +286,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
             Contracts.Assert(weightSetCount >= 1);
 
-            int numFeatures = data.Schema.Feature.Type.VectorSize;
+            int numFeatures = data.Schema.Feature.Value.Type.VectorSize;
             long maxTrainingExamples = MaxDualTableSize / weightSetCount;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight | CursOpt.Id);
             int numThreads;
@@ -1761,8 +1760,9 @@ namespace Microsoft.ML.Trainers
             Contracts.AssertValue(data);
             Contracts.Assert(weightSetCount == 1);
             Contracts.AssertValueOrNull(predictor);
+            Contracts.Assert(data.Schema.Feature.HasValue);
 
-            int numFeatures = data.Schema.Feature.Type.VectorSize;
+            int numFeatures = data.Schema.Feature.Value.Type.VectorSize;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
 
             int numThreads;

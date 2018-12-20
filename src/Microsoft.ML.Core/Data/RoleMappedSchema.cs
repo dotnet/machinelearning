@@ -9,69 +9,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// This contains information about a column in an <see cref="IDataView"/>. It is essentially a convenience cache
-    /// containing the name, column index, and column type for the column. The intended usage is that users of <see cref="RoleMappedSchema"/>
-    /// will have a convenient method of getting the index and type without having to separately query it through the <see cref="Schema"/>,
-    /// since practically the first thing a consumer of a <see cref="RoleMappedSchema"/> will want to do once they get a mappping is get
-    /// the type and index of the corresponding column.
-    /// </summary>
-    public sealed class ColumnInfo
-    {
-        public readonly string Name;
-        public readonly int Index;
-        public readonly ColumnType Type;
-
-        private ColumnInfo(string name, int index, ColumnType type)
-        {
-            Name = name;
-            Index = index;
-            Type = type;
-        }
-
-        /// <summary>
-        /// Create a ColumnInfo for the column with the given name in the given schema. Throws if the name
-        /// doesn't map to a column.
-        /// </summary>
-        public static ColumnInfo CreateFromName(Schema schema, string name, string descName)
-        {
-            if (!TryCreateFromName(schema, name, out var colInfo))
-                throw Contracts.ExceptParam(nameof(name), $"{descName} column '{name}' not found");
-
-            return colInfo;
-        }
-
-        /// <summary>
-        /// Tries to create a ColumnInfo for the column with the given name in the given schema. Returns
-        /// false if the name doesn't map to a column.
-        /// </summary>
-        public static bool TryCreateFromName(Schema schema, string name, out ColumnInfo colInfo)
-        {
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckNonEmpty(name, nameof(name));
-
-            colInfo = null;
-            if (!schema.TryGetColumnIndex(name, out int index))
-                return false;
-
-            colInfo = new ColumnInfo(name, index, schema[index].Type);
-            return true;
-        }
-
-        /// <summary>
-        /// Creates a ColumnInfo for the column with the given column index. Note that the name
-        /// of the column might actually map to a different column, so this should be used with care
-        /// and rarely.
-        /// </summary>
-        public static ColumnInfo CreateFromIndex(Schema schema, int index)
-        {
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(0 <= index && index < schema.Count, nameof(index));
-
-            return new ColumnInfo(schema[index].Name, index, schema[index].Type);
-        }
-    }
-
-    /// <summary>
     /// Encapsulates an <see cref="Schema"/> plus column role mapping information. The purpose of role mappings is to
     /// provide information on what the intended usage is for. That is: while a given data view may have a column named
     /// "Features", by itself that is insufficient: the trainer must be fed a role mapping that says that the role
@@ -192,32 +129,32 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The <see cref="ColumnRole.Feature"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public ColumnInfo Feature { get; }
+        public Schema.Column? Feature { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Label"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public ColumnInfo Label { get; }
+        public Schema.Column? Label { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Group"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public ColumnInfo Group { get; }
+        public Schema.Column? Group { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Weight"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public ColumnInfo Weight { get; }
+        public Schema.Column? Weight { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Name"/> column, when there is exactly one (null otherwise).
         /// </summary>
-        public ColumnInfo Name { get; }
+        public Schema.Column? Name { get; }
 
         // Maps from role to the associated column infos.
-        private readonly Dictionary<string, IReadOnlyList<ColumnInfo>> _map;
+        private readonly Dictionary<string, IReadOnlyList<Schema.Column>> _map;
 
-        private RoleMappedSchema(Schema schema, Dictionary<string, IReadOnlyList<ColumnInfo>> map)
+        private RoleMappedSchema(Schema schema, Dictionary<string, IReadOnlyList<Schema.Column>> map)
         {
             Contracts.AssertValue(schema);
             Contracts.AssertValue(map);
@@ -256,42 +193,40 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private RoleMappedSchema(Schema schema, Dictionary<string, List<ColumnInfo>> map)
+        private RoleMappedSchema(Schema schema, Dictionary<string, List<Schema.Column>> map)
             : this(schema, Copy(map))
         {
         }
 
-        private static void Add(Dictionary<string, List<ColumnInfo>> map, ColumnRole role, ColumnInfo info)
+        private static void Add(Dictionary<string, List<Schema.Column>> map, ColumnRole role, Schema.Column column)
         {
             Contracts.AssertValue(map);
             Contracts.AssertNonEmpty(role.Value);
-            Contracts.AssertValue(info);
 
             if (!map.TryGetValue(role.Value, out var list))
             {
-                list = new List<ColumnInfo>();
+                list = new List<Schema.Column>();
                 map.Add(role.Value, list);
             }
-            list.Add(info);
+            list.Add(column);
         }
 
-        private static Dictionary<string, List<ColumnInfo>> MapFromNames(Schema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
+        private static Dictionary<string, List<Schema.Column>> MapFromNames(Schema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
         {
             Contracts.AssertValue(schema);
             Contracts.AssertValue(roles);
 
-            var map = new Dictionary<string, List<ColumnInfo>>();
+            var map = new Dictionary<string, List<Schema.Column>>();
             foreach (var kvp in roles)
             {
                 Contracts.AssertNonEmpty(kvp.Key.Value);
                 if (string.IsNullOrEmpty(kvp.Value))
                     continue;
-                ColumnInfo info;
-                if (!opt)
-                    info = ColumnInfo.CreateFromName(schema, kvp.Value, kvp.Key.Value);
-                else if (!ColumnInfo.TryCreateFromName(schema, kvp.Value, out info))
-                    continue;
-                Add(map, kvp.Key.Value, info);
+                var info = schema.GetColumnOrNull(kvp.Value);
+                if (info.HasValue)
+                    Add(map, kvp.Key.Value, info.Value);
+                else if (!opt)
+                    throw Contracts.ExceptParam(nameof(schema), $"{kvp.Value} column '{kvp.Key.Value}' not found");
             }
             return map;
         }
@@ -318,18 +253,18 @@ namespace Microsoft.ML.Runtime.Data
         /// If there are columns of the given role, this returns the infos as a readonly list. Otherwise,
         /// it returns null.
         /// </summary>
-        public IReadOnlyList<ColumnInfo> GetColumns(ColumnRole role)
+        public IReadOnlyList<Schema.Column> GetColumns(ColumnRole role)
             => _map.TryGetValue(role.Value, out var list) ? list : null;
 
         /// <summary>
         /// An enumerable over all role-column associations within this object.
         /// </summary>
-        public IEnumerable<KeyValuePair<ColumnRole, ColumnInfo>> GetColumnRoles()
+        public IEnumerable<KeyValuePair<ColumnRole, Schema.Column>> GetColumnRoles()
         {
             foreach (var roleAndList in _map)
             {
                 foreach (var info in roleAndList.Value)
-                    yield return new KeyValuePair<ColumnRole, ColumnInfo>(roleAndList.Key, info);
+                    yield return new KeyValuePair<ColumnRole, Schema.Column>(roleAndList.Key, info);
             }
         }
 
@@ -359,13 +294,13 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Returns the <see cref="ColumnInfo"/> corresponding to <paramref name="role"/> if there is
+        /// Returns the <see cref="Schema.Column"/> corresponding to <paramref name="role"/> if there is
         /// exactly one such mapping, and otherwise throws an exception.
         /// </summary>
         /// <param name="role">The role to look up</param>
-        /// <returns>The info corresponding to that role, assuming there was only one column
+        /// <returns>The column corresponding to that role, assuming there was only one column
         /// mapped to that</returns>
-        public ColumnInfo GetUniqueColumn(ColumnRole role)
+        public Schema.Column GetUniqueColumn(ColumnRole role)
         {
             var infos = GetColumns(role);
             if (Utils.Size(infos) != 1)
@@ -373,9 +308,9 @@ namespace Microsoft.ML.Runtime.Data
             return infos[0];
         }
 
-        private static Dictionary<string, IReadOnlyList<ColumnInfo>> Copy(Dictionary<string, List<ColumnInfo>> map)
+        private static Dictionary<string, IReadOnlyList<Schema.Column>> Copy(Dictionary<string, List<Schema.Column>> map)
         {
-            var copy = new Dictionary<string, IReadOnlyList<ColumnInfo>>(map.Count);
+            var copy = new Dictionary<string, IReadOnlyList<Schema.Column>>(map.Count);
             foreach (var kvp in map)
             {
                 Contracts.Assert(Utils.Size(kvp.Value) > 0);

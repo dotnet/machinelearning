@@ -332,11 +332,9 @@ namespace Microsoft.ML.Data
             Contracts.CheckValueOrNull(schema);
             Contracts.CheckParam(vectorSize >= 0, nameof(vectorSize));
 
-            IReadOnlyList<ColumnInfo> list;
-            if ((list = schema?.GetColumns(role)) == null || list.Count != 1 || !schema.Schema[list[0].Index].HasSlotNames(vectorSize))
-            {
+            IReadOnlyList<Schema.Column> list = schema?.GetColumns(role);
+            if (list?.Count != 1 || !schema.Schema[list[0].Index].HasSlotNames(vectorSize))
                 VBufferUtils.Resize(ref slotNames, vectorSize, 0);
-            }
             else
                 schema.Schema[list[0].Index].Metadata.GetValue(Kinds.SlotNames, ref slotNames);
         }

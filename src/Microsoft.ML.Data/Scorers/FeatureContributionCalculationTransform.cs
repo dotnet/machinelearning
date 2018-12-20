@@ -339,6 +339,7 @@ namespace Microsoft.ML.Runtime.Data
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
             public Schema InputSchema => InputRoleMappedSchema.Schema;
+            private Schema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
 
             public Schema OutputSchema { get; }
 
@@ -350,7 +351,7 @@ namespace Microsoft.ML.Runtime.Data
                 _env = env;
                 _env.AssertValue(schema);
                 _env.AssertValue(parent);
-                _env.AssertValue(schema.Feature);
+                _env.Assert(schema.Feature.HasValue);
                 _parent = parent;
                 InputRoleMappedSchema = schema;
                 var genericMapper = parent.GenericMapper.Bind(_env, schema);
@@ -361,16 +362,16 @@ namespace Microsoft.ML.Runtime.Data
                     var builder = new SchemaBuilder();
                     builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
                     _outputSchema = builder.GetSchema();
-                    if (InputSchema[InputRoleMappedSchema.Feature.Index].HasSlotNames(InputRoleMappedSchema.Feature.Type.VectorSize))
-                        InputSchema[InputRoleMappedSchema.Feature.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
+                    if (FeatureColumn.HasSlotNames(FeatureColumn.Type.VectorSize))
+                        FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                     else
-                        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(InputRoleMappedSchema.Feature.Type.VectorSize);
+                        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(FeatureColumn.Type.VectorSize);
                 }
                 else
                 {
                     _outputSchema = Schema.Create(new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
-                        new VectorType(NumberType.R4, schema.Feature.Type as VectorType),
-                        InputSchema, InputRoleMappedSchema.Feature.Index));
+                        new VectorType(NumberType.R4, FeatureColumn.Type as VectorType),
+                        InputSchema, FeatureColumn.Index));
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
@@ -385,7 +386,7 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
-                        return col => col == InputRoleMappedSchema.Feature.Index;
+                        return col => col == FeatureColumn.Index;
                 }
                 return col => false;
             }
@@ -400,8 +401,8 @@ namespace Microsoft.ML.Runtime.Data
                 if (active(totalColumnsCount - 1))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
-                        ? _parent.GetTextContributionGetter(input, InputRoleMappedSchema.Feature.Index, _slotNames)
-                        : _parent.GetContributionGetter(input, InputRoleMappedSchema.Feature.Index);
+                        ? _parent.GetTextContributionGetter(input, FeatureColumn.Index, _slotNames)
+                        : _parent.GetContributionGetter(input, FeatureColumn.Index);
                 }
 
                 var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(active));
@@ -421,7 +422,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(FeatureColumn.Name);
             }
         }
 
