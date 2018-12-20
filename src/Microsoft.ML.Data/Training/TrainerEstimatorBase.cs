@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.ML.Core.Data;
+
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Training

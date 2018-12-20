@@ -33,7 +33,7 @@ using System.Threading.Tasks;
 [assembly: LoadableClass(typeof(BinaryLoader.InfoCommand), typeof(BinaryLoader.InfoCommand.Arguments), typeof(SignatureCommand),
     "", BinaryLoader.InfoCommand.LoadName, "idv")]
 
-namespace Microsoft.ML.Data.IO
+namespace Microsoft.ML
 {
     public sealed class BinaryLoader : IDataLoader, IDisposable
     {

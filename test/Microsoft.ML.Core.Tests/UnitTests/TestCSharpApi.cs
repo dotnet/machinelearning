@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML;
 
 namespace Microsoft.ML.RunTests
 {

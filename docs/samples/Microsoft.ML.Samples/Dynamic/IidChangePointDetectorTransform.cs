@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.TimeSeriesProcessing;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.TimeSeries;
 using System.IO;
 

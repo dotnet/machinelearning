@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.ML.Core.Data;
+
 using Microsoft.ML.Data;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;

@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using System.Linq;
 using Xunit;
 
@@ -30,10 +27,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var data = ml.Data.CreateTextReader(TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
                     .Read(dataPath);
 
-            var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
+            var pipeline = ml.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                .Append(ml.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
                 .Append(ml.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features",advancedSettings: s => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; }))
-                .Append(new KeyToValueMappingEstimator(ml, "PredictedLabel"));
+                .Append(ml.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
             var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
             var engine = model.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(ml);

@@ -1,10 +1,8 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.TimeSeriesProcessing;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic

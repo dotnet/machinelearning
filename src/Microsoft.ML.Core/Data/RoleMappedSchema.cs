@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML
 {
     /// <summary>
     /// This contains information about a column in an <see cref="IDataView"/>. It is essentially a convenience cache

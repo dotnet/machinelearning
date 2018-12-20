@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.ML.Core.Data;
+
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.StaticPipe.Runtime

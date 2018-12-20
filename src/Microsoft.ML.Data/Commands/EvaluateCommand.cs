@@ -218,7 +218,7 @@ namespace Microsoft.ML.Data
 
             ch.Trace("Creating loader");
             IDataView view = CreateAndSaveLoader(
-                (env, source) => new IO.BinaryLoader(env, new IO.BinaryLoader.Arguments(), source));
+                (env, source) => new BinaryLoader(env, new BinaryLoader.Arguments(), source));
 
             ch.Trace("Binding columns");
             var schema = view.Schema;

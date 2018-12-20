@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Core.Data
+namespace Microsoft.ML
 {
     /// <summary>
     /// A set of 'requirements' to the incoming schema, as well as a set of 'promises' of the outgoing schema.

@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -27,10 +23,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
 
-            var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
-                .Append(new Ova(ml, sdcaTrainer))
-                .Append(new KeyToValueMappingEstimator(ml, "PredictedLabel"));
+            var pipeline = ml.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                .Append(ml.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                .Append(ml.MulticlassClassification.Trainers.OneVersusAll(sdcaTrainer))
+                .Append(ml.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
             var model = pipeline.Fit(data);
         }

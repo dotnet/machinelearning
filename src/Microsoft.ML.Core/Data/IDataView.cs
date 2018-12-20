@@ -4,8 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML
 {
     /// <summary>
     /// Legacy interface for schema information.

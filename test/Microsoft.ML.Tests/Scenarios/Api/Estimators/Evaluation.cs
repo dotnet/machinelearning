@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Xunit;
 
@@ -27,10 +26,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
 
             // Train.
-            var readerModel = pipeline.Fit(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+            var readerModel = pipeline.Fit(ml.Data.CreateMultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
             // Evaluate on the test set.
-            var dataEval = readerModel.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)));
+            var dataEval = readerModel.Read(ml.Data.CreateMultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)));
             var metrics = ml.BinaryClassification.Evaluate(dataEval);
         }
     }

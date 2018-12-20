@@ -16,7 +16,7 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Core.Data;
+
 using OnnxShape = System.Collections.Generic.List<int>;
 
 [assembly: LoadableClass(OnnxTransform.Summary, typeof(IDataTransform), typeof(OnnxTransform),

@@ -301,7 +301,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Transformed dataset
         /// </summary>
-        public Var<Data.IDataView> OutputData { get; set; }
+        public Var<IDataView> OutputData { get; set; }
 
         /// <summary>
         /// Transform model
@@ -310,7 +310,7 @@ namespace Microsoft.ML
 
         public EntryPointTransformOutput()
         {
-            OutputData = new Var<Data.IDataView>();
+            OutputData = new Var<IDataView>();
             Model = new Var<TransformModel>();
         }
     }

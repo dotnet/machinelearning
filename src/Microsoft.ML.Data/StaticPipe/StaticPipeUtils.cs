@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.ML.Core.Data;
+
 using Microsoft.ML;
 using Microsoft.ML.Transforms;
 

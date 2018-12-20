@@ -5,8 +5,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML
 {
     /// <summary>
     /// A buffer that supports both dense and sparse representations. This is the

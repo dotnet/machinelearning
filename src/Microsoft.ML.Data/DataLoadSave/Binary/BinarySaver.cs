@@ -21,7 +21,7 @@ using Microsoft.ML.Internal.Utilities;
 [assembly: LoadableClass(BinarySaver.Summary, typeof(BinarySaver), typeof(BinarySaver.Arguments), typeof(SignatureDataSaver),
     "Binary Saver", "BinarySaver", "Binary")]
 
-namespace Microsoft.ML.Data.IO
+namespace Microsoft.ML
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 

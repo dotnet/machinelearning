@@ -1997,7 +1997,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The resulting data view
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -2018,7 +2018,7 @@ namespace Microsoft.ML
             /// Pointer to IDataView in memory
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -2027,7 +2027,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The resulting data view
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -2048,7 +2048,7 @@ namespace Microsoft.ML
             /// The data sets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Data.IDataView> Data { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.IDataView> Data { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -2057,7 +2057,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The data set array
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.IDataView> OutputData { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
             }
         }
@@ -2348,7 +2348,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The resulting data view
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -2453,7 +2453,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -2468,17 +2468,17 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -2602,7 +2602,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -2617,22 +2617,22 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -2648,7 +2648,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
         }
 
@@ -2675,7 +2675,7 @@ namespace Microsoft.ML
             /// The data set
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// The training subgraph
@@ -2719,22 +2719,22 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
             }
         }
@@ -2889,7 +2889,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -2904,22 +2904,22 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -2982,7 +2982,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -2997,17 +2997,17 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -3040,25 +3040,25 @@ namespace Microsoft.ML
             /// Overall metrics datasets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Per instance metrics datasets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Confusion matrix datasets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Warning datasets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// The label column name
@@ -3097,22 +3097,22 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -3128,7 +3128,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
         }
 
@@ -3161,7 +3161,7 @@ namespace Microsoft.ML
             /// The data set
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// The transform model from the pipeline before this command. It gets included in the Output.PredictorModel.
@@ -3246,22 +3246,22 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -3282,7 +3282,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Number of folds to split into
@@ -3303,12 +3303,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Training data (one dataset per fold)
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Data.IDataView> TrainData { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.IDataView> TrainData { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Testing data (one dataset per fold)
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Data.IDataView> TestData { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.IDataView> TestData { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
             }
         }
@@ -3335,7 +3335,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -3344,7 +3344,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
             [Obsolete]
@@ -3407,12 +3407,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The summaries of the individual predictors
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Data.IDataView> Summaries { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.IDataView> Summaries { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// The model statistics of the individual predictors
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Data.IDataView> Stats { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.IDataView> Stats { get; set; } = new ArrayVar<Microsoft.ML.IDataView>();
 
             }
         }
@@ -3458,7 +3458,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -3592,7 +3592,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -3607,17 +3607,17 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -3651,7 +3651,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -3769,7 +3769,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -3952,7 +3952,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -4044,7 +4044,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -4118,7 +4118,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -4216,7 +4216,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -4231,17 +4231,17 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -4304,7 +4304,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -4319,17 +4319,17 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -4423,7 +4423,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -4438,17 +4438,17 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -4514,12 +4514,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The summary of a predictor
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Summary { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Summary { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// The training set statistics. Note that this output can be null.
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Stats { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Stats { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -4535,7 +4535,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
         }
 
@@ -4562,13 +4562,13 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// The data to be used for testing
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// The training subgraph
@@ -4600,22 +4600,22 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -4631,7 +4631,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
         }
 
@@ -4664,13 +4664,13 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// The data to be used for testing
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// The aggregated transform model from the pipeline before this command, to apply to the test data, and also include in the final model, together with the predictor model.
@@ -4755,42 +4755,42 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Warning dataset for training
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> TrainingWarnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> TrainingWarnings { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset for training
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> TrainingOverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> TrainingOverallMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset for training
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> TrainingPerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> TrainingPerInstanceMetrics { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset for training
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> TrainingConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> TrainingConfusionMatrix { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -4829,7 +4829,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -4838,7 +4838,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -4942,7 +4942,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -4951,7 +4951,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -5049,7 +5049,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -5058,7 +5058,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -5142,7 +5142,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -5151,7 +5151,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -5247,7 +5247,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -5256,7 +5256,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -5353,7 +5353,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -5362,7 +5362,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -5494,7 +5494,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -5503,7 +5503,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -5619,7 +5619,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -5628,7 +5628,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -5803,7 +5803,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -5933,7 +5933,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -6063,7 +6063,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -6193,7 +6193,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -6548,7 +6548,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -6882,7 +6882,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -7354,7 +7354,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -7860,7 +7860,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -8318,7 +8318,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -8781,7 +8781,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -8925,7 +8925,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9103,7 +9103,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9281,7 +9281,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9410,7 +9410,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9670,7 +9670,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9915,7 +9915,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10160,7 +10160,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10405,7 +10405,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10563,7 +10563,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10738,7 +10738,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10913,7 +10913,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10997,7 +10997,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11178,7 +11178,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11280,7 +11280,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11391,7 +11391,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11560,7 +11560,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11724,7 +11724,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11869,7 +11869,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -12014,7 +12014,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -12177,7 +12177,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -12318,7 +12318,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -12421,7 +12421,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -12430,7 +12430,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -12496,7 +12496,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -12505,7 +12505,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -12664,7 +12664,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -12673,7 +12673,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -12864,7 +12864,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -12873,7 +12873,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -13062,7 +13062,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -13071,7 +13071,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -13198,7 +13198,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -13207,7 +13207,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -13306,7 +13306,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -13315,7 +13315,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -13438,7 +13438,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -13447,7 +13447,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -13531,7 +13531,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -13540,7 +13540,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -13687,7 +13687,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -13696,7 +13696,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -13766,7 +13766,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -13775,7 +13775,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -13922,7 +13922,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -13931,7 +13931,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -14004,7 +14004,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -14013,7 +14013,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
             [Obsolete]
@@ -14067,7 +14067,7 @@ namespace Microsoft.ML
             /// The dataset to be scored
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// The predictor model to apply to data
@@ -14088,7 +14088,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The scored dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// The scoring transform
@@ -14114,7 +14114,7 @@ namespace Microsoft.ML
             /// The dataset to be scored
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// The transform model to apply to data
@@ -14129,7 +14129,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The scored dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// The scoring transform
@@ -14266,7 +14266,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -14275,7 +14275,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -14341,7 +14341,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -14350,7 +14350,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -14421,7 +14421,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -14430,7 +14430,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -14513,7 +14513,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -14522,7 +14522,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -14679,7 +14679,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -14688,7 +14688,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -14864,7 +14864,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -14873,7 +14873,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -14996,7 +14996,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -15005,7 +15005,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -15134,7 +15134,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -15143,7 +15143,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -15362,7 +15362,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -15371,7 +15371,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -15559,7 +15559,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -15568,7 +15568,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -15689,7 +15689,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -15698,7 +15698,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -15770,7 +15770,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -15779,7 +15779,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -15914,7 +15914,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -15923,7 +15923,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -15989,7 +15989,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -15998,7 +15998,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -16264,7 +16264,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -16273,7 +16273,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -16414,7 +16414,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -16423,7 +16423,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -16577,7 +16577,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -16586,7 +16586,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -16746,7 +16746,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -16755,7 +16755,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -16873,7 +16873,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -16882,7 +16882,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -17049,7 +17049,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -17058,7 +17058,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -17180,7 +17180,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -17189,7 +17189,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -17311,7 +17311,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -17320,7 +17320,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -17391,7 +17391,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -17400,7 +17400,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -17562,7 +17562,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -17571,7 +17571,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -17790,7 +17790,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -17799,7 +17799,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -17859,7 +17859,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -17868,7 +17868,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -17933,7 +17933,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -17942,7 +17942,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18124,7 +18124,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18133,7 +18133,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18199,7 +18199,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18208,7 +18208,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18309,7 +18309,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18318,7 +18318,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18414,7 +18414,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18423,7 +18423,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18495,7 +18495,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18504,7 +18504,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18570,7 +18570,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18579,7 +18579,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18645,7 +18645,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18654,7 +18654,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18720,7 +18720,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18729,7 +18729,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18798,7 +18798,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The scored dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// The scoring transform
@@ -18843,7 +18843,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18852,7 +18852,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -18923,7 +18923,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -18932,7 +18932,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -19081,7 +19081,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -19090,7 +19090,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -19306,7 +19306,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -19315,7 +19315,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -19444,7 +19444,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -19453,7 +19453,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -19513,7 +19513,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             /// <summary>
             /// Fraction of training data
@@ -19534,12 +19534,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Training data
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> TrainData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> TrainData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Testing data
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> TestData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> TestData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
             }
         }
@@ -19576,7 +19576,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -19585,7 +19585,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -19852,7 +19852,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -19861,7 +19861,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -20010,7 +20010,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -20019,7 +20019,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -20153,7 +20153,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+            public Var<Microsoft.ML.IDataView> Data { get; set; } = new Var<Microsoft.ML.IDataView>();
 
 
             [Obsolete]
@@ -20162,7 +20162,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+                public Var<Microsoft.ML.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
                 /// <summary>
                 /// Transform model
@@ -21680,7 +21680,7 @@ namespace Microsoft.ML
         /// The data to be used for training
         /// </summary>
         [Obsolete]
-        public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+        public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
         /// <summary>
         /// Column to use for features
@@ -22144,7 +22144,7 @@ namespace Microsoft.ML
         /// The data to be used for training
         /// </summary>
         [Obsolete]
-        public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+        public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
         /// <summary>
         /// Column to use for features
@@ -22560,7 +22560,7 @@ namespace Microsoft.ML
         /// The data to be used for training
         /// </summary>
         [Obsolete]
-        public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+        public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
         /// <summary>
         /// Column to use for features
@@ -22982,7 +22982,7 @@ namespace Microsoft.ML
         /// The data to be used for training
         /// </summary>
         [Obsolete]
-        public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+        public Var<Microsoft.ML.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.IDataView>();
 
         /// <summary>
         /// Column to use for features

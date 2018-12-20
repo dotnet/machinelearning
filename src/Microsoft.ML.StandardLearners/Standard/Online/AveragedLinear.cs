@@ -5,7 +5,7 @@
 using Float = System.Single;
 
 using System;
-using Microsoft.ML.Core.Data;
+
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;

@@ -20,7 +20,7 @@ using System.Linq;
 [assembly: LoadableClass(ShowDataCommand.Summary, typeof(ShowDataCommand), typeof(ShowDataCommand.Arguments), typeof(SignatureCommand),
     "Show Data", "ShowData", "show")]
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML
 {
     internal sealed class SaveDataCommand : DataCommand.ImplBase<SaveDataCommand.Arguments>
     {

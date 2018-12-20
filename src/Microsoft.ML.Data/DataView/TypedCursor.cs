@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using System;
@@ -10,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML
 {
     /// <summary>
     /// This interface is an <see cref="Row"/> with 'strongly typed' binding.

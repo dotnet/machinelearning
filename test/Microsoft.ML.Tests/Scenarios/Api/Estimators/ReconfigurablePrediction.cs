@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML;
-using Microsoft.ML.Data;
-using Microsoft.ML.Learners;
 using Microsoft.ML.RunTests;
 using Xunit;
 
@@ -38,7 +35,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var scoredTest = model.Transform(pipeline.Transform(testData));
             var metrics = ml.BinaryClassification.Evaluate(scoredTest);
 
-            var newModel = new BinaryPredictionTransformer<IPredictorProducing<float>>(ml, model.Model, trainData.Schema, model.FeatureColumn, threshold: 0.01f, thresholdColumn: DefaultColumnNames.Probability);
+            var newModel = ml.Transforms.CreateBinaryPrediction<IPredictorProducing<float>>(ml, model.Model, trainData.Schema, model.FeatureColumn, threshold: 0.01f, thresholdColumn: DefaultColumnNames.Probability);
             var newScoredTest = newModel.Transform(pipeline.Transform(testData));
             var newMetrics = ml.BinaryClassification.Evaluate(scoredTest);
         }

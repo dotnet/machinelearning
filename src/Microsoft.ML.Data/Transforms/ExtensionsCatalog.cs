@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML
 {
@@ -60,5 +60,10 @@ namespace Microsoft.ML
             bool keepHidden = ColumnSelectingTransformer.Defaults.KeepHidden)
             => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog),
                 keepColumns, null, keepHidden, ColumnSelectingTransformer.Defaults.IgnoreMissing);
+
+        public static BinaryPredictionTransformer<TModel> CreateBinaryPrediction<TModel>(this TransformsCatalog catalog, IHostEnvironment env,
+            TModel model, Schema inputSchema, string featureColumn, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
+            where TModel : class, IPredictorProducing<float>
+            => new BinaryPredictionTransformer<TModel>(env, model, inputSchema, featureColumn, threshold, thresholdColumn);
     }
 }
