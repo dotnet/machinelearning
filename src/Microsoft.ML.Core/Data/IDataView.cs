@@ -92,24 +92,22 @@ namespace Microsoft.ML.Runtime.Data
         RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null);
 
         /// <summary>
-        /// This constructs a set of parallel batch cursors. The value <paramref name="n"/> is a recommended limit
-        /// on cardinality. If <paramref name="n"/> is non-positive, this indicates that the caller
-        /// has no recommendation, and the implementation should have some default behavior to cover
-        /// this case. Note that this is strictly a recommendation: it is entirely possible that
-        /// an implementation can return a different number of cursors.
+        /// This constructs a set of parallel batch cursors. The value <paramref name="n"/> is a recommended limit on
+        /// cardinality. If <paramref name="n"/> is non-positive, this indicates that the caller has no recommendation,
+        /// and the implementation should have some default behavior to cover this case. Note that this is strictly a
+        /// recommendation: it is entirely possible that an implementation can return a different number of cursors.
         ///
         /// The cursors should return the same data as returned through
-        /// <see cref="GetRowCursor(Func{int, bool}, Random)"/>, except partitioned: no two cursors
-        /// should return the "same" row as would have been returned through the regular serial cursor,
-        /// but all rows should be returned by exactly one of the cursors returned from this cursor.
-        /// The cursors can have their values reconciled downstream through the use of the
-        /// <see cref="Row.Batch"/> property.
+        /// <see cref="GetRowCursor(Func{int, bool}, Random)"/>, except partitioned: no two cursors should return the
+        /// "same" row as would have been returned through the regular serial cursor, but all rows should be returned by
+        /// exactly one of the cursors returned from this cursor. The cursors can have their values reconciled
+        /// downstream through the use of the <see cref="Row.Batch"/> property.
         ///
-        /// The typical usage pattern is that a set of cursors is requested, each of them is then
-        /// given to a set of working threads that consume from them independently while, ultimately,
-        /// the results are finally collated in the end by exploiting the ordering of the <see cref="Row.Batch"/>
-        /// property described above. More typical scenarios will be content with pulling from the single
-        /// serial cursor of <see cref="GetRowCursor(Func{int, bool}, Random)"/>.
+        /// The typical usage pattern is that a set of cursors is requested, each of them is then given to a set of
+        /// working threads that consume from them independently while, ultimately, the results are finally collated in
+        /// the end by exploiting the ordering of the <see cref="Row.Batch"/> property described above. More typical
+        /// scenarios will be content with pulling from the single serial cursor of
+        /// <see cref="GetRowCursor(Func{int, bool}, Random)"/>.
         /// </summary>
         /// <param name="needCol">The predicate, where a column is active if this returns true.</param>
         /// <param name="n">The suggested degree of parallelism.</param>
@@ -124,7 +122,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Delegate type to get a value. This can used for efficient access to data in a <see cref="Row"/>
+    /// Delegate type to get a value. This can be used for efficient access to data in a <see cref="Row"/>
     /// or <see cref="RowCursor"/>.
     /// </summary>
     public delegate void ValueGetter<TValue>(ref TValue value);
@@ -150,9 +148,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This provides a means for reconciling multiple rows that have been produced generally from
         /// <see cref="IDataView.GetRowCursorSet(Func{int, bool}, int, Random)"/>. When getting a set, there is a need
-        /// to, while allowing parallel processing to proceed, always have an aim thatthe original order should be
-        /// reconverable. So: for any cursor implementation, batch numbers should be non-decreasing. Furthermore, any
-        /// given batch number should only appear in one of the cursors as returned by
+        /// to, while allowing parallel processing to proceed, always have an aim that the original order should be
+        /// reconverable. Note, whether or not a user cares about that original order in ones specific application is
+        /// another story altogether (most callers of this as a practical matter do not, otherwise they would not call
+        /// it), but at least in principle it should be possible to reconstruct the original order one would get from an
+        /// identically configured <see cref="IDataView.GetRowCursor(Func{int, bool}, Random)"/>. So: for any cursor
+        /// implementation, batch numbers should be non-decreasing. Furthermore, any given batch number should only
+        /// appear in one of the cursors as returned by
         /// <see cref="IDataView.GetRowCursorSet(Func{int, bool}, int, Random)"/>. In this way, order is determined by
         /// batch number. An operation that reconciles these cursors to produce a consistent single cursoring, could do
         /// so by drawing from the single cursor, among all cursors in the set, that has the smallest batch number
