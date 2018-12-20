@@ -271,9 +271,9 @@ namespace Microsoft.ML.Runtime.Data
             return _view.GetRowCursor(predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
-            return _view.GetRowCursorSet(out consolidator, predicate, n, rand);
+            return _view.GetRowCursorSet(predicate, n, rand);
         }
 
         public long? GetRowCount()
@@ -866,13 +866,13 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(_host, this, _input.GetRowCursor(srcPred, rand), predicate, activeSplitters);
             }
 
-            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
-                var result = _input.GetRowCursorSet(out consolidator, srcPred, n, rand);
+                var result = _input.GetRowCursorSet(srcPred, n, rand);
                 for (int i = 0; i < result.Length; ++i)
                     result[i] = new Cursor(_host, this, result[i], predicate, activeSplitters);
                 return result;
@@ -1528,10 +1528,9 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor<T>(this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
-                consolidator = null;
                 return new RowCursor[] { GetRowCursor(predicate, rand) };
             }
 

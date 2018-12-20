@@ -99,9 +99,8 @@ namespace Microsoft.ML.Runtime.Data
             return dv.GetRowCursor(x => false);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
-            consolidator = null;
             return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 

@@ -615,9 +615,9 @@ namespace Microsoft.ML.Runtime.Data
             return _transform.GetRowCursor(needCol, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
         {
-            return _transform.GetRowCursorSet(out consolidator, needCol, n, rand);
+            return _transform.GetRowCursorSet(needCol, n, rand);
         }
 
         private sealed class Transform : PerGroupTransformBase<short, Single, Transform.RowCursorState>

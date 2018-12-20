@@ -190,7 +190,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -198,11 +198,11 @@ namespace Microsoft.ML.Runtime.Data
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
 
-            var inputs = Source.GetRowCursorSet(out consolidator, predicateInput, n, rand);
+            var inputs = Source.GetRowCursorSet(predicateInput, n, rand);
             Host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))
-                inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
+                inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
             var cursors = new RowCursor[inputs.Length];

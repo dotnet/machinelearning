@@ -198,12 +198,10 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            consolidator = null;
             return new RowCursor[] { GetRowCursorCore(predicate) };
         }
 

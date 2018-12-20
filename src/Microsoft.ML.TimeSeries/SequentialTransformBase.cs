@@ -365,9 +365,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return _transform.GetRowCount();
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
-            consolidator = null;
             return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 

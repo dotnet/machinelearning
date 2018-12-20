@@ -242,12 +242,12 @@ namespace Microsoft.ML.Runtime.Training
             => data.Data.GetRowCursor(CreatePredicate(data, opt, extraCols), rand);
 
         /// <summary>
-        /// Create a row cursor set for the RoleMappedData with the indicated standard columns active.
+        /// Create a row cursor set for the <see cref="RoleMappedData"/> with the indicated standard columns active.
         /// This does not verify that the columns exist, but merely activates the ones that do exist.
         /// </summary>
-        public static RowCursor[] CreateRowCursorSet(this RoleMappedData data, out IRowCursorConsolidator consolidator,
+        public static RowCursor[] CreateRowCursorSet(this RoleMappedData data,
             CursOpt opt, int n, Random rand, IEnumerable<int> extraCols = null)
-            => data.Data.GetRowCursorSet(out consolidator, CreatePredicate(data, opt, extraCols), n, rand);
+            => data.Data.GetRowCursorSet(CreatePredicate(data, opt, extraCols), n, rand);
 
         private static void AddOpt(HashSet<int> cols, ColumnInfo info)
         {
@@ -563,11 +563,9 @@ namespace Microsoft.ML.Runtime.Training
                 lock (_lock)
                     opt = _opts;
 
-                // The intended use of this sort of thing is for cases where we have no interest in
-                // doing consolidation at all, that is, the consuming endpoint using these typed
-                // cursors wants to consume them as a set.
-                IRowCursorConsolidator consolidator;
-                var inputs = _data.CreateRowCursorSet(out consolidator, opt, n, rand, extraCols);
+                // Users of this method will tend to consume the cursors in the set in separate
+                // threads,  and so gain benefit from the parallel transformation of the data.
+                var inputs = _data.CreateRowCursorSet(opt, n, rand, extraCols);
                 Contracts.Assert(Utils.Size(inputs) > 0);
 
                 Action<CursOpt> signal;
