@@ -41,8 +41,8 @@ namespace Microsoft.ML.Benchmarks
             var data = reader.Read(_dataPath_Digits);
 
             var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("Features", "FeaturesRFF")
-            .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
             .AppendCacheCheckpoint(mlContext)
+            .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
             .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
             .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numIterations: 10)));
 
