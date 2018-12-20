@@ -393,7 +393,8 @@ namespace Microsoft.ML.Transforms
             env.CheckNonEmpty(keyColumn, nameof(keyColumn), "A key column must be specified when passing in an IDataView for the value mapping");
             env.CheckNonEmpty(valueColumn, nameof(valueColumn), "A value column must be specified when passing in an IDataView for the value mapping");
             _valueMap = CreateValueMapFromDataView(lookupMap, keyColumn, valueColumn);
-            env.Assert(lookupMap.Schema.TryGetColumnIndex(valueColumn, out int valueColumnIdx));
+            int valueColumnIdx = 0;
+            env.Assert(lookupMap.Schema.TryGetColumnIndex(valueColumn, out valueColumnIdx));
             _valueMetadata = CopyMetadata(lookupMap.Schema[valueColumnIdx].Metadata);
 
             // Create the byte array of the original IDataView, this is used for saving out the data.
