@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(OneVersusAllMacro), null, typeof(SignatureEntryPointModule), "OneVersusAllMacro")]
@@ -49,29 +50,27 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public PredictorModel PredictorModel;
         }
 
-        private static Tuple<List<EntryPointNode>, Var<PredictorModel>> ProcessClass(IHostEnvironment env, int k, string label, Arguments input, EntryPointNode node)
+        private static Var<PredictorModel> ProcessClass(IHostEnvironment env, List<EntryPointNode> macroNodes, int k, string label, Arguments input, EntryPointNode node)
         {
-            var macroNodes = new List<EntryPointNode>();
+            Contracts.AssertValue(macroNodes);
 
             // Convert label into T,F based on k.
-            var remapper = new Legacy.Transforms.LabelIndicator
-            {
-                ClassIndex = k,
-                Column = new[]
-                {
-                    new Legacy.Transforms.LabelIndicatorTransformColumn
-                    {
-                        ClassIndex = k,
-                        Name = label,
-                        Source = label
-                    }
-                },
-                Data = { VarName = node.GetInputVariable(nameof(input.TrainingData)).ToJson() }
-            };
-            var exp = new Experiment(env);
-            var remapperOutNode = exp.Add(remapper);
-            var subNodes = EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes());
-            macroNodes.AddRange(subNodes);
+            var labelIndicatorArgs = new LabelIndicatorTransform.Arguments();
+            labelIndicatorArgs.ClassIndex = k;
+            labelIndicatorArgs.Column = new[] { new LabelIndicatorTransform.Column() { Name = label, Source = label } };
+
+            var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+            var paramBinding = new SimpleParameterBinding(nameof(labelIndicatorArgs.Data));
+            inputBindingMap.Add(nameof(labelIndicatorArgs.Data), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, node.GetInputVariable(nameof(input.TrainingData)));
+
+            var outputMap = new Dictionary<string, string>();
+            var remappedLabelVar = new Var<IDataView>();
+            outputMap.Add(nameof(CommonOutputs.TransformOutput.OutputData), remappedLabelVar.VarName);
+            var labelIndicatorNode = EntryPointNode.Create(env, "Transforms.LabelIndicator", labelIndicatorArgs, node.Context,
+                inputBindingMap, inputMap, outputMap);
+            macroNodes.Add(labelIndicatorNode);
 
             // Parse the nodes in input.Nodes into a temporary run context.
             var subGraphRunContext = new RunContext(env);
@@ -97,7 +96,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                 // Connect label remapper output to wherever training data was expected within the input graph.
                 if (entryPointNode.GetInputVariable(nameof(input.TrainingData)) is VariableBinding vb)
-                    vb.Rename(remapperOutNode.OutputData.VarName);
+                    vb.Rename(remappedLabelVar.VarName);
 
                 // Change node to use the main context.
                 entryPointNode.SetContext(node.Context);
@@ -112,8 +111,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Add training subgraph to our context.
             macroNodes.AddRange(subGraphNodes);
-
-            return new Tuple<List<EntryPointNode>, Var<PredictorModel>>(macroNodes, predModelVar);
+            return predModelVar;
         }
 
         private static int GetNumberOfClasses(IHostEnvironment env, Arguments input, out string label)
@@ -158,41 +156,37 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Instantiate the subgraph for each label value.
             for (int k = 0; k < numClasses; k++)
-            {
-                var result = ProcessClass(env, k, label, input, node);
-                predModelVars[k] = result.Item2;
-                macroNodes.AddRange(result.Item1);
-            }
+                predModelVars[k] = ProcessClass(env, macroNodes, k, label, input, node);
+
+            // Convert the predictor models to an array of predictor models.
+            var modelsArray = new Var<PredictorModel[]>();
+            MacroUtils.ConvertIPredictorModelsToArray(env, node.Context, macroNodes, predModelVars, modelsArray.VarName);
 
             // Use OVA model combiner to combine these models into one.
             // Takes in array of models that are binary predictor models and
             // produces single multiclass predictor model.
-            var macroExperiment = new Experiment(env);
-            var combinerNode = new Legacy.Models.OvaModelCombiner
-            {
-                ModelArray = new ArrayVar<PredictorModel>(predModelVars),
-                TrainingData = new Var<IDataView> { VarName = node.GetInputVariable(nameof(input.TrainingData)).VariableName },
-                Caching = (Legacy.Models.CachingOptions)input.Caching,
-                FeatureColumn = input.FeatureColumn,
-                NormalizeFeatures = (Legacy.Models.NormalizeOption)input.NormalizeFeatures,
-                LabelColumn = input.LabelColumn,
-                UseProbabilities = input.UseProbabilities
-            };
+            var combineArgs = new ModelOperations.CombineOvaPredictorModelsInput();
+            combineArgs.Caching = input.Caching;
+            combineArgs.FeatureColumn = input.FeatureColumn;
+            combineArgs.LabelColumn = input.LabelColumn;
+            combineArgs.NormalizeFeatures = input.NormalizeFeatures;
+            combineArgs.UseProbabilities = input.UseProbabilities;
 
-            // Get output model variable.
-            if (!node.OutputMap.TryGetValue(nameof(Output.PredictorModel), out var outVariableName))
-                throw new Exception("Cannot find OVA model output.");
+            var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+            var combineNodeModelArrayInput = new SimpleVariableBinding(modelsArray.VarName);
+            var paramBinding = new SimpleParameterBinding(nameof(combineArgs.ModelArray));
+            inputBindingMap.Add(nameof(combineArgs.ModelArray), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, combineNodeModelArrayInput);
+            paramBinding = new SimpleParameterBinding(nameof(combineArgs.TrainingData));
+            inputBindingMap.Add(nameof(combineArgs.TrainingData), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, node.GetInputVariable(nameof(input.TrainingData)));
 
-            // Map macro's output back to OVA combiner (so OVA combiner will set the value on our output variable).
-            var combinerOutput = new Legacy.Models.OvaModelCombiner.Output { PredictorModel = new Var<PredictorModel> { VarName = outVariableName } };
-
-            // Add to experiment (must be done AFTER we assign variable name to output).
-            macroExperiment.Add(combinerNode, combinerOutput);
-
-            // Add nodes to main experiment.
-            var nodes = macroExperiment.GetNodes();
-            var expNodes = EntryPointNode.ValidateNodes(env, node.Context, nodes);
-            macroNodes.AddRange(expNodes);
+            var outputMap = new Dictionary<string, string>();
+            outputMap.Add(nameof(Output.PredictorModel), node.GetOutputVariableName(nameof(Output.PredictorModel)));
+            var combineModelsNode = EntryPointNode.Create(env, "Models.OvaModelCombiner",
+                combineArgs, node.Context, inputBindingMap, inputMap, outputMap);
+            macroNodes.Add(combineModelsNode);
 
             return new CommonOutputs.MacroOutput<Output>() { Nodes = macroNodes };
         }

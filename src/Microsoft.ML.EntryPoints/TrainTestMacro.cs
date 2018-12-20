@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 
 [assembly: LoadableClass(typeof(void), typeof(TrainTestMacro), null, typeof(SignatureEntryPointModule), "TrainTestMacro")]
 
@@ -28,9 +29,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The predictor model", SortOrder = 1)]
             public Var<PredictorModel> PredictorModel;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Transform model", SortOrder = 2)]
-            public Var<TransformModel> TransformModel;
         }
 
         public sealed class Arguments
@@ -83,10 +81,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
                 "provided as the Input.TransformModel.", SortOrder = 1)]
             public PredictorModel PredictorModel;
-
-            [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
-                "provided as the Input.TransformModel.", SortOrder = 2)]
-            public TransformModel TransformModel;
 
             [TlcModule.Output(Desc = "Warning dataset", SortOrder = 3)]
             public IDataView Warnings;
@@ -143,15 +137,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
             subGraphRunContext.RemoveVariable(dataVariable);
 
             // Change the subgraph to use the model variable as output.
-            varName = input.Outputs.PredictorModel == null ? input.Outputs.TransformModel.VarName : input.Outputs.PredictorModel.VarName;
+            varName = input.Outputs.PredictorModel.VarName;
             if (!subGraphRunContext.TryGetVariable(varName, out dataVariable))
                 throw env.Except($"Invalid variable name '{varName}'.");
 
-            string outputVarName = input.Outputs.PredictorModel == null ? node.GetOutputVariableName(nameof(Output.TransformModel)) :
-                node.GetOutputVariableName(nameof(Output.PredictorModel));
+            string predictorModelVarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
 
             foreach (var subGraphNode in subGraphNodes)
-                subGraphNode.RenameOutputVariable(dataVariable.Name, outputVarName);
+                subGraphNode.RenameOutputVariable(dataVariable.Name, predictorModelVarName);
             subGraphRunContext.RemoveVariable(dataVariable);
 
             // Move the variables from the subcontext to the main context.
@@ -163,67 +156,62 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Testing using test data set
             var testingVar = node.GetInputVariable(nameof(input.TestingData));
-            var exp = new Experiment(env);
+            //var exp = new Experiment(env);
 
-            Legacy.Transforms.DatasetScorer.Output scoreNodeOutput = null;
-            Legacy.Models.DatasetTransformer.Output datasetTransformNodeOutput = null;
-            if (input.Outputs.PredictorModel == null)
+            Dictionary<string, List<ParameterBinding>> inputBindingMap;
+            Dictionary<ParameterBinding, VariableBinding> inputMap;
+            ParameterBinding paramBinding;
+            Dictionary<string, string> outputMap;
+
+            //combine the predictor model with any potential transfrom model passed from the outer graph
+            if (transformModelVarName != null && transformModelVarName.VariableName != null)
             {
-                //combine the predictor model with any potential transfrom model passed from the outer graph
-                if (transformModelVarName != null && transformModelVarName.VariableName != null)
-                {
-                    var modelCombine = new ML.Legacy.Transforms.ModelCombiner
-                    {
-                        Models = new ArrayVar<TransformModel>(
-                                new Var<TransformModel>[] {
-                                    new Var<TransformModel> { VarName = transformModelVarName.VariableName },
-                                    new Var<TransformModel> { VarName = outputVarName} }
-                                )
-                    };
+                var combineArgs = new ModelOperations.SimplePredictorModelInput();
+                inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+                inputMap = new Dictionary<ParameterBinding, VariableBinding>();
 
-                    var modelCombineOutput = exp.Add(modelCombine);
-                    outputVarName = modelCombineOutput.OutputModel.VarName;
-                }
+                var inputTransformModel = new SimpleVariableBinding(transformModelVarName.VariableName);
+                var inputPredictorModel = new SimpleVariableBinding(predictorModelVarName);
+                paramBinding = new SimpleParameterBinding(nameof(combineArgs.TransformModel));
+                inputBindingMap.Add(nameof(combineArgs.TransformModel), new List<ParameterBinding>() { paramBinding });
+                inputMap.Add(paramBinding, inputTransformModel);
+                paramBinding = new SimpleParameterBinding(nameof(combineArgs.PredictorModel));
+                inputBindingMap.Add(nameof(combineArgs.PredictorModel), new List<ParameterBinding>() { paramBinding });
+                inputMap.Add(paramBinding, inputPredictorModel);
+                outputMap = new Dictionary<string, string>();
 
-                var datasetTransformerNode = new Legacy.Models.DatasetTransformer
-                {
-                    Data = { VarName = testingVar.ToJson() },
-                    TransformModel = { VarName = outputVarName }
-                };
-
-                datasetTransformNodeOutput = exp.Add(datasetTransformerNode);
-            }
-            else
-            {
-                //combine the predictor model with any potential transfrom model passed from the outer graph
-                if (transformModelVarName != null && transformModelVarName.VariableName != null)
-                {
-                    var modelCombine = new Legacy.Transforms.TwoHeterogeneousModelCombiner
-                    {
-                        TransformModel = { VarName = transformModelVarName.VariableName },
-                        PredictorModel = { VarName = outputVarName }
-                    };
-
-                    var modelCombineOutput = exp.Add(modelCombine);
-                    outputVarName = modelCombineOutput.PredictorModel.VarName;
-                }
-
-                // Add the scoring node for testing.
-                var scoreNode = new Legacy.Transforms.DatasetScorer
-                {
-                    Data = { VarName = testingVar.ToJson() },
-                    PredictorModel = { VarName = outputVarName }
-                };
-
-                scoreNodeOutput = exp.Add(scoreNode);
+                var combineNodeOutputPredictorModel = new Var<PredictorModel>();
+                predictorModelVarName = combineNodeOutputPredictorModel.VarName;
+                outputMap.Add(nameof(ModelOperations.PredictorModelOutput.PredictorModel), combineNodeOutputPredictorModel.VarName);
+                EntryPointNode combineNode = EntryPointNode.Create(env, "Transforms.TwoHeterogeneousModelCombiner", combineArgs,
+                    node.Context, inputBindingMap, inputMap, outputMap);
+                subGraphNodes.Add(combineNode);
             }
 
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+            // Add the scoring node for testing.
+            var args = new ScoreModel.Input();
+            inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+            paramBinding = new SimpleParameterBinding(nameof(args.Data));
+            inputBindingMap.Add(nameof(args.Data), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, testingVar);
+            var scoreNodeInputPredictorModel = new SimpleVariableBinding(predictorModelVarName);
+            paramBinding = new SimpleParameterBinding(nameof(args.PredictorModel));
+            inputBindingMap.Add(nameof(args.PredictorModel), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, scoreNodeInputPredictorModel);
 
-            // Do not double-add previous nodes.
-            exp.Reset();
+            var scoreNodeOutputScoredData = new Var<IDataView>();
+            var scoreNodeOutputScoringTransform = new Var<TransformModel>();
+            outputMap = new Dictionary<string, string>();
+            outputMap.Add(nameof(ScoreModel.Output.ScoredData), scoreNodeOutputScoredData.VarName);
+            outputMap.Add(nameof(ScoreModel.Output.ScoringTransform), scoreNodeOutputScoringTransform.VarName);
 
-            // REVIEW: add similar support for NameColumn and FeatureColumn.
+            EntryPointNode scoreNode = EntryPointNode.Create(env, "Transforms.DatasetScorer", args,
+                node.Context, inputBindingMap, inputMap, outputMap);
+            subGraphNodes.Add(scoreNode);
+            var evalDataVarName = scoreNodeOutputScoredData.VarName;
+
+            // REVIEW: add similar support for FeatureColumn.
             var settings = new MacroUtils.EvaluatorSettings
             {
                 LabelColumn = input.LabelColumn,
@@ -232,80 +220,73 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 NameColumn = input.NameColumn.IsExplicit ? input.NameColumn.Value : null
             };
 
-            string outVariableName;
-
             if (input.IncludeTrainingMetrics)
             {
-                Legacy.Transforms.DatasetScorer.Output scoreNodeTrainingOutput = null;
-                Legacy.Models.DatasetTransformer.Output datasetTransformNodeTrainingOutput = null;
-                if (input.Outputs.PredictorModel == null)
-                {
-                    var datasetTransformerNode = new Legacy.Models.DatasetTransformer
-                    {
-                        Data = { VarName = testingVar.ToJson() },
-                        TransformModel = { VarName = outputVarName }
-                    };
+                string evalTrainingDataVarName;
+                args = new ScoreModel.Input();
+                inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+                inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+                paramBinding = new SimpleParameterBinding(nameof(args.Data));
+                inputBindingMap.Add(nameof(args.Data), new List<ParameterBinding>() { paramBinding });
+                inputMap.Add(paramBinding, trainingVar);
+                scoreNodeInputPredictorModel = new SimpleVariableBinding(predictorModelVarName);
+                paramBinding = new SimpleParameterBinding(nameof(args.PredictorModel));
+                inputBindingMap.Add(nameof(args.PredictorModel), new List<ParameterBinding>() { paramBinding });
+                inputMap.Add(paramBinding, scoreNodeInputPredictorModel);
 
-                    datasetTransformNodeTrainingOutput = exp.Add(datasetTransformerNode);
-                }
-                else
-                {
-                    // Add the scoring node for training.
-                    var scoreNodeTraining = new Legacy.Transforms.DatasetScorer
-                    {
-                        Data = { VarName = trainingVar.ToJson() },
-                        PredictorModel = { VarName = outputVarName }
-                    };
-                    scoreNodeTrainingOutput = exp.Add(scoreNodeTraining);
-                }
+                scoreNodeOutputScoredData = new Var<IDataView>();
+                scoreNodeOutputScoringTransform = new Var<TransformModel>();
+                outputMap = new Dictionary<string, string>();
+                outputMap.Add(nameof(ScoreModel.Output.ScoredData), scoreNodeOutputScoredData.VarName);
+                outputMap.Add(nameof(ScoreModel.Output.ScoringTransform), scoreNodeOutputScoringTransform.VarName);
 
-                subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
-
-                // Do not double-add previous nodes.
-                exp.Reset();
+                scoreNode = EntryPointNode.Create(env, "Transforms.DatasetScorer", args,
+                    node.Context, inputBindingMap, inputMap, outputMap);
+                subGraphNodes.Add(scoreNode);
+                evalTrainingDataVarName = scoreNodeOutputScoredData.VarName;
 
                 // Add the evaluator node for training.
-                var evalInputOutputTraining = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
-                var evalNodeTraining = evalInputOutputTraining.Item1;
-                var evalOutputTraining = evalInputOutputTraining.Item2;
-                evalNodeTraining.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeTrainingOutput.OutputData.VarName :
-                    scoreNodeTrainingOutput.ScoredData.VarName;
+                var evalTrainingArgs = MacroUtils.GetEvaluatorArgs(input.Kind, out var evalTrainingEntryPointName, settings);
+                inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+                inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+                var evalTrainingNodeInputData = new SimpleVariableBinding(evalTrainingDataVarName);
+                paramBinding = new SimpleParameterBinding(nameof(evalTrainingArgs.Data));
+                inputBindingMap.Add(nameof(evalTrainingArgs.Data), new List<ParameterBinding>() { paramBinding });
+                inputMap.Add(paramBinding, evalTrainingNodeInputData);
 
-                if (node.OutputMap.TryGetValue(nameof(Output.TrainingWarnings), out outVariableName))
-                    evalOutputTraining.Warnings.VarName = outVariableName;
-                if (node.OutputMap.TryGetValue(nameof(Output.TrainingOverallMetrics), out outVariableName))
-                    evalOutputTraining.OverallMetrics.VarName = outVariableName;
-                if (node.OutputMap.TryGetValue(nameof(Output.TrainingPerInstanceMetrics), out outVariableName))
-                    evalOutputTraining.PerInstanceMetrics.VarName = outVariableName;
-                if (node.OutputMap.TryGetValue(nameof(Output.TrainingConfusionMatrix), out outVariableName)
-                    && evalOutputTraining is CommonOutputs.IClassificationEvaluatorOutput eoTraining)
-                    eoTraining.ConfusionMatrix.VarName = outVariableName;
-
-                exp.Add(evalNodeTraining, evalOutputTraining);
-                subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+                outputMap = new Dictionary<string, string>();
+                if (node.OutputMap.TryGetValue(nameof(Output.TrainingWarnings), out var outTrainingVariableName))
+                    outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.Warnings), outTrainingVariableName);
+                if (node.OutputMap.TryGetValue(nameof(Output.TrainingOverallMetrics), out outTrainingVariableName))
+                    outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.OverallMetrics), outTrainingVariableName);
+                if (node.OutputMap.TryGetValue(nameof(Output.TrainingPerInstanceMetrics), out outTrainingVariableName))
+                    outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.PerInstanceMetrics), outTrainingVariableName);
+                if (node.OutputMap.TryGetValue(nameof(Output.TrainingConfusionMatrix), out outTrainingVariableName))
+                    outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.ConfusionMatrix), outTrainingVariableName);
+                EntryPointNode evalTrainingNode = EntryPointNode.Create(env, evalTrainingEntryPointName, evalTrainingArgs, node.Context, inputBindingMap, inputMap, outputMap);
+                subGraphNodes.Add(evalTrainingNode);
             }
 
-            // Do not double-add previous nodes.
-            exp.Reset();
-
             // Add the evaluator node for testing.
-            var evalInputOutput = MacroUtils.GetEvaluatorInputOutput(input.Kind, settings);
-            var evalNode = evalInputOutput.Item1;
-            var evalOutput = evalInputOutput.Item2;
-            evalNode.Data.VarName = input.Outputs.PredictorModel == null ? datasetTransformNodeOutput.OutputData.VarName : scoreNodeOutput.ScoredData.VarName;
+            var evalArgs = MacroUtils.GetEvaluatorArgs(input.Kind, out var evalEntryPointName, settings);
+            inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+            var evalNodeInputData = new SimpleVariableBinding(evalDataVarName);
+            paramBinding = new SimpleParameterBinding(nameof(evalArgs.Data));
+            inputBindingMap.Add(nameof(evalArgs.Data), new List<ParameterBinding>() { paramBinding });
+            inputMap.Add(paramBinding, evalNodeInputData);
 
-            if (node.OutputMap.TryGetValue(nameof(Output.Warnings), out outVariableName))
-                evalOutput.Warnings.VarName = outVariableName;
+            outputMap = new Dictionary<string, string>();
+            if (node.OutputMap.TryGetValue(nameof(Output.Warnings), out var outVariableName))
+                outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.Warnings), outVariableName);
             if (node.OutputMap.TryGetValue(nameof(Output.OverallMetrics), out outVariableName))
-                evalOutput.OverallMetrics.VarName = outVariableName;
+                outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.OverallMetrics), outVariableName);
             if (node.OutputMap.TryGetValue(nameof(Output.PerInstanceMetrics), out outVariableName))
-                evalOutput.PerInstanceMetrics.VarName = outVariableName;
-            if (node.OutputMap.TryGetValue(nameof(Output.ConfusionMatrix), out outVariableName)
-                && evalOutput is CommonOutputs.IClassificationEvaluatorOutput eo)
-                eo.ConfusionMatrix.VarName = outVariableName;
-
-            exp.Add(evalNode, evalOutput);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+                outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.PerInstanceMetrics), outVariableName);
+            if (node.OutputMap.TryGetValue(nameof(Output.ConfusionMatrix), out outVariableName))
+                outputMap.Add(nameof(CommonOutputs.ClassificationEvaluateOutput.ConfusionMatrix), outVariableName);
+            EntryPointNode evalNode = EntryPointNode.Create(env, evalEntryPointName, evalArgs, node.Context, inputBindingMap, inputMap, outputMap);
+            subGraphNodes.Add(evalNode);
 
             // Marks as an atomic unit that can be run in
             // a distributed fashion.
