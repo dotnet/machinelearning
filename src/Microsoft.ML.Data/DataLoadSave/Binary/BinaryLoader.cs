@@ -2044,7 +2044,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                         // threads will exit if all potentially blocking operations are
                         // waiting on the same cancellation token that we catch here.
                         Contracts.Assert(ex.CancellationToken == _exMarshaller.Token);
-
+                        _done = true;
                         // Unlike the early non-error dispose case, we do not make any
                         // effort to recycle buffers since it would be exceptionally difficult
                         // to do so. All threads are already unblocked, one of them with the
