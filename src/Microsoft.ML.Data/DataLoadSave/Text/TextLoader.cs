@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Float = System.Single;
 
@@ -343,10 +344,10 @@ namespace Microsoft.ML.Runtime.Data
                     " missing value and an empty value is denoted by \"\". When false, consecutive separators" +
                     " denote an empty value.",
                 ShortName = "quote")]
-            public bool AllowQuoting = true;
+            public bool AllowQuoting = DefaultArguments.AllowQuoting;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the input may include sparse representations", ShortName = "sparse")]
-            public bool AllowSparse = true;
+            public bool AllowSparse = DefaultArguments.AllowSparse;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of source columns in the text data. Default is that sparse rows contain their size information.",
@@ -354,17 +355,17 @@ namespace Microsoft.ML.Runtime.Data
             public int? InputSize;
 
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
-            public string Separator = "tab";
+            public string Separator = DefaultArguments.Separator.ToString();
 
             [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
-            public char[] SeparatorChars = new[] { '\t' };
+            public char[] SeparatorChars = new[] { DefaultArguments.Separator };
 
             [Argument(ArgumentType.Multiple, HelpText = "Column groups. Each group is specified as name:type:numeric-ranges, eg, col=Features:R4:1-17,26,35-40",
                 ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Remove trailing whitespace from lines", ShortName = "trim")]
-            public bool TrimWhitespace;
+            public bool TrimWhitespace = DefaultArguments.TrimWhitespace;
 
             [Argument(ArgumentType.AtMostOnce, ShortName = "header",
                 HelpText = "Data file has header with feature names. Header is read only if options 'hs' and 'hf' are not specified.")]
@@ -390,6 +391,15 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of rows to produce", ShortName = "rows", Hide = true)]
             public long? MaxRows;
+        }
+
+        internal static class DefaultArguments
+        {
+            internal const bool AllowQuoting = true;
+            internal const bool AllowSparse = true;
+            internal const char Separator = '\t';
+            internal const bool HasHeader = false;
+            internal const bool TrimWhitespace = false;
         }
 
         /// <summary>
@@ -1351,6 +1361,75 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
         public IDataView Read(string path) => Read(new MultiFileSource(path));
+
+        internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
+           bool hasHeader = DefaultArguments.HasHeader,
+           char separator = DefaultArguments.Separator,
+           bool allowQuotedStrings = DefaultArguments.AllowQuoting,
+           bool supportSparse = DefaultArguments.AllowSparse,
+           bool trimWhitespace = DefaultArguments.TrimWhitespace)
+        {
+            var userType = typeof(TInput);
+
+            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            var propertyInfos =
+                userType
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0);
+
+            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
+
+            var columns = new List<Column>();
+
+            for (int index = 0; index < memberInfos.Length; index++)
+            {
+                var memberInfo = memberInfos[index];
+                var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
+
+                host.Assert(mappingAttr != null, $"Field or property {memberInfo.Name} is missing the {nameof(LoadColumnAttribute)} attribute");
+
+                var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+
+                var column = new Column();
+                column.Name = mappingAttrName?.Name ?? memberInfo.Name;
+                column.Source = mappingAttr.Sources.ToArray();
+                DataKind dk;
+                switch (memberInfo)
+                {
+                    case FieldInfo field:
+                        if (!DataKindExtensions.TryGetDataKind(field.FieldType.IsArray ? field.FieldType.GetElementType() : field.FieldType, out dk))
+                            throw Contracts.Except($"Field {memberInfo.Name} is of unsupported type.");
+
+                        break;
+
+                    case PropertyInfo property:
+                        if (!DataKindExtensions.TryGetDataKind(property.PropertyType.IsArray ? property.PropertyType.GetElementType() : property.PropertyType, out dk))
+                            throw Contracts.Except($"Property {memberInfo.Name} is of unsupported type.");
+                        break;
+
+                    default:
+                        Contracts.Assert(false);
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                }
+
+                column.Type = dk;
+
+                columns.Add(column);
+            }
+
+            Arguments args = new Arguments
+            {
+                HasHeader = hasHeader,
+                SeparatorChars = new[] { separator },
+                AllowQuoting = allowQuotedStrings,
+                AllowSparse = supportSparse,
+                TrimWhitespace = trimWhitespace,
+                Column = columns.ToArray()
+            };
+
+            return new TextLoader(host, args);
+        }
 
         private sealed class BoundLoader : IDataLoader
         {

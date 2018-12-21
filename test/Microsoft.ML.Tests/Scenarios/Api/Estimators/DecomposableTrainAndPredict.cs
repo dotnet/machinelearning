@@ -29,8 +29,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             var ml = new MLContext();
 
-            var data = ml.Data.CreateTextReader(TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
-                    .Read(dataPath);
+            var data = ml.Data.ReadFromTextFile<IrisData>(dataPath, separatorChar: ',');
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)

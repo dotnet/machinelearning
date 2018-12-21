@@ -22,10 +22,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_ReconfigurablePrediction()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var dataReader = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true);
+            var dataReader = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
-            var data = dataReader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
-            var testData = dataReader.Read(GetDataPath(TestDatasets.Sentiment.testFilename));
+            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
+            var testData = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true);
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")

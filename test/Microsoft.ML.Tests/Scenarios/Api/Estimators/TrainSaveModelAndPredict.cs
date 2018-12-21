@@ -24,8 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_TrainSaveModelAndPredict()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var reader = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true);
-            var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
@@ -49,7 +48,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var engine = loadedModel.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
 
             // Take a couple examples out of the test data and run predictions on top.
-            var testData = reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename))
+            var testData = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true)
                 .AsEnumerable<SentimentData>(ml, false);
             foreach (var input in testData.Take(5))
             {

@@ -73,10 +73,10 @@ namespace Microsoft.ML.Scenarios
 
     public class CifarData
     {
-        [Column("0")]
+        [LoadColumn(0)]
         public string ImagePath;
 
-        [Column("1")]
+        [LoadColumn(1)]
         public string Label;
     }
 
@@ -88,10 +88,10 @@ namespace Microsoft.ML.Scenarios
 
     public class ImageNetData
     {
-        [Column("0")]
+        [LoadColumn(0)]
         public string ImagePath;
 
-        [Column("1")]
+        [LoadColumn(1)]
         public string Label;
     }
 
