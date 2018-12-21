@@ -97,9 +97,9 @@ namespace Microsoft.ML.Runtime.Learners
             Host.Assert(type.RawType == typeof(T));
             Host.AssertValue(equalsTarget);
             Host.AssertValue(data);
-            Host.AssertValue(data.Schema.Label);
+            Host.Assert(data.Schema.Label.HasValue);
 
-            var lab = data.Schema.Label;
+            var lab = data.Schema.Label.Value;
 
             InPredicate<T> isMissing;
             if (!Args.ImputeMissingLabelsAsNegative && Conversions.Instance.TryGetIsNAPredicate(type, out isMissing))

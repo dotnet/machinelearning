@@ -51,21 +51,17 @@ using System.Threading;
 
 namespace Microsoft.ML.Transforms.Text
 {
-
-    public interface IStopWordsRemoverTransform : IDataTransform { }
-
     [TlcModule.ComponentKind("StopWordsRemover")]
-    public interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IStopWordsRemoverTransform> { }
+    public interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IDataTransform> { }
 
     [TlcModule.Component(Name = "Predefined", FriendlyName = "Predefined Stopwords List Remover", Alias = "PredefinedStopWordsRemover,PredefinedStopWords",
         Desc = "Remover with predefined list of stop words.")]
     public sealed class PredefinedStopWordsRemoverFactory : IStopWordsRemoverFactory
     {
-        public IStopWordsRemoverTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
+        public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
         {
-            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.Source, x.Name)).ToArray()).Fit(input).Transform(input) as IStopWordsRemoverTransform;
+            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.Source, x.Name)).ToArray()).Fit(input).Transform(input) as IDataTransform;
         }
-
     }
 
     /// <summary>
@@ -647,12 +643,12 @@ namespace Microsoft.ML.Transforms.Text
             Desc = "Remover with list of stopwords specified by the user.")]
         public sealed class LoaderArguments : ArgumentsBase, IStopWordsRemoverFactory
         {
-            public IStopWordsRemoverTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
+            public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {
                 if (Utils.Size(Stopword) > 0)
-                    return new CustomStopWordsRemovingTransform(env, Stopword, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IStopWordsRemoverTransform;
+                    return new CustomStopWordsRemovingTransform(env, Stopword, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
                 else
-                    return new CustomStopWordsRemovingTransform(env, Stopwords, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IStopWordsRemoverTransform;
+                    return new CustomStopWordsRemovingTransform(env, Stopwords, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
             }
         }
 

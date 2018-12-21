@@ -35,11 +35,10 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(_host, Schema, needCol);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
         {
             _host.CheckValue(needCol, nameof(needCol));
             _host.CheckValueOrNull(rand);
-            consolidator = null;
             return new[] { new Cursor(_host, Schema, needCol) };
         }
 

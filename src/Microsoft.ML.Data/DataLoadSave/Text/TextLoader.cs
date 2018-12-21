@@ -1385,13 +1385,12 @@ namespace Microsoft.ML.Runtime.Data
                 return Cursor.Create(_reader, _files, active);
             }
 
-            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-                Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
                 var active = Utils.BuildArray(_reader._bindings.ColumnCount, predicate);
-                return Cursor.CreateSet(out consolidator, _reader, _files, active, n);
+                return Cursor.CreateSet(_reader, _files, active, n);
             }
 
             public void Save(ModelSaveContext ctx) => _reader.Save(ctx);

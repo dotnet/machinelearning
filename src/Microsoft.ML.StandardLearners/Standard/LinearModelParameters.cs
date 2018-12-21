@@ -48,6 +48,7 @@ namespace Microsoft.ML.Runtime.Learners
         ICanSaveSummary,
         IPredictorWithFeatureWeights<float>,
         IFeatureContributionMapper,
+        ICalculateFeatureContribution,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
@@ -102,6 +103,8 @@ namespace Microsoft.ML.Runtime.Learners
         bool ICanSavePfa.CanSavePfa => true;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+
+        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
 
         /// <summary>
         /// Constructs a new linear predictor.

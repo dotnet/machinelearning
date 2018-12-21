@@ -1009,6 +1009,35 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [TestCategory("DataPipeSerialization")]
+        [Fact]
+        public void SavePipeTrainAndScoreFccFastTree()
+        {
+            RunMTAThread(() => TestCore(null, false,
+                new[]
+                {
+                    "loader=Text",
+                    "xf=TrainScore{tr=FT scorer=fcc{top=4 bottom=2 str+}}",
+                    "xf=Copy{col=ContributionsStr:FeatureContributions}",
+                    "xf=TrainScore{tr=FT scorer=fcc{top=3 bottom=3}}"
+                }, digitsOfPrecision: 6));
+
+            Done();
+        }
+
+        [TestCategory("DataPipeSerialization")]
+        [Fact]
+        public void SavePipeTrainAndScoreFccTransformStr()
+        {
+            TestCore(null, false,
+                new[]
+                {
+                    "loader=Text xf=TrainScore{tr=AP{shuf-} scorer=fcc{str+}}"
+                }, digitsOfPrecision: 5);
+
+            Done();
+        }
+
         [Fact]
         public void SavePipeLda()
         {

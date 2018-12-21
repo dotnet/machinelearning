@@ -15,21 +15,22 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms
 {
-    internal static class PermutationFeatureImportance<TResult>
+    internal static class PermutationFeatureImportance<TMetric, TResult> where TResult : MetricsStatisticsBase<TMetric>, new()
     {
         public static ImmutableArray<TResult>
             GetImportanceMetricsMatrix(
                 IHostEnvironment env,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
-                Func<IDataView, TResult> evaluationFunc,
-                Func<TResult, TResult, TResult> deltaFunc,
+                Func<IDataView, TMetric> evaluationFunc,
+                Func<TMetric, TMetric, TMetric> deltaFunc,
                 string features,
+                int permutationCount,
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(PermutationFeatureImportance<TResult>));
+            var host = env.Register(nameof(PermutationFeatureImportance<TMetric, TResult>));
             host.CheckValue(model, nameof(model));
             host.CheckValue(data, nameof(data));
             host.CheckNonEmpty(features, nameof(features));
@@ -168,7 +169,7 @@ namespace Microsoft.ML.Transforms
                 // Now iterate through all the working slots, do permutation and calc the delta of metrics.
                 int processedCnt = 0;
                 int nextFeatureIndex = 0;
-                int shuffleSeed = host.Rand.Next();
+                var shuffleRand = RandomUtils.Create(host.Rand.Next());
                 using (var pch = host.StartProgressChannel("SDCA preprocessing with lookup"))
                 {
                     pch.SetHeader(new ProgressHeader("processed slots"), e => e.SetProgress(0, processedCnt));
@@ -178,26 +179,8 @@ namespace Microsoft.ML.Transforms
                         if (processedCnt < workingFeatureIndices.Count - 1)
                             nextFeatureIndex = workingFeatureIndices[processedCnt + 1];
 
+                        // Used for pre-caching the next feature
                         int nextValuesIndex = 0;
-
-                        Utils.Shuffle<float>(RandomUtils.Create(shuffleSeed), featureValuesBuffer);
-
-                        Action<FeaturesBuffer, FeaturesBuffer, PermuterState> permuter =
-                            (src, dst, state) =>
-                            {
-                                src.Features.CopyTo(ref dst.Features);
-                                VBufferUtils.ApplyAt(ref dst.Features, workingIndx,
-                                    (int ii, ref float d) =>
-                                        d = featureValuesBuffer[state.SampleIndex++]);
-
-                                if (processedCnt < workingFeatureIndices.Count - 1)
-                                {
-                                    // This is the reason I need PermuterState in LambdaTransform.CreateMap.
-                                    nextValues[nextValuesIndex] = src.Features.GetItemOrDefault(nextFeatureIndex);
-                                    if (nextValuesIndex < valuesRowCount - 1)
-                                        nextValuesIndex++;
-                                }
-                            };
 
                         SchemaDefinition input = SchemaDefinition.Create(typeof(FeaturesBuffer));
                         Contracts.Assert(input.Count == 1);
@@ -208,20 +191,53 @@ namespace Microsoft.ML.Transforms
                         output[0].ColumnName = features;
                         output[0].ColumnType = featuresColumn.Type;
 
-                        IDataView viewPermuted = LambdaTransform.CreateMap(
-                            host, data, permuter, null, input, output);
-                        if (valuesRowCount == topExamples)
-                            viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
+                        // Perform multiple permutations for one feature to build a confidence interval
+                        var metricsDeltaForFeature = new TResult();
+                        for (int permutationIteration = 0; permutationIteration < permutationCount; permutationIteration++)
+                        {
+                            Utils.Shuffle<float>(shuffleRand, featureValuesBuffer);
 
-                        var metrics = evaluationFunc(model.Transform(viewPermuted));
+                            Action<FeaturesBuffer, FeaturesBuffer, PermuterState> permuter =
+                                (src, dst, state) =>
+                                {
+                                    src.Features.CopyTo(ref dst.Features);
+                                    VBufferUtils.ApplyAt(ref dst.Features, workingIndx,
+                                        (int ii, ref float d) =>
+                                            d = featureValuesBuffer[state.SampleIndex++]);
 
-                        var delta = deltaFunc(metrics, baselineMetrics);
-                        metricsDelta.Add(delta);
+                                    // Is it time to pre-cache the next feature?
+                                    if (permutationIteration == permutationCount - 1 &&
+                                        processedCnt < workingFeatureIndices.Count - 1)
+                                    {
+                                        // Fill out the featureValueBuffer for the next feature while updating the current feature
+                                        // This is the reason I need PermuterState in LambdaTransform.CreateMap.
+                                        nextValues[nextValuesIndex] = src.Features.GetItemOrDefault(nextFeatureIndex);
+                                        if (nextValuesIndex < valuesRowCount - 1)
+                                            nextValuesIndex++;
+                                    }
+                                };
+
+                            IDataView viewPermuted = LambdaTransform.CreateMap(
+                                host, data, permuter, null, input, output);
+                            if (valuesRowCount == topExamples)
+                                viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
+
+                            var metrics = evaluationFunc(model.Transform(viewPermuted));
+
+                            var delta = deltaFunc(metrics, baselineMetrics);
+                            metricsDeltaForFeature.Add(delta);
+                        }
+
+                        // Add the metrics delta to the list
+                        metricsDelta.Add(metricsDeltaForFeature);
 
                         // Swap values for next iteration of permutation.
-                        Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);
-                        nextValues.CopyTo(featureValuesBuffer, 0);
-                        Array.Clear(nextValues, 0, nextValues.Length);
+                        if (processedCnt < workingFeatureIndices.Count - 1)
+                        {
+                            Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);
+                            nextValues.CopyTo(featureValuesBuffer, 0);
+                            Array.Clear(nextValues, 0, nextValues.Length);
+                        }
                         processedCnt++;
                     }
                     pch.Checkpoint(processedCnt, processedCnt);

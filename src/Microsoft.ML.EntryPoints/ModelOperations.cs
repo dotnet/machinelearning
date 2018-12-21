@@ -6,7 +6,6 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers;
 using System.Linq;
 

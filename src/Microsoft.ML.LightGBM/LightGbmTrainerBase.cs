@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         private protected virtual void CheckDataValid(IChannel ch, RoleMappedData data)
         {
             data.CheckFeatureFloatVector();
-            ch.CheckParam(data.Schema.Label != null, nameof(data), "Need a label column");
+            ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "Need a label column");
         }
 
         protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg=false)
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 trainData.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);
                 MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureIndex, out categoricalFeatures);
             }
-            var colType = trainData.Schema.Feature.Type;
+            var colType = trainData.Schema.Feature.Value.Type;
             int rawNumCol = colType.VectorSize;
             FeatureCount = rawNumCol;
             catMetaData.TotalCats = 0;

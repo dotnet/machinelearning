@@ -298,9 +298,8 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(_host, this, _files, needCol, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
         {
-            consolidator = null;
             var cursor = new Cursor(_host, this, _files, needCol, rand);
             return new RowCursor[] { cursor };
         }

@@ -252,15 +252,14 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public sealed override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public sealed override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.

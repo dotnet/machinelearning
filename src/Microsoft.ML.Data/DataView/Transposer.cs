@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -36,7 +35,7 @@ namespace Microsoft.ML.Runtime.Data
         public readonly int RowCount;
         // -1 for input columns that were not transposed, a non-negative index into _cols for those that were.
         private readonly int[] _inputToTransposed;
-        private readonly ColumnInfo[] _cols;
+        private readonly Schema.Column[] _cols;
         private readonly int[] _splitLim;
         private readonly SchemaImpl _tschema;
         private bool _disposed;
@@ -104,13 +103,13 @@ namespace Microsoft.ML.Runtime.Data
                 columnSet = columnSet.Where(c => ttschema.GetSlotType(c) == null);
             }
             columns = columnSet.ToArray();
-            _cols = new ColumnInfo[columns.Length];
+            _cols = new Schema.Column[columns.Length];
             var schema = _view.Schema;
             _nameToICol = new Dictionary<string, int>();
             _inputToTransposed = Utils.CreateArray(schema.Count, -1);
             for (int c = 0; c < columns.Length; ++c)
             {
-                _nameToICol[(_cols[c] = ColumnInfo.CreateFromIndex(schema, columns[c])).Name] = c;
+                _nameToICol[(_cols[c] = schema[columns[c]]).Name] = c;
                 _inputToTransposed[columns[c]] = c;
             }
 
@@ -271,9 +270,9 @@ namespace Microsoft.ML.Runtime.Data
             return _view.GetRowCursor(predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
-            return _view.GetRowCursorSet(out consolidator, predicate, n, rand);
+            return _view.GetRowCursorSet(predicate, n, rand);
         }
 
         public long? GetRowCount()
@@ -305,7 +304,7 @@ namespace Microsoft.ML.Runtime.Data
                 _slotTypes = new VectorType[_parent._cols.Length];
                 for (int c = 0; c < _slotTypes.Length; ++c)
                 {
-                    ColumnInfo srcInfo = _parent._cols[c];
+                    var srcInfo = _parent._cols[c];
                     var ctype = srcInfo.Type.ItemType;
                     var primitiveType = ctype as PrimitiveType;
                     _ectx.Assert(primitiveType != null);
@@ -866,13 +865,13 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(_host, this, _input.GetRowCursor(srcPred, rand), predicate, activeSplitters);
             }
 
-            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
-                var result = _input.GetRowCursorSet(out consolidator, srcPred, n, rand);
+                var result = _input.GetRowCursorSet(srcPred, n, rand);
                 for (int i = 0; i < result.Length; ++i)
                     result[i] = new Cursor(_host, this, result[i], predicate, activeSplitters);
                 return result;
@@ -1528,10 +1527,9 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor<T>(this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
-                consolidator = null;
                 return new RowCursor[] { GetRowCursor(predicate, rand) };
             }
 

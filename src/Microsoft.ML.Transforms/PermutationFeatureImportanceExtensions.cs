@@ -5,6 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Immutable;
@@ -42,7 +43,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
+        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance/PFIRegressionExample.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -53,8 +54,9 @@ namespace Microsoft.ML
         /// <param name="features">Feature column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<RegressionMetrics>
+        public static ImmutableArray<RegressionMetricsStatistics>
             PermutationFeatureImportance(
                 this RegressionContext ctx,
                 IPredictionTransformer<IPredictor> model,
@@ -62,15 +64,17 @@ namespace Microsoft.ML
                 string label = DefaultColumnNames.Label,
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null)
+                int? topExamples = null,
+                int permutationCount = 1)
         {
-            return PermutationFeatureImportance<RegressionMetrics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
                             model,
                             data,
                             idv => ctx.Evaluate(idv, label),
                             RegressionDelta,
                             features,
+                            permutationCount,
                             useFeatureWeightFilter,
                             topExamples);
         }
@@ -116,7 +120,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
+        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance/PfiBinaryClassificationExample.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -127,8 +131,9 @@ namespace Microsoft.ML
         /// <param name="features">Feature column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<BinaryClassificationMetrics>
+        public static ImmutableArray<BinaryClassificationMetricsStatistics>
             PermutationFeatureImportance(
                 this BinaryClassificationContext ctx,
                 IPredictionTransformer<IPredictor> model,
@@ -136,15 +141,17 @@ namespace Microsoft.ML
                 string label = DefaultColumnNames.Label,
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null)
+                int? topExamples = null,
+                int permutationCount = 1)
         {
-            return PermutationFeatureImportance<BinaryClassificationMetrics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
                             model,
                             data,
                             idv => ctx.Evaluate(idv, label),
                             BinaryClassifierDelta,
                             features,
+                            permutationCount,
                             useFeatureWeightFilter,
                             topExamples);
         }
@@ -191,13 +198,6 @@ namespace Microsoft.ML
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         /// <param name="ctx">The clustering context.</param>
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
@@ -205,8 +205,9 @@ namespace Microsoft.ML
         /// <param name="features">Feature column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<MultiClassClassifierMetrics>
+        public static ImmutableArray<MultiClassClassifierMetricsStatistics>
             PermutationFeatureImportance(
                 this MulticlassClassificationContext ctx,
                 IPredictionTransformer<IPredictor> model,
@@ -214,15 +215,17 @@ namespace Microsoft.ML
                 string label = DefaultColumnNames.Label,
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null)
+                int? topExamples = null,
+                int permutationCount = 1)
         {
-            return PermutationFeatureImportance<MultiClassClassifierMetrics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<MultiClassClassifierMetrics, MultiClassClassifierMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
                             model,
                             data,
                             idv => ctx.Evaluate(idv, label),
                             MulticlassClassificationDelta,
                             features,
+                            permutationCount,
                             useFeatureWeightFilter,
                             topExamples);
         }
@@ -231,7 +234,7 @@ namespace Microsoft.ML
             MultiClassClassifierMetrics a, MultiClassClassifierMetrics b)
         {
             if (a.TopK != b.TopK)
-                Contracts.Assert(a.TopK== b.TopK, "TopK to compare must be the same length.");
+                Contracts.Assert(a.TopK == b.TopK, "TopK to compare must be the same length.");
 
             var perClassLogLoss = ComputeArrayDeltas(a.PerClassLogLoss, b.PerClassLogLoss);
 
@@ -274,13 +277,6 @@ namespace Microsoft.ML
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         /// <param name="ctx">The clustering context.</param>
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
@@ -289,8 +285,9 @@ namespace Microsoft.ML
         /// <param name="features">Feature column name.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
+        /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<RankerMetrics>
+        public static ImmutableArray<RankerMetricsStatistics>
             PermutationFeatureImportance(
                 this RankingContext ctx,
                 IPredictionTransformer<IPredictor> model,
@@ -299,15 +296,17 @@ namespace Microsoft.ML
                 string groupId = DefaultColumnNames.GroupId,
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
-                int? topExamples = null)
+                int? topExamples = null,
+                int permutationCount = 1)
         {
-            return PermutationFeatureImportance<RankerMetrics>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<RankerMetrics, RankerMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
                             model,
                             data,
                             idv => ctx.Evaluate(idv, label, groupId),
                             RankingDelta,
                             features,
+                            permutationCount,
                             useFeatureWeightFilter,
                             topExamples);
         }
@@ -323,79 +322,6 @@ namespace Microsoft.ML
 
         #endregion
 
-        #region Clustering
-        /// <summary>
-        /// Permutation Feature Importance (PFI) for Clustering
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// Permutation feature importance (PFI) is a technique to determine the global importance of features in a trained
-        /// machine learning model. PFI is a simple yet powerful technique motivated by Breiman in his Random Forest paper, section 10
-        /// (Breiman. <a href='https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf'>&quot;Random Forests.&quot;</a> Machine Learning, 2001.)
-        /// The advantage of the PFI method is that it is model agnostic -- it works with any model that can be
-        /// evaluated -- and it can use any dataset, not just the training set, to compute feature importance metrics.
-        /// </para>
-        /// <para>
-        /// PFI works by taking a labeled dataset, choosing a feature, and permuting the values
-        /// for that feature across all the examples, so that each example now has a random value for the feature and
-        /// the original values for all other features. The evalution metric (e.g. normalized mutual information) is then calculated
-        /// for this modified dataset, and the change in the evaluation metric from the original dataset is computed.
-        /// The larger the change in the evaluation metric, the more important the feature is to the model.
-        /// PFI works by performing this permutation analysis across all the features of a model, one after another.
-        /// </para>
-        /// <para>
-        /// In this implementation, PFI computes the change in all possible clustering evaluation metrics for each feature, and an
-        /// <code>ImmutableArray</code> of <code>ClusteringMetrics</code> objects is returned. See the sample below for an
-        /// example of working with these results to analyze the feature importance of a model.
-        /// </para>
-        /// </remarks>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
-        /// <param name="ctx">The clustering context.</param>
-        /// <param name="model">The model to evaluate.</param>
-        /// <param name="data">The evaluation data set.</param>
-        /// <param name="label">Label column name.</param>
-        /// <param name="features">Feature column name.</param>
-        /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
-        /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
-        /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<ClusteringMetrics>
-            PermutationFeatureImportance(
-                this ClusteringContext ctx,
-                IPredictionTransformer<IPredictor> model,
-                IDataView data,
-                string label = DefaultColumnNames.Label,
-                string features = DefaultColumnNames.Features,
-                bool useFeatureWeightFilter = false,
-                int? topExamples = null)
-        {
-            return PermutationFeatureImportance<ClusteringMetrics>.GetImportanceMetricsMatrix(
-                            CatalogUtils.GetEnvironment(ctx),
-                            model,
-                            data,
-                            idv => ctx.Evaluate(idv, label),
-                            ClusteringDelta,
-                            features,
-                            useFeatureWeightFilter,
-                            topExamples);
-        }
-
-        private static ClusteringMetrics ClusteringDelta(
-            ClusteringMetrics a, ClusteringMetrics b)
-        {
-            return new ClusteringMetrics(
-                nmi: a.Nmi - b.Nmi,
-                avgMinScore: a.AvgMinScore- b.AvgMinScore,
-                dbi: a.Dbi - b.Dbi);
-        }
-
-        #endregion Clustering
-
         #region Helpers
 
         private static double[] ComputeArrayDeltas(double[] a, double[] b)
@@ -410,4 +336,306 @@ namespace Microsoft.ML
 
         #endregion
     }
+
+    #region MetricsStatistics
+
+    /// <summary>
+    /// The MetricsStatistics class computes summary statistics over multiple observations of a metric.
+    /// </summary>
+    public sealed class MetricStatistics
+    {
+        private readonly SummaryStatistics _statistic;
+
+        /// <summary>
+        /// Get the mean value for the metric
+        /// </summary>
+        public double Mean => _statistic.Mean;
+
+        /// <summary>
+        /// Get the standard deviation for the metric
+        /// </summary>
+        public double StandardDeviation => (_statistic.RawCount <= 1) ? 0 : _statistic.SampleStdDev;
+
+        /// <summary>
+        /// Get the standard error of the mean for the metric
+        /// </summary>
+        public double StandardError => (_statistic.RawCount <= 1) ? 0 : _statistic.StandardErrorMean;
+
+        /// <summary>
+        /// Get the count for the number of samples used. Useful for interpreting
+        /// the standard deviation and the stardard error and building confidence intervals.
+        /// </summary>
+        public int Count => (int) _statistic.RawCount;
+
+        internal MetricStatistics()
+        {
+            _statistic = new SummaryStatistics();
+        }
+
+        /// <summary>
+        /// Add another metric to the set of observations
+        /// </summary>
+        /// <param name="metric">The metric being accumulated</param>
+        internal void Add(double metric)
+        {
+            _statistic.Add(metric);
+        }
+    }
+
+    /// <summary>
+    /// The MetricsStatisticsBase class is the base class for computing summary
+    /// statistics over multiple observations of model evaluation metrics.
+    /// </summary>
+    /// <typeparam name="T">The EvaluationMetric type, such as RegressionMetrics</typeparam>
+    public abstract class MetricsStatisticsBase<T>{
+        internal MetricsStatisticsBase()
+        {
+        }
+
+        public abstract void Add(T metrics);
+
+        protected static void AddArray(double[] src, MetricStatistics[] dest)
+        {
+            Contracts.Assert(src.Length == dest.Length, "Array sizes do not match.");
+
+            for (int i = 0; i < dest.Length; i++)
+                dest[i].Add(src[i]);
+        }
+
+        protected MetricStatistics[] InitializeArray(int length)
+        {
+            var array = new MetricStatistics[length];
+            for (int i = 0; i < array.Length; i++)
+                array[i] = new MetricStatistics();
+
+            return array;
+        }
+    }
+
+    /// <summary>
+    /// The RegressionMetricsStatistics class is computes summary
+    /// statistics over multiple observations of regression evaluation metrics.
+    /// </summary>
+    public sealed class RegressionMetricsStatistics : MetricsStatisticsBase<RegressionMetrics>
+    {
+        /// <summary>
+        /// Summary Statistics for L1
+        /// </summary>
+        public MetricStatistics L1 { get; }
+
+        /// <summary>
+        /// Summary Statistics for L2
+        /// </summary>
+        public MetricStatistics L2 { get; }
+
+        /// <summary>
+        /// Summary statistics for the root mean square loss (or RMS).
+        /// </summary>
+        public MetricStatistics Rms { get; }
+
+        /// <summary>
+        /// Summary statistics for the user-supplied loss function.
+        /// </summary>
+        public MetricStatistics LossFn { get; }
+
+        /// <summary>
+        /// Summary statistics for the R squared value.
+        /// </summary>
+        public MetricStatistics RSquared { get; }
+
+        public RegressionMetricsStatistics()
+        {
+            L1 = new MetricStatistics();
+            L2 = new MetricStatistics();
+            Rms = new MetricStatistics();
+            LossFn = new MetricStatistics();
+            RSquared = new MetricStatistics();
+        }
+
+        /// <summary>
+        /// Add a set of evaluation metrics to the set of observations.
+        /// </summary>
+        /// <param name="metrics">The observed regression evaluation metric</param>
+        public override void Add(RegressionMetrics metrics)
+        {
+            L1.Add(metrics.L1);
+            L2.Add(metrics.L2);
+            Rms.Add(metrics.Rms);
+            LossFn.Add(metrics.LossFn);
+            RSquared.Add(metrics.RSquared);
+        }
+    }
+
+    /// <summary>
+    /// The BinaryClassificationMetricsStatistics class is computes summary
+    /// statistics over multiple observations of binary classification evaluation metrics.
+    /// </summary>
+    public sealed class BinaryClassificationMetricsStatistics : MetricsStatisticsBase<BinaryClassificationMetrics>
+    {
+        /// <summary>
+        /// Summary Statistics for AUC
+        /// </summary>
+        public MetricStatistics Auc { get; }
+
+        /// <summary>
+        /// Summary Statistics for Accuracy
+        /// </summary>
+        public MetricStatistics Accuracy { get; }
+
+        /// <summary>
+        /// Summary statistics for Positive Precision
+        /// </summary>
+        public MetricStatistics PositivePrecision { get; }
+
+        /// <summary>
+        /// Summary statistics for Positive Recall
+        /// </summary>
+        public MetricStatistics PositiveRecall { get; }
+
+        /// <summary>
+        /// Summary statistics for Negative Precision.
+        /// </summary>
+        public MetricStatistics NegativePrecision { get; }
+
+        /// <summary>
+        /// Summary statistics for Negative Recall.
+        /// </summary>
+        public MetricStatistics NegativeRecall { get; }
+
+        /// <summary>
+        /// Summary statistics for F1Score.
+        /// </summary>
+        public MetricStatistics F1Score { get; }
+
+        /// <summary>
+        /// Summary statistics for AUPRC.
+        /// </summary>
+        public MetricStatistics Auprc { get; }
+
+        public BinaryClassificationMetricsStatistics()
+        {
+            Auc = new MetricStatistics();
+            Accuracy = new MetricStatistics();
+            PositivePrecision = new MetricStatistics();
+            PositiveRecall = new MetricStatistics();
+            NegativePrecision = new MetricStatistics();
+            NegativeRecall = new MetricStatistics();
+            F1Score = new MetricStatistics();
+            Auprc = new MetricStatistics();
+        }
+
+        /// <summary>
+        /// Add a set of evaluation metrics to the set of observations.
+        /// </summary>
+        /// <param name="metrics">The observed binary classification evaluation metric</param>
+        public override void Add(BinaryClassificationMetrics metrics)
+        {
+            Auc.Add(metrics.Auc);
+            Accuracy.Add(metrics.Accuracy);
+            PositivePrecision.Add(metrics.PositivePrecision);
+            PositiveRecall.Add(metrics.PositiveRecall);
+            NegativePrecision.Add(metrics.NegativePrecision);
+            NegativeRecall.Add(metrics.NegativeRecall);
+            F1Score.Add(metrics.F1Score);
+            Auprc.Add(metrics.Auprc);
+        }
+    }
+
+    /// <summary>
+    /// The MultiClassClassifierMetricsStatistics class is computes summary
+    /// statistics over multiple observations of binary classification evaluation metrics.
+    /// </summary>
+    public sealed class MultiClassClassifierMetricsStatistics : MetricsStatisticsBase<MultiClassClassifierMetrics>
+    {
+        /// <summary>
+        /// Summary Statistics for Micro-Accuracy
+        /// </summary>
+        public MetricStatistics AccuracyMacro { get; }
+
+        /// <summary>
+        /// Summary Statistics for Micro-Accuracy
+        /// </summary>
+        public MetricStatistics AccuracyMicro { get; }
+
+        /// <summary>
+        /// Summary statistics for Log Loss
+        /// </summary>
+        public MetricStatistics LogLoss { get; }
+
+        /// <summary>
+        /// Summary statistics for Log Loss Reduction
+        /// </summary>
+        public MetricStatistics LogLossReduction { get; }
+
+        /// <summary>
+        /// Summary statistics for Top K Accuracy
+        /// </summary>
+        public MetricStatistics TopKAccuracy { get; }
+
+        /// <summary>
+        /// Summary statistics for Per Class Log Loss
+        /// </summary>
+        public MetricStatistics[] PerClassLogLoss { get; private set; }
+
+        public MultiClassClassifierMetricsStatistics()
+        {
+            AccuracyMacro = new MetricStatistics();
+            AccuracyMicro = new MetricStatistics();
+            LogLoss = new MetricStatistics();
+            LogLossReduction = new MetricStatistics();
+            TopKAccuracy = new MetricStatistics();
+        }
+
+        /// <summary>
+        /// Add a set of evaluation metrics to the set of observations.
+        /// </summary>
+        /// <param name="metrics">The observed binary classification evaluation metric</param>
+        public override void Add(MultiClassClassifierMetrics metrics)
+        {
+            AccuracyMacro.Add(metrics.AccuracyMacro);
+            AccuracyMicro.Add(metrics.AccuracyMicro);
+            LogLoss.Add(metrics.LogLoss);
+            LogLossReduction.Add(metrics.LogLossReduction);
+            TopKAccuracy.Add(metrics.TopKAccuracy);
+
+            if (PerClassLogLoss == null)
+                PerClassLogLoss = InitializeArray(metrics.PerClassLogLoss.Length);
+            AddArray(metrics.PerClassLogLoss, PerClassLogLoss);
+        }
+    }
+
+    /// <summary>
+    /// The RankerMetricsStatistics class is computes summary
+    /// statistics over multiple observations of regression evaluation metrics.
+    /// </summary>
+    public sealed class RankerMetricsStatistics : MetricsStatisticsBase<RankerMetrics>
+    {
+        /// <summary>
+        /// Summary Statistics for DCG
+        /// </summary>
+        public MetricStatistics[] Dcg { get; private set; }
+
+        /// <summary>
+        /// Summary Statistics for L2
+        /// </summary>
+        public MetricStatistics[] Ndcg { get; private set; }
+
+        /// <summary>
+        /// Add a set of evaluation metrics to the set of observations.
+        /// </summary>
+        /// <param name="metrics">The observed regression evaluation metric</param>
+        public override void Add(RankerMetrics metrics)
+        {
+            if (Dcg == null)
+                Dcg = InitializeArray(metrics.Dcg.Length);
+
+            if (Ndcg == null)
+                Ndcg = InitializeArray(metrics.Ndcg.Length);
+
+            AddArray(metrics.Dcg, Dcg);
+            AddArray(metrics.Ndcg, Ndcg);
+        }
+    }
+
+    #endregion
 }

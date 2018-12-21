@@ -113,11 +113,11 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
-            var labelType = data.Schema.Label.Type;
+            var labelType = data.Schema.Label.Value.Type;
             if (!(labelType.IsBool || labelType.IsKey || labelType == NumberType.R4))
             {
                 throw ch.ExceptParam(nameof(data),
-                    $"Label column '{data.Schema.Label.Name}' is of type '{labelType}', but must be key, boolean or R4.");
+                    $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType}', but must be key, boolean or R4.");
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 if (maxLabel >= _maxNumClass)
                     throw ch.ExceptParam(nameof(data), $"max labelColumn cannot exceed {_maxNumClass}");
 
-                if (data.Schema.Label.Type is KeyType keyType)
+                if (data.Schema.Label.Value.Type is KeyType keyType)
                 {
                     ch.Check(keyType.Contiguous, "labelColumn value should be contiguous");
                     if (hasNaNLabel)

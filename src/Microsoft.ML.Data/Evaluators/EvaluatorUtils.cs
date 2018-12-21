@@ -101,11 +101,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Find the score column to use. If name is specified, that is used. Otherwise, this searches for the
-        /// most recent score set of the given kind. If there is no such score set and defName is specifed it
-        /// uses defName. Otherwise, it throws.
+        /// Find the score column to use. If <paramref name="name"/> is specified, that is used. Otherwise, this searches
+        /// for the most recent score set of the given <paramref name="kind"/>. If there is no such score set and
+        /// <paramref name="defName"/> is specifed it uses <paramref name="defName"/>. Otherwise, it throws.
         /// </summary>
-        public static ColumnInfo GetScoreColumnInfo(IExceptionContext ectx, Schema schema, string name, string argName, string kind,
+        public static Schema.Column GetScoreColumn(IExceptionContext ectx, Schema schema, string name, string argName, string kind,
             string valueKind = MetadataUtils.Const.ScoreValueKind.Score, string defName = null)
         {
             Contracts.CheckValueOrNull(ectx);
@@ -115,39 +115,40 @@ namespace Microsoft.ML.Runtime.Data
             ectx.CheckNonEmpty(kind, nameof(kind));
             ectx.CheckNonEmpty(valueKind, nameof(valueKind));
 
-            int colTmp;
-            ColumnInfo info;
             if (!string.IsNullOrWhiteSpace(name))
             {
-#pragma warning disable MSML_ContractsNameUsesNameof
-                if (!ColumnInfo.TryCreateFromName(schema, name, out info))
+#pragma warning disable MSML_ContractsNameUsesNameof // This utility method is meant to reflect the argument name of whatever is calling it, so we take that as a parameter, rather than using nameof directly as in most cases.
+                var col = schema.GetColumnOrNull(name);
+                if (!col.HasValue)
                     throw ectx.ExceptUserArg(argName, "Score column is missing");
 #pragma warning restore MSML_ContractsNameUsesNameof
-                return info;
+                return col.Value;
             }
 
-            var maxSetNum = schema.GetMaxMetadataKind(out colTmp, MetadataUtils.Kinds.ScoreColumnSetId,
+            var maxSetNum = schema.GetMaxMetadataKind(out int colTmp, MetadataUtils.Kinds.ScoreColumnSetId,
                 (s, c) => IsScoreColumnKind(ectx, s, c, kind));
 
             ReadOnlyMemory<char> tmp = default;
-            foreach (var col in schema.GetColumnSet(MetadataUtils.Kinds.ScoreColumnSetId, maxSetNum))
+            foreach (var colIdx in schema.GetColumnSet(MetadataUtils.Kinds.ScoreColumnSetId, maxSetNum))
             {
+                var col = schema[colIdx];
 #if DEBUG
-                schema[col].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref tmp);
+                col.Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref tmp);
                 ectx.Assert(ReadOnlyMemoryUtils.EqualsStr(kind, tmp));
 #endif
                 // REVIEW: What should this do about hidden columns? Currently we ignore them.
-                if (schema[col].IsHidden)
+                if (col.IsHidden)
                     continue;
-                if (schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreValueKind, col, ref tmp) &&
-                    ReadOnlyMemoryUtils.EqualsStr(valueKind, tmp))
+                if (col.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreValueKind)?.Type == TextType.Instance)
                 {
-                    return ColumnInfo.CreateFromIndex(schema, col);
+                    col.Metadata.GetValue(MetadataUtils.Kinds.ScoreValueKind, ref tmp);
+                    if (ReadOnlyMemoryUtils.EqualsStr(valueKind, tmp))
+                        return col;
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(defName) && ColumnInfo.TryCreateFromName(schema, defName, out info))
-                return info;
+            if (!string.IsNullOrWhiteSpace(defName) && schema.GetColumnOrNull(defName) is Schema.Column defCol)
+                return defCol;
 
 #pragma warning disable MSML_ContractsNameUsesNameof
             throw ectx.ExceptUserArg(argName, "Score column is missing");
@@ -155,11 +156,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Find the optional auxilliary score column to use. If name is specified, that is used.
-        /// Otherwise, if colScore is part of a score set, this looks in the score set for a column
-        /// with the given valueKind. If none is found, it returns null.
+        /// Find the optional auxilliary score column to use. If <paramref name="name"/> is specified, that is used.
+        /// Otherwise, if <paramref name="colScore"/> is part of a score set, this looks in the score set for a column
+        /// with the given <paramref name="valueKind"/>. If none is found, it returns <see langword="null"/>.
         /// </summary>
-        public static ColumnInfo GetOptAuxScoreColumnInfo(IExceptionContext ectx, Schema schema, string name, string argName,
+        public static Schema.Column? GetOptAuxScoreColumn(IExceptionContext ectx, Schema schema, string name, string argName,
             int colScore, string valueKind, Func<ColumnType, bool> testType)
         {
             Contracts.CheckValueOrNull(ectx);
@@ -171,14 +172,14 @@ namespace Microsoft.ML.Runtime.Data
 
             if (!string.IsNullOrWhiteSpace(name))
             {
-                ColumnInfo info;
 #pragma warning disable MSML_ContractsNameUsesNameof
-                if (!ColumnInfo.TryCreateFromName(schema, name, out info))
+                var col = schema.GetColumnOrNull(name);
+                if (!col.HasValue)
                     throw ectx.ExceptUserArg(argName, "{0} column is missing", valueKind);
-                if (!testType(info.Type))
+                if (!testType(col.Value.Type))
                     throw ectx.ExceptUserArg(argName, "{0} column has incompatible type", valueKind);
 #pragma warning restore MSML_ContractsNameUsesNameof
-                return info;
+                return col.Value;
             }
 
             // Get the score column set id from colScore.
@@ -192,17 +193,18 @@ namespace Microsoft.ML.Runtime.Data
             schema[colScore].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnSetId, ref setId);
 
             ReadOnlyMemory<char> tmp = default;
-            foreach (var col in schema.GetColumnSet(MetadataUtils.Kinds.ScoreColumnSetId, setId))
+            foreach (var colIdx in schema.GetColumnSet(MetadataUtils.Kinds.ScoreColumnSetId, setId))
             {
                 // REVIEW: What should this do about hidden columns? Currently we ignore them.
-                if (schema[col].IsHidden)
+                var col = schema[colIdx];
+                if (col.IsHidden)
                     continue;
-                if (schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreValueKind, col, ref tmp) &&
-                    ReadOnlyMemoryUtils.EqualsStr(valueKind, tmp))
+
+                if (col.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreValueKind)?.Type == TextType.Instance)
                 {
-                    var res = ColumnInfo.CreateFromIndex(schema, col);
-                    if (testType(res.Type))
-                        return res;
+                    col.Metadata.GetValue(MetadataUtils.Kinds.ScoreValueKind, ref tmp);
+                    if (ReadOnlyMemoryUtils.EqualsStr(valueKind, tmp) && testType(col.Type))
+                        return col;
                 }
             }
 
@@ -226,20 +228,17 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// If str is non-empty, returns it. Otherwise if info is non-null, returns info.Name.
-        /// Otherwise, returns def.
+        /// If <paramref name="str"/> is non-empty, returns it. Otherwise if <paramref name="info"/> is non-<see langword="null"/>,
+        /// returns its <see cref="Schema.Column.Name"/>. Otherwise, returns <paramref name="def"/>.
         /// </summary>
-        public static string GetColName(string str, ColumnInfo info, string def)
+        public static string GetColName(string str, Schema.Column? info, string def)
         {
             Contracts.CheckValueOrNull(str);
-            Contracts.CheckValueOrNull(info);
             Contracts.CheckValueOrNull(def);
 
             if (!string.IsNullOrEmpty(str))
                 return str;
-            if (info != null)
-                return info.Name;
-            return def;
+            return info?.Name ?? def;
         }
 
         public static void CheckWeightType(IExceptionContext ectx, ColumnType type)

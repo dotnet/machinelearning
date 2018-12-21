@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
+
+[assembly: EntryPointModule(typeof(MacroUtils))]
 
 // The warning #612 is disabled because the following code uses a lot of things in Legacy.Models while Legacy.Model is marked as obsolete.
 // Because that dependency will be removed form ML.NET, one needs to rewrite all places where legacy APIs are used.
@@ -43,156 +45,123 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        private sealed class TaskInformationBundle
+        public static EvaluateInputBase GetEvaluatorArgs(TrainerKinds kind, out string entryPointName, EvaluatorSettings settings = null)
         {
-            public string TrainerFunctionName { get; set; }
-            public Type TrainerSignatureType { get; set; }
-            public Func<EvaluatorSettings, CommonInputs.IEvaluatorInput> EvaluatorInput { get; set; }
-            public Func<CommonOutputs.IEvaluatorOutput> EvaluatorOutput { get; set; }
-        }
-
-        private static Dictionary<TrainerKinds, TaskInformationBundle>
-            TrainerKindDict => new Dictionary<TrainerKinds, TaskInformationBundle>
+            switch (kind)
             {
-                {
-                    TrainerKinds.SignatureBinaryClassifierTrainer,
-                    new TaskInformationBundle {
-                        TrainerFunctionName = "BinaryClassifier",
-                        TrainerSignatureType = typeof(SignatureBinaryClassifierTrainer),
-                        EvaluatorInput = settings => new Legacy.Models.BinaryClassificationEvaluator
-                        {
-                            LabelColumn = settings.LabelColumn,
-                            NameColumn = settings.NameColumn,
-                            WeightColumn = settings.WeightColumn
-                        },
-                        EvaluatorOutput = () => new Legacy.Models.BinaryClassificationEvaluator.Output()
-                    }
-                },
-                {
-                    TrainerKinds.SignatureMultiClassClassifierTrainer,
-                    new TaskInformationBundle{
-                        TrainerFunctionName = "Classifier",
-                        TrainerSignatureType = typeof(SignatureMultiClassClassifierTrainer),
-                        EvaluatorInput = settings => new Legacy.Models.ClassificationEvaluator
-                        {
-                            LabelColumn = settings.LabelColumn,
-                            NameColumn = settings.NameColumn,
-                            WeightColumn = settings.WeightColumn
-                        },
-                        EvaluatorOutput = () => new Legacy.Models.ClassificationEvaluator.Output()
-                    }
-                },
-                {
-                    TrainerKinds.SignatureRankerTrainer,
-                    new TaskInformationBundle {
-                        TrainerFunctionName = "Ranker",
-                        TrainerSignatureType = typeof(SignatureRankerTrainer),
-                        EvaluatorInput = settings => new Legacy.Models.RankerEvaluator
-                        {
-                            LabelColumn = settings.LabelColumn,
-                            NameColumn = settings.NameColumn,
-                            WeightColumn = settings.WeightColumn,
-                            GroupIdColumn = settings.GroupColumn
-                        },
-                        EvaluatorOutput = () => new Legacy.Models.RankerEvaluator.Output()
-                    }
-                },
-                {
-                    TrainerKinds.SignatureRegressorTrainer,
-                    new TaskInformationBundle{
-                        TrainerFunctionName = "Regressor",
-                        TrainerSignatureType = typeof(SignatureRegressorTrainer),
-                        EvaluatorInput = settings => new Legacy.Models.RegressionEvaluator
-                        {
-                            LabelColumn = settings.LabelColumn,
-                            NameColumn = settings.NameColumn,
-                            WeightColumn = settings.WeightColumn
-                        },
-                        EvaluatorOutput = () => new Legacy.Models.RegressionEvaluator.Output()
-                    }
-                },
-                {
-                    TrainerKinds.SignatureMultiOutputRegressorTrainer,
-                    new TaskInformationBundle {
-                        TrainerFunctionName = "MultiOutputRegressor",
-                        TrainerSignatureType = typeof(SignatureMultiOutputRegressorTrainer),
-                        EvaluatorInput = settings => new Legacy.Models.MultiOutputRegressionEvaluator
-                        {
-                            LabelColumn = settings.LabelColumn,
-                            NameColumn = settings.NameColumn,
-                            WeightColumn = settings.WeightColumn,
-                        },
-                        EvaluatorOutput = () => new Legacy.Models.MultiOutputRegressionEvaluator.Output()
-                    }
-                },
-                {
-                    TrainerKinds.SignatureAnomalyDetectorTrainer,
-                    new TaskInformationBundle {
-                        TrainerFunctionName = "AnomalyDetector",
-                        TrainerSignatureType = typeof(SignatureAnomalyDetectorTrainer),
-                        EvaluatorInput = settings => new Legacy.Models.AnomalyDetectionEvaluator
-                        {
-                            LabelColumn = settings.LabelColumn,
-                            NameColumn = settings.NameColumn,
-                            WeightColumn = settings.WeightColumn
-                        },
-                        EvaluatorOutput = () => new Legacy.Models.AnomalyDetectionEvaluator.Output()
-                        }
-                },
-                {
-                    TrainerKinds.SignatureClusteringTrainer,
-                    new TaskInformationBundle {
-                        TrainerFunctionName = "Clusterer",
-                        TrainerSignatureType = typeof(SignatureClusteringTrainer),
-                        EvaluatorInput = settings => new Legacy.Models.ClusterEvaluator
-                        {
-                            LabelColumn = settings.LabelColumn,
-                            NameColumn = settings.NameColumn,
-                            WeightColumn = settings.WeightColumn,
-                            FeatureColumn = settings.FeatureColumn
-                        },
-                        EvaluatorOutput = () => new Legacy.Models.ClusterEvaluator.Output()
-                    }
-                },
+            case TrainerKinds.SignatureBinaryClassifierTrainer:
+                entryPointName = "Models.BinaryClassificationEvaluator";
+                return new BinaryClassifierMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+            case TrainerKinds.SignatureMultiClassClassifierTrainer:
+                entryPointName = "Models.ClassificationEvaluator";
+                return new MultiClassMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+            case TrainerKinds.SignatureRankerTrainer:
+                entryPointName = "Models.RankerEvaluator";
+                return new RankerMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn, GroupIdColumn = settings.GroupColumn };
+            case TrainerKinds.SignatureRegressorTrainer:
+                entryPointName = "Models.RegressionEvaluator";
+                return new RegressionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+            case TrainerKinds.SignatureMultiOutputRegressorTrainer:
+                entryPointName = "Models.MultiOutputRegressionEvaluator";
+                return new MultiOutputRegressionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+            case TrainerKinds.SignatureAnomalyDetectorTrainer:
+                entryPointName = "Models.AnomalyDetectionEvaluator";
+                return new AnomalyDetectionMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+            case TrainerKinds.SignatureClusteringTrainer:
+                entryPointName = "Models.ClusterEvaluator";
+                return new ClusteringMamlEvaluator.Arguments() { LabelColumn = settings.LabelColumn, WeightColumn = settings.WeightColumn, NameColumn = settings.NameColumn };
+            default:
+                throw Contracts.Except("Trainer kind not supported");
+            }
+        }
+
+        public sealed class ArrayIPredictorModelInput
+        {
+            [Argument(ArgumentType.Required, HelpText = "The models", SortOrder = 1)]
+            public PredictorModel[] Model;
+        }
+
+        public sealed class ArrayIPredictorModelOutput
+        {
+            [TlcModule.Output(Desc = "The model array", SortOrder = 1)]
+            public PredictorModel[] OutputModel;
+        }
+
+        [TlcModule.EntryPoint(Desc = "Create an array variable of " + nameof(PredictorModel), Name = "Data.PredictorModelArrayConverter")]
+        public static ArrayIPredictorModelOutput MakeArray(IHostEnvironment env, ArrayIPredictorModelInput input)
+        {
+            var result = new ArrayIPredictorModelOutput
+            {
+                OutputModel = input.Model
             };
-
-        public static Tuple<CommonInputs.IEvaluatorInput, CommonOutputs.IEvaluatorOutput> GetEvaluatorInputOutput(
-            TrainerKinds kind, EvaluatorSettings settings = null) => new Tuple<CommonInputs.IEvaluatorInput, CommonOutputs.IEvaluatorOutput>
-            (TrainerKindDict[kind].EvaluatorInput(settings), TrainerKindDict[kind].EvaluatorOutput());
-
-        public static Type[] PredictorTypes = TrainerKindDict.Select(kvp => kvp.Value.TrainerSignatureType).ToArray();
-
-        public static Type TrainerKindToType(TrainerKinds kind) => TrainerKindDict[kind].TrainerSignatureType;
-
-        public static TrainerKinds SignatureTypeToTrainerKind(Type sigType)
-        {
-            foreach (var kvp in TrainerKindDict)
-                if (sigType == kvp.Value.TrainerSignatureType)
-                    return kvp.Key;
-            throw new NotSupportedException($"Signature type {sigType} unsupported.");
+            return result;
         }
 
-        public static TrainerKinds[] SignatureTypesToTrainerKinds(IEnumerable<Type> sigTypes) =>
-            sigTypes.Select(SignatureTypeToTrainerKind).ToArray();
-
-        private static string GetTrainerName(TrainerKinds kind) => TrainerKindDict[kind].TrainerFunctionName;
-
-        public static T TrainerKindApiValue<T>(TrainerKinds trainerKind)
+        public sealed class ArrayIDataViewInput
         {
-            if (Enum.GetName(typeof(TrainerKinds), trainerKind) is string name)
-                return (T)Enum.Parse(typeof(T), name);
-            throw new Exception($"Could not interpret enum value: {trainerKind}");
+            [Argument(ArgumentType.Required, HelpText = "The data sets", SortOrder = 1)]
+            public IDataView[] Data;
         }
 
-        public static bool IsTrainerOfKind(Type type, TrainerKinds trainerKind)
+        public sealed class ArrayIDataViewOutput
         {
-            if (trainerKind != TrainerKinds.SignatureMultiClassClassifierTrainer && trainerKind != TrainerKinds.SignatureMultiOutputRegressorTrainer)
-                return type.Name.EndsWith(GetTrainerName(trainerKind));
+            [TlcModule.Output(Desc = "The data set array", SortOrder = 1)]
+            public IDataView[] OutputData;
+        }
 
-            if (trainerKind == TrainerKinds.SignatureMultiClassClassifierTrainer)
-                return type.Name.EndsWith(GetTrainerName(trainerKind)) && !type.Name.EndsWith(GetTrainerName(TrainerKinds.SignatureBinaryClassifierTrainer));
+        [TlcModule.EntryPoint(Desc = "Create an array variable of IDataView", Name = "Data.IDataViewArrayConverter")]
+        public static ArrayIDataViewOutput MakeArray(IHostEnvironment env, ArrayIDataViewInput input)
+        {
+            var result = new ArrayIDataViewOutput
+            {
+                OutputData = input.Data
+            };
+            return result;
+        }
 
-            return type.Name.EndsWith(GetTrainerName(trainerKind)) && !type.Name.EndsWith(GetTrainerName(TrainerKinds.SignatureRegressorTrainer));
+        internal static void ConvertIPredictorModelsToArray(IHostEnvironment env, RunContext context, List<EntryPointNode> subGraphNodes,
+            Var<PredictorModel>[] predModelVars, string outputVarName)
+        {
+            var predictorArrayConverterArgs = new ArrayIPredictorModelInput();
+            var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+
+            var argName = nameof(predictorArrayConverterArgs.Model);
+            inputBindingMap.Add(argName, new List<ParameterBinding>());
+            for (int i = 0; i < predModelVars.Length; i++)
+            {
+                var paramBinding = new ArrayIndexParameterBinding(argName, i);
+                inputBindingMap[argName].Add(paramBinding);
+                inputMap[paramBinding] = new SimpleVariableBinding(predModelVars[i].VarName);
+            }
+            var outputMap = new Dictionary<string, string>();
+            var output = new ArrayVar<PredictorModel>();
+            outputMap.Add(nameof(MacroUtils.ArrayIPredictorModelOutput.OutputModel), outputVarName);
+            var arrayConvertNode = EntryPointNode.Create(env, "Data.PredictorModelArrayConverter", predictorArrayConverterArgs,
+                context, inputBindingMap, inputMap, outputMap);
+            subGraphNodes.Add(arrayConvertNode);
+        }
+
+        internal static void ConvertIdataViewsToArray(IHostEnvironment env, RunContext context, List<EntryPointNode> subGraphNodes,
+            Var<IDataView>[] vars, string outputVarName)
+        {
+            var dataviewArrayConverterArgs = new ArrayIDataViewInput();
+            var inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
+            var inputMap = new Dictionary<ParameterBinding, VariableBinding>();
+
+            var argName = nameof(dataviewArrayConverterArgs.Data);
+            inputBindingMap.Add(argName, new List<ParameterBinding>());
+            for (int i = 0; i < vars.Length; i++)
+            {
+                var paramBinding = new ArrayIndexParameterBinding(argName, i);
+                inputBindingMap[argName].Add(paramBinding);
+                inputMap[paramBinding] = new SimpleVariableBinding(vars[i].VarName);
+            }
+            var outputMap = new Dictionary<string, string>();
+            outputMap.Add(nameof(ArrayIDataViewOutput.OutputData), outputVarName);
+            var arrayConvertNode = EntryPointNode.Create(env, "Data.IDataViewArrayConverter", dataviewArrayConverterArgs,
+                context, inputBindingMap, inputMap, outputMap);
+            subGraphNodes.Add(arrayConvertNode);
         }
     }
 }

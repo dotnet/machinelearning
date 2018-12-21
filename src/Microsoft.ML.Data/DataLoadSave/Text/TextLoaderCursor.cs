@@ -150,8 +150,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
 
-            public static RowCursor[] CreateSet(out IRowCursorConsolidator consolidator,
-                TextLoader parent, IMultiStreamSource files, bool[] active, int n)
+            public static RowCursor[] CreateSet(TextLoader parent, IMultiStreamSource files, bool[] active, int n)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
@@ -166,12 +165,8 @@ namespace Microsoft.ML.Runtime.Data
                 var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
-                {
-                    consolidator = null;
                     return new RowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
-                }
 
-                consolidator = new Consolidator(cthd);
                 var cursors = new RowCursor[cthd];
                 try
                 {
@@ -818,37 +813,6 @@ namespace Microsoft.ML.Runtime.Data
                         if (iblk >= _blockCount)
                             iblk -= _blockCount;
                         Contracts.Assert(0 <= iblk && iblk < _blockCount);
-                    }
-                }
-            }
-
-            /// <summary>
-            /// The consolidator object. This simply records the number of threads and checks
-            /// that they match at the end.
-            /// </summary>
-            private sealed class Consolidator : IRowCursorConsolidator
-            {
-                private int _cthd;
-
-                public Consolidator(int cthd)
-                {
-                    Contracts.Assert(cthd > 1);
-                    _cthd = cthd;
-                }
-
-                public RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs)
-                {
-                    Contracts.AssertValue(provider);
-                    int cthd = Interlocked.Exchange(ref _cthd, 0);
-                    provider.Check(cthd > 1, "Consolidator can only be used once");
-                    provider.Check(Utils.Size(inputs) == cthd, "Unexpected number of cursors");
-
-                    // ConsolidateGeneric does all the standard validity checks: all cursors non-null,
-                    // all have the same schema, all have the same active columns, and all active
-                    // column types are cachable.
-                    using (var ch = provider.Start("Consolidator"))
-                    {
-                        return DataViewUtils.ConsolidateGeneric(provider, inputs, BatchSize);
                     }
                 }
             }
