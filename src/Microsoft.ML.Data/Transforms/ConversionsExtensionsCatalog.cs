@@ -129,8 +129,23 @@ namespace Microsoft.ML
             => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, file, termsColumn, loaderFactory);
     }
 
+    /// <summary>
+    /// Extensions for the ValueMapping Estimator
+    /// </summary>
+
     public static class ToMappedValueCatalog
     {
+        /// <summary>
+        /// Maps specified keys to specified values
+        /// </summary>
+        /// <typeparam name="TInputType">The key type.</typeparam>
+        /// <typeparam name="TOutputType">The value type.</typeparam>
+        /// <param name="catalog">The categorical transform's catalog</param>
+        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with values. This list must be the same length as values and
+        /// cannot contain duplicate keys.</param>
+        /// <param name="values">The list of values to pair with the keys for the mapping. This list must be equal to the same length as keys.</param>
+        /// <param name="columns">The columns to apply this transform on.</param>
+        /// <returns></returns>
         public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
             this TransformsCatalog catalog,
             IEnumerable<TInputType> keys,

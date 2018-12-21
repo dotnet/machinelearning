@@ -5,7 +5,6 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
-using System.Collections.Generic;
 
 namespace Microsoft.ML
 {
@@ -62,5 +61,4 @@ namespace Microsoft.ML
             => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog),
                 keepColumns, null, keepHidden, ColumnSelectingTransformer.Defaults.IgnoreMissing);
     }
-
 }
