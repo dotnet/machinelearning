@@ -407,8 +407,16 @@ namespace Microsoft.ML.Runtime.Data
             var result = new TransformerChain<ITransformer>();
             foreach (var transform in _transforms)
             {
-                var transformer = (transform.Transform as RowToRowMapperTransform).GetTransformer();
-                result = result.Append(transformer);
+                if (transform.Transform is RowToRowMapperTransform mapper)
+                {
+                    var transformer = mapper.GetTransformer();
+                    result = result.Append(transformer);
+                }
+                else
+                {
+                    ITransformer transformer = new TransformWrapper(_host, transform.Transform);
+                    result = result.Append(transformer);
+                }
             }
             return result;
         }

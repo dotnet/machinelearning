@@ -269,9 +269,13 @@ namespace Microsoft.ML.Transforms.Conversions
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             if (ctx.Header.ModelVerWritten < VersionTransformer)
-                ctx.Reader.ReadInt32();
+            {
+                int cbFloat = ctx.Reader.ReadInt32();
+                env.CheckDecode(cbFloat == sizeof(float));
+            }
             return new TypeConvertingTransformer(host, ctx);
         }
+
 
         private TypeConvertingTransformer(IHost host, ModelLoadContext ctx)
         : base(host, ctx)

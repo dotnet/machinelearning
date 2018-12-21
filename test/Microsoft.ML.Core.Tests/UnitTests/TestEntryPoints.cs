@@ -715,10 +715,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var lrModel = LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments { TrainingData = splitOutput.TestData[0] }).PredictorModel;
             var calibratedLrModel = Calibrate.FixedPlatt(Env,
                 new Calibrate.FixedPlattInput { Data = splitOutput.TestData[1], UncalibratedPredictorModel = lrModel }).PredictorModel;
-            using (var stream = File.OpenWrite("D:/tlc/epmodel_zip"))
-            {
-                lrModel.Save(Env, stream);
-            }
+
             var scored1 = ScoreModel.Score(Env, new ScoreModel.Input() { Data = splitOutput.TestData[2], PredictorModel = lrModel }).ScoredData;
             scored1 = ScoreModel.SelectColumns(Env, new ScoreModel.ScoreColumnSelectorInput() { Data = scored1, ExtraColumns = new[] { "Label" } }).OutputData;
 
@@ -1729,7 +1726,6 @@ namespace Microsoft.ML.Runtime.RunTests
             var confusionMatrixVar = confusionMatrixPath != null ? ", 'ConfusionMatrix': '$ConfusionMatrix'" : "";
             confusionMatrixPath = confusionMatrixPath != null ? string.Format(", 'ConfusionMatrix' : '{0}'", EscapePath(confusionMatrixPath)) : "";
             var scorerModel = string.IsNullOrEmpty(transforms) ? "Model" : "CombinedModel";
-            string modelPath = DeleteOutputPath("model.zip");
             string inputGraph = $@"
                 {{
                   'Nodes': [
@@ -1793,7 +1789,6 @@ namespace Microsoft.ML.Runtime.RunTests
                   }},
                   'Outputs' : {{
                     'Warnings' : '{EscapePath(warningsPath)}',
-                    'Model': '{EscapePath(modelPath)}',
                     'OverallMetrics' : '{EscapePath(overallMetricsPath)}',
                     'PerInstanceMetrics' : '{EscapePath(instanceMetricsPath)}'
                     {confusionMatrixPath}
@@ -4069,15 +4064,21 @@ namespace Microsoft.ML.Runtime.RunTests
                       ]"
                 });
         }
-        
+
         [Fact]
         public void LoadEntryPointModel()
         {
             var ml = new MLContext();
-            var modelPath = "D:/tlc/model1.zip";
-            ITransformer loadedModel;
-            using (var stream = File.OpenRead(modelPath))
-                loadedModel = ml.Model.Load(stream);
+            for (int i = 0; i < 5; i++)
+            {
+                var modelPath = GetDataPath($"backcompat/ep_model{i}.zip");
+                ITransformer loadedModel;
+                using (var stream = File.OpenRead(modelPath))
+                {
+                    loadedModel = ml.Model.Load(stream);
+                }
+
+            }
         }
 
     }
