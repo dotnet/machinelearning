@@ -75,12 +75,18 @@ namespace Microsoft.ML.Runtime.Data
         /// Constructs a new key column from an array where values are copied to output simply
         /// by being assigned.
         /// </summary>
-        public void AddColumn(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyMin, int keyCount, params uint[] values)
+        /// <param name="name">The name of the column.</param>
+        /// <param name="getKeyValues">The delegate that does a reverse lookup based upon the given key. This is for metadata creation</param>
+        /// <param name="keyMin">The <see cref="KeyType"/> minimum to use.</param>
+        /// <param name="keyCount">The count of unique keys specified in values</param>
+        /// <param name="values">The values to add to the column. Note that since this is creating a <see cref="KeyType"/> column, the values will be offset by 1.</param>
+        public void AddColumn<T1>(string name, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getKeyValues, ulong keyMin, int keyCount, params T1[] values)
         {
             _host.CheckValue(getKeyValues, nameof(getKeyValues));
             _host.CheckParam(keyCount > 0, nameof(keyCount));
             CheckLength(name, values);
-            _columns.Add(new AssignmentColumn<uint>(new KeyType(DataKind.U4, keyMin, keyCount), values));
+            values.GetType().GetElementType().TryGetDataKind(out DataKind kind);
+            _columns.Add(new AssignmentColumn<T1>(new KeyType(kind, keyMin, keyCount), values));
             _getKeyValues.Add(name, getKeyValues);
             _names.Add(name);
         }
