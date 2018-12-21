@@ -21,8 +21,8 @@ namespace Microsoft.ML
         /// <param name="dataSample">The optional location of a data sample.</param>
         public static TextLoader CreateTextReader(this DataOperations catalog,
             TextLoader.Column[] columns,
-            bool hasHeader = false,
-            char separatorChar = '\t',
+            bool hasHeader = TextLoader.DefaultArguments.HasHeader,
+            char separatorChar = TextLoader.DefaultArguments.Separator,
             IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChar, dataSample);
 
@@ -42,7 +42,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="separator">Column separator character. Default is '\t'</param>
+        /// <param name="separatorChar">Column separator character. Default is '\t'</param>
         /// <param name="allowQuotedStrings">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
@@ -54,11 +54,11 @@ namespace Microsoft.ML
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         public static TextLoader CreateTextReader<TInput>(this DataOperations catalog,
             bool hasHeader = TextLoader.DefaultArguments.HasHeader,
-            char separator = TextLoader.DefaultArguments.Separator,
+            char separatorChar = TextLoader.DefaultArguments.Separator,
             bool allowQuotedStrings = TextLoader.DefaultArguments.AllowQuoting,
             bool supportSparse = TextLoader.DefaultArguments.AllowSparse,
             bool trimWhitespace = TextLoader.DefaultArguments.TrimWhitespace)
-            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separator, allowQuotedStrings, supportSparse, trimWhitespace);
+            => TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace);
 
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
@@ -90,7 +90,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
-        /// <param name="separator">Column separator character. Default is '\t'</param>
+        /// <param name="separatorChar">Column separator character. Default is '\t'</param>
         /// <param name="allowQuotedStrings">Whether the input may include quoted values,
         /// which can contain separator characters, colons,
         /// and distinguish empty values from missing values. When true, consecutive separators
@@ -105,7 +105,7 @@ namespace Microsoft.ML
         public static IDataView ReadFromTextFile<TInput>(this DataOperations catalog,
             string path,
             bool hasHeader = TextLoader.DefaultArguments.HasHeader,
-            char separator = TextLoader.DefaultArguments.Separator,
+            char separatorChar = TextLoader.DefaultArguments.Separator,
             bool allowQuotedStrings = TextLoader.DefaultArguments.AllowQuoting,
             bool supportSparse = TextLoader.DefaultArguments.AllowSparse,
             bool trimWhitespace = TextLoader.DefaultArguments.TrimWhitespace)
@@ -114,7 +114,7 @@ namespace Microsoft.ML
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
-            return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separator, allowQuotedStrings, supportSparse, trimWhitespace)
+            return TextLoader.CreateTextReader<TInput>(CatalogUtils.GetEnvironment(catalog), hasHeader, separatorChar, allowQuotedStrings, supportSparse, trimWhitespace)
                              .Read(new MultiFileSource(path));
         }
 
@@ -140,15 +140,15 @@ namespace Microsoft.ML
         /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
         /// <param name="data">The data view to save.</param>
         /// <param name="stream">The stream to write to.</param>
-        /// <param name="separator">The column separator.</param>
+        /// <param name="separatorChar">The column separator.</param>
         /// <param name="headerRow">Whether to write the header row.</param>
         /// <param name="schema">Whether to write the header comment with the schema.</param>
         /// <param name="keepHidden">Whether to keep hidden columns in the dataset.</param>
         public static void SaveAsText(this DataOperations catalog,
             IDataView data,
             Stream stream,
-            char separator = '\t',
-            bool headerRow = true,
+            char separatorChar = TextLoader.DefaultArguments.Separator,
+            bool headerRow = TextLoader.DefaultArguments.HasHeader,
             bool schema = true,
             bool keepHidden = false)
         {
@@ -157,7 +157,7 @@ namespace Microsoft.ML
             Contracts.CheckValue(stream, nameof(stream));
 
             var env = catalog.GetEnvironment();
-            var saver = new TextSaver(env, new TextSaver.Arguments { Separator = separator.ToString(), OutputHeader = headerRow, OutputSchema = schema });
+            var saver = new TextSaver(env, new TextSaver.Arguments { Separator = separatorChar.ToString(), OutputHeader = headerRow, OutputSchema = schema });
 
             using (var ch = env.Start("Saving data"))
                 DataSaverUtils.SaveDataView(ch, saver, data, stream, keepHidden);

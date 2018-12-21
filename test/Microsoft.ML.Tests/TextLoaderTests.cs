@@ -465,7 +465,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
-            var dataIris = ml.Data.CreateTextReader<Iris>(separator: ',').Read(dataPath);
+            var dataIris = ml.Data.CreateTextReader<Iris>(separatorChar: ',').Read(dataPath);
             var previewIris = dataIris.Preview(1);
 
             Assert.Equal(5, previewIris.ColumnView.Length);
@@ -481,7 +481,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
 
             // Load with start and end indexes
-            var dataIrisStartEnd = ml.Data.CreateTextReader<IrisStartEnd>(separator: ',').Read(dataPath);
+            var dataIrisStartEnd = ml.Data.CreateTextReader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
             var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
 
             Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
@@ -498,7 +498,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             // load setting the distinct columns. Loading column 0 and 2
-            var dataIrisColumnIndices = ml.Data.CreateTextReader<IrisColumnIndices>(separator: ',').Read(dataPath);
+            var dataIrisColumnIndices = ml.Data.CreateTextReader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
             var previewIrisColumnIndices = dataIrisColumnIndices.Preview(1);
 
             Assert.Equal(2, previewIrisColumnIndices.ColumnView.Length);

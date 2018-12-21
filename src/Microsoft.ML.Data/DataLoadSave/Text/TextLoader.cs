@@ -355,7 +355,7 @@ namespace Microsoft.ML.Runtime.Data
             public int? InputSize;
 
             [Argument(ArgumentType.AtMostOnce, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, HelpText = "Source column separator. Options: tab, space, comma, single character", ShortName = "sep")]
-            public string Separator = "tab"; //DefaultArguments.Separator
+            public string Separator = DefaultArguments.Separator.ToString();
 
             [Argument(ArgumentType.AtMostOnce, Name = nameof(Separator), Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Source column separator.", ShortName = "sep")]
             public char[] SeparatorChars = new[] { DefaultArguments.Separator };
@@ -1387,8 +1387,7 @@ namespace Microsoft.ML.Runtime.Data
                 var memberInfo = memberInfos[index];
                 var mappingAttr = memberInfo.GetCustomAttribute<LoadColumnAttribute>();
 
-                if(mappingAttr == null)
-                    continue;
+                host.Assert(mappingAttr != null, $"Field or property {memberInfo.Name} is missing the {nameof(LoadColumnAttribute)} attribute");
 
                 var mappingAttrName = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
 

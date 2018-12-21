@@ -152,6 +152,11 @@ private class InspectedRow
     public string[] AllFeatures { get; set; }
 }
 
+private class InspectedRowWithAllFeatures : InspectedRow
+{
+    public string[] AllFeatures { get; set; }
+}
+
 // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
 // as a catalog of available operations and as the source of randomness.
 var mlContext = new MLContext();
@@ -247,7 +252,7 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         Target: ctx.LoadFloat(11)
     ),
     // Default separator is tab, but we need a comma.
-    separator: ',');
+    separatorChar: ',');
 
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
@@ -269,7 +274,7 @@ var reader = mlContext.Data.CreateTextReader(new[] {
         new TextLoader.Column("Target", DataKind.R4, 11)
     },
     // Default separator is tab, but we need a comma.
-    s => s.Separator = ",");
+    separatorChar: ',');
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(dataPath);
@@ -294,7 +299,7 @@ var mlContext = new MLContext();
 // Read the data into a data view.
 var data = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
     // First line of the file is a header, not a data row.
-    separator: ','
+    separatorChar: ','
 );		
 
 ```
@@ -382,7 +387,7 @@ var transformedData = dataPipeline.Fit(data).Transform(data);
 // 'transformedData' is a 'promise' of data. Let's actually read it.
 var someRows = transformedData.AsDynamic
     // Convert to an enumerable of user-defined type. 
-    .AsEnumerable<InspectedRow>(mlContext, reuseRowObject: false)
+    .AsEnumerable<InspectedRowWithAllFeatures>(mlContext, reuseRowObject: false)
     // Take a couple values as an array.
     .Take(4).ToArray();
 
@@ -421,7 +426,7 @@ var transformedData = dynamicPipeline.Fit(data).Transform(data);
 // 'transformedData' is a 'promise' of data. Let's actually read it.
 var someRows = transformedData
     // Convert to an enumerable of user-defined type. 
-    .AsEnumerable<InspectedRow>(mlContext, reuseRowObject: false)
+    .AsEnumerable<InspectedRowWithAllFeatures>(mlContext, reuseRowObject: false)
     // Take a couple values as an array.
     .Take(4).ToArray();
 
@@ -465,7 +470,7 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
     // The data file has header.
     hasHeader: true,
     // Default separator is tab, but we need a semicolon.
-    separator: ';');
+    separatorChar: ';');
 
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
@@ -513,7 +518,7 @@ var mlContext = new MLContext();
 // Read the data into a data view. Remember though, readers are lazy, so the actual reading will happen when the data is accessed.
 var trainData = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
     // First line of the file is a header, not a data row.
-    separator: ','
+    separatorChar: ','
 );
 
 // Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
@@ -563,7 +568,7 @@ Calculating the metrics with the dynamic API is as follows.
 // Read the test dataset.
 var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
     // First line of the file is a header, not a data row.
-    separator: ','
+    separatorChar: ','
 );
 // Calculate metrics of the model on the test data.
 var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
@@ -632,7 +637,7 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         Label: ctx.LoadText(4)
     ),
     // Default separator is tab, but the dataset has comma.
-    separator: ',');
+    separatorChar: ',');
 
 // Retrieve the training data.
 var trainData = reader.Read(irisDataPath);
@@ -674,7 +679,7 @@ var mlContext = new MLContext();
  //  Retrieve the training data.
 var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(irisDataPath,
     // Default separator is tab, but the dataset has comma.
-    separator: ','
+    separatorChar: ','
 );
 
 // Build the training pipeline.
@@ -838,7 +843,7 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         Label: ctx.LoadText(4)
     ),
     // Default separator is tab, but the dataset has comma.
-    separator: ',');
+    separatorChar: ',');
 
 // Retrieve the training data.
 var trainData = reader.Read(dataPath);
@@ -931,7 +936,7 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         Label: ctx.LoadText(4)
     ),
     // Default separator is tab, but the dataset has comma.
-    separator: ',');
+    separatorChar: ',');
 
 // Read the training data.
 var trainData = reader.Read(dataPath);
@@ -972,7 +977,7 @@ var mlContext = new MLContext();
 // Read the training data.
 var trainData = mlContext.Data.ReadFromTextFile<IrisInputAllFeatures>(dataPath,
     // Default separator is tab, but the dataset has comma.
-    separator: ','
+    separatorChar: ','
 );
 
 // Apply all kinds of standard ML.NET normalization to the raw features.
@@ -1290,7 +1295,7 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         Label: ctx.LoadText(4)
     ),
     // Default separator is tab, but the dataset has comma.
-    separator: ',');
+    separatorChar: ',');
 
 // Read the data.
 var data = reader.Read(dataPath);
@@ -1337,7 +1342,7 @@ var mlContext = new MLContext();
 // Step one: read the data as an IDataView.
 var data = mlContext.Data.ReadFromTextFile<IrisInput>(dataPath,
     // Default separator is tab, but the dataset has comma.
-    separator: ','
+    separatorChar: ','
 );
 
 // Build the training pipeline.
@@ -1397,7 +1402,7 @@ var reader = mlContext.Data.CreateTextReader(ctx => (
         Label: ctx.LoadText(4)
     ),
     // Default separator is tab, but the dataset has comma.
-    separator: ',');
+    separatorChar: ',');
 
 // Read the data.
 var data = reader.Read(dataPath);
