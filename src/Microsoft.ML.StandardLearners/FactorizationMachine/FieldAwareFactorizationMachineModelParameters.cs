@@ -50,14 +50,14 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// </summary>
         /// <param name="env">The host environment</param>
         /// <param name="norm">True if user wants to normalize feature vector to unit length.</param>
-        /// <param name="fieldCount">The number of fileds. Symbol `m` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
-        /// <param name="featureCount">The number of features. Symbol `n` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
-        /// <param name="latentDim">The latent dimensions. Length of `v_{j, f}` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
-        /// <param name="linearWeights">The linear coefficients of the features. Symbol `w` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="fieldCount">The number of fileds, which is the symbol `m` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="featureCount">The number of features, which is the symbol `n` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="latentDim">The latent dimensions, which is the length of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="linearWeights">The linear coefficients of the features, which is the symbol `w` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
         /// <param name="latentWeights">Latent representation of each feature. Note that one feature may have <see cref="FieldCount"/> latent vectors
-        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the pdf doc
+        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the doc
         /// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf, starts at latentWeights[j * fieldCount * latentDim + f * latentDim].
-        /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k].</param>
+        /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k]. The size of the array must be featureCount x fieldCount x latentDim.</param>
         public FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
             float[] linearWeights, float[] latentWeights) : base(env, LoaderSignature)
         {
@@ -239,30 +239,31 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         /// <summary>
-        /// Get the number of fields. Symbol `m` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// Get the number of fields. It's the symbol `m` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
         /// </summary>
         public int GetFieldCount() => FieldCount;
 
         /// <summary>
-        /// Get the number of features. Symbol `n` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// Get the number of features. It's the symbol `n` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
         /// </summary>
         public int GetFeatureCount() => FeatureCount;
 
         /// <summary>
-        /// Get the latent dimensions. Length of `v_{j, f}` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// Get the latent dimension. It's the tlngth of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
         /// </summary>
         public int GetLatentDim() => LatentDim;
 
         /// <summary>
-        /// The linear coefficients of the features. Symbol `w` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// The linear coefficients of the features. It's the symbol `w` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
         /// </summary>
         public float[] GetLinearWeights() => _linearWeights;
 
         /// <summary>
         /// Latent representation of each feature. Note that one feature may have <see cref="FieldCount"/> latent vectors
-        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the pdf doc
+        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the doc
         /// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf, starts at latentWeights[j * fieldCount * latentDim + f * latentDim].
         /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k].
+        /// The size of the returned value is featureCount x fieldCount x latentDim.
         /// </summary>
         public float[] GetLatentWeights()
         {
