@@ -1,0 +1,52 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms.Conversions;
+using System.IO;
+
+namespace Microsoft.ML.Benchmarks
+{
+    public class RffTransformTrain
+    {
+        private string _dataPath_Digits;
+
+        [GlobalSetup]
+        public void SetupTrainingSpeedTests()
+        {
+            _dataPath_Digits = Path.GetFullPath(TestDatasets.Digits.trainFilename);
+
+            if (!File.Exists(_dataPath_Digits))
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Digits));
+        }
+
+        [Benchmark]
+        public void CV_Multiclass_Digits_RffTransform_OVAAveragedPerceptron()
+        {
+            var mlContext = new MLContext();
+            var reader = mlContext.Data.CreateTextReader(new TextLoader.Arguments
+            {
+                Column = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.R4, 64),
+                    new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range() { Min = 0, Max = 63 }})
+                },
+                HasHeader = false,
+                Separator = ","
+            });
+
+            var data = reader.Read(_dataPath_Digits);
+
+            var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("Features", "FeaturesRFF")
+            .AppendCacheCheckpoint(mlContext)
+            .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
+            .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
+            .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numIterations: 10)));
+
+            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);
+        }
+    }
+}

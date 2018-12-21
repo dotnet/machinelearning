@@ -16,6 +16,12 @@ The datasets are provided under the original terms that Microsoft received such 
 >
 >Original readme: https://meta.wikimedia.org/wiki/Research:Detox
 
+### Digits
+> This dataset is provided under http://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits.
+>
+> References: C. Kaynak (1995) Methods of Combining Multiple Classifiers and Their Applications to Handwritten Digit Recognition, MSc Thesis, Institute of Graduate Studies in Science and Engineering, Bogazici University.
+> E. Alpaydin, C. Kaynak (1998) Cascading Classifiers, Kybernetika.
+
 ### UCI Adult Dataset 
 
 >Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [https://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
