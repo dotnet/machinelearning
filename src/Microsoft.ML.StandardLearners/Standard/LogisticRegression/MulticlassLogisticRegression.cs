@@ -431,7 +431,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weights">The array of weights vectors. It should contain <paramref name="numClasses"/> weights.</param>
         /// <param name="bias">The array of biases. It should contain contain <paramref name="numClasses"/> weights.</param>
         /// <param name="numClasses">The number of classes for multi-class classification. Must be at least 2.</param>
-        /// <param name="numFeatures">The logical length of the feature vector.</param>
+        /// <param name="numFeatures">The length of the feature vector.</param>
         /// <param name="labelNames">The optional label names. If specified not null, it should have the same length as <paramref name="numClasses"/>.</param>
         /// <param name="stats">The model statistics.</param>
         public MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)

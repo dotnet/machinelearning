@@ -8,12 +8,12 @@ using System;
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     /// <summary>
-    /// This implements a logical array of Floats that is automatically aligned for SSE/AVX operations.
+    /// This implements a logical array of floats that is automatically aligned for SSE/AVX operations.
     /// To pin and force alignment, call the GetPin method, typically wrapped in a using (since it
     /// returns a Pin struct that is IDisposable). From the pin, you can get the IntPtr to pass to
     /// native code.
     ///
-    /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
+    /// The ctor takes an alignment value, which must be a power of two at least sizeof(float).
     /// </summary>
     [BestFriend]
     internal sealed class AlignedArray
@@ -106,12 +106,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Contracts.Assert(0 <= index && index < _size);
                 Items[index + _base] = value;
             }
-        }
-
-        public void CopyTo(Span<float> dst)
-        {
-            Contracts.Assert(dst != null);
-            Items.AsSpan().CopyTo(dst);
         }
 
         public void CopyTo(Span<float> dst, int index, int count)

@@ -242,7 +242,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract void DefinePruningTest();
 
-        internal abstract void CheckLabel(RoleMappedData data);
+        private protected abstract void CheckLabel(RoleMappedData data);
 
         private void ConvertData(RoleMappedData trainData, RoleMappedData validationData)
         {

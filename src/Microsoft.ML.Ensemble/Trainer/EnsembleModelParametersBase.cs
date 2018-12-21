@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         private const uint VerOld = 0x00010002;
 
-        public EnsembleModelParametersBase(IHostEnvironment env, string name, FeatureSubsetModel<TPredictor>[] models,
+        internal EnsembleModelParametersBase(IHostEnvironment env, string name, FeatureSubsetModel<TPredictor>[] models,
             IOutputCombiner<TOutput> combiner, Single[] weights)
             : base(env, name)
         {

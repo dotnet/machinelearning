@@ -134,6 +134,11 @@ namespace Microsoft.ML.Trainers
         ColumnType IValueMapper.OutputType => NumberType.Float;
         ColumnType IValueMapperDist.DistType => NumberType.Float;
 
+        /// <summary>
+        /// Instantiate a model that returns a uniform random probability.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="seed">The random seed.</param>
         public RandomModelParameters(IHostEnvironment env, int seed)
             : base(env, LoaderSignature)
         {
@@ -364,6 +369,11 @@ namespace Microsoft.ML.Trainers
         private readonly float _prob;
         private readonly float _raw;
 
+        /// <summary>
+        /// Instantiates a model that returns the prior probability of the positive class in the training set.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="prob">The probability of the positive class.</param>
         public PriorModelParameters(IHostEnvironment env, float prob)
             : base(env, LoaderSignature)
         {

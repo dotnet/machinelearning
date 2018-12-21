@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers.PCA
     /// </remarks>
     public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PcaModelParameters>, PcaModelParameters>
     {
-        public const string LoadNameValue = "pcaAnomaly";
+        internal const string LoadNameValue = "pcaAnomaly";
         internal const string UserNameValue = "PCA Anomaly Detector";
         internal const string ShortName = "pcaAnom";
         internal const string Summary = "This algorithm trains an approximate PCA using Randomized SVD algorithm. "
@@ -136,7 +136,6 @@ namespace Microsoft.ML.Trainers.PCA
 
         }
 
-        //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
         private protected override PcaModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
@@ -161,6 +160,7 @@ namespace Microsoft.ML.Trainers.PCA
             return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
         }
 
+        //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
         private PcaModelParameters TrainCore(IChannel ch, RoleMappedData data, int dimension)
         {
             Host.AssertValue(ch);
@@ -399,7 +399,14 @@ namespace Microsoft.ML.Trainers.PCA
             get { return PredictionKind.AnomalyDetection; }
         }
 
-        internal PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
+        /// <summary>
+        /// Instantiate new model parameters from trained model.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="rank">The rank of the PCA approximation of the covariance matrix. This is the number of eigenvectors in the model.</param>
+        /// <param name="eigenVectors">Array of eigenvectors.</param>
+        /// <param name="mean">The mean vector of the training data.</param>
+        public PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;

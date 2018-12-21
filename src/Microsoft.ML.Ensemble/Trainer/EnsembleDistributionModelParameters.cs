@@ -53,6 +53,14 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public override PredictionKind PredictionKind { get; }
 
+        /// <summary>
+        /// Instantiate new ensemble model from existing sub-models.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="kind">The prediction kind <see cref="PredictionKind"/></param>
+        /// <param name="models">Array of sub-models that you want to ensemble together.</param>
+        /// <param name="combiner">The combiner class to use to ensemble the models.</param>
+        /// <param name="weights">The weights assigned to each model to be ensembled.</param>
         public EnsembleDistributionModelParameters(IHostEnvironment env, PredictionKind kind,
             FeatureSubsetModel<TDistPredictor>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)

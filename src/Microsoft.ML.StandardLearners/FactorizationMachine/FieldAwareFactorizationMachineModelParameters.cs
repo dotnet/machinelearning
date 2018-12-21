@@ -27,9 +27,9 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         internal const string LoaderSignature = "FieldAwareFactMacPredict";
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private bool _norm;
-        public int FieldCount { get; }
-        public int FeatureCount { get; }
-        public int LatentDim { get; }
+        internal int FieldCount { get; }
+        internal int FeatureCount { get; }
+        internal int LatentDim { get; }
         internal int LatentDimAligned { get; }
         private readonly float[] _linearWeights;
         private readonly AlignedArray _latentWeightsAligned;
@@ -45,24 +45,52 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 loaderAssemblyName: typeof(FieldAwareFactorizationMachineModelParameters).Assembly.FullName);
         }
 
+        /// <summary>
+        /// Initialize model parameters with a trained model.
+        /// </summary>
+        /// <param name="env">The host environment</param>
+        /// <param name="norm">True if user wants to normalize feature vector to unit length.</param>
+        /// <param name="fieldCount">The number of fileds. Symbol `m` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="featureCount">The number of features. Symbol `n` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="latentDim">The latent dimensions. Length of `v_{j, f}` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="linearWeights">The linear coefficients of the features. Symbol `w` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="latentWeights">Latent representation of each feature. Note that one feature may have <see cref="FieldCount"/> latent vectors
+        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the pdf doc
+        /// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf, starts at latentWeights[j * fieldCount * latentDim + f * latentDim].
+        /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k].</param>
         public FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
-            float[] linearWeights, float[] latentWeightsAligned) : base(env, LoaderSignature)
+            float[] linearWeights, float[] latentWeights) : base(env, LoaderSignature)
         {
             Host.Assert(fieldCount > 0);
             Host.Assert(featureCount > 0);
             Host.Assert(latentDim > 0);
             Host.Assert(Utils.Size(linearWeights) == featureCount);
             LatentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(latentDim);
-            Host.Assert(Utils.Size(latentWeightsAligned) == checked(featureCount * fieldCount * LatentDimAligned));
+            Host.Assert(Utils.Size(latentWeights) == checked(featureCount * fieldCount * LatentDimAligned));
 
             _norm = norm;
-            FieldCount = FieldCount;
+            FieldCount = fieldCount;
             FeatureCount = featureCount;
             LatentDim = latentDim;
             _linearWeights = linearWeights;
 
-            _latentWeightsAligned = new AlignedArray(featureCount * fieldCount * LatentDimAligned, 16);
-            _latentWeightsAligned.CopyFrom(latentWeightsAligned.AsSpan());
+            _latentWeightsAligned = new AlignedArray(FeatureCount * FieldCount * LatentDimAligned, 16);
+
+            for (int j = 0; j < FeatureCount; j++)
+            {
+                for (int f = 0; f < FieldCount; f++)
+                {
+                    int index = j * FieldCount * LatentDim + f * LatentDim;
+                    int indexAligned = j * FieldCount * LatentDimAligned + f * LatentDimAligned;
+                    for (int k = 0; k < LatentDimAligned; k++)
+                    {
+                        if (k < LatentDim)
+                            _latentWeightsAligned[indexAligned + k] = latentWeights[index + k];
+                        else
+                            _latentWeightsAligned[indexAligned + k] = 0;
+                    }
+                }
+            }
         }
 
         internal FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
@@ -196,18 +224,11 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
             => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, Schema.Create(new BinaryClassifierSchema()), this);
 
-        public void CopyLinearWeightsTo(float[] linearWeights)
+        internal void CopyLinearWeightsTo(float[] linearWeights)
         {
             Host.AssertValue(_linearWeights);
             Host.AssertValue(linearWeights);
             Array.Copy(_linearWeights, linearWeights, _linearWeights.Length);
-        }
-
-        public void CopyLatentWeightsAlignedTo(float[] latentWeightsAligned)
-        {
-            Host.AssertValue(_latentWeightsAligned);
-            Host.AssertValue(latentWeightsAligned);
-            _latentWeightsAligned.CopyTo(latentWeightsAligned);
         }
 
         internal void CopyLatentWeightsTo(AlignedArray latentWeights)
@@ -215,6 +236,50 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             Host.AssertValue(_latentWeightsAligned);
             Host.AssertValue(latentWeights);
             latentWeights.CopyFrom(_latentWeightsAligned);
+        }
+
+        /// <summary>
+        /// Get the number of fields. Symbol `m` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public int GetFieldCount() => FieldCount;
+
+        /// <summary>
+        /// Get the number of features. Symbol `n` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public int GetFeatureCount() => FeatureCount;
+
+        /// <summary>
+        /// Get the latent dimensions. Length of `v_{j, f}` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public int GetLatentDim() => LatentDim;
+
+        /// <summary>
+        /// The linear coefficients of the features. Symbol `w` in the pdf doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public float[] GetLinearWeights() => _linearWeights;
+
+        /// <summary>
+        /// Latent representation of each feature. Note that one feature may have <see cref="FieldCount"/> latent vectors
+        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the pdf doc
+        /// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf, starts at latentWeights[j * fieldCount * latentDim + f * latentDim].
+        /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k].
+        /// </summary>
+        public float[] GetLatentWeights()
+        {
+            var latentWeights = new float[FeatureCount * FieldCount * LatentDim];
+            for (int j = 0; j < FeatureCount; j++)
+            {
+                for (int f = 0; f < FieldCount; f++)
+                {
+                    int index = j * FieldCount * LatentDim + f * LatentDim;
+                    int indexAligned = j * FieldCount * LatentDimAligned + f * LatentDimAligned;
+                    for (int k = 0; k < LatentDim; k++)
+                    {
+                        latentWeights[index + k] = _latentWeightsAligned[indexAligned + k];
+                    }
+                }
+            }
+            return latentWeights;
         }
     }
 

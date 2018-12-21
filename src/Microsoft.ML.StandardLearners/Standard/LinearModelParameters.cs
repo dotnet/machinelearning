@@ -597,7 +597,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        /// Constructs a new linear regression predictor.
+        /// Constructs a new linear regression model from trained weights.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="weights">The weights for the linear predictor. Note that this
@@ -679,6 +679,13 @@ namespace Microsoft.ML.Runtime.Learners
                 loaderAssemblyName: typeof(PoissonRegressionModelParameters).Assembly.FullName);
         }
 
+        /// <summary>
+        /// Constructs a new Poisson regression model parameters from trained model.
+        /// </summary>
+        /// <param name="env">The Host environment.</param>
+        /// <param name="weights">The weights for the linear predictor. Note that this
+        /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
+        /// <param name="bias">The bias added to every output score.</param>
         public PoissonRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
             : base(env, RegistrationName, in weights, bias)
         {
