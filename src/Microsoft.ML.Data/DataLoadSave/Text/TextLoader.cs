@@ -1352,6 +1352,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public IDataView Read(string path) => Read(new MultiFileSource(path));
 
+        public IDataView Read(params string[] path) => Read(new MultiFileSource(path));
+
         private sealed class BoundLoader : IDataLoader
         {
             private readonly TextLoader _reader;
