@@ -470,35 +470,6 @@
       ]
     },
     {
-      "Name": "Data.TransformModelArrayConverter",
-      "Desc": "Create an array variable of TransformModel",
-      "FriendlyName": null,
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "TransformModel",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "TransformModel"
-          },
-          "Desc": "The models",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputModel",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "TransformModel"
-          },
-          "Desc": "The model array"
-        }
-      ]
-    },
-    {
       "Name": "Models.AnomalyDetectionEvaluator",
       "Desc": "Evaluates an anomaly detection scored dataset.",
       "FriendlyName": null,
@@ -883,139 +854,6 @@
       "OutputKind": [
         "IClassificationEvaluatorOutput",
         "IEvaluatorOutput"
-      ]
-    },
-    {
-      "Name": "Models.BinaryCrossValidator",
-      "Desc": "Cross validation for binary classification",
-      "FriendlyName": null,
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "The data set",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Nodes",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "Node"
-          },
-          "Desc": "The training subgraph",
-          "Required": true,
-          "SortOrder": 3.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Inputs",
-          "Type": {
-            "Kind": "Struct",
-            "Fields": [
-              {
-                "Name": "Data",
-                "Type": "DataView",
-                "Desc": "The data to be used for training",
-                "Required": true,
-                "SortOrder": 1.0,
-                "IsNullable": false
-              }
-            ]
-          },
-          "Desc": "The training subgraph inputs",
-          "Required": true,
-          "SortOrder": 4.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Outputs",
-          "Type": {
-            "Kind": "Struct",
-            "Fields": [
-              {
-                "Name": "Model",
-                "Type": "PredictorModel",
-                "Desc": "The model",
-                "Required": true,
-                "SortOrder": 1.0,
-                "IsNullable": false
-              }
-            ]
-          },
-          "Desc": "The training subgraph outputs",
-          "Required": true,
-          "SortOrder": 5.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "StratificationColumn",
-          "Type": "String",
-          "Desc": "Column to use for stratification",
-          "Aliases": [
-            "strat"
-          ],
-          "Required": false,
-          "SortOrder": 7.0,
-          "IsNullable": false,
-          "Default": null
-        },
-        {
-          "Name": "NumFolds",
-          "Type": "Int",
-          "Desc": "Number of folds in k-fold cross-validation",
-          "Aliases": [
-            "k"
-          ],
-          "Required": false,
-          "SortOrder": 8.0,
-          "IsNullable": false,
-          "Default": 2
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "PredictorModel"
-          },
-          "Desc": "The trained model"
-        },
-        {
-          "Name": "Warnings",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
-          "Desc": "Warning dataset"
-        },
-        {
-          "Name": "OverallMetrics",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
-          "Desc": "Overall metrics dataset"
-        },
-        {
-          "Name": "PerInstanceMetrics",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
-          "Desc": "Per instance metrics dataset"
-        },
-        {
-          "Name": "ConfusionMatrix",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "DataView"
-          },
-          "Desc": "Confusion matrix dataset"
-        }
       ]
     },
     {
@@ -1647,15 +1485,6 @@
                 "SortOrder": 1.0,
                 "IsNullable": false,
                 "Default": null
-              },
-              {
-                "Name": "TransformModel",
-                "Type": "TransformModel",
-                "Desc": "The transform model",
-                "Required": false,
-                "SortOrder": 2.0,
-                "IsNullable": false,
-                "Default": null
               }
             ]
           },
@@ -1763,14 +1592,6 @@
           "Type": {
             "Kind": "Array",
             "ItemType": "PredictorModel"
-          },
-          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
-        },
-        {
-          "Name": "TransformModel",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "TransformModel"
           },
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
@@ -3285,114 +3106,6 @@
       ]
     },
     {
-      "Name": "Models.TrainTestBinaryEvaluator",
-      "Desc": "Train test for binary classification",
-      "FriendlyName": null,
-      "ShortName": null,
-      "Inputs": [
-        {
-          "Name": "TrainingData",
-          "Type": "DataView",
-          "Desc": "The data to be used for training",
-          "Aliases": [
-            "train"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "TestingData",
-          "Type": "DataView",
-          "Desc": "The data to be used for testing",
-          "Aliases": [
-            "test"
-          ],
-          "Required": true,
-          "SortOrder": 2.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Nodes",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "Node"
-          },
-          "Desc": "The training subgraph",
-          "Required": true,
-          "SortOrder": 3.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Inputs",
-          "Type": {
-            "Kind": "Struct",
-            "Fields": [
-              {
-                "Name": "Data",
-                "Type": "DataView",
-                "Desc": "The data to be used for training",
-                "Required": true,
-                "SortOrder": 1.0,
-                "IsNullable": false
-              }
-            ]
-          },
-          "Desc": "The training subgraph inputs",
-          "Required": true,
-          "SortOrder": 4.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Outputs",
-          "Type": {
-            "Kind": "Struct",
-            "Fields": [
-              {
-                "Name": "Model",
-                "Type": "PredictorModel",
-                "Desc": "The model",
-                "Required": true,
-                "SortOrder": 1.0,
-                "IsNullable": false
-              }
-            ]
-          },
-          "Desc": "The training subgraph outputs",
-          "Required": true,
-          "SortOrder": 5.0,
-          "IsNullable": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "PredictorModel",
-          "Type": "PredictorModel",
-          "Desc": "The trained model"
-        },
-        {
-          "Name": "Warnings",
-          "Type": "DataView",
-          "Desc": "Warning dataset"
-        },
-        {
-          "Name": "OverallMetrics",
-          "Type": "DataView",
-          "Desc": "Overall metrics dataset"
-        },
-        {
-          "Name": "PerInstanceMetrics",
-          "Type": "DataView",
-          "Desc": "Per instance metrics dataset"
-        },
-        {
-          "Name": "ConfusionMatrix",
-          "Type": "DataView",
-          "Desc": "Confusion matrix dataset"
-        }
-      ]
-    },
-    {
       "Name": "Models.TrainTestEvaluator",
       "Desc": "General train test for any supported evaluator",
       "FriendlyName": null,
@@ -3471,15 +3184,6 @@
                 "Desc": "The predictor model",
                 "Required": false,
                 "SortOrder": 1.0,
-                "IsNullable": false,
-                "Default": null
-              },
-              {
-                "Name": "TransformModel",
-                "Type": "TransformModel",
-                "Desc": "Transform model",
-                "Required": false,
-                "SortOrder": 2.0,
                 "IsNullable": false,
                 "Default": null
               }
@@ -3581,11 +3285,6 @@
         {
           "Name": "PredictorModel",
           "Type": "PredictorModel",
-          "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
-        },
-        {
-          "Name": "TransformModel",
-          "Type": "TransformModel",
           "Desc": "The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel."
         },
         {
@@ -18436,6 +18135,87 @@
           "SortOrder": 2.0,
           "IsNullable": false,
           "Default": null
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "Transforms.FeatureContributionCalculationTransformer",
+      "Desc": "For each data point, calculates the contribution of individual features to the model prediction.",
+      "FriendlyName": "Feature Contribution Calculation",
+      "ShortName": null,
+      "Inputs": [
+        {
+          "Name": "PredictorModel",
+          "Type": "PredictorModel",
+          "Desc": "The predictor model to apply to data",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "FeatureColumn",
+          "Type": "String",
+          "Desc": "Name of feature column",
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": "Features"
+        },
+        {
+          "Name": "Top",
+          "Type": "Int",
+          "Desc": "Number of top contributions",
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 10
+        },
+        {
+          "Name": "Bottom",
+          "Type": "Int",
+          "Desc": "Number of bottom contributions",
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 10
+        },
+        {
+          "Name": "Normalize",
+          "Type": "Bool",
+          "Desc": "Whether or not output of Features contribution should be normalized",
+          "Aliases": [
+            "norm"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": true
         }
       ],
       "Outputs": [

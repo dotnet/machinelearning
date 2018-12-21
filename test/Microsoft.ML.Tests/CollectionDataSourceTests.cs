@@ -175,10 +175,10 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanTrainProperties()
         {
             var pipeline = new Legacy.LearningPipeline();
-            var data = new List<IrisDataProperties>() {
-                new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
-                new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
-                new IrisDataProperties { SepalLength = 1.2f, SepalWidth = 0.5f, PetalLength=0.3f, PetalWidth=5.1f, Label=0}
+            var data = new List<IrisData>() {
+                new IrisData { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
+                new IrisData { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
+                new IrisData { SepalLength = 1.2f, SepalWidth = 0.5f, PetalLength=0.3f, PetalWidth=5.1f, Label=0}
             };
             var collection = CollectionDataSource.Create(data);
 
@@ -186,9 +186,9 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-            var model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
+            var model = pipeline.Train<IrisData, IrisPredictionProperties>();
 
-            IrisPredictionProperties prediction = model.Predict(new IrisDataProperties()
+            IrisPredictionProperties prediction = model.Predict(new IrisData
             {
                 SepalLength = 3.3f,
                 SepalWidth = 1.6f,
@@ -202,9 +202,9 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-            model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
+            model = pipeline.Train<IrisData, IrisPredictionProperties>();
 
-            prediction = model.Predict(new IrisDataProperties()
+            prediction = model.Predict(new IrisData
             {
                 SepalLength = 3.3f,
                 SepalWidth = 1.6f,
@@ -216,28 +216,28 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class Input
         {
-            [Column("0")]
+            [LoadColumn(0)]
             public float Number1;
 
-            [Column("1")]
+            [LoadColumn(1)]
             public string String1;
         }
 
         public class IrisData
         {
-            [Column("0")]
+            [LoadColumn(0)]
             public float Label;
 
-            [Column("1")]
+            [LoadColumn(1)]
             public float SepalLength;
 
-            [Column("2")]
+            [LoadColumn(2)]
             public float SepalWidth;
 
-            [Column("3")]
+            [LoadColumn(3)]
             public float PetalLength;
 
-            [Column("4")]
+            [LoadColumn(4)]
             public float PetalWidth;
         }
 
@@ -245,30 +245,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             [ColumnName("Score")]
             public float[] PredictedLabels;
-        }
-
-        public class IrisDataProperties
-        {
-            private float _Label;
-            private float _SepalLength;
-            private float _SepalWidth;
-            private float _PetalLength;
-            private float _PetalWidth;
-
-            [Column("0")]
-            public float Label { get { return _Label; } set { _Label = value; } }
-
-            [Column("1")]
-            public float SepalLength { get { return _SepalLength; } set { _SepalLength = value; } }
-
-            [Column("2")]
-            public float SepalWidth { get { return _SepalWidth; } set { _SepalWidth = value; } }
-
-            [Column("3")]
-            public float PetalLength { get { return _PetalLength; } set { _PetalLength = value; } }
-
-            [Column("4")]
-            public float PetalWidth { get { return _PetalWidth; } set { _PetalWidth = value; } }
         }
 
         public class IrisPredictionProperties

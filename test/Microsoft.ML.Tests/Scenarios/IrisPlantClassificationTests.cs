@@ -117,19 +117,19 @@ namespace Microsoft.ML.Scenarios
 
         public class IrisData
         {
-            [Column("0")]
+            [LoadColumn(0)]
             public float Label;
 
-            [Column("1")]
+            [LoadColumn(1)]
             public float SepalLength;
 
-            [Column("2")]
+            [LoadColumn(2)]
             public float SepalWidth;
 
-            [Column("3")]
+            [LoadColumn(3)]
             public float PetalLength;
 
-            [Column("4")]
+            [LoadColumn(4)]
             public float PetalWidth;
         }
 
@@ -137,37 +137,6 @@ namespace Microsoft.ML.Scenarios
         {
             [ColumnName("Score")]
             public float[] PredictedLabels;
-        }
-
-        [Fact]
-        public void TrainOneVersusAll()
-        {
-            string dataPath = GetDataPath("iris.txt");
-
-            var pipeline = new Legacy.LearningPipeline(seed: 1, conc: 1);
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false));
-            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
-                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
-
-            pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
-
-            var model = pipeline.Train<IrisData, IrisPrediction>();
-
-            var testData = new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false);
-            var evaluator = new ClassificationEvaluator();
-            ClassificationMetrics metrics = evaluator.Evaluate(model, testData);
-            CheckMetrics(metrics);
-
-            var trainTest = new TrainTestEvaluator() { Kind = MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer }.TrainTestEvaluate<IrisData, IrisPrediction>(pipeline, testData);
-            CheckMetrics(trainTest.ClassificationMetrics);
-        }
-
-        private void CheckMetrics(ClassificationMetrics metrics)
-        {
-            Assert.Equal(.96, metrics.AccuracyMacro, 2);
-            Assert.Equal(.96, metrics.AccuracyMicro, 2);
-            Assert.Equal(.19, metrics.LogLoss, 1);
-            Assert.InRange(metrics.LogLossReduction, 80, 84);
         }
     }
 #pragma warning restore 612, 618

@@ -57,137 +57,6 @@ namespace Microsoft.ML.Scenarios
             ValidateBinaryMetricsLightGBM(metrics);
         }
 
-        [Fact]
-        public void TrainTestPredictSentimentModelTest()
-        {
-            var pipeline = PreparePipeline();
-            var testData = PrepareTextLoaderTestData();
-            var tt = new TrainTestEvaluator().TrainTestEvaluate<SentimentData, SentimentPrediction>(pipeline, testData);
-
-            Assert.Null(tt.ClassificationMetrics);
-            Assert.Null(tt.RegressionMetrics);
-            Assert.NotNull(tt.BinaryClassificationMetrics);
-            Assert.NotNull(tt.PredictorModels);
-            ValidateExamples(tt.PredictorModels);
-            ValidateBinaryMetrics(tt.BinaryClassificationMetrics);
-        }
-
-        [Fact]
-        public void CrossValidateSentimentModelTest()
-        {
-            var pipeline = PreparePipeline();
-
-            var cv = new CrossValidator().CrossValidate<SentimentData, SentimentPrediction>(pipeline);
-
-            //First two items are average and std. deviation of metrics from the folds.
-            Assert.Equal(2, cv.PredictorModels.Count());
-            Assert.Null(cv.ClassificationMetrics);
-            Assert.Null(cv.RegressionMetrics);
-            Assert.NotNull(cv.BinaryClassificationMetrics);
-            Assert.Equal(4, cv.BinaryClassificationMetrics.Count());
-
-            //Avergae of all folds.
-            var metrics = cv.BinaryClassificationMetrics[0];
-            Assert.Equal(0.603235747303544, metrics.Accuracy, 4);
-            Assert.Equal(0.58811318075483943, metrics.Auc, 4);
-            Assert.Equal(0.70302385499183984, metrics.Auprc, 4);
-            Assert.Equal(0, metrics.Entropy, 3);
-            Assert.Equal(0.71751777634130576, metrics.F1Score, 4);
-            Assert.Equal(0.95263103280238037, metrics.LogLoss, 4);
-            Assert.Equal(-0.39971801589876232, metrics.LogLossReduction, 4);
-            Assert.Equal(0.43965517241379309, metrics.NegativePrecision, 4);
-            Assert.Equal(0.26627358490566039, metrics.NegativeRecall, 4);
-            Assert.Equal(0.64937737441958632, metrics.PositivePrecision, 4);
-            Assert.Equal(0.8027426160337553, metrics.PositiveRecall);
-            Assert.Null(metrics.ConfusionMatrix);
-
-            //Std. Deviation.
-            metrics = cv.BinaryClassificationMetrics[1];
-            Assert.Equal(0.057781201848998764, metrics.Accuracy, 4);
-            Assert.Equal(0.04249579360413544, metrics.Auc, 4);
-            Assert.Equal(0.086083866074815427, metrics.Auprc, 4);
-            Assert.Equal(0, metrics.Entropy, 3);
-            Assert.Equal(0.04718810601163604, metrics.F1Score, 4);
-            Assert.Equal(0.063839715206238851, metrics.LogLoss, 4);
-            Assert.Equal(4.1937544629633878, metrics.LogLossReduction, 4);
-            Assert.Equal(0.060344827586206781, metrics.NegativePrecision, 4);
-            Assert.Equal(0.058726415094339748, metrics.NegativeRecall, 4);
-            Assert.Equal(0.057144364710848418, metrics.PositivePrecision, 4);
-            Assert.Equal(0.030590717299577637, metrics.PositiveRecall);
-            Assert.Null(metrics.ConfusionMatrix);
-
-            //Fold 1.
-            metrics = cv.BinaryClassificationMetrics[2];
-            Assert.Equal(0.54545454545454541, metrics.Accuracy, 4);
-            Assert.Equal(0.54561738715070451, metrics.Auc, 4);
-            Assert.Equal(0.61693998891702417, metrics.Auprc, 4);
-            Assert.Equal(0, metrics.Entropy, 3);
-            Assert.Equal(0.67032967032967028, metrics.F1Score, 4);
-            Assert.Equal(1.0164707480086188, metrics.LogLoss, 4);
-            Assert.Equal(-4.59347247886215, metrics.LogLossReduction, 4);
-            Assert.Equal(0.37931034482758619, metrics.NegativePrecision, 4);
-            Assert.Equal(0.20754716981132076, metrics.NegativeRecall, 4);
-            Assert.Equal(0.59223300970873782, metrics.PositivePrecision, 4);
-            Assert.Equal(0.77215189873417722, metrics.PositiveRecall);
-
-            var matrix = metrics.ConfusionMatrix;
-            Assert.Equal(2, matrix.Order);
-            Assert.Equal(2, matrix.ClassNames.Count);
-            Assert.Equal("positive", matrix.ClassNames[0]);
-            Assert.Equal("negative", matrix.ClassNames[1]);
-
-            Assert.Equal(61, matrix[0, 0]);
-            Assert.Equal(61, matrix["positive", "positive"]);
-            Assert.Equal(18, matrix[0, 1]);
-            Assert.Equal(18, matrix["positive", "negative"]);
-
-            Assert.Equal(42, matrix[1, 0]);
-            Assert.Equal(42, matrix["negative", "positive"]);
-            Assert.Equal(11, matrix[1, 1]);
-            Assert.Equal(11, matrix["negative", "negative"]);
-
-            //Fold 2.
-            metrics = cv.BinaryClassificationMetrics[3];
-            Assert.Equal(0.66101694915254239, metrics.Accuracy, 4);
-            Assert.Equal(0.63060897435897434, metrics.Auc, 4);
-            Assert.Equal(0.7891077210666555, metrics.Auprc, 4);
-            Assert.Equal(0, metrics.Entropy, 3);
-            Assert.Equal(0.76470588235294124, metrics.F1Score, 4);
-            Assert.Equal(0.88879131759614194, metrics.LogLoss, 4);
-            Assert.Equal(3.7940364470646255, metrics.LogLossReduction, 4);
-            Assert.Equal(0.5, metrics.NegativePrecision, 3);
-            Assert.Equal(0.325, metrics.NegativeRecall, 3);
-            Assert.Equal(0.70652173913043481, metrics.PositivePrecision, 4);
-            Assert.Equal(0.83333333333333337, metrics.PositiveRecall);
-
-            matrix = metrics.ConfusionMatrix;
-            Assert.Equal(2, matrix.Order);
-            Assert.Equal(2, matrix.ClassNames.Count);
-            Assert.Equal("positive", matrix.ClassNames[0]);
-            Assert.Equal("negative", matrix.ClassNames[1]);
-
-            Assert.Equal(65, matrix[0, 0]);
-            Assert.Equal(65, matrix["positive", "positive"]);
-            Assert.Equal(13, matrix[0, 1]);
-            Assert.Equal(13, matrix["positive", "negative"]);
-
-            Assert.Equal(27, matrix[1, 0]);
-            Assert.Equal(27, matrix["negative", "positive"]);
-            Assert.Equal(13, matrix[1, 1]);
-            Assert.Equal(13, matrix["negative", "negative"]);
-
-            var sentiments = GetTestData();
-            var predictions = cv.PredictorModels[0].Predict(sentiments);
-            Assert.Equal(2, predictions.Count());
-            Assert.True(predictions.ElementAt(0).Sentiment);
-            Assert.True(predictions.ElementAt(1).Sentiment);
-
-            predictions = cv.PredictorModels[1].Predict(sentiments);
-            Assert.Equal(2, predictions.Count());
-            Assert.True(predictions.ElementAt(0).Sentiment);
-            Assert.True(predictions.ElementAt(1).Sentiment);
-        }
-
         private void ValidateBinaryMetricsSymSGD(Microsoft.ML.Legacy.Models.BinaryClassificationMetrics metrics)
         {
 
@@ -504,9 +373,9 @@ namespace Microsoft.ML.Scenarios
 
         public class SentimentData
         {
-            [Column(ordinal: "0", name: "Label")]
+            [LoadColumn(0), ColumnName("Label")]
             public float Sentiment;
-            [Column(ordinal: "1")]
+            [LoadColumn(1)]
             public string SentimentText;
         }
 

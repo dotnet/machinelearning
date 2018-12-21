@@ -137,6 +137,15 @@ namespace Microsoft.ML.Runtime.RunTests
             loaderSettings = "xf=expr{col=Features expr=x:float(x>4?1:0)}"
         };
 
+        // The data set contains images of hand-written digits.
+        // The input is given in the form of matrix id 8x8 where
+        // each element is an integer in the range 0..16
+        public static TestDataset Digits = new TestDataset
+        {
+            name = "Digits",
+            trainFilename = @"external/digits.csv",
+        };
+
         public static TestDataset vw = new TestDataset
         {
             name = "vw",

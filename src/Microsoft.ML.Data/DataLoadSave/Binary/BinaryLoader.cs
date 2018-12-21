@@ -1254,12 +1254,10 @@ namespace Microsoft.ML.Runtime.Data.IO
             return GetRowCursorCore(predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            consolidator = null;
             return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
@@ -1284,6 +1282,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private readonly ExceptionMarshaller _exMarshaller;
 
             private volatile bool _disposed;
+            private volatile bool _done;
 
             public override Schema Schema => _parent.Schema;
 
@@ -1367,6 +1366,12 @@ namespace Microsoft.ML.Runtime.Data.IO
             {
                 if (_disposed)
                     return;
+                if (_done)
+                {
+                    base.Dispose(disposing);
+                    return;
+                }
+
                 if (disposing)
                 {
                     if (_readerThread != null)
@@ -2037,7 +2042,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                         // threads will exit if all potentially blocking operations are
                         // waiting on the same cancellation token that we catch here.
                         Contracts.Assert(ex.CancellationToken == _exMarshaller.Token);
-                        _disposed = true;
+                        _done = true;
                         // Unlike the early non-error dispose case, we do not make any
                         // effort to recycle buffers since it would be exceptionally difficult
                         // to do so. All threads are already unblocked, one of them with the
@@ -2065,7 +2070,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     // Set the _disposed flag, so that when the Dispose
                     // method is called it does not trigger the "premature
                     // exit" handling.
-                    _disposed = true;
+                    _done = true;
                     // If we got to this point these threads must have already
                     // completed their work, but for the sake of hygiene join
                     // against them anyway.

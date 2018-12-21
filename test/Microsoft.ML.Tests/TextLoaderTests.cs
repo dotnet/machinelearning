@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -336,7 +337,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ThrowsExceptionWithPropertyName()
         {
             Exception ex = Assert.Throws<InvalidOperationException>(() => new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>());
-            Assert.StartsWith("Field or property String1 is missing ColumnAttribute", ex.Message);
+            Assert.StartsWith($"Field or property String1 is missing {nameof(LoadColumnAttribute)}", ex.Message);
         }
 
         [Fact]
@@ -350,46 +351,46 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class QuoteInput
         {
-            [Column("0")]
+            [LoadColumn(0)]
             public float ID;
 
-            [Column("1")]
+            [LoadColumn(1)]
             public string Text;
         }
 
         public class SparseInput
         {
-            [Column("0")]
+            [LoadColumn(0)]
             public float C1;
 
-            [Column("1")]
+            [LoadColumn(1)]
             public float C2;
 
-            [Column("2")]
+            [LoadColumn(2)]
             public float C3;
 
-            [Column("3")]
+            [LoadColumn(3)]
             public float C4;
 
-            [Column("4")]
+            [LoadColumn(4)]
             public float C5;
         }
 
         public class Input
         {
-            [Column("0")]
+            [LoadColumn(0)]
             public string String1;
 
-            [Column("1")]
+            [LoadColumn(1)]
             public float Number1;
         }
 
         public class InputWithUnderscore
         {
-            [Column("0")]
+            [LoadColumn(0)]
             public string String_1;
 
-            [Column("1")]
+            [LoadColumn(1)]
             public float Number_1;
         }
 
@@ -400,13 +401,124 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public class ModelWithColumnNameAttribute
         {
-            [Column("0", "Col1")]
+            [LoadColumn(0), ColumnName("Col1")]
             public string String_1;
-            [Column("1")]
+
+            [LoadColumn(1)]
             [ColumnName("Col2")]
             public string String_2;
-            [Column("3")]
+
+            [LoadColumn(3)]
             public string String_3;
+        }
+    }
+
+    public class TextLoaderFromModelTests : BaseTestClass
+    {
+        public TextLoaderFromModelTests(ITestOutputHelper output)
+           : base(output)
+        {
+
+        }
+
+        public class Iris
+        {
+            [LoadColumn(0)]
+            public float SepalLength;
+
+            [LoadColumn(1)]
+            public float SepalWidth;
+
+            [LoadColumn(2)]
+            public float PetalLength;
+
+            [LoadColumn(3)]
+            public float PetalWidth;
+
+            [LoadColumn(4)]
+            public string Type;
+        }
+
+        public class IrisStartEnd
+        {
+            [LoadColumn(start:0, end:3), ColumnName("Features")]
+            public float Features;
+
+            [LoadColumn(4), ColumnName("Label")]
+            public string Type;
+        }
+
+        public class IrisColumnIndices
+        {
+            [LoadColumn(columnIndexes: new[] { 0, 2 })]
+            public float Features;
+
+            [LoadColumn(4), ColumnName("Label")]
+            public string Type;
+        }
+
+        [Fact]
+        public void LoaderColumnsFromIrisData()
+        {
+            var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
+            var ml = new MLContext();
+
+            var irisFirstRow = new Dictionary<string, float>();
+            irisFirstRow["SepalLength"] = 5.1f;
+            irisFirstRow["SepalWidth"] = 3.5f;
+            irisFirstRow["PetalLength"] = 1.4f;
+            irisFirstRow["PetalWidth"] = 0.2f;
+
+            var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
+
+            // Simple load
+            var dataIris = ml.Data.CreateTextReader<Iris>(separatorChar: ',').Read(dataPath);
+            var previewIris = dataIris.Preview(1);
+
+            Assert.Equal(5, previewIris.ColumnView.Length);
+            Assert.Equal("SepalLength", previewIris.Schema[0].Name);
+            Assert.Equal(NumberType.R4, previewIris.Schema[0].Type);
+            int index = 0;
+            foreach (var entry in irisFirstRow)
+            {
+                Assert.Equal(entry.Key, previewIris.RowView[0].Values[index].Key);
+                Assert.Equal(entry.Value, previewIris.RowView[0].Values[index++].Value);
+            }
+            Assert.Equal("Type", previewIris.RowView[0].Values[index].Key);
+            Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
+
+            // Load with start and end indexes
+            var dataIrisStartEnd = ml.Data.CreateTextReader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
+            var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
+
+            Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
+            Assert.Equal("Features", previewIrisStartEnd.RowView[0].Values[0].Key);
+            var featureValue = (VBuffer<float>)previewIrisStartEnd.RowView[0].Values[0].Value;
+            Assert.True(featureValue.IsDense);
+            Assert.Equal(4, featureValue.Length);
+
+            irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
+            foreach (var val in featureValue.GetValues())
+            {
+                irisFirstRowValues.MoveNext();
+                Assert.Equal(irisFirstRowValues.Current, val);
+            }
+
+            // load setting the distinct columns. Loading column 0 and 2
+            var dataIrisColumnIndices = ml.Data.CreateTextReader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
+            var previewIrisColumnIndices = dataIrisColumnIndices.Preview(1);
+
+            Assert.Equal(2, previewIrisColumnIndices.ColumnView.Length);
+            featureValue = (VBuffer<float>)previewIrisColumnIndices.RowView[0].Values[0].Value;
+            Assert.True(featureValue.IsDense);
+            Assert.Equal(2, featureValue.Length);
+            var vals4 = featureValue.GetValues();
+
+            irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
+            irisFirstRowValues.MoveNext();
+            Assert.Equal(vals4[0], irisFirstRowValues.Current);
+            irisFirstRowValues.MoveNext(); irisFirstRowValues.MoveNext(); // skip col 1
+            Assert.Equal(vals4[1], irisFirstRowValues.Current);
         }
     }
 #pragma warning restore 612, 618

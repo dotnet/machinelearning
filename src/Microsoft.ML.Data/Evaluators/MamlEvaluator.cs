@@ -119,8 +119,8 @@ namespace Microsoft.ML.Runtime.Data
                 ? Enumerable.Empty<KeyValuePair<RoleMappedSchema.ColumnRole, string>>()
                 : StratCols.Select(col => RoleMappedSchema.CreatePair(Strat, col));
 
-            if (needName && schema.Name != null)
-                roles = MetadataUtils.Prepend(roles, RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Name));
+            if (needName && schema.Name.HasValue)
+                roles = MetadataUtils.Prepend(roles, RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Value.Name));
 
             return roles.Concat(GetInputColumnRolesCore(schema));
         }
@@ -134,9 +134,9 @@ namespace Microsoft.ML.Runtime.Data
         private protected virtual IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
         {
             // Get the score column information.
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(ArgumentsBase.ScoreColumn),
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(ArgumentsBase.ScoreColumn),
                 ScoreColumnKind);
-            yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreInfo.Name);
+            yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreCol.Name);
 
             // Get the label column information.
             string label = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);
@@ -239,7 +239,12 @@ namespace Microsoft.ML.Runtime.Data
                 colsToKeep.Add(MetricKinds.ColumnNames.FoldIndex);
 
             // Maml always outputs a name column, if it doesn't exist add a GenerateNumberTransform.
-            if (perInst.Schema.Name == null)
+            if (perInst.Schema.Name?.Name is string nameName)
+            {
+                cols.Add((nameName, "Instance"));
+                colsToKeep.Add("Instance");
+            }
+            else
             {
                 var args = new GenerateNumberTransform.Arguments();
                 args.Column = new[] { new GenerateNumberTransform.Column() { Name = "Instance" } };
@@ -247,15 +252,10 @@ namespace Microsoft.ML.Runtime.Data
                 idv = new GenerateNumberTransform(Host, args, idv);
                 colsToKeep.Add("Instance");
             }
-            else
-            {
-                cols.Add((perInst.Schema.Name.Name, "Instance"));
-                colsToKeep.Add("Instance");
-            }
 
             // Maml outputs the weight column if it exists.
-            if (perInst.Schema.Weight != null)
-                colsToKeep.Add(perInst.Schema.Weight.Name);
+            if (perInst.Schema.Weight?.Name is string weightName)
+                colsToKeep.Add(weightName);
 
             // Get the other columns from the evaluator.
             foreach (var col in GetPerInstanceColumnsToSave(perInst.Schema))

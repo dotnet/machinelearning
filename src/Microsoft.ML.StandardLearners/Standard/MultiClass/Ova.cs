@@ -118,7 +118,7 @@ namespace Microsoft.ML.Trainers
         {
             var view = MapLabels(data, cls);
 
-            string trainerLabel = data.Schema.Label.Name;
+            string trainerLabel = data.Schema.Label.Value.Name;
 
             // REVIEW: In principle we could support validation sets and the like via the train context, but
             // this is currently unsupported.
@@ -144,8 +144,8 @@ namespace Microsoft.ML.Trainers
 
         private IDataView MapLabels(RoleMappedData data, int cls)
         {
-            var lab = data.Schema.Label;
-            Host.Assert(!data.Schema.Schema[lab.Index].IsHidden);
+            var lab = data.Schema.Label.Value;
+            Host.Assert(!lab.IsHidden);
             Host.Assert(lab.Type.KeyCount > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
 
             if (lab.Type.KeyCount > 0)

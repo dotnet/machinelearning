@@ -73,25 +73,12 @@ namespace Microsoft.ML.Data
         public ColumnAttribute(string ordinal, string name = null)
         {
             Name = name;
-            Ordinal = ordinal;
         }
 
         /// <summary>
         /// Column name.
         /// </summary>
         public string Name { get; }
-
-        /// <summary>
-        /// Contains positions of indices of source columns in the form
-        /// of ranges. Examples of range: if we want to include just column
-        /// with index 1 we can write the range as 1, if we want to include
-        /// columns 1 to 10 then we can write the range as 1-10 and we want to include all the
-        /// columns from column with index 1 until end then we can write 1-*.
-        ///
-        /// This takes sequence of ranges that are comma seperated, example:
-        /// 1,2-5,10-*
-        /// </summary>
-        public string Ordinal { get; }
     }
 
     /// <summary>

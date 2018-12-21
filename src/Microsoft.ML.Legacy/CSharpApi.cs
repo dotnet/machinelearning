@@ -93,20 +93,6 @@ namespace Microsoft.ML
             }
 
             [Obsolete]
-            public Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input, Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.TransformModelArrayConverter", input, output));
-            }
-
-            [Obsolete]
             public Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input)
             {
                 var output = new Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output();
@@ -146,20 +132,6 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input, Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.BinaryClassificationEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input, Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.BinaryCrossValidator", input, output));
             }
 
             [Obsolete]
@@ -496,20 +468,6 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Legacy.Models.Summarizer input, Microsoft.ML.Legacy.Models.Summarizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.Summarizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input, Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.TrainTestBinaryEvaluator", input, output));
             }
 
             [Obsolete]
@@ -1311,6 +1269,20 @@ namespace Microsoft.ML
             }
 
             [Obsolete]
+            public Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer.Output Add(Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer input)
+            {
+                var output = new Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer.Output();
+                Add(input, output);
+                return output;
+            }
+
+            [Obsolete]
+            public void Add(Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer input, Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer.Output output)
+            {
+                _jsonNodes.Add(Serialize("Transforms.FeatureContributionCalculationTransformer", input, output));
+            }
+
+            [Obsolete]
             public Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount input)
             {
                 var output = new Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output();
@@ -1976,7 +1948,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
-        [Obsolete("Use TextLoader instead.")]
+        [Obsolete]
         public sealed partial class CustomTextLoader
         {
 
@@ -2357,36 +2329,6 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Legacy.Data
-    {
-
-        /// <summary>
-        /// Create an array variable of TransformModel
-        /// </summary>
-        [Obsolete]
-        public sealed partial class TransformModelArrayConverter
-        {
-
-
-            /// <summary>
-            /// The models
-            /// </summary>
-            [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// The model array
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
-
-            }
-        }
-    }
-
     namespace Legacy.Models
     {
 
@@ -2636,108 +2578,6 @@ namespace Microsoft.ML
                 /// Per instance metrics dataset
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-    }
-
-    namespace Legacy.Models
-    {
-
-        [Obsolete]
-        public sealed partial class CrossValidationBinaryMacroSubGraphInput
-        {
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-        }
-
-        [Obsolete]
-        public sealed partial class CrossValidationBinaryMacroSubGraphOutput
-        {
-            /// <summary>
-            /// The model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-        }
-
-        /// <summary>
-        /// Cross validation for binary classification
-        /// </summary>
-        [Obsolete]
-        public sealed partial class BinaryCrossValidator
-        {
-
-
-            /// <summary>
-            /// The data set
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The training subgraph
-            /// </summary>
-            [Obsolete]
-            public Experiment Nodes { get; set; }
-
-            /// <summary>
-            /// The training subgraph inputs
-            /// </summary>
-            [Obsolete]
-            public CrossValidationBinaryMacroSubGraphInput Inputs { get; set; } = new CrossValidationBinaryMacroSubGraphInput();
-
-            /// <summary>
-            /// The training subgraph outputs
-            /// </summary>
-            [Obsolete]
-            public CrossValidationBinaryMacroSubGraphOutput Outputs { get; set; } = new CrossValidationBinaryMacroSubGraphOutput();
-
-            /// <summary>
-            /// Column to use for stratification
-            /// </summary>
-            [Obsolete]
-            public string StratificationColumn { get; set; }
-
-            /// <summary>
-            /// Number of folds in k-fold cross-validation
-            /// </summary>
-            [Obsolete]
-            public int NumFolds { get; set; } = 2;
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// Warning dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Overall metrics dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Per instance metrics dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Confusion matrix dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
 
             }
         }
@@ -3144,12 +2984,6 @@ namespace Microsoft.ML
             [Obsolete]
             public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
 
-            /// <summary>
-            /// The transform model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
-
         }
 
         /// <summary>
@@ -3240,11 +3074,6 @@ namespace Microsoft.ML
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
                 public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
                 /// <summary>
                 /// Warning dataset
@@ -4532,102 +4361,6 @@ namespace Microsoft.ML
     {
 
         [Obsolete]
-        public sealed partial class TrainTestBinaryMacroSubGraphInput
-        {
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-        }
-
-        [Obsolete]
-        public sealed partial class TrainTestBinaryMacroSubGraphOutput
-        {
-            /// <summary>
-            /// The model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-        }
-
-        /// <summary>
-        /// Train test for binary classification
-        /// </summary>
-        [Obsolete]
-        public sealed partial class TrainTestBinaryEvaluator
-        {
-
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The data to be used for testing
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The training subgraph
-            /// </summary>
-            [Obsolete]
-            public Experiment Nodes { get; set; }
-
-            /// <summary>
-            /// The training subgraph inputs
-            /// </summary>
-            [Obsolete]
-            public TrainTestBinaryMacroSubGraphInput Inputs { get; set; } = new TrainTestBinaryMacroSubGraphInput();
-
-            /// <summary>
-            /// The training subgraph outputs
-            /// </summary>
-            [Obsolete]
-            public TrainTestBinaryMacroSubGraphOutput Outputs { get; set; } = new TrainTestBinaryMacroSubGraphOutput();
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// Warning dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Overall metrics dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Per instance metrics dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Confusion matrix dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-    }
-
-    namespace Legacy.Models
-    {
-
-        [Obsolete]
         public sealed partial class TrainTestMacroSubGraphInput
         {
             /// <summary>
@@ -4646,12 +4379,6 @@ namespace Microsoft.ML
             /// </summary>
             [Obsolete]
             public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-            /// <summary>
-            /// Transform model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
         }
 
@@ -4749,11 +4476,6 @@ namespace Microsoft.ML
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
 
                 /// <summary>
                 /// Warning dataset
@@ -14385,6 +14107,105 @@ namespace Microsoft.ML
             {
                 [Obsolete]
                 public FeatureCombinerPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                [Obsolete]
+                public Var<IDataView> Data { get; }
+                [Obsolete]
+                public Var<TransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Legacy.Transforms
+    {
+
+        /// <summary>
+        /// For each data point, calculates the contribution of individual features to the model prediction.
+        /// </summary>
+        [Obsolete]
+        public sealed partial class FeatureContributionCalculationTransformer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The predictor model to apply to data
+            /// </summary>
+            [Obsolete]
+            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+
+            /// <summary>
+            /// Name of feature column
+            /// </summary>
+            [Obsolete]
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Number of top contributions
+            /// </summary>
+            [Obsolete]
+            public int Top { get; set; } = 10;
+
+            /// <summary>
+            /// Number of bottom contributions
+            /// </summary>
+            [Obsolete]
+            public int Bottom { get; set; } = 10;
+
+            /// <summary>
+            /// Whether or not output of Features contribution should be normalized
+            /// </summary>
+            [Obsolete]
+            public bool Normalize { get; set; } = true;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            [Obsolete]
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            [Obsolete]
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+
+            }
+            [Obsolete]
+            public Var<IDataView> GetInputData() => Data;
+            
+            [Obsolete]
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FeatureContributionCalculationTransformer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new FeatureContributionCalculationTransformerPipelineStep(output);
+            }
+
+            [Obsolete]
+            private class FeatureContributionCalculationTransformerPipelineStep : ILearningPipelineDataStep
+            {
+                [Obsolete]
+                public FeatureContributionCalculationTransformerPipelineStep(Output output)
                 {
                     Data = output.OutputData;
                     Model = output.Model;

@@ -407,7 +407,7 @@ namespace Microsoft.ML
         public static LinearSvm LinearSupportVectorMachines(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weightsColumn = DefaultColumnNames.Weight,
+            string weightsColumn = null,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
             Action<LinearSvm.Arguments> advancedSettings = null)
         {

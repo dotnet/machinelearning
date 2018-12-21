@@ -748,8 +748,7 @@ namespace Microsoft.ML.Runtime.Data
             if (other == this)
                 return true;
 
-            var tmp = other as KeyType;
-            if (tmp == null)
+            if (!(other is KeyType tmp))
                 return false;
             if (RawKind != tmp.RawKind)
                 return false;

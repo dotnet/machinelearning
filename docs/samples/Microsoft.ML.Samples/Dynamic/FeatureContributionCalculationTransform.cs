@@ -48,22 +48,26 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformPipeline = mlContext.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental",
                 "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling", "PercentPre40s",
                 "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio");
-            var learner = mlContext.Regression.Trainers.StochasticDualCoordinateAscent(
+            var learner = mlContext.Regression.Trainers.OrdinaryLeastSquares(
                         labelColumn: "MedianHomeValue", featureColumn: "Features");
 
             var transformedData = transformPipeline.Fit(data).Transform(data);
 
+            // Now we train the model and score it on the transformed data.
             var model = learner.Fit(transformedData);
+            var scoredData = model.Transform(transformedData);
 
             // Create a Feature Contribution Calculator
-            // Calculate the feature contributions for all features
+            // Calculate the feature contributions for all features given trained model parameters
             // And don't normalize the contribution scores
-            var args = new FeatureContributionCalculationTransform.Arguments()
-            {
-                Top = 11,
-                Normalize = false
-            };
-            var featureContributionCalculator = FeatureContributionCalculationTransform.Create(mlContext, args, transformedData, model.Model, model.FeatureColumn);
+            var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11, normalize: false);
+            var outputData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
+
+            // FeatureContributionCalculatingEstimator can be use as an intermediary step in a pipeline. 
+            // The features retained by FeatureContributionCalculatingEstimator will be in the FeatureContribution column.
+            var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11)
+                .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(featureColumn: "FeatureContributions"));
+            var outData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
             // Let's extract the weights from the linear model to use as a comparison
             var weights = new VBuffer<float>();
@@ -71,9 +75,9 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's now walk through the first ten reconds and see which feature drove the values the most
             // Get prediction scores and contributions
-            var scoringEnumerator = featureContributionCalculator.AsEnumerable<HousingRegressionScoreAndContribution>(mlContext, true).GetEnumerator();
+            var scoringEnumerator = outputData.AsEnumerable<HousingRegressionScoreAndContribution>(mlContext, true).GetEnumerator();
             int index = 0;
-            Console.WriteLine("Label\tScore\tBiggestFeature\tValue\tWeight\tContribution\tPercent");
+            Console.WriteLine("Label\tScore\tBiggestFeature\tValue\tWeight\tContribution");
             while (scoringEnumerator.MoveNext() && index < 10)
             {
                 var row = scoringEnumerator.Current;
@@ -84,26 +88,34 @@ namespace Microsoft.ML.Samples.Dynamic
                 // And the corresponding information about the feature
                 var value = row.Features[featureOfInterest];
                 var contribution = row.FeatureContributions[featureOfInterest];
-                var percentContribution = 100 * contribution / row.Score;
-                var name = data.Schema[(int) (featureOfInterest + 1)].Name;
+                var name = data.Schema[featureOfInterest + 1].Name;
                 var weight = weights.GetValues()[featureOfInterest];
 
-                Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}\t{6:0.00}",
+                Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}",
                     row.MedianHomeValue,
                     row.Score,
                     name,
                     value,
                     weight,
-                    contribution,
-                    percentContribution
+                    contribution
                     );
 
                 index++;
             }
+            Console.ReadLine();
 
-            // For bulk scoring, the ApplyToData API can also be used
-            var scoredData = featureContributionCalculator.ApplyToData(mlContext, transformedData);
-            var preview = scoredData.Preview(100);
+            // The output of the above code is:
+            // Label Score   BiggestFeature Value   Weight Contribution
+            // 24.00   27.74   RoomsPerDwelling        6.58    98.55   39.95
+            // 21.60   23.85   RoomsPerDwelling        6.42    98.55   39.01
+            // 34.70   29.29   RoomsPerDwelling        7.19    98.55   43.65
+            // 33.40   27.17   RoomsPerDwelling        7.00    98.55   42.52
+            // 36.20   27.68   RoomsPerDwelling        7.15    98.55   43.42
+            // 28.70   23.13   RoomsPerDwelling        6.43    98.55   39.07
+            // 22.90   22.71   RoomsPerDwelling        6.01    98.55   36.53
+            // 27.10   21.72   RoomsPerDwelling        6.17    98.55   37.50
+            // 16.50   18.04   RoomsPerDwelling        5.63    98.55   34.21
+            // 18.90   20.14   RoomsPerDwelling        6.00    98.55   36.48
         }
 
         private static int GetMostContributingFeature(float[] featureContributions)

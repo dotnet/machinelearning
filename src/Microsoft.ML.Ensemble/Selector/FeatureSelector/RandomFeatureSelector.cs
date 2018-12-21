@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
             _host.CheckValue(data, nameof(data));
             data.CheckFeatureFloatVector();
 
-            var type = data.Schema.Feature.Type;
+            var type = data.Schema.Feature.Value.Type;
             int len = type.VectorSize;
             var features = new BitArray(len);
             for (int j = 0; j < len; j++)

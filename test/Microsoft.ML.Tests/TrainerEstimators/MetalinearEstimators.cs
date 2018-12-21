@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        public void New_MetacomponentsFeaturesRenamed()
+        public void MetacomponentsFeaturesRenamed()
         {
             var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));

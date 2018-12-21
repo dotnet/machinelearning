@@ -5,7 +5,6 @@
 using Float = System.Single;
 
 using System;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn

@@ -123,18 +123,21 @@ namespace Microsoft.ML.Runtime.LightGBM
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
             // Check label types.
-            var labelType = data.Schema.Label.Type;
-            if (!(labelType.IsKey || labelType == NumberType.R4))
+            var labelCol = data.Schema.Label.Value;
+            var labelType = labelCol.Type;
+            if (!(labelType is KeyType || labelType == NumberType.R4))
             {
                 throw ch.ExceptParam(nameof(data),
-                    $"Label column '{data.Schema.Label.Name}' is of type '{labelType}', but must be key or R4.");
+                    $"Label column '{labelCol.Name}' is of type '{labelType}', but must be key or R4.");
             }
             // Check group types.
-            var groupType = data.Schema.Group.Type;
-            if (!(groupType == NumberType.U4 || groupType.IsKey))
+            ch.CheckParam(data.Schema.Group.HasValue, nameof(data), "Need a group column.");
+            var groupCol = data.Schema.Group.Value;
+            var groupType = groupCol.Type;
+            if (!(groupType == NumberType.U4 || groupType is KeyType))
             {
                 throw ch.ExceptParam(nameof(data),
-                   $"Group column '{data.Schema.Group.Name}' is of type '{groupType}', but must be U4 or a Key.");
+                   $"Group column '{groupCol.Name}' is of type '{groupType}', but must be U4 or a Key.");
             }
         }
 

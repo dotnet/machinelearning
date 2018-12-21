@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// The input and output of Query Operators (Transforms). This is the fundamental data pipeline
-    /// type, comparable to IEnumerable for LINQ.
+    /// type, comparable to <see cref="IEnumerable{T}"/> for LINQ.
     /// </summary>
     public interface IDataView
     {
@@ -92,28 +92,28 @@ namespace Microsoft.ML.Runtime.Data
         RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null);
 
         /// <summary>
-        /// This constructs a set of parallel batch cursors. The value n is a recommended limit
-        /// on cardinality. If <paramref name="n"/> is non-positive, this indicates that the caller
-        /// has no recommendation, and the implementation should have some default behavior to cover
-        /// this case. Note that this is strictly a recommendation: it is entirely possible that
-        /// an implementation can return a different number of cursors.
+        /// This constructs a set of parallel batch cursors. The value <paramref name="n"/> is a recommended limit on
+        /// cardinality. If <paramref name="n"/> is non-positive, this indicates that the caller has no recommendation,
+        /// and the implementation should have some default behavior to cover this case. Note that this is strictly a
+        /// recommendation: it is entirely possible that an implementation can return a different number of cursors.
         ///
         /// The cursors should return the same data as returned through
-        /// <see cref="GetRowCursor(Func{int, bool}, Random)"/>, except partitioned: no two cursors
-        /// should return the "same" row as would have been returned through the regular serial cursor,
-        /// but all rows should be returned by exactly one of the cursors returned from this cursor.
-        /// The cursors can have their values reconciled downstream through the use of the
-        /// <see cref="Row.Batch"/> property.
+        /// <see cref="GetRowCursor(Func{int, bool}, Random)"/>, except partitioned: no two cursors should return the
+        /// "same" row as would have been returned through the regular serial cursor, but all rows should be returned by
+        /// exactly one of the cursors returned from this cursor. The cursors can have their values reconciled
+        /// downstream through the use of the <see cref="Row.Batch"/> property.
+        ///
+        /// The typical usage pattern is that a set of cursors is requested, each of them is then given to a set of
+        /// working threads that consume from them independently while, ultimately, the results are finally collated in
+        /// the end by exploiting the ordering of the <see cref="Row.Batch"/> property described above. More typical
+        /// scenarios will be content with pulling from the single serial cursor of
+        /// <see cref="GetRowCursor(Func{int, bool}, Random)"/>.
         /// </summary>
-        /// <param name="consolidator">This is an object that can be used to reconcile the
-        /// returned array of cursors. When the array of cursors is of length 1, it is legal,
-        /// indeed expected, that this parameter should be null.</param>
         /// <param name="needCol">The predicate, where a column is active if this returns true.</param>
         /// <param name="n">The suggested degree of parallelism.</param>
         /// <param name="rand">An instance </param>
         /// <returns></returns>
-        RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> needCol, int n, Random rand = null);
+        RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null);
 
         /// <summary>
         /// Gets an instance of Schema.
@@ -122,20 +122,8 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// This is used to consolidate parallel cursors into a single cursor. The object that determines
-    /// the number of cursors and splits the row "stream" provides the consolidator object.
-    /// </summary>
-    public interface IRowCursorConsolidator
-    {
-        /// <summary>
-        /// Create a consolidated cursor from the given parallel cursor set.
-        /// </summary>
-        RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs);
-    }
-
-    /// <summary>
-    /// Delegate type to get a value. This can used for efficient access to data in an IRow
-    /// or IRowCursor.
+    /// Delegate type to get a value. This can be used for efficient access to data in a <see cref="Row"/>
+    /// or <see cref="RowCursor"/>.
     /// </summary>
     public delegate void ValueGetter<TValue>(ref TValue value);
 
@@ -146,43 +134,54 @@ namespace Microsoft.ML.Runtime.Data
     public abstract class Row : IDisposable
     {
         /// <summary>
-        /// This is incremented when the underlying contents changes, giving clients a way to detect change.
-        /// Generally it's -1 when the object is in an invalid state. In particular, for an <see cref="RowCursor"/>, this is -1
-        /// when the <see cref="RowCursor.State"/> is <see cref="CursorState.NotStarted"/> or <see cref="CursorState.Done"/>.
+        /// This is incremented when the underlying contents changes, giving clients a way to detect change. Generally
+        /// it's -1 when the object is in an invalid state. In particular, for an <see cref="RowCursor"/>, this is -1
+        /// when the <see cref="RowCursor.State"/> is <see cref="CursorState.NotStarted"/> or <see
+        /// cref="CursorState.Done"/>.
         ///
-        /// Note that this position is not position within the underlying data, but position of this cursor only.
-        /// If one, for example, opened a set of parallel streaming cursors, or a shuffled cursor, each such cursor's
-        /// first valid entry would always have position 0.
+        /// Note that this position is not position within the underlying data, but position of this cursor only. If
+        /// one, for example, opened a set of parallel streaming cursors, or a shuffled cursor, each such cursor's first
+        /// valid entry would always have position 0.
         /// </summary>
         public abstract long Position { get; }
 
         /// <summary>
-        /// This provides a means for reconciling multiple streams of counted things. Generally, in each stream,
-        /// batch numbers should be non-decreasing. Furthermore, any given batch number should only appear in one
-        /// of the streams. Order is determined by batch number. The reconciler ensures that each stream (that is
-        /// still active) has at least one item available, then takes the item with the smallest batch number.
+        /// This provides a means for reconciling multiple rows that have been produced generally from
+        /// <see cref="IDataView.GetRowCursorSet(Func{int, bool}, int, Random)"/>. When getting a set, there is a need
+        /// to, while allowing parallel processing to proceed, always have an aim that the original order should be
+        /// reconverable. Note, whether or not a user cares about that original order in ones specific application is
+        /// another story altogether (most callers of this as a practical matter do not, otherwise they would not call
+        /// it), but at least in principle it should be possible to reconstruct the original order one would get from an
+        /// identically configured <see cref="IDataView.GetRowCursor(Func{int, bool}, Random)"/>. So: for any cursor
+        /// implementation, batch numbers should be non-decreasing. Furthermore, any given batch number should only
+        /// appear in one of the cursors as returned by
+        /// <see cref="IDataView.GetRowCursorSet(Func{int, bool}, int, Random)"/>. In this way, order is determined by
+        /// batch number. An operation that reconciles these cursors to produce a consistent single cursoring, could do
+        /// so by drawing from the single cursor, among all cursors in the set, that has the smallest batch number
+        /// available.
         ///
-        /// Note that there is no suggestion that the batches for a particular entry will be consistent from
-        /// cursoring to cursoring, except for the consistency in resulting in the same overall ordering. The same
-        /// entry could have different batch numbers from one cursoring to another. There is also no requirement
-        /// that any given batch number must appear, at all.
+        /// Note that there is no suggestion that the batches for a particular entry will be consistent from cursoring
+        /// to cursoring, except for the consistency in resulting in the same overall ordering. The same entry could
+        /// have different batch numbers from one cursoring to another. There is also no requirement that any given
+        /// batch number must appear, at all. It is merely a mechanism for recovering ordering from a possibly arbitrary
+        /// partitioning of the data. It also follows from this, of course, that considering the batch to be a property
+        /// of the data is completely invalid.
         /// </summary>
         public abstract long Batch { get; }
 
         /// <summary>
         /// A getter for a 128-bit ID value. It is common for objects to serve multiple <see cref="Row"/>
         /// instances to iterate over what is supposed to be the same data, for example, in a <see cref="IDataView"/>
-        /// a cursor set will produce the same data as a serial cursor, just partitioned, and a shuffled cursor
-        /// will produce the same data as a serial cursor or any other shuffled cursor, only shuffled. The ID
-        /// exists for applications that need to reconcile which entry is actually which. Ideally this ID should
-        /// be unique, but for practical reasons, it suffices if collisions are simply extremely improbable.
+        /// a cursor set will produce the same data as a serial cursor, just partitioned, and a shuffled cursor will
+        /// produce the same data as a serial cursor or any other shuffled cursor, only shuffled. The ID exists for
+        /// applications that need to reconcile which entry is actually which. Ideally this ID should be unique, but for
+        /// practical reasons, it suffices if collisions are simply extremely improbable.
         ///
-        /// Note that this ID, while it must be consistent for multiple streams according to the semantics
-        /// above, is not considered part of the data per se. So, to take the example of a data view specifically,
-        /// a single data view must render consistent IDs across all cursorings, but there is no suggestion at
-        /// all that if the "same" data were presented in a different data view (as by, say, being transformed,
-        /// cached, saved, or whatever), that the IDs between the two different data views would have any
-        /// discernable relationship.</summary>
+        /// Note that this ID, while it must be consistent for multiple streams according to the semantics above, is not
+        /// considered part of the data per se. So, to take the example of a data view specifically, a single data view
+        /// must render consistent IDs across all cursorings, but there is no suggestion at all that if the "same" data
+        /// were presented in a different data view (as by, say, being transformed, cached, saved, or whatever), that
+        /// the IDs between the two different data views would have any discernable relationship.</summary>
         public abstract ValueGetter<RowId> GetIdGetter();
 
         /// <summary>

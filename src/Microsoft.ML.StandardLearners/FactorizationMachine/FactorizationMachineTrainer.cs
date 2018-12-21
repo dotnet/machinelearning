@@ -246,7 +246,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             int latentDimAligned, AlignedArray latentSum, int[] featureFieldBuffer, int[] featureIndexBuffer, float[] featureValueBuffer, VBuffer<float> buffer, ref long badExampleCount)
         {
             var featureColumns = data.Schema.GetColumns(RoleMappedSchema.ColumnRole.Feature);
-            Func<int, bool> pred = c => featureColumns.Select(ci => ci.Index).Contains(c) || c == data.Schema.Label.Index || (data.Schema.Weight != null && c == data.Schema.Weight.Index);
+            Func<int, bool> pred = c => featureColumns.Select(ci => ci.Index).Contains(c) || c == data.Schema.Label.Value.Index || c == data.Schema.Weight?.Index;
             var getters = new ValueGetter<VBuffer<float>>[featureColumns.Count];
             float label = 0;
             float weight = 1;
@@ -257,8 +257,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             int count = 0;
             using (var cursor = data.Data.GetRowCursor(pred))
             {
-                var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Index); ;
-                var weightGetter = data.Schema.Weight == null ? null : cursor.GetGetter<float>(data.Schema.Weight.Index);
+                var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
+                var weightGetter = data.Schema.Weight?.Index is int weightIdx ? cursor.GetGetter<float>(weightIdx) : null;
                 for (int f = 0; f < featureColumns.Count; f++)
                     getters[f] = cursor.GetGetter<VBuffer<float>>(featureColumns[f].Index);
                 while (cursor.MoveNext())
@@ -300,9 +300,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             for (int f = 0; f < fieldCount; f++)
             {
                 var col = featureColumns[f];
-                if (col == null)
-                    throw ch.ExceptParam(nameof(data), "Empty feature column not allowed");
-                Host.Assert(!data.Schema.Schema[col.Index].IsHidden);
+                Host.Assert(!col.IsHidden);
                 if (!(col.Type is VectorType vectorType) ||
                     !vectorType.IsKnownSizeVector ||
                     vectorType.ItemType != NumberType.Float)
@@ -323,7 +321,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 var validFeatureColumns = data.Schema.GetColumns(RoleMappedSchema.ColumnRole.Feature);
                 Host.Assert(fieldCount == validFeatureColumns.Count);
                 for (int f = 0; f < fieldCount; f++)
-                    Host.Assert(featureColumns[f] == validFeatureColumns[f]);
+                {
+                    var featCol = featureColumns[f];
+                    var validFeatCol = validFeatureColumns[f];
+                    Host.Assert(featCol.Name == validFeatCol.Name);
+                    Host.Assert(featCol.Type == validFeatCol.Type);
+                }
             }
             bool shuffle = _shuffle;
             if (shuffle && !data.Data.CanShuffle)
@@ -352,7 +355,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 entry.SetProgress(0, iter, _numIterations);
                 entry.SetProgress(1, exampleCount);
             });
-            Func<int, bool> pred = c => fieldColumnIndexes.Contains(c) || c == data.Schema.Label.Index || (data.Schema.Weight != null && c == data.Schema.Weight.Index);
+            Func<int, bool> pred = c => fieldColumnIndexes.Contains(c) || c == data.Schema.Label.Value.Index || c == data.Schema.Weight?.Index;
             InitializeTrainingState(fieldCount, totalFeatureCount, predictor, out float[] linearWeights,
                 out AlignedArray latentWeightsAligned, out float[] linearAccSqGrads, out AlignedArray latentAccSqGradsAligned);
 
@@ -361,8 +364,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             {
                 using (var cursor = data.Data.GetRowCursor(pred, rng))
                 {
-                    var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Index);
-                    var weightGetter = data.Schema.Weight == null ? null : RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, data.Schema.Weight.Index);
+                    var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
+                    var weightGetter = data.Schema.Weight?.Index is int weightIdx ? RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, weightIdx) : null;
                     for (int i = 0; i < fieldCount; i++)
                         featureGetters[i] = cursor.GetGetter<VBuffer<float>>(fieldColumnIndexes[i]);
                     loss = 0;
