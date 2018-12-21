@@ -42,7 +42,7 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = LbfgsTrainerBase<Arguments, BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>, ParameterMixingCalibratedPredictor>.ArgumentsBase.Defaults.L1Weight,
+            float l1Weight = Arguments.Defaults.L1Weight,
             float l2Weight = Arguments.Defaults.L2Weight,
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,

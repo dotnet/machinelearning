@@ -56,10 +56,8 @@ namespace Microsoft.ML.Trainers.Online
             [BestFriend]
             internal class OgdDefaultArgs : AveragedDefaultArgs
             {
-                [BestFriend]
-                internal new const float LearningRate = 0.1f;
-                [BestFriend]
-                internal new const bool DecreaseLearningRate = true;
+                public new const float LearningRate = 0.1f;
+                public new const bool DecreaseLearningRate = true;
             }
         }
 

@@ -45,8 +45,7 @@ namespace Microsoft.ML.Trainers.Online
         [BestFriend]
         internal class OnlineDefaultArgs
         {
-            [BestFriend]
-            internal const int NumIterations = 1;
+            public const int NumIterations = 1;
         }
     }
 

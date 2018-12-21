@@ -57,12 +57,9 @@ namespace Microsoft.ML.Trainers.Online
         [BestFriend]
         internal class AveragedDefaultArgs : OnlineDefaultArgs
         {
-            [BestFriend]
-            internal const Float LearningRate = 1;
-            [BestFriend]
-            internal const bool DecreaseLearningRate = false;
-            [BestFriend]
-            internal const Float L2RegularizerWeight = 0;
+            public const Float LearningRate = 1;
+            public const bool DecreaseLearningRate = false;
+            public const Float L2RegularizerWeight = 0;
         }
 
         internal abstract IComponentFactory<IScalarOutputLoss> LossFunctionFactory { get; }

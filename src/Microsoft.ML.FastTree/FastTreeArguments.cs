@@ -142,14 +142,10 @@ namespace Microsoft.ML.Trainers.FastTree
     [BestFriend]
     internal static class Defaults
     {
-        [BestFriend]
-        internal const int NumTrees = 100;
-        [BestFriend]
-        internal const int NumLeaves = 20;
-        [BestFriend]
-        internal const int MinDocumentsInLeaves = 10;
-        [BestFriend]
-        internal const double LearningRates = 0.2;
+        public const int NumTrees = 100;
+        public const int NumLeaves = 20;
+        public const int MinDocumentsInLeaves = 10;
+        public const double LearningRates = 0.2;
     }
 
     public abstract class TreeArgs : LearnerInputBaseWithGroupId

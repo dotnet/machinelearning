@@ -95,18 +95,12 @@ namespace Microsoft.ML.Runtime.Learners
             [BestFriend]
             internal static class Defaults
             {
-                [BestFriend]
-                internal const float L2Weight = 1;
-                [BestFriend]
-                internal const float L1Weight = 1;
-                [BestFriend]
-                internal const float OptTol = 1e-7f;
-                [BestFriend]
-                internal const int MemorySize = 20;
-                [BestFriend]
-                internal const int MaxIterations = int.MaxValue;
-                [BestFriend]
-                internal const bool EnforceNonNegativity = false;
+                public const float L2Weight = 1;
+                public const float L1Weight = 1;
+                public const float OptTol = 1e-7f;
+                public const int MemorySize = 20;
+                public const int MaxIterations = int.MaxValue;
+                public const bool EnforceNonNegativity = false;
             }
         }
 
