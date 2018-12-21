@@ -276,7 +276,6 @@ namespace Microsoft.ML.Transforms.Conversions
             return new TypeConvertingTransformer(host, ctx);
         }
 
-
         private TypeConvertingTransformer(IHost host, ModelLoadContext ctx)
         : base(host, ctx)
         {
