@@ -77,15 +77,6 @@ namespace Microsoft.ML.Transforms
         /// Constructs OnnxModel object from file.
         /// </summary>
         /// <param name="modelFile">Model file path</param>
-        public OnnxModel(string modelFile)
-            : this (modelFile, -1, false)
-        {
-        }
-
-        /// <summary>
-        /// Constructs OnnxModel object from file.
-        /// </summary>
-        /// <param name="modelFile">Model file path</param>
         /// <param name="gpuDeviceId">Gpu device ID to execute on. -1 for CPU</param>
         /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error</param>
         public OnnxModel(string modelFile, int gpuDeviceId = -1, bool fallbackToCpu = false)
@@ -103,6 +94,7 @@ namespace Microsoft.ML.Transforms
                     if (fallbackToCpu)
                         _session = new InferenceSession(modelFile);
                     else
+                        // if called from OnnxTranform, is caught and rethrown.
                         throw e;
                 }
             }

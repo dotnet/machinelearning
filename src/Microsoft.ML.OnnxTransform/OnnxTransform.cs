@@ -46,16 +46,15 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     /// <remarks>
     /// <p>Supports inferencing of models in 1.2 and 1.3 format, using the
-    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/'>Microsoft.ML.OnnxRuntime</a> library
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/'>Microsoft.ML.OnnxRuntime</a> library.
     /// </p>
-    /// <p>Supports optional GPU execution via the CUDA 10.0. Requires
+    /// <p>Models are scored on CPU by default. If GPU execution is needed (optional), install
     /// <a href='https://developer.nvidia.com/cuda-downloads'>CUDA 10.0 Toolkit</a>
     /// and
     /// <a href='https://developer.nvidia.com/cudnn'>cuDNN</a>
-    /// libraries need to be installed models can be scored in GPU. By default models are run on CPU. To execute on GPU,
-    /// set the parameter 'gpuDeviceID' to a valid non-negative number.
+    /// , and set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
     /// </p>
-    /// <p>The inputs and outputs of the onnx models must of of Tensors. Sequence and Maps are not yet supported.</p>
+    /// <p>The inputs and outputs of the ONNX models must of Tensor type. Sequence and Maps are not yet supported.</p>
     /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
     /// <p>Refer to http://onnx.ai' for more information about ONNX.</p>
     /// </remarks>
@@ -184,14 +183,21 @@ namespace Microsoft.ML.Transforms
             foreach (var col in args.OutputColumns)
                 Host.CheckNonWhiteSpace(col, nameof(args.OutputColumns));
 
-            if (modelBytes == null)
+            try
             {
-                Host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
-                Host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
-                Model = new OnnxModel(args.ModelFile, args.GpuDeviceId, args.FallbackToCpu);
+                if (modelBytes == null)
+                {
+                    Host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
+                    Host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
+                    Model = new OnnxModel(args.ModelFile, args.GpuDeviceId, args.FallbackToCpu);
+                }
+                else
+                    Model = OnnxModel.CreateFromBytes(modelBytes, args.GpuDeviceId, args.FallbackToCpu);
             }
-            else
-                Model = OnnxModel.CreateFromBytes(modelBytes, args.GpuDeviceId, args.FallbackToCpu);
+            catch (OnnxRuntimeException e)
+            {
+                 throw Host.Except(e, $"Error initializing model :{e.ToString()}");
+            }
 
             var modelInfo = Model.ModelInfo;
             Inputs = (args.InputColumns.Count() == 0 ) ? Model.InputNames.ToArray() : args.InputColumns;
@@ -212,12 +218,15 @@ namespace Microsoft.ML.Transforms
             _args = args;
         }
 
-        public OnnxTransform(IHostEnvironment env, string modelFile)
-            : this(env, modelFile, -1, false)
-        {
-
-        }
-
+        /// <summary>
+        /// Transform for scoring ONNX models. Input data column names/types must exactly match
+        /// all model input names. All possible output columns are generated, with names/types
+        /// specified by model.
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="modelFile">Model file path</param>
+        /// <param name="gpuDeviceId">Optional device ID to run execution on</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU</param>
         public OnnxTransform(IHostEnvironment env, string modelFile, int gpuDeviceId = -1, bool fallbackToCpu = false)
             : this(env, new Arguments()
             {
@@ -230,18 +239,16 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public OnnxTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn)
-            : this(env, new Arguments()
-            {
-                ModelFile = modelFile,
-                InputColumns = new[] { inputColumn },
-                OutputColumns = new[] { outputColumn },
-                GpuDeviceId = -1,
-                FallbackToCpu = false
-            })
-        {
-        }
-
+        /// <summary>
+        /// Transform for scoring ONNX models. Input data column name/type must exactly match
+        /// the model specification. Only 1 output column is generated.
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="modelFile">Model file path</param>
+        /// <param name="inputColumn">The name of the input data column. Must match model input name</param>
+        /// <param name="outputColumn">The output columns to generate. Names must match model specifications. Data types are inferred from model</param>
+        /// <param name="gpuDeviceId">Optional device ID to run execution on</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU</param>
         public OnnxTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn, int gpuDeviceId = -1, bool fallbackToCpu = false)
             : this(env, new Arguments()
             {
@@ -254,18 +261,16 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public OnnxTransform(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns)
-            : this(env, new Arguments()
-            {
-                ModelFile = modelFile,
-                InputColumns = inputColumns,
-                OutputColumns = outputColumns,
-                GpuDeviceId = -1,
-                FallbackToCpu = false
-            })
-        {
-        }
-
+        /// <summary>
+        /// Transform for scoring ONNX models. Input data column names/types must exactly match
+        /// all model input names. Only the output columns specified will be generated.
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="modelFile">Model file path</param>
+        /// <param name="inputColumns">The name of the input data columns. Must match model's input names</param>
+        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model</param>
+        /// <param name="gpuDeviceId"></param>
+        /// <param name="fallbackToCpu"></param>
         public OnnxTransform(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns, int gpuDeviceId = -1, bool fallbackToCpu = false)
             : this(env, new Arguments()
             {
