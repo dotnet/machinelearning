@@ -1,4 +1,3 @@
-//
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -9,7 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -334,7 +333,7 @@ namespace Microsoft.ML.Tests.Transformers
             IEnumerable<int> values = new List<int>() { 1, 2, 3, 4 };
 
             // Workout on value mapping
-            var est = ML.Transforms.ValueMap(keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
         }
 
@@ -342,7 +341,7 @@ namespace Microsoft.ML.Tests.Transformers
         void TestCommandLine()
         {
             var dataFile = GetDataPath("QuotingData.csv");
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{key=ID value=Text data="
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{keyCol=ID valueCol=Text data="
                                     + dataFile
                                     + @" col=A:B loader=Text{col=ID:U8:0 col=Text:TX:1 sep=, header=+} } in=f:\1.txt" }), (int)0);
         }
@@ -362,7 +361,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataFile = GetDataPath("lm.labels.txt");
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{data="
                                     + dataFile
-                                    + @" col=A:B key=foo value=bar} in=f:\1.txt" }), (int)0);
+                                    + @" col=A:B keyCol=foo valueCol=bar} in=f:\1.txt" }), (int)0);
         }
         
         [Fact]

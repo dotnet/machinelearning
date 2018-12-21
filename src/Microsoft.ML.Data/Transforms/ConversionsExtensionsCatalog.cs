@@ -127,14 +127,7 @@ namespace Microsoft.ML
             string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
             => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, file, termsColumn, loaderFactory);
-    }
 
-    /// <summary>
-    /// Extensions for the ValueMapping Estimator
-    /// </summary>
-
-    public static class ToMappedValueCatalog
-    {
         /// <summary>
         /// Maps specified keys to specified values
         /// </summary>
@@ -147,7 +140,7 @@ namespace Microsoft.ML
         /// <param name="columns">The columns to apply this transform on.</param>
         /// <returns></returns>
         public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
-            this TransformsCatalog catalog,
+            this TransformsCatalog.ConversionTransforms catalog,
             IEnumerable<TInputType> keys,
             IEnumerable<TOutputType> values,
             params (string source, string name)[] columns)

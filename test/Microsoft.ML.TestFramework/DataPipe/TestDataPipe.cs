@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.RunTests
             TestCore(pathData, true,
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
-                    string.Format("xf=TermLookup{{valuesAsKeyType=- col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
+                    string.Format("xf=TermLookup{{key=- col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
                     "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
                 }, suffix: "3");
 
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 TestCore(pathData, true,
                     new[] {
                             "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
-                            string.Format("xf=TermLookup{{valuesAsKeyType=- col=FileLabelNum:RawLabel data={{{0}}}}}", mappingPathData),
+                            string.Format("xf=TermLookup{{key=- col=FileLabelNum:RawLabel data={{{0}}}}}", mappingPathData),
                             string.Format("xf=TermLookup{{col=FileLabelKey:RawLabel data={{{0}}}}}", mappingPathData),
                             "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey hidden=-}"
                     }, suffix: "4");
