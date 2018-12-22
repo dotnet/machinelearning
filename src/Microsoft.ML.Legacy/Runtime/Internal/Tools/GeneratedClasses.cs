@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Internal.Tools
+namespace Microsoft.ML.Internal.Tools
 {
     internal sealed class GeneratedClasses
     {

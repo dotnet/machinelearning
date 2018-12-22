@@ -6,7 +6,7 @@ using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A base class for schemas for ISchemaBoundMappers. Takes care of all the metadata that has to do with

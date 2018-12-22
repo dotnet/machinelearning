@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>Microsoft.ML.Runtime.ImageAnalytics</AssemblyName>
-    <RootNamespace>Microsoft.ML.Runtime.ImageAnalytics</RootNamespace>
+    <AssemblyName>Microsoft.ML.ImageAnalytics</AssemblyName>
+    <RootNamespace>Microsoft.ML.ImageAnalytics</RootNamespace>
     <IncludeInPackage>Microsoft.ML.ImageAnalytics</IncludeInPackage>
   </PropertyGroup>
 

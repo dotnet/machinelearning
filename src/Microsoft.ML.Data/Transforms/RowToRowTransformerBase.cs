@@ -4,11 +4,11 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Model;
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for transformer which produce new columns, but doesn't affect existing ones.

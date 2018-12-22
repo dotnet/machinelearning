@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A cursor that allows slot-by-slot access of data. This is to <see cref="ITransposeDataView"/>

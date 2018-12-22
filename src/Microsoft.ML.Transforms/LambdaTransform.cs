@@ -6,12 +6,11 @@ using System;
 using System.IO;
 using System.Text;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
+using Microsoft.ML;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(ITransformer), typeof(LambdaTransform), null, typeof(SignatureLoadModel), "", LambdaTransform.LoaderSignature)]
 

@@ -4,11 +4,11 @@
 
 using System;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Training;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Extension methods for evaluation.

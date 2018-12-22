@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Transforms.Text;
 using System.Linq;
 using Xunit;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Internal.Internallearn;
 
 namespace Microsoft.ML.Scenarios
 {

@@ -7,17 +7,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Sweeper;
 
-using ResultProcessorInternal = Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor;
+using ResultProcessorInternal = Microsoft.ML.Internal.Internallearn.ResultProcessor;
 
 [assembly: LoadableClass(typeof(LocalExeConfigRunner), typeof(LocalExeConfigRunner.Arguments), typeof(SignatureConfigRunner),
     "Local Sweep Config Runner", "Local")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     public delegate void SignatureConfigRunner();
 

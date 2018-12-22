@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     public abstract class EnsembleModelParametersBase<TPredictor, TOutput> : ModelParametersBase<TOutput>,
         IPredictorProducing<TOutput>, ICanSaveInTextFormat, ICanSaveSummary

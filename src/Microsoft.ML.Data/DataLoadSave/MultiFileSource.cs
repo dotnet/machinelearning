@@ -4,9 +4,9 @@
 
 using System;
 using System.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Wraps a potentially compound path as an IMultiStreamSource.

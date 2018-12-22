@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.ImageAnalytics.EntryPoints;
 
 [assembly: LoadableClass(typeof(void), typeof(ImageAnalytics), null, typeof(SignatureEntryPointModule), "ImageAnalytics")]
-namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
+namespace Microsoft.ML.ImageAnalytics.EntryPoints
 {
     public static class ImageAnalytics
     {

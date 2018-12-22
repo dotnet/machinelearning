@@ -4,9 +4,9 @@
 
 using System;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A row-to-row mapper that is the result of a chained application of multiple mappers.

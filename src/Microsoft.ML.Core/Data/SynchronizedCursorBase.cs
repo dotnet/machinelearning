@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for creating a cursor on top of another cursor that does not add or remove rows.

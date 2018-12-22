@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using Microsoft.ML.Runtime;
+using Microsoft.ML;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {

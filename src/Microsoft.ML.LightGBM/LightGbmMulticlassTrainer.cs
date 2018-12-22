@@ -4,12 +4,11 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.Training;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
@@ -19,7 +18,7 @@ using System.Linq;
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     "LightGBM Multi-class Classifier", LightGbmMulticlassTrainer.LoadNameValue, LightGbmMulticlassTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.LightGBM
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />

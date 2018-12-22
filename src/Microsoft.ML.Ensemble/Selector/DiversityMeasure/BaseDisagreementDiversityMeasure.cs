@@ -6,7 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
+namespace Microsoft.ML.Ensemble.Selector.DiversityMeasure
 {
     public abstract class BaseDisagreementDiversityMeasure<TOutput> : IDiversityMeasure<TOutput>
     {

@@ -4,12 +4,11 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.Model;
+using Microsoft.ML.Training;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
@@ -22,7 +21,7 @@ using System;
     "LightGBM Regression Executor",
     LightGbmRegressionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.LightGBM
 {
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmRegressionModelParameters : TreeEnsembleModelParameters

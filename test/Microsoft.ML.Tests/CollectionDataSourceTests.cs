@@ -6,8 +6,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using System;
 using System.Collections.Generic;

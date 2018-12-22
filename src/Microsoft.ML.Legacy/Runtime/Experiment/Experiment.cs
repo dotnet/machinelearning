@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.EntryPoints.JsonUtils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// This class represents an entry point graph.
@@ -28,13 +28,13 @@ namespace Microsoft.ML.Runtime
             public object Outputs { get; set; }
         }
 
-        private readonly Runtime.IHostEnvironment _env;
+        private readonly IHostEnvironment _env;
         private readonly ComponentCatalog _catalog;
         private readonly List<string> _jsonNodes;
         private readonly JsonSerializer _serializer;
         private readonly SerializationHelper _helper;
         private EntryPointGraph _graph;
-        public Experiment(Runtime.IHostEnvironment env)
+        public Experiment(IHostEnvironment env)
         {
             _env = env;
             AssemblyRegistration.RegisterAssemblies(_env);
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Transformed dataset
         /// </summary>
-        public Var<Runtime.Data.IDataView> OutputData { get; set; }
+        public Var<Data.IDataView> OutputData { get; set; }
 
         /// <summary>
         /// Transform model
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Runtime
 
         public EntryPointTransformOutput()
         {
-            OutputData = new Var<Runtime.Data.IDataView>();
+            OutputData = new Var<Data.IDataView>();
             Model = new Var<TransformModel>();
         }
     }

@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Linq;
@@ -620,7 +619,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             // Default case: convert to text and hash as a string.
             var sb = default(StringBuilder);
-            var conv = Runtime.Data.Conversion.Conversions.Instance.GetStringConversion<TSrc>();
+            var conv = Data.Conversion.Conversions.Instance.GetStringConversion<TSrc>();
             return
                 (in TSrc value, uint seed) =>
                 {

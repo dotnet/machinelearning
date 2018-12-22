@@ -4,13 +4,12 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Runtime.Training
+namespace Microsoft.ML.Training
 {
     /// <summary>
     /// Options for creating a row cursor from a RoleMappedData with specified standard columns active.

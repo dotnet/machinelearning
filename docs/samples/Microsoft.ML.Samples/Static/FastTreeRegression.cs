@@ -1,4 +1,4 @@
-﻿using Microsoft.ML.Runtime.Data;
+﻿using Microsoft.ML.Data;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.StaticPipe;
 using System;

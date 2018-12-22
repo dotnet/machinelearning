@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Legacy.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using System.IO;
 
 namespace Microsoft.ML.TestFramework
@@ -44,27 +44,27 @@ namespace Microsoft.ML.TestFramework
             return s_environment.Data.ReadFromTextFile(dataPath, 
                 columns: new[]
                 {
-                    new Runtime.Data.TextLoader.Column("Id", Runtime.Data.DataKind.TX, 0),
-                    new Runtime.Data.TextLoader.Column("Date", Runtime.Data.DataKind.TX, 1),
-                    new Runtime.Data.TextLoader.Column("Label", Runtime.Data.DataKind.R4, 2),
-                    new Runtime.Data.TextLoader.Column("BedRooms", Runtime.Data.DataKind.R4, 3),
-                    new Runtime.Data.TextLoader.Column("BathRooms", Runtime.Data.DataKind.R4, 4),
-                    new Runtime.Data.TextLoader.Column("SqftLiving", Runtime.Data.DataKind.R4, 5),
-                    new Runtime.Data.TextLoader.Column("SqftLot", Runtime.Data.DataKind.R4, 6),
-                    new Runtime.Data.TextLoader.Column("Floors", Runtime.Data.DataKind.R4, 7),
-                    new Runtime.Data.TextLoader.Column("WaterFront", Runtime.Data.DataKind.R4, 8),
-                    new Runtime.Data.TextLoader.Column("View", Runtime.Data.DataKind.R4, 9),
-                    new Runtime.Data.TextLoader.Column("Condition", Runtime.Data.DataKind.R4, 10),
-                    new Runtime.Data.TextLoader.Column("Grade", Runtime.Data.DataKind.R4, 11),
-                    new Runtime.Data.TextLoader.Column("SqftAbove", Runtime.Data.DataKind.R4, 12),
-                    new Runtime.Data.TextLoader.Column("SqftBasement", Runtime.Data.DataKind.R4, 13),
-                    new Runtime.Data.TextLoader.Column("YearBuilt", Runtime.Data.DataKind.R4, 14),
-                    new Runtime.Data.TextLoader.Column("YearRenovated", Runtime.Data.DataKind.R4, 15),
-                    new Runtime.Data.TextLoader.Column("Zipcode", Runtime.Data.DataKind.R4, 16),
-                    new Runtime.Data.TextLoader.Column("Lat", Runtime.Data.DataKind.R4, 17),
-                    new Runtime.Data.TextLoader.Column("Long", Runtime.Data.DataKind.R4, 18),
-                    new Runtime.Data.TextLoader.Column("SqftLiving15", Runtime.Data.DataKind.R4, 19),
-                    new Runtime.Data.TextLoader.Column("SqftLot15", Runtime.Data.DataKind.R4, 20)
+                    new Data.TextLoader.Column("Id", Data.DataKind.TX, 0),
+                    new Data.TextLoader.Column("Date", Data.DataKind.TX, 1),
+                    new Data.TextLoader.Column("Label", Data.DataKind.R4, 2),
+                    new Data.TextLoader.Column("BedRooms", Data.DataKind.R4, 3),
+                    new Data.TextLoader.Column("BathRooms", Data.DataKind.R4, 4),
+                    new Data.TextLoader.Column("SqftLiving", Data.DataKind.R4, 5),
+                    new Data.TextLoader.Column("SqftLot", Data.DataKind.R4, 6),
+                    new Data.TextLoader.Column("Floors", Data.DataKind.R4, 7),
+                    new Data.TextLoader.Column("WaterFront", Data.DataKind.R4, 8),
+                    new Data.TextLoader.Column("View", Data.DataKind.R4, 9),
+                    new Data.TextLoader.Column("Condition", Data.DataKind.R4, 10),
+                    new Data.TextLoader.Column("Grade", Data.DataKind.R4, 11),
+                    new Data.TextLoader.Column("SqftAbove", Data.DataKind.R4, 12),
+                    new Data.TextLoader.Column("SqftBasement", Data.DataKind.R4, 13),
+                    new Data.TextLoader.Column("YearBuilt", Data.DataKind.R4, 14),
+                    new Data.TextLoader.Column("YearRenovated", Data.DataKind.R4, 15),
+                    new Data.TextLoader.Column("Zipcode", Data.DataKind.R4, 16),
+                    new Data.TextLoader.Column("Lat", Data.DataKind.R4, 17),
+                    new Data.TextLoader.Column("Long", Data.DataKind.R4, 18),
+                    new Data.TextLoader.Column("SqftLiving15", Data.DataKind.R4, 19),
+                    new Data.TextLoader.Column("SqftLot15", Data.DataKind.R4, 20)
                 }, 
                 hasHeader: true,
                 separatorChar: ','

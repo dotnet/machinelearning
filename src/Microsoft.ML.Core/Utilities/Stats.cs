@@ -6,7 +6,7 @@ using Float = System.Single;
 
 using System;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     /// <summary>
     /// A class containing common statistical functions

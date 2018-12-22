@@ -7,16 +7,16 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Sweeper;
 
 [assembly: LoadableClass(typeof(NelderMeadSweeper), typeof(NelderMeadSweeper.Arguments), typeof(SignatureSweeper),
     "Nelder Mead Sweeper", "NelderMeadSweeper", "NelderMead", "NM")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     public sealed class NelderMeadSweeper : ISweeper
     {

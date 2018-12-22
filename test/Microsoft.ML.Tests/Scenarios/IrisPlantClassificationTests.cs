@@ -6,7 +6,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime.Data;
 using Xunit;
 using TextLoader = Microsoft.ML.Legacy.Data.TextLoader;
 

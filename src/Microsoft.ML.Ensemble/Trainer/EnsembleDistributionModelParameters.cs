@@ -6,18 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 // These are for deserialization from a model repository.
 [assembly: LoadableClass(typeof(EnsembleDistributionModelParameters), null, typeof(SignatureLoadModel),
     EnsembleDistributionModelParameters.UserName, EnsembleDistributionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
 

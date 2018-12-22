@@ -81,14 +81,14 @@ module SmokeTest1 =
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
               typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
-              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
+              typeof<Microsoft.ML.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
         let pipeline = Legacy.LearningPipeline()
 
         pipeline.Add(
-            TextLoader(testDataPath).CreateFrom<SentimentData>(
+             Microsoft.ML.Legacy.Data.TextLoader(testDataPath).CreateFrom<SentimentData>(
                 Arguments = 
                     TextLoaderArguments(
                         HasHeader = true,
@@ -149,14 +149,14 @@ module SmokeTest2 =
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
               typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
-              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
+              typeof<Microsoft.ML.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
         let pipeline = Legacy.LearningPipeline()
 
         pipeline.Add(
-            TextLoader(testDataPath).CreateFrom<SentimentData>(
+             Microsoft.ML.Legacy.Data.TextLoader(testDataPath).CreateFrom<SentimentData>(
                 Arguments = 
                     TextLoaderArguments(
                         HasHeader = true,
@@ -214,14 +214,14 @@ module SmokeTest3 =
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
               typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
-              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
+              typeof<Microsoft.ML.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
         let pipeline = Legacy.LearningPipeline()
 
         pipeline.Add(
-            TextLoader(testDataPath).CreateFrom<SentimentData>(
+             Microsoft.ML.Legacy.Data.TextLoader(testDataPath).CreateFrom<SentimentData>(
                 Arguments = 
                     TextLoaderArguments(
                         HasHeader = true,
