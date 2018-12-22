@@ -38,12 +38,11 @@ using System.Linq;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public abstract class LinearModelParameters : PredictorBase<float>,
+    public abstract class LinearModelParameters : ModelParametersBase<float>,
         IValueMapper,
         ICanSaveInIniFormat,
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
-        ICanSaveModel,
         ICanGetSummaryAsIRow,
         ICanSaveSummary,
         IPredictorWithFeatureWeights<float>,
@@ -111,8 +110,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="name">Component name.</param>
-        /// <param name="weights">The weights for the linear predictor. Note that this
-        /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
+        /// <param name="weights">The weights for the linear model. The i-th element of weights is the coefficient
+        /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         public LinearModelParameters(IHostEnvironment env, string name, in VBuffer<float> weights, float bias)
             : base(env, name)
@@ -431,8 +430,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// Constructs a new linear binary predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
-        /// <param name="weights">The weights for the linear predictor. Note that this
-        /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
+        /// <param name="weights">The weights for the linear model. The i-th element of weights is the coefficient
+        /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         /// <param name="stats"></param>
         public LinearBinaryModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias, LinearModelStatistics stats = null)
@@ -598,11 +597,11 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        /// Constructs a new linear regression predictor.
+        /// Constructs a new linear regression model from trained weights.
         /// </summary>
         /// <param name="env">The host environment.</param>
-        /// <param name="weights">The weights for the linear predictor. Note that this
-        /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
+        /// <param name="weights">The weights for the linear model. The i-th element of weights is the coefficient
+        /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         public LinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
             : base(env, RegistrationName, in weights, bias)
@@ -680,6 +679,13 @@ namespace Microsoft.ML.Runtime.Learners
                 loaderAssemblyName: typeof(PoissonRegressionModelParameters).Assembly.FullName);
         }
 
+        /// <summary>
+        /// Constructs a new Poisson regression model parameters from trained model.
+        /// </summary>
+        /// <param name="env">The Host environment.</param>
+        /// <param name="weights">The weights for the linear model. The i-th element of weights is the coefficient
+        /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
+        /// <param name="bias">The bias added to every output score.</param>
         public PoissonRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias)
             : base(env, RegistrationName, in weights, bias)
         {

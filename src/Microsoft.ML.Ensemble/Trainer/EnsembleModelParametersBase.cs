@@ -13,8 +13,8 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
-    public abstract class EnsemblePredictorBase<TPredictor, TOutput> : PredictorBase<TOutput>,
-        IPredictorProducing<TOutput>, ICanSaveInTextFormat, ICanSaveModel, ICanSaveSummary
+    public abstract class EnsembleModelParametersBase<TPredictor, TOutput> : ModelParametersBase<TOutput>,
+        IPredictorProducing<TOutput>, ICanSaveInTextFormat, ICanSaveSummary
         where TPredictor : class, IPredictorProducing<TOutput>
     {
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         private const uint VerOld = 0x00010002;
 
-        protected EnsemblePredictorBase(IHostEnvironment env, string name, FeatureSubsetModel<TPredictor>[] models,
+        internal EnsembleModelParametersBase(IHostEnvironment env, string name, FeatureSubsetModel<TPredictor>[] models,
             IOutputCombiner<TOutput> combiner, Single[] weights)
             : base(env, name)
         {
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             Weights = weights;
         }
 
-        protected EnsemblePredictorBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        protected EnsembleModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name, ctx)
         {
             // *** Binary format ***

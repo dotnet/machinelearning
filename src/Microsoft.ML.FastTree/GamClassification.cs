@@ -24,9 +24,9 @@ using System.Threading.Tasks;
     BinaryClassificationGamTrainer.LoadNameValue,
     BinaryClassificationGamTrainer.ShortName, DocName = "trainer/GAM.md")]
 
-[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(BinaryClassificationGamPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(BinaryClassificationGamModelParameters), null, typeof(SignatureLoadModel),
     "GAM Binary Class Predictor",
-    BinaryClassificationGamPredictor.LoaderSignature)]
+    BinaryClassificationGamModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _sigmoidParameter = 1;
         }
 
-        internal override void CheckLabel(RoleMappedData data)
+        private protected override void CheckLabel(RoleMappedData data)
         {
             data.CheckBinaryLabel();
         }
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override IPredictorProducing<float> TrainModelCore(TrainContext context)
         {
             TrainBase(context);
-            var predictor = new BinaryClassificationGamPredictor(Host, InputLength, TrainSet,
+            var predictor = new BinaryClassificationGamModelParameters(Host, InputLength, TrainSet,
                 MeanEffect, BinEffects, FeatureMap);
             var calibrator = new PlattCalibrator(Host, -1.0 * _sigmoidParameter, 0);
             return new CalibratedPredictor(Host, predictor, calibrator);
@@ -158,19 +158,19 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public class BinaryClassificationGamPredictor : GamPredictorBase, IPredictorProducing<float>
+    public class BinaryClassificationGamModelParameters : GamModelParametersBase, IPredictorProducing<float>
     {
-        public const string LoaderSignature = "BinaryClassGamPredictor";
+        internal const string LoaderSignature = "BinaryClassGamPredictor";
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public BinaryClassificationGamPredictor(IHostEnvironment env, int inputLength, Dataset trainset,
+        internal BinaryClassificationGamModelParameters(IHostEnvironment env, int inputLength, Dataset trainset,
             double meanEffect, double[][] binEffects, int[] featureMap)
             : base(env, LoaderSignature, inputLength, trainset, meanEffect, binEffects, featureMap) { }
 
-        private BinaryClassificationGamPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private BinaryClassificationGamModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx) { }
 
-        public static VersionInfo GetVersionInfo()
+        private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "GAM BINP",
@@ -178,16 +178,16 @@ namespace Microsoft.ML.Trainers.FastTree
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(BinaryClassificationGamPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(BinaryClassificationGamModelParameters).Assembly.FullName);
         }
 
-        public static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            var predictor = new BinaryClassificationGamPredictor(env, ctx);
+            var predictor = new BinaryClassificationGamModelParameters(env, ctx);
             ICalibrator calibrator;
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)
@@ -195,12 +195,12 @@ namespace Microsoft.ML.Trainers.FastTree
             return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-            base.Save(ctx);
+            base.SaveCore(ctx);
         }
     }
 }

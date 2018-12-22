@@ -14,14 +14,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
 // These are for deserialization from a model repository.
-[assembly: LoadableClass(typeof(EnsembleDistributionPredictor), null, typeof(SignatureLoadModel),
-    EnsembleDistributionPredictor.UserName, EnsembleDistributionPredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(EnsembleDistributionModelParameters), null, typeof(SignatureLoadModel),
+    EnsembleDistributionModelParameters.UserName, EnsembleDistributionModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
 
-    public sealed class EnsembleDistributionPredictor : EnsemblePredictorBase<TDistPredictor, Single>,
+    public sealed class EnsembleDistributionModelParameters : EnsembleModelParametersBase<TDistPredictor, Single>,
          TDistPredictor, IValueMapperDist
     {
         internal const string UserName = "Ensemble Distribution Executor";
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(EnsembleDistributionPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(EnsembleDistributionModelParameters).Assembly.FullName);
         }
 
         private readonly Single[] _averagedWeights;
@@ -53,7 +53,15 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public override PredictionKind PredictionKind { get; }
 
-        internal EnsembleDistributionPredictor(IHostEnvironment env, PredictionKind kind,
+        /// <summary>
+        /// Instantiate new ensemble model from existing sub-models.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="kind">The prediction kind <see cref="PredictionKind"/></param>
+        /// <param name="models">Array of sub-models that you want to ensemble together.</param>
+        /// <param name="combiner">The combiner class to use to ensemble the models.</param>
+        /// <param name="weights">The weights assigned to each model to be ensembled.</param>
+        public EnsembleDistributionModelParameters(IHostEnvironment env, PredictionKind kind,
             FeatureSubsetModel<TDistPredictor>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)
         {
@@ -63,7 +71,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             ComputeAveragedWeights(out _averagedWeights);
         }
 
-        private EnsembleDistributionPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private EnsembleDistributionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             PredictionKind = (PredictionKind)ctx.Reader.ReadInt32();
@@ -103,12 +111,12 @@ namespace Microsoft.ML.Runtime.Ensemble
                 && mapper.DistType == NumberType.Float;
         }
 
-        private static EnsembleDistributionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static EnsembleDistributionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new EnsembleDistributionPredictor(env, ctx);
+            return new EnsembleDistributionModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

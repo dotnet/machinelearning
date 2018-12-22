@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
         {
-            return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
+            return new EnsembleModelParameters(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }
 
         public IPredictor CombineModels(IEnumerable<IPredictor> models)
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var combiner = _outputCombiner.CreateComponent(Host);
             var p = models.First();
 
-            var predictor = new EnsemblePredictor(Host, p.PredictionKind,
+            var predictor = new EnsembleModelParameters(Host, p.PredictionKind,
                     models.Select(k => new FeatureSubsetModel<TScalarPredictor>((TScalarPredictor)k)).ToArray(), combiner);
 
             return predictor;

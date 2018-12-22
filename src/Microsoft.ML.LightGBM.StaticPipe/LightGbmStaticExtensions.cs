@@ -193,7 +193,7 @@ namespace Microsoft.ML.LightGBM.StaticPipe
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null,
-            Action<OvaPredictor> onFit = null)
+            Action<OvaModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
 

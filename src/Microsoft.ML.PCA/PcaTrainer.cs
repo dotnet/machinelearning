@@ -25,8 +25,8 @@ using System.Linq;
     RandomizedPcaTrainer.LoadNameValue,
     RandomizedPcaTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(PcaPredictor), null, typeof(SignatureLoadModel),
-    "PCA Anomaly Executor", PcaPredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(PcaModelParameters), null, typeof(SignatureLoadModel),
+    "PCA Anomaly Executor", PcaModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(RandomizedPcaTrainer), null, typeof(SignatureEntryPointModule), RandomizedPcaTrainer.LoadNameValue)]
 
@@ -41,9 +41,9 @@ namespace Microsoft.ML.Trainers.PCA
     /// <remarks>
     /// This PCA can be made into Kernel PCA by using Random Fourier Features transform
     /// </remarks>
-    public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PcaPredictor>, PcaPredictor>
+    public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PcaModelParameters>, PcaModelParameters>
     {
-        public const string LoadNameValue = "pcaAnomaly";
+        internal const string LoadNameValue = "pcaAnomaly";
         internal const string UserNameValue = "PCA Anomaly Detector";
         internal const string ShortName = "pcaAnom";
         internal const string Summary = "This algorithm trains an approximate PCA using Randomized SVD algorithm. "
@@ -136,8 +136,7 @@ namespace Microsoft.ML.Trainers.PCA
 
         }
 
-        //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
-        private protected override PcaPredictor TrainModelCore(TrainContext context)
+        private protected override PcaModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 
@@ -161,7 +160,8 @@ namespace Microsoft.ML.Trainers.PCA
             return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
         }
 
-        private PcaPredictor TrainCore(IChannel ch, RoleMappedData data, int dimension)
+        //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
+        private PcaModelParameters TrainCore(IChannel ch, RoleMappedData data, int dimension)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Trainers.PCA
             EigenUtils.EigenDecomposition(b2, out smallEigenvalues, out smallEigenvectors);
             PostProcess(b, smallEigenvalues, smallEigenvectors, dimension, oversampledRank);
 
-            return new PcaPredictor(Host, _rank, b, in mean);
+            return new PcaModelParameters(Host, _rank, b, in mean);
         }
 
         private static float[][] Zeros(int k, int d)
@@ -336,8 +336,8 @@ namespace Microsoft.ML.Trainers.PCA
             };
         }
 
-        protected override AnomalyPredictionTransformer<PcaPredictor> MakeTransformer(PcaPredictor model, Schema trainSchema)
-            => new AnomalyPredictionTransformer<PcaPredictor>(Host, model, trainSchema, _featureColumn);
+        protected override AnomalyPredictionTransformer<PcaModelParameters> MakeTransformer(PcaModelParameters model, Schema trainSchema)
+            => new AnomalyPredictionTransformer<PcaModelParameters>(Host, model, trainSchema, _featureColumn);
 
         [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
             Desc = "Train an PCA Anomaly model.",
@@ -365,13 +365,14 @@ namespace Microsoft.ML.Trainers.PCA
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
     // REVIEW: Include the above detail in the XML documentation file.
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
-    public sealed class PcaPredictor : PredictorBase<float>,
+    public sealed class PcaModelParameters : ModelParametersBase<float>,
         IValueMapper,
         ICanGetSummaryAsIDataView,
-        ICanSaveInTextFormat, ICanSaveModel, ICanSaveSummary
+        ICanSaveInTextFormat,
+        ICanSaveSummary
     {
-        public const string LoaderSignature = "pcaAnomExec";
-        public const string RegistrationName = "PCAPredictor";
+        internal const string LoaderSignature = "pcaAnomExec";
+        internal const string RegistrationName = "PCAPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -381,7 +382,7 @@ namespace Microsoft.ML.Trainers.PCA
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(PcaPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(PcaModelParameters).Assembly.FullName);
         }
 
         private readonly int _dimension;
@@ -398,7 +399,14 @@ namespace Microsoft.ML.Trainers.PCA
             get { return PredictionKind.AnomalyDetection; }
         }
 
-        internal PcaPredictor(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
+        /// <summary>
+        /// Instantiate new model parameters from trained model.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="rank">The rank of the PCA approximation of the covariance matrix. This is the number of eigenvectors in the model.</param>
+        /// <param name="eigenVectors">Array of eigenvectors.</param>
+        /// <param name="mean">The mean vector of the training data.</param>
+        public PcaModelParameters(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;
@@ -418,7 +426,7 @@ namespace Microsoft.ML.Trainers.PCA
             _inputType = new VectorType(NumberType.Float, _dimension);
         }
 
-        private PcaPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private PcaModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             // *** Binary format ***
@@ -490,12 +498,12 @@ namespace Microsoft.ML.Trainers.PCA
                 writer.WriteSinglesNoCount(_eigenVectors[i].GetValues().Slice(0, _dimension));
         }
 
-        public static PcaPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static PcaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new PcaPredictor(env, ctx);
+            return new PcaModelParameters(env, ctx);
         }
 
         void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)

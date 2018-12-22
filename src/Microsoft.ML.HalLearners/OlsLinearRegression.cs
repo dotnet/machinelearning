@@ -604,6 +604,18 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// </summary>
         public IReadOnlyCollection<Double> PValues => _pValues.AsReadOnly();
 
+        /// <summary>
+        /// Constructs a new OLS regression model parameters from trained model.
+        /// </summary>
+        /// <param name="env">The Host environment.</param>
+        /// <param name="weights">The weights for the linear model. The i-th element of weights is the coefficient
+        /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
+        /// <param name="bias">The bias added to every output score.</param>
+        /// <param name="standardErrors">Optional: The statndard errors of the weights and bias.</param>
+        /// <param name="tValues">Optional: The t-statistics for the estimates of the weights and bias.</param>
+        /// <param name="pValues">Optional: The p-values of the weights and bias.</param>
+        /// <param name="rSquared">The coefficient of determination.</param>
+        /// <param name="rSquaredAdjusted">The adjusted coefficient of determination.</param>
         public OlsLinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias,
             Double[] standardErrors = null, Double[] tValues = null, Double[] pValues = null, Double rSquared = 1, Double rSquaredAdjusted = float.NaN)
             : base(env, RegistrationName, in weights, bias)

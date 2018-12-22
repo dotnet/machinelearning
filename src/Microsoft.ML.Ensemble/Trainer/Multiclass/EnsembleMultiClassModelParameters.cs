@@ -10,18 +10,18 @@ using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(typeof(EnsembleMultiClassPredictor), null, typeof(SignatureLoadModel),
-    EnsembleMultiClassPredictor.UserName, EnsembleMultiClassPredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(EnsembleMultiClassModelParameters), null, typeof(SignatureLoadModel),
+    EnsembleMultiClassModelParameters.UserName, EnsembleMultiClassModelParameters.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
 
-    public sealed class EnsembleMultiClassPredictor : EnsemblePredictorBase<TVectorPredictor, VBuffer<Single>>, IValueMapper
+    public sealed class EnsembleMultiClassModelParameters : EnsembleModelParametersBase<TVectorPredictor, VBuffer<Single>>, IValueMapper
     {
-        public const string UserName = "Ensemble Multiclass Executor";
-        public const string LoaderSignature = "EnsemMcExec";
-        public const string RegistrationName = "EnsembleMultiClassPredictor";
+        internal const string UserName = "Ensemble Multiclass Executor";
+        internal const string LoaderSignature = "EnsemMcExec";
+        internal const string RegistrationName = "EnsembleMultiClassPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -33,24 +33,31 @@ namespace Microsoft.ML.Runtime.Ensemble
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(EnsembleMultiClassPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(EnsembleMultiClassModelParameters).Assembly.FullName);
         }
 
         private readonly ColumnType _inputType;
         private readonly ColumnType _outputType;
         private readonly IValueMapper[] _mappers;
 
-        public ColumnType InputType => _inputType;
-        public ColumnType OutputType => _outputType;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => _outputType;
 
-        internal EnsembleMultiClassPredictor(IHostEnvironment env, FeatureSubsetModel<TVectorPredictor>[] models,
+        /// <summary>
+        /// Instantiate new ensemble model from existing sub-models.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="models">Array of sub-models that you want to ensemble together.</param>
+        /// <param name="combiner">The combiner class to use to ensemble the models.</param>
+        /// <param name="weights">The weights assigned to each model to be ensembled.</param>
+        public EnsembleMultiClassModelParameters(IHostEnvironment env, FeatureSubsetModel<TVectorPredictor>[] models,
             IMultiClassOutputCombiner combiner, Single[] weights = null)
             : base(env, RegistrationName, models, combiner, weights)
         {
             InitializeMappers(out _mappers, out _inputType, out _outputType);
         }
 
-        private EnsembleMultiClassPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private EnsembleMultiClassModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             InitializeMappers(out _mappers, out _inputType, out _outputType);
@@ -87,12 +94,12 @@ namespace Microsoft.ML.Runtime.Ensemble
                 inputType = new VectorType(NumberType.Float);
         }
 
-        public static EnsembleMultiClassPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static EnsembleMultiClassModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new EnsembleMultiClassPredictor(env, ctx);
+            return new EnsembleMultiClassModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

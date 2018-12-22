@@ -11,20 +11,23 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 
-[assembly: LoadableClass(typeof(EnsemblePredictor), null, typeof(SignatureLoadModel), EnsemblePredictor.UserName,
-    EnsemblePredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(EnsembleModelParameters), null, typeof(SignatureLoadModel), EnsembleModelParameters.UserName,
+    EnsembleModelParameters.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(EnsemblePredictor))]
+[assembly: EntryPointModule(typeof(EnsembleModelParameters))]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
     using TScalarPredictor = IPredictorProducing<Single>;
 
-    public sealed class EnsemblePredictor : EnsemblePredictorBase<TScalarPredictor, Single>, IValueMapper
+    /// <summary>
+    /// A class for artifacts of ensembled models.
+    /// </summary>
+    public sealed class EnsembleModelParameters : EnsembleModelParametersBase<TScalarPredictor, Single>, IValueMapper
     {
-        public const string UserName = "Ensemble Executor";
-        public const string LoaderSignature = "EnsembleFloatExec";
-        public const string RegistrationName = "EnsemblePredictor";
+        internal const string UserName = "Ensemble Executor";
+        internal const string LoaderSignature = "EnsembleFloatExec";
+        internal const string RegistrationName = "EnsemblePredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -36,28 +39,37 @@ namespace Microsoft.ML.Runtime.Ensemble
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(EnsemblePredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(EnsembleModelParameters).Assembly.FullName);
         }
 
         private readonly IValueMapper[] _mappers;
 
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
+        private readonly ColumnType _inputType;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => NumberType.Float;
         public override PredictionKind PredictionKind { get; }
 
-        internal EnsemblePredictor(IHostEnvironment env, PredictionKind kind,
+        /// <summary>
+        /// Instantiate new ensemble model from existing sub-models.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="kind">The prediction kind <see cref="PredictionKind"/></param>
+        /// <param name="models">Array of sub-models that you want to ensemble together.</param>
+        /// <param name="combiner">The combiner class to use to ensemble the models.</param>
+        /// <param name="weights">The weights assigned to each model to be ensembled.</param>
+        public EnsembleModelParameters(IHostEnvironment env, PredictionKind kind,
             FeatureSubsetModel<TScalarPredictor>[] models, IOutputCombiner<Single> combiner, Single[] weights = null)
             : base(env, LoaderSignature, models, combiner, weights)
         {
             PredictionKind = kind;
-            InputType = InitializeMappers(out _mappers);
+            _inputType = InitializeMappers(out _mappers);
         }
 
-        private EnsemblePredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private EnsembleModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             PredictionKind = (PredictionKind)ctx.Reader.ReadInt32();
-            InputType = InitializeMappers(out _mappers);
+            _inputType = InitializeMappers(out _mappers);
         }
 
         private ColumnType InitializeMappers(out IValueMapper[] mappers)
@@ -91,12 +103,12 @@ namespace Microsoft.ML.Runtime.Ensemble
                 && mapper.OutputType == NumberType.Float;
         }
 
-        public static EnsemblePredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static EnsembleModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new EnsemblePredictor(env, ctx);
+            return new EnsembleModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -124,8 +136,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             ValueMapper<VBuffer<Single>, Single> del =
                 (in VBuffer<Single> src, ref Single dst) =>
                 {
-                    if (InputType.VectorSize > 0)
-                        Host.Check(src.Length == InputType.VectorSize);
+                    if (_inputType.VectorSize > 0)
+                        Host.Check(src.Length == _inputType.VectorSize);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>

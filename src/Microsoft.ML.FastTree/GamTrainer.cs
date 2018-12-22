@@ -24,8 +24,8 @@ using System.Linq;
 using System.Threading;
 using Timer = Microsoft.ML.Trainers.FastTree.Internal.Timer;
 
-[assembly: LoadableClass(typeof(GamPredictorBase.VisualizationCommand), typeof(GamPredictorBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
-    "GAM Vizualization Command", GamPredictorBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
+[assembly: LoadableClass(typeof(GamModelParametersBase.VisualizationCommand), typeof(GamModelParametersBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
+    "GAM Vizualization Command", GamModelParametersBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
 
 [assembly: LoadableClass(typeof(void), typeof(Gam), null, typeof(SignatureEntryPointModule), "GAM")]
 
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract void DefinePruningTest();
 
-        internal abstract void CheckLabel(RoleMappedData data);
+        private protected abstract void CheckLabel(RoleMappedData data);
 
         private void ConvertData(RoleMappedData trainData, RoleMappedData validationData)
         {
@@ -647,8 +647,8 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper, ICalculateFeatureContribution,
-        IFeatureContributionMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
+    public abstract class GamModelParametersBase : ModelParametersBase<float>, IValueMapper, ICalculateFeatureContribution,
+        IFeatureContributionMapper, ICanSaveInTextFormat, ICanSaveSummary
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
@@ -670,7 +670,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
 
-        private protected GamPredictorBase(IHostEnvironment env, string name,
+        private protected GamModelParametersBase(IHostEnvironment env, string name,
             int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap)
             : base(env, name)
         {
@@ -741,7 +741,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected GamPredictorBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        protected GamModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -792,7 +792,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _outputType = NumberType.Float;
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -1031,7 +1031,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         /// <summary>
         /// The GAM model visualization command. Because the data access commands must access private members of
-        /// <see cref="GamPredictorBase"/>, it is convenient to have the command itself nested within the base
+        /// <see cref="GamModelParametersBase"/>, it is convenient to have the command itself nested within the base
         /// predictor class.
         /// </summary>
         internal sealed class VisualizationCommand : DataCommand.ImplBase<VisualizationCommand.Arguments>
@@ -1077,7 +1077,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             private sealed class Context
             {
-                private readonly GamPredictorBase _pred;
+                private readonly GamModelParametersBase _pred;
                 private readonly RoleMappedData _data;
 
                 private readonly VBuffer<ReadOnlyMemory<char>> _featNames;
@@ -1107,7 +1107,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 /// </summary>
                 public int NumFeatures => _pred._inputType.VectorSize;
 
-                public Context(IChannel ch, GamPredictorBase pred, RoleMappedData data, IEvaluator eval)
+                public Context(IChannel ch, GamModelParametersBase pred, RoleMappedData data, IEvaluator eval)
                 {
                     Contracts.AssertValue(ch);
                     ch.AssertValue(pred);
@@ -1369,8 +1369,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     rawPred = calibrated.SubPredictor;
                     calibrated = rawPred as CalibratedPredictorBase;
                 }
-                var pred = rawPred as GamPredictorBase;
-                ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamPredictorBase));
+                var pred = rawPred as GamModelParametersBase;
+                ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));
                 var data = new RoleMappedData(loader, schema.GetColumnRoleNames(), opt: true);
                 if (hadCalibrator && !string.IsNullOrWhiteSpace(Args.OutputModelFile))
                     ch.Warning("If you save the GAM model, only the GAM model, not the wrapping calibrator, will be saved.");
@@ -1378,7 +1378,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return new Context(ch, pred, data, InitEvaluator(pred));
             }
 
-            private IEvaluator InitEvaluator(GamPredictorBase pred)
+            private IEvaluator InitEvaluator(GamModelParametersBase pred)
             {
                 switch (pred.PredictionKind)
                 {

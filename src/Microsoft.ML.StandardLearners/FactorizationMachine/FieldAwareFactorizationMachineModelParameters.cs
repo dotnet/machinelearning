@@ -15,16 +15,16 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictor), null, typeof(SignatureLoadModel), "Field Aware Factorization Machine", FieldAwareFactorizationMachinePredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(FieldAwareFactorizationMachineModelParameters), null, typeof(SignatureLoadModel), "Field Aware Factorization Machine", FieldAwareFactorizationMachineModelParameters.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictionTransformer), typeof(FieldAwareFactorizationMachinePredictionTransformer), null, typeof(SignatureLoadModel),
     "", FieldAwareFactorizationMachinePredictionTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.FactorizationMachine
 {
-    public sealed class FieldAwareFactorizationMachinePredictor : PredictorBase<float>, ISchemaBindableMapper, ICanSaveModel
+    public sealed class FieldAwareFactorizationMachineModelParameters : ModelParametersBase<float>, ISchemaBindableMapper
     {
-        public const string LoaderSignature = "FieldAwareFactMacPredict";
+        internal const string LoaderSignature = "FieldAwareFactMacPredict";
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private bool _norm;
         internal int FieldCount { get; }
@@ -42,10 +42,58 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(FieldAwareFactorizationMachinePredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(FieldAwareFactorizationMachineModelParameters).Assembly.FullName);
         }
 
-        internal FieldAwareFactorizationMachinePredictor(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
+        /// <summary>
+        /// Initialize model parameters with a trained model.
+        /// </summary>
+        /// <param name="env">The host environment</param>
+        /// <param name="norm">True if user wants to normalize feature vector to unit length.</param>
+        /// <param name="fieldCount">The number of fileds, which is the symbol `m` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="featureCount">The number of features, which is the symbol `n` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="latentDim">The latent dimensions, which is the length of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="linearWeights">The linear coefficients of the features, which is the symbol `w` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf </param>
+        /// <param name="latentWeights">Latent representation of each feature. Note that one feature may have <see cref="FieldCount"/> latent vectors
+        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the doc
+        /// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf, starts at latentWeights[j * fieldCount * latentDim + f * latentDim].
+        /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k]. The size of the array must be featureCount x fieldCount x latentDim.</param>
+        public FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
+            float[] linearWeights, float[] latentWeights) : base(env, LoaderSignature)
+        {
+            Host.Assert(fieldCount > 0);
+            Host.Assert(featureCount > 0);
+            Host.Assert(latentDim > 0);
+            Host.Assert(Utils.Size(linearWeights) == featureCount);
+            LatentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(latentDim);
+            Host.Assert(Utils.Size(latentWeights) == checked(featureCount * fieldCount * LatentDimAligned));
+
+            _norm = norm;
+            FieldCount = fieldCount;
+            FeatureCount = featureCount;
+            LatentDim = latentDim;
+            _linearWeights = linearWeights;
+
+            _latentWeightsAligned = new AlignedArray(FeatureCount * FieldCount * LatentDimAligned, 16);
+
+            for (int j = 0; j < FeatureCount; j++)
+            {
+                for (int f = 0; f < FieldCount; f++)
+                {
+                    int index = j * FieldCount * LatentDim + f * LatentDim;
+                    int indexAligned = j * FieldCount * LatentDimAligned + f * LatentDimAligned;
+                    for (int k = 0; k < LatentDimAligned; k++)
+                    {
+                        if (k < LatentDim)
+                            _latentWeightsAligned[indexAligned + k] = latentWeights[index + k];
+                        else
+                            _latentWeightsAligned[indexAligned + k] = 0;
+                    }
+                }
+            }
+        }
+
+        internal FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
             float[] linearWeights, AlignedArray latentWeightsAligned) : base(env, LoaderSignature)
         {
             Host.Assert(fieldCount > 0);
@@ -63,7 +111,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _latentWeightsAligned = latentWeightsAligned;
         }
 
-        private FieldAwareFactorizationMachinePredictor(IHostEnvironment env, ModelLoadContext ctx) : base(env, LoaderSignature)
+        private FieldAwareFactorizationMachineModelParameters(IHostEnvironment env, ModelLoadContext ctx) : base(env, LoaderSignature)
         {
             Host.AssertValue(ctx);
 
@@ -112,12 +160,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             }
         }
 
-        public static FieldAwareFactorizationMachinePredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static FieldAwareFactorizationMachineModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new FieldAwareFactorizationMachinePredictor(env, ctx);
+            return new FieldAwareFactorizationMachineModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)
@@ -189,9 +237,54 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             Host.AssertValue(latentWeights);
             latentWeights.CopyFrom(_latentWeightsAligned);
         }
+
+        /// <summary>
+        /// Get the number of fields. It's the symbol `m` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public int GetFieldCount() => FieldCount;
+
+        /// <summary>
+        /// Get the number of features. It's the symbol `n` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public int GetFeatureCount() => FeatureCount;
+
+        /// <summary>
+        /// Get the latent dimension. It's the tlngth of `v_{j, f}` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public int GetLatentDim() => LatentDim;
+
+        /// <summary>
+        /// The linear coefficients of the features. It's the symbol `w` in the doc: https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
+        /// </summary>
+        public float[] GetLinearWeights() => _linearWeights;
+
+        /// <summary>
+        /// Latent representation of each feature. Note that one feature may have <see cref="FieldCount"/> latent vectors
+        /// and each latent vector contains <see cref="LatentDim"/> values. In the f-th field, the j-th feature's latent vector, `v_{j, f}` in the doc
+        /// https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf, starts at latentWeights[j * fieldCount * latentDim + f * latentDim].
+        /// The k-th element in v_{j, f} is latentWeights[j * fieldCount * latentDim + f * latentDim + k].
+        /// The size of the returned value is featureCount x fieldCount x latentDim.
+        /// </summary>
+        public float[] GetLatentWeights()
+        {
+            var latentWeights = new float[FeatureCount * FieldCount * LatentDim];
+            for (int j = 0; j < FeatureCount; j++)
+            {
+                for (int f = 0; f < FieldCount; f++)
+                {
+                    int index = j * FieldCount * LatentDim + f * LatentDim;
+                    int indexAligned = j * FieldCount * LatentDimAligned + f * LatentDimAligned;
+                    for (int k = 0; k < LatentDim; k++)
+                    {
+                        latentWeights[index + k] = _latentWeightsAligned[indexAligned + k];
+                    }
+                }
+            }
+            return latentWeights;
+        }
     }
 
-    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachinePredictor, BinaryClassifierScorer>, ICanSaveModel
+    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachineModelParameters, BinaryClassifierScorer>, ICanSaveModel
     {
         public const string LoaderSignature = "FAFMPredXfer";
 
@@ -210,7 +303,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         private readonly string _thresholdColumn;
         private readonly float _threshold;
 
-        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachinePredictor model, Schema trainSchema,
+        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachineModelParameters model, Schema trainSchema,
             string[] featureColumns, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
         {
