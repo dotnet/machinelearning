@@ -28,10 +28,9 @@ namespace Microsoft.ML.Trainers.KMeans
     /// ]]></format>
     /// </example>
     public sealed class KMeansModelParameters :
-        PredictorBase<VBuffer<Float>>,
+        ModelParametersBase<VBuffer<Float>>,
         IValueMapper,
         ICanSaveInTextFormat,
-        ICanSaveModel,
         ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "KMeansPredictor";

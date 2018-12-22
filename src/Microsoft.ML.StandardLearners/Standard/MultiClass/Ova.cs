@@ -17,6 +17,7 @@ using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,11 +27,11 @@ using System.Threading.Tasks;
     Ova.UserNameValue,
     Ova.LoadNameValue, DocName = "trainer/OvaPkpd.md")]
 
-[assembly: LoadableClass(typeof(OvaPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(OvaModelParameters), null, typeof(SignatureLoadModel),
     "OVA Executor",
-    OvaPredictor.LoaderSignature)]
+    OvaModelParameters.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(OvaPredictor))]
+[assembly: EntryPointModule(typeof(OvaModelParameters))]
 namespace Microsoft.ML.Trainers
 {
     using CR = RoleMappedSchema.ColumnRole;
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Trainers
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
 
-    public sealed class Ova : MetaMulticlassTrainer<MulticlassPredictionTransformer<OvaPredictor>, OvaPredictor>
+    public sealed class Ova : MetaMulticlassTrainer<MulticlassPredictionTransformer<OvaModelParameters>, OvaModelParameters>
     {
         internal const string LoadNameValue = "OVA";
         internal const string UserNameValue = "One-vs-All";
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Trainers
             _args.UseProbabilities = useProbabilities;
         }
 
-        private protected override OvaPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
+        private protected override OvaModelParameters TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train one-vs-all models.
             var predictors = new TScalarPredictor[count];
@@ -111,7 +112,7 @@ namespace Microsoft.ML.Trainers
                 ch.Info($"Training learner {i}");
                 predictors[i] = TrainOne(ch, Trainer, data, i).Model;
             }
-            return OvaPredictor.Create(Host, _args.UseProbabilities, predictors);
+            return OvaModelParameters.Create(Host, _args.UseProbabilities, predictors);
         }
 
         private ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
@@ -168,7 +169,7 @@ namespace Microsoft.ML.Trainers
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");
         }
 
-        public override MulticlassPredictionTransformer<OvaPredictor> Fit(IDataView input)
+        public override MulticlassPredictionTransformer<OvaModelParameters> Fit(IDataView input)
         {
             var roles = new KeyValuePair<CR, string>[1];
             roles[0] = new KeyValuePair<CR, string>(new CR(DefaultColumnNames.Label), LabelColumn.Name);
@@ -195,20 +196,19 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            return new MulticlassPredictionTransformer<OvaPredictor>(Host, OvaPredictor.Create(Host, _args.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
+            return new MulticlassPredictionTransformer<OvaModelParameters>(Host, OvaModelParameters.Create(Host, _args.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
         }
     }
 
-    public sealed class OvaPredictor :
-        PredictorBase<VBuffer<float>>,
+    public sealed class OvaModelParameters :
+        ModelParametersBase<VBuffer<float>>,
         IValueMapper,
-        ICanSaveModel,
         ICanSaveInSourceCode,
         ICanSaveInTextFormat,
         ISingleCanSavePfa
     {
-        public const string LoaderSignature = "OVAExec";
-        public const string RegistrationName = "OVAPredictor";
+        internal const string LoaderSignature = "OVAExec";
+        internal const string RegistrationName = "OVAPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -218,12 +218,14 @@ namespace Microsoft.ML.Trainers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(OvaPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(OvaModelParameters).Assembly.FullName);
         }
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
 
         private readonly ImplBase _impl;
+
+        public ImmutableArray<object> SubModelParameters => _impl.Predictors.Cast<object>().ToImmutableArray();
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
@@ -239,10 +241,11 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         public enum OutputFormula { Raw = 0, ProbabilityNormalization = 1, Softmax = 2 };
         private readonly ColumnType _outputType;
-        public ColumnType DistType => _outputType;
+        private ColumnType DistType => _outputType;
         bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
-        public static OvaPredictor Create(IHost host, OutputFormula outputFormula, TScalarPredictor[] predictors)
+        [BestFriend]
+        internal static OvaModelParameters Create(IHost host,  OutputFormula outputFormula, TScalarPredictor[] predictors)
         {
             ImplBase impl;
 
@@ -251,7 +254,7 @@ namespace Microsoft.ML.Trainers
                 if (outputFormula == OutputFormula.Softmax)
                 {
                     impl = new ImplSoftmax(predictors);
-                    return new OvaPredictor(host, impl);
+                    return new OvaModelParameters(host, impl);
                 }
 
                 // Caller of this function asks for probability output. We check if input predictor can produce probability.
@@ -278,11 +281,11 @@ namespace Microsoft.ML.Trainers
                     impl = new ImplRaw(predictors);
             }
 
-            return new OvaPredictor(host, impl);
+            return new OvaModelParameters(host, impl);
         }
 
         [BestFriend]
-        internal static OvaPredictor Create(IHost host, bool useProbability, TScalarPredictor[] predictors)
+        internal static OvaModelParameters Create(IHost host, bool useProbability, TScalarPredictor[] predictors)
         {
             var outputFormula = useProbability ? OutputFormula.ProbabilityNormalization : OutputFormula.Raw;
 
@@ -292,14 +295,15 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Create a OVA predictor from an array of predictors.
         /// </summary>
-        public static OvaPredictor Create(IHost host, TScalarPredictor[] predictors)
+        [BestFriend]
+        internal static OvaModelParameters Create(IHost host, TScalarPredictor[] predictors)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckNonEmpty(predictors, nameof(predictors));
             return Create(host, OutputFormula.ProbabilityNormalization, predictors);
         }
 
-        private OvaPredictor(IHostEnvironment env, ImplBase impl)
+        private OvaModelParameters(IHostEnvironment env, ImplBase impl)
                 : base(env, RegistrationName)
         {
             Host.AssertValue(impl, nameof(impl));
@@ -309,7 +313,7 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorType(NumberType.Float, _impl.Predictors.Length);
         }
 
-        private OvaPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private OvaModelParameters(IHostEnvironment env, ModelLoadContext ctx)
                 : base(env, RegistrationName, ctx)
         {
             // *** Binary format ***
@@ -335,12 +339,12 @@ namespace Microsoft.ML.Trainers
             _outputType = new VectorType(NumberType.Float, _impl.Predictors.Length);
         }
 
-        public static OvaPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static OvaModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new OvaPredictor(env, ctx);
+            return new OvaModelParameters(env, ctx);
         }
 
         private static void LoadPredictors<TPredictor>(IHostEnvironment env, TPredictor[] predictors, ModelLoadContext ctx)

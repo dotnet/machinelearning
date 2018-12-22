@@ -2793,12 +2793,11 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     public abstract class TreeEnsembleModelParameters :
-        PredictorBase<Float>,
+        ModelParametersBase<Float>,
         IValueMapper,
         ICanSaveInTextFormat,
         ICanSaveInIniFormat,
         ICanSaveInSourceCode,
-        ICanSaveModel,
         ICanSaveSummary,
         ICanGetSummaryInKeyValuePairs,
         ITreeEnsemble,
@@ -3319,7 +3318,7 @@ namespace Microsoft.ML.Trainers.FastTree
             metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
             var weights = default(VBuffer<Single>);
-            GetFeatureWeights(ref weights);
+            ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
             var builder = new MetadataBuilder();
             builder.Add<VBuffer<float>>("Gains", new VectorType(NumberType.R4, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
 

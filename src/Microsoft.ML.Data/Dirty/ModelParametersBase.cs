@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using Microsoft.ML;
 using Microsoft.ML.Model;
@@ -15,7 +13,7 @@ namespace Microsoft.ML.Internal.Internallearn
     /// Note: This provides essentially no value going forward. New predictors should just
     /// derive from the interfaces they need.
     /// </summary>
-    public abstract class PredictorBase<TOutput> : IPredictorProducing<TOutput>
+    public abstract class ModelParametersBase<TOutput> : ICanSaveModel, IPredictorProducing<TOutput>
     {
         public const string NormalizerWarningFormat =
             "Ignoring integrated normalizer while loading a predictor of type {0}.{1}" +
@@ -23,14 +21,14 @@ namespace Microsoft.ML.Internal.Internallearn
 
         protected readonly IHost Host;
 
-        protected PredictorBase(IHostEnvironment env, string name)
+        protected ModelParametersBase(IHostEnvironment env, string name)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
             Host = env.Register(name);
         }
 
-        protected PredictorBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        protected ModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(name, nameof(name));
@@ -42,11 +40,14 @@ namespace Microsoft.ML.Internal.Internallearn
             // Verify that the Float type matches.
             int cbFloat = ctx.Reader.ReadInt32();
 #pragma warning disable MSML_NoMessagesForLoadContext // This one is actually useful.
-            Host.CheckDecode(cbFloat == sizeof(Float), "This file was saved by an incompatible version");
+            Host.CheckDecode(cbFloat == sizeof(float), "This file was saved by an incompatible version");
 #pragma warning restore MSML_NoMessagesForLoadContext
         }
 
-        public virtual void Save(ModelSaveContext ctx)
+        void ICanSaveModel.Save(ModelSaveContext ctx) => Save(ctx);
+
+        [BestFriend]
+        private protected virtual void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -61,7 +62,7 @@ namespace Microsoft.ML.Internal.Internallearn
             // *** Binary format ***
             // int: sizeof(Float)
             // <Derived type stuff>
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
         }
 
         public abstract PredictionKind PredictionKind { get; }

@@ -275,7 +275,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadBool(0), features1: c.LoadFloat(1, 4), features2: c.LoadFloat(5, 9)));
 
-            FieldAwareFactorizationMachinePredictor pred = null;
+            FieldAwareFactorizationMachineModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -307,7 +307,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionPredictor pred = null;
+            MulticlassLogisticRegressionModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -626,7 +626,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionPredictor pred = null;
+            MulticlassLogisticRegressionModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -850,7 +850,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            OvaPredictor pred = null;
+            OvaModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -888,7 +888,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MultiClassNaiveBayesPredictor pred = null;
+            MultiClassNaiveBayesModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
