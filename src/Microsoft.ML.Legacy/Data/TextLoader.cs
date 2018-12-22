@@ -95,8 +95,8 @@ namespace Microsoft.ML.Legacy.Data
                 var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
                 var name = mappingNameAttr?.Name ?? memberInfo.Name;
 
-                Runtime.Data.TextLoader.Range[] sources;
-                if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Start, out sources))
+                ML.Data.TextLoader.Range[] sources;
+                if (!ML.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Start, out sources))
                     throw Contracts.Except($"{mappingAttr.Start} could not be parsed.");
 #pragma warning restore 618
                 Contracts.Assert(sources != null);

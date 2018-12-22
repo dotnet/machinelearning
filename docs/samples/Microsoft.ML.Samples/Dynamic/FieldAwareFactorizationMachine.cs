@@ -1,8 +1,5 @@
-﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FactorizationMachine;
+﻿using Microsoft.ML.Data;
 using System;
-using System.Linq;
-
 namespace Microsoft.ML.Samples.Dynamic
 {
     public class FFM_BinaryClassificationExample

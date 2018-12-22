@@ -8,11 +8,9 @@ using Microsoft.ML.Training;
 using System;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
 using System.IO;
 

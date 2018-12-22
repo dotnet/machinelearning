@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Internal.Tools;
 using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 

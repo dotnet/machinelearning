@@ -4,12 +4,11 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
@@ -439,7 +438,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
                         // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
                         // computing max and min.
-                        if (Microsoft.ML.Runtime.Data.Conversion.Conversions.Instance.TryParseKey(in value, 1, ulong.MaxValue, out res))
+                        if (Microsoft.ML.Data.Conversion.Conversions.Instance.TryParseKey(in value, 1, ulong.MaxValue, out res))
                         {
                             if (res < keyMin && res != 0)
                                 keyMin = res;
@@ -448,7 +447,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         }
                         // If parsing as key did not succeed, the value can still be 0, so we try parsing it as a ulong. If it succeeds,
                         // then the value is 0, and we update min accordingly.
-                        else if (Microsoft.ML.Runtime.Data.Conversion.Conversions.Instance.TryParse(in value, out res))
+                        else if (Microsoft.ML.Data.Conversion.Conversions.Instance.TryParse(in value, out res))
                         {
                             keyMin = 0;
                         }
@@ -809,7 +808,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     // First check if there is a String->ValueType conversion method. If so, call the conversion method with an
                     // empty string, the returned value will be the new missing value.
                     // NOTE this will return NA for R4 and R8 types.
-                    if (Microsoft.ML.Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TValue>(
+                    if (Microsoft.ML.Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TValue>(
                                                                         TextType.Instance,
                                                                         ValueType,
                                                                         out conv,
