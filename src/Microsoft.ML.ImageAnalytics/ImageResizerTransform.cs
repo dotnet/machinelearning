@@ -9,14 +9,13 @@ using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 
@@ -32,7 +31,7 @@ using Microsoft.ML.StaticPipe.Runtime;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImageResizerTransform), null, typeof(SignatureLoadRowMapper),
     ImageResizerTransform.UserName, ImageResizerTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.ImageAnalytics
+namespace Microsoft.ML.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
     /// <summary>

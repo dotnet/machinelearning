@@ -11,11 +11,10 @@ using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Learners
 {
     /// <summary>
     /// Helper methods for linear predictors

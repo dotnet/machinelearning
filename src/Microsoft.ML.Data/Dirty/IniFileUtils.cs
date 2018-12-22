@@ -4,9 +4,9 @@
 
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Internal.Calibration;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     [BestFriend]
     internal static class IniFileUtils

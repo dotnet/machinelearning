@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
 [assembly: LoadableClass(typeof(Microsoft.ML.Trainers.FastTree.SingleTrainer),
     null, typeof(Microsoft.ML.Trainers.FastTree.SignatureParallelTrainer), "single")]

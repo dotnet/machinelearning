@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.CommandLine;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {

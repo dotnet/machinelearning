@@ -8,10 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This provides a scalable method of getting a "transposed" view of a subset of columns from an

@@ -5,7 +5,7 @@
 using System;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     /// <summary>
     /// The primary use case for this structure is to impose ordering among

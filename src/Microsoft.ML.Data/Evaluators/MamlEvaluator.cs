@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This interface is used by Maml components (the <see cref="EvaluateCommand"/>, the <see cref="CrossValidationCommand"/>

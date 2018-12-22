@@ -7,8 +7,8 @@
 namespace Microsoft.ML
 #else
 // CpuMath module has its own PublicKey for isolating itself from Microsoft.ML.Core
-// Note that CpuMath uses its own BestFriend defined in Microsoft.ML.Runtime.Internal.CpuMath.Core.
-namespace Microsoft.ML.Runtime.Internal.CpuMath.Core
+// Note that CpuMath uses its own BestFriend defined in Microsoft.ML.Internal.CpuMath.Core.
+namespace Microsoft.ML.Internal.CpuMath.Core
 #endif
 {
     [BestFriend]

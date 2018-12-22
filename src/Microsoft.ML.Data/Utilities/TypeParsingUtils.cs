@@ -4,10 +4,10 @@
 
 using System;
 using System.Text;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Utilities to parse command-line representations of <see cref="IDataView"/> types.

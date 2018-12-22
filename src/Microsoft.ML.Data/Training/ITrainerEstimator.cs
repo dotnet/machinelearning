@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 
-namespace Microsoft.ML.Runtime.Training
+namespace Microsoft.ML.Training
 {
     public interface ITrainerEstimator<out TTransformer, out TPredictor> : IEstimator<TTransformer>
         where TTransformer : ISingleFeaturePredictionTransformer<TPredictor>

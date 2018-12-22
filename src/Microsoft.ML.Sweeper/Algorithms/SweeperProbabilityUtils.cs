@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Internal.CpuMath;
+using Microsoft.ML.Internal.CpuMath;
 
-namespace Microsoft.ML.Runtime.Sweeper.Algorithms
+namespace Microsoft.ML.Sweeper.Algorithms
 {
     public sealed class SweeperProbabilityUtils
     {

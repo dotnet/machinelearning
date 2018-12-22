@@ -5,10 +5,10 @@
 using Float = System.Single;
 
 using System;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.CommandLine;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     using TestLearners = TestLearnersBase;
 

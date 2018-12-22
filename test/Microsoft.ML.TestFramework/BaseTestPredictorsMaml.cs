@@ -7,9 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
-    using ResultProcessor = Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor.ResultProcessor;
+    using ResultProcessor = Microsoft.ML.Internal.Internallearn.ResultProcessor.ResultProcessor;
 
     /// <summary>
     /// This is a base test class designed to support running trainings and related

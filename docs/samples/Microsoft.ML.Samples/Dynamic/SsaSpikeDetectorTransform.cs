@@ -1,7 +1,6 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.TimeSeriesProcessing;
 using Microsoft.ML.TimeSeries;
 using System;
 using System.Collections.Generic;

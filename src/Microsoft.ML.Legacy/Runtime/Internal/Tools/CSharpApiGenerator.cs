@@ -8,21 +8,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Tools;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Tools;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Tools;
 using Newtonsoft.Json.Linq;
-using static Microsoft.ML.Runtime.EntryPoints.CommonInputs;
+using static Microsoft.ML.EntryPoints.CommonInputs;
 
 [assembly: LoadableClass(typeof(CSharpApiGenerator), typeof(CSharpApiGenerator.Arguments), typeof(SignatureModuleGenerator),
     "CSharp API generator", "CSGenerator", "CS")]
 
 #pragma warning disable 612
-namespace Microsoft.ML.Runtime.Internal.Tools
+namespace Microsoft.ML.Internal.Tools
 {
     internal sealed class CSharpApiGenerator : IGenerator
     {
@@ -78,17 +78,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
                 // Generate footer
                 CSharpGeneratorUtils.GenerateFooter(writer);
-                CSharpGeneratorUtils.GenerateFooter(writer);
 
                 foreach (var entryPointInfo in catalog.AllEntryPoints().Where(x => !_excludedSet.Contains(x.Name)).OrderBy(x => x.Name))
                 {
                     // Generate input and output classes
                     GenerateInputOutput(writer, entryPointInfo, catalog);
                 }
-
-                writer.WriteLine("namespace Runtime");
-                writer.WriteLine("{");
-                writer.Indent();
 
                 foreach (var kind in catalog.GetAllComponentKinds())
                 {
@@ -102,7 +97,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     }
                 }
 
-                CSharpGeneratorUtils.GenerateFooter(writer);
                 CSharpGeneratorUtils.GenerateFooter(writer);
                 writer.WriteLine("#pragma warning restore");
             }
@@ -604,16 +598,16 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
         private void GenerateComponent(IndentedTextWriter writer, ComponentCatalog.ComponentInfo component, ComponentCatalog catalog)
         {
-            GenerateEnums(writer, component.ArgumentType, "Runtime");
+            GenerateEnums(writer, component.ArgumentType, "");
             writer.WriteLineNoTabs();
-            GenerateClasses(writer, component.ArgumentType, catalog, "Runtime");
+            GenerateClasses(writer, component.ArgumentType, catalog, "");
             writer.WriteLineNoTabs();
             CSharpGeneratorUtils.GenerateSummary(writer, component.Description);
             writer.WriteLine("[Obsolete]");
             writer.WriteLine($"public sealed class {CSharpGeneratorUtils.GetComponentName(component)} : {component.Kind}");
             writer.WriteLine("{");
             writer.Indent();
-            GenerateInputFields(writer, component.ArgumentType, catalog, "Runtime");
+            GenerateInputFields(writer, component.ArgumentType, catalog, "");
             writer.WriteLine("[Obsolete]");
             writer.WriteLine($"internal override string ComponentName => \"{component.Name}\";");
             writer.Outdent();

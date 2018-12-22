@@ -5,9 +5,10 @@
 using Float = System.Single;
 
 using System;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
     /// <summary>
     /// A base class for predictors producing <typeparamref name="TOutput"/>.

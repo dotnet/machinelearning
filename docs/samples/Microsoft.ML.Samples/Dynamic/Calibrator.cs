@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML.Calibrator;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML;
+using Microsoft.ML.Data;
 using System;
 using System.Linq;
 

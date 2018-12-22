@@ -5,7 +5,7 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.CommandLine
 {
     /// <summary>
     /// Allows control of command line parsing.

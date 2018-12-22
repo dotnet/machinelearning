@@ -1,5 +1,4 @@
-﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Data;
+﻿using Microsoft.ML.Data;
 using System;
 using System.Collections.Generic;
 

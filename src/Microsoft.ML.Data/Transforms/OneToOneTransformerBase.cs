@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Model;
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for transformer which operates on pairs input and output columns.

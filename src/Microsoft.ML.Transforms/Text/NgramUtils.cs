@@ -5,9 +5,9 @@
 using Float = System.Single;
 
 using System;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This delegate represents a function that gets an ngram as input, and outputs the id of

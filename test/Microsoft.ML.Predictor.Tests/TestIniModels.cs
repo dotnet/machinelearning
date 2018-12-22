@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     using TestLearners = TestLearnersBase;
 

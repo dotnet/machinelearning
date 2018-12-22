@@ -4,9 +4,8 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
 using Xunit;
 

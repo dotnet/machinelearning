@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;

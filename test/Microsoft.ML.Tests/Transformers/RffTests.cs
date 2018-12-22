@@ -1,9 +1,8 @@
 ﻿using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Projections;
 using System;

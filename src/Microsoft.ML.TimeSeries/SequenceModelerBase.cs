@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     /// <summary>
     /// The base container class for the forecast result on a sequence of type <typeparamref name="T"/>.

@@ -6,20 +6,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints.JsonUtils;
+using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(ExecuteGraphCommand), typeof(ExecuteGraphCommand.Arguments), typeof(SignatureCommand),
     "", "ExecGraph")]
 
-namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints.JsonUtils
 {
     internal sealed class ExecuteGraphCommand : ICommand
     {

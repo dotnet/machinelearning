@@ -10,9 +10,9 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data.Conversion
+namespace Microsoft.ML.Data.Conversion
 {
     using BL = Boolean;
     using DT = DateTime;
