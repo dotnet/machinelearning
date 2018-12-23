@@ -5,11 +5,11 @@
 using Float = System.Single;
 
 using System;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.PCA;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
+namespace Microsoft.ML.Internal.Internallearn.Test
 {
 #if OLD_TESTS // REVIEW: Does any of this need ported?
     public class CreateInstancesTests : BaseTestBaseline
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
         [Fact, TestCategory("CreateInstances"), TestCategory("FeatureTransformer")]
         public void TestPcaTransform()
         {
-            // Force Microsoft.ML.Runtime.PCA assembly to be loaded into the AppDomain so 
+            // Force Microsoft.ML.PCA assembly to be loaded into the AppDomain so 
             // ReflectionUtils.FindClassCore does not return null when called by ReflectionUtils.CreateInstance
             Assert.AreEqual(typeof(PCAPredictor).Name, "PCAPredictor");
 

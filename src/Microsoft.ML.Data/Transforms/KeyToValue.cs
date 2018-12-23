@@ -4,13 +4,12 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Conversions;
@@ -318,16 +317,16 @@ namespace Microsoft.ML.Transforms.Conversions
                     _values = values;
 
                     // REVIEW: May want to include more specific information about what the specific value is for the default.
-                    _na = Runtime.Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(TypeOutput.ItemType, out _naMapsToDefault);
+                    _na = Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(TypeOutput.ItemType, out _naMapsToDefault);
 
                     if (_naMapsToDefault)
                     {
                         // Only initialize _isDefault if _defaultIsNA is true as this is the only case in which it is used.
-                        _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<TValue>(TypeOutput.ItemType);
+                        _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<TValue>(TypeOutput.ItemType);
                     }
 
                     bool identity;
-                    _convertToUInt = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberType.U4, out identity);
+                    _convertToUInt = Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberType.U4, out identity);
                 }
 
                 private void MapKey(in TKey src, ref TValue dst)

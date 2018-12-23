@@ -5,9 +5,9 @@
 using Float = System.Single;
 
 using System;
-using Microsoft.ML.Runtime;
+using Microsoft.ML;
 using Xunit;
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     /// <summary>
     /// These are tests of the loss functions in the Learners assembly.

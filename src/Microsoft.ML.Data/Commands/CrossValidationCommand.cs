@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using System;
@@ -20,7 +19,7 @@ using System.Threading.Tasks;
 [assembly: LoadableClass(typeof(CrossValidationCommand), typeof(CrossValidationCommand.Arguments), typeof(SignatureCommand),
     "Cross Validation", CrossValidationCommand.LoadName)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     [BestFriend]
     internal sealed class CrossValidationCommand : DataCommand.ImplBase<CrossValidationCommand.Arguments>

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Microsoft.ML.Runtime.Data.Utilities
+namespace Microsoft.ML.Data.Utilities
 {
     internal static class PartitionedPathUtils
     {

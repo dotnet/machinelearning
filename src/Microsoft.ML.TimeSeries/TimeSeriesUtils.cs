@@ -1,5 +1,5 @@
-﻿using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Internal.Utilities;
+﻿using Microsoft.ML;
+using Microsoft.ML.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;

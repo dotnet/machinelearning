@@ -5,7 +5,7 @@
 using System;
 using System.ComponentModel.Composition.Hosting;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 

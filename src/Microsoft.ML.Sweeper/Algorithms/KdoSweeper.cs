@@ -7,17 +7,17 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Sweeper.Algorithms;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Sweeper.Algorithms;
 
 [assembly: LoadableClass(typeof(KdoSweeper), typeof(KdoSweeper.Arguments), typeof(SignatureSweeper),
     "KDO Sweeper", "KDOSweeper", "KDO")]
 
-namespace Microsoft.ML.Runtime.Sweeper.Algorithms
+namespace Microsoft.ML.Sweeper.Algorithms
 {
     /// <summary>
     /// Kernel Density Optimization (KDO) is a sequential model-based optimization method originally developed by George D. Montanez (me).

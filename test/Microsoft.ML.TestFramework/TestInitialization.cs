@@ -5,7 +5,7 @@
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     // The Xunit test framework requires the per-test initialization be implemented
     // as the test class constructor, and per-test clean-up be implemented in Dispose()
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.RunTests
     }
 }
 
-namespace Microsoft.ML.Runtime.RunTests.RServerScoring
+namespace Microsoft.ML.RunTests.RServerScoring
 {
 
     public sealed partial class TestRServerScoringLibrary : TestDataViewBase

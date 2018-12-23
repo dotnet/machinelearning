@@ -5,7 +5,7 @@
 using Microsoft.ML.Data;
 using System;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Opaque IDataView implementation to provide a barrier for data pipe optimizations.

@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Linq;

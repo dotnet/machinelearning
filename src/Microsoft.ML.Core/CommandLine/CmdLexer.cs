@@ -4,7 +4,7 @@
 
 using System.Text;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.CommandLine
 {
     [BestFriend]
     internal sealed class CmdLexer

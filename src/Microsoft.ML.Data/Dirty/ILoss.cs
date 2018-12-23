@@ -5,9 +5,9 @@
 using Float = System.Single;
 
 using System;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     public interface ILossFunction<in TOutput, in TLabel>
     {

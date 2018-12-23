@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 using System;
 
 namespace Microsoft.ML.Benchmarks

@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 using System;
 using System.IO;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     /// <summary>
     ///This is a test class for TestPredictorMainTest and is intended

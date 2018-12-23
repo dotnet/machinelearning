@@ -7,10 +7,10 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Numeric
+namespace Microsoft.ML.Numeric
 {
     /// <summary>
     /// A delegate for functions with gradients.

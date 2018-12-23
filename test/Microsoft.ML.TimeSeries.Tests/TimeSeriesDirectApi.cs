@@ -4,9 +4,8 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.TimeSeriesProcessing;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.TimeSeries;
 using System.Collections.Generic;
 using System.IO;

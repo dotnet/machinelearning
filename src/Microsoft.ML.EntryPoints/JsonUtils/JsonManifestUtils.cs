@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -6,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints.JsonUtils
 {
     /// <summary>
     /// Utilities to generate JSON manifests for entry points and other components.
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                 type == typeof(CommonOutputs.IEvaluatorOutput))
             {
                 var jo = new JObject();
-                var typeString = $"{type}".Replace("Microsoft.ML.Runtime.EntryPoints.", "");
+                var typeString = $"{type}".Replace("Microsoft.ML.EntryPoints.", "");
                 jo[FieldNames.Kind] = "EntryPoint";
                 jo[FieldNames.ItemType] = typeString;
                 return jo;

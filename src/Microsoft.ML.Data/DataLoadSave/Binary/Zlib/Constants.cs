@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.ML.Runtime.Data.IO.Zlib
+namespace Microsoft.ML.Data.IO.Zlib
 {
     /// <summary>
     /// See zlib.h

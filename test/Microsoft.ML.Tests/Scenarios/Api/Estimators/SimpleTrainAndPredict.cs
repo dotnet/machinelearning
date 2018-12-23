@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML;
+using Microsoft.ML.RunTests;
 using System.Linq;
 using Xunit;
 

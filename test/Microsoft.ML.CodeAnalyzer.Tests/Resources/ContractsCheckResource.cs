@@ -4,8 +4,8 @@
 // the corresponding code in ML.NET.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.Model;
 
 namespace TestNamespace
 {
@@ -59,7 +59,7 @@ namespace TestNamespace
 }
 
 // Dummy declarations so that the independent compilation of contracts works as expected.
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     [Flags]
     internal enum MessageSensitivity

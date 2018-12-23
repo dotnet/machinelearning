@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Convenient base class for <see cref="Row"/> implementors that wrap a single <see cref="Row"/>

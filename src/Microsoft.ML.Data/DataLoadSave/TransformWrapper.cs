@@ -5,16 +5,15 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.DataLoadSave;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Model;
 using System.Collections.Generic;
 
 [assembly: LoadableClass(typeof(TransformWrapper), null, typeof(SignatureLoadModel),
     "Transform wrapper", TransformWrapper.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     // REVIEW: this class is public, as long as the Wrappers.cs in tests still rely on it.
     // It needs to become internal.

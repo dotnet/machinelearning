@@ -5,7 +5,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.CommandLine;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {

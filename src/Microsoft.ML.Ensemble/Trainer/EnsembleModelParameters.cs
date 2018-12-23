@@ -4,19 +4,19 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble;
+using Microsoft.ML.Model;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.EntryPoints;
 
 [assembly: LoadableClass(typeof(EnsembleModelParameters), null, typeof(SignatureLoadModel), EnsembleModelParameters.UserName,
     EnsembleModelParameters.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(EnsembleModelParameters))]
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     using TScalarPredictor = IPredictorProducing<Single>;
 

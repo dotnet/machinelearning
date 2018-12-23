@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.SubsetSelector;
+using Microsoft.ML.EntryPoints;
 using System;
 using System.Collections.Generic;
 
@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 [assembly: EntryPointModule(typeof(AllInstanceSelector))]
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
 {
     internal sealed class AllInstanceSelector : BaseSubsetSelector<AllInstanceSelector.Arguments>
     {

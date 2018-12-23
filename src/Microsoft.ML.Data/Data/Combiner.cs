@@ -9,7 +9,7 @@ using Float = System.Single;
 using System;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     // REVIEW: Need better names for these and possibly a distinct namespace. These are too
     // specialized to have such prominent fully qualified names.

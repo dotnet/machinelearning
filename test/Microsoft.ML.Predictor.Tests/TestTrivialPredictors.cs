@@ -6,13 +6,13 @@ using Float = System.Single;
 
 using System;
 using System.IO;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Internallearn.Test;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Internallearn.Test;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
 #if OLD_TESTS // REVIEW: Port these tests.
     /// <summary>

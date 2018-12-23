@@ -5,7 +5,7 @@
 using Microsoft.ML.Data;
 using System;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This interface maps an input <see cref="Row"/> to an output <see cref="Row"/>. Typically, the output contains

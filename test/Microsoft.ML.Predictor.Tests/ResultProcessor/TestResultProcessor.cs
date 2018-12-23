@@ -8,14 +8,14 @@ using System.Reflection;
 using Xunit.Abstractions;
 using Xunit;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     // REVIEW: The data files need to be ported. Are these tests even needed?
     public sealed class TestResultProcessor : BaseTestPredictors
     {
         public static StreamWriter OutFile;
         public const string SubDirectory = "ResultProcessor";
-        private const string TestDataPrefix = "Microsoft.ML.Runtime.RunTests.ResultProcessor.TestData.";
+        private const string TestDataPrefix = "Microsoft.ML.RunTests.ResultProcessor.TestData.";
         private const string TestDataOutPath = @"ResultProcessor\TestData";
 
         public TestResultProcessor(ITestOutputHelper helper) : base(helper)
