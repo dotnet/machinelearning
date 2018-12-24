@@ -57,8 +57,8 @@ namespace Microsoft.ML.FSharp.Tests
 open System
 open Microsoft.ML
 open Microsoft.ML.Legacy.Data
-open Microsoft.ML.Legacy.Transforms
 open Microsoft.ML.Legacy.Trainers
+open Microsoft.ML.Legacy.Transforms
 open Microsoft.ML.Data
 open Xunit
 
