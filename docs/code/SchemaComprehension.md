@@ -65,7 +65,7 @@ static void Main(string[] args)
     };
 
     // Create the ML.NET environment.
-    var env = new Microsoft.ML.Runtime.Data.TlcEnvironment();
+    var env = new Microsoft.ML.Data.TlcEnvironment();
 
     // Create the data view.
     // This method will use the definition of IrisData to understand what columns there are in the 
@@ -74,7 +74,7 @@ static void Main(string[] args)
 
     // Now let's do something to the data view. For example, concatenate all four non-label columns
     // into 'Features' column.
-    dv = new Microsoft.ML.Runtime.Data.ConcatTransform(env, dv, "Features", 
+    dv = new Microsoft.ML.Data.ConcatTransform(env, dv, "Features", 
         "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
 
     // Read the data into an another array, this time we read the 'Features' and 'Label' columns

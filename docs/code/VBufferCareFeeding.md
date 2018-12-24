@@ -224,17 +224,17 @@ ML.NET's runtime code has a number of utilities for operating over `VBuffer`s
 that we have written to be generally useful. We will not treat on these in
 detail here, but:
 
-* `Microsoft.ML.Runtime.Data.VBuffer<T>` itself contains a few methods for
+* `Microsoft.ML.Data.VBuffer<T>` itself contains a few methods for
   accessing and iterating over its values.
 
-* `Microsoft.ML.Runtime.Internal.Utilities.VBufferUtils` contains utilities
+* `Microsoft.ML.Internal.Utilities.VBufferUtils` contains utilities
   mainly for non-numeric manipulation of `VBuffer`s.
 
-* `Microsoft.ML.Runtime.Numeric.VectorUtils` contains math operations
+* `Microsoft.ML.Numeric.VectorUtils` contains math operations
   over `VBuffer<float>` and `float[]`, like computing norms, dot-products, and
   whatnot.
 
-* `Microsoft.ML.Runtime.Data.BufferBuilder<T>` is an abstract class whose
+* `Microsoft.ML.Data.BufferBuilder<T>` is an abstract class whose
   concrete implementations are used throughout ML.NET to build up `VBuffer<T>`
   instances. Note that if one *can* simply build a `VBuffer` oneself easily
   and do not need the niceties provided by the buffer builder, you should
