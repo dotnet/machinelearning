@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.RunTests;
-using Microsoft.ML.Training;
 using System;
-using Xunit;
-using Xunit.Abstractions;
+using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
-using System.IO;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {

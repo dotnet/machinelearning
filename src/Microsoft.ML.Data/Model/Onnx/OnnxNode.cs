@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Model.Onnx
 {

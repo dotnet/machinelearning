@@ -4,9 +4,9 @@
 
 using System;
 using Microsoft.ML;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,8 +15,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-    using SplitInfo = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
     using LeafSplitCandidates = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
 
     public sealed class FastTreeParallelInterfaceChecker : Microsoft.ML.Trainers.FastTree.IParallelTraining
     {

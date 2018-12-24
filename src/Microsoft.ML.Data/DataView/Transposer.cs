@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Data;
-using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 

@@ -4,12 +4,7 @@
 
 #undef COMPARE_BCL
 
-using Float = System.Single;
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Microsoft.ML.Internal.Utilities
 {

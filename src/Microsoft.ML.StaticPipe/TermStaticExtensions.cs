@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML;
 
 namespace Microsoft.ML.StaticPipe
 {

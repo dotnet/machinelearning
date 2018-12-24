@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Transforms;
-using Microsoft.ML;
+using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Conversions;
-using System.Collections.Generic;
 
 namespace Microsoft.ML
 {

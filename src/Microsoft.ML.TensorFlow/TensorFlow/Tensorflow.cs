@@ -3,27 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.InteropServices;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using size_t = System.UIntPtr;
 
 // We use this TF_Xxx as the native "TF_Xxx *" as those are opaque
-using TF_Status = System.IntPtr;
-using TF_SessionOptions = System.IntPtr;
+using TF_DeviceList = System.IntPtr;
 using TF_Graph = System.IntPtr;
-using TF_OperationDescription = System.IntPtr;
+using TF_ImportGraphDefOptions = System.IntPtr;
 using TF_Operation = System.IntPtr;
 using TF_Session = System.IntPtr;
-using TF_DeprecatedSession = System.IntPtr;
+using TF_SessionOptions = System.IntPtr;
+using TF_Status = System.IntPtr;
 using TF_Tensor = System.IntPtr;
-using TF_ImportGraphDefOptions = System.IntPtr;
-using TF_Library = System.IntPtr;
-using TF_BufferPtr = System.IntPtr;
-using TF_Function = System.IntPtr;
-using TF_DeviceList = System.IntPtr;
-
-using size_t = System.UIntPtr;
-using System.Collections.Generic;
-using System.Collections;
 
 #pragma warning disable MSML_GeneralName
 #pragma warning disable MSML_PrivateFieldName

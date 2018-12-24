@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
 using System.Collections.Generic;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(TolerantEarlyStoppingCriterion), typeof(TolerantEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Tolerant (TR)", "tr")]
 [assembly: LoadableClass(typeof(GLEarlyStoppingCriterion), typeof(GLEarlyStoppingCriterion.Arguments), typeof(SignatureEarlyStoppingCriterion), "Loss of Generality (GL)", "gl")]

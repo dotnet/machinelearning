@@ -1,8 +1,8 @@
+using System;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Transforms;
-using System;
-using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.EntryPoints.CodeGen

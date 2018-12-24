@@ -2,9 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Microsoft.ML;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Data;
-using Microsoft.ML;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
@@ -14,11 +19,6 @@ using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Numeric;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 // This is for deserialization from a model repository.
 [assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(LinearBinaryModelParameters), null, typeof(SignatureLoadModel),

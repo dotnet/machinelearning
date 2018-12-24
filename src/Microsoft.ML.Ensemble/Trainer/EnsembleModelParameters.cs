@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble;
-using Microsoft.ML.Model;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(EnsembleModelParameters), null, typeof(SignatureLoadModel), EnsembleModelParameters.UserName,
     EnsembleModelParameters.LoaderSignature)]

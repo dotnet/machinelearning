@@ -5,11 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data.IO
 {

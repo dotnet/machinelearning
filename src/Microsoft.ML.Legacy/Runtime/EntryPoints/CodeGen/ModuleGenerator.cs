@@ -14,7 +14,6 @@ using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints.CodeGen;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(typeof(ModuleGenerator), typeof(ModuleGenerator.Arguments), typeof(SignatureModuleGenerator),

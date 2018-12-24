@@ -5,8 +5,8 @@
 using System;
 using System.IO;
 using System.Threading;
-using Microsoft.ML.Data;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;

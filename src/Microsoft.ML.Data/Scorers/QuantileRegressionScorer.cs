@@ -4,9 +4,9 @@
 
 using System;
 using System.Linq;
-using Microsoft.ML.Data;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(QuantileRegressionScorerTransform), typeof(QuantileRegressionScorerTransform.Arguments),

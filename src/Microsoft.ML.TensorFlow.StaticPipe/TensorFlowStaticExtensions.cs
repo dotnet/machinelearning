@@ -1,10 +1,8 @@
-﻿using Microsoft.ML.Core.Data;
+﻿using System.Collections.Generic;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Microsoft.ML.TensorFlow.StaticPipe
 {

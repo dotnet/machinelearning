@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML;
+using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Learners;
-using Microsoft.ML.Training;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
-using System;
+using Microsoft.ML.Training;
 
 namespace Microsoft.ML
 {
-    using SgdArguments = StochasticGradientDescentClassificationTrainer.Arguments;
     using LRArguments = LogisticRegression.Arguments;
+    using SgdArguments = StochasticGradientDescentClassificationTrainer.Arguments;
 
     /// <summary>
     /// TrainerEstimator extension methods.

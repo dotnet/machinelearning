@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {

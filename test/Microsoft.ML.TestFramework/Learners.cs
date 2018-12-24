@@ -4,8 +4,8 @@
 
 using System.Text;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.RunTests
 {

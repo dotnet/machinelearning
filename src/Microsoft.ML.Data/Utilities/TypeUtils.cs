@@ -4,10 +4,8 @@
 
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.ML;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Internal.Internallearn

@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.UniversalModelFormat.Onnx;
 using Microsoft.ML.Data;
+using Microsoft.ML.UniversalModelFormat.Onnx;
 
 namespace Microsoft.ML.Model.Onnx
 {

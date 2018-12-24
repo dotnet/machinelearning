@@ -1,13 +1,13 @@
-﻿using Microsoft.ML.Data;
+﻿using System;
+using System.IO;
+using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Projections;
-using System;
-using System.IO;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 

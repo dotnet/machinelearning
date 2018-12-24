@@ -1,7 +1,6 @@
-﻿using Microsoft.ML.Data;
+﻿using System;
+using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Transforms;
-using System;
 
 namespace Microsoft.ML.Samples.Static
 {

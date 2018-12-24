@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML;
+using System;
+using System.Globalization;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
@@ -13,8 +14,6 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Learners;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Training;
-using System;
-using System.Globalization;
 
 namespace Microsoft.ML.Trainers.Online
 {

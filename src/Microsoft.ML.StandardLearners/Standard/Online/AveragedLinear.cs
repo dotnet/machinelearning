@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Numeric;
 using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Learners;
-using Microsoft.ML;
+using Microsoft.ML.Numeric;
+using Float = System.Single;
 
 // TODO: Check if it works properly if Averaged is set to false
 

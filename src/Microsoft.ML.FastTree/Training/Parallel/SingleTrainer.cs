@@ -5,8 +5,8 @@
 using System;
 using Microsoft.ML;
 using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Trainers.FastTree;
 
 [assembly: LoadableClass(typeof(Microsoft.ML.Trainers.FastTree.SingleTrainer),
     null, typeof(Microsoft.ML.Trainers.FastTree.SignatureParallelTrainer), "single")]
@@ -16,8 +16,8 @@ using Microsoft.ML.Internal.Utilities;
 namespace Microsoft.ML.Trainers.FastTree
 {
     using Microsoft.ML.Trainers.FastTree.Internal;
-    using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
     using LeafSplitCandidates = Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
 
     public sealed class SingleTrainer : IParallelTraining
     {

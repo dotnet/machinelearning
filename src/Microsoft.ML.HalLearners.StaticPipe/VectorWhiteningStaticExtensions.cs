@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Projections;
-using System.Collections.Generic;
 
 namespace Microsoft.ML.HalLearners.StaticPipe
 {

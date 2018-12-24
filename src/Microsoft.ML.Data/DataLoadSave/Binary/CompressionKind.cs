@@ -5,9 +5,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data.IO;
 using Microsoft.ML.Data.IO.Zlib;
 using Microsoft.ML.Internal.Utilities;
 

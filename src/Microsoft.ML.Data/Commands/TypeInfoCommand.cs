@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Data.Commands;
 using Microsoft.ML;
 using Microsoft.ML.Command;
-using Microsoft.ML.Data;
+using Microsoft.ML.Data.Commands;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Utilities;
 

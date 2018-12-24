@@ -4,7 +4,6 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
