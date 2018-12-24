@@ -8,8 +8,8 @@ using Microsoft.ML.Trainers.FastTree.Internal;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
     using LeafSplitCandidates = Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
 
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
