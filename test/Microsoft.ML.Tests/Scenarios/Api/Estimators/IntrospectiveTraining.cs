@@ -3,13 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Learners;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.TextAnalytics;
-using System.Collections.Generic;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api

@@ -4,7 +4,6 @@
 
 using System.IO;
 using System.Text;
-using Microsoft.ML;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.TestFramework

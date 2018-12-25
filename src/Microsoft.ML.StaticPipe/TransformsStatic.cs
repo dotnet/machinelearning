@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.ML.StaticPipe
 {

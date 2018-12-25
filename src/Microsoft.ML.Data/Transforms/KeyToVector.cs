@@ -2,20 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
 using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 [assembly: LoadableClass(KeyToVectorMappingTransformer.Summary, typeof(IDataTransform), typeof(KeyToVectorMappingTransformer), typeof(KeyToVectorMappingTransformer.Arguments), typeof(SignatureDataTransform),
     "Key To Vector Transform", KeyToVectorMappingTransformer.UserName, "KeyToVector", "ToVector", DocName = "transform/KeyToVectorTransform.md")]

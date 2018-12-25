@@ -2,21 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
+using System;
+using System.IO;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.Training;
 using Microsoft.ML.Trainers.PCA;
-using System;
-using System.IO;
-using System.Linq;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Arguments),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },

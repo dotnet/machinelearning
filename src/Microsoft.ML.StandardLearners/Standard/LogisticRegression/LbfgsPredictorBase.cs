@@ -5,14 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Training;
-using Microsoft.ML.Internal.Internallearn;
 
 namespace Microsoft.ML.Learners
 {

@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
@@ -9,10 +13,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 [assembly: LoadableClass(SaveDataCommand.Summary, typeof(SaveDataCommand), typeof(SaveDataCommand.Arguments), typeof(SignatureCommand),
     "Save Data", "SaveData", "save")]

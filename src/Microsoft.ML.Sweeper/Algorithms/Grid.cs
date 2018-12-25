@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Sweeper;
 

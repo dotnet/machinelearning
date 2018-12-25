@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Normalizers;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Microsoft.ML.StaticPipe
 {

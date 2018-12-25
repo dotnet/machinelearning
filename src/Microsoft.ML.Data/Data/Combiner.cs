@@ -4,10 +4,9 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Float = System.Single;
-
 using System;
 using System.Threading;
+using Float = System.Single;
 
 namespace Microsoft.ML.Data
 {

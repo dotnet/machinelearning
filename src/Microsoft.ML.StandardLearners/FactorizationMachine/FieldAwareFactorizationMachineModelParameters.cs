@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Data;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.FactorizationMachine;
 using Microsoft.ML.Internal.CpuMath;

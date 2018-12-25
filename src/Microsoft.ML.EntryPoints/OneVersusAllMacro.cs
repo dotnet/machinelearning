@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Transforms;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Training;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(OneVersusAllMacro), null, typeof(SignatureEntryPointModule), "OneVersusAllMacro")]

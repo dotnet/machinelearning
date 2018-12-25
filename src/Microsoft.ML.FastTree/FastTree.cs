@@ -2,25 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Calibrator;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML;
-using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data.Conversion;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Calibration;
-using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
-using Microsoft.ML.Model.Pfa;
-using Microsoft.ML.Training;
-using Microsoft.ML.TreePredictor;
-using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,6 +10,24 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Calibrator;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Training;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.TreePredictor;
+using Newtonsoft.Json.Linq;
 using Float = System.Single;
 
 // All of these reviews apply in general to fast tree and random forest implementations.

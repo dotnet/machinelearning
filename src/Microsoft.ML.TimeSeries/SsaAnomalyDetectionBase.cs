@@ -4,8 +4,8 @@
 
 using System;
 using System.IO;
-using Microsoft.ML.Data;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;

@@ -5,10 +5,9 @@
 using System;
 using System.Text;
 using Microsoft.ML;
-using Microsoft.ML.Data;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.Sweeper;
-
 using ResultProcessor = Microsoft.ML.Internal.Internallearn.ResultProcessor;
 
 [assembly: LoadableClass(typeof(InternalSweepResultEvaluator), typeof(InternalSweepResultEvaluator.Arguments), typeof(SignatureSweepResultEvaluator),

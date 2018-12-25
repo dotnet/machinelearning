@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
-using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 

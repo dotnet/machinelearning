@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 // REVIEW: As soon as we stop writing sizeof(Float), or when we retire the double builds, we can remove this.
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -10,9 +13,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using Float = System.Single;
 
 [assembly: LoadableClass(NAFilter.Summary, typeof(NAFilter), typeof(NAFilter.Arguments), typeof(SignatureDataTransform),

@@ -9,7 +9,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble.OutputCombiners;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(MultiStacking), typeof(MultiStacking.Arguments), typeof(SignatureCombiner),

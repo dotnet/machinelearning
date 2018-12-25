@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
@@ -9,9 +12,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 [assembly: LoadableClass(MissingValueHandlingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueHandlingTransformer), typeof(MissingValueHandlingTransformer.Arguments), typeof(SignatureDataTransform),
     MissingValueHandlingTransformer.FriendlyName, "NAHandleTransform", MissingValueHandlingTransformer.ShortName, "NA", DocName = "transform/NAHandle.md")]

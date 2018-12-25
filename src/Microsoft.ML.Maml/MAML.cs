@@ -14,7 +14,6 @@ using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 
 #if CORECLR
-using Microsoft.ML.Internal.Utilities;
 #endif
 
 #if !CORECLR

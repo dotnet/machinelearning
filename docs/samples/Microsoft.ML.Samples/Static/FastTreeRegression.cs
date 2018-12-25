@@ -1,8 +1,8 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.StaticPipe;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Samples.Static
 {

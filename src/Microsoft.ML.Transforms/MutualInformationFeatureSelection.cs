@@ -4,18 +4,18 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML;
-using Microsoft.ML.CommandLine;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(MutualInformationFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(MutualInformationFeatureSelectingEstimator), typeof(MutualInformationFeatureSelectingEstimator.Arguments), typeof(SignatureDataTransform),
     MutualInformationFeatureSelectingEstimator.UserName, "MutualInformationFeatureSelection", "MutualInformationFeatureSelectionTransform", MutualInformationFeatureSelectingEstimator.ShortName)]

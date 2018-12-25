@@ -2,10 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Calibrator;
-using Microsoft.ML.Data;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
 using Microsoft.ML;
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
@@ -14,12 +20,6 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 
 [assembly: LoadableClass(PlattCalibratorTrainer.Summary, typeof(PlattCalibratorTrainer), null, typeof(SignatureCalibrator),
     PlattCalibratorTrainer.UserName,

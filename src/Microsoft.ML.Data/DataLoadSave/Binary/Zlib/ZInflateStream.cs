@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using Microsoft.ML;
 
 namespace Microsoft.ML.Data.IO.Zlib
 {

@@ -4,21 +4,19 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML;
-using Microsoft.ML.CommandLine;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(TypeConvertingTransformer.Summary, typeof(IDataTransform), typeof(TypeConvertingTransformer), typeof(TypeConvertingTransformer.Arguments), typeof(SignatureDataTransform),
     TypeConvertingTransformer.UserName, TypeConvertingTransformer.ShortName, "ConvertTransform", DocName = "transform/ConvertTransform.md")]

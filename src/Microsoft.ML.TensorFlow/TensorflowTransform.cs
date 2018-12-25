@@ -5,18 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
 

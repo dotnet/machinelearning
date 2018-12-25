@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML;
-using Microsoft.ML.CommandLine;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(HashingTransformer.Summary, typeof(IDataTransform), typeof(HashingTransformer), typeof(HashingTransformer.Arguments), typeof(SignatureDataTransform),
     "Hash Transform", "HashTransform", "Hash", DocName = "transform/HashTransform.md")]

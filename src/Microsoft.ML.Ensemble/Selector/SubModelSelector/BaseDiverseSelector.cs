@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
-using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Training;
 

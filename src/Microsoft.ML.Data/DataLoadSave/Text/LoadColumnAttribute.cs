@@ -7,8 +7,8 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Data
 {
-// REVIEW: The Start field is decorated with [Obsolete], and this warning disables using Obsolete for this class.
-// The Start field should get deleted together with the Legacy API.
+    // REVIEW: The Start field is decorated with [Obsolete], and this warning disables using Obsolete for this class.
+    // The Start field should get deleted together with the Legacy API.
 #pragma warning disable 618
     /// <summary>
     /// Describes column information such as name and the source columns indices that this

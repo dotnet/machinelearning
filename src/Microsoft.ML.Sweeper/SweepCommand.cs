@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML;
+using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Sweeper;
-using Microsoft.ML.Command;
 
 [assembly: LoadableClass(SweepCommand.Summary, typeof(SweepCommand), typeof(SweepCommand.Arguments), typeof(SignatureCommand),
     SweepCommand.LoadName, SweepCommand.LoadName, DocName = "command/Sweep.md")]

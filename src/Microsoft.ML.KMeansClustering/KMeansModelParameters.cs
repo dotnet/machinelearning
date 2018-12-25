@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
+using System;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
@@ -12,9 +13,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.KMeans;
-using System;
-using System.IO;
-using System.Collections.Generic;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(KMeansModelParameters), null, typeof(SignatureLoadModel),
     "KMeans predictor", KMeansModelParameters.LoaderSignature)]

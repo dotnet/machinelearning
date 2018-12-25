@@ -4,17 +4,17 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Microsoft.ML.Data;
-using Microsoft.ML;
-using Microsoft.ML.CommandLine;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), typeof(RowShufflingTransformer.Arguments), typeof(SignatureDataTransform),
     "Shuffle Transform", "ShuffleTransform", "Shuffle", "shuf")]

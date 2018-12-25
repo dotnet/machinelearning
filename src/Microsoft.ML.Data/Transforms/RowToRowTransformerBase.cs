@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Model;
 using System;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
 {

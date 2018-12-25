@@ -1,12 +1,11 @@
-﻿using Microsoft.ML.Core.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 // Holds some classes that superficially represent classes, at least sufficiently to give the idea of the
 // statically typed columnar estimator helper API. As more "real" examples of the static functions get

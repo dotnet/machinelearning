@@ -2,18 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML;
-using Microsoft.ML.CommandLine;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Model;
-using Microsoft.ML.Model.Onnx;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +9,16 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(WordEmbeddingsExtractingTransformer.Summary, typeof(IDataTransform), typeof(WordEmbeddingsExtractingTransformer), typeof(WordEmbeddingsExtractingTransformer.Arguments),
     typeof(SignatureDataTransform), WordEmbeddingsExtractingTransformer.UserName, "WordEmbeddingsTransform", WordEmbeddingsExtractingTransformer.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]

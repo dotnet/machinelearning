@@ -5,7 +5,6 @@
 using System;
 using System.CodeDom.Compiler;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.EntryPoints.CodeGen
 {

@@ -2,22 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML;
-using Microsoft.ML.CommandLine;
-using Microsoft.ML.EntryPoints;
-using Microsoft.ML.Internal.Internallearn;
-using Microsoft.ML.Internal.Utilities;
-using Microsoft.ML.Learners;
-using Microsoft.ML.Model;
-using Microsoft.ML.Training;
-using Microsoft.ML.Trainers.HalLearners;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(OlsLinearRegressionTrainer.Summary, typeof(OlsLinearRegressionTrainer), typeof(OlsLinearRegressionTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },

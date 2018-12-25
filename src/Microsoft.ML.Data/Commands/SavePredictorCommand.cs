@@ -8,12 +8,11 @@ using Microsoft.ML;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+// REVIEW: Fix these namespaces.
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Tools;
-
-// REVIEW: Fix these namespaces.
-using Microsoft.ML.Internal.Internallearn;
 
 [assembly: LoadableClass(SavePredictorCommand.Summary, typeof(SavePredictorCommand), typeof(SavePredictorCommand.Arguments), typeof(SignatureCommand),
     "Save Predictor As", "SavePredictorAs", "SavePredictor", "SaveAs", "SaveModel")]

@@ -4,8 +4,6 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;

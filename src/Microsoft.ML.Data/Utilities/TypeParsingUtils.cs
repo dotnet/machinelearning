@@ -5,7 +5,6 @@
 using System;
 using System.Text;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Data
 {

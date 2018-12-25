@@ -5,7 +5,6 @@
 using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi

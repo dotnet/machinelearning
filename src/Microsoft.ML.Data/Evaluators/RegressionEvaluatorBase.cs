@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Data;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Internal.Utilities;
 

@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Data;
 using Microsoft.ML.Calibrator;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Internal.Internallearn
 {

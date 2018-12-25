@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 

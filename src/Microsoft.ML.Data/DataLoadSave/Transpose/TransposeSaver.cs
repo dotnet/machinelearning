@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 
 [assembly: LoadableClass(TransposeSaver.Summary, typeof(TransposeSaver), typeof(TransposeSaver.Arguments), typeof(SignatureDataSaver),
     "Transpose Saver", TransposeSaver.LoadName, "TransposedSaver", "Transpose", "Transposed", "trans")]

@@ -4,9 +4,8 @@
 
 using System.Collections.Generic;
 using Microsoft.ML.CommandLine;
-using Microsoft.ML.EntryPoints;
-using System.Linq;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 
 [assembly: EntryPointModule(typeof(MacroUtils))]
 

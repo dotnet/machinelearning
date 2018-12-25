@@ -4,18 +4,18 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Microsoft.ML.Data;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using Microsoft.ML;
+using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(SchemaBindablePredictorWrapper), null, typeof(SignatureLoadModel),

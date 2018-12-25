@@ -8,11 +8,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.ML.InternalCodeAnalyzer {
-    using System;
+namespace Microsoft.ML.InternalCodeAnalyzer
+{
     using System.Reflection;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>

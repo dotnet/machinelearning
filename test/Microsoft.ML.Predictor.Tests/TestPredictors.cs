@@ -9,10 +9,12 @@ using Float = System.Single;
 
 namespace Microsoft.ML.RunTests
 {
+    using System.Linq;
+    using System.Runtime.InteropServices;
     using Microsoft.ML;
     using Microsoft.ML.Data;
-    using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Ensemble;
+    using Microsoft.ML.EntryPoints;
     using Microsoft.ML.Internal.Utilities;
     using Microsoft.ML.Learners;
     using Microsoft.ML.LightGBM;
@@ -22,8 +24,6 @@ namespace Microsoft.ML.RunTests
     using Microsoft.ML.Trainers.Online;
     using Microsoft.ML.Trainers.SymSgd;
     using Microsoft.ML.Transforms.Categorical;
-    using System.Linq;
-    using System.Runtime.InteropServices;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;

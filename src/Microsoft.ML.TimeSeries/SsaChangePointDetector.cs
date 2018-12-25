@@ -5,14 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
-using Microsoft.ML.TimeSeriesProcessing;
 using Microsoft.ML.TimeSeries;
+using Microsoft.ML.TimeSeriesProcessing;
 using static Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(SsaChangePointDetector.Summary, typeof(IDataTransform), typeof(SsaChangePointDetector), typeof(SsaChangePointDetector.Arguments), typeof(SignatureDataTransform),

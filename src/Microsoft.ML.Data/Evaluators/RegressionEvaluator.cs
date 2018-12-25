@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-using Microsoft.ML.Data;
+using System;
+using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Model;
-using Microsoft.ML;
-using System.Collections.Generic;
-using System;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(RegressionEvaluator), typeof(RegressionEvaluator), typeof(RegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Regression Evaluator", RegressionEvaluator.LoadName, "Regression")]

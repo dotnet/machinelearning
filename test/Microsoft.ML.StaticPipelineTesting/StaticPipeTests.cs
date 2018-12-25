@@ -2,9 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Text;
 using Microsoft.ML.Data;
-using Microsoft.ML.HalLearners.StaticPipe;
 using Microsoft.ML.Data.IO;
+using Microsoft.ML.HalLearners.StaticPipe;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
@@ -12,12 +18,6 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.Transforms.Text.LatentDirichletAllocationTransformer;

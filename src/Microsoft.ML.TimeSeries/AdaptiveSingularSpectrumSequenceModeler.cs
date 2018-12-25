@@ -10,8 +10,8 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.TimeSeriesProcessing;
 using Microsoft.ML.TimeSeries;
+using Microsoft.ML.TimeSeriesProcessing;
 
 [assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModeler), typeof(AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
     "SSA Sequence Modeler",

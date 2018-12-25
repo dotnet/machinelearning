@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.LightGBM.StaticPipe;
+using System;
+using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.FactorizationMachine;
@@ -10,14 +11,13 @@ using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Learners;
 using Microsoft.ML.LightGBM;
+using Microsoft.ML.LightGBM.StaticPipe;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.Recommender;
-using System;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 

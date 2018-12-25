@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML;
 using Microsoft.ML.CommandLine;
+using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Ensemble.Selector;
 using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
 using Microsoft.ML.Ensemble.Selector.SubModelSelector;
