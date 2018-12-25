@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
-using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Transforms.Categorical;
+using System.IO;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -40,7 +39,7 @@ namespace Microsoft.ML.Benchmarks
                         " tr=OVA{p=AveragedPerceptron{iter=10}}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -55,7 +54,7 @@ namespace Microsoft.ML.Benchmarks
                     " tr=LightGBMMulticlass{iter=10}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, LightGbmMulticlassTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -71,7 +70,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -87,7 +86,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, SdcaMultiClassTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
     }
 
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Benchmarks
                 " out={" + _modelPath_Wiki + "}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -126,7 +125,7 @@ namespace Microsoft.ML.Benchmarks
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
     }
 }
