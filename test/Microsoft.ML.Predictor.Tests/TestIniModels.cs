@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Tools;
 using Xunit;
@@ -545,7 +546,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
             using (Stream iniStream = File.Create(modelIniPath))
             using (StreamWriter iniWriter = Utils.OpenWriter(iniStream))
-                model.LastTransformer.Model.SaveAsIni(iniWriter, roleMappedSchema);
+                ((ICanSaveInIniFormat)model.LastTransformer.Model).SaveAsIni(iniWriter, roleMappedSchema);
 
             var results = mlContext.Regression.Evaluate(data);
 
@@ -582,7 +583,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
 
             var calibratedPredictor = model.LastTransformer.Model as CalibratedPredictor;
-            var predictor = calibratedPredictor.SubPredictor as BinaryClassificationGamPredictor;
+            ICanSaveInIniFormat predictor = calibratedPredictor.SubPredictor as BinaryClassificationGamPredictor;
             string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
 
             using (Stream iniStream = File.Create(modelIniPath))
