@@ -57,17 +57,17 @@ namespace Microsoft.ML.FSharp.Tests
 open System
 open Microsoft.ML
 open Microsoft.ML.Legacy.Data
-open Microsoft.ML.Legacy.Transforms
 open Microsoft.ML.Legacy.Trainers
+open Microsoft.ML.Legacy.Transforms
 open Microsoft.ML.Data
 open Xunit
 
 module SmokeTest1 = 
 
     type SentimentData() =
-        [<Column(ordinal = "0"); DefaultValue>]
+        [<LoadColumn(columnIndex = 0); DefaultValue>]
         val mutable SentimentText : string
-        [<Column(ordinal = "1", name = "Label"); DefaultValue>]
+        [<LoadColumn(columnIndex = 1); ColumnName("Label"); DefaultValue>]
         val mutable Sentiment : float32
 
     type SentimentPrediction() =
@@ -81,14 +81,14 @@ module SmokeTest1 =
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
               typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
-              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
+              typeof<Microsoft.ML.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
         let pipeline = Legacy.LearningPipeline()
 
         pipeline.Add(
-            TextLoader(testDataPath).CreateFrom<SentimentData>(
+             Microsoft.ML.Legacy.Data.TextLoader(testDataPath).CreateFrom<SentimentData>(
                 Arguments = 
                     TextLoaderArguments(
                         HasHeader = true,
@@ -131,10 +131,10 @@ module SmokeTest2 =
 
     [<CLIMutable>]
     type SentimentData =
-        { [<Column(ordinal = "0")>] 
+        { [<LoadColumn(columnIndex = 0)>] 
           SentimentText : string
 
-          [<Column(ordinal = "1", name = "Label")>] 
+          [<LoadColumn(columnIndex = 1); ColumnName("Label")>] 
           Sentiment : float32 }
 
     [<CLIMutable>]
@@ -149,14 +149,14 @@ module SmokeTest2 =
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
               typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
-              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
+              typeof<Microsoft.ML.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
         let pipeline = Legacy.LearningPipeline()
 
         pipeline.Add(
-            TextLoader(testDataPath).CreateFrom<SentimentData>(
+             Microsoft.ML.Legacy.Data.TextLoader(testDataPath).CreateFrom<SentimentData>(
                 Arguments = 
                     TextLoaderArguments(
                         HasHeader = true,
@@ -197,10 +197,10 @@ module SmokeTest2 =
 module SmokeTest3 = 
 
     type SentimentData() =
-        [<Column(ordinal = "0")>] 
+        [<LoadColumn(columnIndex = 0)>] 
         member val SentimentText = "".AsMemory() with get, set
 
-        [<Column(ordinal = "1", name = "Label")>] 
+        [<LoadColumn(columnIndex = 1); ColumnName("Label")>] 
         member val Sentiment = 0.0 with get, set
 
     type SentimentPrediction() =
@@ -214,14 +214,14 @@ module SmokeTest3 =
         let _load  =
             [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
               typeof<Microsoft.ML.Trainers.FastTree.FastTree>;
-              typeof<Microsoft.ML.Runtime.EntryPoints.CVSplit>] // ML.EntryPoints
+              typeof<Microsoft.ML.EntryPoints.CVSplit>] // ML.EntryPoints
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
         let pipeline = Legacy.LearningPipeline()
 
         pipeline.Add(
-            TextLoader(testDataPath).CreateFrom<SentimentData>(
+             Microsoft.ML.Legacy.Data.TextLoader(testDataPath).CreateFrom<SentimentData>(
                 Arguments = 
                     TextLoaderArguments(
                         HasHeader = true,

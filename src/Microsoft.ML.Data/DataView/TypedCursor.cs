@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
@@ -192,23 +190,21 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Create a set of cursors with additional active columns.
         /// </summary>
-        /// <param name="consolidator">The consolidator for the original row cursors</param>
         /// <param name="additionalColumnsPredicate">Predicate that denotes which additional columns to include in the cursor,
         /// in addition to the columns that are needed for populating the <typeparamref name="TRow"/> object.</param>
         /// <param name="n">Number of cursors to create</param>
         /// <param name="rand">Random generator to use</param>
-        public RowCursor<TRow>[] GetCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> additionalColumnsPredicate, int n, Random rand)
+        public RowCursor<TRow>[] GetCursorSet(Func<int, bool> additionalColumnsPredicate, int n, Random rand)
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
             _host.CheckValueOrNull(rand);
 
             Func<int, bool> inputPredicate = col => _columnIndices.Contains(col) || additionalColumnsPredicate(col);
-            var inputs = _data.GetRowCursorSet(out consolidator, inputPredicate, n, rand);
+            var inputs = _data.GetRowCursorSet(inputPredicate, n, rand);
             _host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1)
-                inputs = DataViewUtils.CreateSplitCursors(out consolidator, _host, inputs[0], n);
+                inputs = DataViewUtils.CreateSplitCursors(_host, inputs[0], n);
             _host.AssertNonEmpty(inputs);
 
             return inputs

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     [BestFriend]
     internal abstract class BinFinderBase
@@ -273,7 +272,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     }
 }
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     // This needs to be large enough to represent a product of 2 ints without losing precision
     using EnergyType = System.Int64;
@@ -525,7 +524,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     }
 }
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     // Reasonable choices are Double and System.Int64.
     using EnergyType = System.Double;

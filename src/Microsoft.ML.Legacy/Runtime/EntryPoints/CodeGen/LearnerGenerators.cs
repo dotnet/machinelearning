@@ -6,10 +6,10 @@ using System;
 using System.CodeDom.Compiler;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
+namespace Microsoft.ML.EntryPoints.CodeGen
 {
     internal class LearnerImplGenerator : ImplGeneratorBase
     {

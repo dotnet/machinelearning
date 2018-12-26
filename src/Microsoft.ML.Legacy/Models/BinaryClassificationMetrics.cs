@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
-using static Microsoft.ML.Runtime.Data.MetricKinds;
+using Microsoft.ML.Data;
+using static Microsoft.ML.Data.MetricKinds;
 
 namespace Microsoft.ML.Legacy.Models
 {

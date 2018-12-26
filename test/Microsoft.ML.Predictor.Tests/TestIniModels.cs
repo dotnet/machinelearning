@@ -6,20 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
-    using TestLearners = TestLearnersBase;
 
 #if OLD_TESTS // REVIEW: Need to port the INI stuff.
     /// <summary>
@@ -583,7 +581,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
 
             var calibratedPredictor = model.LastTransformer.Model as CalibratedPredictor;
-            ICanSaveInIniFormat predictor = calibratedPredictor.SubPredictor as BinaryClassificationGamPredictor;
+            var predictor = calibratedPredictor.SubPredictor as ICanSaveInIniFormat;
             string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
 
             using (Stream iniStream = File.Create(modelIniPath))

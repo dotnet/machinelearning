@@ -8,1967 +8,1936 @@
 //------------------------------------------------------------------------------
 #pragma warning disable
 using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
-using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.CommandLine;
 
 namespace Microsoft.ML
 {
-    namespace Runtime
+    public sealed partial class Experiment
     {
-        public sealed partial class Experiment
+        [Obsolete]
+        public Microsoft.ML.Legacy.Data.CustomTextLoader.Output Add(Microsoft.ML.Legacy.Data.CustomTextLoader input)
         {
-            [Obsolete]
-            public Microsoft.ML.Legacy.Data.CustomTextLoader.Output Add(Microsoft.ML.Legacy.Data.CustomTextLoader input)
-            {
-                var output = new Microsoft.ML.Legacy.Data.CustomTextLoader.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Data.CustomTextLoader input, Microsoft.ML.Legacy.Data.CustomTextLoader.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.CustomTextLoader", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Data.DataViewReference.Output Add(Microsoft.ML.Legacy.Data.DataViewReference input)
-            {
-                var output = new Microsoft.ML.Legacy.Data.DataViewReference.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Data.DataViewReference input, Microsoft.ML.Legacy.Data.DataViewReference.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output Add(Microsoft.ML.Legacy.Data.IDataViewArrayConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Data.IDataViewArrayConverter input, Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.IDataViewArrayConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output Add(Microsoft.ML.Legacy.Data.PredictorModelArrayConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Data.PredictorModelArrayConverter input, Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.PredictorModelArrayConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Data.TextLoader.Output Add(Microsoft.ML.Legacy.Data.TextLoader input)
-            {
-                var output = new Microsoft.ML.Legacy.Data.TextLoader.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Data.TextLoader input, Microsoft.ML.Legacy.Data.TextLoader.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input, Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Data.TransformModelArrayConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input, Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.AnomalyDetectionEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble input, Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.AnomalyPipelineEnsemble", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input, Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.BinaryClassificationEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input, Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.BinaryCrossValidator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.BinaryEnsemble.Output Add(Microsoft.ML.Legacy.Models.BinaryEnsemble input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.BinaryEnsemble.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.BinaryEnsemble input, Microsoft.ML.Legacy.Models.BinaryEnsemble.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.BinaryEnsemble", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble input, Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.BinaryPipelineEnsemble", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output Add(Microsoft.ML.Legacy.Models.ClassificationEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.ClassificationEvaluator input, Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.ClassificationEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.ClusterEvaluator.Output Add(Microsoft.ML.Legacy.Models.ClusterEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.ClusterEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.ClusterEvaluator input, Microsoft.ML.Legacy.Models.ClusterEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.ClusterEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output Add(Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner input, Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.CrossValidationResultsCombiner", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.CrossValidator.Output Add(Microsoft.ML.Legacy.Models.CrossValidator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.CrossValidator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.CrossValidator input, Microsoft.ML.Legacy.Models.CrossValidator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.CrossValidator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output Add(Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter input, Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.CrossValidatorDatasetSplitter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.DatasetTransformer.Output Add(Microsoft.ML.Legacy.Models.DatasetTransformer input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.DatasetTransformer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.DatasetTransformer input, Microsoft.ML.Legacy.Models.DatasetTransformer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.DatasetTransformer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.EnsembleSummary.Output Add(Microsoft.ML.Legacy.Models.EnsembleSummary input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.EnsembleSummary.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.EnsembleSummary input, Microsoft.ML.Legacy.Models.EnsembleSummary.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.EnsembleSummary", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output Add(Microsoft.ML.Legacy.Models.FixedPlattCalibrator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.FixedPlattCalibrator input, Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.FixedPlattCalibrator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble input, Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.MultiClassPipelineEnsemble", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator input, Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.MultiOutputRegressionEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.NaiveCalibrator.Output Add(Microsoft.ML.Legacy.Models.NaiveCalibrator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.NaiveCalibrator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.NaiveCalibrator input, Microsoft.ML.Legacy.Models.NaiveCalibrator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.NaiveCalibrator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.OneVersusAll.Output Add(Microsoft.ML.Legacy.Models.OneVersusAll input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.OneVersusAll.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.OneVersusAll input, Microsoft.ML.Legacy.Models.OneVersusAll.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.OneVersusAll", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.OnnxConverter.Output Add(Microsoft.ML.Legacy.Models.OnnxConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.OnnxConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.OnnxConverter input, Microsoft.ML.Legacy.Models.OnnxConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.OnnxConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.OvaModelCombiner.Output Add(Microsoft.ML.Legacy.Models.OvaModelCombiner input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.OvaModelCombiner.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.OvaModelCombiner input, Microsoft.ML.Legacy.Models.OvaModelCombiner.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.OvaModelCombiner", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.PAVCalibrator.Output Add(Microsoft.ML.Legacy.Models.PAVCalibrator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.PAVCalibrator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.PAVCalibrator input, Microsoft.ML.Legacy.Models.PAVCalibrator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.PAVCalibrator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.PlattCalibrator.Output Add(Microsoft.ML.Legacy.Models.PlattCalibrator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.PlattCalibrator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.PlattCalibrator input, Microsoft.ML.Legacy.Models.PlattCalibrator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.PlattCalibrator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator input, Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.QuantileRegressionEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.RankerEvaluator.Output Add(Microsoft.ML.Legacy.Models.RankerEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.RankerEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.RankerEvaluator input, Microsoft.ML.Legacy.Models.RankerEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.RankerEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.RegressionEnsemble.Output Add(Microsoft.ML.Legacy.Models.RegressionEnsemble input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.RegressionEnsemble.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.RegressionEnsemble input, Microsoft.ML.Legacy.Models.RegressionEnsemble.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.RegressionEnsemble", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.RegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.RegressionEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.RegressionEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.RegressionEvaluator input, Microsoft.ML.Legacy.Models.RegressionEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.RegressionEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble input, Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.RegressionPipelineEnsemble", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.Summarizer.Output Add(Microsoft.ML.Legacy.Models.Summarizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.Summarizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.Summarizer input, Microsoft.ML.Legacy.Models.Summarizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.Summarizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input, Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.TrainTestBinaryEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output Add(Microsoft.ML.Legacy.Models.TrainTestEvaluator input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.TrainTestEvaluator input, Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.TrainTestEvaluator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage input)
-            {
-                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage input, Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage.Output output)
-            {
-                _jsonNodes.Add(Serialize("TimeSeriesProcessing.ExponentialAverage", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector input)
-            {
-                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector input, Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector.Output output)
-            {
-                _jsonNodes.Add(Serialize("TimeSeriesProcessing.IidChangePointDetector", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector input)
-            {
-                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector input, Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector.Output output)
-            {
-                _jsonNodes.Add(Serialize("TimeSeriesProcessing.IidSpikeDetector", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform input)
-            {
-                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform input, Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform.Output output)
-            {
-                _jsonNodes.Add(Serialize("TimeSeriesProcessing.PercentileThresholdTransform", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform input)
-            {
-                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform input, Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform.Output output)
-            {
-                _jsonNodes.Add(Serialize("TimeSeriesProcessing.PValueTransform", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform input)
-            {
-                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform input, Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform.Output output)
-            {
-                _jsonNodes.Add(Serialize("TimeSeriesProcessing.SlidingWindowTransform", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector input)
-            {
-                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector input, Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector.Output output)
-            {
-                _jsonNodes.Add(Serialize("TimeSeriesProcessing.SsaChangePointDetector", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector input)
-            {
-                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector input, Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector.Output output)
-            {
-                _jsonNodes.Add(Serialize("TimeSeriesProcessing.SsaSpikeDetector", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier input, Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.AveragedPerceptronBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier input, Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.EnsembleBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleClassification input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.EnsembleClassification input, Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.EnsembleClassification", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleRegression input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.EnsembleRegression input, Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.EnsembleRegression", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.FastForestBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastForestRegressor input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.FastForestRegressor input, Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.FastForestRegressor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.FastTreeBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeRanker input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.FastTreeRanker input, Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.FastTreeRanker", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeRegressor input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.FastTreeRegressor input, Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.FastTreeRegressor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor input, Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.FastTreeTweedieRegressor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.FieldAwareFactorizationMachineBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier input, Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.GeneralizedAdditiveModelBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor input, Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.GeneralizedAdditiveModelRegressor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output Add(Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer input, Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.KMeansPlusPlusClusterer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.LightGbmBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.LightGbmClassifier input, Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.LightGbmClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmRanker input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.LightGbmRanker input, Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.LightGbmRanker", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmRegressor input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.LightGbmRegressor input, Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.LightGbmRegressor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.LinearSvmBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.LogisticRegressionBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier input, Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.LogisticRegressionClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output Add(Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier input, Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.NaiveBayesClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output Add(Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor input, Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.OnlineGradientDescentRegressor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output Add(Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor input, Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.OrdinaryLeastSquaresRegressor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector input, Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.PcaAnomalyDetector", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output Add(Microsoft.ML.Legacy.Trainers.PoissonRegressor input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.PoissonRegressor input, Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.PoissonRegressor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentRegressor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier input, Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.StochasticGradientDescentBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier input)
-            {
-                var output = new Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier input, Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Trainers.SymSgdBinaryClassifier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output Add(Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler input, Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ApproximateBootstrapSampler", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output Add(Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer input, Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.BinaryPredictionScoreColumnsRenamer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.BinNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.BinNormalizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.BinNormalizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.BinNormalizer input, Microsoft.ML.Legacy.Transforms.BinNormalizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.BinNormalizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output Add(Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer input, Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.CategoricalHashOneHotVectorizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output Add(Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer input, Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.CategoricalOneHotVectorizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output Add(Microsoft.ML.Legacy.Transforms.CharacterTokenizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.CharacterTokenizer input, Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.CharacterTokenizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output Add(Microsoft.ML.Legacy.Transforms.ColumnConcatenator input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ColumnConcatenator input, Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ColumnConcatenator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ColumnCopier.Output Add(Microsoft.ML.Legacy.Transforms.ColumnCopier input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ColumnCopier.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ColumnCopier input, Microsoft.ML.Legacy.Transforms.ColumnCopier.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ColumnCopier", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ColumnSelector.Output Add(Microsoft.ML.Legacy.Transforms.ColumnSelector input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ColumnSelector.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ColumnSelector input, Microsoft.ML.Legacy.Transforms.ColumnSelector.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ColumnSelector", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output Add(Microsoft.ML.Legacy.Transforms.ColumnTypeConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ColumnTypeConverter input, Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ColumnTypeConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output Add(Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId input, Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.CombinerByContiguousGroupId", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.ConditionalNormalizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ConditionalNormalizer input, Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ConditionalNormalizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.DataCache.Output Add(Microsoft.ML.Legacy.Transforms.DataCache input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.DataCache.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.DataCache input, Microsoft.ML.Legacy.Transforms.DataCache.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.DataCache", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.DatasetScorer.Output Add(Microsoft.ML.Legacy.Transforms.DatasetScorer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.DatasetScorer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.DatasetScorer input, Microsoft.ML.Legacy.Transforms.DatasetScorer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.DatasetScorer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output Add(Microsoft.ML.Legacy.Transforms.DatasetTransformScorer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.DatasetTransformScorer input, Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.DatasetTransformScorer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.Dictionarizer.Output Add(Microsoft.ML.Legacy.Transforms.Dictionarizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.Dictionarizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.Dictionarizer input, Microsoft.ML.Legacy.Transforms.Dictionarizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.Dictionarizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output Add(Microsoft.ML.Legacy.Transforms.FeatureCombiner input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.FeatureCombiner input, Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.FeatureCombiner", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount input, Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.FeatureSelectorByCount", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation input, Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.FeatureSelectorByMutualInformation", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer input, Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.GlobalContrastNormalizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.HashConverter.Output Add(Microsoft.ML.Legacy.Transforms.HashConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.HashConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.HashConverter input, Microsoft.ML.Legacy.Transforms.HashConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.HashConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output Add(Microsoft.ML.Legacy.Transforms.ImageGrayscale input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ImageGrayscale input, Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ImageGrayscale", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ImageLoader.Output Add(Microsoft.ML.Legacy.Transforms.ImageLoader input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ImageLoader.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ImageLoader input, Microsoft.ML.Legacy.Transforms.ImageLoader.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ImageLoader", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output Add(Microsoft.ML.Legacy.Transforms.ImagePixelExtractor input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ImagePixelExtractor input, Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ImagePixelExtractor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ImageResizer.Output Add(Microsoft.ML.Legacy.Transforms.ImageResizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ImageResizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ImageResizer input, Microsoft.ML.Legacy.Transforms.ImageResizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ImageResizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output Add(Microsoft.ML.Legacy.Transforms.KeyToTextConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.KeyToTextConverter input, Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.KeyToTextConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output Add(Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter input, Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.LabelColumnKeyBooleanConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.LabelIndicator.Output Add(Microsoft.ML.Legacy.Transforms.LabelIndicator input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.LabelIndicator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.LabelIndicator input, Microsoft.ML.Legacy.Transforms.LabelIndicator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.LabelIndicator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output Add(Microsoft.ML.Legacy.Transforms.LabelToFloatConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.LabelToFloatConverter input, Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.LabelToFloatConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.LightLda.Output Add(Microsoft.ML.Legacy.Transforms.LightLda input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.LightLda.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.LightLda input, Microsoft.ML.Legacy.Transforms.LightLda.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.LightLda", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer input, Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.LogMeanVarianceNormalizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.LpNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.LpNormalizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.LpNormalizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.LpNormalizer input, Microsoft.ML.Legacy.Transforms.LpNormalizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.LpNormalizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner input, Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ManyHeterogeneousModelCombiner", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer input, Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.MeanVarianceNormalizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.MinMaxNormalizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.MinMaxNormalizer input, Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.MinMaxNormalizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueHandler input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.MissingValueHandler input, Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.MissingValueHandler", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueIndicator input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.MissingValueIndicator input, Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.MissingValueIndicator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output Add(Microsoft.ML.Legacy.Transforms.MissingValuesDropper input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.MissingValuesDropper input, Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.MissingValuesDropper", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output Add(Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper input, Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.MissingValuesRowDropper", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor input, Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.MissingValueSubstitutor", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.ModelCombiner input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ModelCombiner.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ModelCombiner input, Microsoft.ML.Legacy.Transforms.ModelCombiner.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ModelCombiner", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.NGramTranslator.Output Add(Microsoft.ML.Legacy.Transforms.NGramTranslator input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.NGramTranslator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.NGramTranslator input, Microsoft.ML.Legacy.Transforms.NGramTranslator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.NGramTranslator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.NoOperation.Output Add(Microsoft.ML.Legacy.Transforms.NoOperation input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.NoOperation.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.NoOperation input, Microsoft.ML.Legacy.Transforms.NoOperation.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.NoOperation", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output Add(Microsoft.ML.Legacy.Transforms.OptionalColumnCreator input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.OptionalColumnCreator input, Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.OptionalColumnCreator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.PcaCalculator.Output Add(Microsoft.ML.Legacy.Transforms.PcaCalculator input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.PcaCalculator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.PcaCalculator input, Microsoft.ML.Legacy.Transforms.PcaCalculator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.PcaCalculator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output Add(Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter input, Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.PredictedLabelColumnOriginalValueConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output Add(Microsoft.ML.Legacy.Transforms.RandomNumberGenerator input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.RandomNumberGenerator input, Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.RandomNumberGenerator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowRangeFilter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.RowRangeFilter input, Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.RowRangeFilter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter input, Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.RowSkipAndTakeFilter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowSkipFilter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.RowSkipFilter input, Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.RowSkipFilter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowTakeFilter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.RowTakeFilter input, Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.RowTakeFilter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output Add(Microsoft.ML.Legacy.Transforms.ScoreColumnSelector input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.ScoreColumnSelector input, Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ScoreColumnSelector", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.Scorer.Output Add(Microsoft.ML.Legacy.Transforms.Scorer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.Scorer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.Scorer input, Microsoft.ML.Legacy.Transforms.Scorer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.Scorer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.Segregator.Output Add(Microsoft.ML.Legacy.Transforms.Segregator input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.Segregator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.Segregator input, Microsoft.ML.Legacy.Transforms.Segregator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.Segregator", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output Add(Microsoft.ML.Legacy.Transforms.SentimentAnalyzer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.SentimentAnalyzer input, Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.SentimentAnalyzer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output Add(Microsoft.ML.Legacy.Transforms.TensorFlowScorer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.TensorFlowScorer input, Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.TensorFlowScorer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output Add(Microsoft.ML.Legacy.Transforms.TextFeaturizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.TextFeaturizer input, Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.TextFeaturizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output Add(Microsoft.ML.Legacy.Transforms.TextToKeyConverter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.TextToKeyConverter input, Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.TextToKeyConverter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output Add(Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter input, Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.TrainTestDatasetSplitter", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output Add(Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer input, Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.TreeLeafFeaturizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner input, Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.TwoHeterogeneousModelCombiner", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.VectorToImage.Output Add(Microsoft.ML.Legacy.Transforms.VectorToImage input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.VectorToImage.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.VectorToImage input, Microsoft.ML.Legacy.Transforms.VectorToImage.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.VectorToImage", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output Add(Microsoft.ML.Legacy.Transforms.WordEmbeddings input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.WordEmbeddings input, Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.WordEmbeddings", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.WordTokenizer.Output Add(Microsoft.ML.Legacy.Transforms.WordTokenizer input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.WordTokenizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Transforms.WordTokenizer input, Microsoft.ML.Legacy.Transforms.WordTokenizer.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.WordTokenizer", input, output));
-            }
-
+            var output = new Microsoft.ML.Legacy.Data.CustomTextLoader.Output();
+            Add(input, output);
+            return output;
         }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Data.CustomTextLoader input, Microsoft.ML.Legacy.Data.CustomTextLoader.Output output)
+        {
+            _jsonNodes.Add(Serialize("Data.CustomTextLoader", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Data.DataViewReference.Output Add(Microsoft.ML.Legacy.Data.DataViewReference input)
+        {
+            var output = new Microsoft.ML.Legacy.Data.DataViewReference.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Data.DataViewReference input, Microsoft.ML.Legacy.Data.DataViewReference.Output output)
+        {
+            _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output Add(Microsoft.ML.Legacy.Data.IDataViewArrayConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Data.IDataViewArrayConverter input, Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Data.IDataViewArrayConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output Add(Microsoft.ML.Legacy.Data.PredictorModelArrayConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Data.PredictorModelArrayConverter input, Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Data.PredictorModelArrayConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Data.TextLoader.Output Add(Microsoft.ML.Legacy.Data.TextLoader input)
+        {
+            var output = new Microsoft.ML.Legacy.Data.TextLoader.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Data.TextLoader input, Microsoft.ML.Legacy.Data.TextLoader.Output output)
+        {
+            _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input, Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.AnomalyDetectionEvaluator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble input, Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.AnomalyPipelineEnsemble", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input, Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.BinaryClassificationEvaluator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.BinaryEnsemble.Output Add(Microsoft.ML.Legacy.Models.BinaryEnsemble input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.BinaryEnsemble.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.BinaryEnsemble input, Microsoft.ML.Legacy.Models.BinaryEnsemble.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.BinaryEnsemble", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble input, Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.BinaryPipelineEnsemble", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output Add(Microsoft.ML.Legacy.Models.ClassificationEvaluator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.ClassificationEvaluator input, Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.ClassificationEvaluator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.ClusterEvaluator.Output Add(Microsoft.ML.Legacy.Models.ClusterEvaluator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.ClusterEvaluator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.ClusterEvaluator input, Microsoft.ML.Legacy.Models.ClusterEvaluator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.ClusterEvaluator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output Add(Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner input, Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.CrossValidationResultsCombiner", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.CrossValidator.Output Add(Microsoft.ML.Legacy.Models.CrossValidator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.CrossValidator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.CrossValidator input, Microsoft.ML.Legacy.Models.CrossValidator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.CrossValidator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output Add(Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter input, Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.CrossValidatorDatasetSplitter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.DatasetTransformer.Output Add(Microsoft.ML.Legacy.Models.DatasetTransformer input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.DatasetTransformer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.DatasetTransformer input, Microsoft.ML.Legacy.Models.DatasetTransformer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.DatasetTransformer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.EnsembleSummary.Output Add(Microsoft.ML.Legacy.Models.EnsembleSummary input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.EnsembleSummary.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.EnsembleSummary input, Microsoft.ML.Legacy.Models.EnsembleSummary.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.EnsembleSummary", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output Add(Microsoft.ML.Legacy.Models.FixedPlattCalibrator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.FixedPlattCalibrator input, Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.FixedPlattCalibrator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble input, Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.MultiClassPipelineEnsemble", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator input, Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.MultiOutputRegressionEvaluator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.NaiveCalibrator.Output Add(Microsoft.ML.Legacy.Models.NaiveCalibrator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.NaiveCalibrator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.NaiveCalibrator input, Microsoft.ML.Legacy.Models.NaiveCalibrator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.NaiveCalibrator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.OneVersusAll.Output Add(Microsoft.ML.Legacy.Models.OneVersusAll input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.OneVersusAll.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.OneVersusAll input, Microsoft.ML.Legacy.Models.OneVersusAll.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.OneVersusAll", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.OnnxConverter.Output Add(Microsoft.ML.Legacy.Models.OnnxConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.OnnxConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.OnnxConverter input, Microsoft.ML.Legacy.Models.OnnxConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.OnnxConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.OvaModelCombiner.Output Add(Microsoft.ML.Legacy.Models.OvaModelCombiner input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.OvaModelCombiner.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.OvaModelCombiner input, Microsoft.ML.Legacy.Models.OvaModelCombiner.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.OvaModelCombiner", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.PAVCalibrator.Output Add(Microsoft.ML.Legacy.Models.PAVCalibrator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.PAVCalibrator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.PAVCalibrator input, Microsoft.ML.Legacy.Models.PAVCalibrator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.PAVCalibrator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.PlattCalibrator.Output Add(Microsoft.ML.Legacy.Models.PlattCalibrator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.PlattCalibrator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.PlattCalibrator input, Microsoft.ML.Legacy.Models.PlattCalibrator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.PlattCalibrator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator input, Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.QuantileRegressionEvaluator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.RankerEvaluator.Output Add(Microsoft.ML.Legacy.Models.RankerEvaluator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.RankerEvaluator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.RankerEvaluator input, Microsoft.ML.Legacy.Models.RankerEvaluator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.RankerEvaluator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.RegressionEnsemble.Output Add(Microsoft.ML.Legacy.Models.RegressionEnsemble input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.RegressionEnsemble.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.RegressionEnsemble input, Microsoft.ML.Legacy.Models.RegressionEnsemble.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.RegressionEnsemble", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.RegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.RegressionEvaluator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.RegressionEvaluator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.RegressionEvaluator input, Microsoft.ML.Legacy.Models.RegressionEvaluator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.RegressionEvaluator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble input, Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.RegressionPipelineEnsemble", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.Summarizer.Output Add(Microsoft.ML.Legacy.Models.Summarizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.Summarizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.Summarizer input, Microsoft.ML.Legacy.Models.Summarizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.Summarizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output Add(Microsoft.ML.Legacy.Models.TrainTestEvaluator input)
+        {
+            var output = new Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Models.TrainTestEvaluator input, Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Models.TrainTestEvaluator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.ExponentialAverage.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.ExponentialAverage input)
+        {
+            var output = new Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.ExponentialAverage.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.ExponentialAverage input, Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.ExponentialAverage.Output output)
+        {
+            _jsonNodes.Add(Serialize("TimeSeriesProcessingEntryPoints.ExponentialAverage", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidChangePointDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidChangePointDetector input)
+        {
+            var output = new Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidChangePointDetector.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidChangePointDetector input, Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidChangePointDetector.Output output)
+        {
+            _jsonNodes.Add(Serialize("TimeSeriesProcessingEntryPoints.IidChangePointDetector", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidSpikeDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidSpikeDetector input)
+        {
+            var output = new Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidSpikeDetector.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidSpikeDetector input, Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.IidSpikeDetector.Output output)
+        {
+            _jsonNodes.Add(Serialize("TimeSeriesProcessingEntryPoints.IidSpikeDetector", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PercentileThresholdTransform.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PercentileThresholdTransform input)
+        {
+            var output = new Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PercentileThresholdTransform.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PercentileThresholdTransform input, Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PercentileThresholdTransform.Output output)
+        {
+            _jsonNodes.Add(Serialize("TimeSeriesProcessingEntryPoints.PercentileThresholdTransform", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PValueTransform.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PValueTransform input)
+        {
+            var output = new Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PValueTransform.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PValueTransform input, Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.PValueTransform.Output output)
+        {
+            _jsonNodes.Add(Serialize("TimeSeriesProcessingEntryPoints.PValueTransform", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SlidingWindowTransform.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SlidingWindowTransform input)
+        {
+            var output = new Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SlidingWindowTransform.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SlidingWindowTransform input, Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SlidingWindowTransform.Output output)
+        {
+            _jsonNodes.Add(Serialize("TimeSeriesProcessingEntryPoints.SlidingWindowTransform", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaChangePointDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaChangePointDetector input)
+        {
+            var output = new Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaChangePointDetector.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaChangePointDetector input, Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaChangePointDetector.Output output)
+        {
+            _jsonNodes.Add(Serialize("TimeSeriesProcessingEntryPoints.SsaChangePointDetector", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaSpikeDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaSpikeDetector input)
+        {
+            var output = new Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaSpikeDetector.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaSpikeDetector input, Microsoft.ML.Legacy.TimeSeriesProcessingEntryPoints.SsaSpikeDetector.Output output)
+        {
+            _jsonNodes.Add(Serialize("TimeSeriesProcessingEntryPoints.SsaSpikeDetector", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier input, Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.AveragedPerceptronBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier input, Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.EnsembleBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleClassification input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.EnsembleClassification input, Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.EnsembleClassification", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleRegression input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.EnsembleRegression input, Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.EnsembleRegression", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.FastForestBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastForestRegressor input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.FastForestRegressor input, Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.FastForestRegressor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.FastTreeBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeRanker input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.FastTreeRanker input, Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.FastTreeRanker", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeRegressor input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.FastTreeRegressor input, Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.FastTreeRegressor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor input, Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.FastTreeTweedieRegressor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.FieldAwareFactorizationMachineBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier input, Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.GeneralizedAdditiveModelBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor input, Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.GeneralizedAdditiveModelRegressor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output Add(Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer input, Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.KMeansPlusPlusClusterer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.LightGbmBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.LightGbmClassifier input, Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.LightGbmClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmRanker input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.LightGbmRanker input, Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.LightGbmRanker", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmRegressor input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.LightGbmRegressor input, Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.LightGbmRegressor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.LinearSvmBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.LogisticRegressionBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier input, Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.LogisticRegressionClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output Add(Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier input, Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.NaiveBayesClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output Add(Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor input, Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.OnlineGradientDescentRegressor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output Add(Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor input, Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.OrdinaryLeastSquaresRegressor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector input, Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.PcaAnomalyDetector", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output Add(Microsoft.ML.Legacy.Trainers.PoissonRegressor input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.PoissonRegressor input, Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.PoissonRegressor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentRegressor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier input, Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.StochasticGradientDescentBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier input)
+        {
+            var output = new Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier input, Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Trainers.SymSgdBinaryClassifier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output Add(Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler input, Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ApproximateBootstrapSampler", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output Add(Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer input, Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.BinaryPredictionScoreColumnsRenamer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.BinNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.BinNormalizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.BinNormalizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.BinNormalizer input, Microsoft.ML.Legacy.Transforms.BinNormalizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.BinNormalizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output Add(Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer input, Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.CategoricalHashOneHotVectorizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output Add(Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer input, Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.CategoricalOneHotVectorizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output Add(Microsoft.ML.Legacy.Transforms.CharacterTokenizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.CharacterTokenizer input, Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.CharacterTokenizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output Add(Microsoft.ML.Legacy.Transforms.ColumnConcatenator input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ColumnConcatenator input, Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ColumnConcatenator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ColumnCopier.Output Add(Microsoft.ML.Legacy.Transforms.ColumnCopier input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ColumnCopier.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ColumnCopier input, Microsoft.ML.Legacy.Transforms.ColumnCopier.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ColumnCopier", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ColumnSelector.Output Add(Microsoft.ML.Legacy.Transforms.ColumnSelector input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ColumnSelector.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ColumnSelector input, Microsoft.ML.Legacy.Transforms.ColumnSelector.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ColumnSelector", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output Add(Microsoft.ML.Legacy.Transforms.ColumnTypeConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ColumnTypeConverter input, Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ColumnTypeConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output Add(Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId input, Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.CombinerByContiguousGroupId", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.ConditionalNormalizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ConditionalNormalizer input, Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ConditionalNormalizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.DataCache.Output Add(Microsoft.ML.Legacy.Transforms.DataCache input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.DataCache.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.DataCache input, Microsoft.ML.Legacy.Transforms.DataCache.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.DataCache", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.DatasetScorer.Output Add(Microsoft.ML.Legacy.Transforms.DatasetScorer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.DatasetScorer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.DatasetScorer input, Microsoft.ML.Legacy.Transforms.DatasetScorer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.DatasetScorer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output Add(Microsoft.ML.Legacy.Transforms.DatasetTransformScorer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.DatasetTransformScorer input, Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.DatasetTransformScorer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.Dictionarizer.Output Add(Microsoft.ML.Legacy.Transforms.Dictionarizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.Dictionarizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.Dictionarizer input, Microsoft.ML.Legacy.Transforms.Dictionarizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.Dictionarizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output Add(Microsoft.ML.Legacy.Transforms.FeatureCombiner input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.FeatureCombiner input, Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.FeatureCombiner", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer.Output Add(Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer input, Microsoft.ML.Legacy.Transforms.FeatureContributionCalculationTransformer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.FeatureContributionCalculationTransformer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount input, Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.FeatureSelectorByCount", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation input, Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.FeatureSelectorByMutualInformation", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer input, Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.GlobalContrastNormalizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.HashConverter.Output Add(Microsoft.ML.Legacy.Transforms.HashConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.HashConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.HashConverter input, Microsoft.ML.Legacy.Transforms.HashConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.HashConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output Add(Microsoft.ML.Legacy.Transforms.ImageGrayscale input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ImageGrayscale input, Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ImageGrayscale", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ImageLoader.Output Add(Microsoft.ML.Legacy.Transforms.ImageLoader input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ImageLoader.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ImageLoader input, Microsoft.ML.Legacy.Transforms.ImageLoader.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ImageLoader", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output Add(Microsoft.ML.Legacy.Transforms.ImagePixelExtractor input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ImagePixelExtractor input, Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ImagePixelExtractor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ImageResizer.Output Add(Microsoft.ML.Legacy.Transforms.ImageResizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ImageResizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ImageResizer input, Microsoft.ML.Legacy.Transforms.ImageResizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ImageResizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output Add(Microsoft.ML.Legacy.Transforms.KeyToTextConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.KeyToTextConverter input, Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.KeyToTextConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output Add(Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter input, Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.LabelColumnKeyBooleanConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.LabelIndicator.Output Add(Microsoft.ML.Legacy.Transforms.LabelIndicator input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.LabelIndicator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.LabelIndicator input, Microsoft.ML.Legacy.Transforms.LabelIndicator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.LabelIndicator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output Add(Microsoft.ML.Legacy.Transforms.LabelToFloatConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.LabelToFloatConverter input, Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.LabelToFloatConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.LightLda.Output Add(Microsoft.ML.Legacy.Transforms.LightLda input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.LightLda.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.LightLda input, Microsoft.ML.Legacy.Transforms.LightLda.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.LightLda", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer input, Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.LogMeanVarianceNormalizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.LpNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.LpNormalizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.LpNormalizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.LpNormalizer input, Microsoft.ML.Legacy.Transforms.LpNormalizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.LpNormalizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner input, Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ManyHeterogeneousModelCombiner", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer input, Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.MeanVarianceNormalizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.MinMaxNormalizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.MinMaxNormalizer input, Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.MinMaxNormalizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueHandler input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.MissingValueHandler input, Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.MissingValueHandler", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueIndicator input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.MissingValueIndicator input, Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.MissingValueIndicator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output Add(Microsoft.ML.Legacy.Transforms.MissingValuesDropper input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.MissingValuesDropper input, Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.MissingValuesDropper", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output Add(Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper input, Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.MissingValuesRowDropper", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor input, Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.MissingValueSubstitutor", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.ModelCombiner input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ModelCombiner.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ModelCombiner input, Microsoft.ML.Legacy.Transforms.ModelCombiner.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ModelCombiner", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.NGramTranslator.Output Add(Microsoft.ML.Legacy.Transforms.NGramTranslator input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.NGramTranslator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.NGramTranslator input, Microsoft.ML.Legacy.Transforms.NGramTranslator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.NGramTranslator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.NoOperation.Output Add(Microsoft.ML.Legacy.Transforms.NoOperation input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.NoOperation.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.NoOperation input, Microsoft.ML.Legacy.Transforms.NoOperation.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.NoOperation", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output Add(Microsoft.ML.Legacy.Transforms.OptionalColumnCreator input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.OptionalColumnCreator input, Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.OptionalColumnCreator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.PcaCalculator.Output Add(Microsoft.ML.Legacy.Transforms.PcaCalculator input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.PcaCalculator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.PcaCalculator input, Microsoft.ML.Legacy.Transforms.PcaCalculator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.PcaCalculator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output Add(Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter input, Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.PredictedLabelColumnOriginalValueConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output Add(Microsoft.ML.Legacy.Transforms.RandomNumberGenerator input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.RandomNumberGenerator input, Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.RandomNumberGenerator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowRangeFilter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.RowRangeFilter input, Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.RowRangeFilter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter input, Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.RowSkipAndTakeFilter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowSkipFilter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.RowSkipFilter input, Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.RowSkipFilter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowTakeFilter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.RowTakeFilter input, Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.RowTakeFilter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output Add(Microsoft.ML.Legacy.Transforms.ScoreColumnSelector input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.ScoreColumnSelector input, Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.ScoreColumnSelector", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.Scorer.Output Add(Microsoft.ML.Legacy.Transforms.Scorer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.Scorer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.Scorer input, Microsoft.ML.Legacy.Transforms.Scorer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.Scorer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.Segregator.Output Add(Microsoft.ML.Legacy.Transforms.Segregator input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.Segregator.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.Segregator input, Microsoft.ML.Legacy.Transforms.Segregator.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.Segregator", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output Add(Microsoft.ML.Legacy.Transforms.SentimentAnalyzer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.SentimentAnalyzer input, Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.SentimentAnalyzer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output Add(Microsoft.ML.Legacy.Transforms.TensorFlowScorer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.TensorFlowScorer input, Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.TensorFlowScorer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output Add(Microsoft.ML.Legacy.Transforms.TextFeaturizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.TextFeaturizer input, Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.TextFeaturizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output Add(Microsoft.ML.Legacy.Transforms.TextToKeyConverter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.TextToKeyConverter input, Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.TextToKeyConverter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output Add(Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter input, Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.TrainTestDatasetSplitter", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output Add(Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer input, Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.TreeLeafFeaturizer", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner input, Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.TwoHeterogeneousModelCombiner", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.VectorToImage.Output Add(Microsoft.ML.Legacy.Transforms.VectorToImage input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.VectorToImage.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.VectorToImage input, Microsoft.ML.Legacy.Transforms.VectorToImage.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.VectorToImage", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output Add(Microsoft.ML.Legacy.Transforms.WordEmbeddings input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.WordEmbeddings input, Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.WordEmbeddings", input, output));
+        }
+
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.WordTokenizer.Output Add(Microsoft.ML.Legacy.Transforms.WordTokenizer input)
+        {
+            var output = new Microsoft.ML.Legacy.Transforms.WordTokenizer.Output();
+            Add(input, output);
+            return output;
+        }
+
+        [Obsolete]
+        public void Add(Microsoft.ML.Legacy.Transforms.WordTokenizer input, Microsoft.ML.Legacy.Transforms.WordTokenizer.Output output)
+        {
+            _jsonNodes.Add(Serialize("Transforms.WordTokenizer", input, output));
+        }
+
     }
     namespace Legacy.Data
     {
@@ -1976,7 +1945,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
-        [Obsolete("Use TextLoader instead.")]
+        [Obsolete]
         public sealed partial class CustomTextLoader
         {
 
@@ -1985,7 +1954,7 @@ namespace Microsoft.ML
             /// Location of the input file
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.IFileHandle> InputFile { get; set; } = new Var<Microsoft.ML.Runtime.IFileHandle>();
+            public Var<Microsoft.ML.IFileHandle> InputFile { get; set; } = new Var<Microsoft.ML.IFileHandle>();
 
             /// <summary>
             /// Custom schema to use for parsing
@@ -2000,7 +1969,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The resulting data view
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -2021,7 +1990,7 @@ namespace Microsoft.ML
             /// Pointer to IDataView in memory
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
@@ -2030,7 +1999,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The resulting data view
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -2051,7 +2020,7 @@ namespace Microsoft.ML
             /// The data sets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.Data.IDataView> Data { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
@@ -2060,7 +2029,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The data set array
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -2081,7 +2050,7 @@ namespace Microsoft.ML
             /// The models
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> Model { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -2090,7 +2059,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The model array
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
         }
@@ -2336,7 +2305,7 @@ namespace Microsoft.ML
             /// Location of the input file
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.IFileHandle> InputFile { get; set; } = new Var<Microsoft.ML.Runtime.IFileHandle>();
+            public Var<Microsoft.ML.IFileHandle> InputFile { get; set; } = new Var<Microsoft.ML.IFileHandle>();
 
             /// <summary>
             /// Arguments
@@ -2351,37 +2320,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The resulting data view
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-    }
-
-    namespace Legacy.Data
-    {
-
-        /// <summary>
-        /// Create an array variable of TransformModel
-        /// </summary>
-        [Obsolete]
-        public sealed partial class TransformModelArrayConverter
-        {
-
-
-            /// <summary>
-            /// The models
-            /// </summary>
-            [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// The model array
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> OutputModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -2394,7 +2333,7 @@ namespace Microsoft.ML
         /// Evaluates an anomaly detection scored dataset.
         /// </summary>
         [Obsolete]
-        public sealed partial class AnomalyDetectionEvaluator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IEvaluatorInput
+        public sealed partial class AnomalyDetectionEvaluator : Microsoft.ML.EntryPoints.CommonInputs.IEvaluatorInput
         {
 
 
@@ -2456,7 +2395,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -2466,22 +2405,22 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IEvaluatorOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IEvaluatorOutput
             {
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -2515,16 +2454,16 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IAnomalyDetectionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IAnomalyDetectionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
         }
@@ -2537,7 +2476,7 @@ namespace Microsoft.ML
         /// Evaluates a binary classification scored dataset.
         /// </summary>
         [Obsolete]
-        public sealed partial class BinaryClassificationEvaluator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IEvaluatorInput
+        public sealed partial class BinaryClassificationEvaluator : Microsoft.ML.EntryPoints.CommonInputs.IEvaluatorInput
         {
 
 
@@ -2605,7 +2544,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -2615,129 +2554,27 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IClassificationEvaluatorOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IEvaluatorOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IClassificationEvaluatorOutput, Microsoft.ML.EntryPoints.CommonOutputs.IEvaluatorOutput
             {
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-    }
-
-    namespace Legacy.Models
-    {
-
-        [Obsolete]
-        public sealed partial class CrossValidationBinaryMacroSubGraphInput
-        {
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-        }
-
-        [Obsolete]
-        public sealed partial class CrossValidationBinaryMacroSubGraphOutput
-        {
-            /// <summary>
-            /// The model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-        }
-
-        /// <summary>
-        /// Cross validation for binary classification
-        /// </summary>
-        [Obsolete]
-        public sealed partial class BinaryCrossValidator
-        {
-
-
-            /// <summary>
-            /// The data set
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The training subgraph
-            /// </summary>
-            [Obsolete]
-            public Experiment Nodes { get; set; }
-
-            /// <summary>
-            /// The training subgraph inputs
-            /// </summary>
-            [Obsolete]
-            public CrossValidationBinaryMacroSubGraphInput Inputs { get; set; } = new CrossValidationBinaryMacroSubGraphInput();
-
-            /// <summary>
-            /// The training subgraph outputs
-            /// </summary>
-            [Obsolete]
-            public CrossValidationBinaryMacroSubGraphOutput Outputs { get; set; } = new CrossValidationBinaryMacroSubGraphOutput();
-
-            /// <summary>
-            /// Column to use for stratification
-            /// </summary>
-            [Obsolete]
-            public string StratificationColumn { get; set; }
-
-            /// <summary>
-            /// Number of folds in k-fold cross-validation
-            /// </summary>
-            [Obsolete]
-            public int NumFolds { get; set; } = 2;
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// Warning dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Overall metrics dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Per instance metrics dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Confusion matrix dataset
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -2772,7 +2609,7 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Whether to validate that all the pipelines are identical
@@ -2782,12 +2619,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
         }
@@ -2814,16 +2651,16 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
         }
@@ -2836,7 +2673,7 @@ namespace Microsoft.ML
         /// Evaluates a multi class classification scored dataset.
         /// </summary>
         [Obsolete]
-        public sealed partial class ClassificationEvaluator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IEvaluatorInput
+        public sealed partial class ClassificationEvaluator : Microsoft.ML.EntryPoints.CommonInputs.IEvaluatorInput
         {
 
 
@@ -2892,7 +2729,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -2902,27 +2739,27 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IClassificationEvaluatorOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IEvaluatorOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IClassificationEvaluatorOutput, Microsoft.ML.EntryPoints.CommonOutputs.IEvaluatorOutput
             {
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -2935,7 +2772,7 @@ namespace Microsoft.ML
         /// Evaluates a clustering scored dataset.
         /// </summary>
         [Obsolete]
-        public sealed partial class ClusterEvaluator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IEvaluatorInput
+        public sealed partial class ClusterEvaluator : Microsoft.ML.EntryPoints.CommonInputs.IEvaluatorInput
         {
 
 
@@ -2985,7 +2822,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -2995,22 +2832,22 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IEvaluatorOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IEvaluatorOutput
             {
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -3043,25 +2880,25 @@ namespace Microsoft.ML
             /// Overall metrics datasets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Per instance metrics datasets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Confusion matrix datasets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Warning datasets
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+            public ArrayVar<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// The label column name
@@ -3073,19 +2910,19 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for grouping
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupColumn { get; set; }
 
             /// <summary>
             /// Name column name
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> NameColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> NameColumn { get; set; }
 
             /// <summary>
             /// Specifies the trainer kind, which determines the evaluator to be used.
@@ -3100,22 +2937,22 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -3131,7 +2968,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
         }
 
@@ -3142,13 +2979,7 @@ namespace Microsoft.ML
             /// The predictor model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-            /// <summary>
-            /// The transform model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
         }
 
@@ -3164,13 +2995,13 @@ namespace Microsoft.ML
             /// The data set
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// The transform model from the pipeline before this command. It gets included in the Output.PredictorModel.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public Var<Microsoft.ML.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             /// <summary>
             /// The training subgraph
@@ -3218,19 +3049,19 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for grouping
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupColumn { get; set; }
 
             /// <summary>
             /// Name column name
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> NameColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> NameColumn { get; set; }
 
 
             [Obsolete]
@@ -3239,32 +3070,27 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
-                /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -3285,7 +3111,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Number of folds to split into
@@ -3306,12 +3132,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Training data (one dataset per fold)
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> TrainData { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.Data.IDataView> TrainData { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Testing data (one dataset per fold)
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> TestData { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.Data.IDataView> TestData { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -3324,7 +3150,7 @@ namespace Microsoft.ML
         /// Applies a TransformModel to a dataset.
         /// </summary>
         [Obsolete]
-        public sealed partial class DatasetTransformer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class DatasetTransformer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3332,13 +3158,13 @@ namespace Microsoft.ML
             /// Transform model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public Var<Microsoft.ML.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             /// <summary>
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
@@ -3347,7 +3173,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
             [Obsolete]
@@ -3401,7 +3227,7 @@ namespace Microsoft.ML
             /// The predictor to summarize
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -3410,12 +3236,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The summaries of the individual predictors
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Summaries { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.Data.IDataView> Summaries { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// The model statistics of the individual predictors
                 /// </summary>
-                public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> Stats { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
+                public ArrayVar<Microsoft.ML.Data.IDataView> Stats { get; set; } = new ArrayVar<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -3428,7 +3254,7 @@ namespace Microsoft.ML
         /// Apply a Platt calibrator with a fixed slope and offset to an input model
         /// </summary>
         [Obsolete]
-        public sealed partial class FixedPlattCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FixedPlattCalibrator : Microsoft.ML.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3448,7 +3274,7 @@ namespace Microsoft.ML
             /// The predictor to calibrate
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// The maximum number of examples to train the calibrator on
@@ -3461,16 +3287,16 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ICalibratorOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ICalibratorOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -3528,16 +3354,16 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
         }
@@ -3550,7 +3376,7 @@ namespace Microsoft.ML
         /// Evaluates a multi output regression scored dataset.
         /// </summary>
         [Obsolete]
-        public sealed partial class MultiOutputRegressionEvaluator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IEvaluatorInput
+        public sealed partial class MultiOutputRegressionEvaluator : Microsoft.ML.EntryPoints.CommonInputs.IEvaluatorInput
         {
 
 
@@ -3595,7 +3421,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -3605,22 +3431,22 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IEvaluatorOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IEvaluatorOutput
             {
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -3633,7 +3459,7 @@ namespace Microsoft.ML
         /// Apply a Naive calibrator to an input model
         /// </summary>
         [Obsolete]
-        public sealed partial class NaiveCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class NaiveCalibrator : Microsoft.ML.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3641,7 +3467,7 @@ namespace Microsoft.ML
             /// The predictor to calibrate
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// The maximum number of examples to train the calibrator on
@@ -3654,16 +3480,16 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ICalibratorOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ICalibratorOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -3728,13 +3554,13 @@ namespace Microsoft.ML
             /// The predictor model for the subgraph exemplar.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
         }
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name="OVA"]/*'/>
         [Obsolete]
-        public sealed partial class OneVersusAll : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class OneVersusAll : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3760,7 +3586,7 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -3772,7 +3598,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -3799,7 +3625,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The trained multiclass model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -3894,7 +3720,7 @@ namespace Microsoft.ML
             /// Model that needs to be converted to ONNX format.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             /// <summary>
             /// The targeted ONNX version. It can be either "Stable" or "Experimental". If "Experimental" is used, produced model can contain components that is not officially supported in ONNX standard.
@@ -3923,7 +3749,7 @@ namespace Microsoft.ML
         /// Combines a sequence of PredictorModels into a single model
         /// </summary>
         [Obsolete]
-        public sealed partial class OvaModelCombiner : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class OvaModelCombiner : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3931,7 +3757,7 @@ namespace Microsoft.ML
             /// Input models
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> ModelArray { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> ModelArray { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Use probabilities from learners instead of raw values.
@@ -3943,7 +3769,7 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -3955,7 +3781,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -3982,7 +3808,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Predictor model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -4026,7 +3852,7 @@ namespace Microsoft.ML
         /// Apply a PAV calibrator to an input model
         /// </summary>
         [Obsolete]
-        public sealed partial class PAVCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class PAVCalibrator : Microsoft.ML.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -4034,7 +3860,7 @@ namespace Microsoft.ML
             /// The predictor to calibrate
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// The maximum number of examples to train the calibrator on
@@ -4047,16 +3873,16 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ICalibratorOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ICalibratorOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -4100,7 +3926,7 @@ namespace Microsoft.ML
         /// Apply a Platt calibrator to an input model
         /// </summary>
         [Obsolete]
-        public sealed partial class PlattCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class PlattCalibrator : Microsoft.ML.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -4108,7 +3934,7 @@ namespace Microsoft.ML
             /// The predictor to calibrate
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> UncalibratedPredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// The maximum number of examples to train the calibrator on
@@ -4121,16 +3947,16 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ICalibratorOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ICalibratorOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -4174,7 +4000,7 @@ namespace Microsoft.ML
         /// Evaluates a quantile regression scored dataset.
         /// </summary>
         [Obsolete]
-        public sealed partial class QuantileRegressionEvaluator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IEvaluatorInput
+        public sealed partial class QuantileRegressionEvaluator : Microsoft.ML.EntryPoints.CommonInputs.IEvaluatorInput
         {
 
 
@@ -4219,7 +4045,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -4229,22 +4055,22 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IEvaluatorOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IEvaluatorOutput
             {
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -4257,7 +4083,7 @@ namespace Microsoft.ML
         /// Evaluates a ranking scored dataset.
         /// </summary>
         [Obsolete]
-        public sealed partial class RankerEvaluator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IEvaluatorInput
+        public sealed partial class RankerEvaluator : Microsoft.ML.EntryPoints.CommonInputs.IEvaluatorInput
         {
 
 
@@ -4307,7 +4133,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -4317,22 +4143,22 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IEvaluatorOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IEvaluatorOutput
             {
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -4359,7 +4185,7 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Whether to validate that all the pipelines are identical
@@ -4369,12 +4195,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
         }
@@ -4387,7 +4213,7 @@ namespace Microsoft.ML
         /// Evaluates a regression scored dataset.
         /// </summary>
         [Obsolete]
-        public sealed partial class RegressionEvaluator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IEvaluatorInput
+        public sealed partial class RegressionEvaluator : Microsoft.ML.EntryPoints.CommonInputs.IEvaluatorInput
         {
 
 
@@ -4426,7 +4252,7 @@ namespace Microsoft.ML
             /// The data to be used for evaluation.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Name column name.
@@ -4436,22 +4262,22 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IEvaluatorOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IEvaluatorOutput
             {
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -4478,16 +4304,16 @@ namespace Microsoft.ML
             /// The models to combine into an ensemble
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.PredictorModel> Models { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
         }
@@ -4508,7 +4334,7 @@ namespace Microsoft.ML
             /// The predictor to summarize
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -4517,108 +4343,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The summary of a predictor
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Summary { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Summary { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// The training set statistics. Note that this output can be null.
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Stats { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-    }
-
-    namespace Legacy.Models
-    {
-
-        [Obsolete]
-        public sealed partial class TrainTestBinaryMacroSubGraphInput
-        {
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-        }
-
-        [Obsolete]
-        public sealed partial class TrainTestBinaryMacroSubGraphOutput
-        {
-            /// <summary>
-            /// The model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-        }
-
-        /// <summary>
-        /// Train test for binary classification
-        /// </summary>
-        [Obsolete]
-        public sealed partial class TrainTestBinaryEvaluator
-        {
-
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The data to be used for testing
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The training subgraph
-            /// </summary>
-            [Obsolete]
-            public Experiment Nodes { get; set; }
-
-            /// <summary>
-            /// The training subgraph inputs
-            /// </summary>
-            [Obsolete]
-            public TrainTestBinaryMacroSubGraphInput Inputs { get; set; } = new TrainTestBinaryMacroSubGraphInput();
-
-            /// <summary>
-            /// The training subgraph outputs
-            /// </summary>
-            [Obsolete]
-            public TrainTestBinaryMacroSubGraphOutput Outputs { get; set; } = new TrainTestBinaryMacroSubGraphOutput();
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// The trained model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// Warning dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Overall metrics dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Per instance metrics dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Confusion matrix dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Stats { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -4634,7 +4364,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
         }
 
@@ -4645,13 +4375,7 @@ namespace Microsoft.ML
             /// The predictor model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-            /// <summary>
-            /// Transform model
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
         }
 
@@ -4667,19 +4391,19 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// The data to be used for testing
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// The aggregated transform model from the pipeline before this command, to apply to the test data, and also include in the final model, together with the predictor model.
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public Var<Microsoft.ML.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             /// <summary>
             /// The training subgraph
@@ -4727,19 +4451,19 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for grouping
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupColumn { get; set; }
 
             /// <summary>
             /// Name column name
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> NameColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> NameColumn { get; set; }
 
 
             [Obsolete]
@@ -4748,65 +4472,60 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
-
-                /// <summary>
-                /// The final model including the trained predictor model and the model from the transforms, provided as the Input.TransformModel.
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
                 /// <summary>
                 /// Warning dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> Warnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> PerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> ConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Warning dataset for training
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingWarnings { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> TrainingWarnings { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Overall metrics dataset for training
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingOverallMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> TrainingOverallMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Per instance metrics dataset for training
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingPerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> TrainingPerInstanceMetrics { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Confusion matrix dataset for training
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> TrainingConfusionMatrix { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
     }
 
-    namespace Legacy.TimeSeriesProcessing
+    namespace Legacy.TimeSeriesProcessingEntryPoints
     {
 
         /// <summary>
         /// Applies a Exponential average on a time series.
         /// </summary>
         [Obsolete]
-        public sealed partial class ExponentialAverage : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ExponentialAverage : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -4832,21 +4551,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -4886,7 +4605,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Legacy.TimeSeriesProcessing
+    namespace Legacy.TimeSeriesProcessingEntryPoints
     {
         [Obsolete]
         public enum SequentialAnomalyDetectionTransformBaseSingleIidAnomalyDetectionBaseStateMartingaleType : byte
@@ -4901,7 +4620,7 @@ namespace Microsoft.ML
         /// This transform detects the change-points in an i.i.d. sequence using adaptive kernel density estimation and martingales.
         /// </summary>
         [Obsolete]
-        public sealed partial class IidChangePointDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class IidChangePointDetector : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -4945,21 +4664,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -4999,7 +4718,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Legacy.TimeSeriesProcessing
+    namespace Legacy.TimeSeriesProcessingEntryPoints
     {
         [Obsolete]
         public enum SequentialAnomalyDetectionTransformBaseSingleIidAnomalyDetectionBaseStateAnomalySide : byte
@@ -5014,7 +4733,7 @@ namespace Microsoft.ML
         /// This transform detects the spikes in a i.i.d. sequence using adaptive kernel density estimation.
         /// </summary>
         [Obsolete]
-        public sealed partial class IidSpikeDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class IidSpikeDetector : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5052,21 +4771,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5106,14 +4825,14 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Legacy.TimeSeriesProcessing
+    namespace Legacy.TimeSeriesProcessingEntryPoints
     {
 
         /// <summary>
         /// Detects the values of time-series that are in the top percentile of the sliding window.
         /// </summary>
         [Obsolete]
-        public sealed partial class PercentileThresholdTransform : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class PercentileThresholdTransform : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5145,21 +4864,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5199,14 +4918,14 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Legacy.TimeSeriesProcessing
+    namespace Legacy.TimeSeriesProcessingEntryPoints
     {
 
         /// <summary>
         /// This P-Value transform calculates the p-value of the current input in the sequence with regard to the values in the sliding window.
         /// </summary>
         [Obsolete]
-        public sealed partial class PValueTransform : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class PValueTransform : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5250,21 +4969,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5304,7 +5023,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Legacy.TimeSeriesProcessing
+    namespace Legacy.TimeSeriesProcessingEntryPoints
     {
         [Obsolete]
         public enum SlidingWindowTransformBaseSingleBeginOptions : byte
@@ -5318,7 +5037,7 @@ namespace Microsoft.ML
         /// Returns the last values for a time series [y(t-d-l+1), y(t-d-l+2), ..., y(t-l-1), y(t-l)] where d is the size of the window, l the lag and y is a Float.
         /// </summary>
         [Obsolete]
-        public sealed partial class SlidingWindowTransform : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class SlidingWindowTransform : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5356,21 +5075,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5410,7 +5129,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Legacy.TimeSeriesProcessing
+    namespace Legacy.TimeSeriesProcessingEntryPoints
     {
         [Obsolete]
         public enum ErrorFunctionUtilsErrorFunction : byte
@@ -5435,7 +5154,7 @@ namespace Microsoft.ML
         /// This transform detects the change-points in a seasonal time-series using Singular Spectrum Analysis (SSA).
         /// </summary>
         [Obsolete]
-        public sealed partial class SsaChangePointDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class SsaChangePointDetector : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5497,21 +5216,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5551,7 +5270,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Legacy.TimeSeriesProcessing
+    namespace Legacy.TimeSeriesProcessingEntryPoints
     {
         [Obsolete]
         public enum SequentialAnomalyDetectionTransformBaseSingleSsaAnomalyDetectionBaseStateAnomalySide : byte
@@ -5566,7 +5285,7 @@ namespace Microsoft.ML
         /// This transform detects the spikes in a seasonal time-series using Singular Spectrum Analysis (SSA).
         /// </summary>
         [Obsolete]
-        public sealed partial class SsaSpikeDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class SsaSpikeDetector : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5622,21 +5341,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -5682,7 +5401,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name="AP"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name="AP"]/*' />
         [Obsolete]
-        public sealed partial class AveragedPerceptronBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class AveragedPerceptronBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5806,7 +5525,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -5828,12 +5547,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -5877,7 +5596,7 @@ namespace Microsoft.ML
         /// Train binary ensemble.
         /// </summary>
         [Obsolete]
-        public sealed partial class EnsembleBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class EnsembleBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5936,7 +5655,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -5958,12 +5677,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -6007,7 +5726,7 @@ namespace Microsoft.ML
         /// Train multiclass ensemble.
         /// </summary>
         [Obsolete]
-        public sealed partial class EnsembleClassification : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class EnsembleClassification : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -6066,7 +5785,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -6088,12 +5807,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -6137,7 +5856,7 @@ namespace Microsoft.ML
         /// Train regression ensemble.
         /// </summary>
         [Obsolete]
-        public sealed partial class EnsembleRegression : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class EnsembleRegression : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -6196,7 +5915,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -6218,12 +5937,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -6274,7 +5993,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastForest"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastForestBinaryClassifier"]/*' />
         [Obsolete]
-        public sealed partial class FastForestBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FastForestBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -6533,13 +6252,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -6551,7 +6270,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -6573,12 +6292,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -6621,7 +6340,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastForest"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastForestRegressor"]/*' />
         [Obsolete]
-        public sealed partial class FastForestRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FastForestRegressor : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -6867,13 +6586,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -6885,7 +6604,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -6907,12 +6626,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -6963,7 +6682,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastTree"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastTreeBinaryClassifier"]/*' />
         [Obsolete]
-        public sealed partial class FastTreeBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FastTreeBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -7339,13 +7058,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -7357,7 +7076,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -7379,12 +7098,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -7427,7 +7146,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastTree"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastTreeRanker"]/*' />
         [Obsolete]
-        public sealed partial class FastTreeRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FastTreeRanker : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -7845,13 +7564,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -7863,7 +7582,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -7885,12 +7604,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRankingOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRankingOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -7933,7 +7652,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastTree"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastTreeRegressor"]/*' />
         [Obsolete]
-        public sealed partial class FastTreeRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FastTreeRegressor : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8303,13 +8022,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -8321,7 +8040,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -8343,12 +8062,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -8390,7 +8109,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastTreeTweedieRegression"]/*' />
         [Obsolete]
-        public sealed partial class FastTreeTweedieRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FastTreeTweedieRegressor : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8766,13 +8485,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -8784,7 +8503,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -8806,12 +8525,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -8854,7 +8573,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/example[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
         [Obsolete]
-        public sealed partial class FieldAwareFactorizationMachineBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FieldAwareFactorizationMachineBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8928,7 +8647,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -8950,12 +8669,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -8999,7 +8718,7 @@ namespace Microsoft.ML
         /// Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.
         /// </summary>
         [Obsolete]
-        public sealed partial class GeneralizedAdditiveModelBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class GeneralizedAdditiveModelBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9094,7 +8813,7 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -9106,7 +8825,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9128,12 +8847,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9177,7 +8896,7 @@ namespace Microsoft.ML
         /// Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.
         /// </summary>
         [Obsolete]
-        public sealed partial class GeneralizedAdditiveModelRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class GeneralizedAdditiveModelRegressor : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9272,7 +8991,7 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -9284,7 +9003,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9306,12 +9025,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9362,7 +9081,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
         /// <include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/example[@name="KMeans++"]/*' />
         [Obsolete]
-        public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9407,13 +9126,13 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9435,12 +9154,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IClusteringOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IClusteringOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9498,7 +9217,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name="LightGbmBinaryClassifier"]/*' />
         [Obsolete]
-        public sealed partial class LightGbmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LightGbmBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9655,13 +9374,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -9673,7 +9392,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9695,12 +9414,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9743,7 +9462,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name="LightGbmClassifier"]/*' />
         [Obsolete]
-        public sealed partial class LightGbmClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LightGbmClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9900,13 +9619,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -9918,7 +9637,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -9940,12 +9659,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -9988,7 +9707,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name="LightGbmRanker"]/*' />
         [Obsolete]
-        public sealed partial class LightGbmRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LightGbmRanker : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -10145,13 +9864,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -10163,7 +9882,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10185,12 +9904,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRankingOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRankingOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10233,7 +9952,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name="LightGbmRegressor"]/*' />
         [Obsolete]
-        public sealed partial class LightGbmRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LightGbmRegressor : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -10390,13 +10109,13 @@ namespace Microsoft.ML
             /// Column to use for example groupId
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
 
             /// <summary>
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -10408,7 +10127,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10430,12 +10149,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10479,7 +10198,7 @@ namespace Microsoft.ML
         /// Train a linear SVM.
         /// </summary>
         [Obsolete]
-        public sealed partial class LinearSvmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LinearSvmBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -10566,7 +10285,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10588,12 +10307,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10636,7 +10355,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
         [Obsolete]
-        public sealed partial class LogisticRegressionBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LogisticRegressionBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -10729,7 +10448,7 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -10741,7 +10460,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10763,12 +10482,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10811,7 +10530,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name="LogisticRegressionClassifier"]/*' />
         [Obsolete]
-        public sealed partial class LogisticRegressionClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LogisticRegressionClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -10904,7 +10623,7 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -10916,7 +10635,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -10938,12 +10657,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -10986,7 +10705,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]/*'/>
         /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/example[@name="MultiClassNaiveBayesTrainer"]/*'/>
         [Obsolete]
-        public sealed partial class NaiveBayesClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class NaiveBayesClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11000,7 +10719,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11022,12 +10741,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11070,7 +10789,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name="OGD"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name="OGD"]/*' />
         [Obsolete]
-        public sealed partial class OnlineGradientDescentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class OnlineGradientDescentRegressor : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11181,7 +10900,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11203,12 +10922,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11250,7 +10969,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="OLS"]/*' />
         [Obsolete]
-        public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11271,7 +10990,7 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -11283,7 +11002,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11305,12 +11024,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11353,7 +11072,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name="PCA"]/*' />
         /// <include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name="PcaAnomalyDetector"]/*' />
         [Obsolete]
-        public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class PcaAnomalyDetector : Microsoft.ML.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11388,13 +11107,13 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11416,12 +11135,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IAnomalyDetectionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IAnomalyDetectionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11464,7 +11183,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/member[@name="PoissonRegression"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/example[@name="PoissonRegression"]/*' />
         [Obsolete]
-        public sealed partial class PoissonRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class PoissonRegressor : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11551,7 +11270,7 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -11563,7 +11282,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11585,12 +11304,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11633,7 +11352,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name="SDCA"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name="StochasticDualCoordinateAscentBinaryClassifier"]/*'/>
         [Obsolete]
-        public sealed partial class StochasticDualCoordinateAscentBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class StochasticDualCoordinateAscentBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11727,7 +11446,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11749,12 +11468,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11797,7 +11516,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name="SDCA"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name="StochasticDualCoordinateAscentClassifier"]/*' />
         [Obsolete]
-        public sealed partial class StochasticDualCoordinateAscentClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class StochasticDualCoordinateAscentClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11872,7 +11591,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -11894,12 +11613,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -11942,7 +11661,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name="SDCA"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name="StochasticDualCoordinateAscentRegressor"]/*' />
         [Obsolete]
-        public sealed partial class StochasticDualCoordinateAscentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class StochasticDualCoordinateAscentRegressor : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -12017,7 +11736,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -12039,12 +11758,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -12088,7 +11807,7 @@ namespace Microsoft.ML
         /// Train an Hogwild SGD binary model.
         /// </summary>
         [Obsolete]
-        public sealed partial class StochasticGradientDescentBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class StochasticGradientDescentBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -12168,7 +11887,7 @@ namespace Microsoft.ML
             /// Column to use for example weight
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
+            public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
 
             /// <summary>
             /// Column to use for labels
@@ -12180,7 +11899,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -12202,12 +11921,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -12249,7 +11968,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
         [Obsolete]
-        public sealed partial class SymSgdBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class SymSgdBinaryClassifier : Microsoft.ML.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -12321,7 +12040,7 @@ namespace Microsoft.ML
             /// The data to be used for training
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Column to use for features
@@ -12343,12 +12062,12 @@ namespace Microsoft.ML
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.EntryPoints.CommonOutputs.ITrainerOutput
             {
                 /// <summary>
                 /// The trained model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
             [Obsolete]
@@ -12392,7 +12111,7 @@ namespace Microsoft.ML
         /// Approximate bootstrap sampling.
         /// </summary>
         [Obsolete]
-        public sealed partial class ApproximateBootstrapSampler : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ApproximateBootstrapSampler : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -12424,21 +12143,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -12485,7 +12204,7 @@ namespace Microsoft.ML
         /// For binary prediction, it renames the PredictedLabel and Score columns to include the name of the positive class.
         /// </summary>
         [Obsolete]
-        public sealed partial class BinaryPredictionScoreColumnsRenamer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class BinaryPredictionScoreColumnsRenamer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -12493,27 +12212,27 @@ namespace Microsoft.ML
             /// The predictor model used in scoring
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -12595,7 +12314,7 @@ namespace Microsoft.ML
         /// The values are assigned into equidensity bins and a value is mapped to its bin_number/number_of_bins.
         /// </summary>
         [Obsolete]
-        public sealed partial class BinNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class BinNormalizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public BinNormalizer()
@@ -12667,21 +12386,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -12783,7 +12502,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CategoricalHashOneHotVectorizer"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="CategoricalHashOneHotVectorizer"]/*' />
         [Obsolete]
-        public sealed partial class CategoricalHashOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class CategoricalHashOneHotVectorizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public CategoricalHashOneHotVectorizer()
@@ -12867,21 +12586,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -12981,7 +12700,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="CategoricalOneHotVectorizer"]/*' />
         [Obsolete]
-        public sealed partial class CategoricalOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class CategoricalOneHotVectorizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public CategoricalOneHotVectorizer()
@@ -13065,21 +12784,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13141,7 +12860,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="CharacterTokenizer"]/*' />
         [Obsolete]
-        public sealed partial class CharacterTokenizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class CharacterTokenizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public CharacterTokenizer()
@@ -13201,21 +12920,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13279,7 +12998,7 @@ namespace Microsoft.ML
         /// Concatenates one or more columns of the same item type.
         /// </summary>
         [Obsolete]
-        public sealed partial class ColumnConcatenator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ColumnConcatenator : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ColumnConcatenator()
@@ -13309,21 +13028,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13387,7 +13106,7 @@ namespace Microsoft.ML
         /// Duplicates columns from the dataset
         /// </summary>
         [Obsolete]
-        public sealed partial class ColumnCopier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ColumnCopier : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ColumnCopier()
@@ -13441,21 +13160,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13502,7 +13221,7 @@ namespace Microsoft.ML
         /// Selects a set of columns, dropping all others
         /// </summary>
         [Obsolete]
-        public sealed partial class ColumnSelector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ColumnSelector : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -13534,21 +13253,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13624,7 +13343,7 @@ namespace Microsoft.ML
         /// Converts a column to a different type, using standard conversions.
         /// </summary>
         [Obsolete]
-        public sealed partial class ColumnTypeConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ColumnTypeConverter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ColumnTypeConverter()
@@ -13690,21 +13409,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13749,7 +13468,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="Group"]/*' />
         [Obsolete]
-        public sealed partial class CombinerByContiguousGroupId : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class CombinerByContiguousGroupId : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -13769,21 +13488,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13859,7 +13578,7 @@ namespace Microsoft.ML
         /// Normalize the columns only if needed
         /// </summary>
         [Obsolete]
-        public sealed partial class ConditionalNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ConditionalNormalizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ConditionalNormalizer()
@@ -13925,7 +13644,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
@@ -13934,12 +13653,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -13993,7 +13712,7 @@ namespace Microsoft.ML
         /// Caches using the specified cache option.
         /// </summary>
         [Obsolete]
-        public sealed partial class DataCache : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class DataCache : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -14007,7 +13726,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
@@ -14016,7 +13735,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
             [Obsolete]
@@ -14070,13 +13789,13 @@ namespace Microsoft.ML
             /// The dataset to be scored
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// The predictor model to apply to data
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Suffix to append to the score columns
@@ -14091,12 +13810,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The scored dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// The scoring transform
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
         }
@@ -14117,13 +13836,13 @@ namespace Microsoft.ML
             /// The dataset to be scored
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// The transform model to apply to data
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public Var<Microsoft.ML.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
 
             [Obsolete]
@@ -14132,12 +13851,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The scored dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// The scoring transform
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
         }
@@ -14191,7 +13910,7 @@ namespace Microsoft.ML
         /// Converts input values (words, numbers, etc.) to index in a dictionary.
         /// </summary>
         [Obsolete]
-        public sealed partial class Dictionarizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class Dictionarizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public Dictionarizer()
@@ -14269,21 +13988,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14330,7 +14049,7 @@ namespace Microsoft.ML
         /// Combines all the features into one feature column.
         /// </summary>
         [Obsolete]
-        public sealed partial class FeatureCombiner : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FeatureCombiner : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -14344,21 +14063,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14401,10 +14120,109 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
+        /// <summary>
+        /// For each data point, calculates the contribution of individual features to the model prediction.
+        /// </summary>
+        [Obsolete]
+        public sealed partial class FeatureContributionCalculationTransformer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The predictor model to apply to data
+            /// </summary>
+            [Obsolete]
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
+
+            /// <summary>
+            /// Name of feature column
+            /// </summary>
+            [Obsolete]
+            public string FeatureColumn { get; set; } = "Features";
+
+            /// <summary>
+            /// Number of top contributions
+            /// </summary>
+            [Obsolete]
+            public int Top { get; set; } = 10;
+
+            /// <summary>
+            /// Number of bottom contributions
+            /// </summary>
+            [Obsolete]
+            public int Bottom { get; set; } = 10;
+
+            /// <summary>
+            /// Whether or not output of Features contribution should be normalized
+            /// </summary>
+            [Obsolete]
+            public bool Normalize { get; set; } = true;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            [Obsolete]
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+
+
+            [Obsolete]
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
+
+            }
+            [Obsolete]
+            public Var<IDataView> GetInputData() => Data;
+            
+            [Obsolete]
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(FeatureContributionCalculationTransformer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new FeatureContributionCalculationTransformerPipelineStep(output);
+            }
+
+            [Obsolete]
+            private class FeatureContributionCalculationTransformerPipelineStep : ILearningPipelineDataStep
+            {
+                [Obsolete]
+                public FeatureContributionCalculationTransformerPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                [Obsolete]
+                public Var<IDataView> Data { get; }
+                [Obsolete]
+                public Var<TransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Legacy.Transforms
+    {
+
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CountFeatureSelection"]/*'/>
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="CountFeatureSelection"]/*'/>
         [Obsolete]
-        public sealed partial class FeatureSelectorByCount : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FeatureSelectorByCount : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -14424,21 +14242,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14484,7 +14302,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*'/>
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="MutualInformationFeatureSelection"]/*'/>
         [Obsolete]
-        public sealed partial class FeatureSelectorByMutualInformation : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class FeatureSelectorByMutualInformation : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -14516,21 +14334,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14610,7 +14428,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="GcNormalize"]/*' />
         [Obsolete]
-        public sealed partial class GlobalContrastNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class GlobalContrastNormalizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public GlobalContrastNormalizer()
@@ -14682,21 +14500,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14789,7 +14607,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="HashJoin"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="HashJoin"]/*' />
         [Obsolete]
-        public sealed partial class HashConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class HashConverter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public HashConverter()
@@ -14867,21 +14685,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -14945,7 +14763,7 @@ namespace Microsoft.ML
         /// Convert image into grayscale.
         /// </summary>
         [Obsolete]
-        public sealed partial class ImageGrayscale : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ImageGrayscale : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ImageGrayscale()
@@ -14999,21 +14817,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15077,7 +14895,7 @@ namespace Microsoft.ML
         /// Load images from files.
         /// </summary>
         [Obsolete]
-        public sealed partial class ImageLoader : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ImageLoader : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ImageLoader()
@@ -15137,21 +14955,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15263,7 +15081,7 @@ namespace Microsoft.ML
         /// Extract color plane(s) from an image. Options include scaling, offset and conversion to floating point.
         /// </summary>
         [Obsolete]
-        public sealed partial class ImagePixelExtractor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ImagePixelExtractor : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ImagePixelExtractor()
@@ -15365,21 +15183,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15484,7 +15302,7 @@ namespace Microsoft.ML
         /// Scales an image to specified dimensions using one of the three scale types: isotropic with padding, isotropic with cropping or anisotropic. In case of isotropic padding, transparent color is used to pad resulting image.
         /// </summary>
         [Obsolete]
-        public sealed partial class ImageResizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ImageResizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ImageResizer()
@@ -15562,21 +15380,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15638,7 +15456,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="KeyToText"]/*' />
         [Obsolete]
-        public sealed partial class KeyToTextConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class KeyToTextConverter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public KeyToTextConverter()
@@ -15692,21 +15510,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15753,7 +15571,7 @@ namespace Microsoft.ML
         /// Transforms the label to either key or bool (if needed) to make it suitable for classification.
         /// </summary>
         [Obsolete]
-        public sealed partial class LabelColumnKeyBooleanConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LabelColumnKeyBooleanConverter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15773,21 +15591,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15857,7 +15675,7 @@ namespace Microsoft.ML
         /// Label remapper used by OVA
         /// </summary>
         [Obsolete]
-        public sealed partial class LabelIndicator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LabelIndicator : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public LabelIndicator()
@@ -15917,21 +15735,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -15978,7 +15796,7 @@ namespace Microsoft.ML
         /// Transforms the label to float to make it suitable for regression.
         /// </summary>
         [Obsolete]
-        public sealed partial class LabelToFloatConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LabelToFloatConverter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15992,21 +15810,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16135,7 +15953,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="LightLDA"]/*' />
         [Obsolete]
-        public sealed partial class LightLda : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LightLda : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public LightLda()
@@ -16267,21 +16085,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16351,7 +16169,7 @@ namespace Microsoft.ML
         /// Normalizes the data based on the computed mean and variance of the logarithm of the data.
         /// </summary>
         [Obsolete]
-        public sealed partial class LogMeanVarianceNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LogMeanVarianceNormalizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public LogMeanVarianceNormalizer()
@@ -16417,21 +16235,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16514,7 +16332,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="LpNormalize"]/*' />
         [Obsolete]
-        public sealed partial class LpNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class LpNormalizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public LpNormalizer()
@@ -16580,21 +16398,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16649,13 +16467,13 @@ namespace Microsoft.ML
             /// Transform model
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModels { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.TransformModel> TransformModels { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.TransformModel>();
 
             /// <summary>
             /// Predictor model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -16664,7 +16482,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Predictor model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
         }
@@ -16677,7 +16495,7 @@ namespace Microsoft.ML
         /// Normalizes the data based on the computed mean and variance of the data.
         /// </summary>
         [Obsolete]
-        public sealed partial class MeanVarianceNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class MeanVarianceNormalizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MeanVarianceNormalizer()
@@ -16749,21 +16567,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16810,7 +16628,7 @@ namespace Microsoft.ML
         /// Normalizes the data based on the observed minimum and maximum values of the data.
         /// </summary>
         [Obsolete]
-        public sealed partial class MinMaxNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class MinMaxNormalizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MinMaxNormalizer()
@@ -16876,21 +16694,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -16980,7 +16798,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name="NAHandle"]/*' />
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name="NAHandle"]/*' />
         [Obsolete]
-        public sealed partial class MissingValueHandler : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class MissingValueHandler : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MissingValueHandler()
@@ -17052,21 +16870,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17129,7 +16947,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="NAIndicator"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="NAIndicator"]/*' />
         [Obsolete]
-        public sealed partial class MissingValueIndicator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class MissingValueIndicator : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MissingValueIndicator()
@@ -17183,21 +17001,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17260,7 +17078,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="NADrop"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="NADrop"]/*' />
         [Obsolete]
-        public sealed partial class MissingValuesDropper : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class MissingValuesDropper : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MissingValuesDropper()
@@ -17314,21 +17132,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17374,7 +17192,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name="NAFilter"]/*' />
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name="NAFilter"]/*' />
         [Obsolete]
-        public sealed partial class MissingValuesRowDropper : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class MissingValuesRowDropper : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -17394,21 +17212,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17499,7 +17317,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="NAReplace"]/*' />
         [Obsolete]
-        public sealed partial class MissingValueSubstitutor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class MissingValueSubstitutor : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MissingValueSubstitutor()
@@ -17565,21 +17383,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17634,7 +17452,7 @@ namespace Microsoft.ML
             /// Input models
             /// </summary>
             [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel> Models { get; set; } = new ArrayVar<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public ArrayVar<Microsoft.ML.EntryPoints.TransformModel> Models { get; set; } = new ArrayVar<Microsoft.ML.EntryPoints.TransformModel>();
 
 
             [Obsolete]
@@ -17643,7 +17461,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Combined model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> OutputModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> OutputModel { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
         }
@@ -17709,7 +17527,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="NgramTranslator"]/*' />
         [Obsolete]
-        public sealed partial class NGramTranslator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class NGramTranslator : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public NGramTranslator()
@@ -17793,21 +17611,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17854,7 +17672,7 @@ namespace Microsoft.ML
         /// Does nothing.
         /// </summary>
         [Obsolete]
-        public sealed partial class NoOperation : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class NoOperation : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -17862,21 +17680,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -17922,7 +17740,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="OptionalColumnTransform"]/*' />
         [Obsolete]
-        public sealed partial class OptionalColumnCreator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class OptionalColumnCreator : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -17936,21 +17754,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18043,7 +17861,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name="PCA"]/*' />
         /// <include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name="PcaCalculator"]/*' />
         [Obsolete]
-        public sealed partial class PcaCalculator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class PcaCalculator : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public PcaCalculator()
@@ -18127,21 +17945,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18188,7 +18006,7 @@ namespace Microsoft.ML
         /// Transforms a predicted label column to its original values, unless it is of type bool.
         /// </summary>
         [Obsolete]
-        public sealed partial class PredictedLabelColumnOriginalValueConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class PredictedLabelColumnOriginalValueConverter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -18202,21 +18020,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18286,7 +18104,7 @@ namespace Microsoft.ML
         /// Adds a column with a generated number sequence.
         /// </summary>
         [Obsolete]
-        public sealed partial class RandomNumberGenerator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class RandomNumberGenerator : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -18312,21 +18130,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18373,7 +18191,7 @@ namespace Microsoft.ML
         /// Filters a dataview on a column of type Single, Double or Key (contiguous). Keeps the values that are in the specified min/max range. NaNs are always filtered out. If the input is a Key type, the min/max are considered percentages of the number of values.
         /// </summary>
         [Obsolete]
-        public sealed partial class RowRangeFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class RowRangeFilter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -18417,21 +18235,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18478,7 +18296,7 @@ namespace Microsoft.ML
         /// Allows limiting input to a subset of rows at an optional offset.  Can be used to implement data paging.
         /// </summary>
         [Obsolete]
-        public sealed partial class RowSkipAndTakeFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class RowSkipAndTakeFilter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -18498,21 +18316,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18559,7 +18377,7 @@ namespace Microsoft.ML
         /// Allows limiting input to a subset of rows by skipping a number of rows.
         /// </summary>
         [Obsolete]
-        public sealed partial class RowSkipFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class RowSkipFilter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -18573,21 +18391,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18634,7 +18452,7 @@ namespace Microsoft.ML
         /// Allows limiting input to a subset of rows by taking N first rows.
         /// </summary>
         [Obsolete]
-        public sealed partial class RowTakeFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class RowTakeFilter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -18648,21 +18466,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18709,7 +18527,7 @@ namespace Microsoft.ML
         /// Selects only the last score columns and the extra columns specified in the arguments.
         /// </summary>
         [Obsolete]
-        public sealed partial class ScoreColumnSelector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class ScoreColumnSelector : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -18723,21 +18541,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18792,7 +18610,7 @@ namespace Microsoft.ML
             /// The predictor model to turn into a transform
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -18801,12 +18619,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// The scored dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> ScoredData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// The scoring transform
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
         }
@@ -18826,7 +18644,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="Ungroup"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="Ungroup"]/*' />
         [Obsolete]
-        public sealed partial class Segregator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class Segregator : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -18846,21 +18664,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18906,7 +18724,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="SentimentAnalyzer"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="SentimentAnalyzer"]/*' />
         [Obsolete]
-        public sealed partial class SentimentAnalyzer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class SentimentAnalyzer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -18926,21 +18744,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -18986,7 +18804,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
         /// <include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/example[@name="TensorflowTransform"]/*' />
         [Obsolete]
-        public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class TensorFlowScorer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -19084,21 +18902,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19213,7 +19031,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="FeaturizeTextEstimator"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="FeaturizeTextEstimator"]/*' />
         [Obsolete]
-        public sealed partial class TextFeaturizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class TextFeaturizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public TextFeaturizer()
@@ -19309,21 +19127,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19369,7 +19187,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name="TextToKey"]/*' />
         [Obsolete]
-        public sealed partial class TextToKeyConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class TextToKeyConverter : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public TextToKeyConverter()
@@ -19447,21 +19265,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19516,7 +19334,7 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             /// <summary>
             /// Fraction of training data
@@ -19537,12 +19355,12 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Training data
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> TrainData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> TrainData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Testing data
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> TestData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> TestData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
             }
         }
@@ -19553,7 +19371,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="TreeEnsembleFeaturizerTransform"]/*'/>
         [Obsolete]
-        public sealed partial class TreeLeafFeaturizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IFeaturizerInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class TreeLeafFeaturizer : Microsoft.ML.EntryPoints.CommonInputs.IFeaturizerInput, Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -19573,27 +19391,27 @@ namespace Microsoft.ML
             /// Trainer to use
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             /// <summary>
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19648,13 +19466,13 @@ namespace Microsoft.ML
             /// Transform model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+            public Var<Microsoft.ML.EntryPoints.TransformModel> TransformModel { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             /// <summary>
             /// Predictor model
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+            public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
 
             [Obsolete]
@@ -19663,7 +19481,7 @@ namespace Microsoft.ML
                 /// <summary>
                 /// Predictor model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.PredictorModel>();
+                public Var<Microsoft.ML.EntryPoints.PredictorModel> PredictorModel { get; set; } = new Var<Microsoft.ML.EntryPoints.PredictorModel>();
 
             }
         }
@@ -19747,7 +19565,7 @@ namespace Microsoft.ML
         /// Converts vector array into image type.
         /// </summary>
         [Obsolete]
-        public sealed partial class VectorToImage : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class VectorToImage : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public VectorToImage()
@@ -19855,21 +19673,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -19947,7 +19765,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="WordEmbeddings"]/*' />
         [Obsolete]
-        public sealed partial class WordEmbeddings : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class WordEmbeddings : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public WordEmbeddings()
@@ -20013,21 +19831,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -20096,7 +19914,7 @@ namespace Microsoft.ML
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="WordTokenizer"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="WordTokenizer"]/*' />
         [Obsolete]
-        public sealed partial class WordTokenizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        public sealed partial class WordTokenizer : Microsoft.ML.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public WordTokenizer()
@@ -20156,21 +19974,21 @@ namespace Microsoft.ML
             /// Input dataset
             /// </summary>
             [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+            public Var<Microsoft.ML.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
 
             [Obsolete]
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            public sealed class Output : Microsoft.ML.EntryPoints.CommonOutputs.ITransformOutput
             {
                 /// <summary>
                 /// Transformed dataset
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+                public Var<Microsoft.ML.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
 
                 /// <summary>
                 /// Transform model
                 /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.TransformModel>();
+                public Var<Microsoft.ML.EntryPoints.TransformModel> Model { get; set; } = new Var<Microsoft.ML.EntryPoints.TransformModel>();
 
             }
             [Obsolete]
@@ -20210,3142 +20028,3139 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Runtime
+    [Obsolete]
+    public abstract class BoosterParameterFunction : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866
+    /// </summary>
+    [Obsolete]
+    public sealed class DartBoosterParameterFunction : BoosterParameterFunction
+    {
+        /// <summary>
+        /// Drop ratio for trees. Range:(0,1).
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double DropRate { get; set; } = 0.1d;
+
+        /// <summary>
+        /// Max number of dropped tree in a boosting round.
+        /// </summary>
+        [TlcModule.Range(Inf = 0, Max = 2147483647)]
+        [Obsolete]
+        public int MaxDrop { get; set; } = 1;
+
+        /// <summary>
+        /// Probability for not perform dropping in a boosting round.
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double SkipDrop { get; set; } = 0.5d;
+
+        /// <summary>
+        /// True will enable xgboost dart mode.
+        /// </summary>
+        [Obsolete]
+        public bool XgboostDartMode { get; set; } = false;
+
+        /// <summary>
+        /// True will enable uniform drop.
+        /// </summary>
+        [Obsolete]
+        public bool UniformDrop { get; set; } = false;
+
+        /// <summary>
+        /// Use for binary classification when classes are not balanced.
+        /// </summary>
+        [Obsolete]
+        public bool UnbalancedSets { get; set; } = false;
+
+        /// <summary>
+        /// Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [Obsolete]
+        public double MinSplitGain { get; set; }
+
+        /// <summary>
+        /// Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.
+        /// </summary>
+        [TlcModule.Range(Min = 0, Max = 2147483647)]
+        [Obsolete]
+        public int MaxDepth { get; set; }
+
+        /// <summary>
+        /// Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [Obsolete]
+        public double MinChildWeight { get; set; } = 0.1d;
+
+        /// <summary>
+        /// Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.
+        /// </summary>
+        [TlcModule.Range(Min = 0, Max = 2147483647)]
+        [Obsolete]
+        public int SubsampleFreq { get; set; }
+
+        /// <summary>
+        /// Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double Subsample { get; set; } = 1d;
+
+        /// <summary>
+        /// Subsample ratio of columns when constructing each tree. Range: (0,1].
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double FeatureFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// L2 regularization term on weights, increasing this value will make model more conservative.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
+        [Obsolete]
+        public double RegLambda { get; set; } = 0.01d;
+
+        /// <summary>
+        /// L1 regularization term on weights, increase this value will make model more conservative.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
+        [Obsolete]
+        public double RegAlpha { get; set; }
+
+        /// <summary>
+        /// Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).
+        /// </summary>
+        [Obsolete]
+        public double ScalePosWeight { get; set; } = 1d;
+
+        [Obsolete]
+        internal override string ComponentName => "dart";
+    }
+
+
+
+    /// <summary>
+    /// Traditional Gradient Boosting Decision Tree.
+    /// </summary>
+    [Obsolete]
+    public sealed class GbdtBoosterParameterFunction : BoosterParameterFunction
+    {
+        /// <summary>
+        /// Use for binary classification when classes are not balanced.
+        /// </summary>
+        [Obsolete]
+        public bool UnbalancedSets { get; set; } = false;
+
+        /// <summary>
+        /// Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [Obsolete]
+        public double MinSplitGain { get; set; }
+
+        /// <summary>
+        /// Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.
+        /// </summary>
+        [TlcModule.Range(Min = 0, Max = 2147483647)]
+        [Obsolete]
+        public int MaxDepth { get; set; }
+
+        /// <summary>
+        /// Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [Obsolete]
+        public double MinChildWeight { get; set; } = 0.1d;
+
+        /// <summary>
+        /// Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.
+        /// </summary>
+        [TlcModule.Range(Min = 0, Max = 2147483647)]
+        [Obsolete]
+        public int SubsampleFreq { get; set; }
+
+        /// <summary>
+        /// Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double Subsample { get; set; } = 1d;
+
+        /// <summary>
+        /// Subsample ratio of columns when constructing each tree. Range: (0,1].
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double FeatureFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// L2 regularization term on weights, increasing this value will make model more conservative.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
+        [Obsolete]
+        public double RegLambda { get; set; } = 0.01d;
+
+        /// <summary>
+        /// L1 regularization term on weights, increase this value will make model more conservative.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
+        [Obsolete]
+        public double RegAlpha { get; set; }
+
+        /// <summary>
+        /// Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).
+        /// </summary>
+        [Obsolete]
+        public double ScalePosWeight { get; set; } = 1d;
+
+        [Obsolete]
+        internal override string ComponentName => "gbdt";
+    }
+
+
+
+    /// <summary>
+    /// Gradient-based One-Side Sampling.
+    /// </summary>
+    [Obsolete]
+    public sealed class GossBoosterParameterFunction : BoosterParameterFunction
+    {
+        /// <summary>
+        /// Retain ratio for large gradient instances.
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double TopRate { get; set; } = 0.2d;
+
+        /// <summary>
+        /// Retain ratio for small gradient instances.
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double OtherRate { get; set; } = 0.1d;
+
+        /// <summary>
+        /// Use for binary classification when classes are not balanced.
+        /// </summary>
+        [Obsolete]
+        public bool UnbalancedSets { get; set; } = false;
+
+        /// <summary>
+        /// Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [Obsolete]
+        public double MinSplitGain { get; set; }
+
+        /// <summary>
+        /// Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.
+        /// </summary>
+        [TlcModule.Range(Min = 0, Max = 2147483647)]
+        [Obsolete]
+        public int MaxDepth { get; set; }
+
+        /// <summary>
+        /// Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [Obsolete]
+        public double MinChildWeight { get; set; } = 0.1d;
+
+        /// <summary>
+        /// Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.
+        /// </summary>
+        [TlcModule.Range(Min = 0, Max = 2147483647)]
+        [Obsolete]
+        public int SubsampleFreq { get; set; }
+
+        /// <summary>
+        /// Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double Subsample { get; set; } = 1d;
+
+        /// <summary>
+        /// Subsample ratio of columns when constructing each tree. Range: (0,1].
+        /// </summary>
+        [TlcModule.Range(Inf = 0d, Max = 1d)]
+        [Obsolete]
+        public double FeatureFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// L2 regularization term on weights, increasing this value will make model more conservative.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
+        [Obsolete]
+        public double RegLambda { get; set; } = 0.01d;
+
+        /// <summary>
+        /// L1 regularization term on weights, increase this value will make model more conservative.
+        /// </summary>
+        [TlcModule.Range(Min = 0d)]
+        [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
+        [Obsolete]
+        public double RegAlpha { get; set; }
+
+        /// <summary>
+        /// Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).
+        /// </summary>
+        [Obsolete]
+        public double ScalePosWeight { get; set; } = 1d;
+
+        [Obsolete]
+        internal override string ComponentName => "goss";
+    }
+
+    [Obsolete]
+    public abstract class CalibratorTrainer : ComponentKind {}
+
+
+
+    [Obsolete]
+    public sealed class FixedPlattCalibratorCalibratorTrainer : CalibratorTrainer
+    {
+        /// <summary>
+        /// The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)
+        /// </summary>
+        [Obsolete]
+        public double Slope { get; set; } = 1d;
+
+        /// <summary>
+        /// The offset parameter of f(x) = 1 / (1 + exp(-slope * x + offset)
+        /// </summary>
+        [Obsolete]
+        public double Offset { get; set; }
+
+        [Obsolete]
+        internal override string ComponentName => "FixedPlattCalibrator";
+    }
+
+
+
+    [Obsolete]
+    public sealed class NaiveCalibratorCalibratorTrainer : CalibratorTrainer
     {
         [Obsolete]
-        public abstract class BoosterParameterFunction : ComponentKind {}
+        internal override string ComponentName => "NaiveCalibrator";
+    }
 
 
 
+    [Obsolete]
+    public sealed class PavCalibratorCalibratorTrainer : CalibratorTrainer
+    {
+        [Obsolete]
+        internal override string ComponentName => "PavCalibrator";
+    }
+
+
+
+    /// <summary>
+    /// Platt calibration.
+    /// </summary>
+    [Obsolete]
+    public sealed class PlattCalibratorCalibratorTrainer : CalibratorTrainer
+    {
+        [Obsolete]
+        internal override string ComponentName => "PlattCalibrator";
+    }
+
+    [Obsolete]
+    public abstract class ClassificationLossFunction : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Exponential loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class ExpLossClassificationLossFunction : ClassificationLossFunction
+    {
         /// <summary>
-        /// Dropouts meet Multiple Additive Regresion Trees. See https://arxiv.org/abs/1505.01866
+        /// Beta (dilation)
         /// </summary>
         [Obsolete]
-        public sealed class DartBoosterParameterFunction : BoosterParameterFunction
-        {
-            /// <summary>
-            /// Drop ratio for trees. Range:(0,1).
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double DropRate { get; set; } = 0.1d;
+        public float Beta { get; set; } = 1f;
 
-            /// <summary>
-            /// Max number of dropped tree in a boosting round.
-            /// </summary>
-            [TlcModule.Range(Inf = 0, Max = 2147483647)]
-            [Obsolete]
-            public int MaxDrop { get; set; } = 1;
-
-            /// <summary>
-            /// Probability for not perform dropping in a boosting round.
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double SkipDrop { get; set; } = 0.5d;
-
-            /// <summary>
-            /// True will enable xgboost dart mode.
-            /// </summary>
-            [Obsolete]
-            public bool XgboostDartMode { get; set; } = false;
-
-            /// <summary>
-            /// True will enable uniform drop.
-            /// </summary>
-            [Obsolete]
-            public bool UniformDrop { get; set; } = false;
-
-            /// <summary>
-            /// Use for binary classification when classes are not balanced.
-            /// </summary>
-            [Obsolete]
-            public bool UnbalancedSets { get; set; } = false;
-
-            /// <summary>
-            /// Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [Obsolete]
-            public double MinSplitGain { get; set; }
-
-            /// <summary>
-            /// Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.
-            /// </summary>
-            [TlcModule.Range(Min = 0, Max = 2147483647)]
-            [Obsolete]
-            public int MaxDepth { get; set; }
-
-            /// <summary>
-            /// Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [Obsolete]
-            public double MinChildWeight { get; set; } = 0.1d;
-
-            /// <summary>
-            /// Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.
-            /// </summary>
-            [TlcModule.Range(Min = 0, Max = 2147483647)]
-            [Obsolete]
-            public int SubsampleFreq { get; set; }
-
-            /// <summary>
-            /// Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double Subsample { get; set; } = 1d;
-
-            /// <summary>
-            /// Subsample ratio of columns when constructing each tree. Range: (0,1].
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double FeatureFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// L2 regularization term on weights, increasing this value will make model more conservative.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
-            [Obsolete]
-            public double RegLambda { get; set; } = 0.01d;
-
-            /// <summary>
-            /// L1 regularization term on weights, increase this value will make model more conservative.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
-            [Obsolete]
-            public double RegAlpha { get; set; }
-
-            /// <summary>
-            /// Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).
-            /// </summary>
-            [Obsolete]
-            public double ScalePosWeight { get; set; } = 1d;
-
-            [Obsolete]
-            internal override string ComponentName => "dart";
-        }
+        [Obsolete]
+        internal override string ComponentName => "ExpLoss";
+    }
 
 
 
+    /// <summary>
+    /// Hinge loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class HingeLossClassificationLossFunction : ClassificationLossFunction
+    {
         /// <summary>
-        /// Traditional Gradient Boosting Decision Tree.
+        /// Margin value
         /// </summary>
         [Obsolete]
-        public sealed class GbdtBoosterParameterFunction : BoosterParameterFunction
-        {
-            /// <summary>
-            /// Use for binary classification when classes are not balanced.
-            /// </summary>
-            [Obsolete]
-            public bool UnbalancedSets { get; set; } = false;
+        public float Margin { get; set; } = 1f;
 
-            /// <summary>
-            /// Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [Obsolete]
-            public double MinSplitGain { get; set; }
-
-            /// <summary>
-            /// Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.
-            /// </summary>
-            [TlcModule.Range(Min = 0, Max = 2147483647)]
-            [Obsolete]
-            public int MaxDepth { get; set; }
-
-            /// <summary>
-            /// Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [Obsolete]
-            public double MinChildWeight { get; set; } = 0.1d;
-
-            /// <summary>
-            /// Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.
-            /// </summary>
-            [TlcModule.Range(Min = 0, Max = 2147483647)]
-            [Obsolete]
-            public int SubsampleFreq { get; set; }
-
-            /// <summary>
-            /// Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double Subsample { get; set; } = 1d;
-
-            /// <summary>
-            /// Subsample ratio of columns when constructing each tree. Range: (0,1].
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double FeatureFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// L2 regularization term on weights, increasing this value will make model more conservative.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
-            [Obsolete]
-            public double RegLambda { get; set; } = 0.01d;
-
-            /// <summary>
-            /// L1 regularization term on weights, increase this value will make model more conservative.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
-            [Obsolete]
-            public double RegAlpha { get; set; }
-
-            /// <summary>
-            /// Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).
-            /// </summary>
-            [Obsolete]
-            public double ScalePosWeight { get; set; } = 1d;
-
-            [Obsolete]
-            internal override string ComponentName => "gbdt";
-        }
+        [Obsolete]
+        internal override string ComponentName => "HingeLoss";
+    }
 
 
 
+    /// <summary>
+    /// Log loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class LogLossClassificationLossFunction : ClassificationLossFunction
+    {
+        [Obsolete]
+        internal override string ComponentName => "LogLoss";
+    }
+
+
+
+    /// <summary>
+    /// Smoothed Hinge loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class SmoothedHingeLossClassificationLossFunction : ClassificationLossFunction
+    {
         /// <summary>
-        /// Gradient-based One-Side Sampling.
+        /// Smoothing constant
         /// </summary>
         [Obsolete]
-        public sealed class GossBoosterParameterFunction : BoosterParameterFunction
-        {
-            /// <summary>
-            /// Retain ratio for large gradient instances.
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double TopRate { get; set; } = 0.2d;
-
-            /// <summary>
-            /// Retain ratio for small gradient instances.
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double OtherRate { get; set; } = 0.1d;
-
-            /// <summary>
-            /// Use for binary classification when classes are not balanced.
-            /// </summary>
-            [Obsolete]
-            public bool UnbalancedSets { get; set; } = false;
-
-            /// <summary>
-            /// Minimum loss reduction required to make a further partition on a leaf node of the tree. the larger, the more conservative the algorithm will be.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [Obsolete]
-            public double MinSplitGain { get; set; }
-
-            /// <summary>
-            /// Maximum depth of a tree. 0 means no limit. However, tree still grows by best-first.
-            /// </summary>
-            [TlcModule.Range(Min = 0, Max = 2147483647)]
-            [Obsolete]
-            public int MaxDepth { get; set; }
-
-            /// <summary>
-            /// Minimum sum of instance weight(hessian) needed in a child. If the tree partition step results in a leaf node with the sum of instance weight less than min_child_weight, then the building process will give up further partitioning. In linear regression mode, this simply corresponds to minimum number of instances needed to be in each node. The larger, the more conservative the algorithm will be.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [Obsolete]
-            public double MinChildWeight { get; set; } = 0.1d;
-
-            /// <summary>
-            /// Subsample frequency. 0 means no subsample. If subsampleFreq > 0, it will use a subset(ratio=subsample) to train. And the subset will be updated on every Subsample iteratinos.
-            /// </summary>
-            [TlcModule.Range(Min = 0, Max = 2147483647)]
-            [Obsolete]
-            public int SubsampleFreq { get; set; }
-
-            /// <summary>
-            /// Subsample ratio of the training instance. Setting it to 0.5 means that LightGBM randomly collected half of the data instances to grow trees and this will prevent overfitting. Range: (0,1].
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double Subsample { get; set; } = 1d;
-
-            /// <summary>
-            /// Subsample ratio of columns when constructing each tree. Range: (0,1].
-            /// </summary>
-            [TlcModule.Range(Inf = 0d, Max = 1d)]
-            [Obsolete]
-            public double FeatureFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// L2 regularization term on weights, increasing this value will make model more conservative.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
-            [Obsolete]
-            public double RegLambda { get; set; } = 0.01d;
-
-            /// <summary>
-            /// L1 regularization term on weights, increase this value will make model more conservative.
-            /// </summary>
-            [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
-            [Obsolete]
-            public double RegAlpha { get; set; }
-
-            /// <summary>
-            /// Control the balance of positive and negative weights, useful for unbalanced classes. A typical value to consider: sum(negative cases) / sum(positive cases).
-            /// </summary>
-            [Obsolete]
-            public double ScalePosWeight { get; set; } = 1d;
-
-            [Obsolete]
-            internal override string ComponentName => "goss";
-        }
+        public float SmoothingConst { get; set; } = 1f;
 
         [Obsolete]
-        public abstract class CalibratorTrainer : ComponentKind {}
+        internal override string ComponentName => "SmoothedHingeLoss";
+    }
+
+    [Obsolete]
+    public abstract class EarlyStoppingCriterion : ComponentKind {}
 
 
+
+    /// <summary>
+    /// Stop in case of loss of generality.
+    /// </summary>
+    [Obsolete]
+    public sealed class GLEarlyStoppingCriterion : EarlyStoppingCriterion
+    {
+        /// <summary>
+        /// Threshold in range [0,1].
+        /// </summary>
+        [TlcModule.Range(Min = 0f, Max = 1f)]
+        [Obsolete]
+        public float Threshold { get; set; } = 0.01f;
 
         [Obsolete]
-        public sealed class FixedPlattCalibratorCalibratorTrainer : CalibratorTrainer
-        {
-            /// <summary>
-            /// The slope parameter of f(x) = 1 / (1 + exp(-slope * x + offset)
-            /// </summary>
-            [Obsolete]
-            public double Slope { get; set; } = 1d;
-
-            /// <summary>
-            /// The offset parameter of f(x) = 1 / (1 + exp(-slope * x + offset)
-            /// </summary>
-            [Obsolete]
-            public double Offset { get; set; }
-
-            [Obsolete]
-            internal override string ComponentName => "FixedPlattCalibrator";
-        }
+        internal override string ComponentName => "GL";
+    }
 
 
 
+    /// <summary>
+    /// Stops in case of low progress.
+    /// </summary>
+    [Obsolete]
+    public sealed class LPEarlyStoppingCriterion : EarlyStoppingCriterion
+    {
+        /// <summary>
+        /// Threshold in range [0,1].
+        /// </summary>
+        [TlcModule.Range(Min = 0f, Max = 1f)]
         [Obsolete]
-        public sealed class NaiveCalibratorCalibratorTrainer : CalibratorTrainer
-        {
-            [Obsolete]
-            internal override string ComponentName => "NaiveCalibrator";
-        }
-
-
-
-        [Obsolete]
-        public sealed class PavCalibratorCalibratorTrainer : CalibratorTrainer
-        {
-            [Obsolete]
-            internal override string ComponentName => "PavCalibrator";
-        }
-
-
+        public float Threshold { get; set; } = 0.01f;
 
         /// <summary>
-        /// Platt calibration.
+        /// The window size.
         /// </summary>
+        [TlcModule.Range(Inf = 0)]
         [Obsolete]
-        public sealed class PlattCalibratorCalibratorTrainer : CalibratorTrainer
-        {
-            [Obsolete]
-            internal override string ComponentName => "PlattCalibrator";
-        }
+        public int WindowSize { get; set; } = 5;
 
         [Obsolete]
-        public abstract class ClassificationLossFunction : ComponentKind {}
+        internal override string ComponentName => "LP";
+    }
 
 
+
+    /// <summary>
+    /// Stops in case of generality to progress ration exceeds threshold.
+    /// </summary>
+    [Obsolete]
+    public sealed class PQEarlyStoppingCriterion : EarlyStoppingCriterion
+    {
+        /// <summary>
+        /// Threshold in range [0,1].
+        /// </summary>
+        [TlcModule.Range(Min = 0f, Max = 1f)]
+        [Obsolete]
+        public float Threshold { get; set; } = 0.01f;
 
         /// <summary>
-        /// Exponential loss.
+        /// The window size.
+        /// </summary>
+        [TlcModule.Range(Inf = 0)]
+        [Obsolete]
+        public int WindowSize { get; set; } = 5;
+
+        [Obsolete]
+        internal override string ComponentName => "PQ";
+    }
+
+
+
+    /// <summary>
+    /// Stop if validation score exceeds threshold value.
+    /// </summary>
+    [Obsolete]
+    public sealed class TREarlyStoppingCriterion : EarlyStoppingCriterion
+    {
+        /// <summary>
+        /// Tolerance threshold. (Non negative value)
+        /// </summary>
+        [TlcModule.Range(Min = 0f)]
+        [Obsolete]
+        public float Threshold { get; set; } = 0.01f;
+
+        [Obsolete]
+        internal override string ComponentName => "TR";
+    }
+
+
+
+    /// <summary>
+    /// Stops in case of consecutive loss in generality.
+    /// </summary>
+    [Obsolete]
+    public sealed class UPEarlyStoppingCriterion : EarlyStoppingCriterion
+    {
+        /// <summary>
+        /// The window size.
+        /// </summary>
+        [TlcModule.Range(Inf = 0)]
+        [Obsolete]
+        public int WindowSize { get; set; } = 5;
+
+        [Obsolete]
+        internal override string ComponentName => "UP";
+    }
+
+    [Obsolete]
+    public abstract class EnsembleBinaryDiversityMeasure : ComponentKind {}
+
+
+
+    [Obsolete]
+    public sealed class DisagreementDiversityMeasureEnsembleBinaryDiversityMeasure : EnsembleBinaryDiversityMeasure
+    {
+        [Obsolete]
+        internal override string ComponentName => "DisagreementDiversityMeasure";
+    }
+
+    [Obsolete]
+    public abstract class EnsembleBinaryOutputCombiner : ComponentKind {}
+
+
+
+    [Obsolete]
+    public sealed class AverageEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
+    {
+        [Obsolete]
+        internal override string ComponentName => "Average";
+    }
+
+
+
+    [Obsolete]
+    public sealed class MedianEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
+    {
+        [Obsolete]
+        internal override string ComponentName => "Median";
+    }
+
+
+
+    [Obsolete]
+    public sealed class StackingEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
+    {
+        /// <summary>
+        /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
         /// </summary>
         [Obsolete]
-        public sealed class ExpLossClassificationLossFunction : ClassificationLossFunction
-        {
-            /// <summary>
-            /// Beta (dilation)
-            /// </summary>
-            [Obsolete]
-            public float Beta { get; set; } = 1f;
+        public float ValidationDatasetProportion { get; set; } = 0.3f;
 
-            [Obsolete]
-            internal override string ComponentName => "ExpLoss";
-        }
+        [Obsolete]
+        internal override string ComponentName => "Stacking";
+    }
 
 
+
+    [Obsolete]
+    public sealed class VotingEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
+    {
+        [Obsolete]
+        internal override string ComponentName => "Voting";
+    }
+
+    [Obsolete]
+    public enum WeightageKind
+    {
+        Accuracy = 0,
+        Auc = 1,
+        PosPrecision = 2,
+        PosRecall = 3,
+        NegPrecision = 4,
+        NegRecall = 5
+    }
+
+
+
+    [Obsolete]
+    public sealed class WeightedAverageEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
+    {
+        /// <summary>
+        /// The metric type to be used to find the weights for each model
+        /// </summary>
+        [Obsolete]
+        public WeightageKind WeightageName { get; set; } = WeightageKind.Auc;
+
+        [Obsolete]
+        internal override string ComponentName => "WeightedAverage";
+    }
+
+    [Obsolete]
+    public abstract class EnsembleBinarySubModelSelector : ComponentKind {}
+
+
+
+    [Obsolete]
+    public sealed class AllSelectorEnsembleBinarySubModelSelector : EnsembleBinarySubModelSelector
+    {
+        [Obsolete]
+        internal override string ComponentName => "AllSelector";
+    }
+
+
+
+    [Obsolete]
+    public sealed class BestDiverseSelectorEnsembleBinarySubModelSelector : EnsembleBinarySubModelSelector
+    {
+        /// <summary>
+        /// The metric type to be used to find the diversity among base learners
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public EnsembleBinaryDiversityMeasure DiversityMetricType { get; set; } = new DisagreementDiversityMeasureEnsembleBinaryDiversityMeasure();
 
         /// <summary>
-        /// Hinge loss.
+        /// The proportion of best base learners to be selected. The range is 0.0-1.0
         /// </summary>
         [Obsolete]
-        public sealed class HingeLossClassificationLossFunction : ClassificationLossFunction
-        {
-            /// <summary>
-            /// Margin value
-            /// </summary>
-            [Obsolete]
-            public float Margin { get; set; } = 1f;
-
-            [Obsolete]
-            internal override string ComponentName => "HingeLoss";
-        }
-
-
+        public float LearnersSelectionProportion { get; set; } = 0.5f;
 
         /// <summary>
-        /// Log loss.
+        /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
         /// </summary>
         [Obsolete]
-        public sealed class LogLossClassificationLossFunction : ClassificationLossFunction
-        {
-            [Obsolete]
-            internal override string ComponentName => "LogLoss";
-        }
+        public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+        [Obsolete]
+        internal override string ComponentName => "BestDiverseSelector";
+    }
+
+    [Obsolete]
+    public enum BinaryClassifierEvaluatorMetrics
+    {
+        Accuracy = 0,
+        PosPrecName = 1,
+        PosRecallName = 2,
+        NegPrecName = 3,
+        NegRecallName = 4,
+        Auc = 5,
+        LogLoss = 6,
+        LogLossReduction = 7,
+        F1 = 8,
+        AuPrc = 9
+    }
 
 
+
+    [Obsolete]
+    public sealed class BestPerformanceSelectorEnsembleBinarySubModelSelector : EnsembleBinarySubModelSelector
+    {
+        /// <summary>
+        /// The metric type to be used to find the best performance
+        /// </summary>
+        [Obsolete]
+        public BinaryClassifierEvaluatorMetrics MetricName { get; set; } = BinaryClassifierEvaluatorMetrics.Auc;
 
         /// <summary>
-        /// Smoothed Hinge loss.
+        /// The proportion of best base learners to be selected. The range is 0.0-1.0
         /// </summary>
         [Obsolete]
-        public sealed class SmoothedHingeLossClassificationLossFunction : ClassificationLossFunction
-        {
-            /// <summary>
-            /// Smoothing constant
-            /// </summary>
-            [Obsolete]
-            public float SmoothingConst { get; set; } = 1f;
-
-            [Obsolete]
-            internal override string ComponentName => "SmoothedHingeLoss";
-        }
-
-        [Obsolete]
-        public abstract class EarlyStoppingCriterion : ComponentKind {}
-
-
+        public float LearnersSelectionProportion { get; set; } = 0.5f;
 
         /// <summary>
-        /// Stop in case of loss of generality.
+        /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
         /// </summary>
         [Obsolete]
-        public sealed class GLEarlyStoppingCriterion : EarlyStoppingCriterion
-        {
-            /// <summary>
-            /// Threshold in range [0,1].
-            /// </summary>
-            [TlcModule.Range(Min = 0f, Max = 1f)]
-            [Obsolete]
-            public float Threshold { get; set; } = 0.01f;
+        public float ValidationDatasetProportion { get; set; } = 0.3f;
 
-            [Obsolete]
-            internal override string ComponentName => "GL";
-        }
+        [Obsolete]
+        internal override string ComponentName => "BestPerformanceSelector";
+    }
+
+    [Obsolete]
+    public abstract class EnsembleFeatureSelector : ComponentKind {}
 
 
+
+    [Obsolete]
+    public sealed class AllFeatureSelectorEnsembleFeatureSelector : EnsembleFeatureSelector
+    {
+        [Obsolete]
+        internal override string ComponentName => "AllFeatureSelector";
+    }
+
+
+
+    [Obsolete]
+    public sealed class RandomFeatureSelectorEnsembleFeatureSelector : EnsembleFeatureSelector
+    {
+        /// <summary>
+        /// The proportion of features to be selected. The range is 0.0-1.0
+        /// </summary>
+        [Obsolete]
+        public float FeaturesSelectionProportion { get; set; } = 0.8f;
+
+        [Obsolete]
+        internal override string ComponentName => "RandomFeatureSelector";
+    }
+
+    [Obsolete]
+    public abstract class EnsembleMulticlassDiversityMeasure : ComponentKind {}
+
+
+
+    [Obsolete]
+    public sealed class MultiDisagreementDiversityMeasureEnsembleMulticlassDiversityMeasure : EnsembleMulticlassDiversityMeasure
+    {
+        [Obsolete]
+        internal override string ComponentName => "MultiDisagreementDiversityMeasure";
+    }
+
+    [Obsolete]
+    public abstract class EnsembleMulticlassOutputCombiner : ComponentKind {}
+
+
+
+    [Obsolete]
+    public sealed class MultiAverageEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
+    {
+        /// <summary>
+        /// Whether to normalize the output of base models before combining them
+        /// </summary>
+        [Obsolete]
+        public bool Normalize { get; set; } = true;
+
+        [Obsolete]
+        internal override string ComponentName => "MultiAverage";
+    }
+
+
+
+    [Obsolete]
+    public sealed class MultiMedianEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
+    {
+        /// <summary>
+        /// Whether to normalize the output of base models before combining them
+        /// </summary>
+        [Obsolete]
+        public bool Normalize { get; set; } = true;
+
+        [Obsolete]
+        internal override string ComponentName => "MultiMedian";
+    }
+
+
+
+    [Obsolete]
+    public sealed class MultiStackingEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
+    {
+        /// <summary>
+        /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+        /// </summary>
+        [Obsolete]
+        public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+        [Obsolete]
+        internal override string ComponentName => "MultiStacking";
+    }
+
+
+
+    [Obsolete]
+    public sealed class MultiVotingEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
+    {
+        [Obsolete]
+        internal override string ComponentName => "MultiVoting";
+    }
+
+    [Obsolete]
+    public enum MultiWeightageKind
+    {
+        AccuracyMicroAvg = 0,
+        AccuracyMacroAvg = 1
+    }
+
+
+
+    [Obsolete]
+    public sealed class MultiWeightedAverageEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
+    {
+        /// <summary>
+        /// The metric type to be used to find the weights for each model
+        /// </summary>
+        [Obsolete]
+        public MultiWeightageKind WeightageName { get; set; } = MultiWeightageKind.AccuracyMicroAvg;
 
         /// <summary>
-        /// Stops in case of low progress.
+        /// Whether to normalize the output of base models before combining them
         /// </summary>
         [Obsolete]
-        public sealed class LPEarlyStoppingCriterion : EarlyStoppingCriterion
-        {
-            /// <summary>
-            /// Threshold in range [0,1].
-            /// </summary>
-            [TlcModule.Range(Min = 0f, Max = 1f)]
-            [Obsolete]
-            public float Threshold { get; set; } = 0.01f;
+        public bool Normalize { get; set; } = true;
 
-            /// <summary>
-            /// The window size.
-            /// </summary>
-            [TlcModule.Range(Inf = 0)]
-            [Obsolete]
-            public int WindowSize { get; set; } = 5;
+        [Obsolete]
+        internal override string ComponentName => "MultiWeightedAverage";
+    }
 
-            [Obsolete]
-            internal override string ComponentName => "LP";
-        }
+    [Obsolete]
+    public abstract class EnsembleMulticlassSubModelSelector : ComponentKind {}
 
 
+
+    [Obsolete]
+    public sealed class AllSelectorMultiClassEnsembleMulticlassSubModelSelector : EnsembleMulticlassSubModelSelector
+    {
+        [Obsolete]
+        internal override string ComponentName => "AllSelectorMultiClass";
+    }
+
+
+
+    [Obsolete]
+    public sealed class BestDiverseSelectorMultiClassEnsembleMulticlassSubModelSelector : EnsembleMulticlassSubModelSelector
+    {
+        /// <summary>
+        /// The metric type to be used to find the diversity among base learners
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public EnsembleMulticlassDiversityMeasure DiversityMetricType { get; set; } = new MultiDisagreementDiversityMeasureEnsembleMulticlassDiversityMeasure();
 
         /// <summary>
-        /// Stops in case of generality to progress ration exceeds threshold.
+        /// The proportion of best base learners to be selected. The range is 0.0-1.0
         /// </summary>
         [Obsolete]
-        public sealed class PQEarlyStoppingCriterion : EarlyStoppingCriterion
-        {
-            /// <summary>
-            /// Threshold in range [0,1].
-            /// </summary>
-            [TlcModule.Range(Min = 0f, Max = 1f)]
-            [Obsolete]
-            public float Threshold { get; set; } = 0.01f;
-
-            /// <summary>
-            /// The window size.
-            /// </summary>
-            [TlcModule.Range(Inf = 0)]
-            [Obsolete]
-            public int WindowSize { get; set; } = 5;
-
-            [Obsolete]
-            internal override string ComponentName => "PQ";
-        }
-
-
+        public float LearnersSelectionProportion { get; set; } = 0.5f;
 
         /// <summary>
-        /// Stop if validation score exceeds threshold value.
+        /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
         /// </summary>
         [Obsolete]
-        public sealed class TREarlyStoppingCriterion : EarlyStoppingCriterion
-        {
-            /// <summary>
-            /// Tolerance threshold. (Non negative value)
-            /// </summary>
-            [TlcModule.Range(Min = 0f)]
-            [Obsolete]
-            public float Threshold { get; set; } = 0.01f;
+        public float ValidationDatasetProportion { get; set; } = 0.3f;
 
-            [Obsolete]
-            internal override string ComponentName => "TR";
-        }
+        [Obsolete]
+        internal override string ComponentName => "BestDiverseSelectorMultiClass";
+    }
+
+    [Obsolete]
+    public enum MultiClassClassifierEvaluatorMetrics
+    {
+        AccuracyMicro = 0,
+        AccuracyMacro = 1,
+        LogLoss = 2,
+        LogLossReduction = 3
+    }
 
 
+
+    [Obsolete]
+    public sealed class BestPerformanceSelectorMultiClassEnsembleMulticlassSubModelSelector : EnsembleMulticlassSubModelSelector
+    {
+        /// <summary>
+        /// The metric type to be used to find the best performance
+        /// </summary>
+        [Obsolete]
+        public MultiClassClassifierEvaluatorMetrics MetricName { get; set; } = MultiClassClassifierEvaluatorMetrics.AccuracyMicro;
 
         /// <summary>
-        /// Stops in case of consecutive loss in generality.
+        /// The proportion of best base learners to be selected. The range is 0.0-1.0
         /// </summary>
         [Obsolete]
-        public sealed class UPEarlyStoppingCriterion : EarlyStoppingCriterion
-        {
-            /// <summary>
-            /// The window size.
-            /// </summary>
-            [TlcModule.Range(Inf = 0)]
-            [Obsolete]
-            public int WindowSize { get; set; } = 5;
-
-            [Obsolete]
-            internal override string ComponentName => "UP";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleBinaryDiversityMeasure : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class DisagreementDiversityMeasureEnsembleBinaryDiversityMeasure : EnsembleBinaryDiversityMeasure
-        {
-            [Obsolete]
-            internal override string ComponentName => "DisagreementDiversityMeasure";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleBinaryOutputCombiner : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class AverageEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
-        {
-            [Obsolete]
-            internal override string ComponentName => "Average";
-        }
-
-
-
-        [Obsolete]
-        public sealed class MedianEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
-        {
-            [Obsolete]
-            internal override string ComponentName => "Median";
-        }
-
-
-
-        [Obsolete]
-        public sealed class StackingEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
-        {
-            /// <summary>
-            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
-            /// </summary>
-            [Obsolete]
-            public float ValidationDatasetProportion { get; set; } = 0.3f;
-
-            [Obsolete]
-            internal override string ComponentName => "Stacking";
-        }
-
-
-
-        [Obsolete]
-        public sealed class VotingEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
-        {
-            [Obsolete]
-            internal override string ComponentName => "Voting";
-        }
-
-        [Obsolete]
-        public enum WeightageKind
-        {
-            Accuracy = 0,
-            Auc = 1,
-            PosPrecision = 2,
-            PosRecall = 3,
-            NegPrecision = 4,
-            NegRecall = 5
-        }
-
-
-
-        [Obsolete]
-        public sealed class WeightedAverageEnsembleBinaryOutputCombiner : EnsembleBinaryOutputCombiner
-        {
-            /// <summary>
-            /// The metric type to be used to find the weights for each model
-            /// </summary>
-            [Obsolete]
-            public WeightageKind WeightageName { get; set; } = WeightageKind.Auc;
-
-            [Obsolete]
-            internal override string ComponentName => "WeightedAverage";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleBinarySubModelSelector : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class AllSelectorEnsembleBinarySubModelSelector : EnsembleBinarySubModelSelector
-        {
-            [Obsolete]
-            internal override string ComponentName => "AllSelector";
-        }
-
-
-
-        [Obsolete]
-        public sealed class BestDiverseSelectorEnsembleBinarySubModelSelector : EnsembleBinarySubModelSelector
-        {
-            /// <summary>
-            /// The metric type to be used to find the diversity among base learners
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EnsembleBinaryDiversityMeasure DiversityMetricType { get; set; } = new DisagreementDiversityMeasureEnsembleBinaryDiversityMeasure();
-
-            /// <summary>
-            /// The proportion of best base learners to be selected. The range is 0.0-1.0
-            /// </summary>
-            [Obsolete]
-            public float LearnersSelectionProportion { get; set; } = 0.5f;
-
-            /// <summary>
-            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
-            /// </summary>
-            [Obsolete]
-            public float ValidationDatasetProportion { get; set; } = 0.3f;
-
-            [Obsolete]
-            internal override string ComponentName => "BestDiverseSelector";
-        }
-
-        [Obsolete]
-        public enum BinaryClassifierEvaluatorMetrics
-        {
-            Accuracy = 0,
-            PosPrecName = 1,
-            PosRecallName = 2,
-            NegPrecName = 3,
-            NegRecallName = 4,
-            Auc = 5,
-            LogLoss = 6,
-            LogLossReduction = 7,
-            F1 = 8,
-            AuPrc = 9
-        }
-
-
-
-        [Obsolete]
-        public sealed class BestPerformanceSelectorEnsembleBinarySubModelSelector : EnsembleBinarySubModelSelector
-        {
-            /// <summary>
-            /// The metric type to be used to find the best performance
-            /// </summary>
-            [Obsolete]
-            public BinaryClassifierEvaluatorMetrics MetricName { get; set; } = BinaryClassifierEvaluatorMetrics.Auc;
-
-            /// <summary>
-            /// The proportion of best base learners to be selected. The range is 0.0-1.0
-            /// </summary>
-            [Obsolete]
-            public float LearnersSelectionProportion { get; set; } = 0.5f;
-
-            /// <summary>
-            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
-            /// </summary>
-            [Obsolete]
-            public float ValidationDatasetProportion { get; set; } = 0.3f;
-
-            [Obsolete]
-            internal override string ComponentName => "BestPerformanceSelector";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleFeatureSelector : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class AllFeatureSelectorEnsembleFeatureSelector : EnsembleFeatureSelector
-        {
-            [Obsolete]
-            internal override string ComponentName => "AllFeatureSelector";
-        }
-
-
-
-        [Obsolete]
-        public sealed class RandomFeatureSelectorEnsembleFeatureSelector : EnsembleFeatureSelector
-        {
-            /// <summary>
-            /// The proportion of features to be selected. The range is 0.0-1.0
-            /// </summary>
-            [Obsolete]
-            public float FeaturesSelectionProportion { get; set; } = 0.8f;
-
-            [Obsolete]
-            internal override string ComponentName => "RandomFeatureSelector";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleMulticlassDiversityMeasure : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class MultiDisagreementDiversityMeasureEnsembleMulticlassDiversityMeasure : EnsembleMulticlassDiversityMeasure
-        {
-            [Obsolete]
-            internal override string ComponentName => "MultiDisagreementDiversityMeasure";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleMulticlassOutputCombiner : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class MultiAverageEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
-        {
-            /// <summary>
-            /// Whether to normalize the output of base models before combining them
-            /// </summary>
-            [Obsolete]
-            public bool Normalize { get; set; } = true;
-
-            [Obsolete]
-            internal override string ComponentName => "MultiAverage";
-        }
-
-
-
-        [Obsolete]
-        public sealed class MultiMedianEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
-        {
-            /// <summary>
-            /// Whether to normalize the output of base models before combining them
-            /// </summary>
-            [Obsolete]
-            public bool Normalize { get; set; } = true;
-
-            [Obsolete]
-            internal override string ComponentName => "MultiMedian";
-        }
-
-
-
-        [Obsolete]
-        public sealed class MultiStackingEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
-        {
-            /// <summary>
-            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
-            /// </summary>
-            [Obsolete]
-            public float ValidationDatasetProportion { get; set; } = 0.3f;
-
-            [Obsolete]
-            internal override string ComponentName => "MultiStacking";
-        }
-
-
-
-        [Obsolete]
-        public sealed class MultiVotingEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
-        {
-            [Obsolete]
-            internal override string ComponentName => "MultiVoting";
-        }
-
-        [Obsolete]
-        public enum MultiWeightageKind
-        {
-            AccuracyMicroAvg = 0,
-            AccuracyMacroAvg = 1
-        }
-
-
-
-        [Obsolete]
-        public sealed class MultiWeightedAverageEnsembleMulticlassOutputCombiner : EnsembleMulticlassOutputCombiner
-        {
-            /// <summary>
-            /// The metric type to be used to find the weights for each model
-            /// </summary>
-            [Obsolete]
-            public MultiWeightageKind WeightageName { get; set; } = MultiWeightageKind.AccuracyMicroAvg;
-
-            /// <summary>
-            /// Whether to normalize the output of base models before combining them
-            /// </summary>
-            [Obsolete]
-            public bool Normalize { get; set; } = true;
-
-            [Obsolete]
-            internal override string ComponentName => "MultiWeightedAverage";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleMulticlassSubModelSelector : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class AllSelectorMultiClassEnsembleMulticlassSubModelSelector : EnsembleMulticlassSubModelSelector
-        {
-            [Obsolete]
-            internal override string ComponentName => "AllSelectorMultiClass";
-        }
-
-
-
-        [Obsolete]
-        public sealed class BestDiverseSelectorMultiClassEnsembleMulticlassSubModelSelector : EnsembleMulticlassSubModelSelector
-        {
-            /// <summary>
-            /// The metric type to be used to find the diversity among base learners
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EnsembleMulticlassDiversityMeasure DiversityMetricType { get; set; } = new MultiDisagreementDiversityMeasureEnsembleMulticlassDiversityMeasure();
-
-            /// <summary>
-            /// The proportion of best base learners to be selected. The range is 0.0-1.0
-            /// </summary>
-            [Obsolete]
-            public float LearnersSelectionProportion { get; set; } = 0.5f;
-
-            /// <summary>
-            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
-            /// </summary>
-            [Obsolete]
-            public float ValidationDatasetProportion { get; set; } = 0.3f;
-
-            [Obsolete]
-            internal override string ComponentName => "BestDiverseSelectorMultiClass";
-        }
-
-        [Obsolete]
-        public enum MultiClassClassifierEvaluatorMetrics
-        {
-            AccuracyMicro = 0,
-            AccuracyMacro = 1,
-            LogLoss = 2,
-            LogLossReduction = 3
-        }
-
-
-
-        [Obsolete]
-        public sealed class BestPerformanceSelectorMultiClassEnsembleMulticlassSubModelSelector : EnsembleMulticlassSubModelSelector
-        {
-            /// <summary>
-            /// The metric type to be used to find the best performance
-            /// </summary>
-            [Obsolete]
-            public MultiClassClassifierEvaluatorMetrics MetricName { get; set; } = MultiClassClassifierEvaluatorMetrics.AccuracyMicro;
-
-            /// <summary>
-            /// The proportion of best base learners to be selected. The range is 0.0-1.0
-            /// </summary>
-            [Obsolete]
-            public float LearnersSelectionProportion { get; set; } = 0.5f;
-
-            /// <summary>
-            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
-            /// </summary>
-            [Obsolete]
-            public float ValidationDatasetProportion { get; set; } = 0.3f;
-
-            [Obsolete]
-            internal override string ComponentName => "BestPerformanceSelectorMultiClass";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleRegressionDiversityMeasure : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class RegressionDisagreementDiversityMeasureEnsembleRegressionDiversityMeasure : EnsembleRegressionDiversityMeasure
-        {
-            [Obsolete]
-            internal override string ComponentName => "RegressionDisagreementDiversityMeasure";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleRegressionOutputCombiner : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class AverageEnsembleRegressionOutputCombiner : EnsembleRegressionOutputCombiner
-        {
-            [Obsolete]
-            internal override string ComponentName => "Average";
-        }
-
-
-
-        [Obsolete]
-        public sealed class MedianEnsembleRegressionOutputCombiner : EnsembleRegressionOutputCombiner
-        {
-            [Obsolete]
-            internal override string ComponentName => "Median";
-        }
-
-
-
-        [Obsolete]
-        public sealed class RegressionStackingEnsembleRegressionOutputCombiner : EnsembleRegressionOutputCombiner
-        {
-            /// <summary>
-            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
-            /// </summary>
-            [Obsolete]
-            public float ValidationDatasetProportion { get; set; } = 0.3f;
-
-            [Obsolete]
-            internal override string ComponentName => "RegressionStacking";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleRegressionSubModelSelector : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class AllSelectorEnsembleRegressionSubModelSelector : EnsembleRegressionSubModelSelector
-        {
-            [Obsolete]
-            internal override string ComponentName => "AllSelector";
-        }
-
-
-
-        [Obsolete]
-        public sealed class BestDiverseSelectorRegressionEnsembleRegressionSubModelSelector : EnsembleRegressionSubModelSelector
-        {
-            /// <summary>
-            /// The metric type to be used to find the diversity among base learners
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EnsembleRegressionDiversityMeasure DiversityMetricType { get; set; } = new RegressionDisagreementDiversityMeasureEnsembleRegressionDiversityMeasure();
-
-            /// <summary>
-            /// The proportion of best base learners to be selected. The range is 0.0-1.0
-            /// </summary>
-            [Obsolete]
-            public float LearnersSelectionProportion { get; set; } = 0.5f;
-
-            /// <summary>
-            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
-            /// </summary>
-            [Obsolete]
-            public float ValidationDatasetProportion { get; set; } = 0.3f;
-
-            [Obsolete]
-            internal override string ComponentName => "BestDiverseSelectorRegression";
-        }
-
-        [Obsolete]
-        public enum RegressionEvaluatorMetrics
-        {
-            L1 = 0,
-            L2 = 1,
-            Rms = 2,
-            Loss = 3,
-            RSquared = 4
-        }
-
-
-
-        [Obsolete]
-        public sealed class BestPerformanceRegressionSelectorEnsembleRegressionSubModelSelector : EnsembleRegressionSubModelSelector
-        {
-            /// <summary>
-            /// The metric type to be used to find the best performance
-            /// </summary>
-            [Obsolete]
-            public RegressionEvaluatorMetrics MetricName { get; set; } = RegressionEvaluatorMetrics.L1;
-
-            /// <summary>
-            /// The proportion of best base learners to be selected. The range is 0.0-1.0
-            /// </summary>
-            [Obsolete]
-            public float LearnersSelectionProportion { get; set; } = 0.5f;
-
-            /// <summary>
-            /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
-            /// </summary>
-            [Obsolete]
-            public float ValidationDatasetProportion { get; set; } = 0.3f;
-
-            [Obsolete]
-            internal override string ComponentName => "BestPerformanceRegressionSelector";
-        }
-
-        [Obsolete]
-        public abstract class EnsembleSubsetSelector : ComponentKind {}
-
-
-
-        [Obsolete]
-        public sealed class AllInstanceSelectorEnsembleSubsetSelector : EnsembleSubsetSelector
-        {
-            /// <summary>
-            /// The Feature selector
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EnsembleFeatureSelector FeatureSelector { get; set; } = new AllFeatureSelectorEnsembleFeatureSelector();
-
-            [Obsolete]
-            internal override string ComponentName => "AllInstanceSelector";
-        }
-
-
-
-        [Obsolete]
-        public sealed class BootstrapSelectorEnsembleSubsetSelector : EnsembleSubsetSelector
-        {
-            /// <summary>
-            /// The Feature selector
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EnsembleFeatureSelector FeatureSelector { get; set; } = new AllFeatureSelectorEnsembleFeatureSelector();
-
-            [Obsolete]
-            internal override string ComponentName => "BootstrapSelector";
-        }
-
-
-
-        [Obsolete]
-        public sealed class RandomPartitionSelectorEnsembleSubsetSelector : EnsembleSubsetSelector
-        {
-            /// <summary>
-            /// The Feature selector
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EnsembleFeatureSelector FeatureSelector { get; set; } = new AllFeatureSelectorEnsembleFeatureSelector();
-
-            [Obsolete]
-            internal override string ComponentName => "RandomPartitionSelector";
-        }
-
-        [Obsolete]
-        public abstract class FastTreeTrainer : ComponentKind {}
-
-
+        public float LearnersSelectionProportion { get; set; } = 0.5f;
 
         /// <summary>
-        /// Uses a logit-boost boosted tree learner to perform binary classification.
+        /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
         /// </summary>
         [Obsolete]
-        public sealed class FastTreeBinaryClassificationFastTreeTrainer : FastTreeTrainer
-        {
-            /// <summary>
-            /// Should we use derivatives optimized for unbalanced sets
-            /// </summary>
-            [Obsolete]
-            public bool UnbalancedSets { get; set; } = false;
-
-            /// <summary>
-            /// Use best regression step trees?
-            /// </summary>
-            [Obsolete]
-            public bool BestStepRankingRegressionTrees { get; set; } = false;
-
-            /// <summary>
-            /// Should we use line search for a step size
-            /// </summary>
-            [Obsolete]
-            public bool UseLineSearch { get; set; } = false;
-
-            /// <summary>
-            /// Number of post-bracket line search steps
-            /// </summary>
-            [Obsolete]
-            public int NumPostBracketSteps { get; set; }
-
-            /// <summary>
-            /// Minimum line search step size
-            /// </summary>
-            [Obsolete]
-            public double MinStepSize { get; set; }
-
-            /// <summary>
-            /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
-
-            /// <summary>
-            /// Early stopping rule. (Validation set (/valid) is required.)
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
-
-            /// <summary>
-            /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
-            /// </summary>
-            [Obsolete]
-            public int EarlyStoppingMetrics { get; set; }
-
-            /// <summary>
-            /// Enable post-training pruning to avoid overfitting. (a validation set is required)
-            /// </summary>
-            [Obsolete]
-            public bool EnablePruning { get; set; } = false;
-
-            /// <summary>
-            /// Use window and tolerance for pruning
-            /// </summary>
-            [Obsolete]
-            public bool UseTolerantPruning { get; set; } = false;
-
-            /// <summary>
-            /// The tolerance threshold for pruning
-            /// </summary>
-            [Obsolete]
-            public double PruningThreshold { get; set; } = 0.004d;
-
-            /// <summary>
-            /// The moving window size for pruning
-            /// </summary>
-            [Obsolete]
-            public int PruningWindowSize { get; set; } = 5;
-
-            /// <summary>
-            /// The learning rate
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
-            [Obsolete]
-            public double LearningRates { get; set; } = 0.2d;
-
-            /// <summary>
-            /// Shrinkage
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
-            [Obsolete]
-            public double Shrinkage { get; set; } = 1d;
-
-            /// <summary>
-            /// Dropout rate for tree regularization
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
-            [Obsolete]
-            public double DropoutRate { get; set; }
-
-            /// <summary>
-            /// Sample each query 1 in k times in the GetDerivatives function
-            /// </summary>
-            [Obsolete]
-            public int GetDerivativesSampleRate { get; set; } = 1;
-
-            /// <summary>
-            /// Write the last ensemble instead of the one determined by early stopping
-            /// </summary>
-            [Obsolete]
-            public bool WriteLastEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Upper bound on absolute value of single tree output
-            /// </summary>
-            [Obsolete]
-            public double MaxTreeOutput { get; set; } = 100d;
-
-            /// <summary>
-            /// Training starts from random ordering (determined by /r1)
-            /// </summary>
-            [Obsolete]
-            public bool RandomStart { get; set; } = false;
-
-            /// <summary>
-            /// Filter zero lambdas during training
-            /// </summary>
-            [Obsolete]
-            public bool FilterZeroLambdas { get; set; } = false;
-
-            /// <summary>
-            /// Freeform defining the scores that should be used as the baseline ranker
-            /// </summary>
-            [Obsolete]
-            public string BaselineScoresFormula { get; set; }
-
-            /// <summary>
-            /// Baseline alpha for tradeoffs of risk (0 is normal training)
-            /// </summary>
-            [Obsolete]
-            public string BaselineAlphaRisk { get; set; }
-
-            /// <summary>
-            /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
-            /// </summary>
-            [Obsolete]
-            public string PositionDiscountFreeform { get; set; }
-
-            /// <summary>
-            /// Allows to choose Parallel FastTree Learning Algorithm
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
-
-            /// <summary>
-            /// The number of threads to use
-            /// </summary>
-            [Obsolete]
-            public int? NumThreads { get; set; }
-
-            /// <summary>
-            /// The seed of the random number generator
-            /// </summary>
-            [Obsolete]
-            public int RngSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The seed of the active feature selection
-            /// </summary>
-            [Obsolete]
-            public int FeatureSelectSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The entropy (regularization) coefficient between 0 and 1
-            /// </summary>
-            [Obsolete]
-            public double EntropyCoefficient { get; set; }
-
-            /// <summary>
-            /// The number of histograms in the pool (between 2 and numLeaves)
-            /// </summary>
-            [Obsolete]
-            public int HistogramPoolSize { get; set; } = -1;
-
-            /// <summary>
-            /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
-            /// </summary>
-            [Obsolete]
-            public bool? DiskTranspose { get; set; }
-
-            /// <summary>
-            /// Whether to collectivize features during dataset preparation to speed up training
-            /// </summary>
-            [Obsolete]
-            public bool FeatureFlocks { get; set; } = true;
-
-            /// <summary>
-            /// Whether to do split based on multiple categorical feature values.
-            /// </summary>
-            [Obsolete]
-            public bool CategoricalSplit { get; set; } = false;
-
-            /// <summary>
-            /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
-            /// </summary>
-            [Obsolete]
-            public int MaxCategoricalGroupsPerNode { get; set; } = 64;
-
-            /// <summary>
-            /// Maximum categorical split points to consider when splitting on a categorical feature.
-            /// </summary>
-            [Obsolete]
-            public int MaxCategoricalSplitPoints { get; set; } = 64;
-
-            /// <summary>
-            /// Minimum categorical docs percentage in a bin to consider for a split.
-            /// </summary>
-            [Obsolete]
-            public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
-
-            /// <summary>
-            /// Minimum categorical doc count in a bin to consider for a split.
-            /// </summary>
-            [Obsolete]
-            public int MinDocsForCategoricalSplit { get; set; } = 100;
-
-            /// <summary>
-            /// Bias for calculating gradient for each feature bin for a categorical feature.
-            /// </summary>
-            [Obsolete]
-            public double Bias { get; set; }
-
-            /// <summary>
-            /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
-
-            /// <summary>
-            /// Maximum number of distinct values (bins) per feature
-            /// </summary>
-            [Obsolete]
-            public int MaxBins { get; set; } = 255;
-
-            /// <summary>
-            /// Sparsity level needed to use sparse feature representation
-            /// </summary>
-            [Obsolete]
-            public double SparsifyThreshold { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The feature first use penalty coefficient
-            /// </summary>
-            [Obsolete]
-            public double FeatureFirstUsePenalty { get; set; }
-
-            /// <summary>
-            /// The feature re-use penalty (regularization) coefficient
-            /// </summary>
-            [Obsolete]
-            public double FeatureReusePenalty { get; set; }
-
-            /// <summary>
-            /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
-            /// </summary>
-            [Obsolete]
-            public double GainConfidenceLevel { get; set; }
-
-            /// <summary>
-            /// The temperature of the randomized softmax distribution for choosing the feature
-            /// </summary>
-            [Obsolete]
-            public double SoftmaxTemperature { get; set; }
-
-            /// <summary>
-            /// Print execution time breakdown to stdout
-            /// </summary>
-            [Obsolete]
-            public bool ExecutionTimes { get; set; } = false;
-
-            /// <summary>
-            /// The max number of leaves in each regression tree
-            /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
-            [Obsolete]
-            public int NumLeaves { get; set; } = 20;
-
-            /// <summary>
-            /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
-            [Obsolete]
-            public int MinDocumentsInLeafs { get; set; } = 10;
-
-            /// <summary>
-            /// Total number of decision trees to create in the ensemble
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
-            [Obsolete]
-            public int NumTrees { get; set; } = 100;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each iteration
-            /// </summary>
-            [Obsolete]
-            public double FeatureFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Number of trees in each bag (0 for disabling bagging)
-            /// </summary>
-            [Obsolete]
-            public int BaggingSize { get; set; }
-
-            /// <summary>
-            /// Percentage of training examples used in each bag
-            /// </summary>
-            [Obsolete]
-            public double BaggingTrainFraction { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each split
-            /// </summary>
-            [Obsolete]
-            public double SplitFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Smoothing paramter for tree regularization
-            /// </summary>
-            [Obsolete]
-            public double Smoothing { get; set; }
-
-            /// <summary>
-            /// When a root split is impossible, allow training to proceed
-            /// </summary>
-            [Obsolete]
-            public bool AllowEmptyTrees { get; set; } = true;
-
-            /// <summary>
-            /// The level of feature compression to use
-            /// </summary>
-            [Obsolete]
-            public int FeatureCompressionLevel { get; set; } = 1;
-
-            /// <summary>
-            /// Compress the tree Ensemble
-            /// </summary>
-            [Obsolete]
-            public bool CompressEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Maximum Number of trees after compression
-            /// </summary>
-            [Obsolete]
-            public int MaxTreesAfterCompression { get; set; } = -1;
-
-            /// <summary>
-            /// Print metrics graph for the first test set
-            /// </summary>
-            [Obsolete]
-            public bool PrintTestGraph { get; set; } = false;
-
-            /// <summary>
-            /// Print Train and Validation metrics in graph
-            /// </summary>
-            [Obsolete]
-            public bool PrintTrainValidGraph { get; set; } = false;
-
-            /// <summary>
-            /// Calculate metric values for train/valid/test every k rounds
-            /// </summary>
-            [Obsolete]
-            public int TestFrequency { get; set; } = 2147483647;
-
-            /// <summary>
-            /// Column to use for example groupId
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for example weight
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            [Obsolete]
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            [Obsolete]
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
-
-            [Obsolete]
-            internal override string ComponentName => "FastTreeBinaryClassification";
-        }
+        public float ValidationDatasetProportion { get; set; } = 0.3f;
 
+        [Obsolete]
+        internal override string ComponentName => "BestPerformanceSelectorMultiClass";
+    }
 
+    [Obsolete]
+    public abstract class EnsembleRegressionDiversityMeasure : ComponentKind {}
+
+
+
+    [Obsolete]
+    public sealed class RegressionDisagreementDiversityMeasureEnsembleRegressionDiversityMeasure : EnsembleRegressionDiversityMeasure
+    {
+        [Obsolete]
+        internal override string ComponentName => "RegressionDisagreementDiversityMeasure";
+    }
+
+    [Obsolete]
+    public abstract class EnsembleRegressionOutputCombiner : ComponentKind {}
+
+
+
+    [Obsolete]
+    public sealed class AverageEnsembleRegressionOutputCombiner : EnsembleRegressionOutputCombiner
+    {
+        [Obsolete]
+        internal override string ComponentName => "Average";
+    }
+
+
+
+    [Obsolete]
+    public sealed class MedianEnsembleRegressionOutputCombiner : EnsembleRegressionOutputCombiner
+    {
+        [Obsolete]
+        internal override string ComponentName => "Median";
+    }
+
+
+
+    [Obsolete]
+    public sealed class RegressionStackingEnsembleRegressionOutputCombiner : EnsembleRegressionOutputCombiner
+    {
+        /// <summary>
+        /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
+        /// </summary>
+        [Obsolete]
+        public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+        [Obsolete]
+        internal override string ComponentName => "RegressionStacking";
+    }
+
+    [Obsolete]
+    public abstract class EnsembleRegressionSubModelSelector : ComponentKind {}
+
+
+
+    [Obsolete]
+    public sealed class AllSelectorEnsembleRegressionSubModelSelector : EnsembleRegressionSubModelSelector
+    {
+        [Obsolete]
+        internal override string ComponentName => "AllSelector";
+    }
+
+
+
+    [Obsolete]
+    public sealed class BestDiverseSelectorRegressionEnsembleRegressionSubModelSelector : EnsembleRegressionSubModelSelector
+    {
+        /// <summary>
+        /// The metric type to be used to find the diversity among base learners
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public EnsembleRegressionDiversityMeasure DiversityMetricType { get; set; } = new RegressionDisagreementDiversityMeasureEnsembleRegressionDiversityMeasure();
 
         /// <summary>
-        /// Trains gradient boosted decision trees to the LambdaRank quasi-gradient.
+        /// The proportion of best base learners to be selected. The range is 0.0-1.0
         /// </summary>
         [Obsolete]
-        public sealed class FastTreeRankingFastTreeTrainer : FastTreeTrainer
-        {
-            /// <summary>
-            /// Comma seperated list of gains associated to each relevance label.
-            /// </summary>
-            [Obsolete]
-            public string CustomGains { get; set; } = "0,3,7,15,31";
-
-            /// <summary>
-            /// Train DCG instead of NDCG
-            /// </summary>
-            [Obsolete]
-            public bool TrainDcg { get; set; } = false;
-
-            /// <summary>
-            /// The sorting algorithm to use for DCG and LambdaMart calculations [DescendingStablePessimistic/DescendingStable/DescendingReverse/DescendingDotNet]
-            /// </summary>
-            [Obsolete]
-            public string SortingAlgorithm { get; set; } = "DescendingStablePessimistic";
-
-            /// <summary>
-            /// max-NDCG truncation to use in the Lambda Mart algorithm
-            /// </summary>
-            [Obsolete]
-            public int LambdaMartMaxTruncation { get; set; } = 100;
-
-            /// <summary>
-            /// Use shifted NDCG
-            /// </summary>
-            [Obsolete]
-            public bool ShiftedNdcg { get; set; } = false;
-
-            /// <summary>
-            /// Cost function parameter (w/c)
-            /// </summary>
-            [Obsolete]
-            public char CostFunctionParam { get; set; } = 'w';
-
-            /// <summary>
-            /// Distance weight 2 adjustment to cost
-            /// </summary>
-            [Obsolete]
-            public bool DistanceWeight2 { get; set; } = false;
-
-            /// <summary>
-            /// Normalize query lambdas
-            /// </summary>
-            [Obsolete]
-            public bool NormalizeQueryLambdas { get; set; } = false;
-
-            /// <summary>
-            /// Use best regression step trees?
-            /// </summary>
-            [Obsolete]
-            public bool BestStepRankingRegressionTrees { get; set; } = false;
-
-            /// <summary>
-            /// Should we use line search for a step size
-            /// </summary>
-            [Obsolete]
-            public bool UseLineSearch { get; set; } = false;
-
-            /// <summary>
-            /// Number of post-bracket line search steps
-            /// </summary>
-            [Obsolete]
-            public int NumPostBracketSteps { get; set; }
-
-            /// <summary>
-            /// Minimum line search step size
-            /// </summary>
-            [Obsolete]
-            public double MinStepSize { get; set; }
-
-            /// <summary>
-            /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
-
-            /// <summary>
-            /// Early stopping rule. (Validation set (/valid) is required.)
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
-
-            /// <summary>
-            /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
-            /// </summary>
-            [Obsolete]
-            public int EarlyStoppingMetrics { get; set; } = 1;
-
-            /// <summary>
-            /// Enable post-training pruning to avoid overfitting. (a validation set is required)
-            /// </summary>
-            [Obsolete]
-            public bool EnablePruning { get; set; } = false;
-
-            /// <summary>
-            /// Use window and tolerance for pruning
-            /// </summary>
-            [Obsolete]
-            public bool UseTolerantPruning { get; set; } = false;
-
-            /// <summary>
-            /// The tolerance threshold for pruning
-            /// </summary>
-            [Obsolete]
-            public double PruningThreshold { get; set; } = 0.004d;
-
-            /// <summary>
-            /// The moving window size for pruning
-            /// </summary>
-            [Obsolete]
-            public int PruningWindowSize { get; set; } = 5;
-
-            /// <summary>
-            /// The learning rate
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
-            [Obsolete]
-            public double LearningRates { get; set; } = 0.2d;
-
-            /// <summary>
-            /// Shrinkage
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
-            [Obsolete]
-            public double Shrinkage { get; set; } = 1d;
-
-            /// <summary>
-            /// Dropout rate for tree regularization
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
-            [Obsolete]
-            public double DropoutRate { get; set; }
-
-            /// <summary>
-            /// Sample each query 1 in k times in the GetDerivatives function
-            /// </summary>
-            [Obsolete]
-            public int GetDerivativesSampleRate { get; set; } = 1;
-
-            /// <summary>
-            /// Write the last ensemble instead of the one determined by early stopping
-            /// </summary>
-            [Obsolete]
-            public bool WriteLastEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Upper bound on absolute value of single tree output
-            /// </summary>
-            [Obsolete]
-            public double MaxTreeOutput { get; set; } = 100d;
-
-            /// <summary>
-            /// Training starts from random ordering (determined by /r1)
-            /// </summary>
-            [Obsolete]
-            public bool RandomStart { get; set; } = false;
-
-            /// <summary>
-            /// Filter zero lambdas during training
-            /// </summary>
-            [Obsolete]
-            public bool FilterZeroLambdas { get; set; } = false;
-
-            /// <summary>
-            /// Freeform defining the scores that should be used as the baseline ranker
-            /// </summary>
-            [Obsolete]
-            public string BaselineScoresFormula { get; set; }
-
-            /// <summary>
-            /// Baseline alpha for tradeoffs of risk (0 is normal training)
-            /// </summary>
-            [Obsolete]
-            public string BaselineAlphaRisk { get; set; }
-
-            /// <summary>
-            /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
-            /// </summary>
-            [Obsolete]
-            public string PositionDiscountFreeform { get; set; }
-
-            /// <summary>
-            /// Allows to choose Parallel FastTree Learning Algorithm
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
-
-            /// <summary>
-            /// The number of threads to use
-            /// </summary>
-            [Obsolete]
-            public int? NumThreads { get; set; }
-
-            /// <summary>
-            /// The seed of the random number generator
-            /// </summary>
-            [Obsolete]
-            public int RngSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The seed of the active feature selection
-            /// </summary>
-            [Obsolete]
-            public int FeatureSelectSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The entropy (regularization) coefficient between 0 and 1
-            /// </summary>
-            [Obsolete]
-            public double EntropyCoefficient { get; set; }
-
-            /// <summary>
-            /// The number of histograms in the pool (between 2 and numLeaves)
-            /// </summary>
-            [Obsolete]
-            public int HistogramPoolSize { get; set; } = -1;
-
-            /// <summary>
-            /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
-            /// </summary>
-            [Obsolete]
-            public bool? DiskTranspose { get; set; }
-
-            /// <summary>
-            /// Whether to collectivize features during dataset preparation to speed up training
-            /// </summary>
-            [Obsolete]
-            public bool FeatureFlocks { get; set; } = true;
-
-            /// <summary>
-            /// Whether to do split based on multiple categorical feature values.
-            /// </summary>
-            [Obsolete]
-            public bool CategoricalSplit { get; set; } = false;
-
-            /// <summary>
-            /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
-            /// </summary>
-            [Obsolete]
-            public int MaxCategoricalGroupsPerNode { get; set; } = 64;
-
-            /// <summary>
-            /// Maximum categorical split points to consider when splitting on a categorical feature.
-            /// </summary>
-            [Obsolete]
-            public int MaxCategoricalSplitPoints { get; set; } = 64;
-
-            /// <summary>
-            /// Minimum categorical docs percentage in a bin to consider for a split.
-            /// </summary>
-            [Obsolete]
-            public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
-
-            /// <summary>
-            /// Minimum categorical doc count in a bin to consider for a split.
-            /// </summary>
-            [Obsolete]
-            public int MinDocsForCategoricalSplit { get; set; } = 100;
-
-            /// <summary>
-            /// Bias for calculating gradient for each feature bin for a categorical feature.
-            /// </summary>
-            [Obsolete]
-            public double Bias { get; set; }
-
-            /// <summary>
-            /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
-
-            /// <summary>
-            /// Maximum number of distinct values (bins) per feature
-            /// </summary>
-            [Obsolete]
-            public int MaxBins { get; set; } = 255;
-
-            /// <summary>
-            /// Sparsity level needed to use sparse feature representation
-            /// </summary>
-            [Obsolete]
-            public double SparsifyThreshold { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The feature first use penalty coefficient
-            /// </summary>
-            [Obsolete]
-            public double FeatureFirstUsePenalty { get; set; }
-
-            /// <summary>
-            /// The feature re-use penalty (regularization) coefficient
-            /// </summary>
-            [Obsolete]
-            public double FeatureReusePenalty { get; set; }
-
-            /// <summary>
-            /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
-            /// </summary>
-            [Obsolete]
-            public double GainConfidenceLevel { get; set; }
-
-            /// <summary>
-            /// The temperature of the randomized softmax distribution for choosing the feature
-            /// </summary>
-            [Obsolete]
-            public double SoftmaxTemperature { get; set; }
-
-            /// <summary>
-            /// Print execution time breakdown to stdout
-            /// </summary>
-            [Obsolete]
-            public bool ExecutionTimes { get; set; } = false;
-
-            /// <summary>
-            /// The max number of leaves in each regression tree
-            /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
-            [Obsolete]
-            public int NumLeaves { get; set; } = 20;
-
-            /// <summary>
-            /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
-            [Obsolete]
-            public int MinDocumentsInLeafs { get; set; } = 10;
-
-            /// <summary>
-            /// Total number of decision trees to create in the ensemble
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
-            [Obsolete]
-            public int NumTrees { get; set; } = 100;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each iteration
-            /// </summary>
-            [Obsolete]
-            public double FeatureFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Number of trees in each bag (0 for disabling bagging)
-            /// </summary>
-            [Obsolete]
-            public int BaggingSize { get; set; }
-
-            /// <summary>
-            /// Percentage of training examples used in each bag
-            /// </summary>
-            [Obsolete]
-            public double BaggingTrainFraction { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each split
-            /// </summary>
-            [Obsolete]
-            public double SplitFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Smoothing paramter for tree regularization
-            /// </summary>
-            [Obsolete]
-            public double Smoothing { get; set; }
-
-            /// <summary>
-            /// When a root split is impossible, allow training to proceed
-            /// </summary>
-            [Obsolete]
-            public bool AllowEmptyTrees { get; set; } = true;
-
-            /// <summary>
-            /// The level of feature compression to use
-            /// </summary>
-            [Obsolete]
-            public int FeatureCompressionLevel { get; set; } = 1;
-
-            /// <summary>
-            /// Compress the tree Ensemble
-            /// </summary>
-            [Obsolete]
-            public bool CompressEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Maximum Number of trees after compression
-            /// </summary>
-            [Obsolete]
-            public int MaxTreesAfterCompression { get; set; } = -1;
-
-            /// <summary>
-            /// Print metrics graph for the first test set
-            /// </summary>
-            [Obsolete]
-            public bool PrintTestGraph { get; set; } = false;
-
-            /// <summary>
-            /// Print Train and Validation metrics in graph
-            /// </summary>
-            [Obsolete]
-            public bool PrintTrainValidGraph { get; set; } = false;
-
-            /// <summary>
-            /// Calculate metric values for train/valid/test every k rounds
-            /// </summary>
-            [Obsolete]
-            public int TestFrequency { get; set; } = 2147483647;
-
-            /// <summary>
-            /// Column to use for example groupId
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for example weight
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            [Obsolete]
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            [Obsolete]
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
-
-            [Obsolete]
-            internal override string ComponentName => "FastTreeRanking";
-        }
-
-
+        public float LearnersSelectionProportion { get; set; } = 0.5f;
 
         /// <summary>
-        /// Trains gradient boosted decision trees to fit target values using least-squares.
+        /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
         /// </summary>
         [Obsolete]
-        public sealed class FastTreeRegressionFastTreeTrainer : FastTreeTrainer
-        {
-            /// <summary>
-            /// Use best regression step trees?
-            /// </summary>
-            [Obsolete]
-            public bool BestStepRankingRegressionTrees { get; set; } = false;
-
-            /// <summary>
-            /// Should we use line search for a step size
-            /// </summary>
-            [Obsolete]
-            public bool UseLineSearch { get; set; } = false;
-
-            /// <summary>
-            /// Number of post-bracket line search steps
-            /// </summary>
-            [Obsolete]
-            public int NumPostBracketSteps { get; set; }
-
-            /// <summary>
-            /// Minimum line search step size
-            /// </summary>
-            [Obsolete]
-            public double MinStepSize { get; set; }
-
-            /// <summary>
-            /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
-
-            /// <summary>
-            /// Early stopping rule. (Validation set (/valid) is required.)
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
-
-            /// <summary>
-            /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
-            /// </summary>
-            [Obsolete]
-            public int EarlyStoppingMetrics { get; set; } = 1;
-
-            /// <summary>
-            /// Enable post-training pruning to avoid overfitting. (a validation set is required)
-            /// </summary>
-            [Obsolete]
-            public bool EnablePruning { get; set; } = false;
-
-            /// <summary>
-            /// Use window and tolerance for pruning
-            /// </summary>
-            [Obsolete]
-            public bool UseTolerantPruning { get; set; } = false;
-
-            /// <summary>
-            /// The tolerance threshold for pruning
-            /// </summary>
-            [Obsolete]
-            public double PruningThreshold { get; set; } = 0.004d;
-
-            /// <summary>
-            /// The moving window size for pruning
-            /// </summary>
-            [Obsolete]
-            public int PruningWindowSize { get; set; } = 5;
-
-            /// <summary>
-            /// The learning rate
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
-            [Obsolete]
-            public double LearningRates { get; set; } = 0.2d;
-
-            /// <summary>
-            /// Shrinkage
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
-            [Obsolete]
-            public double Shrinkage { get; set; } = 1d;
-
-            /// <summary>
-            /// Dropout rate for tree regularization
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
-            [Obsolete]
-            public double DropoutRate { get; set; }
-
-            /// <summary>
-            /// Sample each query 1 in k times in the GetDerivatives function
-            /// </summary>
-            [Obsolete]
-            public int GetDerivativesSampleRate { get; set; } = 1;
-
-            /// <summary>
-            /// Write the last ensemble instead of the one determined by early stopping
-            /// </summary>
-            [Obsolete]
-            public bool WriteLastEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Upper bound on absolute value of single tree output
-            /// </summary>
-            [Obsolete]
-            public double MaxTreeOutput { get; set; } = 100d;
-
-            /// <summary>
-            /// Training starts from random ordering (determined by /r1)
-            /// </summary>
-            [Obsolete]
-            public bool RandomStart { get; set; } = false;
-
-            /// <summary>
-            /// Filter zero lambdas during training
-            /// </summary>
-            [Obsolete]
-            public bool FilterZeroLambdas { get; set; } = false;
-
-            /// <summary>
-            /// Freeform defining the scores that should be used as the baseline ranker
-            /// </summary>
-            [Obsolete]
-            public string BaselineScoresFormula { get; set; }
-
-            /// <summary>
-            /// Baseline alpha for tradeoffs of risk (0 is normal training)
-            /// </summary>
-            [Obsolete]
-            public string BaselineAlphaRisk { get; set; }
-
-            /// <summary>
-            /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
-            /// </summary>
-            [Obsolete]
-            public string PositionDiscountFreeform { get; set; }
-
-            /// <summary>
-            /// Allows to choose Parallel FastTree Learning Algorithm
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
-
-            /// <summary>
-            /// The number of threads to use
-            /// </summary>
-            [Obsolete]
-            public int? NumThreads { get; set; }
-
-            /// <summary>
-            /// The seed of the random number generator
-            /// </summary>
-            [Obsolete]
-            public int RngSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The seed of the active feature selection
-            /// </summary>
-            [Obsolete]
-            public int FeatureSelectSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The entropy (regularization) coefficient between 0 and 1
-            /// </summary>
-            [Obsolete]
-            public double EntropyCoefficient { get; set; }
-
-            /// <summary>
-            /// The number of histograms in the pool (between 2 and numLeaves)
-            /// </summary>
-            [Obsolete]
-            public int HistogramPoolSize { get; set; } = -1;
-
-            /// <summary>
-            /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
-            /// </summary>
-            [Obsolete]
-            public bool? DiskTranspose { get; set; }
-
-            /// <summary>
-            /// Whether to collectivize features during dataset preparation to speed up training
-            /// </summary>
-            [Obsolete]
-            public bool FeatureFlocks { get; set; } = true;
-
-            /// <summary>
-            /// Whether to do split based on multiple categorical feature values.
-            /// </summary>
-            [Obsolete]
-            public bool CategoricalSplit { get; set; } = false;
-
-            /// <summary>
-            /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
-            /// </summary>
-            [Obsolete]
-            public int MaxCategoricalGroupsPerNode { get; set; } = 64;
-
-            /// <summary>
-            /// Maximum categorical split points to consider when splitting on a categorical feature.
-            /// </summary>
-            [Obsolete]
-            public int MaxCategoricalSplitPoints { get; set; } = 64;
-
-            /// <summary>
-            /// Minimum categorical docs percentage in a bin to consider for a split.
-            /// </summary>
-            [Obsolete]
-            public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
-
-            /// <summary>
-            /// Minimum categorical doc count in a bin to consider for a split.
-            /// </summary>
-            [Obsolete]
-            public int MinDocsForCategoricalSplit { get; set; } = 100;
-
-            /// <summary>
-            /// Bias for calculating gradient for each feature bin for a categorical feature.
-            /// </summary>
-            [Obsolete]
-            public double Bias { get; set; }
-
-            /// <summary>
-            /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
-
-            /// <summary>
-            /// Maximum number of distinct values (bins) per feature
-            /// </summary>
-            [Obsolete]
-            public int MaxBins { get; set; } = 255;
-
-            /// <summary>
-            /// Sparsity level needed to use sparse feature representation
-            /// </summary>
-            [Obsolete]
-            public double SparsifyThreshold { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The feature first use penalty coefficient
-            /// </summary>
-            [Obsolete]
-            public double FeatureFirstUsePenalty { get; set; }
-
-            /// <summary>
-            /// The feature re-use penalty (regularization) coefficient
-            /// </summary>
-            [Obsolete]
-            public double FeatureReusePenalty { get; set; }
-
-            /// <summary>
-            /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
-            /// </summary>
-            [Obsolete]
-            public double GainConfidenceLevel { get; set; }
-
-            /// <summary>
-            /// The temperature of the randomized softmax distribution for choosing the feature
-            /// </summary>
-            [Obsolete]
-            public double SoftmaxTemperature { get; set; }
-
-            /// <summary>
-            /// Print execution time breakdown to stdout
-            /// </summary>
-            [Obsolete]
-            public bool ExecutionTimes { get; set; } = false;
-
-            /// <summary>
-            /// The max number of leaves in each regression tree
-            /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
-            [Obsolete]
-            public int NumLeaves { get; set; } = 20;
-
-            /// <summary>
-            /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
-            [Obsolete]
-            public int MinDocumentsInLeafs { get; set; } = 10;
-
-            /// <summary>
-            /// Total number of decision trees to create in the ensemble
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
-            [Obsolete]
-            public int NumTrees { get; set; } = 100;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each iteration
-            /// </summary>
-            [Obsolete]
-            public double FeatureFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Number of trees in each bag (0 for disabling bagging)
-            /// </summary>
-            [Obsolete]
-            public int BaggingSize { get; set; }
-
-            /// <summary>
-            /// Percentage of training examples used in each bag
-            /// </summary>
-            [Obsolete]
-            public double BaggingTrainFraction { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each split
-            /// </summary>
-            [Obsolete]
-            public double SplitFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Smoothing paramter for tree regularization
-            /// </summary>
-            [Obsolete]
-            public double Smoothing { get; set; }
-
-            /// <summary>
-            /// When a root split is impossible, allow training to proceed
-            /// </summary>
-            [Obsolete]
-            public bool AllowEmptyTrees { get; set; } = true;
-
-            /// <summary>
-            /// The level of feature compression to use
-            /// </summary>
-            [Obsolete]
-            public int FeatureCompressionLevel { get; set; } = 1;
-
-            /// <summary>
-            /// Compress the tree Ensemble
-            /// </summary>
-            [Obsolete]
-            public bool CompressEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Maximum Number of trees after compression
-            /// </summary>
-            [Obsolete]
-            public int MaxTreesAfterCompression { get; set; } = -1;
-
-            /// <summary>
-            /// Print metrics graph for the first test set
-            /// </summary>
-            [Obsolete]
-            public bool PrintTestGraph { get; set; } = false;
-
-            /// <summary>
-            /// Print Train and Validation metrics in graph
-            /// </summary>
-            [Obsolete]
-            public bool PrintTrainValidGraph { get; set; } = false;
-
-            /// <summary>
-            /// Calculate metric values for train/valid/test every k rounds
-            /// </summary>
-            [Obsolete]
-            public int TestFrequency { get; set; } = 2147483647;
-
-            /// <summary>
-            /// Column to use for example groupId
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for example weight
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            [Obsolete]
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            [Obsolete]
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
-
-            [Obsolete]
-            internal override string ComponentName => "FastTreeRegression";
-        }
-
-
+        public float ValidationDatasetProportion { get; set; } = 0.3f;
+
+        [Obsolete]
+        internal override string ComponentName => "BestDiverseSelectorRegression";
+    }
+
+    [Obsolete]
+    public enum RegressionEvaluatorMetrics
+    {
+        L1 = 0,
+        L2 = 1,
+        Rms = 2,
+        Loss = 3,
+        RSquared = 4
+    }
+
+
+
+    [Obsolete]
+    public sealed class BestPerformanceRegressionSelectorEnsembleRegressionSubModelSelector : EnsembleRegressionSubModelSelector
+    {
+        /// <summary>
+        /// The metric type to be used to find the best performance
+        /// </summary>
+        [Obsolete]
+        public RegressionEvaluatorMetrics MetricName { get; set; } = RegressionEvaluatorMetrics.L1;
 
         /// <summary>
-        /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.
+        /// The proportion of best base learners to be selected. The range is 0.0-1.0
         /// </summary>
         [Obsolete]
-        public sealed class FastTreeTweedieRegressionFastTreeTrainer : FastTreeTrainer
-        {
-            /// <summary>
-            /// Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.
-            /// </summary>
-            [Obsolete]
-            public double Index { get; set; } = 1.5d;
-
-            /// <summary>
-            /// Use best regression step trees?
-            /// </summary>
-            [Obsolete]
-            public bool BestStepRankingRegressionTrees { get; set; } = false;
-
-            /// <summary>
-            /// Should we use line search for a step size
-            /// </summary>
-            [Obsolete]
-            public bool UseLineSearch { get; set; } = false;
-
-            /// <summary>
-            /// Number of post-bracket line search steps
-            /// </summary>
-            [Obsolete]
-            public int NumPostBracketSteps { get; set; }
-
-            /// <summary>
-            /// Minimum line search step size
-            /// </summary>
-            [Obsolete]
-            public double MinStepSize { get; set; }
-
-            /// <summary>
-            /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
-
-            /// <summary>
-            /// Early stopping rule. (Validation set (/valid) is required.)
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
-
-            /// <summary>
-            /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
-            /// </summary>
-            [Obsolete]
-            public int EarlyStoppingMetrics { get; set; }
-
-            /// <summary>
-            /// Enable post-training pruning to avoid overfitting. (a validation set is required)
-            /// </summary>
-            [Obsolete]
-            public bool EnablePruning { get; set; } = false;
-
-            /// <summary>
-            /// Use window and tolerance for pruning
-            /// </summary>
-            [Obsolete]
-            public bool UseTolerantPruning { get; set; } = false;
-
-            /// <summary>
-            /// The tolerance threshold for pruning
-            /// </summary>
-            [Obsolete]
-            public double PruningThreshold { get; set; } = 0.004d;
-
-            /// <summary>
-            /// The moving window size for pruning
-            /// </summary>
-            [Obsolete]
-            public int PruningWindowSize { get; set; } = 5;
-
-            /// <summary>
-            /// The learning rate
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
-            [Obsolete]
-            public double LearningRates { get; set; } = 0.2d;
-
-            /// <summary>
-            /// Shrinkage
-            /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
-            [Obsolete]
-            public double Shrinkage { get; set; } = 1d;
-
-            /// <summary>
-            /// Dropout rate for tree regularization
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
-            [Obsolete]
-            public double DropoutRate { get; set; }
-
-            /// <summary>
-            /// Sample each query 1 in k times in the GetDerivatives function
-            /// </summary>
-            [Obsolete]
-            public int GetDerivativesSampleRate { get; set; } = 1;
-
-            /// <summary>
-            /// Write the last ensemble instead of the one determined by early stopping
-            /// </summary>
-            [Obsolete]
-            public bool WriteLastEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Upper bound on absolute value of single tree output
-            /// </summary>
-            [Obsolete]
-            public double MaxTreeOutput { get; set; } = 100d;
-
-            /// <summary>
-            /// Training starts from random ordering (determined by /r1)
-            /// </summary>
-            [Obsolete]
-            public bool RandomStart { get; set; } = false;
-
-            /// <summary>
-            /// Filter zero lambdas during training
-            /// </summary>
-            [Obsolete]
-            public bool FilterZeroLambdas { get; set; } = false;
-
-            /// <summary>
-            /// Freeform defining the scores that should be used as the baseline ranker
-            /// </summary>
-            [Obsolete]
-            public string BaselineScoresFormula { get; set; }
-
-            /// <summary>
-            /// Baseline alpha for tradeoffs of risk (0 is normal training)
-            /// </summary>
-            [Obsolete]
-            public string BaselineAlphaRisk { get; set; }
-
-            /// <summary>
-            /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
-            /// </summary>
-            [Obsolete]
-            public string PositionDiscountFreeform { get; set; }
-
-            /// <summary>
-            /// Allows to choose Parallel FastTree Learning Algorithm
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
-
-            /// <summary>
-            /// The number of threads to use
-            /// </summary>
-            [Obsolete]
-            public int? NumThreads { get; set; }
-
-            /// <summary>
-            /// The seed of the random number generator
-            /// </summary>
-            [Obsolete]
-            public int RngSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The seed of the active feature selection
-            /// </summary>
-            [Obsolete]
-            public int FeatureSelectSeed { get; set; } = 123;
-
-            /// <summary>
-            /// The entropy (regularization) coefficient between 0 and 1
-            /// </summary>
-            [Obsolete]
-            public double EntropyCoefficient { get; set; }
-
-            /// <summary>
-            /// The number of histograms in the pool (between 2 and numLeaves)
-            /// </summary>
-            [Obsolete]
-            public int HistogramPoolSize { get; set; } = -1;
-
-            /// <summary>
-            /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
-            /// </summary>
-            [Obsolete]
-            public bool? DiskTranspose { get; set; }
-
-            /// <summary>
-            /// Whether to collectivize features during dataset preparation to speed up training
-            /// </summary>
-            [Obsolete]
-            public bool FeatureFlocks { get; set; } = true;
-
-            /// <summary>
-            /// Whether to do split based on multiple categorical feature values.
-            /// </summary>
-            [Obsolete]
-            public bool CategoricalSplit { get; set; } = false;
-
-            /// <summary>
-            /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
-            /// </summary>
-            [Obsolete]
-            public int MaxCategoricalGroupsPerNode { get; set; } = 64;
-
-            /// <summary>
-            /// Maximum categorical split points to consider when splitting on a categorical feature.
-            /// </summary>
-            [Obsolete]
-            public int MaxCategoricalSplitPoints { get; set; } = 64;
-
-            /// <summary>
-            /// Minimum categorical docs percentage in a bin to consider for a split.
-            /// </summary>
-            [Obsolete]
-            public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
-
-            /// <summary>
-            /// Minimum categorical doc count in a bin to consider for a split.
-            /// </summary>
-            [Obsolete]
-            public int MinDocsForCategoricalSplit { get; set; } = 100;
-
-            /// <summary>
-            /// Bias for calculating gradient for each feature bin for a categorical feature.
-            /// </summary>
-            [Obsolete]
-            public double Bias { get; set; }
-
-            /// <summary>
-            /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
-
-            /// <summary>
-            /// Maximum number of distinct values (bins) per feature
-            /// </summary>
-            [Obsolete]
-            public int MaxBins { get; set; } = 255;
-
-            /// <summary>
-            /// Sparsity level needed to use sparse feature representation
-            /// </summary>
-            [Obsolete]
-            public double SparsifyThreshold { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The feature first use penalty coefficient
-            /// </summary>
-            [Obsolete]
-            public double FeatureFirstUsePenalty { get; set; }
-
-            /// <summary>
-            /// The feature re-use penalty (regularization) coefficient
-            /// </summary>
-            [Obsolete]
-            public double FeatureReusePenalty { get; set; }
-
-            /// <summary>
-            /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
-            /// </summary>
-            [Obsolete]
-            public double GainConfidenceLevel { get; set; }
-
-            /// <summary>
-            /// The temperature of the randomized softmax distribution for choosing the feature
-            /// </summary>
-            [Obsolete]
-            public double SoftmaxTemperature { get; set; }
-
-            /// <summary>
-            /// Print execution time breakdown to stdout
-            /// </summary>
-            [Obsolete]
-            public bool ExecutionTimes { get; set; } = false;
-
-            /// <summary>
-            /// The max number of leaves in each regression tree
-            /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
-            [Obsolete]
-            public int NumLeaves { get; set; } = 20;
-
-            /// <summary>
-            /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
-            [Obsolete]
-            public int MinDocumentsInLeafs { get; set; } = 10;
-
-            /// <summary>
-            /// Total number of decision trees to create in the ensemble
-            /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
-            [Obsolete]
-            public int NumTrees { get; set; } = 100;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each iteration
-            /// </summary>
-            [Obsolete]
-            public double FeatureFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Number of trees in each bag (0 for disabling bagging)
-            /// </summary>
-            [Obsolete]
-            public int BaggingSize { get; set; }
-
-            /// <summary>
-            /// Percentage of training examples used in each bag
-            /// </summary>
-            [Obsolete]
-            public double BaggingTrainFraction { get; set; } = 0.7d;
-
-            /// <summary>
-            /// The fraction of features (chosen randomly) to use on each split
-            /// </summary>
-            [Obsolete]
-            public double SplitFraction { get; set; } = 1d;
-
-            /// <summary>
-            /// Smoothing paramter for tree regularization
-            /// </summary>
-            [Obsolete]
-            public double Smoothing { get; set; }
-
-            /// <summary>
-            /// When a root split is impossible, allow training to proceed
-            /// </summary>
-            [Obsolete]
-            public bool AllowEmptyTrees { get; set; } = true;
-
-            /// <summary>
-            /// The level of feature compression to use
-            /// </summary>
-            [Obsolete]
-            public int FeatureCompressionLevel { get; set; } = 1;
-
-            /// <summary>
-            /// Compress the tree Ensemble
-            /// </summary>
-            [Obsolete]
-            public bool CompressEnsemble { get; set; } = false;
-
-            /// <summary>
-            /// Maximum Number of trees after compression
-            /// </summary>
-            [Obsolete]
-            public int MaxTreesAfterCompression { get; set; } = -1;
-
-            /// <summary>
-            /// Print metrics graph for the first test set
-            /// </summary>
-            [Obsolete]
-            public bool PrintTestGraph { get; set; } = false;
-
-            /// <summary>
-            /// Print Train and Validation metrics in graph
-            /// </summary>
-            [Obsolete]
-            public bool PrintTrainValidGraph { get; set; } = false;
-
-            /// <summary>
-            /// Calculate metric values for train/valid/test every k rounds
-            /// </summary>
-            [Obsolete]
-            public int TestFrequency { get; set; } = 2147483647;
-
-            /// <summary>
-            /// Column to use for example groupId
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> GroupIdColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for example weight
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Runtime.EntryPoints.Optional<string> WeightColumn { get; set; }
-
-            /// <summary>
-            /// Column to use for labels
-            /// </summary>
-            [Obsolete]
-            public string LabelColumn { get; set; } = "Label";
-
-            /// <summary>
-            /// The data to be used for training
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column to use for features
-            /// </summary>
-            [Obsolete]
-            public string FeatureColumn { get; set; } = "Features";
-
-            /// <summary>
-            /// Normalize option for the feature column
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
-
-            /// <summary>
-            /// Whether learner should cache input training data
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
-
-            [Obsolete]
-            internal override string ComponentName => "FastTreeTweedieRegression";
-        }
-
-        [Obsolete]
-        public abstract class NgramExtractor : ComponentKind {}
-
-
+        public float LearnersSelectionProportion { get; set; } = 0.5f;
 
         /// <summary>
-        /// Extracts NGrams from text and convert them to vector using dictionary.
+        /// The proportion of instances to be selected to test the individual base learner. If it is 0, it uses training set
         /// </summary>
         [Obsolete]
-        public sealed class NGramNgramExtractor : NgramExtractor
-        {
-            /// <summary>
-            /// Ngram length
-            /// </summary>
-            [Obsolete]
-            public int NgramLength { get; set; } = 1;
+        public float ValidationDatasetProportion { get; set; } = 0.3f;
 
-            /// <summary>
-            /// Maximum number of tokens to skip when constructing an ngram
-            /// </summary>
-            [Obsolete]
-            public int SkipLength { get; set; }
+        [Obsolete]
+        internal override string ComponentName => "BestPerformanceRegressionSelector";
+    }
 
-            /// <summary>
-            /// Whether to include all ngram lengths up to NgramLength or only NgramLength
-            /// </summary>
-            [Obsolete]
-            public bool AllLengths { get; set; } = true;
-
-            /// <summary>
-            /// Maximum number of ngrams to store in the dictionary
-            /// </summary>
-            [Obsolete]
-            public int[] MaxNumTerms { get; set; } = { 10000000 };
-
-            /// <summary>
-            /// The weighting criteria
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.NgramExtractingEstimatorWeightingCriteria Weighting { get; set; } = Microsoft.ML.Legacy.Transforms.NgramExtractingEstimatorWeightingCriteria.Tf;
-
-            [Obsolete]
-            internal override string ComponentName => "NGram";
-        }
+    [Obsolete]
+    public abstract class EnsembleSubsetSelector : ComponentKind {}
 
 
+
+    [Obsolete]
+    public sealed class AllInstanceSelectorEnsembleSubsetSelector : EnsembleSubsetSelector
+    {
+        /// <summary>
+        /// The Feature selector
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public EnsembleFeatureSelector FeatureSelector { get; set; } = new AllFeatureSelectorEnsembleFeatureSelector();
+
+        [Obsolete]
+        internal override string ComponentName => "AllInstanceSelector";
+    }
+
+
+
+    [Obsolete]
+    public sealed class BootstrapSelectorEnsembleSubsetSelector : EnsembleSubsetSelector
+    {
+        /// <summary>
+        /// The Feature selector
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public EnsembleFeatureSelector FeatureSelector { get; set; } = new AllFeatureSelectorEnsembleFeatureSelector();
+
+        [Obsolete]
+        internal override string ComponentName => "BootstrapSelector";
+    }
+
+
+
+    [Obsolete]
+    public sealed class RandomPartitionSelectorEnsembleSubsetSelector : EnsembleSubsetSelector
+    {
+        /// <summary>
+        /// The Feature selector
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public EnsembleFeatureSelector FeatureSelector { get; set; } = new AllFeatureSelectorEnsembleFeatureSelector();
+
+        [Obsolete]
+        internal override string ComponentName => "RandomPartitionSelector";
+    }
+
+    [Obsolete]
+    public abstract class FastTreeTrainer : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Uses a logit-boost boosted tree learner to perform binary classification.
+    /// </summary>
+    [Obsolete]
+    public sealed class FastTreeBinaryClassificationFastTreeTrainer : FastTreeTrainer
+    {
+        /// <summary>
+        /// Should we use derivatives optimized for unbalanced sets
+        /// </summary>
+        [Obsolete]
+        public bool UnbalancedSets { get; set; } = false;
 
         /// <summary>
-        /// Extracts NGrams from text and convert them to vector using hashing trick.
+        /// Use best regression step trees?
         /// </summary>
         [Obsolete]
-        public sealed class NGramHashNgramExtractor : NgramExtractor
-        {
-            /// <summary>
-            /// Ngram length
-            /// </summary>
-            [Obsolete]
-            public int NgramLength { get; set; } = 1;
-
-            /// <summary>
-            /// Maximum number of tokens to skip when constructing an ngram
-            /// </summary>
-            [Obsolete]
-            public int SkipLength { get; set; }
-
-            /// <summary>
-            /// Number of bits to hash into. Must be between 1 and 30, inclusive.
-            /// </summary>
-            [Obsolete]
-            public int HashBits { get; set; } = 16;
-
-            /// <summary>
-            /// Hashing seed
-            /// </summary>
-            [Obsolete]
-            public uint Seed { get; set; } = 314489979;
-
-            /// <summary>
-            /// Whether the position of each source column should be included in the hash (when there are multiple source columns).
-            /// </summary>
-            [Obsolete]
-            public bool Ordered { get; set; } = true;
-
-            /// <summary>
-            /// Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.
-            /// </summary>
-            [Obsolete]
-            public int InvertHash { get; set; }
-
-            /// <summary>
-            /// Whether to include all ngram lengths up to ngramLength or only ngramLength
-            /// </summary>
-            [Obsolete]
-            public bool AllLengths { get; set; } = true;
-
-            [Obsolete]
-            internal override string ComponentName => "NGramHash";
-        }
-
-        [Obsolete]
-        public abstract class ParallelLightGBM : ComponentKind {}
-
-
+        public bool BestStepRankingRegressionTrees { get; set; } = false;
 
         /// <summary>
-        /// Single node machine learning process.
+        /// Should we use line search for a step size
         /// </summary>
         [Obsolete]
-        public sealed class SingleParallelLightGBM : ParallelLightGBM
-        {
-            [Obsolete]
-            internal override string ComponentName => "Single";
-        }
-
-        [Obsolete]
-        public abstract class ParallelTraining : ComponentKind {}
-
-
+        public bool UseLineSearch { get; set; } = false;
 
         /// <summary>
-        /// Single node machine learning process.
+        /// Number of post-bracket line search steps
         /// </summary>
         [Obsolete]
-        public sealed class SingleParallelTraining : ParallelTraining
-        {
-            [Obsolete]
-            internal override string ComponentName => "Single";
-        }
-
-        [Obsolete]
-        public abstract class PartitionedPathParser : ComponentKind {}
-
-
+        public int NumPostBracketSteps { get; set; }
 
         /// <summary>
-        /// Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet
+        /// Minimum line search step size
         /// </summary>
         [Obsolete]
-        public sealed class ParquetPathParserPartitionedPathParser : PartitionedPathParser
-        {
-            [Obsolete]
-            internal override string ComponentName => "ParquetPathParser";
-        }
-
-
-        [Obsolete]
-        public sealed partial class PartitionedFileLoaderColumn
-        {
-            /// <summary>
-            /// Name of the column.
-            /// </summary>
-            [Obsolete]
-            public string Name { get; set; }
-
-            /// <summary>
-            /// Data type of the column.
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Data.DataKind? Type { get; set; }
-
-            /// <summary>
-            /// Index of the directory representing this column.
-            /// </summary>
-            [Obsolete]
-            public int Source { get; set; }
-
-        }
-
+        public double MinStepSize { get; set; }
 
         /// <summary>
-        /// A simple parser that extracts directory names as column values. Column names are defined as arguments.
+        /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
         /// </summary>
         [Obsolete]
-        public sealed class SimplePathParserPartitionedPathParser : PartitionedPathParser
-        {
-            /// <summary>
-            /// Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, for example, col=MyFeature:R4:1
-            /// </summary>
-            [Obsolete]
-            public PartitionedFileLoaderColumn[] Columns { get; set; }
-
-            /// <summary>
-            /// Data type of each column.
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Data.DataKind Type { get; set; } = Microsoft.ML.Legacy.Data.DataKind.TX;
-
-            [Obsolete]
-            internal override string ComponentName => "SimplePathParser";
-        }
-
-        [Obsolete]
-        public abstract class RegressionLossFunction : ComponentKind {}
-
-
+        public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
         /// <summary>
-        /// Poisson loss.
+        /// Early stopping rule. (Validation set (/valid) is required.)
         /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
         [Obsolete]
-        public sealed class PoissonLossRegressionLossFunction : RegressionLossFunction
-        {
-            [Obsolete]
-            internal override string ComponentName => "PoissonLoss";
-        }
-
-
+        public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
 
         /// <summary>
-        /// Squared loss.
+        /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
         /// </summary>
         [Obsolete]
-        public sealed class SquaredLossRegressionLossFunction : RegressionLossFunction
-        {
-            [Obsolete]
-            internal override string ComponentName => "SquaredLoss";
-        }
-
-
+        public int EarlyStoppingMetrics { get; set; }
 
         /// <summary>
-        /// Tweedie loss.
+        /// Enable post-training pruning to avoid overfitting. (a validation set is required)
         /// </summary>
         [Obsolete]
-        public sealed class TweedieLossRegressionLossFunction : RegressionLossFunction
-        {
-            /// <summary>
-            /// Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.
-            /// </summary>
-            [Obsolete]
-            public double Index { get; set; } = 1.5d;
-
-            [Obsolete]
-            internal override string ComponentName => "TweedieLoss";
-        }
-
-        [Obsolete]
-        public abstract class SDCAClassificationLossFunction : ComponentKind {}
-
-
+        public bool EnablePruning { get; set; } = false;
 
         /// <summary>
-        /// Hinge loss.
+        /// Use window and tolerance for pruning
         /// </summary>
         [Obsolete]
-        public sealed class HingeLossSDCAClassificationLossFunction : SDCAClassificationLossFunction
-        {
-            /// <summary>
-            /// Margin value
-            /// </summary>
-            [Obsolete]
-            public float Margin { get; set; } = 1f;
-
-            [Obsolete]
-            internal override string ComponentName => "HingeLoss";
-        }
-
-
+        public bool UseTolerantPruning { get; set; } = false;
 
         /// <summary>
-        /// Log loss.
+        /// The tolerance threshold for pruning
         /// </summary>
         [Obsolete]
-        public sealed class LogLossSDCAClassificationLossFunction : SDCAClassificationLossFunction
-        {
-            [Obsolete]
-            internal override string ComponentName => "LogLoss";
-        }
-
-
+        public double PruningThreshold { get; set; } = 0.004d;
 
         /// <summary>
-        /// Smoothed Hinge loss.
+        /// The moving window size for pruning
         /// </summary>
         [Obsolete]
-        public sealed class SmoothedHingeLossSDCAClassificationLossFunction : SDCAClassificationLossFunction
-        {
-            /// <summary>
-            /// Smoothing constant
-            /// </summary>
-            [Obsolete]
-            public float SmoothingConst { get; set; } = 1f;
-
-            [Obsolete]
-            internal override string ComponentName => "SmoothedHingeLoss";
-        }
-
-        [Obsolete]
-        public abstract class SDCARegressionLossFunction : ComponentKind {}
-
-
+        public int PruningWindowSize { get; set; } = 5;
 
         /// <summary>
-        /// Squared loss.
+        /// The learning rate
         /// </summary>
+        [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
         [Obsolete]
-        public sealed class SquaredLossSDCARegressionLossFunction : SDCARegressionLossFunction
-        {
-            [Obsolete]
-            internal override string ComponentName => "SquaredLoss";
-        }
-
-        [Obsolete]
-        public abstract class StopWordsRemover : ComponentKind {}
-
-
+        public double LearningRates { get; set; } = 0.2d;
 
         /// <summary>
-        /// Remover with list of stopwords specified by the user.
+        /// Shrinkage
         /// </summary>
+        [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
         [Obsolete]
-        public sealed class CustomStopWordsRemover : StopWordsRemover
-        {
-            /// <summary>
-            /// List of stopwords
-            /// </summary>
-            [Obsolete]
-            public string[] Stopword { get; set; }
-
-            [Obsolete]
-            internal override string ComponentName => "Custom";
-        }
-
-
+        public double Shrinkage { get; set; } = 1d;
 
         /// <summary>
-        /// Remover with predefined list of stop words.
+        /// Dropout rate for tree regularization
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+        [Obsolete]
+        public double DropoutRate { get; set; }
+
+        /// <summary>
+        /// Sample each query 1 in k times in the GetDerivatives function
         /// </summary>
         [Obsolete]
-        public sealed class PredefinedStopWordsRemover : StopWordsRemover
-        {
-            [Obsolete]
-            internal override string ComponentName => "Predefined";
-        }
+        public int GetDerivativesSampleRate { get; set; } = 1;
+
+        /// <summary>
+        /// Write the last ensemble instead of the one determined by early stopping
+        /// </summary>
+        [Obsolete]
+        public bool WriteLastEnsemble { get; set; } = false;
+
+        /// <summary>
+        /// Upper bound on absolute value of single tree output
+        /// </summary>
+        [Obsolete]
+        public double MaxTreeOutput { get; set; } = 100d;
+
+        /// <summary>
+        /// Training starts from random ordering (determined by /r1)
+        /// </summary>
+        [Obsolete]
+        public bool RandomStart { get; set; } = false;
+
+        /// <summary>
+        /// Filter zero lambdas during training
+        /// </summary>
+        [Obsolete]
+        public bool FilterZeroLambdas { get; set; } = false;
+
+        /// <summary>
+        /// Freeform defining the scores that should be used as the baseline ranker
+        /// </summary>
+        [Obsolete]
+        public string BaselineScoresFormula { get; set; }
+
+        /// <summary>
+        /// Baseline alpha for tradeoffs of risk (0 is normal training)
+        /// </summary>
+        [Obsolete]
+        public string BaselineAlphaRisk { get; set; }
+
+        /// <summary>
+        /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
+        /// </summary>
+        [Obsolete]
+        public string PositionDiscountFreeform { get; set; }
+
+        /// <summary>
+        /// Allows to choose Parallel FastTree Learning Algorithm
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
+
+        /// <summary>
+        /// The number of threads to use
+        /// </summary>
+        [Obsolete]
+        public int? NumThreads { get; set; }
+
+        /// <summary>
+        /// The seed of the random number generator
+        /// </summary>
+        [Obsolete]
+        public int RngSeed { get; set; } = 123;
+
+        /// <summary>
+        /// The seed of the active feature selection
+        /// </summary>
+        [Obsolete]
+        public int FeatureSelectSeed { get; set; } = 123;
+
+        /// <summary>
+        /// The entropy (regularization) coefficient between 0 and 1
+        /// </summary>
+        [Obsolete]
+        public double EntropyCoefficient { get; set; }
+
+        /// <summary>
+        /// The number of histograms in the pool (between 2 and numLeaves)
+        /// </summary>
+        [Obsolete]
+        public int HistogramPoolSize { get; set; } = -1;
+
+        /// <summary>
+        /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
+        /// </summary>
+        [Obsolete]
+        public bool? DiskTranspose { get; set; }
+
+        /// <summary>
+        /// Whether to collectivize features during dataset preparation to speed up training
+        /// </summary>
+        [Obsolete]
+        public bool FeatureFlocks { get; set; } = true;
+
+        /// <summary>
+        /// Whether to do split based on multiple categorical feature values.
+        /// </summary>
+        [Obsolete]
+        public bool CategoricalSplit { get; set; } = false;
+
+        /// <summary>
+        /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
+        /// </summary>
+        [Obsolete]
+        public int MaxCategoricalGroupsPerNode { get; set; } = 64;
+
+        /// <summary>
+        /// Maximum categorical split points to consider when splitting on a categorical feature.
+        /// </summary>
+        [Obsolete]
+        public int MaxCategoricalSplitPoints { get; set; } = 64;
+
+        /// <summary>
+        /// Minimum categorical docs percentage in a bin to consider for a split.
+        /// </summary>
+        [Obsolete]
+        public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
+
+        /// <summary>
+        /// Minimum categorical doc count in a bin to consider for a split.
+        /// </summary>
+        [Obsolete]
+        public int MinDocsForCategoricalSplit { get; set; } = 100;
+
+        /// <summary>
+        /// Bias for calculating gradient for each feature bin for a categorical feature.
+        /// </summary>
+        [Obsolete]
+        public double Bias { get; set; }
+
+        /// <summary>
+        /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
+
+        /// <summary>
+        /// Maximum number of distinct values (bins) per feature
+        /// </summary>
+        [Obsolete]
+        public int MaxBins { get; set; } = 255;
+
+        /// <summary>
+        /// Sparsity level needed to use sparse feature representation
+        /// </summary>
+        [Obsolete]
+        public double SparsifyThreshold { get; set; } = 0.7d;
+
+        /// <summary>
+        /// The feature first use penalty coefficient
+        /// </summary>
+        [Obsolete]
+        public double FeatureFirstUsePenalty { get; set; }
+
+        /// <summary>
+        /// The feature re-use penalty (regularization) coefficient
+        /// </summary>
+        [Obsolete]
+        public double FeatureReusePenalty { get; set; }
+
+        /// <summary>
+        /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
+        /// </summary>
+        [Obsolete]
+        public double GainConfidenceLevel { get; set; }
+
+        /// <summary>
+        /// The temperature of the randomized softmax distribution for choosing the feature
+        /// </summary>
+        [Obsolete]
+        public double SoftmaxTemperature { get; set; }
+
+        /// <summary>
+        /// Print execution time breakdown to stdout
+        /// </summary>
+        [Obsolete]
+        public bool ExecutionTimes { get; set; } = false;
+
+        /// <summary>
+        /// The max number of leaves in each regression tree
+        /// </summary>
+        [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+        [Obsolete]
+        public int NumLeaves { get; set; } = 20;
+
+        /// <summary>
+        /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+        [Obsolete]
+        public int MinDocumentsInLeafs { get; set; } = 10;
+
+        /// <summary>
+        /// Total number of decision trees to create in the ensemble
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+        [Obsolete]
+        public int NumTrees { get; set; } = 100;
+
+        /// <summary>
+        /// The fraction of features (chosen randomly) to use on each iteration
+        /// </summary>
+        [Obsolete]
+        public double FeatureFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// Number of trees in each bag (0 for disabling bagging)
+        /// </summary>
+        [Obsolete]
+        public int BaggingSize { get; set; }
+
+        /// <summary>
+        /// Percentage of training examples used in each bag
+        /// </summary>
+        [Obsolete]
+        public double BaggingTrainFraction { get; set; } = 0.7d;
+
+        /// <summary>
+        /// The fraction of features (chosen randomly) to use on each split
+        /// </summary>
+        [Obsolete]
+        public double SplitFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// Smoothing paramter for tree regularization
+        /// </summary>
+        [Obsolete]
+        public double Smoothing { get; set; }
+
+        /// <summary>
+        /// When a root split is impossible, allow training to proceed
+        /// </summary>
+        [Obsolete]
+        public bool AllowEmptyTrees { get; set; } = true;
+
+        /// <summary>
+        /// The level of feature compression to use
+        /// </summary>
+        [Obsolete]
+        public int FeatureCompressionLevel { get; set; } = 1;
+
+        /// <summary>
+        /// Compress the tree Ensemble
+        /// </summary>
+        [Obsolete]
+        public bool CompressEnsemble { get; set; } = false;
+
+        /// <summary>
+        /// Maximum Number of trees after compression
+        /// </summary>
+        [Obsolete]
+        public int MaxTreesAfterCompression { get; set; } = -1;
+
+        /// <summary>
+        /// Print metrics graph for the first test set
+        /// </summary>
+        [Obsolete]
+        public bool PrintTestGraph { get; set; } = false;
+
+        /// <summary>
+        /// Print Train and Validation metrics in graph
+        /// </summary>
+        [Obsolete]
+        public bool PrintTrainValidGraph { get; set; } = false;
+
+        /// <summary>
+        /// Calculate metric values for train/valid/test every k rounds
+        /// </summary>
+        [Obsolete]
+        public int TestFrequency { get; set; } = 2147483647;
+
+        /// <summary>
+        /// Column to use for example groupId
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+
+        /// <summary>
+        /// Column to use for example weight
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+        /// <summary>
+        /// Column to use for labels
+        /// </summary>
+        [Obsolete]
+        public string LabelColumn { get; set; } = "Label";
+
+        /// <summary>
+        /// The data to be used for training
+        /// </summary>
+        [Obsolete]
+        public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+
+        /// <summary>
+        /// Column to use for features
+        /// </summary>
+        [Obsolete]
+        public string FeatureColumn { get; set; } = "Features";
+
+        /// <summary>
+        /// Normalize option for the feature column
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
+
+        /// <summary>
+        /// Whether learner should cache input training data
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
+
+        [Obsolete]
+        internal override string ComponentName => "FastTreeBinaryClassification";
+    }
+
+
+
+    /// <summary>
+    /// Trains gradient boosted decision trees to the LambdaRank quasi-gradient.
+    /// </summary>
+    [Obsolete]
+    public sealed class FastTreeRankingFastTreeTrainer : FastTreeTrainer
+    {
+        /// <summary>
+        /// Comma seperated list of gains associated to each relevance label.
+        /// </summary>
+        [Obsolete]
+        public string CustomGains { get; set; } = "0,3,7,15,31";
+
+        /// <summary>
+        /// Train DCG instead of NDCG
+        /// </summary>
+        [Obsolete]
+        public bool TrainDcg { get; set; } = false;
+
+        /// <summary>
+        /// The sorting algorithm to use for DCG and LambdaMart calculations [DescendingStablePessimistic/DescendingStable/DescendingReverse/DescendingDotNet]
+        /// </summary>
+        [Obsolete]
+        public string SortingAlgorithm { get; set; } = "DescendingStablePessimistic";
+
+        /// <summary>
+        /// max-NDCG truncation to use in the Lambda Mart algorithm
+        /// </summary>
+        [Obsolete]
+        public int LambdaMartMaxTruncation { get; set; } = 100;
+
+        /// <summary>
+        /// Use shifted NDCG
+        /// </summary>
+        [Obsolete]
+        public bool ShiftedNdcg { get; set; } = false;
+
+        /// <summary>
+        /// Cost function parameter (w/c)
+        /// </summary>
+        [Obsolete]
+        public char CostFunctionParam { get; set; } = 'w';
+
+        /// <summary>
+        /// Distance weight 2 adjustment to cost
+        /// </summary>
+        [Obsolete]
+        public bool DistanceWeight2 { get; set; } = false;
+
+        /// <summary>
+        /// Normalize query lambdas
+        /// </summary>
+        [Obsolete]
+        public bool NormalizeQueryLambdas { get; set; } = false;
+
+        /// <summary>
+        /// Use best regression step trees?
+        /// </summary>
+        [Obsolete]
+        public bool BestStepRankingRegressionTrees { get; set; } = false;
+
+        /// <summary>
+        /// Should we use line search for a step size
+        /// </summary>
+        [Obsolete]
+        public bool UseLineSearch { get; set; } = false;
+
+        /// <summary>
+        /// Number of post-bracket line search steps
+        /// </summary>
+        [Obsolete]
+        public int NumPostBracketSteps { get; set; }
+
+        /// <summary>
+        /// Minimum line search step size
+        /// </summary>
+        [Obsolete]
+        public double MinStepSize { get; set; }
+
+        /// <summary>
+        /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+
+        /// <summary>
+        /// Early stopping rule. (Validation set (/valid) is required.)
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
+
+        /// <summary>
+        /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
+        /// </summary>
+        [Obsolete]
+        public int EarlyStoppingMetrics { get; set; } = 1;
+
+        /// <summary>
+        /// Enable post-training pruning to avoid overfitting. (a validation set is required)
+        /// </summary>
+        [Obsolete]
+        public bool EnablePruning { get; set; } = false;
+
+        /// <summary>
+        /// Use window and tolerance for pruning
+        /// </summary>
+        [Obsolete]
+        public bool UseTolerantPruning { get; set; } = false;
+
+        /// <summary>
+        /// The tolerance threshold for pruning
+        /// </summary>
+        [Obsolete]
+        public double PruningThreshold { get; set; } = 0.004d;
+
+        /// <summary>
+        /// The moving window size for pruning
+        /// </summary>
+        [Obsolete]
+        public int PruningWindowSize { get; set; } = 5;
+
+        /// <summary>
+        /// The learning rate
+        /// </summary>
+        [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+        [Obsolete]
+        public double LearningRates { get; set; } = 0.2d;
+
+        /// <summary>
+        /// Shrinkage
+        /// </summary>
+        [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+        [Obsolete]
+        public double Shrinkage { get; set; } = 1d;
+
+        /// <summary>
+        /// Dropout rate for tree regularization
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+        [Obsolete]
+        public double DropoutRate { get; set; }
+
+        /// <summary>
+        /// Sample each query 1 in k times in the GetDerivatives function
+        /// </summary>
+        [Obsolete]
+        public int GetDerivativesSampleRate { get; set; } = 1;
+
+        /// <summary>
+        /// Write the last ensemble instead of the one determined by early stopping
+        /// </summary>
+        [Obsolete]
+        public bool WriteLastEnsemble { get; set; } = false;
+
+        /// <summary>
+        /// Upper bound on absolute value of single tree output
+        /// </summary>
+        [Obsolete]
+        public double MaxTreeOutput { get; set; } = 100d;
+
+        /// <summary>
+        /// Training starts from random ordering (determined by /r1)
+        /// </summary>
+        [Obsolete]
+        public bool RandomStart { get; set; } = false;
+
+        /// <summary>
+        /// Filter zero lambdas during training
+        /// </summary>
+        [Obsolete]
+        public bool FilterZeroLambdas { get; set; } = false;
+
+        /// <summary>
+        /// Freeform defining the scores that should be used as the baseline ranker
+        /// </summary>
+        [Obsolete]
+        public string BaselineScoresFormula { get; set; }
+
+        /// <summary>
+        /// Baseline alpha for tradeoffs of risk (0 is normal training)
+        /// </summary>
+        [Obsolete]
+        public string BaselineAlphaRisk { get; set; }
+
+        /// <summary>
+        /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
+        /// </summary>
+        [Obsolete]
+        public string PositionDiscountFreeform { get; set; }
+
+        /// <summary>
+        /// Allows to choose Parallel FastTree Learning Algorithm
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
+
+        /// <summary>
+        /// The number of threads to use
+        /// </summary>
+        [Obsolete]
+        public int? NumThreads { get; set; }
+
+        /// <summary>
+        /// The seed of the random number generator
+        /// </summary>
+        [Obsolete]
+        public int RngSeed { get; set; } = 123;
+
+        /// <summary>
+        /// The seed of the active feature selection
+        /// </summary>
+        [Obsolete]
+        public int FeatureSelectSeed { get; set; } = 123;
+
+        /// <summary>
+        /// The entropy (regularization) coefficient between 0 and 1
+        /// </summary>
+        [Obsolete]
+        public double EntropyCoefficient { get; set; }
+
+        /// <summary>
+        /// The number of histograms in the pool (between 2 and numLeaves)
+        /// </summary>
+        [Obsolete]
+        public int HistogramPoolSize { get; set; } = -1;
+
+        /// <summary>
+        /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
+        /// </summary>
+        [Obsolete]
+        public bool? DiskTranspose { get; set; }
+
+        /// <summary>
+        /// Whether to collectivize features during dataset preparation to speed up training
+        /// </summary>
+        [Obsolete]
+        public bool FeatureFlocks { get; set; } = true;
+
+        /// <summary>
+        /// Whether to do split based on multiple categorical feature values.
+        /// </summary>
+        [Obsolete]
+        public bool CategoricalSplit { get; set; } = false;
+
+        /// <summary>
+        /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
+        /// </summary>
+        [Obsolete]
+        public int MaxCategoricalGroupsPerNode { get; set; } = 64;
+
+        /// <summary>
+        /// Maximum categorical split points to consider when splitting on a categorical feature.
+        /// </summary>
+        [Obsolete]
+        public int MaxCategoricalSplitPoints { get; set; } = 64;
+
+        /// <summary>
+        /// Minimum categorical docs percentage in a bin to consider for a split.
+        /// </summary>
+        [Obsolete]
+        public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
+
+        /// <summary>
+        /// Minimum categorical doc count in a bin to consider for a split.
+        /// </summary>
+        [Obsolete]
+        public int MinDocsForCategoricalSplit { get; set; } = 100;
+
+        /// <summary>
+        /// Bias for calculating gradient for each feature bin for a categorical feature.
+        /// </summary>
+        [Obsolete]
+        public double Bias { get; set; }
+
+        /// <summary>
+        /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
+
+        /// <summary>
+        /// Maximum number of distinct values (bins) per feature
+        /// </summary>
+        [Obsolete]
+        public int MaxBins { get; set; } = 255;
+
+        /// <summary>
+        /// Sparsity level needed to use sparse feature representation
+        /// </summary>
+        [Obsolete]
+        public double SparsifyThreshold { get; set; } = 0.7d;
+
+        /// <summary>
+        /// The feature first use penalty coefficient
+        /// </summary>
+        [Obsolete]
+        public double FeatureFirstUsePenalty { get; set; }
+
+        /// <summary>
+        /// The feature re-use penalty (regularization) coefficient
+        /// </summary>
+        [Obsolete]
+        public double FeatureReusePenalty { get; set; }
+
+        /// <summary>
+        /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
+        /// </summary>
+        [Obsolete]
+        public double GainConfidenceLevel { get; set; }
+
+        /// <summary>
+        /// The temperature of the randomized softmax distribution for choosing the feature
+        /// </summary>
+        [Obsolete]
+        public double SoftmaxTemperature { get; set; }
+
+        /// <summary>
+        /// Print execution time breakdown to stdout
+        /// </summary>
+        [Obsolete]
+        public bool ExecutionTimes { get; set; } = false;
+
+        /// <summary>
+        /// The max number of leaves in each regression tree
+        /// </summary>
+        [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+        [Obsolete]
+        public int NumLeaves { get; set; } = 20;
+
+        /// <summary>
+        /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+        [Obsolete]
+        public int MinDocumentsInLeafs { get; set; } = 10;
+
+        /// <summary>
+        /// Total number of decision trees to create in the ensemble
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+        [Obsolete]
+        public int NumTrees { get; set; } = 100;
+
+        /// <summary>
+        /// The fraction of features (chosen randomly) to use on each iteration
+        /// </summary>
+        [Obsolete]
+        public double FeatureFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// Number of trees in each bag (0 for disabling bagging)
+        /// </summary>
+        [Obsolete]
+        public int BaggingSize { get; set; }
+
+        /// <summary>
+        /// Percentage of training examples used in each bag
+        /// </summary>
+        [Obsolete]
+        public double BaggingTrainFraction { get; set; } = 0.7d;
+
+        /// <summary>
+        /// The fraction of features (chosen randomly) to use on each split
+        /// </summary>
+        [Obsolete]
+        public double SplitFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// Smoothing paramter for tree regularization
+        /// </summary>
+        [Obsolete]
+        public double Smoothing { get; set; }
+
+        /// <summary>
+        /// When a root split is impossible, allow training to proceed
+        /// </summary>
+        [Obsolete]
+        public bool AllowEmptyTrees { get; set; } = true;
+
+        /// <summary>
+        /// The level of feature compression to use
+        /// </summary>
+        [Obsolete]
+        public int FeatureCompressionLevel { get; set; } = 1;
+
+        /// <summary>
+        /// Compress the tree Ensemble
+        /// </summary>
+        [Obsolete]
+        public bool CompressEnsemble { get; set; } = false;
+
+        /// <summary>
+        /// Maximum Number of trees after compression
+        /// </summary>
+        [Obsolete]
+        public int MaxTreesAfterCompression { get; set; } = -1;
+
+        /// <summary>
+        /// Print metrics graph for the first test set
+        /// </summary>
+        [Obsolete]
+        public bool PrintTestGraph { get; set; } = false;
+
+        /// <summary>
+        /// Print Train and Validation metrics in graph
+        /// </summary>
+        [Obsolete]
+        public bool PrintTrainValidGraph { get; set; } = false;
+
+        /// <summary>
+        /// Calculate metric values for train/valid/test every k rounds
+        /// </summary>
+        [Obsolete]
+        public int TestFrequency { get; set; } = 2147483647;
+
+        /// <summary>
+        /// Column to use for example groupId
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+
+        /// <summary>
+        /// Column to use for example weight
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+        /// <summary>
+        /// Column to use for labels
+        /// </summary>
+        [Obsolete]
+        public string LabelColumn { get; set; } = "Label";
+
+        /// <summary>
+        /// The data to be used for training
+        /// </summary>
+        [Obsolete]
+        public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+
+        /// <summary>
+        /// Column to use for features
+        /// </summary>
+        [Obsolete]
+        public string FeatureColumn { get; set; } = "Features";
+
+        /// <summary>
+        /// Normalize option for the feature column
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
+
+        /// <summary>
+        /// Whether learner should cache input training data
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
+
+        [Obsolete]
+        internal override string ComponentName => "FastTreeRanking";
+    }
+
+
+
+    /// <summary>
+    /// Trains gradient boosted decision trees to fit target values using least-squares.
+    /// </summary>
+    [Obsolete]
+    public sealed class FastTreeRegressionFastTreeTrainer : FastTreeTrainer
+    {
+        /// <summary>
+        /// Use best regression step trees?
+        /// </summary>
+        [Obsolete]
+        public bool BestStepRankingRegressionTrees { get; set; } = false;
+
+        /// <summary>
+        /// Should we use line search for a step size
+        /// </summary>
+        [Obsolete]
+        public bool UseLineSearch { get; set; } = false;
+
+        /// <summary>
+        /// Number of post-bracket line search steps
+        /// </summary>
+        [Obsolete]
+        public int NumPostBracketSteps { get; set; }
+
+        /// <summary>
+        /// Minimum line search step size
+        /// </summary>
+        [Obsolete]
+        public double MinStepSize { get; set; }
+
+        /// <summary>
+        /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+
+        /// <summary>
+        /// Early stopping rule. (Validation set (/valid) is required.)
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
+
+        /// <summary>
+        /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
+        /// </summary>
+        [Obsolete]
+        public int EarlyStoppingMetrics { get; set; } = 1;
+
+        /// <summary>
+        /// Enable post-training pruning to avoid overfitting. (a validation set is required)
+        /// </summary>
+        [Obsolete]
+        public bool EnablePruning { get; set; } = false;
+
+        /// <summary>
+        /// Use window and tolerance for pruning
+        /// </summary>
+        [Obsolete]
+        public bool UseTolerantPruning { get; set; } = false;
+
+        /// <summary>
+        /// The tolerance threshold for pruning
+        /// </summary>
+        [Obsolete]
+        public double PruningThreshold { get; set; } = 0.004d;
+
+        /// <summary>
+        /// The moving window size for pruning
+        /// </summary>
+        [Obsolete]
+        public int PruningWindowSize { get; set; } = 5;
+
+        /// <summary>
+        /// The learning rate
+        /// </summary>
+        [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+        [Obsolete]
+        public double LearningRates { get; set; } = 0.2d;
+
+        /// <summary>
+        /// Shrinkage
+        /// </summary>
+        [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+        [Obsolete]
+        public double Shrinkage { get; set; } = 1d;
+
+        /// <summary>
+        /// Dropout rate for tree regularization
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+        [Obsolete]
+        public double DropoutRate { get; set; }
+
+        /// <summary>
+        /// Sample each query 1 in k times in the GetDerivatives function
+        /// </summary>
+        [Obsolete]
+        public int GetDerivativesSampleRate { get; set; } = 1;
+
+        /// <summary>
+        /// Write the last ensemble instead of the one determined by early stopping
+        /// </summary>
+        [Obsolete]
+        public bool WriteLastEnsemble { get; set; } = false;
+
+        /// <summary>
+        /// Upper bound on absolute value of single tree output
+        /// </summary>
+        [Obsolete]
+        public double MaxTreeOutput { get; set; } = 100d;
+
+        /// <summary>
+        /// Training starts from random ordering (determined by /r1)
+        /// </summary>
+        [Obsolete]
+        public bool RandomStart { get; set; } = false;
+
+        /// <summary>
+        /// Filter zero lambdas during training
+        /// </summary>
+        [Obsolete]
+        public bool FilterZeroLambdas { get; set; } = false;
+
+        /// <summary>
+        /// Freeform defining the scores that should be used as the baseline ranker
+        /// </summary>
+        [Obsolete]
+        public string BaselineScoresFormula { get; set; }
+
+        /// <summary>
+        /// Baseline alpha for tradeoffs of risk (0 is normal training)
+        /// </summary>
+        [Obsolete]
+        public string BaselineAlphaRisk { get; set; }
+
+        /// <summary>
+        /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
+        /// </summary>
+        [Obsolete]
+        public string PositionDiscountFreeform { get; set; }
+
+        /// <summary>
+        /// Allows to choose Parallel FastTree Learning Algorithm
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
+
+        /// <summary>
+        /// The number of threads to use
+        /// </summary>
+        [Obsolete]
+        public int? NumThreads { get; set; }
+
+        /// <summary>
+        /// The seed of the random number generator
+        /// </summary>
+        [Obsolete]
+        public int RngSeed { get; set; } = 123;
+
+        /// <summary>
+        /// The seed of the active feature selection
+        /// </summary>
+        [Obsolete]
+        public int FeatureSelectSeed { get; set; } = 123;
+
+        /// <summary>
+        /// The entropy (regularization) coefficient between 0 and 1
+        /// </summary>
+        [Obsolete]
+        public double EntropyCoefficient { get; set; }
+
+        /// <summary>
+        /// The number of histograms in the pool (between 2 and numLeaves)
+        /// </summary>
+        [Obsolete]
+        public int HistogramPoolSize { get; set; } = -1;
+
+        /// <summary>
+        /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
+        /// </summary>
+        [Obsolete]
+        public bool? DiskTranspose { get; set; }
+
+        /// <summary>
+        /// Whether to collectivize features during dataset preparation to speed up training
+        /// </summary>
+        [Obsolete]
+        public bool FeatureFlocks { get; set; } = true;
+
+        /// <summary>
+        /// Whether to do split based on multiple categorical feature values.
+        /// </summary>
+        [Obsolete]
+        public bool CategoricalSplit { get; set; } = false;
+
+        /// <summary>
+        /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
+        /// </summary>
+        [Obsolete]
+        public int MaxCategoricalGroupsPerNode { get; set; } = 64;
+
+        /// <summary>
+        /// Maximum categorical split points to consider when splitting on a categorical feature.
+        /// </summary>
+        [Obsolete]
+        public int MaxCategoricalSplitPoints { get; set; } = 64;
+
+        /// <summary>
+        /// Minimum categorical docs percentage in a bin to consider for a split.
+        /// </summary>
+        [Obsolete]
+        public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
+
+        /// <summary>
+        /// Minimum categorical doc count in a bin to consider for a split.
+        /// </summary>
+        [Obsolete]
+        public int MinDocsForCategoricalSplit { get; set; } = 100;
+
+        /// <summary>
+        /// Bias for calculating gradient for each feature bin for a categorical feature.
+        /// </summary>
+        [Obsolete]
+        public double Bias { get; set; }
+
+        /// <summary>
+        /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
+
+        /// <summary>
+        /// Maximum number of distinct values (bins) per feature
+        /// </summary>
+        [Obsolete]
+        public int MaxBins { get; set; } = 255;
+
+        /// <summary>
+        /// Sparsity level needed to use sparse feature representation
+        /// </summary>
+        [Obsolete]
+        public double SparsifyThreshold { get; set; } = 0.7d;
+
+        /// <summary>
+        /// The feature first use penalty coefficient
+        /// </summary>
+        [Obsolete]
+        public double FeatureFirstUsePenalty { get; set; }
+
+        /// <summary>
+        /// The feature re-use penalty (regularization) coefficient
+        /// </summary>
+        [Obsolete]
+        public double FeatureReusePenalty { get; set; }
+
+        /// <summary>
+        /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
+        /// </summary>
+        [Obsolete]
+        public double GainConfidenceLevel { get; set; }
+
+        /// <summary>
+        /// The temperature of the randomized softmax distribution for choosing the feature
+        /// </summary>
+        [Obsolete]
+        public double SoftmaxTemperature { get; set; }
+
+        /// <summary>
+        /// Print execution time breakdown to stdout
+        /// </summary>
+        [Obsolete]
+        public bool ExecutionTimes { get; set; } = false;
+
+        /// <summary>
+        /// The max number of leaves in each regression tree
+        /// </summary>
+        [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+        [Obsolete]
+        public int NumLeaves { get; set; } = 20;
+
+        /// <summary>
+        /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+        [Obsolete]
+        public int MinDocumentsInLeafs { get; set; } = 10;
+
+        /// <summary>
+        /// Total number of decision trees to create in the ensemble
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+        [Obsolete]
+        public int NumTrees { get; set; } = 100;
+
+        /// <summary>
+        /// The fraction of features (chosen randomly) to use on each iteration
+        /// </summary>
+        [Obsolete]
+        public double FeatureFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// Number of trees in each bag (0 for disabling bagging)
+        /// </summary>
+        [Obsolete]
+        public int BaggingSize { get; set; }
+
+        /// <summary>
+        /// Percentage of training examples used in each bag
+        /// </summary>
+        [Obsolete]
+        public double BaggingTrainFraction { get; set; } = 0.7d;
+
+        /// <summary>
+        /// The fraction of features (chosen randomly) to use on each split
+        /// </summary>
+        [Obsolete]
+        public double SplitFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// Smoothing paramter for tree regularization
+        /// </summary>
+        [Obsolete]
+        public double Smoothing { get; set; }
+
+        /// <summary>
+        /// When a root split is impossible, allow training to proceed
+        /// </summary>
+        [Obsolete]
+        public bool AllowEmptyTrees { get; set; } = true;
+
+        /// <summary>
+        /// The level of feature compression to use
+        /// </summary>
+        [Obsolete]
+        public int FeatureCompressionLevel { get; set; } = 1;
+
+        /// <summary>
+        /// Compress the tree Ensemble
+        /// </summary>
+        [Obsolete]
+        public bool CompressEnsemble { get; set; } = false;
+
+        /// <summary>
+        /// Maximum Number of trees after compression
+        /// </summary>
+        [Obsolete]
+        public int MaxTreesAfterCompression { get; set; } = -1;
+
+        /// <summary>
+        /// Print metrics graph for the first test set
+        /// </summary>
+        [Obsolete]
+        public bool PrintTestGraph { get; set; } = false;
+
+        /// <summary>
+        /// Print Train and Validation metrics in graph
+        /// </summary>
+        [Obsolete]
+        public bool PrintTrainValidGraph { get; set; } = false;
+
+        /// <summary>
+        /// Calculate metric values for train/valid/test every k rounds
+        /// </summary>
+        [Obsolete]
+        public int TestFrequency { get; set; } = 2147483647;
+
+        /// <summary>
+        /// Column to use for example groupId
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+
+        /// <summary>
+        /// Column to use for example weight
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+        /// <summary>
+        /// Column to use for labels
+        /// </summary>
+        [Obsolete]
+        public string LabelColumn { get; set; } = "Label";
+
+        /// <summary>
+        /// The data to be used for training
+        /// </summary>
+        [Obsolete]
+        public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+
+        /// <summary>
+        /// Column to use for features
+        /// </summary>
+        [Obsolete]
+        public string FeatureColumn { get; set; } = "Features";
+
+        /// <summary>
+        /// Normalize option for the feature column
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
+
+        /// <summary>
+        /// Whether learner should cache input training data
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
+
+        [Obsolete]
+        internal override string ComponentName => "FastTreeRegression";
+    }
+
+
+
+    /// <summary>
+    /// Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.
+    /// </summary>
+    [Obsolete]
+    public sealed class FastTreeTweedieRegressionFastTreeTrainer : FastTreeTrainer
+    {
+        /// <summary>
+        /// Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.
+        /// </summary>
+        [Obsolete]
+        public double Index { get; set; } = 1.5d;
+
+        /// <summary>
+        /// Use best regression step trees?
+        /// </summary>
+        [Obsolete]
+        public bool BestStepRankingRegressionTrees { get; set; } = false;
+
+        /// <summary>
+        /// Should we use line search for a step size
+        /// </summary>
+        [Obsolete]
+        public bool UseLineSearch { get; set; } = false;
+
+        /// <summary>
+        /// Number of post-bracket line search steps
+        /// </summary>
+        [Obsolete]
+        public int NumPostBracketSteps { get; set; }
+
+        /// <summary>
+        /// Minimum line search step size
+        /// </summary>
+        [Obsolete]
+        public double MinStepSize { get; set; }
+
+        /// <summary>
+        /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+
+        /// <summary>
+        /// Early stopping rule. (Validation set (/valid) is required.)
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public EarlyStoppingCriterion EarlyStoppingRule { get; set; }
+
+        /// <summary>
+        /// Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)
+        /// </summary>
+        [Obsolete]
+        public int EarlyStoppingMetrics { get; set; }
+
+        /// <summary>
+        /// Enable post-training pruning to avoid overfitting. (a validation set is required)
+        /// </summary>
+        [Obsolete]
+        public bool EnablePruning { get; set; } = false;
+
+        /// <summary>
+        /// Use window and tolerance for pruning
+        /// </summary>
+        [Obsolete]
+        public bool UseTolerantPruning { get; set; } = false;
+
+        /// <summary>
+        /// The tolerance threshold for pruning
+        /// </summary>
+        [Obsolete]
+        public double PruningThreshold { get; set; } = 0.004d;
+
+        /// <summary>
+        /// The moving window size for pruning
+        /// </summary>
+        [Obsolete]
+        public int PruningWindowSize { get; set; } = 5;
+
+        /// <summary>
+        /// The learning rate
+        /// </summary>
+        [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+        [Obsolete]
+        public double LearningRates { get; set; } = 0.2d;
+
+        /// <summary>
+        /// Shrinkage
+        /// </summary>
+        [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+        [Obsolete]
+        public double Shrinkage { get; set; } = 1d;
+
+        /// <summary>
+        /// Dropout rate for tree regularization
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+        [Obsolete]
+        public double DropoutRate { get; set; }
+
+        /// <summary>
+        /// Sample each query 1 in k times in the GetDerivatives function
+        /// </summary>
+        [Obsolete]
+        public int GetDerivativesSampleRate { get; set; } = 1;
+
+        /// <summary>
+        /// Write the last ensemble instead of the one determined by early stopping
+        /// </summary>
+        [Obsolete]
+        public bool WriteLastEnsemble { get; set; } = false;
+
+        /// <summary>
+        /// Upper bound on absolute value of single tree output
+        /// </summary>
+        [Obsolete]
+        public double MaxTreeOutput { get; set; } = 100d;
+
+        /// <summary>
+        /// Training starts from random ordering (determined by /r1)
+        /// </summary>
+        [Obsolete]
+        public bool RandomStart { get; set; } = false;
+
+        /// <summary>
+        /// Filter zero lambdas during training
+        /// </summary>
+        [Obsolete]
+        public bool FilterZeroLambdas { get; set; } = false;
+
+        /// <summary>
+        /// Freeform defining the scores that should be used as the baseline ranker
+        /// </summary>
+        [Obsolete]
+        public string BaselineScoresFormula { get; set; }
+
+        /// <summary>
+        /// Baseline alpha for tradeoffs of risk (0 is normal training)
+        /// </summary>
+        [Obsolete]
+        public string BaselineAlphaRisk { get; set; }
+
+        /// <summary>
+        /// The discount freeform which specifies the per position discounts of documents in a query (uses a single variable P for position where P=0 is first position)
+        /// </summary>
+        [Obsolete]
+        public string PositionDiscountFreeform { get; set; }
+
+        /// <summary>
+        /// Allows to choose Parallel FastTree Learning Algorithm
+        /// </summary>
+        [JsonConverter(typeof(ComponentSerializer))]
+        [Obsolete]
+        public ParallelTraining ParallelTrainer { get; set; } = new SingleParallelTraining();
+
+        /// <summary>
+        /// The number of threads to use
+        /// </summary>
+        [Obsolete]
+        public int? NumThreads { get; set; }
+
+        /// <summary>
+        /// The seed of the random number generator
+        /// </summary>
+        [Obsolete]
+        public int RngSeed { get; set; } = 123;
+
+        /// <summary>
+        /// The seed of the active feature selection
+        /// </summary>
+        [Obsolete]
+        public int FeatureSelectSeed { get; set; } = 123;
+
+        /// <summary>
+        /// The entropy (regularization) coefficient between 0 and 1
+        /// </summary>
+        [Obsolete]
+        public double EntropyCoefficient { get; set; }
+
+        /// <summary>
+        /// The number of histograms in the pool (between 2 and numLeaves)
+        /// </summary>
+        [Obsolete]
+        public int HistogramPoolSize { get; set; } = -1;
+
+        /// <summary>
+        /// Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose
+        /// </summary>
+        [Obsolete]
+        public bool? DiskTranspose { get; set; }
+
+        /// <summary>
+        /// Whether to collectivize features during dataset preparation to speed up training
+        /// </summary>
+        [Obsolete]
+        public bool FeatureFlocks { get; set; } = true;
+
+        /// <summary>
+        /// Whether to do split based on multiple categorical feature values.
+        /// </summary>
+        [Obsolete]
+        public bool CategoricalSplit { get; set; } = false;
+
+        /// <summary>
+        /// Maximum categorical split groups to consider when splitting on a categorical feature. Split groups are a collection of split points. This is used to reduce overfitting when there many categorical features.
+        /// </summary>
+        [Obsolete]
+        public int MaxCategoricalGroupsPerNode { get; set; } = 64;
+
+        /// <summary>
+        /// Maximum categorical split points to consider when splitting on a categorical feature.
+        /// </summary>
+        [Obsolete]
+        public int MaxCategoricalSplitPoints { get; set; } = 64;
+
+        /// <summary>
+        /// Minimum categorical docs percentage in a bin to consider for a split.
+        /// </summary>
+        [Obsolete]
+        public double MinDocsPercentageForCategoricalSplit { get; set; } = 0.001d;
+
+        /// <summary>
+        /// Minimum categorical doc count in a bin to consider for a split.
+        /// </summary>
+        [Obsolete]
+        public int MinDocsForCategoricalSplit { get; set; } = 100;
+
+        /// <summary>
+        /// Bias for calculating gradient for each feature bin for a categorical feature.
+        /// </summary>
+        [Obsolete]
+        public double Bias { get; set; }
+
+        /// <summary>
+        /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
+
+        /// <summary>
+        /// Maximum number of distinct values (bins) per feature
+        /// </summary>
+        [Obsolete]
+        public int MaxBins { get; set; } = 255;
+
+        /// <summary>
+        /// Sparsity level needed to use sparse feature representation
+        /// </summary>
+        [Obsolete]
+        public double SparsifyThreshold { get; set; } = 0.7d;
+
+        /// <summary>
+        /// The feature first use penalty coefficient
+        /// </summary>
+        [Obsolete]
+        public double FeatureFirstUsePenalty { get; set; }
+
+        /// <summary>
+        /// The feature re-use penalty (regularization) coefficient
+        /// </summary>
+        [Obsolete]
+        public double FeatureReusePenalty { get; set; }
+
+        /// <summary>
+        /// Tree fitting gain confidence requirement (should be in the range [0,1) ).
+        /// </summary>
+        [Obsolete]
+        public double GainConfidenceLevel { get; set; }
+
+        /// <summary>
+        /// The temperature of the randomized softmax distribution for choosing the feature
+        /// </summary>
+        [Obsolete]
+        public double SoftmaxTemperature { get; set; }
+
+        /// <summary>
+        /// Print execution time breakdown to stdout
+        /// </summary>
+        [Obsolete]
+        public bool ExecutionTimes { get; set; } = false;
+
+        /// <summary>
+        /// The max number of leaves in each regression tree
+        /// </summary>
+        [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+        [Obsolete]
+        public int NumLeaves { get; set; } = 20;
+
+        /// <summary>
+        /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+        [Obsolete]
+        public int MinDocumentsInLeafs { get; set; } = 10;
+
+        /// <summary>
+        /// Total number of decision trees to create in the ensemble
+        /// </summary>
+        [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+        [Obsolete]
+        public int NumTrees { get; set; } = 100;
+
+        /// <summary>
+        /// The fraction of features (chosen randomly) to use on each iteration
+        /// </summary>
+        [Obsolete]
+        public double FeatureFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// Number of trees in each bag (0 for disabling bagging)
+        /// </summary>
+        [Obsolete]
+        public int BaggingSize { get; set; }
+
+        /// <summary>
+        /// Percentage of training examples used in each bag
+        /// </summary>
+        [Obsolete]
+        public double BaggingTrainFraction { get; set; } = 0.7d;
+
+        /// <summary>
+        /// The fraction of features (chosen randomly) to use on each split
+        /// </summary>
+        [Obsolete]
+        public double SplitFraction { get; set; } = 1d;
+
+        /// <summary>
+        /// Smoothing paramter for tree regularization
+        /// </summary>
+        [Obsolete]
+        public double Smoothing { get; set; }
+
+        /// <summary>
+        /// When a root split is impossible, allow training to proceed
+        /// </summary>
+        [Obsolete]
+        public bool AllowEmptyTrees { get; set; } = true;
+
+        /// <summary>
+        /// The level of feature compression to use
+        /// </summary>
+        [Obsolete]
+        public int FeatureCompressionLevel { get; set; } = 1;
+
+        /// <summary>
+        /// Compress the tree Ensemble
+        /// </summary>
+        [Obsolete]
+        public bool CompressEnsemble { get; set; } = false;
+
+        /// <summary>
+        /// Maximum Number of trees after compression
+        /// </summary>
+        [Obsolete]
+        public int MaxTreesAfterCompression { get; set; } = -1;
+
+        /// <summary>
+        /// Print metrics graph for the first test set
+        /// </summary>
+        [Obsolete]
+        public bool PrintTestGraph { get; set; } = false;
+
+        /// <summary>
+        /// Print Train and Validation metrics in graph
+        /// </summary>
+        [Obsolete]
+        public bool PrintTrainValidGraph { get; set; } = false;
+
+        /// <summary>
+        /// Calculate metric values for train/valid/test every k rounds
+        /// </summary>
+        [Obsolete]
+        public int TestFrequency { get; set; } = 2147483647;
+
+        /// <summary>
+        /// Column to use for example groupId
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.EntryPoints.Optional<string> GroupIdColumn { get; set; }
+
+        /// <summary>
+        /// Column to use for example weight
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.EntryPoints.Optional<string> WeightColumn { get; set; }
+
+        /// <summary>
+        /// Column to use for labels
+        /// </summary>
+        [Obsolete]
+        public string LabelColumn { get; set; } = "Label";
+
+        /// <summary>
+        /// The data to be used for training
+        /// </summary>
+        [Obsolete]
+        public Var<Microsoft.ML.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Data.IDataView>();
+
+        /// <summary>
+        /// Column to use for features
+        /// </summary>
+        [Obsolete]
+        public string FeatureColumn { get; set; } = "Features";
+
+        /// <summary>
+        /// Normalize option for the feature column
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
+
+        /// <summary>
+        /// Whether learner should cache input training data
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
+
+        [Obsolete]
+        internal override string ComponentName => "FastTreeTweedieRegression";
+    }
+
+    [Obsolete]
+    public abstract class NgramExtractor : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Extracts NGrams from text and convert them to vector using dictionary.
+    /// </summary>
+    [Obsolete]
+    public sealed class NGramNgramExtractor : NgramExtractor
+    {
+        /// <summary>
+        /// Ngram length
+        /// </summary>
+        [Obsolete]
+        public int NgramLength { get; set; } = 1;
+
+        /// <summary>
+        /// Maximum number of tokens to skip when constructing an ngram
+        /// </summary>
+        [Obsolete]
+        public int SkipLength { get; set; }
+
+        /// <summary>
+        /// Whether to include all ngram lengths up to NgramLength or only NgramLength
+        /// </summary>
+        [Obsolete]
+        public bool AllLengths { get; set; } = true;
+
+        /// <summary>
+        /// Maximum number of ngrams to store in the dictionary
+        /// </summary>
+        [Obsolete]
+        public int[] MaxNumTerms { get; set; } = { 10000000 };
+
+        /// <summary>
+        /// The weighting criteria
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Transforms.NgramExtractingEstimatorWeightingCriteria Weighting { get; set; } = Microsoft.ML.Legacy.Transforms.NgramExtractingEstimatorWeightingCriteria.Tf;
+
+        [Obsolete]
+        internal override string ComponentName => "NGram";
+    }
+
+
+
+    /// <summary>
+    /// Extracts NGrams from text and convert them to vector using hashing trick.
+    /// </summary>
+    [Obsolete]
+    public sealed class NGramHashNgramExtractor : NgramExtractor
+    {
+        /// <summary>
+        /// Ngram length
+        /// </summary>
+        [Obsolete]
+        public int NgramLength { get; set; } = 1;
+
+        /// <summary>
+        /// Maximum number of tokens to skip when constructing an ngram
+        /// </summary>
+        [Obsolete]
+        public int SkipLength { get; set; }
+
+        /// <summary>
+        /// Number of bits to hash into. Must be between 1 and 30, inclusive.
+        /// </summary>
+        [Obsolete]
+        public int HashBits { get; set; } = 16;
+
+        /// <summary>
+        /// Hashing seed
+        /// </summary>
+        [Obsolete]
+        public uint Seed { get; set; } = 314489979;
+
+        /// <summary>
+        /// Whether the position of each source column should be included in the hash (when there are multiple source columns).
+        /// </summary>
+        [Obsolete]
+        public bool Ordered { get; set; } = true;
+
+        /// <summary>
+        /// Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.
+        /// </summary>
+        [Obsolete]
+        public int InvertHash { get; set; }
+
+        /// <summary>
+        /// Whether to include all ngram lengths up to ngramLength or only ngramLength
+        /// </summary>
+        [Obsolete]
+        public bool AllLengths { get; set; } = true;
+
+        [Obsolete]
+        internal override string ComponentName => "NGramHash";
+    }
+
+    [Obsolete]
+    public abstract class ParallelLightGBM : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Single node machine learning process.
+    /// </summary>
+    [Obsolete]
+    public sealed class SingleParallelLightGBM : ParallelLightGBM
+    {
+        [Obsolete]
+        internal override string ComponentName => "Single";
+    }
+
+    [Obsolete]
+    public abstract class ParallelTraining : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Single node machine learning process.
+    /// </summary>
+    [Obsolete]
+    public sealed class SingleParallelTraining : ParallelTraining
+    {
+        [Obsolete]
+        internal override string ComponentName => "Single";
+    }
+
+    [Obsolete]
+    public abstract class PartitionedPathParser : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Extract name/value pairs from Parquet formatted directory names. Example path: Year=2018/Month=12/data1.parquet
+    /// </summary>
+    [Obsolete]
+    public sealed class ParquetPathParserPartitionedPathParser : PartitionedPathParser
+    {
+        [Obsolete]
+        internal override string ComponentName => "ParquetPathParser";
+    }
+
+
+    [Obsolete]
+    public sealed partial class PartitionedFileLoaderColumn
+    {
+        /// <summary>
+        /// Name of the column.
+        /// </summary>
+        [Obsolete]
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Data type of the column.
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Data.DataKind? Type { get; set; }
+
+        /// <summary>
+        /// Index of the directory representing this column.
+        /// </summary>
+        [Obsolete]
+        public int Source { get; set; }
 
     }
+
+
+    /// <summary>
+    /// A simple parser that extracts directory names as column values. Column names are defined as arguments.
+    /// </summary>
+    [Obsolete]
+    public sealed class SimplePathParserPartitionedPathParser : PartitionedPathParser
+    {
+        /// <summary>
+        /// Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, for example, col=MyFeature:R4:1
+        /// </summary>
+        [Obsolete]
+        public PartitionedFileLoaderColumn[] Columns { get; set; }
+
+        /// <summary>
+        /// Data type of each column.
+        /// </summary>
+        [Obsolete]
+        public Microsoft.ML.Legacy.Data.DataKind Type { get; set; } = Microsoft.ML.Legacy.Data.DataKind.TX;
+
+        [Obsolete]
+        internal override string ComponentName => "SimplePathParser";
+    }
+
+    [Obsolete]
+    public abstract class RegressionLossFunction : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Poisson loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class PoissonLossRegressionLossFunction : RegressionLossFunction
+    {
+        [Obsolete]
+        internal override string ComponentName => "PoissonLoss";
+    }
+
+
+
+    /// <summary>
+    /// Squared loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class SquaredLossRegressionLossFunction : RegressionLossFunction
+    {
+        [Obsolete]
+        internal override string ComponentName => "SquaredLoss";
+    }
+
+
+
+    /// <summary>
+    /// Tweedie loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class TweedieLossRegressionLossFunction : RegressionLossFunction
+    {
+        /// <summary>
+        /// Index parameter for the Tweedie distribution, in the range [1, 2]. 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.
+        /// </summary>
+        [Obsolete]
+        public double Index { get; set; } = 1.5d;
+
+        [Obsolete]
+        internal override string ComponentName => "TweedieLoss";
+    }
+
+    [Obsolete]
+    public abstract class SDCAClassificationLossFunction : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Hinge loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class HingeLossSDCAClassificationLossFunction : SDCAClassificationLossFunction
+    {
+        /// <summary>
+        /// Margin value
+        /// </summary>
+        [Obsolete]
+        public float Margin { get; set; } = 1f;
+
+        [Obsolete]
+        internal override string ComponentName => "HingeLoss";
+    }
+
+
+
+    /// <summary>
+    /// Log loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class LogLossSDCAClassificationLossFunction : SDCAClassificationLossFunction
+    {
+        [Obsolete]
+        internal override string ComponentName => "LogLoss";
+    }
+
+
+
+    /// <summary>
+    /// Smoothed Hinge loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class SmoothedHingeLossSDCAClassificationLossFunction : SDCAClassificationLossFunction
+    {
+        /// <summary>
+        /// Smoothing constant
+        /// </summary>
+        [Obsolete]
+        public float SmoothingConst { get; set; } = 1f;
+
+        [Obsolete]
+        internal override string ComponentName => "SmoothedHingeLoss";
+    }
+
+    [Obsolete]
+    public abstract class SDCARegressionLossFunction : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Squared loss.
+    /// </summary>
+    [Obsolete]
+    public sealed class SquaredLossSDCARegressionLossFunction : SDCARegressionLossFunction
+    {
+        [Obsolete]
+        internal override string ComponentName => "SquaredLoss";
+    }
+
+    [Obsolete]
+    public abstract class StopWordsRemover : ComponentKind {}
+
+
+
+    /// <summary>
+    /// Remover with list of stopwords specified by the user.
+    /// </summary>
+    [Obsolete]
+    public sealed class CustomStopWordsRemover : StopWordsRemover
+    {
+        /// <summary>
+        /// List of stopwords
+        /// </summary>
+        [Obsolete]
+        public string[] Stopword { get; set; }
+
+        [Obsolete]
+        internal override string ComponentName => "Custom";
+    }
+
+
+
+    /// <summary>
+    /// Remover with predefined list of stop words.
+    /// </summary>
+    [Obsolete]
+    public sealed class PredefinedStopWordsRemover : StopWordsRemover
+    {
+        [Obsolete]
+        internal override string ComponentName => "Predefined";
+    }
+
 }
 #pragma warning restore

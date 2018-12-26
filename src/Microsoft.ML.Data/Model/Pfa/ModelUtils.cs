@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Model
+namespace Microsoft.ML.Model
 {
     internal static class ModelUtils
     {

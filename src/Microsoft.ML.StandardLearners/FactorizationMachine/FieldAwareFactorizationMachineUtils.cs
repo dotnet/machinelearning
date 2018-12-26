@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.FactorizationMachine
+namespace Microsoft.ML.FactorizationMachine
 {
     internal sealed class FieldAwareFactorizationMachineUtils
     {
@@ -56,7 +55,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
     internal sealed class FieldAwareFactorizationMachineScalarRowMapper : ISchemaBoundRowMapper
     {
-        private readonly FieldAwareFactorizationMachinePredictor _pred;
+        private readonly FieldAwareFactorizationMachineModelParameters _pred;
 
         public RoleMappedSchema InputRoleMappedSchema { get; }
 
@@ -66,12 +65,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
         public ISchemaBindableMapper Bindable => _pred;
 
-        private readonly ColumnInfo[] _columns;
+        private readonly Schema.Column[] _columns;
         private readonly List<int> _inputColumnIndexes;
         private readonly IHostEnvironment _env;
 
         public FieldAwareFactorizationMachineScalarRowMapper(IHostEnvironment env, RoleMappedSchema schema,
-            Schema outputSchema, FieldAwareFactorizationMachinePredictor pred)
+            Schema outputSchema, FieldAwareFactorizationMachineModelParameters pred)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(schema);

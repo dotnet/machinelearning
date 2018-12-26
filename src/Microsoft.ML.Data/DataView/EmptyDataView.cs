@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This implements a data view that has a schema, but no rows.
@@ -35,11 +34,10 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(_host, Schema, needCol);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
         {
             _host.CheckValue(needCol, nameof(needCol));
             _host.CheckValueOrNull(rand);
-            consolidator = null;
             return new[] { new Cursor(_host, Schema, needCol) };
         }
 

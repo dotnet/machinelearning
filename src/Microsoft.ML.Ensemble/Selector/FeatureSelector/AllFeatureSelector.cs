@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector;
 using System;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.FeatureSelector;
 
 [assembly: LoadableClass(typeof(AllFeatureSelector), null, typeof(SignatureEnsembleFeatureSelector),
     AllFeatureSelector.UserName, AllFeatureSelector.LoadName)]
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
+namespace Microsoft.ML.Ensemble.Selector.FeatureSelector
 {
     internal sealed class AllFeatureSelector : IFeatureSelector
     {

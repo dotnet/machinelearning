@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     // REVIEW: Consider automatic densification in some of the operations, where appropriate.
     // REVIEW: Once we do the conversions from Vector/WritableVector, review names of methods,

@@ -1,8 +1,7 @@
-﻿using Microsoft.ML.Calibrator;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.ML.Calibrator;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

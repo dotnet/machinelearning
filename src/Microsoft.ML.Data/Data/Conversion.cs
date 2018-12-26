@@ -10,22 +10,22 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data.Conversion
+namespace Microsoft.ML.Data.Conversion
 {
     using BL = Boolean;
     using DT = DateTime;
     using DZ = DateTimeOffset;
-    using R4 = Single;
-    using R8 = Double;
     using I1 = SByte;
     using I2 = Int16;
     using I4 = Int32;
     using I8 = Int64;
+    using R4 = Single;
+    using R8 = Double;
     using SB = StringBuilder;
-    using TX = ReadOnlyMemory<char>;
     using TS = TimeSpan;
+    using TX = ReadOnlyMemory<char>;
     using U1 = Byte;
     using U2 = UInt16;
     using U4 = UInt32;

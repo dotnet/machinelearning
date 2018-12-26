@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ColumnSelectingTransformer.Summary, typeof(IDataTransform), typeof(ColumnSelectingTransformer),
                 typeof(ColumnSelectingTransformer.Arguments), typeof(SignatureDataTransform),
@@ -639,14 +638,14 @@ namespace Microsoft.ML.Transforms
                 return new Cursor(_host, _mapper, inputRowCursor, active);
             }
 
-            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
             {
                 _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
 
                 // Build out the active state for the input
                 var inputPred = GetDependencies(needCol);
-                var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+                var inputs = Source.GetRowCursorSet(inputPred, n, rand);
 
                 // Build out the acitve state for the output
                 var active = Utils.BuildArray(_mapper.OutputSchema.Count, needCol);
@@ -655,9 +654,7 @@ namespace Microsoft.ML.Transforms
                 // No need to split if this is given 1 input cursor.
                 var cursors = new RowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
-                {
                     cursors[i] = new Cursor(_host, _mapper, inputs[i], active);
-                }
                 return cursors;
             }
 

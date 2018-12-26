@@ -2,13 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using Microsoft.ML.Runtime.CommandLine;
-
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
 #if OLD_DATALOAD

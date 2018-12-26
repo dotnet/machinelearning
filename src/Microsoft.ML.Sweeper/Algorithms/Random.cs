@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML;
+using Microsoft.ML.Sweeper;
 
 [assembly: LoadableClass(typeof(UniformRandomSweeper), typeof(SweeperBase.ArgumentsBase), typeof(SignatureSweeper),
     "Uniform Random Sweeper", "UniformRandomSweeper", "UniformRandom")]
 [assembly: LoadableClass(typeof(UniformRandomSweeper), typeof(SweeperBase.ArgumentsBase), typeof(SignatureSweeperFromParameterList),
     "Uniform Random Sweeper", "UniformRandomSweeperParamList", "UniformRandompl")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     /// <summary>
     /// Random sweeper, it generates random values for each of the parameters.

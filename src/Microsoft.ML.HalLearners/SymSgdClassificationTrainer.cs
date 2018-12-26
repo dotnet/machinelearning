@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Trainers.SymSgd;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Trainers.SymSgd;
+using Microsoft.ML.Training;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -124,13 +123,12 @@ namespace Microsoft.ML.Trainers.SymSgd
             var roles = examples.Schema.GetColumnRoleNames();
             var examplesToFeedTrain = new RoleMappedData(idvToFeedTrain, roles);
 
-            ch.AssertValue(examplesToFeedTrain.Schema.Label);
-            ch.AssertValue(examplesToFeedTrain.Schema.Feature);
-            if (examples.Schema.Weight != null)
-                ch.AssertValue(examplesToFeedTrain.Schema.Weight);
+            ch.Assert(examplesToFeedTrain.Schema.Label.HasValue);
+            ch.Assert(examplesToFeedTrain.Schema.Feature.HasValue);
+            if (examples.Schema.Weight.HasValue)
+                ch.Assert(examplesToFeedTrain.Schema.Weight.HasValue);
 
-            int numFeatures = examplesToFeedTrain.Schema.Feature.Type.VectorSize;
-            ch.Check(numFeatures > 0, "Training set has no features, aborting training.");
+            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
             return examplesToFeedTrain;
         }
 
@@ -637,7 +635,7 @@ namespace Microsoft.ML.Trainers.SymSgd
 
         private TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
-            int numFeatures = data.Schema.Feature.Type.VectorSize;
+            int numFeatures = data.Schema.Feature.Value.Type.VectorSize;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
             int numThreads = 1;
             ch.CheckUserArg(numThreads > 0, nameof(_args.NumberOfThreads),

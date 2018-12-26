@@ -262,8 +262,8 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         private static readonly MetadataReference CSharpSymbolsReference = RefFromType<CSharpCompilation>();
         private static readonly MetadataReference CodeAnalysisReference = RefFromType<Compilation>();
 
-        private static readonly MetadataReference MLNetCoreReference = RefFromType<Runtime.IHostEnvironment>();
-        private static readonly MetadataReference MLNetDataReference = RefFromType<Runtime.Model.ModelLoadContext>();
+        private static readonly MetadataReference MLNetCoreReference = RefFromType<IHostEnvironment>();
+        private static readonly MetadataReference MLNetDataReference = RefFromType<Model.ModelLoadContext>();
 
         protected static MetadataReference RefFromType<TType>()
             => MetadataReference.CreateFromFile(typeof(TType).Assembly.Location);

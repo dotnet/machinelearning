@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.CommandLine
 {
     /// <summary>
     /// On an enum value - indicates that the value should not be shown in help or UI.

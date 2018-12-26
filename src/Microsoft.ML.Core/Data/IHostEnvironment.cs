@@ -5,7 +5,7 @@
 using System;
 using System.ComponentModel.Composition.Hosting;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// A channel provider can create new channels and generic information pipes.

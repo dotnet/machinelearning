@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using System;
 using System.IO;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
 {
@@ -120,7 +118,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(this, input, predicate);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Contracts.CheckValue(predicate, nameof(predicate));
             Contracts.CheckParam(n >= 0, nameof(n));
@@ -128,7 +126,6 @@ namespace Microsoft.ML.Transforms
 
             // This transform is stateful, its contract is to allocate exactly one state object per cursor and call the filter function
             // on every row in sequence. Therefore, parallel cursoring is not possible.
-            consolidator = null;
             return new[] { GetRowCursor(predicate, rand) };
         }
 

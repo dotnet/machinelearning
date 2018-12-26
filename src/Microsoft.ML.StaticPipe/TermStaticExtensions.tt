@@ -1,4 +1,4 @@
-﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
@@ -9,8 +9,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.StaticPipe

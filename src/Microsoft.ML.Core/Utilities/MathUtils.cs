@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     /// <summary>
     /// Some useful math methods.
@@ -507,7 +505,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static Float SigmoidSlow(Float x)
         {
-            return 1 / (1 + ExpSlow(-x));
+            // The following two expressions are mathematically equivalent. Due to the potential of getting overflow we should
+            // not call exp(x) for large positive x: instead, we modify the expression to compute exp(-x).
+            if (x > 0)
+                return 1 / (1 + ExpSlow(-x));
+            else
+            {
+                var ex = ExpSlow(x);
+                return  ex / (1 + ex);
+            }
         }
 
         /// <summary>

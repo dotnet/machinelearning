@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Transforms;
@@ -70,7 +69,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        public void New_MetacomponentsFeaturesRenamed()
+        public void MetacomponentsFeaturesRenamed()
         {
             var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));

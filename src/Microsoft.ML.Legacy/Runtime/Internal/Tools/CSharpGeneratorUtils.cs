@@ -9,12 +9,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CSharp;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime.Internal.Tools
+namespace Microsoft.ML.Internal.Tools
 {
     internal static class CSharpGeneratorUtils
     {
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     if (generatedClasses.IsGenerated(fieldType.FullName))
                         return generatedClasses.GetApiName(fieldType, rootNameSpace) + "." + enumAsString;
                     else
-                        return generatedClasses.GetApiName(fieldType, "Runtime") + "." + enumAsString;
+                        return generatedClasses.GetApiName(fieldType, "") + "." + enumAsString;
                 case TlcModule.DataKind.Char:
                     return $"'{GetCharAsString((char)fieldValue)}'";
                 case TlcModule.DataKind.Component:
@@ -381,18 +381,15 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("//------------------------------------------------------------------------------");
             writer.WriteLine("#pragma warning disable");
             writer.WriteLine("using System.Collections.Generic;");
-            writer.WriteLine("using Microsoft.ML.Runtime;");
-            writer.WriteLine("using Microsoft.ML.Runtime.Data;");
-            writer.WriteLine("using Microsoft.ML.Runtime.EntryPoints;");
+            writer.WriteLine("using Microsoft.ML;");
+            writer.WriteLine("using Microsoft.ML.Data;");
+            writer.WriteLine("using Microsoft.ML.EntryPoints;");
             writer.WriteLine("using Newtonsoft.Json;");
             writer.WriteLine("using System;");
             writer.WriteLine("using System.Linq;");
-            writer.WriteLine("using Microsoft.ML.Runtime.CommandLine;");
+            writer.WriteLine("using Microsoft.ML.CommandLine;");
             writer.WriteLineNoTabs();
             writer.WriteLine("namespace Microsoft.ML");
-            writer.WriteLine("{");
-            writer.Indent();
-            writer.WriteLine("namespace Runtime");
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine("public sealed partial class Experiment");

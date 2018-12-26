@@ -5,7 +5,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public class CopyAction
     {

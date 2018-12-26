@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
-using System;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LightGbmRankingTrainer.UserName, typeof(LightGbmRankingTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
@@ -22,7 +21,7 @@ using System;
     "LightGBM Ranking Executor",
     LightGbmRankingModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.LightGBM
 {
 
     public sealed class LightGbmRankingModelParameters : TreeEnsembleModelParameters
@@ -123,18 +122,21 @@ namespace Microsoft.ML.Runtime.LightGBM
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
             // Check label types.
-            var labelType = data.Schema.Label.Type;
-            if (!(labelType.IsKey || labelType == NumberType.R4))
+            var labelCol = data.Schema.Label.Value;
+            var labelType = labelCol.Type;
+            if (!(labelType is KeyType || labelType == NumberType.R4))
             {
                 throw ch.ExceptParam(nameof(data),
-                    $"Label column '{data.Schema.Label.Name}' is of type '{labelType}', but must be key or R4.");
+                    $"Label column '{labelCol.Name}' is of type '{labelType}', but must be key or R4.");
             }
             // Check group types.
-            var groupType = data.Schema.Group.Type;
-            if (!(groupType == NumberType.U4 || groupType.IsKey))
+            ch.CheckParam(data.Schema.Group.HasValue, nameof(data), "Need a group column.");
+            var groupCol = data.Schema.Group.Value;
+            var groupType = groupCol.Type;
+            if (!(groupType == NumberType.U4 || groupType is KeyType))
             {
                 throw ch.ExceptParam(nameof(data),
-                   $"Group column '{data.Schema.Group.Name}' is of type '{groupType}', but must be U4 or a Key.");
+                   $"Group column '{groupCol.Name}' is of type '{groupType}', but must be U4 or a Key.");
             }
         }
 

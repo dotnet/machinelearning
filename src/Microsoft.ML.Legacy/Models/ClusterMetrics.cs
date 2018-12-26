@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
-using static Microsoft.ML.Runtime.Data.MetricKinds;
+using Microsoft.ML.Data;
+using static Microsoft.ML.Data.MetricKinds;
 
 namespace Microsoft.ML.Legacy.Models
 {
@@ -88,13 +86,13 @@ namespace Microsoft.ML.Legacy.Models
         private sealed class SerializationClass
         {
 #pragma warning disable 649 // never assigned
-            [ColumnName(Runtime.Data.ClusteringEvaluator.Dbi)]
+            [ColumnName(ClusteringEvaluator.Dbi)]
             public Double Dbi;
 
-            [ColumnName(Runtime.Data.ClusteringEvaluator.Nmi)]
+            [ColumnName(ClusteringEvaluator.Nmi)]
             public Double Nmi;
 
-            [ColumnName(Runtime.Data.ClusteringEvaluator.AvgMinScore)]
+            [ColumnName(ClusteringEvaluator.AvgMinScore)]
             public Double AvgMinScore;
 
             [ColumnName(ColumnNames.FoldIndex)]
