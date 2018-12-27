@@ -51,7 +51,7 @@ namespace Microsoft.ML.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            return Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            return EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -71,7 +71,7 @@ namespace Microsoft.ML.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            return Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            return EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -985,7 +985,7 @@ namespace Microsoft.ML.RunTests
         {
             var dataPath = GetDataPath("lm.sample.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -1199,7 +1199,7 @@ namespace Microsoft.ML.RunTests
         {
             var dataPath = GetDataPath("iris.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -1346,8 +1346,8 @@ namespace Microsoft.ML.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             var dataView =
-                Legacy.EntryPoints.ImportTextData.TextLoader(Env,
-                    new Legacy.EntryPoints.ImportTextData.LoaderInput
+                EntryPoints.ImportTextData.TextLoader(Env,
+                    new EntryPoints.ImportTextData.LoaderInput
                     {
                         InputFile = inputFile,
                         Arguments =
@@ -3357,7 +3357,7 @@ namespace Microsoft.ML.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
 
-            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -3431,7 +3431,7 @@ namespace Microsoft.ML.RunTests
             var dataPath = GetDataPath("MNIST.Train.0-class.tiny.txt");
             using (var inputFile = new SimpleFileHandle(Env, dataPath, false, false))
             {
-                var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+                var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
                 {
                     Arguments =
                 {
@@ -3638,7 +3638,7 @@ namespace Microsoft.ML.RunTests
                 "The five boxing wizards jump quickly."
             });
             var inputFile = new SimpleFileHandle(Env, dataFile, false, false);
-            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {

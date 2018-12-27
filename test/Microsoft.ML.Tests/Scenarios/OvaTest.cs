@@ -4,15 +4,24 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.Learners;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.Online;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Scenarios
 {
-    public partial class ScenariosTests
+    public partial class ScenariosTests : BaseTestClass
     {
+        public ScenariosTests(ITestOutputHelper output) : base(output)
+        {
+        }
+
+        public const string SentimentDataPath = "wikipedia-detox-250-line-data.tsv";
+        public const string SentimentTestPath = "wikipedia-detox-250-line-test.tsv";
+
         [Fact]
         public void OvaLogisticRegression()
         {
