@@ -87,7 +87,8 @@ namespace Microsoft.ML.Transforms
             {
                 try
                 {
-                    _session = new InferenceSession(modelFile, SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId));
+                    //_session = new InferenceSession(modelFile, SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId));
+                    _session = new InferenceSession(modelFile);
                 }
                 catch (OnnxRuntimeException e)
                 {
