@@ -1032,9 +1032,6 @@ namespace Microsoft.ML.Trainers.FastTree
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.CheckValue(writer, nameof(writer));
-            Host.CheckValue(schema, nameof(schema));
-            Host.CheckValueOrNull(calibrator);
-
             var ensemble = new TreeEnsemble();
 
             for (int featureIndex = 0; featureIndex < _numFeatures; featureIndex++)
@@ -1052,8 +1049,6 @@ namespace Microsoft.ML.Trainers.FastTree
                 ensemble.AddTree(tree);
             }
 
-            // Tried adding the intercept as the bias term in the final ini aggregator,
-            // but that didn't seem to have any effects during testing.
             // Adding the intercept as a dummy tree with the output values being the model intercept,
             // works for reaching parity.
             var interceptTree = CreateRegressionTree(
