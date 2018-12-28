@@ -1060,7 +1060,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 leafValues: new[] { Intercept, Intercept });
             ensemble.AddTree(interceptTree);
 
-            var ini = FastTreeIniFormatUtils.TreeEnsembleToIni(
+            var ini = FastTreeIniFileUtils.TreeEnsembleToIni(
                 Host, ensemble, schema, calibrator, string.Empty, false, false);
 
             // Remove the SplitGain values which are all 0.

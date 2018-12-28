@@ -2985,7 +2985,7 @@ namespace Microsoft.ML.Trainers.FastTree
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.CheckValue(writer, nameof(writer));
-            var ensembleIni = FastTreeIniFormatUtils.TreeEnsembleToIni(Host, TrainedEnsemble, schema, calibrator,
+            var ensembleIni = FastTreeIniFileUtils.TreeEnsembleToIni(Host, TrainedEnsemble, schema, calibrator,
                 InnerArgs, appendFeatureGain: true, includeZeroGainFeatures: false);
             writer.WriteLine(ensembleIni);
         }
@@ -3371,48 +3371,6 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             public Dictionary<string, object> KeyValues { get; }
-        }
-    }
-    internal static class FastTreeIniFormatUtils
-    {
-        public static string TreeEnsembleToIni(
-            IHost host, TreeEnsemble ensemble, RoleMappedSchema schema, ICalibrator calibrator,
-            string trainingParams, bool appendFeatureGain, bool includeZeroGainFeatures)
-        {
-            host.CheckValue(ensemble, nameof(ensemble));
-            host.CheckValue(schema, nameof(schema));
-
-            string ensembleIni = ensemble.ToTreeEnsembleIni(new FeaturesToContentMap(schema),
-                trainingParams, appendFeatureGain, includeZeroGainFeatures);
-            ensembleIni = AddCalibrationToIni(host, ensembleIni, calibrator);
-            return ensembleIni;
-        }
-
-        /// <summary>
-        /// Get the calibration summary in INI format
-        /// </summary>
-        private static string AddCalibrationToIni(IHost host, string ini, ICalibrator calibrator)
-        {
-            host.AssertValue(ini);
-            host.AssertValueOrNull(calibrator);
-
-            if (calibrator == null)
-                return ini;
-
-            if (calibrator is PlattCalibrator)
-            {
-                string calibratorEvaluatorIni = IniFileUtils.GetCalibratorEvaluatorIni(ini, calibrator as PlattCalibrator);
-                return IniFileUtils.AddEvaluator(ini, calibratorEvaluatorIni);
-            }
-            else
-            {
-                StringBuilder newSection = new StringBuilder();
-                newSection.AppendLine();
-                newSection.AppendLine();
-                newSection.AppendLine("[TLCCalibration]");
-                newSection.AppendLine("Type=" + calibrator.GetType().Name);
-                return ini + newSection;
-            }
         }
     }
 }
