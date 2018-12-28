@@ -202,7 +202,7 @@ namespace Microsoft.ML.Data
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
 
-            var inputCols = colsNeeded.Where(x => predicateInput(x.Index)).ToList().AsReadOnly();
+            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 

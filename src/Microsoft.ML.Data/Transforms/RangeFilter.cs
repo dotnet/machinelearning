@@ -228,7 +228,7 @@ namespace Microsoft.ML.Transforms
             bool[] active;
             Func<int, bool> inputPred = GetActive(predicate, out active);
 
-            var inputCols = Source.Schema.Where(x => inputPred(x.Index)).ToList().AsReadOnly();
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 

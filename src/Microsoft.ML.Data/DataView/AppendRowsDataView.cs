@@ -268,9 +268,7 @@ namespace Microsoft.ML.Data
                     if (++_currentSourceIndex >= Sources.Length)
                         return false;
 
-                    // sefilipi: double-check
-
-                    var colsNeeded = Schema.Where(col => col.Index >= 0);
+                    var colsNeeded = Schema.Where(col => IsColumnActive(col.Index));
                     _currentCursor = Sources[_currentSourceIndex].GetRowCursor(colsNeeded);
                     _currentIdGetter = _currentCursor.GetIdGetter();
                 }

@@ -539,6 +539,8 @@ namespace Microsoft.ML.Transforms
                     if (_active[i + _groupCount])
                         srcActiveTrailing[binding.KeepColumnIndexes[i]] = true;
                 }
+
+                activeCols = _parent.Source.Schema.Where(x => x.Index < srcActiveTrailing.Length && srcActiveTrailing[x.Index]);
                 _trailingCursor = parent.Source.GetRowCursor(activeCols);
 
                 _groupCheckers = new GroupKeyColumnChecker[_groupCount];

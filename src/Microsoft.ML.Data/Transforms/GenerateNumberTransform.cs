@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
 
-            var inputCols = Source.Schema.Where(x => inputPred(x.Index)).ToList().AsReadOnly();
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
             var input = Source.GetRowCursor(inputCols);
             return new Cursor(Host, _bindings, input, active);
         }
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Transforms
             Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
 
             var inputPred = _bindings.GetDependencies(predicate);
-            var inputCols = Source.Schema.Where(x => inputPred(x.Index)).ToList().AsReadOnly();
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
 
             var active = _bindings.GetActive(predicate);
             RowCursor input;

@@ -258,7 +258,7 @@ namespace Microsoft.ML.Transforms.Conversions
             for (int i = 0; i < _columns.Length; i++)
             {
                 Schema.Column? srcCol = input.Schema.GetColumnOrNull(ColumnPairs[i].input);
-                if (srcCol != null)
+                if (srcCol == null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
                 CheckInputColumn(input.Schema, i, srcCol.Value.Index);
 

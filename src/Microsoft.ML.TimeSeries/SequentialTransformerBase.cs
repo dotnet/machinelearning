@@ -701,7 +701,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
-            var inputCols = Source.Schema.Where(x => predicateInput(x.Index)).ToList().AsReadOnly();
+            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
 
@@ -713,7 +713,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
 
-            var inputCols = Source.Schema.Where(x => predicateInput(x.Index)).ToList().AsReadOnly();
+            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 

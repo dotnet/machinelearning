@@ -711,11 +711,13 @@ namespace Microsoft.ML.Data
         {
             Host.AssertValueOrNull(rand);
 
-            Func<int, bool> needCol = c => colsNeeded.Any(x => x.Index == c);
+            Func<int, bool> needCol = c=> colsNeeded == null ? false: colsNeeded.Any(x => x.Index == c);
 
             var inputPred = _bindings.GetDependencies(needCol);
             var active = _bindings.GetActive(needCol);
-            var input = Source.GetRowCursor(colsNeeded, rand);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols, rand);
             return new Cursor(Host, this, input, active);
         }
 
@@ -724,8 +726,6 @@ namespace Microsoft.ML.Data
             Host.CheckValueOrNull(rand);
 
             Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
-            //var indices = colsNeeded == null? null : colsNeeded.Select(x => x.Index);
-            //Func<int, bool> predicate = c => indices == null ? false: indices.Contains(OutputSchema[c].Index);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);

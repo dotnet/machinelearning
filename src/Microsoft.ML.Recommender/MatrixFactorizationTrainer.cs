@@ -350,6 +350,7 @@ namespace Microsoft.ML.Trainers
                 }
                 else
                 {
+                    columns = validData.Data.Schema.Where(c => c.Index == matrixColumnIndexColInfo.Index || c.Index == matrixRowIndexColInfo.Index || c.Index == data.Schema.Label.Value.Index);
                     RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
                     using (var validCursor = validData.Data.GetRowCursor(columns))
                     {

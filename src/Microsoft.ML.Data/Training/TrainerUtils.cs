@@ -226,13 +226,13 @@ namespace Microsoft.ML.Training
             var columns = data.Data.Schema.Where(x => extraCols.Contains(x.Index));
 
             if ((opt & CursOpt.Label) != 0)
-                columns.Append(data.Schema.Label.Value);
+                columns = columns.Append(data.Schema.Label.Value);
             if ((opt & CursOpt.Features) != 0)
-                columns.Append(data.Schema.Feature.Value);
+                columns = columns.Append(data.Schema.Feature.Value);
             if ((opt & CursOpt.Weight) != 0)
-                columns.Append(data.Schema.Weight.Value);
+                columns = columns.Append(data.Schema.Weight.Value);
             if ((opt & CursOpt.Group) != 0)
-                columns.Append(data.Schema.Group.Value);
+                columns = columns.Append(data.Schema.Group.Value);
             return columns;
         }
 

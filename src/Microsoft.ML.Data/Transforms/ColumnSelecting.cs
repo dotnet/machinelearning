@@ -631,9 +631,10 @@ namespace Microsoft.ML.Transforms
 
                 // Build out the active state for the input
                 var inputPred = GetDependencies(predicate);
-
-                var inputRowCursor = Source.GetRowCursor(colsNeeded, rand);
                 var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+
+                var inputRowCursor = Source.GetRowCursor(inputCols, rand);
+
                 // Build the active state for the output
                 var active = Utils.BuildArray(_mapper.OutputSchema.Count, colsNeeded);
                 return new Cursor(_host, _mapper, inputRowCursor, active);

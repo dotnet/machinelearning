@@ -116,7 +116,7 @@ namespace Microsoft.ML.Data
                 bool[] active;
                 Func<int, bool> inputPred = GetActive(predicate, out active);
 
-                var inputCols = colsNeeded.Where(x => inputPred(x.Index));
+                var inputCols = Source.Schema.Where(x => inputPred(x.Index));
                 var input = Source.GetRowCursor(inputCols, rand);
                 return new Cursor(this, input, active);
             }

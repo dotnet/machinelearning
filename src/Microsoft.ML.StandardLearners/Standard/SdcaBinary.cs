@@ -1757,7 +1757,7 @@ namespace Microsoft.ML.Trainers
             if (data.Schema.Weight.HasValue)
                 cursorOpt |= CursOpt.Weight;
 
-            var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
+            var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
 
             int numThreads;
             if (_options.NumThreads.HasValue)
