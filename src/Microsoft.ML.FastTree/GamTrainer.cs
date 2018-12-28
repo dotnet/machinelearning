@@ -1107,6 +1107,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 // This is postorder traversal algorithm and populating the internalNodeIndices/lte/gt lists in reverse.
                 // Preorder is the only option, because we need the results of both left/right recursions for populating the lists.
                 // As a result, lists are populated in reverse, because the root node should be the first item on the lists.
+                // Binary search tree algorithm (recursive splitting to half) is used for creating balanced tree.
                 var mid = (lower + upper) / 2;
                 var left = CreateBalancedTreeRecursive(
                     lower, mid - 1, internalNodeIndices, lteChild, gtChild, ref internalNodeId);
