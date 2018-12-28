@@ -331,8 +331,7 @@ namespace Microsoft.ML.Trainers
             ch.Assert(colCount > 0);
 
             // Checks for equality on the validation set ensure it is correct here.
-            var columns = data.Data.Schema.Where(c => c.Index == matrixColumnIndexColInfo.Index || c.Index == matrixRowIndexColInfo.Index || c.Index == data.Schema.Label.Value.Index);
-            using (var cursor = data.Data.GetRowCursor(columns))
+            using (var cursor = data.Data.GetRowCursor(matrixColumnIndexColInfo.Index, matrixRowIndexColInfo.Index, data.Schema.Label.Value.Index))
             {
                 // LibMF works only over single precision floats, but we want to be able to consume either.
                 var labGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, data.Schema.Label.Value.Index);
@@ -350,9 +349,8 @@ namespace Microsoft.ML.Trainers
                 }
                 else
                 {
-                    columns = validData.Data.Schema.Where(c => c.Index == matrixColumnIndexColInfo.Index || c.Index == matrixRowIndexColInfo.Index || c.Index == data.Schema.Label.Value.Index);
                     RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out var validMatrixColumnIndexColInfo, out var validMatrixRowIndexColInfo, isDecode: false);
-                    using (var validCursor = validData.Data.GetRowCursor(columns))
+                    using (var validCursor = validData.Data.GetRowCursor(matrixColumnIndexColInfo.Index, matrixRowIndexColInfo.Index, data.Schema.Label.Value.Index))
                     {
                         ValueGetter<float> validLabelGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, validCursor, validData.Schema.Label.Value.Index);
                         var validMatrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, validCursor, validMatrixColumnIndexColInfo.Index);

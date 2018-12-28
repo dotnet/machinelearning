@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValueOrNull(rand);
 
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
 
             var rng = CanShuffle ? rand : null;
             bool? useParallel = ShouldUseParallelCursors(predicate);
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValueOrNull(rand);
 
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);

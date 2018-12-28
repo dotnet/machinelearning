@@ -208,10 +208,9 @@ namespace Microsoft.ML.Transforms
         protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
 
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
             var input = Source.GetRowCursor(inputCols, rand);
@@ -221,10 +220,9 @@ namespace Microsoft.ML.Transforms
         public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
 
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
 
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);

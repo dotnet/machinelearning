@@ -111,7 +111,7 @@ namespace Microsoft.ML.Data
             protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
                 Host.AssertValueOrNull(rand);
-                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
 
                 bool[] active;
                 Func<int, bool> inputPred = GetActive(predicate, out active);
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Data
             {
 
                 Host.CheckValueOrNull(rand);
-                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
 
                 bool[] active;
                 Func<int, bool> inputPred = GetActive(predicate, out active);

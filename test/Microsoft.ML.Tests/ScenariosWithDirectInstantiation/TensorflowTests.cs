@@ -244,9 +244,8 @@ namespace Microsoft.ML.Scenarios
             tf.Schema.TryGetColumnIndex("detection_scores", out int scores);
             tf.Schema.TryGetColumnIndex("num_detections", out int num);
             tf.Schema.TryGetColumnIndex("detection_classes", out int classes);
-            var cols = tf.Schema.Where(col => col.Name.Equals("image_tensor") || col.Name.Equals("detection_boxes") 
-            || col.Name.Equals("detection_scores") || col.Name.Equals("num_detections") || col.Name.Equals("detection_classes"));
-            using (var curs = tf.GetRowCursor(cols))
+
+            using (var curs = tf.GetRowCursor("image_tensor", "detection_boxes", "detection_scores", "detection_classes", "num_detections"))
             {
                 var getInput = curs.GetGetter<VBuffer<byte>>(input);
                 var getBoxes = curs.GetGetter<VBuffer<float>>(boxes);
@@ -281,7 +280,7 @@ namespace Microsoft.ML.Scenarios
 
             tf.Schema.TryGetColumnIndex("input", out int input);
             tf.Schema.TryGetColumnIndex("softmax2_pre_activation", out int b);
-            using (var curs = tf.GetRowCursor(tf.Schema.Where(col => col.Name.Equals("input") || col.Name.Equals("softmax2_pre_activation"))))
+            using (var curs = tf.GetRowCursor("input","softmax2_pre_activation"))
             {
                 var get = curs.GetGetter<VBuffer<float>>(b);
                 var getInput = curs.GetGetter<VBuffer<float>>(input);

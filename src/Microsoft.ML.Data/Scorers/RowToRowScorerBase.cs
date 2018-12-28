@@ -123,7 +123,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValueOrNull(rand);
 
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
 
             var bindings = GetBindings();
             Func<int, bool> inputPred;
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValueOrNull(rand);
 
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
 
             var bindings = GetBindings();
             Func<int, bool> inputPred;

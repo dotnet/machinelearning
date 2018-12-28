@@ -165,7 +165,7 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = result.GetRowCursor(result.Schema.Where(c => c.Name.Equals("Output"))))
+            using (var cursor = result.GetRowCursor("Output"))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Tests
 
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = result.GetRowCursor(result.Schema.Where(c => c.Name.Equals("Output"))))
+            using (var cursor = result.GetRowCursor("Output"))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);

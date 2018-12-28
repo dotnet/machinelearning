@@ -31,7 +31,7 @@ namespace Microsoft.ML.RunTests
             Assert.NotEqual(0, vecType?.Size);
             T[] retval = new T[rc * (vecType?.Size ?? 1)];
 
-            using (var cursor = view.GetRowCursor(view.Schema.Where(x => x.Index == col)))
+            using (var cursor = view.GetRowCursor(col))
             {
                 if (type is VectorType)
                 {

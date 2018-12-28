@@ -405,7 +405,7 @@ namespace Microsoft.ML.Transforms.Text
                 // in order to get all original ngrams we have to go data in same way as we would process it, so let's create mapper with decorate function.
                 var mapper = new Mapper(this, input.Schema, helper.Decorate);
                 // Let's create cursor to iterate over input data.
-                using (var rowCursor = input.GetRowCursor(input.Schema.Where(x => sourceColumnsForInvertHash.Contains(x.Index))))
+                using (var rowCursor = input.GetRowCursor(sourceColumnsForInvertHash.ToArray()))
                 {
                     Action disp;
                     // We create mapper getters on top of input cursor

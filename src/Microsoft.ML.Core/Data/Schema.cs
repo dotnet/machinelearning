@@ -69,14 +69,23 @@ namespace Microsoft.ML.Data
             return null;
         }
 
+        public IEnumerable<Column> GetColumns(params string[] names)
+        {
+            foreach (var name in names)
+                yield return this[name];
+        }
+
+        public IEnumerable<Column> GetColumns(params int[] indices)
+        {
+            foreach (var index in indices)
+                yield return this[index];
+        }
+
         public IEnumerator<Column> GetEnumerator() => ((IEnumerable<Column>)_columns).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public override string ToString()
-        {
-            return $"{Count} columns";
-        }
+        public override string ToString() => $"{Count} columns";
 
         /// <summary>
         /// This class describes one column in the particular schema.

@@ -576,7 +576,7 @@ namespace Microsoft.ML.Data
 
             public override RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
-                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema.Count);
                 return new WrappedCursor(new Cursor(Host, "ListDataView", this, predicate, rand));
             }
 
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Data
 
             public override RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
-                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema.Count);
                 return new WrappedCursor (new Cursor(Host, this, predicate));
             }
 
@@ -743,7 +743,7 @@ namespace Microsoft.ML.Data
             public override RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
                 Contracts.Assert(_current != null, "The current object must be set prior to cursoring");
-                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema.Count);
                 return new WrappedCursor (new Cursor(Host, this, predicate));
             }
 

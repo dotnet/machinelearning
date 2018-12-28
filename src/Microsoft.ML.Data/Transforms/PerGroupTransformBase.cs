@@ -161,7 +161,7 @@ namespace Microsoft.ML.Data
 
         public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
 
             Host.CheckValueOrNull(rand);
             // If we aren't selecting any of the output columns, don't construct our cursor.
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Data
             if (!bindings.AnyNewColumnsActive(predicate))
             {
                 var activeInput = bindings.GetActiveInput(predicate);
-                var activeCols = Source.Schema.Where(x => activeInput[x.Index]);
+                var activeCols = Source.Schema.Where(x => activeInput.Length > x.Index && activeInput[x.Index]);
                 var inputCursor = Source.GetRowCursor(activeCols, null);
                 return new BindingsWrappedRowCursor(Host, inputCursor, bindings);
             }

@@ -38,12 +38,11 @@ namespace Microsoft.ML.Benchmarks
             var dv = builder.GetDataView();
             var cacheDv = ctx.Data.Cache(dv);
 
-            var cols = cacheDv.Schema.Where(x => x.Name.Equals("A"));
-
+            var col = cacheDv.Schema.GetColumnOrNull("A").Value;
             // First do one pass through.
-            using (var cursor = cacheDv.GetRowCursor(cols))
+            using (var cursor = cacheDv.GetRowCursor("A"))
             {
-                var getter = cursor.GetGetter<int>(cols.First().Index);
+                var getter = cursor.GetGetter<int>(col.Index);
                 int val = 0;
                 int count = 0;
                 while (cursor.MoveNext())

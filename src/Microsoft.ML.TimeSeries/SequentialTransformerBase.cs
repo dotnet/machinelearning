@@ -698,8 +698,8 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
         protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
             Func<int, bool> predicateInput;
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
             var active = GetActive(predicate, out predicateInput);
             var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
@@ -707,10 +707,10 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
         public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
-            Host.CheckValueOrNull(rand);
+             Host.CheckValueOrNull(rand);
 
             Func<int, bool> predicateInput;
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
             var active = GetActive(predicate, out predicateInput);
 
             var inputCols = Source.Schema.Where(x => predicateInput(x.Index));

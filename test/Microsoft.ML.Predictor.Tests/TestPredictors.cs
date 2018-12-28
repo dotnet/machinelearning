@@ -673,7 +673,7 @@ namespace Microsoft.ML.RunTests
             }
 
             var cursors = new RowCursor[predCount];
-            var cols = scored.Schema.Where(c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
+            var cols = scored.Schema.GetColumns("Score", "Probability", "PredictedLabel");
 
             for (int i = 0; i < predCount; i++)
                 cursors[i] = scoredArray[i].GetRowCursor(cols);
@@ -879,7 +879,7 @@ namespace Microsoft.ML.RunTests
                     var vectorScoreGetters = new ValueGetter<VBuffer<float>>[predCount];
                     var probGetters = new ValueGetter<float>[predCount];
                     var predGetters = new ValueGetter<bool>[predCount];
-                    for (int i = 0; i< predCount; i++)
+                    for (int i = 0; i < predCount; i++)
                     {
                         scoreGetters[i] = predictionKind == PredictionKind.MultiClassClassification ?
                             (ref float dst) => dst = 0 :

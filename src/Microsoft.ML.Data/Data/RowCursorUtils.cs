@@ -471,6 +471,25 @@ namespace Microsoft.ML.Data
             return new OneRowDataView(env, row);
         }
 
+        /// <summary>
+        /// Given a collection of <see cref="Schema.Column"/>, that is a subset of the Schema of the data, create a predicate,
+        /// that when passed a column index, will return <langword>true</langword> or <langword>false</langword>, based on whether
+        /// the column with the given <see cref="Schema.Column.Index"/> is part of the <paramref name="colsNeeded"/>.
+        /// </summary>
+        /// <param name="colsNeeded">The subset of columns from the <see cref="Schema"/> that are needed from this <see cref="RowCursor"/>.</param>
+        /// <param name="schemaColsCardinality">The total number of <see cref="Schema.Column"/> in the <see cref="Schema"/>.</param>
+        [BestFriend]
+        internal static Func<int, bool> FromColumnsToPredicate(IEnumerable<Schema.Column> colsNeeded, int schemaColsCardinality)
+        {
+            if (colsNeeded == null)
+                return c => false;
+
+            if (colsNeeded.Count() == schemaColsCardinality)
+                return c => true;
+
+            return c => colsNeeded.Any(x => x.Index == c);
+        }
+
         private sealed class OneRowDataView : IDataView
         {
             private readonly Row _row;

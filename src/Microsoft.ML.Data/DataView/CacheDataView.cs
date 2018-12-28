@@ -206,7 +206,7 @@ namespace Microsoft.ML.Data
         {
             _host.CheckValueOrNull(rand);
 
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema.Count);
 
             // We have this explicit enumeration over the generic types to force different assembly
             // code to be generated for the different types, of both waiters and especially indexers.
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Data
         {
             _host.CheckValueOrNull(rand);
 
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema.Count);
 
             n = DataViewUtils.GetThreadCount(_host, n);
 
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Data
                 if (taskColumns == null)
                     cursor = _subsetInput.GetRowCursor(null);
                 else
-                    cursor = _subsetInput.GetRowCursor(Schema.Where(x => taskColumns.Contains(x.Index)));
+                    cursor = _subsetInput.GetRowCursor(taskColumns.ToArray());
                 waiter = new OrderedWaiter(firstCleared: false);
                 _cacheDefaultWaiter = waiter;
                 caches = new ColumnCache[Utils.Size(taskColumns)];

@@ -210,9 +210,8 @@ namespace Microsoft.ML.Transforms
         {
             Host.AssertValueOrNull(rand);
 
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
 
             var input = Source.GetRowCursor(inputCols, rand);
@@ -224,9 +223,8 @@ namespace Microsoft.ML.Transforms
 
             Host.CheckValueOrNull(rand);
 
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
-            bool[] active;
-            Func<int, bool> inputPred = GetActive(predicate, out active);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
 
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
             var inputs = Source.GetRowCursorSet(inputCols, n, rand);

@@ -157,9 +157,8 @@ namespace Microsoft.ML.Transforms
 
         protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
             Host.CheckValueOrNull(rand);
-
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
             return new Cursor(this, predicate);
         }
 

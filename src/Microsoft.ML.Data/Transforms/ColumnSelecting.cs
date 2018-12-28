@@ -626,7 +626,7 @@ namespace Microsoft.ML.Transforms
 
             public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
-                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
                 _host.AssertValueOrNull(rand);
 
                 // Build out the active state for the input
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Transforms
 
             public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
             {
-                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
                 _host.CheckValueOrNull(rand);
 
                 // Build out the active state for the input

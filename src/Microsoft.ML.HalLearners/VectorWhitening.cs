@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms.Projections
             }
             var idxDst = new int[columns.Length];
 
-            using (var cursor = inputData.GetRowCursor(inputData.Schema.Where(x => cols.Contains(x.Index))))
+            using (var cursor = inputData.GetRowCursor(cols))
             {
                 var getters = new ValueGetter<VBuffer<float>>[columns.Length];
                 for (int i = 0; i < columns.Length; i++)
