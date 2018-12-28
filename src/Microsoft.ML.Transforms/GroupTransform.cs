@@ -155,9 +155,9 @@ namespace Microsoft.ML.Transforms
 
         public override Schema OutputSchema => _groupBinding.OutputSchema;
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
             Host.CheckValueOrNull(rand);
 
             return new Cursor(this, predicate);
@@ -172,11 +172,10 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return false; } }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(predicate) };
+            return new RowCursor[] { GetRowCursorCore(colsNeeded) };
         }
 
         /// <summary>
@@ -526,7 +525,8 @@ namespace Microsoft.ML.Transforms
                 bool[] srcActiveLeading = new bool[_parent.Source.Schema.Count];
                 foreach (var col in binding.GroupColumnIndexes)
                     srcActiveLeading[col] = true;
-                _leadingCursor = parent.Source.GetRowCursor(x => srcActiveLeading[x]);
+                var activeCols = _parent.Source.Schema.Where(x => x.Index < srcActiveLeading.Length && srcActiveLeading[x.Index]);
+                _leadingCursor = parent.Source.GetRowCursor(activeCols);
 
                 bool[] srcActiveTrailing = new bool[_parent.Source.Schema.Count];
                 for (int i = 0; i < _groupCount; i++)
@@ -539,7 +539,7 @@ namespace Microsoft.ML.Transforms
                     if (_active[i + _groupCount])
                         srcActiveTrailing[binding.KeepColumnIndexes[i]] = true;
                 }
-                _trailingCursor = parent.Source.GetRowCursor(x => srcActiveTrailing[x]);
+                _trailingCursor = parent.Source.GetRowCursor(activeCols);
 
                 _groupCheckers = new GroupKeyColumnChecker[_groupCount];
                 for (int i = 0; i < _groupCount; i++)

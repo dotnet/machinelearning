@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeInput = new bool[schema.Count];
+            var activeCols = new List<Schema.Column>();
             var colSrcs = new int[size];
             var colTypes = new ColumnType[size];
             colSizes = new int[size];
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (colType is VectorType vectorType && !vectorType.IsKnownSize)
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
 
-                activeInput[colSrc] = true;
+                activeCols.Add(schema[colSrc]);
                 colSrcs[i] = colSrc;
                 colTypes[i] = colType;
                 colSizes[i] = colType.GetValueCount();
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             long rowCur = 0;
             double rowCount = input.GetRowCount() ?? double.NaN;
             using (var pch = env.StartProgressChannel("Aggregating counts"))
-            using (var cursor = input.GetRowCursor(col => activeInput[col]))
+            using (var cursor = input.GetRowCursor(activeCols))
             {
                 var header = new ProgressHeader(new[] { "rows" });
                 pch.SetHeader(header, e => { e.SetProgress(0, rowCur, rowCount); });

@@ -178,7 +178,10 @@ namespace Microsoft.ML.Data
 
             Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
 
-            var cursor = _data.GetRowCursor(GetDependencies(additionalColumnsPredicate), rand);
+            var deps = GetDependencies(additionalColumnsPredicate);
+
+            var inputCols = _data.Schema.Where(x => deps(x.Index));
+            var cursor = _data.GetRowCursor(inputCols, rand);
             return new RowCursorImplementation(new TypedCursor(this, cursor));
         }
 
@@ -199,8 +202,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
             _host.CheckValueOrNull(rand);
 
-            Func<int, bool> inputPredicate = col => _columnIndices.Contains(col) || additionalColumnsPredicate(col);
-            var inputs = _data.GetRowCursorSet(inputPredicate, n, rand);
+            var inputs = _data.GetRowCursorSet(_data.Schema.Where(col => _columnIndices.Contains(col.Index) || additionalColumnsPredicate(col.Index)), n, rand);
             _host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1)

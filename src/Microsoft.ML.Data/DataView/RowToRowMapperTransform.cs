@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML;
@@ -180,22 +181,29 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
-            return new Cursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
+
+            var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
+
+            return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
 
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
 
-            var inputs = Source.GetRowCursorSet(predicateInput, n, rand);
+            var inputCols = colsNeeded.Where(x => predicateInput(x.Index)).ToList().AsReadOnly();
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))

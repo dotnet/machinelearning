@@ -59,10 +59,11 @@ namespace Microsoft.ML.Data
 
         public abstract Schema OutputSchema { get; }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
 
             var rng = CanShuffle ? rand : null;
             bool? useParallel = ShouldUseParallelCursors(predicate);
@@ -73,12 +74,12 @@ namespace Microsoft.ML.Data
             // this is RangeFilter.
             RowCursor curs;
             if (useParallel != false &&
-                DataViewUtils.TryCreateConsolidatingCursor(out curs, this, predicate, Host, rng))
+                DataViewUtils.TryCreateConsolidatingCursor(out curs, this, colsNeeded, Host, rng))
             {
                 return curs;
             }
 
-            return GetRowCursorCore(predicate, rng);
+            return GetRowCursorCore(colsNeeded, rng);
         }
 
         /// <summary>
@@ -92,9 +93,9 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Create a single (non-parallel) row cursor.
         /// </summary>
-        protected abstract RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null);
+        protected abstract RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null);
 
-        public abstract RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null);
+        public abstract RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null);
     }
 
     /// <summary>
@@ -706,25 +707,31 @@ namespace Microsoft.ML.Data
             return _bindings.AnyNewColumnsActive(predicate);
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
 
-            var inputPred = _bindings.GetDependencies(predicate);
-            var active = _bindings.GetActive(predicate);
-            var input = Source.GetRowCursor(inputPred, rand);
+            Func<int, bool> needCol = c => colsNeeded.Any(x => x.Index == c);
+
+            var inputPred = _bindings.GetDependencies(needCol);
+            var active = _bindings.GetActive(needCol);
+            var input = Source.GetRowCursor(colsNeeded, rand);
             return new Cursor(Host, this, input, active);
         }
 
-        public sealed override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public sealed override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
+
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+            //var indices = colsNeeded == null? null : colsNeeded.Select(x => x.Index);
+            //Func<int, bool> predicate = c => indices == null ? false: indices.Contains(OutputSchema[c].Index);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && WantParallelCursors(predicate))

@@ -563,18 +563,16 @@ namespace Microsoft.ML.Data
 
         public Schema Schema => View.Schema;
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return View.GetRowCursor(predicate, rand);
+            return View.GetRowCursor(colsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return View.GetRowCursorSet(predicate, n, rand);
+            return View.GetRowCursorSet(colsNeeded, n, rand);
         }
 
         VectorType ITransposeDataView.GetSlotType(int col) => _tview?.GetSlotType(col);

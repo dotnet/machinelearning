@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
@@ -396,11 +397,11 @@ namespace Microsoft.ML.Data
 
             public abstract long? GetRowCount();
 
-            public abstract RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null);
+            public abstract RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null);
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
             {
-                return new[] { GetRowCursor(predicate, rand) };
+                return new[] { GetRowCursor(colsNeeded, rand) };
             }
 
             public sealed class WrappedCursor : RowCursor
@@ -573,9 +574,9 @@ namespace Microsoft.ML.Data
                 return _data.Count;
             }
 
-            public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public override RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
-                Host.CheckValue(predicate, nameof(predicate));
+                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
                 return new WrappedCursor(new Cursor(Host, "ListDataView", this, predicate, rand));
             }
 
@@ -669,8 +670,9 @@ namespace Microsoft.ML.Data
                 return (_data as ICollection<TRow>)?.Count;
             }
 
-            public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public override RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
+                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
                 return new WrappedCursor (new Cursor(Host, this, predicate));
             }
 
@@ -738,9 +740,10 @@ namespace Microsoft.ML.Data
                 _current = value;
             }
 
-            public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public override RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
                 Contracts.Assert(_current != null, "The current object must be set prior to cursoring");
+                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
                 return new WrappedCursor (new Cursor(Host, this, predicate));
             }
 

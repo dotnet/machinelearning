@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
@@ -106,27 +108,26 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
             var activeInputs = _bindings.GetActiveInput(predicate);
-            Func<int, bool> srcPredicate = c => activeInputs[c];
+            Func<int, bool> inputPred = c => activeInputs[c];
 
-            var input = _typedSource.GetCursor(srcPredicate, rand == null ? (int?)null : rand.Next());
+            var input = _typedSource.GetCursor(inputPred, rand == null ? (int?)null : rand.Next());
             return new Cursor(this, input, predicate);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
-            Contracts.CheckValue(predicate, nameof(predicate));
             Contracts.CheckParam(n >= 0, nameof(n));
             Contracts.CheckValueOrNull(rand);
 
             // This transform is stateful, its contract is to allocate exactly one state object per cursor and call the filter function
             // on every row in sequence. Therefore, parallel cursoring is not possible.
-            return new[] { GetRowCursor(predicate, rand) };
+            return new[] { GetRowCursor(colsNeeded, rand) };
         }
 
         public IDataView Source => _source;
@@ -177,14 +178,7 @@ namespace Microsoft.ML.Transforms
                 var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(parent.Host, _parent._addedSchema);
                 appendedDataView.SetCurrentRowObject(_dst);
 
-                Func<int, bool> appendedPredicate =
-                    col =>
-                    {
-                        col = _parent._bindings.AddedColumnIndices[col];
-                        return predicate(col);
-                    };
-
-                _appendedRow = appendedDataView.GetRowCursor(appendedPredicate);
+                _appendedRow = appendedDataView.GetRowCursor(_parent._bindings.Schema);
             }
 
             protected override void Dispose(bool disposing)

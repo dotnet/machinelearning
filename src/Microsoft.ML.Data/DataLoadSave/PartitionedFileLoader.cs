@@ -292,14 +292,14 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            return new Cursor(_host, this, _files, needCol, rand);
+            return new Cursor(_host, this, _files, colsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
-            var cursor = new Cursor(_host, this, _files, needCol, rand);
+            var cursor = new Cursor(_host, this, _files, colsNeeded, rand);
             return new RowCursor[] { cursor };
         }
 
@@ -364,28 +364,34 @@ namespace Microsoft.ML.Data
         {
             private PartitionedFileLoader _parent;
 
-            private bool[] _active;
-            private bool[] _subActive; // Active columns of the sub-cursor.
+            private readonly bool[] _active;
+            private readonly bool[] _subActive; // Active columns of the sub-cursor.
             private Delegate[] _getters;
             private Delegate[] _subGetters; // Cached getters of the sub-cursor.
+
+            private readonly IEnumerable<Schema.Column> _colsNeeded;
+            private readonly IEnumerable<Schema.Column> _subActiveColsNeeded;
 
             private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
             private RowCursor _subCursor; // Sub cursor of the current file.
 
             private IEnumerator<int> _fileOrder;
 
-            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, Func<int, bool> predicate, Random rand)
+            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, IEnumerable<Schema.Column> colsNeeded, Random rand)
                 : base(provider)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(files);
-                Contracts.AssertValue(predicate);
 
                 _parent = parent;
+                _colsNeeded = colsNeeded;
 
-                _active = Utils.BuildArray(Schema.Count, predicate);
+                _active = Utils.BuildArray(Schema.Count, colsNeeded);
                 _subActive = _active.Take(SubColumnCount).ToArray();
                 _colValues = new ReadOnlyMemory<char>[Schema.Count - SubColumnCount];
+
+                // sefilipi: Test this
+                _subActiveColsNeeded = Schema.Where((x, i) => _subActive[i]);
 
                 _subGetters = new Delegate[SubColumnCount];
                 _getters = CreateGetters();
@@ -456,7 +462,7 @@ namespace Microsoft.ML.Data
                         continue;
                     }
 
-                    _subCursor = loader.GetRowCursor(col => _subActive[col]);
+                    _subCursor = loader.GetRowCursor(_subActiveColsNeeded);
 
                     try
                     {

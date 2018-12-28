@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
@@ -36,11 +38,12 @@ namespace Microsoft.ML.Benchmarks
             var dv = builder.GetDataView();
             var cacheDv = ctx.Data.Cache(dv);
 
-            var col = cacheDv.Schema.GetColumnOrNull("A").Value;
+            var cols = cacheDv.Schema.Where(x => x.Name.Equals("A"));
+
             // First do one pass through.
-            using (var cursor = cacheDv.GetRowCursor(colIndex => colIndex == col.Index))
+            using (var cursor = cacheDv.GetRowCursor(cols))
             {
-                var getter = cursor.GetGetter<int>(col.Index);
+                var getter = cursor.GetGetter<int>(cols.First().Index);
                 int val = 0;
                 int count = 0;
                 while (cursor.MoveNext())
@@ -61,7 +64,7 @@ namespace Microsoft.ML.Benchmarks
             for (int i = 0; i < _positions.Length; ++i)
                 _positions[i] = rand.Next(Length);
 
-            _col = _cacheDataView.Schema.GetColumnOrNull("A").Value;
+            _col = _cacheDataView.Schema["A"];
             _seeker = ((IRowSeekable)_cacheDataView).GetSeeker(colIndex => colIndex == _col.Index);
             _seekerGetter = _seeker.GetGetter<int>(_col.Index);
         }
@@ -69,9 +72,11 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void CacheWithCursor()
         {
+            var cols = new List<Schema.Column>();
+            cols.Add(_col);
             // This setup takes very less time to execute as compared to the actual _cursorGetter.
             // The most preferable position for this setup will be in GlobalSetup.
-            _cursor = _cacheDataView.GetRowCursor(colIndex => colIndex == _col.Index);
+            _cursor = _cacheDataView.GetRowCursor(cols);
             _cursorGetter = _cursor.GetGetter<int>(_col.Index);
 
             int val = 0;

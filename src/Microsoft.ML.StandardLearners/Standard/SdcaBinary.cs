@@ -285,7 +285,12 @@ namespace Microsoft.ML.Trainers
 
             int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
             long maxTrainingExamples = MaxDualTableSize / weightSetCount;
-            var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight | CursOpt.Id);
+
+            CursOpt cursorOpt = CursOpt.Label | CursOpt.Features | CursOpt.Id;
+            if (data.Schema.Weight.HasValue)
+                cursorOpt |= CursOpt.Weight;
+
+            var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             int numThreads;
             if (Args.NumThreads.HasValue)
             {
@@ -1747,6 +1752,11 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(data.Schema.Feature.HasValue);
 
             int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
+
+            CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
+            if (data.Schema.Weight.HasValue)
+                cursorOpt |= CursOpt.Weight;
+
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
 
             int numThreads;

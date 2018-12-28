@@ -489,19 +489,17 @@ namespace Microsoft.ML.Data
                 _row = row;
             }
 
-            public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> colNeeded, Random rand = null)
             {
-                _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
-                bool[] active = Utils.BuildArray(Schema.Count, needCol);
+                bool[] active = Utils.BuildArray(Schema.Count, colNeeded);
                 return new Cursor(_host, this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
-                return new RowCursor[] { GetRowCursor(needCol, rand) };
+                return new RowCursor[] { GetRowCursor(colNeeded, rand) };
             }
 
             public long? GetRowCount()

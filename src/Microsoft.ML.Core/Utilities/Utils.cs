@@ -6,10 +6,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Internal.Utilities
 {
@@ -706,6 +708,16 @@ namespace Microsoft.ML.Internal.Utilities
             return result;
         }
 
+        public static bool[] BuildArray(int length, IEnumerable<Schema.Column> colsNeeded)
+        {
+            Contracts.CheckParam(length >= 0, nameof(length));
+
+            var result = new bool[length];
+            for (int i = 0; i < result.Length; i++)
+                result[i] = colsNeeded == null ? false : colsNeeded.Any(x => x.Index == i);
+            return result;
+        }
+
         public static T[] BuildArray<T>(int length, Func<int, T> func)
         {
             Contracts.CheckParam(length >= 0, nameof(length));
@@ -741,6 +753,41 @@ namespace Microsoft.ML.Internal.Utilities
             for (int c = 0; c < lim; ++c)
             {
                 if (!pred(c))
+                {
+                    invMap[c] = -1;
+                    continue;
+                }
+                invMap[c] = mapList.Count;
+                mapList.Add(c);
+            }
+            map = mapList.ToArray();
+        }
+
+        /// <summary>
+        /// Given a predicate, over a range of values defined by a limit calculate
+        /// first the values for which that predicate was true, and second an inverse
+        /// map.
+        /// </summary>
+        /// <param name="lim">Indicates the exclusive upper bound on the tested values</param>
+        /// <param name="colsNeeded">The set of columns the calling component operates on.</param>
+        /// <param name="map">An ascending array of values from 0 inclusive
+        /// to <paramref name="lim"/> exclusive, holding all values for which
+        /// <paramref name="colsNeeded"/> are present.
+        /// (The respective index appears in the <paramref name="colsNeeded"/> collection).</param>
+        /// <param name="invMap">Forms an inverse mapping of <paramref name="map"/>,
+        /// so that <c><paramref name="invMap"/>[<paramref name="map"/>[i]] == i</c>,
+        /// and for other entries not appearing in <paramref name="map"/>,
+        /// <c><paramref name="invMap"/>[i] == -1</c></param>
+        public static void BuildSubsetMaps(int lim, IEnumerable<Schema.Column> colsNeeded, out int[] map, out int[] invMap)
+        {
+            Contracts.CheckParam(lim >= 0, nameof(lim));
+
+            // REVIEW: Better names?
+            List<int> mapList = new List<int>();
+            invMap = new int[lim];
+            for (int c = 0; c < lim; ++c)
+            {
+                if (colsNeeded == null || !colsNeeded.Any(x => x.Index == c))
                 {
                     invMap[c] = -1;
                     continue;

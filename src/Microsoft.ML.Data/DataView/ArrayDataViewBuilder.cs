@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -231,16 +232,18 @@ namespace Microsoft.ML.Data
                 _rowCount = rowCount;
             }
 
-            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
+                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+
                 _host.CheckValueOrNull(rand);
                 return new Cursor(_host, this, predicate, rand);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
+                Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+
                 _host.CheckValueOrNull(rand);
                 return new RowCursor[] { new Cursor(_host, this, predicate, rand) };
             }

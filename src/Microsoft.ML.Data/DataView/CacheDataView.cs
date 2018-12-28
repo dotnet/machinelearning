@@ -202,10 +202,12 @@ namespace Microsoft.ML.Data
             return _rowCount;
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
+
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+
             // We have this explicit enumeration over the generic types to force different assembly
             // code to be generated for the different types, of both waiters and especially indexers.
             // Note also that these must be value types (hence the adorably clever struct wrappers),
@@ -246,15 +248,16 @@ namespace Microsoft.ML.Data
             return CreateCursor(predicate, RandomIndex<TWaiter>.Create(waiter, perm));
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
+
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
 
             n = DataViewUtils.GetThreadCount(_host, n);
 
             if (n <= 1)
-                return new RowCursor[] { GetRowCursor(predicate, rand) };
+                return new RowCursor[] { GetRowCursor(colsNeeded, rand) };
 
             var waiter = WaiterWaiter.Create(this, predicate);
             if (waiter.IsTrivial)
@@ -338,9 +341,9 @@ namespace Microsoft.ML.Data
                 if (Utils.Size(taskColumns) == 0 && _cacheDefaultWaiter != null)
                     return;
                 if (taskColumns == null)
-                    cursor = _subsetInput.GetRowCursor(c => false);
+                    cursor = _subsetInput.GetRowCursor(null);
                 else
-                    cursor = _subsetInput.GetRowCursor(taskColumns.Contains);
+                    cursor = _subsetInput.GetRowCursor(Schema.Where(x => taskColumns.Contains(x.Index)));
                 waiter = new OrderedWaiter(firstCleared: false);
                 _cacheDefaultWaiter = waiter;
                 caches = new ColumnCache[Utils.Size(taskColumns)];

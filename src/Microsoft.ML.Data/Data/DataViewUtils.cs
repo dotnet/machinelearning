@@ -82,7 +82,7 @@ namespace Microsoft.ML.Data
             if (countNullable != null)
                 return countNullable.Value;
             long count = 0;
-            using (var cursor = view.GetRowCursor(col => false))
+            using (var cursor = view.GetRowCursor(null))
             {
                 while (cursor.MoveNext())
                     count++;
@@ -115,21 +115,20 @@ namespace Microsoft.ML.Data
         /// the target cardinality of the cursor set.
         /// </summary>
         public static bool TryCreateConsolidatingCursor(out RowCursor curs,
-            IDataView view, Func<int, bool> predicate, IHost host, Random rand)
+            IDataView view, IEnumerable<Schema.Column> colsNeeded, IHost host, Random rand)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));
-            host.CheckValue(predicate, nameof(predicate));
 
             int cthd = GetThreadCount(host);
             host.Assert(cthd > 0);
-            if (cthd == 1 || !AllCachable(view.Schema, predicate))
+            if (cthd == 1 || !AllCachable(view.Schema, colsNeeded))
             {
                 curs = null;
                 return false;
             }
 
-            var inputs = view.GetRowCursorSet(predicate, cthd, rand);
+            var inputs = view.GetRowCursorSet(colsNeeded, cthd, rand);
             host.Check(Utils.Size(inputs) > 0);
 
             if (inputs.Length == 1)
@@ -186,6 +185,29 @@ namespace Microsoft.ML.Data
             for (int col = 0; col < schema.Count; col++)
             {
                 if (!predicate(col))
+                    continue;
+                var type = schema[col].Type;
+                if (!IsCachable(type))
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Return whether all the active columns, as determined by the predicate, are
+        /// cachable - either primitive types or vector types.
+        /// </summary>
+        public static bool AllCachable(Schema schema, IEnumerable<Schema.Column> colsNeeded)
+        {
+            Contracts.CheckValue(schema, nameof(schema));
+
+            if (colsNeeded == null)
+                return false;
+
+            for (int col = 0; col < schema.Count; col++)
+            {
+                if (!colsNeeded.Any(x => x.Index == col))
                     continue;
                 var type = schema[col].Type;
                 if (!IsCachable(type))

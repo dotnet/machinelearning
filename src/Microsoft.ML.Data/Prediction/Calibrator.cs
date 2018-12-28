@@ -822,7 +822,8 @@ namespace Microsoft.ML.Internal.Calibration
                 if (data.Schema.Weight?.Name is string weightName && scored.Schema.GetColumnOrNull(weightName)?.Index is int weightIdx)
                     weightCol = weightIdx;
                 ch.Info("Training calibrator.");
-                using (var cursor = scored.GetRowCursor(col => col == labelCol || col == scoreCol || col == weightCol))
+                var cols = scored.Schema.Where(col => col.Index == labelCol || col.Index == scoreCol || col.Index == weightCol);
+                using (var cursor = scored.GetRowCursor(cols))
                 {
                     var labelGetter = RowCursorUtils.GetLabelGetter(cursor, labelCol);
                     var scoreGetter = RowCursorUtils.GetGetterAs<Single>(NumberType.R4, cursor, scoreCol);

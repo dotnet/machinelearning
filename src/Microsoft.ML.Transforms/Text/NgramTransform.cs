@@ -301,16 +301,16 @@ namespace Microsoft.ML.Transforms.Text
             // i in _counts counts how many (i+1)-grams are in the pool for column iinfo.
             var counts = new int[columns.Length][];
             var ngramMaps = new SequencePool[columns.Length];
-            var activeInput = new bool[trainingData.Schema.Count];
+            var activeCols = new List<Schema.Column>();
             var srcTypes = new ColumnType[columns.Length];
             var srcCols = new int[columns.Length];
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 trainingData.Schema.TryGetColumnIndex(columns[iinfo].Input, out srcCols[iinfo]);
                 srcTypes[iinfo] = trainingData.Schema[srcCols[iinfo]].Type;
-                activeInput[srcCols[iinfo]] = true;
+                activeCols.Add(trainingData.Schema[srcCols[iinfo]]);
             }
-            using (var cursor = trainingData.GetRowCursor(col => activeInput[col]))
+            using (var cursor = trainingData.GetRowCursor(activeCols))
             using (var pch = env.StartProgressChannel("Building n-gram dictionary"))
             {
                 for (int iinfo = 0; iinfo < columns.Length; iinfo++)

@@ -119,29 +119,35 @@ namespace Microsoft.ML.Data
         /// </summary>
         protected abstract bool WantParallelCursors(Func<int, bool> predicate);
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            Contracts.AssertValue(predicate);
             Contracts.AssertValueOrNull(rand);
 
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+
             var bindings = GetBindings();
-            Func<int, bool> predicateInput;
+            Func<int, bool> inputPred;
             Func<int, bool> predicateMapper;
-            var active = GetActive(bindings, predicate, out predicateInput, out predicateMapper);
-            var input = Source.GetRowCursor(predicateInput, rand);
+            var active = GetActive(bindings, predicate, out inputPred, out predicateMapper);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var input = Source.GetRowCursor(inputCols, rand);
             return new Cursor(Host, this, input, active, predicateMapper);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
+            Func<int, bool> predicate = c => colsNeeded == null ? false : colsNeeded.Any(x => x.Index == c);
+
             var bindings = GetBindings();
-            Func<int, bool> predicateInput;
+            Func<int, bool> inputPred;
             Func<int, bool> predicateMapper;
-            var active = GetActive(bindings, predicate, out predicateInput, out predicateMapper);
-            var inputs = Source.GetRowCursorSet(predicateInput, n, rand);
+            var active = GetActive(bindings, predicate, out inputPred, out predicateMapper);
+
+            var inputCols = Source.Schema.Where(x => inputPred(x.Index));
+            var inputs = Source.GetRowCursorSet(inputCols, n, rand);
             Contracts.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && WantParallelCursors(predicate) && (Source.GetRowCount() ?? int.MaxValue) > n)

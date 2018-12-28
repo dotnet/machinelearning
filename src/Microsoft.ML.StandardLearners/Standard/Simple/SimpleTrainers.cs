@@ -295,7 +295,7 @@ namespace Microsoft.ML.Trainers
             int colWeight = -1;
             if (data.Schema.Weight?.Type == NumberType.Float)
                 colWeight = data.Schema.Weight.Value.Index;
-            using (var cursor = data.Data.GetRowCursor(c => c == col || c == colWeight))
+            using (var cursor = data.Data.GetRowCursor(data.Schema.Schema.Where(c => c.Index == col || c.Index == colWeight)))
             {
                 var getLab = cursor.GetLabelFloatGetter(data);
                 var getWeight = colWeight >= 0 ? cursor.GetGetter<float>(colWeight) : null;
