@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests.Transformers
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var data = TextLoader.Create(ML, new TextLoader.Arguments()
             {
-                Column = new []
+                Column = new[]
                 {
                     new TextLoader.Column("Text", DataKind.TX, 1)
                 }
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words").
-                Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash", invertHash:-1));
+                Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash", invertHash: -1));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
@@ -282,7 +282,8 @@ namespace Microsoft.ML.Tests.Transformers
             using (FileStream fs = File.OpenRead(dropModelPath))
             {
                 var result = ModelFileUtils.LoadTransforms(Env, data.AsDynamic, fs);
-                var foundColumnFeature = result.Schema.TryGetColumnIndex("Features", out int featureIdx);
+                var featureColumn = result.Schema.GetColumnOrNull("Features");
+                Assert.NotNull(featureColumn);
             }
         }
 
