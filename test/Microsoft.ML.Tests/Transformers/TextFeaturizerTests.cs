@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
+using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
@@ -267,6 +268,22 @@ namespace Microsoft.ML.Tests.Transformers
 
             CheckEquality("Text", "ngrams.tsv");
             Done();
+        }
+
+        [Fact]
+        void TestNgramCompatColumns()
+        {
+            string dropModelPath = GetDataPath("backcompat/ngram.zip");
+            string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var data = TextLoader.CreateReader(ML, ctx => (
+                    Sentiment: ctx.LoadBool(0),
+                    SentimentText: ctx.LoadText(1)), hasHeader: true)
+                .Read(sentimentDataPath);
+            using (FileStream fs = File.OpenRead(dropModelPath))
+            {
+                var result = ModelFileUtils.LoadTransforms(Env, data.AsDynamic, fs);
+                var foundColumnFeature = result.Schema.TryGetColumnIndex("Features", out int featureIdx);
+            }
         }
 
         [Fact]
