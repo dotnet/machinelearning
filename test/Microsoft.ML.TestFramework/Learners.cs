@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers.FastTree;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     //=========================== Binary classifiers ====================
     public class PredictorAndArgs

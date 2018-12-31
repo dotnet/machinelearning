@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// The trivial wrapper for a <see cref="IDataReader{TSource}"/> that acts as an estimator and ignores the source.

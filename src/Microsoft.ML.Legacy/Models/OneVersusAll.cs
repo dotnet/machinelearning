@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using System;
-using static Microsoft.ML.Runtime.EntryPoints.CommonInputs;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using static Microsoft.ML.EntryPoints.CommonInputs;
 
 namespace Microsoft.ML.Legacy.Models
 {

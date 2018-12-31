@@ -9,13 +9,12 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Parquet;
 using Parquet.Data;
 using Parquet.File.Values.Primitives;
@@ -26,7 +25,7 @@ using Parquet.File.Values.Primitives;
 [assembly: LoadableClass(ParquetLoader.Summary, typeof(ParquetLoader), null, typeof(SignatureLoadDataLoader),
     ParquetLoader.LoaderName, ParquetLoader.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a parquet file into an IDataView. Supports basic mapping from Parquet input column data types to framework data types.
@@ -398,11 +397,10 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(this, predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            consolidator = null;
             return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 

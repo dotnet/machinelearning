@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime.Model.Pfa
+namespace Microsoft.ML.Model.Pfa
 {
     /// <summary>
     /// A context for defining a restricted sort of PFA output.

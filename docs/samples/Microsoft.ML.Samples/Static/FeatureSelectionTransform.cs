@@ -1,8 +1,7 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.StaticPipe;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
+using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

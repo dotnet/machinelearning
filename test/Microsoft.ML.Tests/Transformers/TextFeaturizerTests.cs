@@ -1,17 +1,18 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
+using System;
+using System.IO;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
-using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -162,6 +163,38 @@ namespace Microsoft.ML.Tests.Transformers
 
             CheckEquality("Text", "words_without_stopwords.tsv");
             Done();
+        }
+
+        [Fact]
+        public void StopWordsRemoverFromFactory()
+        {
+            var factory = new PredefinedStopWordsRemoverFactory();
+            string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var data = TextLoader.Create(ML, new TextLoader.Arguments()
+            {
+                Column = new []
+                {
+                    new TextLoader.Column("Text", DataKind.TX, 1)
+                }
+            }, new MultiFileSource(sentimentDataPath));
+
+            var tokenized = new WordTokenizingTransformer(ML, new[]
+            {
+                new WordTokenizingTransformer.ColumnInfo("Text", "Text")
+            }).Transform(data);
+
+            var xf = factory.CreateComponent(ML, tokenized,
+                new[] {
+                    new StopWordsRemovingTransformer.Column() { Name = "Text", Source = "Text" }
+                });
+
+            using (var cursor = xf.GetRowCursor(col => true))
+            {
+                VBuffer<ReadOnlyMemory<char>> text = default;
+                var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"].Index);
+                while (cursor.MoveNext())
+                    getter(ref text);
+            }
         }
 
         [Fact]

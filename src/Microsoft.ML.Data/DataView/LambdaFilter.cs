@@ -4,10 +4,10 @@
 
 using System;
 using System.Reflection;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This applies the user provided RefPredicate to a column and drops rows that map to false. It automatically
@@ -117,15 +117,14 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(this, input, active);
             }
 
-            public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-                Func<int, bool> predicate, int n, Random rand = null)
+            public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
             {
                 Host.CheckValue(predicate, nameof(predicate));
                 Host.CheckValueOrNull(rand);
 
                 bool[] active;
                 Func<int, bool> inputPred = GetActive(predicate, out active);
-                var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+                var inputs = Source.GetRowCursorSet(inputPred, n, rand);
                 Host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.

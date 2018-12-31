@@ -7,12 +7,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// This class encapsulates the predictor and a preceding transform model, as the concrete and hidden
@@ -125,12 +124,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             labelType = null;
             if (trainRms.Label != null)
             {
-                labelType = trainRms.Label.Type;
-                if (labelType.IsKey &&
-                    trainRms.Schema[trainRms.Label.Index].HasKeyValues(labelType.KeyCount))
+                labelType = trainRms.Label.Value.Type;
+                if (labelType is KeyType && trainRms.Label.Value.HasKeyValues(labelType.KeyCount))
                 {
                     VBuffer<ReadOnlyMemory<char>> keyValues = default;
-                    trainRms.Schema[trainRms.Label.Index].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
+                    trainRms.Label.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
                     return keyValues.DenseValues().Select(v => v.ToString()).ToArray();
                 }
             }

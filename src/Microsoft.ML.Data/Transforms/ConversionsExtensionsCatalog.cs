@@ -1,9 +1,9 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
+using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML
@@ -125,5 +125,23 @@ namespace Microsoft.ML
             string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
             => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns, file, termsColumn, loaderFactory);
+
+        /// <summary>
+        /// Maps specified keys to specified values
+        /// </summary>
+        /// <typeparam name="TInputType">The key type.</typeparam>
+        /// <typeparam name="TOutputType">The value type.</typeparam>
+        /// <param name="catalog">The categorical transform's catalog</param>
+        /// <param name="keys">The list of keys to use for the mapping. The mapping is 1-1 with values. This list must be the same length as values and
+        /// cannot contain duplicate keys.</param>
+        /// <param name="values">The list of values to pair with the keys for the mapping. This list must be equal to the same length as keys.</param>
+        /// <param name="columns">The columns to apply this transform on.</param>
+        /// <returns></returns>
+        public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
+            this TransformsCatalog.ConversionTransforms catalog,
+            IEnumerable<TInputType> keys,
+            IEnumerable<TOutputType> values,
+            params (string source, string name)[] columns)
+            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
     }
 }

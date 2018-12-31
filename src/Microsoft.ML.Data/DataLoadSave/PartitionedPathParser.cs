@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Utilities;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Utilities;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(SimplePartitionedPathParser.Summary, typeof(SimplePartitionedPathParser), typeof(SimplePartitionedPathParser.Arguments), typeof(PartitionedPathParser),
     SimplePartitionedPathParser.UserName, SimplePartitionedPathParser.LoadName, SimplePartitionedPathParser.ShortName)]
@@ -28,7 +28,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: EntryPointModule(typeof(SimplePartitionedPathParser.Arguments))]
 [assembly: EntryPointModule(typeof(ParquetPartitionedPathParserFactory))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Delegate signature for a partitioned path parser.

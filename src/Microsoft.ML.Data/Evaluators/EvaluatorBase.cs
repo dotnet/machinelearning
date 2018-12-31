@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This is a base class for TLC evaluators. It implements both of the <see cref="IEvaluator"/> methods: <see cref="Evaluate"/> and
@@ -49,8 +48,8 @@ namespace Microsoft.ML.Runtime.Data
         private protected void CheckColumnTypes(RoleMappedSchema schema)
         {
             // Check the weight column type.
-            if (schema.Weight != null)
-                EvaluateUtils.CheckWeightType(Host, schema.Weight.Type);
+            if (schema.Weight.HasValue)
+                EvaluateUtils.CheckWeightType(Host, schema.Weight.Value.Type);
             CheckScoreAndLabelTypes(schema);
             // Check the other column types.
             CheckCustomColumnTypesCore(schema);
@@ -92,8 +91,8 @@ namespace Microsoft.ML.Runtime.Data
         private protected virtual Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var label = schema.Label == null ? -1 : schema.Label.Index;
-            var weight = schema.Weight == null ? -1 : schema.Weight.Index;
+            int label = schema.Label?.Index ?? -1;
+            int weight = schema.Weight?.Index ?? -1;
             return i => i == score.Index || i == label || i == weight;
         }
 

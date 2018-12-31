@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Trainers.FastTree.Internal;
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.LightGBM
 {
     /// <summary>
     /// Wrapper of Booster object of LightGBM.
@@ -72,7 +72,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             return res[0];
         }
 
-        private unsafe string GetModelString()
+        [BestFriend]
+        internal unsafe string GetModelString()
         {
             int bufLen = 2 << 15;
             byte[] buffer = new byte[bufLen];

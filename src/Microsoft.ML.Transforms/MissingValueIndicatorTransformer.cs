@@ -6,17 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(MissingValueIndicatorTransformer.Summary, typeof(IDataTransform), typeof(MissingValueIndicatorTransformer), typeof(MissingValueIndicatorTransformer.Arguments), typeof(SignatureDataTransform),
@@ -221,7 +217,7 @@ namespace Microsoft.ML.Transforms
 
             private static Delegate GetIsNADelegate<T>(ColumnType type)
             {
-                return Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+                return Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
             }
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
@@ -463,7 +459,7 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
@@ -475,138 +471,6 @@ namespace Microsoft.ML.Transforms
                 result[colPair.output] = new SchemaShape.Column(colPair.output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);
-        }
-    }
-
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class NAIndicatorExtensions
-    {
-        private interface IColInput
-        {
-            PipelineColumn Input { get; }
-        }
-
-        private sealed class OutScalar<TValue> : Scalar<bool>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutScalar(Scalar<TValue> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutVectorColumn<TValue> : Vector<bool>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutVectorColumn(Vector<TValue> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class OutVarVectorColumn<TValue> : VarVector<bool>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutVarVectorColumn(VarVector<TValue> input)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            public static Reconciler Inst = new Reconciler();
-
-            private Reconciler() { }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                var columnPairs = new (string input, string output)[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var col = (IColInput)toOutput[i];
-                    columnPairs[i] = (inputNames[col.Input], outputNames[toOutput[i]]);
-                }
-                return new MissingValueIndicatorEstimator(env, columnPairs);
-            }
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static Scalar<bool> IsMissingValue(this Scalar<float> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutScalar<float>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static Scalar<bool> IsMissingValue(this Scalar<double> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutScalar<double>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static Vector<bool> IsMissingValue(this Vector<float> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<float>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static Vector<bool> IsMissingValue(this Vector<double> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<double>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static VarVector<bool> IsMissingValue(this VarVector<float> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<float>(input);
-        }
-
-        /// <summary>
-        /// Produces a column of boolean entries indicating whether input column entries were missing.
-        /// </summary>
-        /// <param name="input">The input column.</param>
-        /// <returns>A column indicating whether input column entries were missing.</returns>
-        public static VarVector<bool> IsMissingValue(this VarVector<double> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<double>(input);
         }
     }
 }

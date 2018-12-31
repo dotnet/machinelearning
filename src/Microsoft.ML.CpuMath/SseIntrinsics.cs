@@ -13,15 +13,15 @@
 // * D suffix means convolution matrix, with implicit source padding.
 // * Tran means the matrix is transposed.
 
-using Microsoft.ML.Runtime.Internal.CpuMath.Core;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
+using Microsoft.ML.Internal.CpuMath.Core;
 using nuint = System.UInt64;
 
-namespace Microsoft.ML.Runtime.Internal.CpuMath
+namespace Microsoft.ML.Internal.CpuMath
 {
     internal static class SseIntrinsics
     {

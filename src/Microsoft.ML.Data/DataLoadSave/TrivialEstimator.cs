@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// The trivial implementation of <see cref="IEstimator{TTransformer}"/> that already has

@@ -6,7 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     [BestFriend]
     internal sealed class ObjectPool<T> : ObjectPoolBase<T> where T : class, new()

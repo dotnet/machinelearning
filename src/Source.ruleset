@@ -145,15 +145,9 @@
     <Rule Id="SA1205" Action="Warning" />
     <Rule Id="SA1206" Action="Warning" />
     <Rule Id="SA1207" Action="Warning" />
-    <Rule Id="SA1208" Action="None" />
-    <Rule Id="SA1209" Action="None" />
-    <Rule Id="SA1210" Action="None" />
-    <Rule Id="SA1211" Action="None" />
     <Rule Id="SA1212" Action="Warning" />
     <Rule Id="SA1213" Action="Warning" />
     <Rule Id="SA1214" Action="None" />
-    <Rule Id="SA1216" Action="None" />
-    <Rule Id="SA1217" Action="None" />
     <Rule Id="SA1300" Action="None" />
     <Rule Id="SA1302" Action="Warning" />
     <Rule Id="SA1303" Action="None" />

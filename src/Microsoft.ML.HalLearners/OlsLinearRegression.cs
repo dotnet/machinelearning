@@ -2,23 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Trainers.HalLearners;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.HalLearners;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(OlsLinearRegressionTrainer.Summary, typeof(OlsLinearRegressionTrainer), typeof(OlsLinearRegressionTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -141,16 +140,16 @@ namespace Microsoft.ML.Trainers.HalLearners
             {
                 ch.CheckValue(context, nameof(context));
                 var examples = context.TrainingSet;
-                ch.CheckParam(examples.Schema.Feature != null, nameof(examples), "Need a feature column");
-                ch.CheckParam(examples.Schema.Label != null, nameof(examples), "Need a labelColumn column");
+                ch.CheckParam(examples.Schema.Feature.HasValue, nameof(examples), "Need a feature column");
+                ch.CheckParam(examples.Schema.Label.HasValue, nameof(examples), "Need a labelColumn column");
 
                 // The labelColumn type must be either Float or a key type based on int (if allowKeyLabels is true).
-                var typeLab = examples.Schema.Label.Type;
+                var typeLab = examples.Schema.Label.Value.Type;
                 if (typeLab != NumberType.Float)
                     throw ch.Except("Incompatible labelColumn column type {0}, must be {1}", typeLab, NumberType.Float);
 
                 // The feature type must be a vector of Float.
-                var typeFeat = examples.Schema.Feature.Type;
+                var typeFeat = examples.Schema.Feature.Value.Type;
                 if (!typeFeat.IsKnownSizeVector)
                     throw ch.Except("Incompatible feature column type {0}, must be known sized vector of {1}", typeFeat, NumberType.Float);
                 if (typeFeat.ItemType != NumberType.Float)
@@ -604,6 +603,18 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// </summary>
         public IReadOnlyCollection<Double> PValues => _pValues.AsReadOnly();
 
+        /// <summary>
+        /// Constructs a new OLS regression model parameters from trained model.
+        /// </summary>
+        /// <param name="env">The Host environment.</param>
+        /// <param name="weights">The weights for the linear model. The i-th element of weights is the coefficient
+        /// of the i-th feature. Note that this will take ownership of the <see cref="VBuffer{T}"/>.</param>
+        /// <param name="bias">The bias added to every output score.</param>
+        /// <param name="standardErrors">Optional: The statndard errors of the weights and bias.</param>
+        /// <param name="tValues">Optional: The t-statistics for the estimates of the weights and bias.</param>
+        /// <param name="pValues">Optional: The p-values of the weights and bias.</param>
+        /// <param name="rSquared">The coefficient of determination.</param>
+        /// <param name="rSquaredAdjusted">The adjusted coefficient of determination.</param>
         public OlsLinearRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, float bias,
             Double[] standardErrors = null, Double[] tValues = null, Double[] pValues = null, Double rSquared = 1, Double rSquaredAdjusted = float.NaN)
             : base(env, RegistrationName, in weights, bias)

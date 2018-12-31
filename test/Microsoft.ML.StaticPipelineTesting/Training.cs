@@ -1,24 +1,23 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FactorizationMachine;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.RunTests;
+using System;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.FactorizationMachine;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Learners;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.Recommender;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
-using System;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -276,7 +275,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadBool(0), features1: c.LoadFloat(1, 4), features2: c.LoadFloat(5, 9)));
 
-            FieldAwareFactorizationMachinePredictor pred = null;
+            FieldAwareFactorizationMachineModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -308,7 +307,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionPredictor pred = null;
+            MulticlassLogisticRegressionModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -627,7 +626,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionPredictor pred = null;
+            MulticlassLogisticRegressionModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -851,7 +850,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            OvaPredictor pred = null;
+            OvaModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -889,7 +888,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MultiClassNaiveBayesPredictor pred = null;
+            MultiClassNaiveBayesModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()

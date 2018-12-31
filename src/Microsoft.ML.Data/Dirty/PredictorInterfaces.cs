@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Calibrator;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
 
     /// <summary>
@@ -201,6 +201,23 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// If normalization is requested that resulting values will be normalized to [-1, 1].
         /// </summary>
         ValueMapper<TSrc, VBuffer<float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize);
+    }
+
+    /// <summary>
+    /// Allows support for feature contribution calculation.
+    /// </summary>
+    public interface ICalculateFeatureContribution : IPredictor
+    {
+        FeatureContributionCalculator FeatureContributionClaculator { get; }
+    }
+
+    /// <summary>
+    /// Support for feature contribution calculation.
+    /// </summary>
+    public sealed class FeatureContributionCalculator
+    {
+        internal IFeatureContributionMapper ContributionMapper { get; }
+        internal FeatureContributionCalculator(IFeatureContributionMapper contributionMapper) => ContributionMapper = contributionMapper;
     }
 
     /// <summary>

@@ -1,9 +1,7 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
+using Microsoft.ML.Legacy.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -47,16 +45,16 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
 
         public class NewsData
         {
-            [Column(ordinal: "0")]
+            [LoadColumn(0)]
             public string Id;
 
-            [Column(ordinal: "1", name: "Label")]
+            [LoadColumn(1) , ColumnName("Label")]
             public string Topic;
 
-            [Column(ordinal: "2")]
+            [LoadColumn(2)]
             public string Subject;
 
-            [Column(ordinal: "3")]
+            [LoadColumn(3)]
             public string Content;
         }
 

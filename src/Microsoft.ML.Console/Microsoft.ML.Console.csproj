@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
     <AssemblyName>MML</AssemblyName> 
-    <StartupObject>Microsoft.ML.Runtime.Tools.Console.Console</StartupObject>
+    <StartupObject>Microsoft.ML.Tools.Console.Console</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

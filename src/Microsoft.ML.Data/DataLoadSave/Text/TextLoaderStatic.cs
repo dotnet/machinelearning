@@ -8,7 +8,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed partial class TextLoader
     {

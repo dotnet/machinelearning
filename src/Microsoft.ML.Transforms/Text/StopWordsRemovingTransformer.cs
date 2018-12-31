@@ -4,16 +4,6 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +11,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(StopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(StopWordsRemovingTransformer), typeof(StopWordsRemovingTransformer.Arguments), typeof(SignatureDataTransform),
     "Stopwords Remover Transform", "StopWordsRemoverTransform", "StopWordsRemover", "StopWords")]
@@ -51,21 +50,17 @@ using System.Threading;
 
 namespace Microsoft.ML.Transforms.Text
 {
-
-    public interface IStopWordsRemoverTransform : IDataTransform { }
-
     [TlcModule.ComponentKind("StopWordsRemover")]
-    public interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IStopWordsRemoverTransform> { }
+    public interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IDataTransform> { }
 
     [TlcModule.Component(Name = "Predefined", FriendlyName = "Predefined Stopwords List Remover", Alias = "PredefinedStopWordsRemover,PredefinedStopWords",
         Desc = "Remover with predefined list of stop words.")]
     public sealed class PredefinedStopWordsRemoverFactory : IStopWordsRemoverFactory
     {
-        public IStopWordsRemoverTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
+        public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
         {
-            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.Source, x.Name)).ToArray()).Fit(input).Transform(input) as IStopWordsRemoverTransform;
+            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.Source, x.Name)).ToArray()).Fit(input).Transform(input) as IDataTransform;
         }
-
     }
 
     /// <summary>
@@ -647,12 +642,12 @@ namespace Microsoft.ML.Transforms.Text
             Desc = "Remover with list of stopwords specified by the user.")]
         public sealed class LoaderArguments : ArgumentsBase, IStopWordsRemoverFactory
         {
-            public IStopWordsRemoverTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
+            public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {
                 if (Utils.Size(Stopword) > 0)
-                    return new CustomStopWordsRemovingTransform(env, Stopword, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IStopWordsRemoverTransform;
+                    return new CustomStopWordsRemovingTransform(env, Stopword, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
                 else
-                    return new CustomStopWordsRemovingTransform(env, Stopwords, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IStopWordsRemoverTransform;
+                    return new CustomStopWordsRemovingTransform(env, Stopwords, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
             }
         }
 

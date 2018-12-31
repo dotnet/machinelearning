@@ -9,18 +9,18 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Tools;
 
 #if TLCFULLBUILD
-using Microsoft.ML.Runtime.ExperimentVisualization;
+using Microsoft.ML.ExperimentVisualization;
 #endif
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
+namespace Microsoft.ML.Internal.Internallearn.ResultProcessor
 {
     using Float = System.Single;
     /// <summary>

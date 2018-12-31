@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(void), typeof(ModelOperations), null, typeof(SignatureEntryPointModule), "ModelOperations")]
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     public static class ModelOperations
     {
@@ -154,7 +153,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return new PredictorModelOutput
                 {
                     PredictorModel = new PredictorModelImpl(env, data, input.TrainingData,
-                    OvaPredictor.Create(host, input.UseProbabilities,
+                    OvaModelParameters.Create(host, input.UseProbabilities,
                             input.ModelArray.Select(p => p.Predictor as IPredictorProducing<float>).ToArray()))
                 };
             }

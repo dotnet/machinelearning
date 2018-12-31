@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Training;
+using System;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
-using System;
+using Microsoft.ML.Training;
 
 namespace Microsoft.ML
 {
-    using SgdArguments = StochasticGradientDescentClassificationTrainer.Arguments;
     using LRArguments = LogisticRegression.Arguments;
+    using SgdArguments = StochasticGradientDescentClassificationTrainer.Arguments;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -227,7 +226,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="ctx">The binary classificaiton context trainer object.</param>
         /// <param name="labelColumn">The label column name, or dependent variable.</param>
@@ -236,7 +235,7 @@ namespace Microsoft.ML
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularization term.</param>
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static LogisticRegression LogisticRegression(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
@@ -256,7 +255,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="ctx">The regression context trainer object.</param>
         /// <param name="labelColumn">The labelColumn, or dependent variable.</param>
@@ -265,7 +264,7 @@ namespace Microsoft.ML
         /// <param name="l1Weight">Weight of L1 regularization term.</param>
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static PoissonRegression PoissonRegression(this RegressionContext.RegressionTrainers ctx,
@@ -285,7 +284,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.MulticlassLogisticRegression"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
         /// </summary>
         /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumn">The labelColumn, or dependent variable.</param>
@@ -294,7 +293,7 @@ namespace Microsoft.ML
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularization term.</param>
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
@@ -407,7 +406,7 @@ namespace Microsoft.ML
         public static LinearSvm LinearSupportVectorMachines(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weightsColumn = DefaultColumnNames.Weight,
+            string weightsColumn = null,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
             Action<LinearSvm.Arguments> advancedSettings = null)
         {

@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector
+namespace Microsoft.ML.Ensemble.Selector
 {
     internal interface ISubModelSelector<TOutput>
     {

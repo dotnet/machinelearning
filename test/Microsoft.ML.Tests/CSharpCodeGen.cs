@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.RunTests;
 using System.IO;
+using Microsoft.ML.RunTests;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,14 +19,14 @@ namespace Microsoft.ML.Tests
         public void RegenerateCSharpApi()
         {
             var basePath = GetDataPath("../../src/Microsoft.ML.Legacy/CSharpApi.cs");
-            Runtime.Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={basePath}}}" });
+            Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={basePath}}}" });
         }
 
         [ConditionalFact(typeof(BaseTestBaseline), nameof(LessThanNetCore30OrNotNetCore))]
         public void TestGeneratedCSharpAPI()
         {
             var dataPath = GetOutputPath("Api.cs");
-            Runtime.Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={dataPath}}}" });
+            Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={dataPath}}}" });
 
             var basePath = GetDataPath("../../src/Microsoft.ML.Legacy/CSharpApi.cs");
             using (StreamReader baseline = OpenReader(basePath))

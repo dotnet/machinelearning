@@ -111,7 +111,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private void Analyze(SemanticModelAnalysisContext context)
         {
             AnalyzeCore(context, "Microsoft.ML.BestFriendAttribute", "Microsoft.ML.WantsToBeBestFriendsAttribute");
-            AnalyzeCore(context, "Microsoft.ML.Runtime.Internal.CpuMath.Core.BestFriendAttribute", "Microsoft.ML.Runtime.Internal.CpuMath.Core.WantsToBeBestFriendsAttribute");
+            AnalyzeCore(context, "Microsoft.ML.Internal.CpuMath.Core.BestFriendAttribute", "Microsoft.ML.Internal.CpuMath.Core.WantsToBeBestFriendsAttribute");
         }
     }
 }

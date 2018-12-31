@@ -2,17 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,6 +9,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), typeof(MissingValueReplacingTransformer.Arguments), typeof(SignatureDataTransform),
     MissingValueReplacingTransformer.FriendlyName, MissingValueReplacingTransformer.LoadName, "NAReplace", MissingValueReplacingTransformer.ShortName, DocName = "transform/NAHandle.md")]
@@ -158,7 +157,7 @@ namespace Microsoft.ML.Transforms
         private static string TestType<T>(ColumnType type)
         {
             Contracts.Assert(type.ItemType.RawType == typeof(T));
-            if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out InPredicate<T> isNA))
+            if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out InPredicate<T> isNA))
             {
                 return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
                     type, LoadName);
@@ -290,7 +289,7 @@ namespace Microsoft.ML.Transforms
             Host.Assert(srcType.IsVector);
             Host.Assert(srcType.VectorSize == src.Length);
             VBufferUtils.Densify<T>(ref src);
-            InPredicate<T> defaultPred = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
+            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
             _repIsDefault[iinfo] = new BitArray(srcType.VectorSize);
             var srcValues = src.GetValues();
             for (int slot = 0; slot < srcValues.Length; slot++)
@@ -404,7 +403,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.Assert(values.Length == type.VectorSize);
             BitArray defaultSlots = new BitArray(values.Length);
-            InPredicate<T> defaultPred = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
             for (int slot = 0; slot < values.Length; slot++)
             {
                 if (defaultPred(in values[slot]))
@@ -435,7 +434,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private Delegate GetIsNADelegate<T>(ColumnType type)
-            => Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+            => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
 
         /// <summary>
         /// Converts a string to its respective value in the corresponding type.
@@ -454,7 +453,7 @@ namespace Microsoft.ML.Transforms
             {
                 // Handles converting input strings to correct types.
                 var srcTxt = srcStr.AsMemory();
-                var strToT = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.ItemType, out bool identity);
+                var strToT = Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.ItemType, out bool identity);
                 strToT(in srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(in val))
@@ -697,7 +696,7 @@ namespace Microsoft.ML.Transforms
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
-                var isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.ItemType);
+                var isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.ItemType);
 
                 var src = default(VBuffer<T>);
                 ValueGetter<VBuffer<T>> getter;

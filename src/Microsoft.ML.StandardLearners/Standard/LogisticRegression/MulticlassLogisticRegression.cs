@@ -2,26 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Trainers;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Training;
+using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(MulticlassLogisticRegression), typeof(MulticlassLogisticRegression.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -31,16 +30,16 @@ using System.Linq;
     MulticlassLogisticRegression.ShortName,
     "multilr")]
 
-[assembly: LoadableClass(typeof(MulticlassLogisticRegressionPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(MulticlassLogisticRegressionModelParameters), null, typeof(SignatureLoadModel),
     "Multiclass LR Executor",
-    MulticlassLogisticRegressionPredictor.LoaderSignature)]
+    MulticlassLogisticRegressionModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Learners
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
     public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Arguments,
-        MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>, MulticlassLogisticRegressionPredictor>
+        MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
@@ -126,18 +125,15 @@ namespace Microsoft.ML.Runtime.Learners
             _prior = new Double[_numClasses];
 
             // Try to get the label key values metedata.
-            var schema = data.Data.Schema;
-            var labelIdx = data.Schema.Label.Index;
-            var labelMetadataType = schema[labelIdx].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            if (labelMetadataType == null || !labelMetadataType.IsKnownSizeVector || !labelMetadataType.ItemType.IsText ||
-                labelMetadataType.VectorSize != _numClasses)
+            var labelCol = data.Schema.Label.Value;
+            var labelMetadataType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            if (!(labelMetadataType is VectorType vecType && vecType.ItemType == TextType.Instance && vecType.Size == _numClasses))
             {
                 _labelNames = null;
                 return;
             }
-
             VBuffer<ReadOnlyMemory<char>> labelNames = default;
-            schema[labelIdx].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
+            labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
 
             // If label names is not dense or contain NA or default value, then it follows that
             // at least one class does not have a valid name for its label. If the label names we
@@ -228,7 +224,7 @@ namespace Microsoft.ML.Runtime.Learners
             return weight * datumLoss;
         }
 
-        protected override VBuffer<float> InitializeWeightsFromPredictor(MulticlassLogisticRegressionPredictor srcPredictor)
+        protected override VBuffer<float> InitializeWeightsFromPredictor(MulticlassLogisticRegressionModelParameters srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
             Contracts.Assert(srcPredictor.InputType.VectorSize > 0);
@@ -240,7 +236,7 @@ namespace Microsoft.ML.Runtime.Learners
             return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.GetBiases());
         }
 
-        protected override MulticlassLogisticRegressionPredictor CreatePredictor()
+        protected override MulticlassLogisticRegressionModelParameters CreatePredictor()
         {
             if (_numClasses < 1)
                 throw Contracts.Except("Cannot create a multiclass predictor with {0} classes", _numClasses);
@@ -252,7 +248,7 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            return new MulticlassLogisticRegressionPredictor(Host, in CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
+            return new MulticlassLogisticRegressionModelParameters(Host, in CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
         }
 
         private protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
@@ -330,19 +326,18 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> MakeTransformer(MulticlassLogisticRegressionPredictor model, Schema trainSchema)
-            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, Schema trainSchema)
+            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
-        public MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+        public MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
     }
 
-    public sealed class MulticlassLogisticRegressionPredictor :
-        PredictorBase<VBuffer<float>>,
+    public sealed class MulticlassLogisticRegressionModelParameters :
+        ModelParametersBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
-        ICanSaveModel,
         ICanSaveSummary,
         ICanGetSummaryInKeyValuePairs,
         ICanGetSummaryAsIDataView,
@@ -350,8 +345,8 @@ namespace Microsoft.ML.Runtime.Learners
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
-        public const string LoaderSignature = "MultiClassLRExec";
-        public const string RegistrationName = "MulticlassLogisticRegressionPredictor";
+        internal const string LoaderSignature = "MultiClassLRExec";
+        internal const string RegistrationName = "MulticlassLogisticRegressionPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -363,7 +358,7 @@ namespace Microsoft.ML.Runtime.Learners
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(MulticlassLogisticRegressionPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(MulticlassLogisticRegressionModelParameters).Assembly.FullName);
         }
 
         private const string ModelStatsSubModelFilename = "ModelStats";
@@ -395,7 +390,7 @@ namespace Microsoft.ML.Runtime.Learners
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
-        internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MulticlassLogisticRegressionModelParameters(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
         {
             Contracts.Assert(weights.Length == numClasses + numClasses * numFeatures);
@@ -428,17 +423,17 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionPredictor"/> class.
+        /// Initializes a new instance of the <see cref="MulticlassLogisticRegressionModelParameters"/> class.
         /// This constructor is called by <see cref="SdcaMultiClassTrainer"/> to create the predictor.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="weights">The array of weights vectors. It should contain <paramref name="numClasses"/> weights.</param>
         /// <param name="bias">The array of biases. It should contain contain <paramref name="numClasses"/> weights.</param>
         /// <param name="numClasses">The number of classes for multi-class classification. Must be at least 2.</param>
-        /// <param name="numFeatures">The logical length of the feature vector.</param>
+        /// <param name="numFeatures">The length of the feature vector.</param>
         /// <param name="labelNames">The optional label names. If specified not null, it should have the same length as <paramref name="numClasses"/>.</param>
         /// <param name="stats">The model statistics.</param>
-        public MulticlassLogisticRegressionPredictor(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        public MulticlassLogisticRegressionModelParameters(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
         {
             Contracts.CheckValue(weights, nameof(weights));
@@ -471,7 +466,7 @@ namespace Microsoft.ML.Runtime.Learners
             _stats = stats;
         }
 
-        private MulticlassLogisticRegressionPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private MulticlassLogisticRegressionModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx)
         {
             // *** Binary format ***
@@ -555,12 +550,12 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
-        public static MulticlassLogisticRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static MulticlassLogisticRegressionModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new MulticlassLogisticRegressionPredictor(env, ctx);
+            return new MulticlassLogisticRegressionModelParameters(env, ctx);
         }
 
         private protected override void SaveCore(ModelSaveContext ctx)

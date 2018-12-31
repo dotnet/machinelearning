@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ProduceIdTransform.Summary, typeof(ProduceIdTransform), typeof(ProduceIdTransform.Arguments), typeof(SignatureDataTransform),
@@ -148,13 +147,13 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
             var inputPred = _bindings.GetDependencies(predicate);
-            RowCursor[] cursors = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            RowCursor[] cursors = Source.GetRowCursorSet(inputPred, n, rand);
             bool active = predicate(_bindings.MapIinfoToCol(0));
             for (int c = 0; c < cursors.Length; ++c)
                 cursors[c] = new Cursor(Host, _bindings, cursors[c], active);

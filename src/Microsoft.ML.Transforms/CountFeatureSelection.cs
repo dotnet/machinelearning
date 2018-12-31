@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Arguments), typeof(SignatureDataTransform),
     CountFeatureSelectingEstimator.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
@@ -29,6 +28,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         private readonly IHost _host;
         private readonly ColumnInfo[] _columns;
 
+        [BestFriend]
         internal static class Defaults
         {
             public const long Count = 1;
@@ -335,8 +335,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         getter(ref t);
                         VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = t;
                     };
-                _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
-                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
+                _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
+                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
                     _isMissing = (in T value) => false;
             }
 
@@ -346,8 +346,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 var size = type.ValueCount;
                 _count = new long[size];
                 _fillBuffer = () => getter(ref _buffer);
-                _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
+                _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
                     _isMissing = (in T value) => false;
             }
 

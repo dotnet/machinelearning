@@ -6,15 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(OptionalColumnTransform.Summary, typeof(OptionalColumnTransform),
     typeof(OptionalColumnTransform.Arguments), typeof(SignatureDataTransform),
@@ -308,8 +307,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -320,7 +318,7 @@ namespace Microsoft.ML.Transforms
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
-                var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n);
+                var inputs = Source.GetRowCursorSet(inputPred, n);
                 Host.AssertNonEmpty(inputs);
 
                 if (inputs.Length != 1)
@@ -335,7 +333,6 @@ namespace Microsoft.ML.Transforms
             else
                 input = Source.GetRowCursor(inputPred);
 
-            consolidator = null;
             return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 

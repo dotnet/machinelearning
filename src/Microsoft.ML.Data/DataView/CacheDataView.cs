@@ -4,15 +4,13 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
@@ -247,8 +245,7 @@ namespace Microsoft.ML.Data
             return CreateCursor(predicate, RandomIndex<TWaiter>.Create(waiter, perm));
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -256,27 +253,12 @@ namespace Microsoft.ML.Data
             n = DataViewUtils.GetThreadCount(_host, n);
 
             if (n <= 1)
-            {
-                consolidator = null;
                 return new RowCursor[] { GetRowCursor(predicate, rand) };
-            }
 
-            consolidator = new Consolidator();
             var waiter = WaiterWaiter.Create(this, predicate);
             if (waiter.IsTrivial)
                 return GetRowCursorSetWaiterCore(TrivialWaiter.Create(this), predicate, n, rand);
             return GetRowCursorSetWaiterCore(waiter, predicate, n, rand);
-        }
-
-        /// <summary>
-        /// Minimal consolidator.
-        /// </summary>
-        private sealed class Consolidator : IRowCursorConsolidator
-        {
-            public RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs)
-            {
-                return DataViewUtils.ConsolidateGeneric(provider, inputs, _batchSize);
-            }
         }
 
         private RowCursor[] GetRowCursorSetWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, int n, Random rand)

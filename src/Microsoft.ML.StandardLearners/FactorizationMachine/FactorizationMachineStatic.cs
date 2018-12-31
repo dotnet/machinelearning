@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FactorizationMachine;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.FactorizationMachine;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -43,7 +42,7 @@ namespace Microsoft.ML.StaticPipe
             int numIterations = 5,
             int numLatentDimensions = 20,
             Action<FieldAwareFactorizationMachineTrainer.Arguments> advancedSettings = null,
-            Action<FieldAwareFactorizationMachinePredictor> onFit = null)
+            Action<FieldAwareFactorizationMachineModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckNonEmpty(features, nameof(features));

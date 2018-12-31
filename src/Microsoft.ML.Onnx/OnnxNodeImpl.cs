@@ -4,10 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
+using Microsoft.ML.UniversalModelFormat.Onnx;
 
-namespace Microsoft.ML.Runtime.Model.Onnx
+namespace Microsoft.ML.Model.Onnx
 {
     internal sealed class OnnxNodeImpl : OnnxNode
     {

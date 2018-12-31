@@ -2,27 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Training;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(SdcaBinaryTrainer), typeof(SdcaBinaryTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -120,13 +119,12 @@ namespace Microsoft.ML.Trainers
             var roles = examples.Schema.GetColumnRoleNames();
             var examplesToFeedTrain = new RoleMappedData(idvToFeedTrain, roles);
 
-            ch.AssertValue(examplesToFeedTrain.Schema.Label);
-            ch.AssertValue(examplesToFeedTrain.Schema.Feature);
-            if (examples.Schema.Weight != null)
-                ch.AssertValue(examplesToFeedTrain.Schema.Weight);
+            ch.Assert(examplesToFeedTrain.Schema.Label.HasValue);
+            ch.Assert(examplesToFeedTrain.Schema.Feature.HasValue);
+            if (examples.Schema.Weight.HasValue)
+                ch.Assert(examplesToFeedTrain.Schema.Weight.HasValue);
 
-            int numFeatures = examplesToFeedTrain.Schema.Feature.Type.VectorSize;
-            ch.Check(numFeatures > 0, "Training set has no features, aborting training.");
+            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
             return examplesToFeedTrain;
         }
 
@@ -287,7 +285,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
             Contracts.Assert(weightSetCount >= 1);
 
-            int numFeatures = data.Schema.Feature.Type.VectorSize;
+            int numFeatures = data.Schema.Feature.Value.Type.VectorSize;
             long maxTrainingExamples = MaxDualTableSize / weightSetCount;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight | CursOpt.Id);
             int numThreads;
@@ -1132,7 +1130,7 @@ namespace Microsoft.ML.Trainers
         // This class can also be made to accommodate generic type, as long as the type implements a
         // good 64-bit hash function.
         /// <summary>
-        /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Runtime.Data.RowId"/>,
+        /// A hash table data structure to store Id of type <see cref="T:Microsoft.ML.Data.RowId"/>,
         /// and accommodates size larger than 2 billion. This class is an extension based on BCL.
         /// Two operations are supported: adding and retrieving an id with asymptotically constant complexity.
         /// The bucket size are prime numbers, starting from 3 and grows to the next prime larger than
@@ -1761,8 +1759,9 @@ namespace Microsoft.ML.Trainers
             Contracts.AssertValue(data);
             Contracts.Assert(weightSetCount == 1);
             Contracts.AssertValueOrNull(predictor);
+            Contracts.Assert(data.Schema.Feature.HasValue);
 
-            int numFeatures = data.Schema.Feature.Type.VectorSize;
+            int numFeatures = data.Schema.Feature.Value.Type.VectorSize;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
 
             int numThreads;

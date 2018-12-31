@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Transforms.Normalizers;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Transforms.Normalizers;
+using Newtonsoft.Json.Linq;
 using static Microsoft.ML.Transforms.Normalizers.NormalizeTransform;
 
 [assembly: LoadableClass(typeof(NormalizingTransformer), null, typeof(SignatureLoadModel),
@@ -31,6 +30,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 {
     public sealed class NormalizingEstimator : IEstimator<NormalizingTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const bool FixZero = true;
@@ -372,6 +372,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>An accessor of the column functions within <see cref="Columns"/>.</summary>
+        [BestFriend]
         internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
 
         public readonly ImmutableArray<ColumnInfo> Columns;

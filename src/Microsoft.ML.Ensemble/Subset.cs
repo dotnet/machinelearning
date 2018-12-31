@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     internal sealed class Subset
     {

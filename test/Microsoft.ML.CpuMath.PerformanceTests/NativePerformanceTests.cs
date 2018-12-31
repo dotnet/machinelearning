@@ -5,8 +5,8 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.CpuMath.Core;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.CpuMath.Core;
 
 namespace Microsoft.ML.CpuMath.PerformanceTests
 {

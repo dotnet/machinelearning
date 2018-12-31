@@ -7,14 +7,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Sweeper;
 
 [assembly: LoadableClass(typeof(SynthConfigRunner), typeof(SynthConfigRunner.Arguments), typeof(SignatureConfigRunner),
     "", "Synth")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     /// <summary>
     /// This class gives a simple way of running optimization experiments on synthetic functions, rather than on actual learning problems.

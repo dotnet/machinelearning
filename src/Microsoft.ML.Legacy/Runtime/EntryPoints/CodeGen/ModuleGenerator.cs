@@ -10,17 +10,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints.CodeGen;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints.CodeGen;
+using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(typeof(ModuleGenerator), typeof(ModuleGenerator.Arguments), typeof(SignatureModuleGenerator),
     "Module generator", "ModuleGenerator", "Module")]
 
-namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
+namespace Microsoft.ML.EntryPoints.CodeGen
 {
     internal sealed class ModuleGenerator : IGenerator
     {

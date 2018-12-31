@@ -2,23 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Core.Tests.UnitTests;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Core.Tests.UnitTests;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Ensemble.EntryPoints;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.EntryPoints.JsonUtils;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.TimeSeriesProcessing;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.PCA;
@@ -31,15 +35,10 @@ using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
 #pragma warning disable 612
     public partial class TestEntryPoints : CoreBaseTestClass
@@ -53,7 +52,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            return ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            return Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            return ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            return Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -353,7 +352,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransform).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessing.TimeSeriesProcessing).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
 
             var catalog = Env.ComponentCatalog;
 
@@ -987,7 +986,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("lm.sample.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -1201,7 +1200,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dataPath = GetDataPath("iris.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -1348,8 +1347,8 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             var dataView =
-                ImportTextData.TextLoader(Env,
-                    new ImportTextData.LoaderInput
+                Legacy.EntryPoints.ImportTextData.TextLoader(Env,
+                    new Legacy.EntryPoints.ImportTextData.LoaderInput
                     {
                         InputFile = inputFile,
                         Arguments =
@@ -2644,113 +2643,6 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void EntryPointTrainTestBinaryMacro()
-        {
-            string inputGraph = @"
-                {
-                  'Nodes': [
-                    {
-                      'Name': 'Data.CustomTextLoader',
-                      'Inputs': {
-                        'InputFile': '$file'
-                      },
-                      'Outputs': {
-                        'Data': '$data'
-                      }
-                    },
-                    {
-                      'Name': 'Transforms.TrainTestDatasetSplitter',
-                      'Inputs': {
-                        'Data': '$data',
-                        'Fraction': 0.8
-                      },
-                      'Outputs': {
-                        'TrainData': '$TrainData',
-                        'TestData': '$TestData'
-                      }
-                    },
-                    {
-                      'Name': 'Models.TrainTestBinaryEvaluator',
-                      'Inputs': {
-                        'TrainingData': '$TrainData',
-                        'TestingData': '$TestData',
-                        'Nodes': [
-                          {
-                            'Name': 'Transforms.ConditionalNormalizer',
-                            'Inputs': {
-                              'Data': '$data1',
-                              'Column': [{ 'Name': 'Features', 'Source': 'Features' }]
-                            },
-                            'Outputs': {
-                              'OutputData': '$data2',
-                              'Model': '$transform'
-                            }
-                          },
-                          {
-                            'Name': 'Trainers.LogisticRegressionBinaryClassifier',
-                            'Inputs': {
-                              'TrainingData': '$data2',
-                              'NumThreads': 1
-                            },
-                            'Outputs': {
-                              'PredictorModel': '$predictor'
-                            }
-                          },
-                          {
-                            'Name': 'Transforms.ManyHeterogeneousModelCombiner',
-                            'Inputs': {
-                              'TransformModels': ['$transform'],
-                              'PredictorModel': '$predictor'
-                            },
-                            'Outputs': {
-                              'PredictorModel': '$model'
-                            }
-                          }
-                        ],
-                        'Inputs': {
-                          'Data': '$data1'
-                        },
-                        'Outputs': {
-                          'Model': '$model'
-                        }
-                      },
-                      'Outputs': {
-                        'PredictorModel': '$model',
-                        'Warnings': '$Warnings',
-                        'OverallMetrics': '$OverallMetrics',
-                        'PerInstanceMetrics': '$PerInstanceMetrics',
-                        'ConfusionMatrix': '$ConfusionMatrix'
-                      }
-                    },
-                  ]
-                }";
-
-            JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
-
-            var dataPath = GetDataPath("breast-cancer.txt");
-            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            runner.SetInput("file", inputFile);
-
-            runner.RunAll();
-
-            var model = runner.GetOutput<PredictorModel>("model");
-            Assert.NotNull(model);
-
-            var metrics = runner.GetOutput<IDataView>("OverallMetrics");
-            Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursor(col => true))
-            {
-                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
-                var aucGetter = cursor.GetGetter<double>(aucCol);
-                Assert.True(cursor.MoveNext());
-                double auc = 0;
-                aucGetter(ref auc);
-                Assert.True(auc > 0.99);
-            }
-        }
-
-        [Fact]
         public void EntryPointTrainTestMacroNoTransformInput()
         {
             string inputGraph = @"
@@ -3331,93 +3223,6 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void EntryPointMacroEarlyExpansion()
-        {
-            string inputGraph = @"
-                {
-                  'Nodes': [
-                    {
-                      'Name': 'Data.CustomTextLoader',
-                      'Inputs': {
-                        'InputFile': '$file'
-                      },
-                      'Outputs': {
-                        'Data': '$data'
-                      }
-                    },
-                    {
-                      'Name': 'Transforms.TrainTestDatasetSplitter',
-                      'Inputs': {
-                        'Data': '$data',
-                        'Fraction': 0.8
-                      },
-                      'Outputs': {
-                        'TrainData': '$TrainData',
-                        'TestData': '$TestData'
-                      }
-                    },
-                    {
-                      'Name': 'Models.TrainTestBinaryEvaluator',
-                      'Inputs': {
-                        'TrainingData': '$TrainData',
-                        'TestingData': '$TestData',
-                        'Nodes': [
-                          {
-                            'Name': 'Transforms.ConditionalNormalizer',
-                            'Inputs': {
-                              'Data': '$data1',
-                              'Column': [{ 'Name': 'Features', 'Source': 'Features' }]
-                            },
-                            'Outputs': {
-                              'OutputData': '$data2',
-                              'Model': '$transform'
-                            }
-                          },
-                          {
-                            'Name': 'Trainers.LogisticRegressionBinaryClassifier',
-                            'Inputs': {
-                              'TrainingData': '$data2',
-                              'NumThreads': 1
-                            },
-                            'Outputs': {
-                              'PredictorModel': '$predictor'
-                            }
-                          },
-                          {
-                            'Name': 'Transforms.ManyHeterogeneousModelCombiner',
-                            'Inputs': {
-                              'TransformModels': ['$transform'],
-                              'PredictorModel': '$predictor'
-                            },
-                            'Outputs': {
-                              'Model': '$model'
-                            }
-                          }
-                        ],
-                        'Inputs': {
-                          'Data': '$data1'
-                        },
-                        'Outputs': {
-                          'Model': '$model'
-                        }
-                      },
-                      'Outputs': {
-                        'PredictorModel': '$model',
-                        'Warnings': '$Warnings',
-                        'OverallMetrics': '$OverallMetrics',
-                        'PerInstanceMetrics': '$PerInstanceMetrics',
-                        'ConfusionMatrix': '$ConfusionMatrix'
-                      }
-                    },
-                  ]
-                }";
-
-            JObject graphJson = JObject.Parse(inputGraph);
-            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
-            Assert.True(graph.Macros.All(x => x.CanStart()));
-        }
-
-        [Fact]
         public void EntryPointSerialization()
         {
             string inputGraph = @"
@@ -3554,7 +3359,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
 
-            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -3628,7 +3433,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("MNIST.Train.0-class.tiny.txt");
             using (var inputFile = new SimpleFileHandle(Env, dataPath, false, false))
             {
-                var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+                var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
                 {
                     Arguments =
                 {
@@ -3765,7 +3570,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
 #pragma warning disable 0618
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
+            var dataView = EntryPoints.ImportTextData.ImportText(Env, new EntryPoints.ImportTextData.Input { InputFile = inputFile }).Data;
 #pragma warning restore 0618
             var cat = Categorical.CatTransformDict(Env, new OneHotEncodingTransformer.Arguments()
             {
@@ -3835,7 +3640,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 "The five boxing wizards jump quickly."
             });
             var inputFile = new SimpleFileHandle(Env, dataFile, false, false);
-            var dataView = ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
+            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -3890,8 +3695,8 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS1.csv")), "sep=, col=Features:R4:1 header=+",
                 new[]
                 {
-                    "TimeSeriesProcessing.SsaChangePointDetector",
-                    "TimeSeriesProcessing.SsaChangePointDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaChangePointDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaChangePointDetector",
                 },
                 new[]
                 {
@@ -3919,8 +3724,8 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "real_1.csv")), "sep=, col=Features:R4:1 header=+",
                 new[]
                 {
-                    "TimeSeriesProcessing.IidSpikeDetector",
-                    "TimeSeriesProcessing.IidSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.IidSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.IidSpikeDetector",
                 },
                 new[]
                 {
@@ -3943,9 +3748,9 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS2.csv")), "sep=, col=Features:R4:1 header=+",
                 new[]
                 {
-                    "TimeSeriesProcessing.SsaSpikeDetector",
-                    "TimeSeriesProcessing.SsaSpikeDetector",
-                    "TimeSeriesProcessing.SsaSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaSpikeDetector",
+                    "TimeSeriesProcessingEntryPoints.SsaSpikeDetector",
                 },
                 new[]
                 {
@@ -3981,7 +3786,7 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
                 new[]
                 {
-                    "TimeSeriesProcessing.PercentileThresholdTransform"
+                    "TimeSeriesProcessingEntryPoints.PercentileThresholdTransform"
                 },
                 new[]
                 {
@@ -3998,7 +3803,7 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
                 new[]
                 {
-                    "TimeSeriesProcessing.PValueTransform"
+                    "TimeSeriesProcessingEntryPoints.PValueTransform"
                 },
                 new[]
                 {
@@ -4014,10 +3819,10 @@ namespace Microsoft.ML.Runtime.RunTests
             TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
                 new[]
                 {
-                    "TimeSeriesProcessing.SlidingWindowTransform",
-                    "TimeSeriesProcessing.SlidingWindowTransform",
-                    "TimeSeriesProcessing.SlidingWindowTransform",
-                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
+                    "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
+                    "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
+                    "TimeSeriesProcessingEntryPoints.SlidingWindowTransform",
                 },
                 new[]
                 {

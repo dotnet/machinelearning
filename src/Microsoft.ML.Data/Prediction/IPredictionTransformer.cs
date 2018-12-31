@@ -4,9 +4,9 @@
 
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// An interface for all the transformer that can transform data based on the <see cref="IPredictor"/> field.
