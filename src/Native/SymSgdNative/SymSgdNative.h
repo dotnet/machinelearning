@@ -24,6 +24,7 @@ private:
 
     // Local weightScaling for L2 regularization
     float _weightScaling, _startWeightScaling;
+	
 public:
     SymSGD(int numFreqFeat, int seed) 
     {
@@ -143,3 +144,6 @@ struct SymSGDState
     int PassIteration;
     float WeightScaling;
 };
+
+// Loggin call back signature for ML.NET
+typedef void(*ChannelFunc)(const char*);
