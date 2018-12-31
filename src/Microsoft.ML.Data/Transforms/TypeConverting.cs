@@ -163,6 +163,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 loaderSignatureAlt: LoaderSignatureOld,
                 loaderAssemblyName: typeof(TypeConvertingTransformer).Assembly.FullName);
         }
+
         private const int VersionTransformer = 0x00010003;
 
         private const string RegistrationName = "Convert";

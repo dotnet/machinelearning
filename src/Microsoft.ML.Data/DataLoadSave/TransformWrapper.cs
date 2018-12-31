@@ -26,7 +26,7 @@ namespace Microsoft.ML.Data
         private readonly IDataView _xf;
         private readonly bool _allowSave;
 
-        public TransformWrapper(IHostEnvironment env, IDataView xf, bool allowSave=false)
+        public TransformWrapper(IHostEnvironment env, IDataView xf, bool allowSave = false)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TransformWrapper));

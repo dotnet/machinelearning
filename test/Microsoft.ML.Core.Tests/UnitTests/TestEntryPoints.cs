@@ -1776,7 +1776,6 @@ namespace Microsoft.ML.RunTests
                       }},
                       'Outputs': {{
                         'Warnings': '$Warnings',
-                        
                         'OverallMetrics': '$OverallMetrics',
                         'PerInstanceMetrics': '$PerInstanceMetrics'
                         {confusionMatrixVar}

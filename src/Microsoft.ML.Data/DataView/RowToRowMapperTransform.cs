@@ -46,6 +46,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         Schema.DetachedColumn[] GetOutputColumns();
 
+        /// <summary>
+        /// Returns parent transfomer which uses this mapper.
+        /// </summary>
         ITransformer GetTransformer();
     }
 
