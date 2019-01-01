@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.LightGBM
 {
     /// <summary>
     /// Wrapper of Dataset object of LightGBM.

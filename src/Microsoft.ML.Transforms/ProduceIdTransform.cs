@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ProduceIdTransform.Summary, typeof(ProduceIdTransform), typeof(ProduceIdTransform.Arguments), typeof(SignatureDataTransform),

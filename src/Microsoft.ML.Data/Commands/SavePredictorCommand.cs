@@ -4,21 +4,20 @@
 
 using System.IO;
 using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Tools;
-
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 // REVIEW: Fix these namespaces.
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(SavePredictorCommand.Summary, typeof(SavePredictorCommand), typeof(SavePredictorCommand.Arguments), typeof(SignatureCommand),
     "Save Predictor As", "SavePredictorAs", "SavePredictor", "SaveAs", "SaveModel")]
 
-namespace Microsoft.ML.Runtime.Tools
+namespace Microsoft.ML.Tools
 {
     internal sealed class SavePredictorCommand : ICommand
     {

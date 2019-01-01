@@ -5,9 +5,9 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// Common signature type with no extra parameters.

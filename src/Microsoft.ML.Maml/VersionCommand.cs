@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.Tools;
 
 [assembly: LoadableClass(VersionCommand.Summary, typeof(VersionCommand), null, typeof(SignatureCommand),
     "Version Command", "Version")]
 
-namespace Microsoft.ML.Runtime.Tools
+namespace Microsoft.ML.Tools
 {
     internal sealed class VersionCommand : ICommand
     {

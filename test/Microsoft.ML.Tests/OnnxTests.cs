@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.RunTests;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.RegularExpressions;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.RunTests;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -85,7 +84,7 @@ namespace Microsoft.ML.Tests
         {
             var env = new MLContext();
             // Create the actual implementation
-            var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Runtime.Model.Onnx.OnnxVersion.Stable);
+            var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Model.Onnx.OnnxVersion.Stable);
 
             // Use implementation as in the actual conversion code
             var ctx = ctxImpl as OnnxContext;

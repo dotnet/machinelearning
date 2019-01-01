@@ -5,7 +5,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.ML.Runtime.Data.IO.Zlib
+namespace Microsoft.ML.Data.IO.Zlib
 {
     public sealed class ZDeflateStream : Stream
     {

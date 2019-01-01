@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Transforms;
 
 [assembly: EntryPointModule(typeof(SelectRows))]
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     public static class SelectRows
     {

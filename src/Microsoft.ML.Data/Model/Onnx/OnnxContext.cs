@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Model.Onnx
+namespace Microsoft.ML.Model.Onnx
 {
     [BestFriend]
     internal enum OnnxVersion { Stable = 0, Experimental = 1 }

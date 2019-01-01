@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.TestFramework;
 using System.IO;
+using Microsoft.ML.Data;
+using Microsoft.ML.Model;
+using Microsoft.ML.TestFramework;
 using Xunit;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public class TestModelLoad
     {

@@ -4,11 +4,10 @@
 
 using System;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(QuantileRegressionScorerTransform), typeof(QuantileRegressionScorerTransform.Arguments),
     typeof(SignatureDataScorer), "Quantile Regression Scorer", "QuantileRegressionScorer", MetadataUtils.Const.ScoreColumnKind.QuantileRegression)]
@@ -16,7 +15,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(QuantileRegressionScorerTransform), typeof(QuantileRegressionScorerTransform.Arguments),
     typeof(SignatureBindableMapper), "Quantile Regression Mapper", "QuantileRegressionScorer", MetadataUtils.Const.ScoreColumnKind.QuantileRegression)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     internal static class QuantileRegressionScorerTransform
     {

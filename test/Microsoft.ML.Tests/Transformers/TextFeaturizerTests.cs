@@ -1,19 +1,18 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.IO;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Tools;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 

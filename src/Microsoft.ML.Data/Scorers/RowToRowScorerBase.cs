@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for scoring rows independently. This assumes that all columns produced by the

@@ -4,7 +4,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
 using size_t = System.UIntPtr;
 
 #pragma warning disable MSML_GeneralName

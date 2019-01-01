@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 

@@ -3,20 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
+using Microsoft.ML;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 using Xunit.Abstractions;
 
 [assembly: LoadableClass(typeof(FastTreeParallelInterfaceChecker),
     null, typeof(Microsoft.ML.Trainers.FastTree.SignatureParallelTrainer), "FastTreeParallelInterfaceChecker")]
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
-    using SplitInfo = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
     using LeafSplitCandidates = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
 
     public sealed class FastTreeParallelInterfaceChecker : Microsoft.ML.Trainers.FastTree.IParallelTraining
     {

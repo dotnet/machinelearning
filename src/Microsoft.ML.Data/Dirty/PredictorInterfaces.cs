@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Calibrator;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
 
     /// <summary>

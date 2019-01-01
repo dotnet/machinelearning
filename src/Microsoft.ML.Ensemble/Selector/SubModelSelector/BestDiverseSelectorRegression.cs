@@ -5,19 +5,19 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
-using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
+using Microsoft.ML.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(BestDiverseSelectorRegression), typeof(BestDiverseSelectorRegression.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestDiverseSelectorRegression.UserName, BestDiverseSelectorRegression.LoadName)]
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 {
     using TScalarPredictor = IPredictorProducing<Single>;
 

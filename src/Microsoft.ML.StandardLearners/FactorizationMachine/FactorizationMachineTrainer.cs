@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FactorizationMachine;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Training;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.FactorizationMachine;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
     typeof(FieldAwareFactorizationMachineTrainer.Arguments), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
@@ -23,7 +22,7 @@ using System.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(FieldAwareFactorizationMachineTrainer), null, typeof(SignatureEntryPointModule), FieldAwareFactorizationMachineTrainer.LoadName)]
 
-namespace Microsoft.ML.Runtime.FactorizationMachine
+namespace Microsoft.ML.FactorizationMachine
 {
     /*
      Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
@@ -33,7 +32,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
     /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
-    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<FieldAwareFactorizationMachinePredictor>,
+    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<FieldAwareFactorizationMachineModelParameters>,
         IEstimator<FieldAwareFactorizationMachinePredictionTransformer>
     {
         internal const string Summary = "Train a field-aware factorization machine for binary classification";
@@ -180,7 +179,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _radius = args.Radius;
         }
 
-        private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachinePredictor predictor, out float[] linearWeights,
+        private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachineModelParameters predictor, out float[] linearWeights,
             out AlignedArray latentWeightsAligned, out float[] linearAccumulatedSquaredGrads, out AlignedArray latentAccumulatedSquaredGradsAligned)
         {
             linearWeights = new float[featureCount];
@@ -286,8 +285,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return loss / exampleCount;
         }
 
-        private FieldAwareFactorizationMachinePredictor TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data,
-            RoleMappedData validData = null, FieldAwareFactorizationMachinePredictor predictor = null)
+        private FieldAwareFactorizationMachineModelParameters TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data,
+            RoleMappedData validData = null, FieldAwareFactorizationMachineModelParameters predictor = null)
         {
             Host.AssertValue(ch);
             Host.AssertValue(pch);
@@ -423,15 +422,15 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             if (validBadExampleCount != 0)
                 ch.Warning($"Skipped {validBadExampleCount} examples with bad label/weight/features in validation set");
 
-            return new FieldAwareFactorizationMachinePredictor(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
+            return new FieldAwareFactorizationMachineModelParameters(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
         }
 
-        private protected override FieldAwareFactorizationMachinePredictor Train(TrainContext context)
+        private protected override FieldAwareFactorizationMachineModelParameters Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachinePredictor;
+            var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachineModelParameters;
             Host.CheckParam(context.InitialPredictor == null || initPredictor != null, nameof(context),
-                "Initial predictor should have been " + nameof(FieldAwareFactorizationMachinePredictor));
+                "Initial predictor should have been " + nameof(FieldAwareFactorizationMachineModelParameters));
 
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
@@ -457,9 +456,9 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         public FieldAwareFactorizationMachinePredictionTransformer Train(IDataView trainData,
-            IDataView validationData = null, FieldAwareFactorizationMachinePredictor initialPredictor = null)
+            IDataView validationData = null, FieldAwareFactorizationMachineModelParameters initialPredictor = null)
         {
-            FieldAwareFactorizationMachinePredictor model = null;
+            FieldAwareFactorizationMachineModelParameters model = null;
 
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
             foreach (var feat in FeatureColumns)
@@ -476,7 +475,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
             {
-                model = TrainCore(ch, pch, trainingData, validData, initialPredictor as FieldAwareFactorizationMachinePredictor);
+                model = TrainCore(ch, pch, trainingData, validData, initialPredictor as FieldAwareFactorizationMachineModelParameters);
             }
 
             return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, trainData.Schema, FeatureColumns.Select(x => x.Name).ToArray());

@@ -3,18 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(BestPerformanceSelectorMultiClass), typeof(BestPerformanceSelectorMultiClass.Arguments),
     typeof(SignatureEnsembleSubModelSelector), BestPerformanceSelectorMultiClass.UserName, BestPerformanceSelectorMultiClass.LoadName)]
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 {
     internal sealed class BestPerformanceSelectorMultiClass : BaseBestPerformanceSelector<VBuffer<Single>>, IMulticlassSubModelSelector
     {

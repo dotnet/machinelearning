@@ -8,11 +8,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
+namespace Microsoft.ML.EntryPoints.CodeGen
 {
     internal sealed class TransformImplGenerator : ImplGeneratorBase
     {
@@ -174,10 +173,10 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             allNamespaces.Add("System.Collections.Generic");
             allNamespaces.Add("Microsoft.Analytics.Modules.Common");
             allNamespaces.Add("Microsoft.Analytics.Platform.ML.Models");
-            allNamespaces.Add("Microsoft.ML.Runtime.Data");
-            allNamespaces.Add("Microsoft.ML.Runtime.Modules.Contracts");
-            allNamespaces.Add("Microsoft.ML.Runtime.Modules.Contracts.Attributes");
-            allNamespaces.Add("Microsoft.ML.Runtime.Modules.Contracts.Types");
+            allNamespaces.Add("Microsoft.ML.Data");
+            allNamespaces.Add("Microsoft.ML.Modules.Contracts");
+            allNamespaces.Add("Microsoft.ML.Modules.Contracts.Attributes");
+            allNamespaces.Add("Microsoft.ML.Modules.Contracts.Types");
             var namespaces = allNamespaces.ToArray();
             Array.Sort(namespaces,
                 (a, b) =>

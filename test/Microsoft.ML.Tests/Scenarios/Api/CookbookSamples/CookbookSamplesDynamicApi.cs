@@ -2,22 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Normalizers;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 

@@ -2,22 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Training;
 using Float = System.Single;
 
 [assembly: LoadableClass(SdcaMultiClassTrainer.Summary, typeof(SdcaMultiClassTrainer), typeof(SdcaMultiClassTrainer.Arguments),
@@ -30,7 +29,7 @@ namespace Microsoft.ML.Trainers
 {
     // SDCA linear multiclass trainer.
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
-    public class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Arguments, MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>, MulticlassLogisticRegressionPredictor>
+    public class SdcaMultiClassTrainer : SdcaTrainerBase<SdcaMultiClassTrainer.Arguments, MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         public const string LoadNameValue = "SDCAMC";
         public const string UserNameValue = "Fast Linear Multi-class Classification (SA-SDCA)";
@@ -415,14 +414,14 @@ namespace Microsoft.ML.Trainers
             return converged;
         }
 
-        protected override MulticlassLogisticRegressionPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        protected override MulticlassLogisticRegressionModelParameters CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
         {
             Host.CheckValue(weights, nameof(weights));
             Host.CheckValue(bias, nameof(bias));
             Host.CheckParam(weights.Length > 0, nameof(weights));
             Host.CheckParam(weights.Length == bias.Length, nameof(weights));
 
-            return new MulticlassLogisticRegressionPredictor(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
+            return new MulticlassLogisticRegressionModelParameters(Host, weights, bias, bias.Length, weights[0].Length, null, stats: null);
         }
 
         private protected override void CheckLabel(RoleMappedData examples, out int weightSetCount)
@@ -441,8 +440,8 @@ namespace Microsoft.ML.Trainers
             return cursor.Weight;
         }
 
-        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> MakeTransformer(MulticlassLogisticRegressionPredictor model, Schema trainSchema)
-            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters> MakeTransformer(MulticlassLogisticRegressionModelParameters model, Schema trainSchema)
+            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
     /// <summary>

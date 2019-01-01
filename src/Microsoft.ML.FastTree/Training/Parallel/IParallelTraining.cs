@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Trainers.FastTree.Internal;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
     using LeafSplitCandidates = Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
 
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;

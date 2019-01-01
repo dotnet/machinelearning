@@ -4,11 +4,10 @@
 
 using System;
 using System.Reflection;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This applies the user provided ValueMapper to a column to produce a new column. It automatically

@@ -2,17 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
 
-using System;
-using System.IO;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Internallearn.Test;
-using Microsoft.ML.Runtime.Model;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
 #if OLD_TESTS // REVIEW: Port these tests.
     /// <summary>

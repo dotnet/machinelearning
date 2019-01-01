@@ -9,13 +9,12 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Parquet;
 using Parquet.Data;
 using Parquet.File.Values.Primitives;
@@ -26,7 +25,7 @@ using Parquet.File.Values.Primitives;
 [assembly: LoadableClass(ParquetLoader.Summary, typeof(ParquetLoader), null, typeof(SignatureLoadDataLoader),
     ParquetLoader.LoaderName, ParquetLoader.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a parquet file into an IDataView. Supports basic mapping from Parquet input column data types to framework data types.

@@ -4,11 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public abstract class RegressionLossEvaluatorBase<TAgg> : RowToRowEvaluatorBase<TAgg>
         where TAgg : EvaluatorBase<TAgg>.AggregatorBase

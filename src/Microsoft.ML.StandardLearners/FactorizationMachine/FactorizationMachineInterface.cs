@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Internal.CpuMath;
 using System.Runtime.InteropServices;
-
 using System.Security;
+using Microsoft.ML.Internal.CpuMath;
 
-namespace Microsoft.ML.Runtime.FactorizationMachine
+namespace Microsoft.ML.FactorizationMachine
 {
     internal static unsafe class FieldAwareFactorizationMachineInterface
     {

@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This is a base implementation for a transform that in order to compute its output columns, needs to look

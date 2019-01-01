@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 
@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 // The warning #612 is disabled because the following code uses Legacy.Models and Legacy.Transforms while Legacy is marked as obsolete.
 // Because that dependency will be removed form ML.NET, one needs to rewrite all places where legacy APIs are used.
 #pragma warning disable 612
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// This macro entrypoint implements OVA.

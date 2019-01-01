@@ -3,23 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble;
 using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
 
 [assembly: LoadableClass(typeof(void), typeof(EnsembleCreator), null, typeof(SignatureEntryPointModule), "CreateEnsemble")]
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// A component to combine given models into an ensemble model.

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.StaticPipe.Runtime
 {

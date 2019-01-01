@@ -1,8 +1,8 @@
-﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers.HalLearners;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Trainers.HalLearners;
 
 namespace Microsoft.ML.Samples.Dynamic.PermutationFeatureImportance
 {

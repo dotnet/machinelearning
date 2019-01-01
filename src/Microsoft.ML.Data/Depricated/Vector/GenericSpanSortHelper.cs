@@ -20,7 +20,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Numeric
+namespace Microsoft.ML.Numeric
 {
     internal static class IntrospectiveSortUtilities
     {

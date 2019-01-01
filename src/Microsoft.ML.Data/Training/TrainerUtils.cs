@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Training
+namespace Microsoft.ML.Training
 {
     /// <summary>
     /// Options for creating a row cursor from a RoleMappedData with specified standard columns active.

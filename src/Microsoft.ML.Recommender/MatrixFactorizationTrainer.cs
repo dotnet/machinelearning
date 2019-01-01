@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Recommender;
-using Microsoft.ML.Runtime.Recommender.Internal;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.Recommender;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Recommender;
+using Microsoft.ML.Recommender.Internal;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Recommender;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Arguments),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },

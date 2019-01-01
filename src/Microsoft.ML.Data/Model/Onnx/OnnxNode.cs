@@ -4,9 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Runtime.Model.Onnx
+namespace Microsoft.ML.Model.Onnx
 {
     /// <summary>
     /// An abstraction for an ONNX node as created by

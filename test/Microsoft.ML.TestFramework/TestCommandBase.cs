@@ -9,16 +9,16 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Command;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public abstract partial class TestCommandBase : TestDataViewBase
     {

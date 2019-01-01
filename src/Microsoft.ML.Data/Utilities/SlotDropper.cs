@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
     /// <summary>
     /// Drops slots from a fixed or variable sized column based on slot ranges.

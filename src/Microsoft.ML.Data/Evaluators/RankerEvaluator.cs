@@ -9,13 +9,12 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(RankerEvaluator), typeof(RankerEvaluator), typeof(RankerEvaluator.Arguments), typeof(SignatureEvaluator),
     "Ranking Evaluator", RankerEvaluator.LoadName, "Ranking", "rank")]
@@ -26,7 +25,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(RankerPerInstanceTransform), null, typeof(SignatureLoadDataTransform),
     "", RankerPerInstanceTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed class RankerEvaluator : EvaluatorBase<RankerEvaluator.Aggregator>
     {

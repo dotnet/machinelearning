@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.UniversalModelFormat.Onnx;
 
-namespace Microsoft.ML.Runtime.Model.Onnx
+namespace Microsoft.ML.Model.Onnx
 {
     /// <summary>
     /// A context for defining a ONNX output.

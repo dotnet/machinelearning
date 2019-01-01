@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.EntryPoints;
 
 [assembly: EntryPointModule(typeof(Microsoft.ML.Legacy.EntryPoints.ImportTextData))]
 
@@ -31,14 +29,14 @@ namespace Microsoft.ML.Legacy.EntryPoints
         }
 
         [TlcModule.EntryPoint(Name = "Data.TextLoader", Desc = "Import a dataset from a text file")]
-        public static Runtime.EntryPoints.ImportTextData.Output TextLoader(IHostEnvironment env, LoaderInput input)
+        public static ML.EntryPoints.ImportTextData.Output TextLoader(IHostEnvironment env, LoaderInput input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("ImportTextData");
             env.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
             var loader = host.CreateLoader(input.Arguments, new FileHandleSource(input.InputFile));
-            return new Runtime.EntryPoints.ImportTextData.Output { Data = loader };
+            return new ML.EntryPoints.ImportTextData.Output { Data = loader };
         }
     }
 }

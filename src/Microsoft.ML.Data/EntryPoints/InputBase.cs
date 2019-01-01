@@ -4,13 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Calibration;
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// The base class for all transform inputs.

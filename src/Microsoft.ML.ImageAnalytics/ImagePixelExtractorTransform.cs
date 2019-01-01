@@ -8,15 +8,14 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(IDataTransform), typeof(ImagePixelExtractorTransform), typeof(ImagePixelExtractorTransform.Arguments), typeof(SignatureDataTransform),
     ImagePixelExtractorTransform.UserName, "ImagePixelExtractorTransform", "ImagePixelExtractor")]
@@ -30,7 +29,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadRowMapper),
     ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.ImageAnalytics
+namespace Microsoft.ML.ImageAnalytics
 {
     /// <summary>
     /// Transform which takes one or many columns of <see cref="ImageType"/> and convert them into vector representation.

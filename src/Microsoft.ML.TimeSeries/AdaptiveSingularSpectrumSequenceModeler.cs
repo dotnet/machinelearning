@@ -5,19 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
+using Microsoft.ML.TimeSeriesProcessing;
 
 [assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModeler), typeof(AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
     "SSA Sequence Modeler",
     AdaptiveSingularSpectrumSequenceModeler.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     /// <summary>
     /// This class implements basic Singular Spectrum Analysis (SSA) model for modeling univariate time-series.

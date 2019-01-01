@@ -4,7 +4,7 @@
 
 using System;
 using Xunit;
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public sealed class TestContracts
     {
