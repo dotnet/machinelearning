@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
 
         private readonly IHost _host;
         private readonly IDataView[] _sources;
-        private readonly CompositeSchema _compositeSchema;
+        private readonly ZipBinding _compositeSchema;
 
         public static IDataView Create(IHostEnvironment env, IEnumerable<IDataView> sources)
         {
@@ -47,12 +47,12 @@ namespace Microsoft.ML.Data
 
             _host.Assert(Utils.Size(sources) > 1);
             _sources = sources;
-            _compositeSchema = new CompositeSchema(_sources.Select(x => x.Schema).ToArray());
+            _compositeSchema = new ZipBinding(_sources.Select(x => x.Schema).ToArray());
         }
 
         public bool CanShuffle { get { return false; } }
 
-        public Schema Schema => _compositeSchema.AsSchema;
+        public Schema Schema => _compositeSchema.OutputSchema;
 
         public long? GetRowCount()
         {
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
         private sealed class Cursor : RootCursorBase
         {
             private readonly RowCursor[] _cursors;
-            private readonly CompositeSchema _compositeSchema;
+            private readonly ZipBinding _compositeSchema;
             private readonly bool[] _isColumnActive;
             private bool _disposed;
 
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public override Schema Schema => _compositeSchema.AsSchema;
+            public override Schema Schema => _compositeSchema.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {

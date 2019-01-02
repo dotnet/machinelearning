@@ -333,7 +333,7 @@ namespace Microsoft.ML.Data
                     colSchema
                 };
 
-                return Schema.Create(new CompositeSchema(schemas));
+                return new ZipBinding(schemas).OutputSchema;
             }
         }
 

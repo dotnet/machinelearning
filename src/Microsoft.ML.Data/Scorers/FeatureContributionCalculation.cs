@@ -337,7 +337,7 @@ namespace Microsoft.ML.Data
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
-                OutputSchema = new CompositeSchema(new Schema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
+                OutputSchema = new ZipBinding(new Schema[] { _outputGenericSchema, _outputSchema, }).OutputSchema;
             }
 
             /// <summary>
