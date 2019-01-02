@@ -1076,7 +1076,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             return examples;
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void MultiClassLightGbmStaticPipelineWithInMemoryData()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
@@ -1141,7 +1141,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Convert prediction in ML.NET format to native C# class.
             var nativePredictions = new List<NativeExample>(prediction.AsDynamic.AsEnumerable<NativeExample>(mlContext, false));
 
-            // Get cchema object of the prediction. It contains metadata such as the mapping from predicted label index
+            // Get schema object of the prediction. It contains metadata such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA").
             var schema = prediction.AsDynamic.Schema;
 
