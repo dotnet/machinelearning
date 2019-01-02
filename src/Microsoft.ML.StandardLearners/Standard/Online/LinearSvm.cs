@@ -272,9 +272,7 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearModelParameters predictor)
-        {
-            return new TrainState(ch, numFeatures, predictor, this);
-        }
+            => new TrainState(ch, numFeatures, predictor, this);
 
         [TlcModule.EntryPoint(Name = "Trainers.LinearSvmBinaryClassifier", Desc = "Train a linear SVM.", UserName = UserNameValue, ShortName = ShortName)]
         public static CommonOutputs.BinaryClassificationOutput TrainLinearSvm(IHostEnvironment env, Arguments input)
@@ -291,9 +289,9 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         protected override BinaryPredictionTransformer<LinearBinaryModelParameters> MakeTransformer(LinearBinaryModelParameters model, Schema trainSchema)
-        => new BinaryPredictionTransformer<LinearBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
+            => new BinaryPredictionTransformer<LinearBinaryModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
         public BinaryPredictionTransformer<LinearBinaryModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
-         => TrainTransformer(trainData, initPredictor: initialPredictor);
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
     }
 }
