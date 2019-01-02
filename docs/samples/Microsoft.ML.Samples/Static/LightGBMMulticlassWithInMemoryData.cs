@@ -1,6 +1,5 @@
 ﻿using Microsoft.ML.Data;
 using Microsoft.ML.LightGBM.StaticPipe;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe;
 using System;
 using System.Collections.Generic;
@@ -138,8 +137,10 @@ namespace Microsoft.ML.Samples.Static
             // Convert prediction in ML.NET format to native C# class.
             var nativePredictions = new List<NativeExample>(prediction.AsDynamic.AsEnumerable<NativeExample>(mlContext, false));
 
-            // Get cchema object of the prediction. It contains metadata such as the mapping from predicted label index
-            // (e.g., 1) to its actual label (e.g., "AA").
+            // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
+            // (e.g., 1) to its actual label (e.g., "AA"). The call to "AsDynamic" converts our statically-typed pipeline into
+            // a dynamically-typed one only for extracting metadata. In the future, metadata in statically-typed pipeline should
+            // be accessible without dynamically-typed things.
             var schema = prediction.AsDynamic.Schema;
 
             // Retrieve the mapping from labels to label indexes.
