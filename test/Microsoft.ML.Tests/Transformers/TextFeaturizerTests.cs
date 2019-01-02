@@ -275,7 +275,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             string dropModelPath = GetDataPath("backcompat/ngram.zip");
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoader.CreateReader(ML, ctx => (
+            var data = TextLoaderStatic.CreateReader(ML, ctx => (
                     Sentiment: ctx.LoadBool(0),
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
                 .Read(sentimentDataPath);
