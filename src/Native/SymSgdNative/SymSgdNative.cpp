@@ -10,6 +10,7 @@
 #include <omp.h>
 #endif
 #include <unordered_map>
+#include <string>
 #include "../Stdafx.h"
 #include "Macros.h"
 #include "SparseBLAS.h"
@@ -177,7 +178,7 @@ float MaxPossibleAlpha(float alpha, float l2Const, int totalNumInstances)
 }
 
 void TuneAlpha(float& alpha, float l2Const, int totalNumInstances, int* instSizes, int** instIndices,
-    float** instValues, int numFeat, int numThreads) 
+    float** instValues, int numFeat, int numThreads, ChannelFunc info_print_func = NULL) 
 {
     alpha = 1e0f;
     int logSqrtNumInst = (int) round(log10(sqrt(totalNumInstances)))-3;
@@ -198,8 +199,8 @@ void TuneAlpha(float& alpha, float l2Const, int totalNumInstances, int* instSize
         // alpha < (1-10^(-6/totalNumInstances))/l2Const.
         alpha = MIN(alpha, MaxPossibleAlpha(alpha, l2Const, totalNumInstances));
     }
-
-    printf("Initial learning rate is tuned to %f\n", alpha);
+    if (info_print_func != NULL)
+        info_print_func(("Initial learning rate is tuned to " + std::to_string(alpha)).c_str());
 }
 
 
@@ -221,17 +222,18 @@ void TuneNumLocIter(int& numLocIter, int totalNumInstances, int* instSizes, int 
 // required memory for SymSGD learners.
 void InitializeState(int totalNumInstances, int* instSizes, int** instIndices, float** instValues, 
     int numFeat, bool tuneNumLocIter, int& numLocIter, int numThreads, bool tuneAlpha, float& alpha, 
-    float l2Const, SymSGDState* state)
+    float l2Const, SymSGDState* state, ChannelFunc info_print_func = NULL)
 {
     if (tuneAlpha) 
     {
-        TuneAlpha(alpha, l2Const, totalNumInstances, instSizes, instIndices, instValues, numFeat, numThreads);
+        TuneAlpha(alpha, l2Const, totalNumInstances, instSizes, instIndices, instValues, numFeat, numThreads, info_print_func);
     } else
     {
         // Check if user alpha is too large because of l2Const. Check the comment about positive l2Const in TuneAlpha.
         float maxPossibleAlpha = MaxPossibleAlpha(alpha, l2Const, totalNumInstances);
         if (alpha > maxPossibleAlpha)
-            printf("Warning: learning rate is too high! Try using a value < %e instead\n", maxPossibleAlpha);
+            if (info_print_func != NULL)
+                info_print_func(("Warning: learning rate is too high! Try using a value < " + std::to_string(maxPossibleAlpha) + " instead").c_str());
     }
 
     if (tuneNumLocIter)
@@ -246,7 +248,11 @@ void InitializeState(int totalNumInstances, int* instSizes, int** instIndices, f
         state->TotalInstancesProcessed = 0;
         ComputeRemapping(totalNumInstances, instSizes, instIndices, numFeat,
             numLocIter, numThreads, state, state->NumFrequentFeatures);
-        printf("Number of frequent features: %d\nNumber of features: %d\n", state->NumFrequentFeatures, numFeat);
+        if (info_print_func != NULL)
+        {
+            info_print_func(("Number of frequent features: " + std::to_string(state->NumFrequentFeatures)).c_str());
+            info_print_func(("Number of features: " + std::to_string(numFeat)).c_str());
+        }
 
         state->NumLearners = numThreads;
         state->Learners = new SymSGD*[numThreads];
@@ -288,11 +294,11 @@ float Loss(int instSize, int* instIndices, float* instValues,
 EXPORT_API(void) LearnAll(int totalNumInstances, int* instSizes, int** instIndices, float** instValues,
     float* labels, bool tuneAlpha, float& alpha, float l2Const, float piw, float* weightVector, 
     float& bias, int numFeat, int numPasses, int numThreads, bool tuneNumLocIter, int& numLocIter, float tolerance,
-    bool needShuffle, bool shouldInitialize, SymSGDState* state)
+    bool needShuffle, bool shouldInitialize, SymSGDState* state, ChannelFunc info_print_func = NULL)
 {
     // If this is the first time LearnAll is called, initialize it.
     if (shouldInitialize)
-        InitializeState(totalNumInstances, instSizes, instIndices, instValues, numFeat, tuneNumLocIter, numLocIter, numThreads, tuneAlpha, alpha, l2Const, state);
+        InitializeState(totalNumInstances, instSizes, instIndices, instValues, numFeat, tuneNumLocIter, numLocIter, numThreads, tuneAlpha, alpha, l2Const, state, info_print_func);
     float& weightScaling = state->WeightScaling;
 
     float totalAverageLoss = 0.0f; // Reserved for total loss computation

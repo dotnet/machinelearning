@@ -1,6 +1,7 @@
 maml.exe TrainTest test=%Data% tr=SymSGD{nt=1} norm=No dout=%Output% data=%Data% out=%Output% seed=1
 Not adding a normalizer.
 Data fully loaded into memory.
+Initial learning rate is tuned to 100.000000
 Not training a calibrator because it is not needed.
 Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
 TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
