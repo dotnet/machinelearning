@@ -55,16 +55,16 @@ namespace Microsoft.ML.StaticPipe
 
             var rec = new MatrixFactorizationReconciler<T>((env, labelColName, matrixColumnIndexColName, matrixRowIndexColName) =>
             {
-                var trainer = new MatrixFactorizationTrainer(env, matrixColumnIndexColName, matrixRowIndexColName, labelColName, advancedSettings:
-                    args =>
-                    {
-                        args.Lambda = regularizationCoefficient;
-                        args.K = approximationRank;
-                        args.Eta = learningRate;
-                        args.NumIterations = numIterations;
-                        // The previous settings may be overwritten by the line below.
-                        advancedSettings?.Invoke(args);
-                    });
+                var options = new MatrixFactorizationTrainer.Options {
+                    Lambda = regularizationCoefficient,
+                    K = approximationRank,
+                    Eta = learningRate,
+                    NumIterations = numIterations,
+                };
+                advancedSettings?.Invoke(options);
+
+                var trainer = new MatrixFactorizationTrainer(env, matrixColumnIndexColName, matrixRowIndexColName, labelColName, options);
+
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                 else

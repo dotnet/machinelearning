@@ -250,16 +250,15 @@ namespace Microsoft.ML.Trainers
         /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
         /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="options">Specify advanced arguments to the algorithm.</param>
         public MatrixFactorizationTrainer(IHostEnvironment env,
             string matrixColumnIndexColumnName,
             string matrixRowIndexColumnName,
             string labelColumn = DefaultColumnNames.Label,
-            Action<Options> advancedSettings = null)
+            Options options = null)
             : base(env, LoadNameValue)
         {
-            var args = new Options();
-            advancedSettings?.Invoke(args);
+            var args = options;
 
             _fun = (int)args.LossFunction;
             _lambda = args.Lambda;

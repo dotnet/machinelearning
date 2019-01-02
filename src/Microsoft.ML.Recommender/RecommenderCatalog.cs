@@ -54,13 +54,13 @@ namespace Microsoft.ML
             /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
             /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
             /// <param name="labelColumn">The name of the label column.</param>
-            /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+            /// <param name="options">Advanced arguments for the algorithm.</param>
             public MatrixFactorizationTrainer MatrixFactorization(
                 string matrixColumnIndexColumnName,
                 string matrixRowIndexColumnName,
                 string labelColumn = DefaultColumnNames.Label,
-                Action<MatrixFactorizationTrainer.Options> advancedSettings = null)
-                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn, advancedSettings);
+                MatrixFactorizationTrainer.Options options = null)
+                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn, options);
         }
 
         /// <summary>
