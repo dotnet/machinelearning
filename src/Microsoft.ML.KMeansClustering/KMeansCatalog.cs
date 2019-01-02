@@ -25,7 +25,7 @@ namespace Microsoft.ML
            string features,
            string weights = null,
            int clustersCount = KMeansPlusPlusTrainer.Defaults.K,
-           Action<KMeansPlusPlusTrainer.Arguments> advancedSettings = null)
+           Action<KMeansPlusPlusTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);

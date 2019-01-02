@@ -51,7 +51,7 @@ namespace Microsoft.ML.StaticPipe
                 bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
                 float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
                 int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
-                Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null,
+                Action<AveragedPerceptronTrainer.Options> advancedSettings = null,
                 Action<LinearBinaryModelParameters> onFit = null
             )
         {
@@ -109,9 +109,9 @@ namespace Microsoft.ML.StaticPipe
             Vector<float> features,
             Scalar<float> weights = null,
             IRegressionLoss lossFunction = null,
-            float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
-            bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.L2RegularizerWeight,
+            float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
+            bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
+            float l2RegularizerWeight = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
             Action<AveragedLinearArguments> advancedSettings = null,
             Action<LinearRegressionModelParameters> onFit = null)

@@ -41,7 +41,7 @@ namespace Microsoft.ML.StaticPipe
             float learningRate = 0.1f,
             int numIterations = 5,
             int numLatentDimensions = 20,
-            Action<FieldAwareFactorizationMachineTrainer.Arguments> advancedSettings = null,
+            Action<FieldAwareFactorizationMachineTrainer.Options> advancedSettings = null,
             Action<FieldAwareFactorizationMachineModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));

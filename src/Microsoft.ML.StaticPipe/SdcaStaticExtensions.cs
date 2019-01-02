@@ -48,7 +48,7 @@ namespace Microsoft.ML.StaticPipe
             float? l1Threshold = null,
             int? maxIterations = null,
             ISupportSdcaRegressionLoss loss = null,
-            Action<SdcaRegressionTrainer.Arguments> advancedSettings = null,
+            Action<SdcaRegressionTrainer.Options> advancedSettings = null,
             Action<LinearRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -106,7 +106,7 @@ namespace Microsoft.ML.StaticPipe
                     float? l2Const = null,
                     float? l1Threshold = null,
                     int? maxIterations = null,
-                    Action<SdcaBinaryTrainer.Arguments> advancedSettings = null,
+                    Action<SdcaBinaryTrainer.Options> advancedSettings = null,
                     Action<LinearBinaryModelParameters, ParameterMixingCalibratedPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -163,7 +163,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="Sdca(BinaryClassificationContext.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{SdcaBinaryTrainer.Arguments}, Action{LinearBinaryModelParameters, ParameterMixingCalibratedPredictor})"/>
+        /// <seealso cref="Sdca(BinaryClassificationContext.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{SdcaBinaryTrainer.Options}, Action{LinearBinaryModelParameters, ParameterMixingCalibratedPredictor})"/>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) Sdca(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 Scalar<bool> label, Vector<float> features,
@@ -172,7 +172,7 @@ namespace Microsoft.ML.StaticPipe
                 float? l2Const = null,
                 float? l1Threshold = null,
                 int? maxIterations = null,
-                Action<SdcaBinaryTrainer.Arguments> advancedSettings = null,
+                Action<SdcaBinaryTrainer.Options> advancedSettings = null,
                 Action<LinearBinaryModelParameters> onFit = null
             )
         {
@@ -239,7 +239,7 @@ namespace Microsoft.ML.StaticPipe
                     float? l2Const = null,
                     float? l1Threshold = null,
                     int? maxIterations = null,
-                    Action<SdcaMultiClassTrainer.Arguments> advancedSettings = null,
+                    Action<SdcaMultiClassTrainer.Options> advancedSettings = null,
                     Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));

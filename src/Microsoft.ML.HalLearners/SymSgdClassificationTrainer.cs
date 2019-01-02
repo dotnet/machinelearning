@@ -20,7 +20,7 @@ using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Arguments),
+[assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     SymSgdClassificationTrainer.UserNameValue,
     SymSgdClassificationTrainer.LoadNameValue,
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         internal const string UserNameValue = "Symbolic SGD (binary)";
         internal const string ShortName = "SymSGD";
 
-        public sealed class Arguments : LearnerInputBaseWithLabel
+        public sealed class Options : LearnerInputBaseWithLabel
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Determinism not guaranteed. " +
                 "Multi-threading is not supported currently.", ShortName = "nt")]
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         }
 
         public override TrainerInfo Info { get; }
-        private readonly Arguments _args;
+        private readonly Options _args;
 
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its
@@ -159,11 +159,11 @@ namespace Microsoft.ML.Trainers.SymSgd
         public SymSgdClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            Action<Arguments> advancedSettings = null)
+            Action<Options> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn),
                   TrainerUtils.MakeBoolScalarLabel(labelColumn))
         {
-            _args = new Arguments();
+            _args = new Options();
 
             // Apply the advanced args, if the user supplied any.
             _args.Check(Host);
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         /// <summary>
         /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
         /// </summary>
-        internal SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
+        internal SymSgdClassificationTrainer(IHostEnvironment env, Options args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
                   TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
@@ -218,14 +218,14 @@ namespace Microsoft.ML.Trainers.SymSgd
             UserName = SymSgdClassificationTrainer.UserNameValue,
             ShortName = SymSgdClassificationTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""SymSGD""]/*' />" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSymSGD");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new SymSgdClassificationTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }

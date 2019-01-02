@@ -27,7 +27,7 @@ namespace Microsoft.ML
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            Action<OlsLinearRegressionTrainer.Arguments> advancedSettings = null)
+            Action<OlsLinearRegressionTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -44,7 +44,7 @@ namespace Microsoft.ML
         public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            Action<SymSgdClassificationTrainer.Arguments> advancedSettings = null)
+            Action<SymSgdClassificationTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);

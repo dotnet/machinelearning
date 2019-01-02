@@ -10,7 +10,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
 {
-    using Arguments = LogisticRegression.Arguments;
+    using Options = LogisticRegression.Options;
 
     /// <summary>
     /// Binary Classification trainer estimators.
@@ -40,12 +40,12 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
+            Action<Options> advancedSettings = null,
             Action<ParameterMixingCalibratedPredictor> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
@@ -95,12 +95,12 @@ namespace Microsoft.ML.StaticPipe
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
+            Action<Options> advancedSettings = null,
             Action<PoissonRegressionModelParameters> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
@@ -151,12 +151,12 @@ namespace Microsoft.ML.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
+            Action<Options> advancedSettings = null,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
@@ -183,12 +183,12 @@ namespace Microsoft.ML.StaticPipe
         internal static void ValidateParams(PipelineColumn label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
+            Action<Options> advancedSettings = null,
             Delegate onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));

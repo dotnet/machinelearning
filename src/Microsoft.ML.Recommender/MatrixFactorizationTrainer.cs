@@ -17,7 +17,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Arguments),
+[assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Options),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },
     "Matrix Factorization", MatrixFactorizationTrainer.LoadNameValue, "libmf", "mf")]
 
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers
     {
         public enum LossFunctionType { SquareLossRegression = 0, SquareLossOneClass = 12 };
 
-        public sealed class Arguments
+        public sealed class Options
         {
             /// <summary>
             /// Loss function minimized for finding factor matrices.  Two values are allowed, 0 or 12. The values 0 means traditional collaborative filtering
@@ -214,11 +214,11 @@ namespace Microsoft.ML.Trainers
 
         /// <summary>
         /// Legacy constructor initializing a new instance of <see cref="MatrixFactorizationTrainer"/> through the legacy
-        /// <see cref="Arguments"/> class.
+        /// <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="args">An instance of the legacy <see cref="Arguments"/> to apply advanced parameters to the algorithm.</param>
-        private MatrixFactorizationTrainer(IHostEnvironment env, Arguments args) : base(env, LoadNameValue)
+        /// <param name="args">An instance of the legacy <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
+        private MatrixFactorizationTrainer(IHostEnvironment env, Options args) : base(env, LoadNameValue)
         {
             const string posError = "Parameter must be positive";
             Host.CheckValue(args, nameof(args));
@@ -255,10 +255,10 @@ namespace Microsoft.ML.Trainers
             string matrixColumnIndexColumnName,
             string matrixRowIndexColumnName,
             string labelColumn = DefaultColumnNames.Label,
-            Action<Arguments> advancedSettings = null)
+            Action<Options> advancedSettings = null)
             : base(env, LoadNameValue)
         {
-            var args = new Arguments();
+            var args = new Options();
             advancedSettings?.Invoke(args);
 
             _fun = (int)args.LossFunction;

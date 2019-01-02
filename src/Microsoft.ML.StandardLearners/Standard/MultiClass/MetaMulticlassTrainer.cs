@@ -87,7 +87,7 @@ namespace Microsoft.ML.Learners
         {
             return Args.PredictorType != null ?
                 Args.PredictorType.CreateComponent(Host) :
-                new LinearSvm(Host, new LinearSvm.Arguments());
+                new LinearSvm(Host, new LinearSvm.Options());
         }
 
         private protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)

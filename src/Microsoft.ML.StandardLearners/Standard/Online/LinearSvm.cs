@@ -17,7 +17,7 @@ using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Training;
 using Float = System.Single;
 
-[assembly: LoadableClass(LinearSvm.Summary, typeof(LinearSvm), typeof(LinearSvm.Arguments),
+[assembly: LoadableClass(LinearSvm.Summary, typeof(LinearSvm), typeof(LinearSvm.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     LinearSvm.UserNameValue,
     LinearSvm.LoadNameValue,
@@ -40,9 +40,9 @@ namespace Microsoft.ML.Trainers.Online
             + "and all the negative examples are on the other. After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the "
             + "margin, i.e., the minimal distance between it and the instances.";
 
-        internal new readonly Arguments Args;
+        internal new readonly Options Args;
 
-        public sealed class Arguments : OnlineLinearArguments
+        public sealed class Options : OnlineLinearArguments
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer constant", ShortName = "lambda", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.00001-0.1;log;inc:10")]
@@ -234,9 +234,9 @@ namespace Microsoft.ML.Trainers.Online
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightsColumn = null,
-            int numIterations = Arguments.OnlineDefaultArgs.NumIterations,
-            Action<Arguments> advancedSettings = null)
-            :this(env, InvokeAdvanced(advancedSettings, new Arguments
+            int numIterations = Options.OnlineDefaultArgs.NumIterations,
+            Action<Options> advancedSettings = null)
+            :this(env, InvokeAdvanced(advancedSettings, new Options
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Trainers.Online
         {
         }
 
-        internal LinearSvm(IHostEnvironment env, Arguments args)
+        internal LinearSvm(IHostEnvironment env, Options args)
             : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
         {
             Contracts.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), UserErrorPositive);
@@ -284,14 +284,14 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.LinearSvmBinaryClassifier", Desc = "Train a linear SVM.", UserName = UserNameValue, ShortName = ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainLinearSvm(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainLinearSvm(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLinearSVM");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LinearSvm(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);

@@ -20,7 +20,7 @@ using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
 // REVIEW: Do we really need all these names?
-[assembly: LoadableClass(FastTreeRankingTrainer.Summary, typeof(FastTreeRankingTrainer), typeof(FastTreeRankingTrainer.Arguments),
+[assembly: LoadableClass(FastTreeRankingTrainer.Summary, typeof(FastTreeRankingTrainer), typeof(FastTreeRankingTrainer.Options),
     new[] { typeof(SignatureRankerTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
     FastTreeRankingTrainer.UserNameValue,
     FastTreeRankingTrainer.LoadNameValue,
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRankingTrainer
-        : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, RankingPredictionTransformer<FastTreeRankingModelParameters>, FastTreeRankingModelParameters>
+        : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Options, RankingPredictionTransformer<FastTreeRankingModelParameters>, FastTreeRankingModelParameters>
     {
         internal const string LoadNameValue = "FastTreeRanking";
         internal const string UserNameValue = "FastTree (Boosted Trees) Ranking";
@@ -81,16 +81,16 @@ namespace Microsoft.ML.Trainers.FastTree
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<Arguments> advancedSettings = null)
+            Action<Options> advancedSettings = null)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings)
         {
             Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/> by using the legacy <see cref="Arguments"/> class.
+        /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/> by using the legacy <see cref="Options"/> class.
         /// </summary>
-        internal FastTreeRankingTrainer(IHostEnvironment env, Arguments args)
+        internal FastTreeRankingTrainer(IHostEnvironment env, Options args)
         : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
         {
         }
@@ -548,7 +548,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // Keeps track of labels of top 3 documents per query
             public short[][] TrainQueriesTopLabels;
 
-            public LambdaRankObjectiveFunction(Dataset trainset, short[] labels, Arguments args, IParallelTraining parallelTraining)
+            public LambdaRankObjectiveFunction(Dataset trainset, short[] labels, Options args, IParallelTraining parallelTraining)
                 : base(trainset,
                     args.LearningRates,
                     args.Shrinkage,
@@ -646,7 +646,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 #endif
 
-            private void SetupBaselineRisk(Arguments args)
+            private void SetupBaselineRisk(Options args)
             {
                 double[] scores = Dataset.Skeleton.GetData<double>("BaselineScores");
                 if (scores == null)
@@ -1162,14 +1162,14 @@ namespace Microsoft.ML.Trainers.FastTree
             ShortName = FastTreeRankingTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />",
                                  @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastTreeRanker""]/*' />"})]
-        public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, FastTreeRankingTrainer.Arguments input)
+        public static CommonOutputs.RankingOutput TrainRanking(IHostEnvironment env, FastTreeRankingTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainFastTree");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<FastTreeRankingTrainer.Arguments, CommonOutputs.RankingOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<FastTreeRankingTrainer.Options, CommonOutputs.RankingOutput>(host, input,
                 () => new FastTreeRankingTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),

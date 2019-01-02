@@ -23,7 +23,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(SdcaBinaryTrainer), typeof(SdcaBinaryTrainer.Arguments),
+[assembly: LoadableClass(typeof(SdcaBinaryTrainer), typeof(SdcaBinaryTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     SdcaBinaryTrainer.UserNameValue,
     SdcaBinaryTrainer.LoadNameValue,
@@ -31,7 +31,7 @@ using Microsoft.ML.Transforms;
     "lc",
     "sasdca")]
 
-[assembly: LoadableClass(typeof(StochasticGradientDescentClassificationTrainer), typeof(StochasticGradientDescentClassificationTrainer.Arguments),
+[assembly: LoadableClass(typeof(StochasticGradientDescentClassificationTrainer), typeof(StochasticGradientDescentClassificationTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     StochasticGradientDescentClassificationTrainer.UserNameValue,
     StochasticGradientDescentClassificationTrainer.LoadNameValue,
@@ -1391,12 +1391,12 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public sealed class SdcaBinaryTrainer : SdcaTrainerBase<SdcaBinaryTrainer.Arguments, BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
+    public sealed class SdcaBinaryTrainer : SdcaTrainerBase<SdcaBinaryTrainer.Options, BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
         internal const string UserNameValue = "Fast Linear (SA-SDCA)";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Options : ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
@@ -1453,7 +1453,7 @@ namespace Microsoft.ML.Trainers
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null,
-            Action<Arguments> advancedSettings = null)
+            Action<Options> advancedSettings = null)
              : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), advancedSettings,
                   l2Const, l1Threshold, maxIterations)
         {
@@ -1495,7 +1495,7 @@ namespace Microsoft.ML.Trainers
             _outputColumns = outCols.ToArray();
         }
 
-        internal SdcaBinaryTrainer(IHostEnvironment env, Arguments args,
+        internal SdcaBinaryTrainer(IHostEnvironment env, Options args,
             string featureColumn, string labelColumn, string weightColumn = null)
             : base(env, args, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
@@ -1536,7 +1536,7 @@ namespace Microsoft.ML.Trainers
 
         }
 
-        public SdcaBinaryTrainer(IHostEnvironment env, Arguments args)
+        public SdcaBinaryTrainer(IHostEnvironment env, Options args)
             : this(env, args, args.FeatureColumn, args.LabelColumn)
         {
         }
@@ -1594,7 +1594,7 @@ namespace Microsoft.ML.Trainers
         internal const string UserNameValue = "Hogwild SGD (binary)";
         internal const string ShortName = "HogwildSGD";
 
-        public sealed class Arguments : LearnerInputBaseWithWeight
+        public sealed class Options : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new LogLossFactory();
@@ -1667,7 +1667,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private readonly IClassificationLoss _loss;
-        private readonly Arguments _args;
+        private readonly Options _args;
 
         protected override bool ShuffleData => _args.Shuffle;
 
@@ -1691,17 +1691,17 @@ namespace Microsoft.ML.Trainers
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int maxIterations = Arguments.Defaults.MaxIterations,
-            double initLearningRate = Arguments.Defaults.InitLearningRate,
-            float l2Weight = Arguments.Defaults.L2Weight,
+            int maxIterations = Options.Defaults.MaxIterations,
+            double initLearningRate = Options.Defaults.InitLearningRate,
+            float l2Weight = Options.Defaults.L2Weight,
             ISupportClassificationLossFactory loss = null,
-            Action<Arguments> advancedSettings = null)
+            Action<Options> advancedSettings = null)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            _args = new Arguments();
+            _args = new Options();
             _args.MaxIterations = maxIterations;
             _args.InitLearningRate = initLearningRate;
             _args.L2Weight = l2Weight;
@@ -1725,7 +1725,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Initializes a new instance of <see cref="StochasticGradientDescentClassificationTrainer"/>
         /// </summary>
-        internal StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Arguments args)
+        internal StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Options args)
             : base(env, args.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn), args.WeightColumn)
         {
             args.Check(env);
@@ -1945,14 +1945,14 @@ namespace Microsoft.ML.Trainers
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.StochasticGradientDescentBinaryClassifier", Desc = "Train an Hogwild SGD binary model.", UserName = UserNameValue, ShortName = ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainHogwildSGD");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new StochasticGradientDescentClassificationTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
@@ -1972,14 +1972,14 @@ namespace Microsoft.ML.Trainers
             ShortName = SdcaBinaryTrainer.LoadNameValue,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentBinaryClassifier""]/*'/>" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, SdcaBinaryTrainer.Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, SdcaBinaryTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSDCA");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<SdcaBinaryTrainer.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<SdcaBinaryTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new SdcaBinaryTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);

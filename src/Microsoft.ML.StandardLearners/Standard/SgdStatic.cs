@@ -9,7 +9,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
 {
-    using Arguments = StochasticGradientDescentClassificationTrainer.Arguments;
+    using Options = StochasticGradientDescentClassificationTrainer.Options;
 
     /// <summary>
     /// Binary Classification trainer estimators.
@@ -38,11 +38,11 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            int maxIterations = Arguments.Defaults.MaxIterations,
-            double initLearningRate = Arguments.Defaults.InitLearningRate,
-            float l2Weight = Arguments.Defaults.L2Weight,
+            int maxIterations = Options.Defaults.MaxIterations,
+            double initLearningRate = Options.Defaults.InitLearningRate,
+            float l2Weight = Options.Defaults.L2Weight,
             ISupportClassificationLossFactory loss = null,
-            Action<Arguments> advancedSettings = null,
+            Action<Options> advancedSettings = null,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(

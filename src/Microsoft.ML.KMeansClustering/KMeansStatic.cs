@@ -30,7 +30,7 @@ namespace Microsoft.ML.StaticPipe
         public static (Vector<float> score, Key<uint> predictedLabel) KMeans(this ClusteringContext.ClusteringTrainers ctx,
            Vector<float> features, Scalar<float> weights = null,
            int clustersCount = KMeansPlusPlusTrainer.Defaults.K,
-           Action<KMeansPlusPlusTrainer.Arguments> advancedSettings = null,
+           Action<KMeansPlusPlusTrainer.Options> advancedSettings = null,
            Action<KMeansModelParameters> onFit = null)
         {
             Contracts.CheckValue(features, nameof(features));

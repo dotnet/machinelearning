@@ -17,7 +17,7 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(KMeansPlusPlusTrainer.Summary, typeof(KMeansPlusPlusTrainer), typeof(KMeansPlusPlusTrainer.Arguments),
+[assembly: LoadableClass(KMeansPlusPlusTrainer.Summary, typeof(KMeansPlusPlusTrainer), typeof(KMeansPlusPlusTrainer.Options),
     new[] { typeof(SignatureClusteringTrainer), typeof(SignatureTrainer) },
     KMeansPlusPlusTrainer.UserNameValue,
     KMeansPlusPlusTrainer.LoadNameValue,
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.KMeans
             internal const int K = 5;
         }
 
-        public class Arguments : UnsupervisedLearnerInputBaseWithWeight
+        public class Options : UnsupervisedLearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of clusters", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "5,10,20,40")]
@@ -103,8 +103,8 @@ namespace Microsoft.ML.Trainers.KMeans
             string featureColumn = DefaultColumnNames.Features,
             int clustersCount = Defaults.K,
             string weights = null,
-            Action<Arguments> advancedSettings = null)
-            : this(env, new Arguments
+            Action<Options> advancedSettings = null)
+            : this(env, new Options
             {
                 FeatureColumn = featureColumn,
                 WeightColumn = weights,
@@ -113,13 +113,13 @@ namespace Microsoft.ML.Trainers.KMeans
         {
         }
 
-        internal KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args)
+        internal KMeansPlusPlusTrainer(IHostEnvironment env, Options args)
             : this(env, args, null)
         {
 
         }
 
-        private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, Action<Arguments> advancedSettings = null)
+        private KMeansPlusPlusTrainer(IHostEnvironment env, Options args, Action<Options> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
@@ -247,14 +247,14 @@ namespace Microsoft.ML.Trainers.KMeans
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/member[@name=""KMeans++""]/*' />",
                                  @"<include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/example[@name=""KMeans++""]/*' />"})]
-        public static CommonOutputs.ClusteringOutput TrainKMeans(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.ClusteringOutput TrainKMeans(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainKMeans");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.ClusteringOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.ClusteringOutput>(host, input,
                 () => new KMeansPlusPlusTrainer(host, input),
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
@@ -749,10 +749,10 @@ namespace Microsoft.ML.Trainers.KMeans
             host.CheckValue(ch, nameof(ch));
             ch.CheckValue(cursorFactory, nameof(cursorFactory));
             ch.CheckValue(centroids, nameof(centroids));
-            ch.CheckUserArg(numThreads > 0, nameof(KMeansPlusPlusTrainer.Arguments.NumThreads), "Must be positive");
-            ch.CheckUserArg(k > 0, nameof(KMeansPlusPlusTrainer.Arguments.K), "Must be positive");
+            ch.CheckUserArg(numThreads > 0, nameof(KMeansPlusPlusTrainer.Options.NumThreads), "Must be positive");
+            ch.CheckUserArg(k > 0, nameof(KMeansPlusPlusTrainer.Options.K), "Must be positive");
             ch.CheckParam(dimensionality > 0, nameof(dimensionality), "Must be positive");
-            ch.CheckUserArg(accelMemBudgetMb >= 0, nameof(KMeansPlusPlusTrainer.Arguments.AccelMemBudgetMb), "Must be non-negative");
+            ch.CheckUserArg(accelMemBudgetMb >= 0, nameof(KMeansPlusPlusTrainer.Options.AccelMemBudgetMb), "Must be non-negative");
 
             int numRounds;
             int numSamplesPerRound;

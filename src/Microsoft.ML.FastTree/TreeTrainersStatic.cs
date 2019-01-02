@@ -45,7 +45,7 @@ namespace Microsoft.ML.StaticPipe
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<FastTreeRegressionTrainer.Arguments> advancedSettings = null,
+            Action<FastTreeRegressionTrainer.Options> advancedSettings = null,
             Action<FastTreeRegressionModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings, onFit);
@@ -95,7 +95,7 @@ namespace Microsoft.ML.StaticPipe
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<FastTreeBinaryClassificationTrainer.Arguments> advancedSettings = null,
+            Action<FastTreeBinaryClassificationTrainer.Options> advancedSettings = null,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings, onFit);
@@ -141,7 +141,7 @@ namespace Microsoft.ML.StaticPipe
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<FastTreeRankingTrainer.Arguments> advancedSettings = null,
+            Action<FastTreeRankingTrainer.Options> advancedSettings = null,
             Action<FastTreeRankingModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings, onFit);

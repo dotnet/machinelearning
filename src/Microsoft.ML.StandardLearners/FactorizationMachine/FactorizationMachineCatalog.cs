@@ -28,7 +28,7 @@ namespace Microsoft.ML
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,
             string weights = null,
-            Action<FieldAwareFactorizationMachineTrainer.Arguments> advancedSettings = null)
+            Action<FieldAwareFactorizationMachineTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);

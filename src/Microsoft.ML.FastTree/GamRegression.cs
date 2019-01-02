@@ -14,7 +14,7 @@ using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(RegressionGamTrainer.Summary,
-    typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Arguments),
+    typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     RegressionGamTrainer.UserNameValue,
     RegressionGamTrainer.LoadNameValue,
@@ -26,9 +26,9 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Arguments, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
+    public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Options, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
     {
-        public partial class Arguments : ArgumentsBase
+        public partial class Options : ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)", ShortName = "pmetric")]
             [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2")]
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        internal RegressionGamTrainer(IHostEnvironment env, Arguments args)
+        internal RegressionGamTrainer(IHostEnvironment env, Options args)
              : base(env, args, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn)) { }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers.FastTree
             int numIterations = GamDefaults.NumIterations,
             double learningRate = GamDefaults.LearningRates,
             int maxBins = GamDefaults.MaxBins,
-            Action<Arguments> advancedSettings = null)
+            Action<Options> advancedSettings = null)
             : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, numIterations, learningRate, maxBins, advancedSettings)
         {
         }

@@ -59,7 +59,7 @@ namespace Microsoft.ML
                 string matrixColumnIndexColumnName,
                 string matrixRowIndexColumnName,
                 string labelColumn = DefaultColumnNames.Label,
-                Action<MatrixFactorizationTrainer.Arguments> advancedSettings = null)
+                Action<MatrixFactorizationTrainer.Options> advancedSettings = null)
                     => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn, advancedSettings);
         }
 

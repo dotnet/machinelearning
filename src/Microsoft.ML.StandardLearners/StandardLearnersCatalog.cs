@@ -12,8 +12,8 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML
 {
-    using LRArguments = LogisticRegression.Arguments;
-    using SgdArguments = StochasticGradientDescentClassificationTrainer.Arguments;
+    using LRArguments = LogisticRegression.Options;
+    using SgdArguments = StochasticGradientDescentClassificationTrainer.Options;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -70,7 +70,7 @@ namespace Microsoft.ML
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null,
-            Action<SdcaRegressionTrainer.Arguments> advancedSettings = null)
+            Action<SdcaRegressionTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -113,7 +113,7 @@ namespace Microsoft.ML
                 float? l2Const = null,
                 float? l1Threshold = null,
                 int? maxIterations = null,
-                Action<SdcaBinaryTrainer.Arguments> advancedSettings = null
+                Action<SdcaBinaryTrainer.Options> advancedSettings = null
             )
         {
             Contracts.CheckValue(ctx, nameof(ctx));
@@ -144,7 +144,7 @@ namespace Microsoft.ML
                     float? l2Const = null,
                     float? l1Threshold = null,
                     int? maxIterations = null,
-                    Action<SdcaMultiClassTrainer.Arguments> advancedSettings = null)
+                    Action<SdcaMultiClassTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -174,7 +174,7 @@ namespace Microsoft.ML
             bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
             int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
-            Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null)
+            Action<AveragedPerceptronTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -214,8 +214,8 @@ namespace Microsoft.ML
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             IRegressionLoss lossFunction = null,
-            float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
-            bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
+            float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
+            bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
             Action<AveragedLinearArguments> advancedSettings = null)
@@ -276,7 +276,7 @@ namespace Microsoft.ML
             float optimizationTolerance = LRArguments.Defaults.OptTol,
             int memorySize = LRArguments.Defaults.MemorySize,
             bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity,
-            Action<PoissonRegression.Arguments> advancedSettings = null)
+            Action<PoissonRegression.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -305,7 +305,7 @@ namespace Microsoft.ML
             float optimizationTolerance = LRArguments.Defaults.OptTol,
             int memorySize = LRArguments.Defaults.MemorySize,
             bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity,
-            Action<MulticlassLogisticRegression.Arguments> advancedSettings = null)
+            Action<MulticlassLogisticRegression.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -408,7 +408,7 @@ namespace Microsoft.ML
             string featureColumn = DefaultColumnNames.Features,
             string weightsColumn = null,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
-            Action<LinearSvm.Arguments> advancedSettings = null)
+            Action<LinearSvm.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             return new LinearSvm(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, weightsColumn, numIterations, advancedSettings);

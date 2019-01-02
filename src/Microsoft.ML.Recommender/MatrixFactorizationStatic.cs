@@ -39,7 +39,7 @@ namespace Microsoft.ML.StaticPipe
             int approximationRank = 8,
             float learningRate = 0.1f,
             int numIterations = 20,
-            Action<MatrixFactorizationTrainer.Arguments> advancedSettings = null,
+            Action<MatrixFactorizationTrainer.Options> advancedSettings = null,
             Action<MatrixFactorizationPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));

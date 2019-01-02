@@ -16,7 +16,7 @@ using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
-    typeof(FieldAwareFactorizationMachineTrainer.Arguments), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
+    typeof(FieldAwareFactorizationMachineTrainer.Options), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
     , FieldAwareFactorizationMachineTrainer.UserName, FieldAwareFactorizationMachineTrainer.LoadName,
     FieldAwareFactorizationMachineTrainer.ShortName, DocName = "trainer/FactorizationMachine.md")]
 
@@ -40,7 +40,7 @@ namespace Microsoft.ML.FactorizationMachine
         internal const string LoadName = "FieldAwareFactorizationMachine";
         internal const string ShortName = "ffm";
 
-        public sealed class Arguments : LearnerInputBaseWithLabel
+        public sealed class Options : LearnerInputBaseWithLabel
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate", ShortName = "lr", SortOrder = 1)]
             [TlcModule.SweepableFloatParam(0.001f, 1.0f, isLogScale: true)]
@@ -113,11 +113,11 @@ namespace Microsoft.ML.FactorizationMachine
 
         /// <summary>
         /// Legacy constructor initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/> through the legacy
-        /// <see cref="Arguments"/> class.
+        /// <see cref="Options"/> class.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="args">An instance of the legacy <see cref="Arguments"/> to apply advanced parameters to the algorithm.</param>
-        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Arguments args)
+        /// <param name="args">An instance of the legacy <see cref="Options"/> to apply advanced parameters to the algorithm.</param>
+        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Options args)
             : base(env, LoadName)
         {
             Initialize(env, args);
@@ -136,10 +136,10 @@ namespace Microsoft.ML.FactorizationMachine
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,
             string weights = null,
-            Action<Arguments> advancedSettings = null)
+            Action<Options> advancedSettings = null)
             : base(env, LoadName)
         {
-            var args = new Arguments();
+            var args = new Options();
             advancedSettings?.Invoke(args);
 
             Initialize(env, args);
@@ -160,7 +160,7 @@ namespace Microsoft.ML.FactorizationMachine
         /// </summary>
         /// <param name="env"></param>
         /// <param name="args"></param>
-        private void Initialize(IHostEnvironment env, Arguments args)
+        private void Initialize(IHostEnvironment env, Options args)
         {
             Host.CheckUserArg(args.LatentDim > 0, nameof(args.LatentDim), "Must be positive");
             Host.CheckUserArg(args.LambdaLinear >= 0, nameof(args.LambdaLinear), "Must be non-negative");
@@ -445,13 +445,13 @@ namespace Microsoft.ML.FactorizationMachine
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/member[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/example[@name=""FieldAwareFactorizationMachineBinaryClassifier""]/*' />" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("Train a field-aware factorization machine");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineTrainer(host, input),
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 

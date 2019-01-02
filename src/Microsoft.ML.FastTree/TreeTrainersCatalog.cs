@@ -33,7 +33,7 @@ namespace Microsoft.ML
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<FastTreeRegressionTrainer.Arguments> advancedSettings = null)
+            Action<FastTreeRegressionTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -60,7 +60,7 @@ namespace Microsoft.ML
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<FastTreeBinaryClassificationTrainer.Arguments> advancedSettings = null)
+            Action<FastTreeBinaryClassificationTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -89,7 +89,7 @@ namespace Microsoft.ML
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<FastTreeRankingTrainer.Arguments> advancedSettings = null)
+            Action<FastTreeRankingTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -114,7 +114,7 @@ namespace Microsoft.ML
             int numIterations = GamDefaults.NumIterations,
             double learningRate = GamDefaults.LearningRates,
             int maxBins = GamDefaults.MaxBins,
-            Action<BinaryClassificationGamTrainer.Arguments> advancedSettings = null)
+            Action<BinaryClassificationGamTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -139,7 +139,7 @@ namespace Microsoft.ML
             int numIterations = GamDefaults.NumIterations,
             double learningRate = GamDefaults.LearningRates,
             int maxBins = GamDefaults.MaxBins,
-            Action<RegressionGamTrainer.Arguments> advancedSettings = null)
+            Action<RegressionGamTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -166,7 +166,7 @@ namespace Microsoft.ML
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<FastTreeTweedieTrainer.Arguments> advancedSettings = null)
+            Action<FastTreeTweedieTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -193,7 +193,7 @@ namespace Microsoft.ML
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<FastForestRegression.Arguments> advancedSettings = null)
+            Action<FastForestRegression.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -220,7 +220,7 @@ namespace Microsoft.ML
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
-            Action<FastForestClassification.Arguments> advancedSettings = null)
+            Action<FastForestClassification.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
