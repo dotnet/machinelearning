@@ -22,7 +22,6 @@ namespace Microsoft.ML.Data
         private ColumnType()
         {
             IsVector = this is VectorType;
-            IsNumber = this is NumberType;
             IsKey = this is KeyType;
         }
 
@@ -73,12 +72,6 @@ namespace Microsoft.ML.Data
         internal DataKind RawKind { get; }
 
         /// <summary>
-        /// Whether this type is a standard numeric type. External code should use <c>is <see cref="NumberType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsNumber { get; }
-
-        /// <summary>
         /// Whether this type is the standard text type. External code should use <c>is <see cref="TextType"/></c>.
         /// </summary>
         [BestFriend]
@@ -99,7 +92,7 @@ namespace Microsoft.ML.Data
         /// (not a <see cref="KeyType"/> or <see cref="StructuredType"/>, etc).
         /// </summary>
         [BestFriend]
-        internal bool IsStandardScalar => IsNumber || IsText || (this is BoolType) ||
+        internal bool IsStandardScalar => (this is NumberType)|| IsText || (this is BoolType) ||
             (this is TimeSpanType) || (this is DateTimeType) || (this is DateTimeOffsetType);
 
         /// <summary>
@@ -295,7 +288,6 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertNonEmpty(name);
             _name = name;
-            Contracts.Assert(IsNumber);
         }
 
         private static volatile NumberType _instI1;
@@ -469,7 +461,7 @@ namespace Microsoft.ML.Data
         {
             if (other == this)
                 return true;
-            Contracts.Assert(other == null || !other.IsNumber || other.RawKind != RawKind);
+            Contracts.Assert(other == null || !(other is NumberType) || other.RawKind != RawKind);
             return false;
         }
 

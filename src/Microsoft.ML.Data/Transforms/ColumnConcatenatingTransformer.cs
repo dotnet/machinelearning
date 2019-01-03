@@ -486,7 +486,7 @@ namespace Microsoft.ML.Data
                         hasSlotNames = true;
                 }
 
-                if (!itemType.IsNumber)
+                if (!(itemType is NumberType))
                     isNormalized = false;
                 if (totalSize == 0)
                 {

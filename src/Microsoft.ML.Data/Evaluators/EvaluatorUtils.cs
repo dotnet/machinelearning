@@ -997,7 +997,7 @@ namespace Microsoft.ML.Data
 
                 var type = schema[i].Type;
                 var metricName = row.Schema[i].Name;
-                if (type.IsNumber)
+                if (type is NumberType)
                 {
                     getters[i] = RowCursorUtils.GetGetterAs<double>(NumberType.R8, row, i);
                     metricNames.Add(metricName);
@@ -1251,7 +1251,7 @@ namespace Microsoft.ML.Data
                     dvBldr.AddColumn(MetricKinds.ColumnNames.FoldIndex, TextType.Instance, foldVals);
                     weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.FoldIndex, TextType.Instance, foldVals);
                 }
-                else if (type.IsNumber)
+                else if (type is NumberType)
                 {
                     dvBldr.AddScalarColumn(schema, agg, hasStdev, numFolds, iMetric);
                     weightedDvBldr?.AddScalarColumn(schema, weightedAgg, hasStdev, numFolds, iMetric);
