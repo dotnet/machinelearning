@@ -7,9 +7,6 @@ using System.Globalization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using Microsoft.ML.Data;
-using Microsoft.ML.Legacy.Models;
-using Microsoft.ML.Legacy.Trainers;
-using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 
