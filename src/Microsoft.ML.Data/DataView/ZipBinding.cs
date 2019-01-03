@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -13,16 +11,16 @@ namespace Microsoft.ML.Data
     /// A convenience class for concatenating several schemas together.
     /// This would be necessary when combining IDataViews through any type of combining operation, for example, zip.
     /// </summary>
-    internal sealed class CompositeSchema : ISchema
+    internal sealed class ZipBinding
     {
         private readonly Schema[] _sources;
 
-        public Schema AsSchema { get; }
+        public Schema OutputSchema { get; }
 
         // Zero followed by cumulative column counts. Zero being used for the empty case.
         private readonly int[] _cumulativeColCounts;
 
-        public CompositeSchema(Schema[] sources)
+        public ZipBinding(Schema[] sources)
         {
             Contracts.AssertNonEmpty(sources);
             _sources = sources;
@@ -34,7 +32,11 @@ namespace Microsoft.ML.Data
                 var schema = sources[i];
                 _cumulativeColCounts[i + 1] = _cumulativeColCounts[i] + schema.Count;
             }
-            AsSchema = Schema.Create(this);
+
+            var schemaBuilder = new SchemaBuilder();
+            foreach (var sourceSchema in sources)
+                schemaBuilder.AddColumns(sourceSchema);
+            OutputSchema = schemaBuilder.GetSchema();
         }
 
         public int ColumnCount => _cumulativeColCounts[_cumulativeColCounts.Length - 1];
@@ -73,51 +75,6 @@ namespace Microsoft.ML.Data
             Contracts.Assert(0 <= srcIndex && srcIndex < _cumulativeColCounts.Length);
             srcCol = col - _cumulativeColCounts[srcIndex];
             Contracts.Assert(0 <= srcCol && srcCol < _sources[srcIndex].Count);
-        }
-
-        public bool TryGetColumnIndex(string name, out int col)
-        {
-            for (int i = _sources.Length; --i >= 0;)
-            {
-                if (_sources[i].TryGetColumnIndex(name, out col))
-                {
-                    col += _cumulativeColCounts[i];
-                    return true;
-                }
-            }
-
-            col = -1;
-            return false;
-        }
-
-        public string GetColumnName(int col)
-        {
-            GetColumnSource(col, out int dv, out int srcCol);
-            return _sources[dv][srcCol].Name;
-        }
-
-        public ColumnType GetColumnType(int col)
-        {
-            GetColumnSource(col, out int dv, out int srcCol);
-            return _sources[dv][srcCol].Type;
-        }
-
-        public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-        {
-            GetColumnSource(col, out int dv, out int srcCol);
-            return _sources[dv][srcCol].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
-        }
-
-        public ColumnType GetMetadataTypeOrNull(string kind, int col)
-        {
-            GetColumnSource(col, out int dv, out int srcCol);
-            return _sources[dv][srcCol].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-        }
-
-        public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-        {
-            GetColumnSource(col, out int dv, out int srcCol);
-            _sources[dv][srcCol].Metadata.GetValue(kind, ref value);
         }
     }
 }
