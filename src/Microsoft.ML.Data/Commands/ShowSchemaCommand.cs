@@ -154,7 +154,7 @@ namespace Microsoft.ML.Data
                     ColumnType typeNames;
                     if ((typeNames = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null)
                         continue;
-                    if (typeNames.VectorSize != type.VectorSize || !typeNames.ItemType.IsText)
+                    if (typeNames.VectorSize != type.VectorSize || !(typeNames.ItemType is TextType))
                     {
                         Contracts.Assert(false, "Unexpected slot names type");
                         continue;

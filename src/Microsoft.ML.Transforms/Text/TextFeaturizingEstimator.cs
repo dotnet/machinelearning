@@ -474,7 +474,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(srcName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
-                if (!col.ItemType.IsText)
+                if (!(col.ItemType is TextType))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, "scalar or vector of text", col.GetTypeString());
             }
 

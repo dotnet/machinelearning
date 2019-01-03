@@ -120,7 +120,7 @@ namespace Microsoft.ML.EntryPoints
             if (!schema.TryGetColumnIndex(colName, out col))
                 return null;
             var type = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            if (type == null || !type.IsKnownSizeVector || !type.ItemType.IsText)
+            if (type == null || !type.IsKnownSizeVector || !(type.ItemType is TextType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
             schema[col].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);

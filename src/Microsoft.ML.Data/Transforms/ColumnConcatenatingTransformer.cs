@@ -625,7 +625,7 @@ namespace Microsoft.ML.Data
                         if (inputMetadata != null && inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.SlotNames, out int idx))
                             typeNames = inputMetadata.Schema[idx].Type;
 
-                        if (typeNames != null && typeNames.VectorSize == typeSrc.VectorSize && typeNames.ItemType.IsText)
+                        if (typeNames != null && typeNames.VectorSize == typeSrc.VectorSize && typeNames.ItemType is TextType)
                         {
                             inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
                             sb.Clear();

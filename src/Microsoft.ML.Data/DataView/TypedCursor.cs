@@ -274,7 +274,7 @@ namespace Microsoft.ML.Data
                     // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
-                        Ch.Assert(colType.ItemType.IsText);
+                        Ch.Assert(colType.ItemType is TextType);
                         return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
 
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Data
                     if (fieldType == typeof(string))
                     {
                         // ReadOnlyMemory<char> -> String
-                        Ch.Assert(colType.IsText);
+                        Ch.Assert(colType is TextType);
                         Ch.Assert(peek == null);
                         return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }

@@ -452,7 +452,7 @@ namespace Microsoft.ML.Data.Conversion
             }
             else if (typeDst is KeyType keyDst)
             {
-                if (!typeSrc.IsText)
+                if (!(typeSrc is TextType))
                     return false;
                 conv = GetKeyParse(keyDst);
                 return true;

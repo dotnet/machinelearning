@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 PrimitiveType itemType = type.ItemType as PrimitiveType;
                 Contracts.AssertValue(itemType);
-                if (itemType.IsText)
+                if (itemType is TextType)
                     return new TextImpl(sorted);
                 return Utils.MarshalInvoke(CreateCore<int>, itemType.RawType, itemType, sorted);
             }
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 var type = schema[col].Type;
                 Contracts.Assert(autoConvert || bldr.ItemType == type.ItemType);
                 // Auto conversion should only be possible when the type is text.
-                Contracts.Assert(type.IsText || !autoConvert);
+                Contracts.Assert(type is TextType || !autoConvert);
                 if (type.IsVector)
                     return Utils.MarshalInvoke(CreateVec<int>, bldr.ItemType.RawType, row, col, count, bldr);
                 return Utils.MarshalInvoke(CreateOne<int>, bldr.ItemType.RawType, row, col, autoConvert, count, bldr);
@@ -1041,7 +1041,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     if (TypedMap.Count == 0)
                         return;
-                    if (IsTextMetadata && !TypedMap.ItemType.IsText)
+                    if (IsTextMetadata && !(TypedMap.ItemType is TextType))
                     {
                         var conv = Data.Conversion.Conversions.Instance;
                         var stringMapper = conv.GetStringConversion<T>(TypedMap.ItemType);
@@ -1133,7 +1133,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             dst = editor.Commit();
                         };
 
-                    if (IsTextMetadata && !srcMetaType.IsText)
+                    if (IsTextMetadata && !(srcMetaType is TextType))
                     {
                         var stringMapper = convInst.GetStringConversion<TMeta>(srcMetaType);
                         ValueGetter<VBuffer<ReadOnlyMemory<char>>> mgetter =

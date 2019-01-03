@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public const bool UseMarkerCharacters = true;
         }
-        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType.IsText;
+        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType is TextType;
 
         internal const string ExpectedColumnType = "Text";
 

@@ -72,27 +72,11 @@ namespace Microsoft.ML.Data
         internal DataKind RawKind { get; }
 
         /// <summary>
-        /// Whether this type is the standard text type. External code should use <c>is <see cref="TextType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsText
-        {
-            get
-            {
-                if (!(this is TextType))
-                    return false;
-                // TextType is a singleton.
-                Contracts.Assert(this == TextType.Instance);
-                return true;
-            }
-        }
-
-        /// <summary>
         /// Whether this type is a standard scalar type completely determined by its <see cref="RawType"/>
         /// (not a <see cref="KeyType"/> or <see cref="StructuredType"/>, etc).
         /// </summary>
         [BestFriend]
-        internal bool IsStandardScalar => (this is NumberType)|| IsText || (this is BoolType) ||
+        internal bool IsStandardScalar => (this is NumberType)|| (this is TextType) || (this is BoolType) ||
             (this is TimeSpanType) || (this is DateTimeType) || (this is DateTimeOffsetType);
 
         /// <summary>

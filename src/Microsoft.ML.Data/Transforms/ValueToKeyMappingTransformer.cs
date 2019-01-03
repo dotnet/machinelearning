@@ -758,7 +758,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                if (!info.TypeSrc.ItemType.IsText)
+                if (!(info.TypeSrc.ItemType is TextType))
                     return false;
 
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
@@ -834,7 +834,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.AssertValue(srcToken);
                 //Contracts.Assert(CanSavePfa);
 
-                if (!info.TypeSrc.ItemType.IsText)
+                if (!(info.TypeSrc.ItemType is TextType))
                     return null;
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
                 TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;

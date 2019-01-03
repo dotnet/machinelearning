@@ -364,7 +364,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (range != null)
             {
                 itemType = TypeParsingUtils.ConstructKeyType(kind, range);
-                if (!srcType.ItemType.IsKey && !srcType.ItemType.IsText)
+                if (!srcType.ItemType.IsKey && !(srcType.ItemType is TextType))
                     return false;
             }
             else if (!(srcType.ItemType is KeyType key))

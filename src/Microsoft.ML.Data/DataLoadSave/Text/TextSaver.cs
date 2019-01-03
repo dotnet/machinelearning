@@ -90,7 +90,7 @@ namespace Microsoft.ML.Data.IO
                 Contracts.Assert(type.RawType == typeof(T));
 
                 Sep = sep;
-                if (type.IsText)
+                if (type is TextType)
                 {
                     // For text we need to deal with escaping.
                     ValueMapper<ReadOnlyMemory<char>, StringBuilder> c = MapText;
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Data.IO
                 ColumnType typeNames;
                 if (type.IsKnownSizeVector &&
                     (typeNames = cursor.Schema[source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) != null &&
-                    typeNames.VectorSize == type.VectorSize && typeNames.ItemType.IsText)
+                    typeNames.VectorSize == type.VectorSize && typeNames.ItemType is TextType)
                 {
                     cursor.Schema[source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                     Contracts.Check(_slotNames.Length == typeNames.VectorSize, "Unexpected slot names length");
@@ -407,7 +407,7 @@ namespace Microsoft.ML.Data.IO
                     if (!type.IsKnownSizeVector)
                         continue;
                     var typeNames = data.Schema[cols[i]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
-                    if (typeNames != null && typeNames.VectorSize == type.VectorSize && typeNames.ItemType.IsText)
+                    if (typeNames != null && typeNames.VectorSize == type.VectorSize && typeNames.ItemType is TextType)
                         hasHeader = true;
                 }
             }

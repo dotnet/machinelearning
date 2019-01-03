@@ -99,7 +99,7 @@ namespace Microsoft.ML.Data
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var mdType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
-            if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType.IsText)
+            if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType is TextType)
             {
                 schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labelNames);
                 names = new ReadOnlyMemory<char>[labelNames.Length];

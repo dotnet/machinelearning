@@ -283,7 +283,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         public static bool IsValidColumnType(ColumnType type)
-            => type == NumberType.R4 || type == NumberType.R8 || type.IsText;
+            => type == NumberType.R4 || type == NumberType.R8 || type is TextType;
 
         private static CountAggregator GetOneAggregator(Row row, ColumnType colType, int colSrc)
         {
