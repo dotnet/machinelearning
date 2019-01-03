@@ -136,7 +136,7 @@ namespace Microsoft.ML.Scenarios
             var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
 
             // Pipeline
-            var pipeline = new Ova(mlContext, new LinearSvm(mlContext, numIterations: 100),  useProbabilities: false);
+            var pipeline = new Ova(mlContext, new LinearSvmTrainer(mlContext, numIterations: 100),  useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
