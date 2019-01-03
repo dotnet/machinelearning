@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.StaticPipe.Runtime;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -22,6 +21,19 @@ namespace Microsoft.ML.StaticPipe
 
             AsDynamic = view;
             Shape.Check(Env, AsDynamic.Schema);
+        }
+
+        /// <summary>
+        /// This function return a <see cref="DataView{TShape}"/> whose columns are all cached in memory.
+        /// This returned <see cref="DataView{TShape}"/> is almost the same to the source <see cref="DataView{TShape}"/>.
+        /// The only difference are cache-related properties.
+        /// </summary>
+        public DataView<TShape> Cache()
+        {
+            // Generate all column indexes in the source data.
+            var prefetched = Enumerable.Range(0, AsDynamic.Schema.Count).ToArray();
+            // Create a cached version of the source data by caching all columns.
+            return new DataView<TShape>(Env, new CacheDataView(Env, AsDynamic, prefetched), Shape);
         }
     }
 

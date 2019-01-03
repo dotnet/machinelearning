@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed partial class TextLoader
     {
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             // Lines are divided into batches and processed a batch at a time. This enables
             // parallel parsing.
@@ -133,7 +132,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public static IRowCursor Create(TextLoader parent, IMultiStreamSource files, bool[] active)
+            public static RowCursor Create(TextLoader parent, IMultiStreamSource files, bool[] active)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
@@ -150,8 +149,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
 
-            public static IRowCursor[] CreateSet(out IRowCursorConsolidator consolidator,
-                TextLoader parent, IMultiStreamSource files, bool[] active, int n)
+            public static RowCursor[] CreateSet(TextLoader parent, IMultiStreamSource files, bool[] active, int n)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
@@ -166,13 +164,9 @@ namespace Microsoft.ML.Runtime.Data
                 var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
-                {
-                    consolidator = null;
-                    return new IRowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
-                }
+                    return new RowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
 
-                consolidator = new Consolidator(cthd);
-                var cursors = new IRowCursor[cthd];
+                var cursors = new RowCursor[cthd];
                 try
                 {
                     for (int i = 0; i < cursors.Length; i++)
@@ -199,13 +193,13 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)_total, 0);
+                        val = new RowId((ulong)_total, 0);
                     };
             }
 
@@ -273,18 +267,20 @@ namespace Microsoft.ML.Runtime.Data
                 return sb.ToString();
             }
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
                 if (_disposed)
                     return;
-
+                if (disposing)
+                {
+                    _ator.Dispose();
+                    _reader.Release();
+                    _stats.Release();
+                }
                 _disposed = true;
-                _ator.Dispose();
-                _reader.Release();
-                _stats.Release();
-                base.Dispose();
+                base.Dispose(disposing);
             }
 
             protected override bool MoveNextCore()
@@ -301,13 +297,13 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.Infos.Length);
                 return _active == null || _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
                 var fn = _getters[col] as ValueGetter<TValue>;
@@ -816,37 +812,6 @@ namespace Microsoft.ML.Runtime.Data
                         if (iblk >= _blockCount)
                             iblk -= _blockCount;
                         Contracts.Assert(0 <= iblk && iblk < _blockCount);
-                    }
-                }
-            }
-
-            /// <summary>
-            /// The consolidator object. This simply records the number of threads and checks
-            /// that they match at the end.
-            /// </summary>
-            private sealed class Consolidator : IRowCursorConsolidator
-            {
-                private int _cthd;
-
-                public Consolidator(int cthd)
-                {
-                    Contracts.Assert(cthd > 1);
-                    _cthd = cthd;
-                }
-
-                public IRowCursor CreateCursor(IChannelProvider provider, IRowCursor[] inputs)
-                {
-                    Contracts.AssertValue(provider);
-                    int cthd = Interlocked.Exchange(ref _cthd, 0);
-                    provider.Check(cthd > 1, "Consolidator can only be used once");
-                    provider.Check(Utils.Size(inputs) == cthd, "Unexpected number of cursors");
-
-                    // ConsolidateGeneric does all the standard validity checks: all cursors non-null,
-                    // all have the same schema, all have the same active columns, and all active
-                    // column types are cachable.
-                    using (var ch = provider.Start("Consolidator"))
-                    {
-                        return DataViewUtils.ConsolidateGeneric(provider, inputs, BatchSize);
                     }
                 }
             }

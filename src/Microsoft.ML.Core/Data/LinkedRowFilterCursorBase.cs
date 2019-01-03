@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for creating a cursor of rows that filters out some input rows.
@@ -14,12 +12,12 @@ namespace Microsoft.ML.Runtime.Data
     {
         public override long Batch => Input.Batch;
 
-        protected LinkedRowFilterCursorBase(IChannelProvider provider, IRowCursor input, Schema schema, bool[] active)
+        protected LinkedRowFilterCursorBase(IChannelProvider provider, RowCursor input, Schema schema, bool[] active)
             : base(provider, input, schema, active)
         {
         }
 
-        public override ValueGetter<UInt128> GetIdGetter()
+        public override ValueGetter<RowId> GetIdGetter()
         {
             return Input.GetIdGetter();
         }

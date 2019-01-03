@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.EntryPoints;
+using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
 {
-    public abstract class BaseSubsetSelector<TArgs> : ISubsetSelector
+    internal abstract class BaseSubsetSelector<TArgs> : ISubsetSelector
         where TArgs : BaseSubsetSelector<TArgs>.ArgumentsBase
     {
         public abstract class ArgumentsBase
@@ -52,9 +52,9 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
             ValidationDatasetProportion = validationDatasetProportion;
         }
 
-        public abstract IEnumerable<Subset> GetSubsets(Batch batch, IRandom rand);
+        public abstract IEnumerable<Subset> GetSubsets(Batch batch, Random rand);
 
-        public IEnumerable<Batch> GetBatches(IRandom rand)
+        public IEnumerable<Batch> GetBatches(Random rand)
         {
             Host.Assert(Data != null, "Must call Initialize first!");
             Host.AssertValue(rand);

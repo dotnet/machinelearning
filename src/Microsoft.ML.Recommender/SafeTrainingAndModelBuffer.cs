@@ -6,10 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Recommender.Internal
+namespace Microsoft.ML.Recommender.Internal
 {
     /// <summary>
     /// Contains mirrors of unmanaged struct import extern functions from mf.h / mf.cpp, which implements Matrix Factorization in native C++.
@@ -185,21 +185,21 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
             public float* Q;
         }
 
-        private const string DllPath = "MatrixFactorizationNative";
+        private const string NativePath = "MatrixFactorizationNative";
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern void MFDestroyModel(ref MFModel* model);
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern MFModel* MFTrain(MFProblem* prob, MFParameter* param);
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern MFModel* MFTrainWithValidation(MFProblem* tr, MFProblem* va, MFParameter* param);
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern float MFCrossValidation(MFProblem* prob, int nrFolds, MFParameter* param);
 
-        [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern float MFPredict(MFModel* model, int pIdx, int qIdx);
 
         private MFParameter _mfParam;
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
             }
         }
 
-        private MFNode[] ConstructLabeledNodesFrom(IChannel ch, ICursor cursor, ValueGetter<float> labGetter,
+        private MFNode[] ConstructLabeledNodesFrom(IChannel ch, RowCursor cursor, ValueGetter<float> labGetter,
             ValueGetter<uint> rowGetter, ValueGetter<uint> colGetter,
             int rowCount, int colCount)
         {
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
         }
 
         public unsafe void Train(IChannel ch, int rowCount, int colCount,
-            ICursor cursor, ValueGetter<float> labGetter,
+            RowCursor cursor, ValueGetter<float> labGetter,
             ValueGetter<uint> rowGetter, ValueGetter<uint> colGetter)
         {
             if (_pMFModel != null)
@@ -333,9 +333,9 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
         }
 
         public unsafe void TrainWithValidation(IChannel ch, int rowCount, int colCount,
-            ICursor cursor, ValueGetter<float> labGetter,
+            RowCursor cursor, ValueGetter<float> labGetter,
             ValueGetter<uint> rowGetter, ValueGetter<uint> colGetter,
-            ICursor validCursor, ValueGetter<float> validLabGetter,
+            RowCursor validCursor, ValueGetter<float> validLabGetter,
             ValueGetter<uint> validRowGetter, ValueGetter<uint> validColGetter)
         {
             if (_pMFModel != null)

@@ -3,22 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble;
 using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
 
 [assembly: LoadableClass(typeof(void), typeof(EnsembleCreator), null, typeof(SignatureEntryPointModule), "CreateEnsemble")]
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// A component to combine given models into an ensemble model.
@@ -47,13 +46,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public abstract class PipelineInputBase
         {
             [Argument(ArgumentType.Required, ShortName = "models", HelpText = "The models to combine into an ensemble", SortOrder = 1)]
-            public IPredictorModel[] Models;
+            public PredictorModel[] Models;
         }
 
         public abstract class InputBase
         {
             [Argument(ArgumentType.Required, ShortName = "models", HelpText = "The models to combine into an ensemble", SortOrder = 1)]
-            public IPredictorModel[] Models;
+            public PredictorModel[] Models;
 
             [Argument(ArgumentType.AtMostOnce, ShortName = "validate", HelpText = "Whether to validate that all the pipelines are identical", SortOrder = 5)]
             public bool ValidatePipelines = true;
@@ -95,7 +94,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.AssertValue(input);
             env.AssertNonEmpty(input.Models);
 
-            ISchema inputSchema = null;
+            Schema inputSchema = null;
             startingData = null;
             transformedData = null;
             byte[][] transformedDataSerialized = null;
@@ -159,7 +158,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var trainer = new EnsembleTrainer(host, args);
             var ensemble = trainer.CombineModels(input.Models.Select(pm => pm.Predictor as IPredictorProducing<float>));
 
-            var predictorModel = new PredictorModel(host, transformedData, startingData, ensemble);
+            var predictorModel = new PredictorModelImpl(host, transformedData, startingData, ensemble);
 
             var output = new CommonOutputs.BinaryClassificationOutput { PredictorModel = predictorModel };
             return output;
@@ -191,7 +190,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var trainer = new RegressionEnsembleTrainer(host, args);
             var ensemble = trainer.CombineModels(input.Models.Select(pm => pm.Predictor as IPredictorProducing<float>));
 
-            var predictorModel = new PredictorModel(host, transformedData, startingData, ensemble);
+            var predictorModel = new PredictorModelImpl(host, transformedData, startingData, ensemble);
 
             var output = new CommonOutputs.RegressionOutput { PredictorModel = predictorModel };
             return output;
@@ -299,7 +298,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return CreatePipelineEnsemble<CommonOutputs.AnomalyDetectionOutput>(host, input.Models, ensemble);
         }
 
-        private static TOut CreatePipelineEnsemble<TOut>(IHostEnvironment env, IPredictorModel[] predictors, SchemaBindablePipelineEnsembleBase ensemble)
+        private static TOut CreatePipelineEnsemble<TOut>(IHostEnvironment env, PredictorModel[] predictors, SchemaBindablePipelineEnsembleBase ensemble)
             where TOut : CommonOutputs.TrainerOutput, new()
         {
             var inputSchema = predictors[0].TransformModel.InputSchema;
@@ -307,7 +306,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // The role mappings are specific to the individual predictors.
             var rmd = new RoleMappedData(dv);
-            var predictorModel = new PredictorModel(env, rmd, dv, ensemble);
+            var predictorModel = new PredictorModelImpl(env, rmd, dv, ensemble);
 
             var output = new TOut { PredictorModel = predictorModel };
             return output;
@@ -322,7 +321,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// This method is used for comparing pipelines. Its outputs can be passed to <see cref="CheckSamePipeline"/>
         /// to check if this pipeline is identical to another pipeline.
         /// </summary>
-        public static void SerializeRoleMappedData(IHostEnvironment env, IChannel ch, RoleMappedData data,
+        private static void SerializeRoleMappedData(IHostEnvironment env, IChannel ch, RoleMappedData data,
             out byte[][] dataSerialized, out string[] dataZipEntryNames)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -356,7 +355,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// <see ref="dataZipEntryNames"/> and <see ref="dataSerialized"/>.
         /// This method throws if for any of the entries the name/byte sequence are not identical.
         /// </summary>
-        public static void CheckSamePipeline(IHostEnvironment env, IChannel ch,
+        private static void CheckSamePipeline(IHostEnvironment env, IChannel ch,
             RoleMappedData dataToCompare, byte[][] dataSerialized, string[] dataZipEntryNames)
         {
             Contracts.CheckValue(env, nameof(env));

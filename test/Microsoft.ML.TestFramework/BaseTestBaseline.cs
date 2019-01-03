@@ -2,20 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.TestFramework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.Tools;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     /// <summary>
     /// This is a base test class designed to support baseline comparison.
@@ -23,6 +23,10 @@ namespace Microsoft.ML.Runtime.RunTests
     public abstract partial class BaseTestBaseline : BaseTestClass
     {
         public const int DigitsOfPrecision = 7;
+
+        public static bool LessThanNetCore30OrNotNetCore { get; } = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? true : false;
+
+        public static bool LessThanNetCore30OrNotNetCoreAnd64BitProcess { get; } = LessThanNetCore30OrNotNetCore && Environment.Is64BitProcess;
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
@@ -100,6 +104,7 @@ namespace Microsoft.ML.Runtime.RunTests
             _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
                 .AddStandardComponents();
             ML = new MLContext(42);
+            ML.AddStandardComponents();
         }
 
         // This method is used by subclass to dispose of disposable objects
@@ -815,10 +820,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// This method is used in unit tests when the output is not baselined.
         /// If the output is to be baselined and compared, the other overload should be used.
         /// </summary>
-        protected static int MainForTest(string args)
+        protected int MainForTest(string args)
         {
-            var env = new MLContext();
-            return Maml.MainCore(env, args, false);
+            return Maml.MainCore(ML, args, false);
         }
     }
 

@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ColumnSelectingTransformer.Summary, typeof(IDataTransform), typeof(ColumnSelectingTransformer),
                 typeof(ColumnSelectingTransformer.Arguments), typeof(SignatureDataTransform),
@@ -98,14 +97,14 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!Transformer.IgnoreMissing && !ColumnSelectingTransformer.IsSchemaValid(inputSchema.Columns.Select(x => x.Name),
+            if (!Transformer.IgnoreMissing && !ColumnSelectingTransformer.IsSchemaValid(inputSchema.Select(x => x.Name),
                                                                                     Transformer.SelectColumns,
                                                                                     out IEnumerable<string> invalidColumns))
             {
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
             }
 
-            var columns = inputSchema.Columns.Where(c => _selectPredicate(c.Name));
+            var columns = inputSchema.Where(c => _selectPredicate(c.Name));
             return new SchemaShape(columns);
         }
     }
@@ -442,19 +441,19 @@ namespace Microsoft.ML.Transforms
         public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!IgnoreMissing && !IsSchemaValid(inputSchema.GetColumns().Select(x => x.column.Name),
+            if (!IgnoreMissing && !IsSchemaValid(inputSchema.Select(x => x.Name),
                                                                 SelectColumns, out IEnumerable<string> invalidColumns))
             {
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
             }
 
-            return new Mapper(this, inputSchema).Schema;
+            return new Mapper(this, inputSchema).OutputSchema;
         }
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!IgnoreMissing && !IsSchemaValid(inputSchema.GetColumns().Select(x => x.column.Name),
+            if (!IgnoreMissing && !IsSchemaValid(inputSchema.Select(x => x.Name),
                                                     SelectColumns, out IEnumerable<string> invalidColumns))
             {
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
@@ -468,7 +467,7 @@ namespace Microsoft.ML.Transforms
         public IDataView Transform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            if (!IgnoreMissing && !IsSchemaValid(input.Schema.GetColumns().Select(x => x.column.Name),
+            if (!IgnoreMissing && !IsSchemaValid(input.Schema.Select(x => x.Name),
                                                     SelectColumns, out IEnumerable<string> invalidColumns))
             {
                 throw _host.ExceptSchemaMismatch(nameof(input), "input", string.Join(",", invalidColumns));
@@ -483,9 +482,9 @@ namespace Microsoft.ML.Transforms
             private readonly Schema _inputSchema;
             private readonly int[] _outputToInputMap;
 
-            public ISchema InputSchema => _inputSchema;
+            public Schema InputSchema => _inputSchema;
 
-            public Schema Schema { get; }
+            public Schema OutputSchema { get; }
 
             public Mapper(ColumnSelectingTransformer transform, Schema inputSchema)
             {
@@ -496,7 +495,7 @@ namespace Microsoft.ML.Transforms
                                                             transform.KeepColumns,
                                                             transform.KeepHidden,
                                                             _inputSchema);
-                Schema = GenerateOutputSchema(_outputToInputMap, _inputSchema);
+                OutputSchema = GenerateOutputSchema(_outputToInputMap, _inputSchema);
             }
 
             public int GetInputIndex(int outputIndex)
@@ -511,7 +510,7 @@ namespace Microsoft.ML.Transforms
                 Schema inputSchema)
             {
                 var outputToInputMapping = new List<int>();
-                var columnCount = inputSchema.ColumnCount;
+                var columnCount = inputSchema.Count;
 
                 if (keepColumns)
                 {
@@ -523,9 +522,9 @@ namespace Microsoft.ML.Transforms
                     // column name-> list of column indices. This dictionary is used for
                     // building the final mapping.
                     var columnDict = new Dictionary<string, List<int>>();
-                    for (int colIdx = 0; colIdx < inputSchema.ColumnCount; ++colIdx)
+                    for (int colIdx = 0; colIdx < inputSchema.Count; ++colIdx)
                     {
-                        if (!keepHidden && inputSchema.IsHidden(colIdx))
+                        if (!keepHidden && inputSchema[colIdx].IsHidden)
                             continue;
 
                         var columnName = inputSchema[colIdx].Name;
@@ -559,7 +558,7 @@ namespace Microsoft.ML.Transforms
                     // given an input of ABC and dropping column B will result in AC.
                     // In drop mode, we drop all columns with the specified names and keep all the rest,
                     // ignoring the keepHidden argument.
-                    for(int colIdx = 0; colIdx < inputSchema.ColumnCount; colIdx++)
+                    for(int colIdx = 0; colIdx < inputSchema.Count; colIdx++)
                     {
                         if (selectedColumns.Contains(inputSchema[colIdx].Name))
                             continue;
@@ -579,32 +578,24 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private sealed class Row : IRow
+        private sealed class RowImpl : WrappingRow
         {
             private readonly Mapper _mapper;
-            private readonly IRow _input;
-            public Row(IRow input, Mapper mapper)
+            public RowImpl(Row input, Mapper mapper)
+                : base(input)
             {
                 _mapper = mapper;
-                _input = input;
             }
 
-            public long Position => _input.Position;
+            public override Schema Schema => _mapper.OutputSchema;
 
-            public long Batch => _input.Batch;
-
-            Schema ISchematized.Schema => _mapper.Schema;
-
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 int index = _mapper.GetInputIndex(col);
-                return _input.GetGetter<TValue>(index);
+                return Input.GetGetter<TValue>(index);
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
-                => _input.GetIdGetter();
-
-            public bool IsColumnActive(int col) => true;
+            public override bool IsColumnActive(int col) => true;
         }
 
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate
@@ -625,13 +616,15 @@ namespace Microsoft.ML.Transforms
 
             public IDataView Source { get; }
 
-            Schema IRowToRowMapper.InputSchema => Source.Schema;
+            public Schema InputSchema => Source.Schema;
 
-            Schema ISchematized.Schema => _mapper.Schema;
+            Schema IDataView.Schema => OutputSchema;
+
+            public Schema OutputSchema => _mapper.OutputSchema;
 
             public long? GetRowCount() => Source.GetRowCount();
 
-            public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
             {
                 _host.AssertValue(needCol, nameof(needCol));
                 _host.AssertValueOrNull(rand);
@@ -641,29 +634,27 @@ namespace Microsoft.ML.Transforms
                 var inputRowCursor = Source.GetRowCursor(inputPred, rand);
 
                 // Build the active state for the output
-                var active = Utils.BuildArray(_mapper.Schema.ColumnCount, needCol);
-                return new RowCursor(_host, _mapper, inputRowCursor, active);
+                var active = Utils.BuildArray(_mapper.OutputSchema.Count, needCol);
+                return new Cursor(_host, _mapper, inputRowCursor, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, IRandom rand = null)
+            public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
             {
                 _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
 
                 // Build out the active state for the input
                 var inputPred = GetDependencies(needCol);
-                var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+                var inputs = Source.GetRowCursorSet(inputPred, n, rand);
 
                 // Build out the acitve state for the output
-                var active = Utils.BuildArray(_mapper.Schema.ColumnCount, needCol);
+                var active = Utils.BuildArray(_mapper.OutputSchema.Count, needCol);
                 _host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
-                var cursors = new IRowCursor[inputs.Length];
+                var cursors = new RowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
-                {
-                    cursors[i] = new RowCursor(_host, _mapper, inputs[i], active);
-                }
+                    cursors[i] = new Cursor(_host, _mapper, inputs[i], active);
                 return cursors;
             }
 
@@ -671,8 +662,8 @@ namespace Microsoft.ML.Transforms
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                var active = new bool[_mapper.InputSchema.ColumnCount];
-                var columnCount = _mapper.Schema.ColumnCount;
+                var active = new bool[_mapper.InputSchema.Count];
+                var columnCount = _mapper.OutputSchema.Count;
                 for (int colIdx = 0; colIdx < columnCount; ++colIdx)
                 {
                     if (activeOutput(colIdx))
@@ -682,22 +673,21 @@ namespace Microsoft.ML.Transforms
                 return col => active[col];
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active)
             {
-                disposer = null;
-                return new Row(input, _mapper);
+                return new RowImpl(input, _mapper);
             }
 
             public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
                 => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Mapper _mapper;
-            private readonly IRowCursor _inputCursor;
+            private readonly RowCursor _inputCursor;
             private readonly bool[] _active;
-            public RowCursor(IChannelProvider provider, Mapper mapper, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Mapper mapper, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 _mapper = mapper;
@@ -705,15 +695,15 @@ namespace Microsoft.ML.Transforms
                 _active = active;
             }
 
-            Schema ISchematized.Schema => _mapper.Schema;
+            public override Schema Schema => _mapper.OutputSchema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 int index = _mapper.GetInputIndex(col);
                 return _inputCursor.GetGetter<TValue>(index);
             }
 
-            public bool IsColumnActive(int col) => _active[col];
+            public override bool IsColumnActive(int col) => _active[col];
         }
     }
 }

@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.FeatureSelection;
 
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Transforms
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = CountFeatureSelectingEstimator.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByMutualInformation",
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Transforms
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = MutualInformationFeatureSelectingEstimator.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

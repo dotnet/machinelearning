@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var ml = new MLContext(seed: 1, conc: 1);
 
             // Pipeline.
-            var pipeline = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
+            var pipeline = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features"))
                 .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
 

@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Calibrator;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Model.Onnx
+namespace Microsoft.ML.Model.Onnx
 {
     [BestFriend]
     internal interface ICanSaveOnnx
@@ -68,7 +69,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
     /// <summary>
     /// For simple mappers. Intended to be used for <see cref="IValueMapper"/> and
-    /// <see cref="Microsoft.ML.Runtime.Internal.Calibration.ICalibrator"/> instances.
+    /// <see cref="ICalibrator"/> instances.
     /// </summary>
     [BestFriend]
     internal interface ISingleCanSaveOnnx : ICanSaveOnnx

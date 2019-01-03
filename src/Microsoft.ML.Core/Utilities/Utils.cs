@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
 
     [BestFriend]
@@ -218,10 +216,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// In case of duplicates it returns the index of the first one.
         /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
         /// </summary>
-        public static int FindIndexSorted(this Single[] input, Single value)
+        public static int FindIndexSorted(this IList<float> input, float value)
         {
             Contracts.AssertValue(input);
-            return FindIndexSorted(input, 0, input.Length, value);
+            return FindIndexSorted(input, 0, input.Count, value);
         }
 
         /// <summary>
@@ -342,11 +340,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// In case of duplicates it returns the index of the first one.
         /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
         /// </summary>
-        public static int FindIndexSorted(this Single[] input, int min, int lim, Single value)
+        public static int FindIndexSorted(this IList<float> input, int min, int lim, float value)
         {
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
-            Contracts.Assert(!Single.IsNaN(value));
+            Contracts.Assert(0 <= min & min <= lim & lim <= input.Count);
+            Contracts.Assert(!float.IsNaN(value));
 
             int minCur = min;
             int limCur = lim;
@@ -354,7 +352,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 int mid = (int)(((uint)minCur + (uint)limCur) / 2);
                 Contracts.Assert(minCur <= mid & mid < limCur);
-                Contracts.Assert(!Single.IsNaN(input[mid]));
+                Contracts.Assert(!float.IsNaN(input[mid]));
 
                 if (input[mid] >= value)
                     limCur = mid;
@@ -530,54 +528,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.Assert(size >= 0);
 
             var res = GetIdentityPermutation(size);
-            Shuffle(rand, res);
+            Shuffle<int>(rand, res);
             return res;
-        }
-
-        public static int[] GetRandomPermutation(IRandom rand, int size)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.Assert(size >= 0);
-
-            var res = GetIdentityPermutation(size);
-            Shuffle(rand, res);
-            return res;
-        }
-
-        public static void Shuffle<T>(IRandom rand, T[] rgv)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-
-            Shuffle(rand, rgv, 0, rgv.Length);
-        }
-
-        public static void Shuffle<T>(Random rand, T[] rgv)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-
-            Shuffle(rand, rgv, 0, rgv.Length);
-        }
-
-        public static void Shuffle<T>(IRandom rand, T[] rgv, int min, int lim)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-            Contracts.Check(0 <= min & min <= lim & lim <= rgv.Length);
-
-            for (int iv = min; iv < lim; iv++)
-                Swap(ref rgv[iv], ref rgv[iv + rand.Next(lim - iv)]);
-        }
-
-        public static void Shuffle<T>(Random rand, T[] rgv, int min, int lim)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-            Contracts.Check(0 <= min & min <= lim & lim <= rgv.Length);
-
-            for (int iv = min; iv < lim; iv++)
-                Swap(ref rgv[iv], ref rgv[iv + rand.Next(lim - iv)]);
         }
 
         public static bool AreEqual(Single[] arr1, Single[] arr2)
@@ -612,6 +564,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     return false;
             }
             return true;
+        }
+
+        public static void Shuffle<T>(Random rand, Span<T> rgv)
+        {
+            Contracts.AssertValue(rand);
+
+            for (int iv = 0; iv < rgv.Length; iv++)
+                Swap(ref rgv[iv], ref rgv[iv + rand.Next(rgv.Length - iv)]);
         }
 
         public static bool AreEqual(int[] arr1, int[] arr2)
@@ -653,14 +613,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return Regex.Replace(value, "[^A-Za-z0-9]", "");
         }
 
-        public static bool IsSorted(Float[] values)
+        public static bool IsSorted(IList<float> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
             var prev = values[0];
 
-            for (int i = 1; i < values.Length; i++)
+            for (int i = 1; i < values.Count; i++)
             {
                 if (!(values[i] >= prev))
                     return false;
@@ -1102,6 +1062,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
             meth.Invoke(act.Target, new object[] { arg1, arg2, arg3 });
+        }
+
+        /// <summary>
+        /// A four-argument version of <see cref="MarshalActionInvoke(Action, Type)"/>.
+        /// </summary>
+        public static void MarshalActionInvoke<TArg1, TArg2, TArg3, TArg4>(Action<TArg1, TArg2, TArg3, TArg4> act, Type genArg, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4)
+        {
+            var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
+            meth.Invoke(act.Target, new object[] { arg1, arg2, arg3, arg4 });
         }
 
         public static string GetDescription(this Enum value)

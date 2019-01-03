@@ -7,15 +7,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Data.Utilities;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Data.Utilities;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(PartitionedFileLoader.Summary, typeof(PartitionedFileLoader), typeof(PartitionedFileLoader.Arguments), typeof(SignatureDataLoader),
     PartitionedFileLoader.UserName, PartitionedFileLoader.LoadName, PartitionedFileLoader.ShortName)]
@@ -23,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(PartitionedFileLoader.Summary, typeof(PartitionedFileLoader), null, typeof(SignatureLoadDataLoader),
     PartitionedFileLoader.UserName, PartitionedFileLoader.LoadName, PartitionedFileLoader.ShortName)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a set of directory partitioned files into an IDataView.
@@ -293,16 +292,15 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             return new Cursor(_host, this, _files, needCol, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, IRandom rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
         {
-            consolidator = null;
             var cursor = new Cursor(_host, this, _files, needCol, rand);
-            return new IRowCursor[] { cursor };
+            return new RowCursor[] { cursor };
         }
 
         /// <summary>
@@ -329,7 +327,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                var schemas = new ISchema[]
+                var schemas = new Schema[]
                 {
                     subSchema,
                     colSchema
@@ -362,7 +360,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private PartitionedFileLoader _parent;
 
@@ -372,11 +370,11 @@ namespace Microsoft.ML.Runtime.Data
             private Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
             private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
-            private IRowCursor _subCursor; // Sub cursor of the current file.
+            private RowCursor _subCursor; // Sub cursor of the current file.
 
             private IEnumerator<int> _fileOrder;
 
-            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, Func<int, bool> predicate, IRandom rand)
+            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, Func<int, bool> predicate, Random rand)
                 : base(provider)
             {
                 Contracts.AssertValue(parent);
@@ -397,9 +395,9 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch => 0;
 
-            public Schema Schema => _parent.Schema;
+            public override Schema Schema => _parent.Schema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -412,18 +410,18 @@ namespace Microsoft.ML.Runtime.Data
                 return getter;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
 
-                        val = new UInt128(0, (ulong)Position);
+                        val = new RowId(0, (ulong)Position);
                     };
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < Schema.Count);
                 return _active[col];
@@ -526,7 +524,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (_subActive[i])
                     {
-                        var type = _subCursor.Schema.GetColumnType(i);
+                        var type = _subCursor.Schema[i].Type;
                         _subGetters[i] = MarshalGetter(_subCursor.GetGetter<int>, type.RawType, i);
                     }
                 }
@@ -561,7 +559,7 @@ namespace Microsoft.ML.Runtime.Data
                         continue;
                     }
 
-                    var type = Schema.GetColumnType(i);
+                    var type = Schema[i].Type;
 
                     // Use sub-cursor for all sub-columns.
                     if (IsSubColumn(i))
@@ -624,7 +622,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private int SubColumnCount => Schema.Count - _parent._srcDirIndex.Length;
 
-            private IEnumerable<int> CreateFileOrder(IRandom rand)
+            private IEnumerable<int> CreateFileOrder(Random rand)
             {
                 if (rand == null)
                 {
@@ -636,18 +634,18 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private bool SchemasMatch(ISchema schema1, ISchema schema2)
+            private bool SchemasMatch(Schema schema1, Schema schema2)
             {
-                if (schema1.ColumnCount != schema2.ColumnCount)
+                if (schema1.Count != schema2.Count)
                 {
                     return false;
                 }
 
-                int colLim = schema1.ColumnCount;
+                int colLim = schema1.Count;
                 for (int col = 0; col < colLim; col++)
                 {
-                    var type1 = schema1.GetColumnType(col);
-                    var type2 = schema2.GetColumnType(col);
+                    var type1 = schema1[col].Type;
+                    var type2 = schema2[col].Type;
                     if (!type1.Equals(type2))
                     {
                         return false;

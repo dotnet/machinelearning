@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using BenchmarkDotNet.Extensions;
+using System;
+using System.IO;
+using System.Linq;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
-using System;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace Microsoft.ML.Benchmarks.Harness
 {

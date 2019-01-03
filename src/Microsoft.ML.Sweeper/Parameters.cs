@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Sweeper;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(LongValueGenerator), typeof(LongParamArguments), typeof(SignatureSweeperParameter),
     "Long parameter", "lp")]
@@ -21,7 +20,7 @@ using Microsoft.ML.Runtime.Sweeper;
 [assembly: LoadableClass(typeof(DiscreteValueGenerator), typeof(DiscreteParamArguments), typeof(SignatureSweeperParameter),
     "Discrete parameter", "dp")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     public delegate void SignatureSweeperParameter();
 
@@ -620,7 +619,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 long max;
                 if (!long.TryParse(minStr, out min) || !long.TryParse(maxStr, out max))
                     return false;
-                var generatorArgs = new Microsoft.ML.Runtime.Sweeper.LongParamArguments();
+                var generatorArgs = new Microsoft.ML.Sweeper.LongParamArguments();
                 generatorArgs.Name = paramName;
                 generatorArgs.Min = min;
                 generatorArgs.Max = max;

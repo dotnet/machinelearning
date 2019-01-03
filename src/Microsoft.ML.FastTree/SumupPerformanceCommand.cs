@@ -12,19 +12,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 [assembly: LoadableClass(typeof(SumupPerformanceCommand), typeof(SumupPerformanceCommand.Arguments), typeof(SignatureCommand),
     "", "FastTreeSumupPerformance", "ftsumup")]
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    using Stopwatch = System.Diagnostics.Stopwatch;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
     /// <summary>
     /// This is an internal utility command to measure the performance of the IntArray sumup operation.
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private IEnumerator<double> Geometric(double p, IRandom rgen)
+        private IEnumerator<double> Geometric(double p, Random rgen)
         {
             double denom = Math.Log(1 - p);
 
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private IEnumerable<int> CreateDocIndicesCore(double sparsity, IRandom rgen)
+        private IEnumerable<int> CreateDocIndicesCore(double sparsity, Random rgen)
         {
             _host.Assert(0 < sparsity && sparsity < 1);
             int remaining = _len;
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        private IEnumerable<int> CreateDocIndices(double sparsity, IRandom rgen)
+        private IEnumerable<int> CreateDocIndices(double sparsity, Random rgen)
         {
             _host.Assert(0 <= sparsity && sparsity <= 1);
             if (sparsity == 1)
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return CreateDocIndicesCore(sparsity, rgen);
         }
 
-        private void InitSumupInputData(SumupInputData data, double sparsity, IRandom rgen)
+        private void InitSumupInputData(SumupInputData data, double sparsity, Random rgen)
         {
             int count = 0;
             foreach (int d in CreateDocIndices(sparsity, rgen))

@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Model;
+using Microsoft.ML.OnnxTransform.StaticPipe;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Tools;
+using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -44,15 +46,29 @@ namespace Microsoft.ML.Tests
             [VectorType(2)]
             public float[] data_0;
         }
+
         private class TestDataXY
         {
             [VectorType(inputSize)]
             public float[] A;
         }
+
         private class TestDataDifferntType
         {
             [VectorType(inputSize)]
             public string[] data_0;
+        }
+
+        private class TestDataUnknownDimensions
+        {
+            [VectorType(3)]
+            public float[] input;
+        }
+
+        class PredictionUnknownDimensions
+        {
+            [VectorType(1)]
+            public long[] argmax { get; set; }
         }
 
         private float[] GetSampleArrayData()
@@ -209,7 +225,7 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(1000, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 
@@ -243,7 +259,7 @@ namespace Microsoft.ML.Tests
                     }
                     });
 
-                var onnx = OnnxTransform.Create(env, dataView, modelFile,
+                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
                     new[] { "data_0" },
                     new[] { "softmaxout_1" });
 
@@ -281,7 +297,7 @@ namespace Microsoft.ML.Tests
                     }
                     });
 
-                var onnx = OnnxTransform.Create(env, dataView, modelFile,
+                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
                     new[] { "ina", "inb" },
                     new[] { "outa", "outb" });
 
@@ -298,11 +314,39 @@ namespace Microsoft.ML.Tests
                     {
                         getScoresa(ref buffera);
                         getScoresb(ref bufferb);
-                        Console.WriteLine(buffera.GetValues().ToArray());
                         Assert.Equal(5, buffera.Length);
+                        Assert.Equal(5, bufferb.Length);
+                        Assert.Equal(0, buffera.GetValues().ToArray().Sum());
+                        Assert.Equal(30, bufferb.GetValues().ToArray().Sum());
                     }
                 }
             }
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        public void TestUnknownDimensions()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
+            // model contains -1 in input and output shape dimensions
+            // model: input dims = [-1, 3], output argmax dims = [-1]
+            var modelFile = @"unknowndimensions/test_unknowndimensions_float.onnx";
+            var mlContext = new MLContext();
+            var data = new TestDataUnknownDimensions[] 
+                {
+                    new TestDataUnknownDimensions(){input = new float[] {1.1f, 1.3f, 1.2f }},
+                    new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, -1.2f }},
+                    new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, 1.2f }},
+                };
+            var idv = mlContext.CreateStreamingDataView(data);
+            var pipeline = new OnnxScoringEstimator(mlContext, modelFile);   
+            var transformedValues = pipeline.Fit(idv).Transform(idv);
+            var predictions = transformedValues.AsEnumerable<PredictionUnknownDimensions>(mlContext, reuseRowObject: false).ToArray();
+
+            Assert.Equal(1, predictions[0].argmax[0]);
+            Assert.Equal(0, predictions[1].argmax[0]);
+            Assert.Equal(2, predictions[2].argmax[0]);
         }
     }
 }

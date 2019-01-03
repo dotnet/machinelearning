@@ -7,12 +7,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This is the abstract base class for all types in the <see cref="IDataView"/> type system.
@@ -81,12 +80,6 @@ namespace Microsoft.ML.Runtime.Data
         internal bool IsPrimitive { get; }
 
         /// <summary>
-        /// Equivalent to <c>as <see cref="PrimitiveType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal PrimitiveType AsPrimitive => IsPrimitive ? (PrimitiveType)this : null;
-
-        /// <summary>
         /// Whether this type is a standard numeric type. External code should use <c>is <see cref="NumberType"/></c>.
         /// </summary>
         [BestFriend]
@@ -141,12 +134,6 @@ namespace Microsoft.ML.Runtime.Data
         internal bool IsKey { get; }
 
         /// <summary>
-        /// Equivalent to <c>as <see cref="KeyType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal KeyType AsKey => IsKey ? (KeyType)this : null;
-
-        /// <summary>
         /// Zero return means either it's not a key type or the cardinality is unknown. External code should first
         /// test whether this is of type <see cref="KeyType"/>, then if so get the <see cref="KeyType.Count"/> property
         /// from that.
@@ -165,12 +152,6 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         [BestFriend]
         internal bool IsVector { get; }
-
-        /// <summary>
-        /// Equivalent to <c>as <see cref="VectorType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal VectorType AsVector => IsVector ? (VectorType)this : null;
 
         /// <summary>
         /// For non-vector types, this returns the column type itself (i.e., return <c>this</c>).
@@ -766,8 +747,7 @@ namespace Microsoft.ML.Runtime.Data
             if (other == this)
                 return true;
 
-            var tmp = other as KeyType;
-            if (tmp == null)
+            if (!(other is KeyType tmp))
                 return false;
             if (RawKind != tmp.RawKind)
                 return false;

@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Runtime.RunTests
+using System;
+using Microsoft.ML.Data;
+
+namespace Microsoft.ML.RunTests
 {
     public class TestDataset
     {
@@ -19,6 +22,7 @@ namespace Microsoft.ML.Runtime.RunTests
         // REVIEW: Remove the three above setting strings once conversion work is complete.
         public string loaderSettings;
         public string[] mamlExtraSettings;
+        public Func<TextLoader.Column[]> GetLoaderColumns;
 
         public TestDataset Clone()
         {
@@ -133,6 +137,15 @@ namespace Microsoft.ML.Runtime.RunTests
             loaderSettings = "xf=expr{col=Features expr=x:float(x>4?1:0)}"
         };
 
+        // The data set contains images of hand-written digits.
+        // The input is given in the form of matrix id 8x8 where
+        // each element is an integer in the range 0..16
+        public static TestDataset Digits = new TestDataset
+        {
+            name = "Digits",
+            trainFilename = @"external/digits.csv",
+        };
+
         public static TestDataset vw = new TestDataset
         {
             name = "vw",
@@ -175,7 +188,15 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             name = "sentiment",
             trainFilename = "wikipedia-detox-250-line-data.tsv",
-            testFilename = "wikipedia-detox-250-line-test.tsv"
+            testFilename = "wikipedia-detox-250-line-test.tsv",
+            GetLoaderColumns = () =>
+             {
+                 return new[]
+                 {
+                    new TextLoader.Column("Label", DataKind.BL, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                 };
+             }
         };
 
         public static TestDataset generatedRegressionDataset = new TestDataset
@@ -355,7 +376,18 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             name = "iris",
             trainFilename = @"iris.data",
-            loaderSettings = "loader=Text{col=Label:TX:4 col=Features:0-3}"
+            loaderSettings = "loader=Text{col=Label:TX:4 col=Features:0-3}",
+            GetLoaderColumns = () =>
+            {
+                return new[]
+                {
+                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
+                    new TextLoader.Column("PetalWidth",DataKind.R4, 3),
+                    new TextLoader.Column("Label", DataKind.Text, 4)
+                };
+            }
         };
 
         public static TestDataset irisLabelName = new TestDataset()

@@ -5,13 +5,11 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Data.IO.Zlib;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data.IO.Zlib;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     /// <summary>
     /// A code indicating the kind of compression. It is supposed that each kind of compression is totally

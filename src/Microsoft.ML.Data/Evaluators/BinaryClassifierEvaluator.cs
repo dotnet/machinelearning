@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(BinaryClassifierEvaluator), typeof(BinaryClassifierEvaluator), typeof(BinaryClassifierEvaluator.Arguments), typeof(SignatureEvaluator),
     "Binary Classifier Evaluator", BinaryClassifierEvaluator.LoadName, "BinaryClassifier", "Binary", "bin")]
@@ -26,7 +25,7 @@ using System.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(Evaluate), null, typeof(SignatureEntryPointModule), "Evaluators")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed class BinaryClassifierEvaluator : RowToRowEvaluatorBase<BinaryClassifierEvaluator.Aggregator>
     {
@@ -123,39 +122,39 @@ namespace Microsoft.ML.Runtime.Data
             _auPrcCount = args.NumAuPrcExamples;
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var host = Host.SchemaSensitive();
             var t = score.Type;
             if (t.IsVector || t.ItemType != NumberType.Float)
-                throw host.SchemaSensitive().Except("Score column '{0}' has type '{1}' but must be R4", score, t);
-            host.Check(schema.Label != null, "Could not find the label column");
-            t = schema.Label.Type;
+                throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4", t.ToString());
+            host.Check(schema.Label.HasValue, "Could not find the label column");
+            t = schema.Label.Value.Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.KeyCount != 2)
-                throw host.SchemaSensitive().Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", schema.Label.Name, t);
+                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "R4, R8, BL or a 2-value key", t.ToString());
         }
 
-        protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
+        private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
             var prob = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
             var host = Host.SchemaSensitive();
             if (prob != null)
             {
-                host.Check(prob.Count == 1, "Cannot have multiple probability columns");
+                host.CheckParam(prob.Count == 1, nameof(schema), "Cannot have multiple probability columns");
                 var probType = prob[0].Type;
                 if (probType != NumberType.Float)
-                    throw host.SchemaSensitive().Except("Probability column '{0}' has type '{1}' but must be R4", prob[0].Name, probType);
+                    throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "R4", probType.ToString());
             }
             else if (!_useRaw)
             {
-                throw host.Except(
+                throw host.ExceptParam(nameof(schema),
                     "Cannot compute the predicted label from the probability column because it does not exist");
             }
         }
 
         // Add also the probability column.
-        protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
+        private protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var pred = base.GetActiveColsCore(schema);
             var prob = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
@@ -163,7 +162,7 @@ namespace Microsoft.ML.Runtime.Data
             return i => Utils.Size(prob) > 0 && i == prob[0].Index || pred(i);
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var classNames = GetClassNames(schema);
             return new Aggregator(Host, classNames, schema.Weight != null, _aucCount, _auPrcCount, _threshold, _useRaw, _prCount, stratName);
@@ -172,13 +171,13 @@ namespace Microsoft.ML.Runtime.Data
         private ReadOnlyMemory<char>[] GetClassNames(RoleMappedSchema schema)
         {
             // Get the label names if they exist, or use the default names.
-            ColumnType type;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
-            if (schema.Label.Type.IsKey &&
-                (type = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, schema.Label.Index)) != null &&
-                type.ItemType.IsKnownSizeVector && type.ItemType.IsText)
+            var labelCol = schema.Label.Value;
+            if (labelCol.Type is KeyType &&
+                labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type is VectorType vecType &&
+                vecType.Size > 0 && vecType.ItemType == TextType.Instance)
             {
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, schema.Label.Index, ref labelNames);
+                labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
             }
             else
                 labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });
@@ -188,16 +187,15 @@ namespace Microsoft.ML.Runtime.Data
             return names;
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Contracts.AssertValue(scoreInfo);
 
             var probInfos = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
             var probCol = Utils.Size(probInfos) > 0 ? probInfos[0].Name : null;
-            return new BinaryPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, probCol, schema.Label.Name, _threshold, _useRaw);
+            return new BinaryPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, probCol, schema.Label.Value.Name, _threshold, _useRaw);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -215,7 +213,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("AUPRC", AuPrc);
         }
 
-        protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
+        private protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
@@ -609,14 +607,14 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
-                Host.AssertValue(schema.Label);
+                Host.Assert(schema.Label.HasValue);
                 Host.Assert(PassNum < 1);
 
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Index);
+                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<Single>(score.Index);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
@@ -631,7 +629,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 Host.Assert((schema.Weight != null) == Weighted);
                 if (Weighted)
-                    _weightGetter = row.GetGetter<Single>(schema.Weight.Index);
+                    _weightGetter = row.GetGetter<Single>(schema.Weight.Value.Index);
             }
 
             public override void ProcessRow()
@@ -791,155 +789,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Evaluation results for binary classifiers, excluding probabilistic metrics.
-        /// </summary>
-        public class Result
-        {
-            /// <summary>
-            /// Gets the area under the ROC curve.
-            /// </summary>
-            /// <remarks>
-            /// The area under the ROC curve is equal to the probability that the classifier ranks
-            /// a randomly chosen positive instance higher than a randomly chosen negative one
-            /// (assuming 'positive' ranks higher than 'negative').
-            /// </remarks>
-            public double Auc { get; }
-
-            /// <summary>
-            /// Gets the accuracy of a classifier which is the proportion of correct predictions in the test set.
-            /// </summary>
-            public double Accuracy { get; }
-
-            /// <summary>
-            /// Gets the positive precision of a classifier which is the proportion of correctly predicted
-            /// positive instances among all the positive predictions (i.e., the number of positive instances
-            /// predicted as positive, divided by the total number of instances predicted as positive).
-            /// </summary>
-            public double PositivePrecision { get; }
-
-            /// <summary>
-            /// Gets the positive recall of a classifier which is the proportion of correctly predicted
-            /// positive instances among all the positive instances (i.e., the number of positive instances
-            /// predicted as positive, divided by the total number of positive instances).
-            /// </summary>
-            public double PositiveRecall { get; private set; }
-
-            /// <summary>
-            /// Gets the negative precision of a classifier which is the proportion of correctly predicted
-            /// negative instances among all the negative predictions (i.e., the number of negative instances
-            /// predicted as negative, divided by the total number of instances predicted as negative).
-            /// </summary>
-            public double NegativePrecision { get; }
-
-            /// <summary>
-            /// Gets the negative recall of a classifier which is the proportion of correctly predicted
-            /// negative instances among all the negative instances (i.e., the number of negative instances
-            /// predicted as negative, divided by the total number of negative instances).
-            /// </summary>
-            public double NegativeRecall { get; }
-
-            /// <summary>
-            /// Gets the F1 score of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// F1 score is the harmonic mean of precision and recall: 2 * precision * recall / (precision + recall).
-            /// </remarks>
-            public double F1Score { get; }
-
-            /// <summary>
-            /// Gets the area under the precision/recall curve of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// The area under the precision/recall curve is a single number summary of the information in the
-            /// precision/recall curve. It is increasingly used in the machine learning community, particularly
-            /// for imbalanced datasets where one class is observed more frequently than the other. On these
-            /// datasets, AUPRC can highlight performance differences that are lost with AUC.
-            /// </remarks>
-            public double Auprc { get; }
-
-            protected private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
-            {
-                if (!row.Schema.TryGetColumnIndex(name, out int col))
-                    throw ectx.Except($"Could not find column '{name}'");
-                T val = default;
-                row.GetGetter<T>(col)(ref val);
-                return val;
-            }
-
-            internal Result(IExceptionContext ectx, IRow overallResult)
-            {
-                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-                Auc = Fetch(BinaryClassifierEvaluator.Auc);
-                Accuracy = Fetch(BinaryClassifierEvaluator.Accuracy);
-                PositivePrecision = Fetch(BinaryClassifierEvaluator.PosPrecName);
-                PositiveRecall = Fetch(BinaryClassifierEvaluator.PosRecallName);
-                NegativePrecision = Fetch(BinaryClassifierEvaluator.NegPrecName);
-                NegativeRecall = Fetch(BinaryClassifierEvaluator.NegRecallName);
-                F1Score = Fetch(BinaryClassifierEvaluator.F1);
-                Auprc = Fetch(BinaryClassifierEvaluator.AuPrc);
-            }
-
-            [BestFriend]
-            internal Result(double auc, double accuracy, double positivePrecision, double positiveRecall,
-                double negativePrecision, double negativeRecall, double f1Score, double auprc)
-            {
-                Auc = auc;
-                Accuracy = accuracy;
-                PositivePrecision = positivePrecision;
-                PositiveRecall = positiveRecall;
-                NegativePrecision = negativePrecision;
-                NegativeRecall = negativeRecall;
-                F1Score = f1Score;
-                Auprc = auprc;
-            }
-        }
-
-        /// <summary>
-        /// Evaluation results for binary classifiers, including probabilistic metrics.
-        /// </summary>
-        public sealed class CalibratedResult : Result
-        {
-            /// <summary>
-            /// Gets the log-loss of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// The log-loss metric, is computed as follows:
-            /// LL = - (1/m) * sum( log(p[i]))
-            /// where m is the number of instances in the test set.
-            /// p[i] is the probability returned by the classifier if the instance belongs to class 1,
-            /// and 1 minus the probability returned by the classifier if the instance belongs to class 0.
-            /// </remarks>
-            public double LogLoss { get; }
-
-            /// <summary>
-            /// Gets the log-loss reduction (also known as relative log-loss, or reduction in information gain - RIG)
-            /// of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
-            /// (LL(prior) - LL(classifier)) / LL(prior)
-            /// This metric can be interpreted as the advantage of the classifier over a random prediction.
-            /// For example, if the RIG equals 20, it can be interpreted as &quot;the probability of a correct prediction is
-            /// 20% better than random guessing.&quot;
-            /// </remarks>
-            public double LogLossReduction { get; }
-
-            /// <summary>
-            /// Gets the test-set entropy (prior Log-Loss/instance) of the classifier.
-            /// </summary>
-            public double Entropy { get; }
-
-            internal CalibratedResult(IExceptionContext ectx, IRow overallResult)
-                : base(ectx, overallResult)
-            {
-                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-                LogLoss = Fetch(BinaryClassifierEvaluator.LogLoss);
-                LogLossReduction = Fetch(BinaryClassifierEvaluator.LogLossReduction);
-                Entropy = Fetch(BinaryClassifierEvaluator.Entropy);
-            }
-        }
-
-        /// <summary>
         /// Evaluates scored binary classification data.
         /// </summary>
         /// <param name="data">The scored data.</param>
@@ -948,7 +797,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public CalibratedResult Evaluate(IDataView data, string label, string score, string probability, string predictedLabel)
+        public CalibratedBinaryClassificationMetrics Evaluate(IDataView data, string label, string score, string probability, string predictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -962,16 +811,16 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probability),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            CalibratedResult result;
+            CalibratedBinaryClassificationMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new CalibratedResult(Host, cursor);
+                result = new CalibratedBinaryClassificationMetrics(Host, cursor);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -987,7 +836,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
         /// <seealso cref="Evaluate(IDataView, string, string, string)"/>
-        public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
+        public BinaryClassificationMetrics Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -999,16 +848,16 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            Result result;
+            BinaryClassificationMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new Result(Host, cursor);
+                result = new BinaryClassificationMetrics(Host, cursor);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -1042,7 +891,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool _useRaw;
         private readonly ColumnType[] _types;
 
-        public BinaryPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
+        public BinaryPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
             : base(env, schema, scoreCol, labelCol)
         {
             _threshold = threshold;
@@ -1062,7 +911,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             // *** Binary format **
@@ -1088,7 +937,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1117,7 +966,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.WriteBoolByte(_useRaw);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             if (_probIndex >= 0)
             {
@@ -1130,7 +979,7 @@ namespace Microsoft.ML.Runtime.Data
             return col => activeOutput(AssignedCol) && col == ScoreIndex;
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);
@@ -1228,7 +1077,7 @@ namespace Microsoft.ML.Runtime.Data
             return Single.IsNaN(val) ? false : val > _threshold;
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             if (_probIndex >= 0)
             {
@@ -1240,24 +1089,24 @@ namespace Microsoft.ML.Runtime.Data
             return new[] { new Schema.DetachedColumn(Assigned, _types[AssignedCol], null), };
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertValueOrNull(_probCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(LabelIndex);
+            var t = schema[(int) LabelIndex].Type;
             if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.KeyCount != 2)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", LabelCol, t);
 
-            t = schema.GetColumnType(ScoreIndex);
+            t = schema[ScoreIndex].Type;
             if (t.IsVector || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", ScoreCol, t);
 
             if (_probIndex >= 0)
             {
                 Host.Assert(!string.IsNullOrEmpty(_probCol));
-                t = schema.GetColumnType(_probIndex);
+                t = schema[_probIndex].Type;
                 if (t.IsVector || t.ItemType != NumberType.Float)
                     throw Host.Except("Probability column '{0}' has type '{1}' but must be R4", _probCol, t);
             }
@@ -1301,7 +1150,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly string _prFileName;
         private readonly string _probCol;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public BinaryClassifierMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.BinaryClassification, "BinaryClassifierMamlEvaluator")
@@ -1321,22 +1170,22 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new BinaryClassifierEvaluator(Host, evalArgs);
         }
 
-        protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
+        private protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
         {
             var cols = base.GetInputColumnRolesCore(schema);
 
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
 
             // Get the optional probability column.
-            var probInfo = EvaluateUtils.GetOptAuxScoreColumnInfo(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreInfo.Index, MetadataUtils.Const.ScoreValueKind.Probability, t => t == NumberType.Float);
-            if (probInfo != null)
-                cols = cols.Prepend(RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probInfo.Name));
+            var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
+                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberType.Float.Equals);
+            if (probCol.HasValue)
+                cols = MetadataUtils.Prepend(cols, RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probCol.Value.Name));
             return cols;
         }
 
-        protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
+        private protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
         {
             ch.AssertValue(metrics);
 
@@ -1389,12 +1238,12 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(MessageSensitivity.None, unweightedFold);
         }
 
-        protected override IDataView GetOverallResultsCore(IDataView overall)
+        private protected override IDataView GetOverallResultsCore(IDataView overall)
         {
             return ColumnSelectingTransformer.CreateDrop(Host, overall, BinaryClassifierEvaluator.Entropy);
         }
 
-        protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
+        private protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
         {
             ch.AssertNonEmpty(metrics);
 
@@ -1628,22 +1477,22 @@ namespace Microsoft.ML.Runtime.Data
             return avgPoints;
         }
 #endif
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
 
             // The binary classifier evaluator outputs the label, score and probability columns.
-            yield return schema.Label.Name;
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            yield return schema.Label.Value.Name;
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
-            yield return scoreInfo.Name;
-            var probInfo = EvaluateUtils.GetOptAuxScoreColumnInfo(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreInfo.Index, MetadataUtils.Const.ScoreValueKind.Probability, t => t == NumberType.Float);
+            yield return scoreCol.Name;
+            var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
+                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberType.Float.Equals);
             // Return the output columns. The LogLoss column is returned only if the probability column exists.
-            if (probInfo != null)
+            if (probCol.HasValue)
             {
-                yield return probInfo.Name;
+                yield return probCol.Value.Name;
                 yield return BinaryPerInstanceEvaluator.LogLoss;
             }
 
@@ -1670,7 +1519,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new BinaryClassifierMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new BinaryClassifierMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 
@@ -1690,7 +1539,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static void MatchColumns(IHost host, MamlEvaluatorBase.ArgumentsBase input, out string label, out string weight, out string name)
         {
-            ISchema schema = input.Data.Schema;
+            var schema = input.Data.Schema;
             label = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
                 nameof(BinaryClassifierMamlEvaluator.Arguments.LabelColumn),
                 input.LabelColumn, DefaultColumnNames.Label);

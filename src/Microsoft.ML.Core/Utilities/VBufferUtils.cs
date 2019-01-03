@@ -4,9 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     // REVIEW: Consider automatic densification in some of the operations, where appropriate.
     // REVIEW: Once we do the conversions from Vector/WritableVector, review names of methods,
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // we are modifying in the sparse vector, in which case the vector becomes
             // dense. Then there is no need to do anything with indices.
             bool needIndices = dstValuesCount + 1 < dst.Length;
-            editor = VBufferEditor.Create(ref dst, dst.Length, dstValuesCount + 1);
+            editor = VBufferEditor.Create(ref dst, dst.Length, dstValuesCount + 1, keepOldOnResize: true);
             if (idx != dstValuesCount)
             {
                 // We have to do some sort of shift copy.
@@ -1322,7 +1322,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // REVIEW: Worth optimizing the newCount == a.Length case?
             // Probably not...
 
-            editor = VBufferEditor.Create(ref dst, a.Length, newCount);
+            editor = VBufferEditor.Create(ref dst, a.Length, newCount, requireIndicesOnDense: true);
             Span<int> indices = editor.Indices;
 
             if (newCount == bValues.Length)

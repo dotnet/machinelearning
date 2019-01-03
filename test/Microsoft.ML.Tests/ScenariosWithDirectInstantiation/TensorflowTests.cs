@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Normalizers;
-using Microsoft.ML.Transforms.TensorFlow;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.Data;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.TensorFlow;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -182,72 +181,72 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1, conc: 1);
             var model_location = "mnist_model/frozen_saved_model.pb";
             var schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
-            Assert.Equal(86, schema.ColumnCount);
+            Assert.Equal(86, schema.Count);
             Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
-            var type = (VectorType)schema.GetColumnType(col);
+            var type = (VectorType)schema[col].Type;
             Assert.Equal(2, type.Dimensions.Length);
             Assert.Equal(28, type.Dimensions[0]);
             Assert.Equal(28, type.Dimensions[1]);
-            var metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+            var metadataType = schema[col].Metadata.Schema[TensorFlowUtils.OpType].Type;
             Assert.NotNull(metadataType);
             Assert.True(metadataType is TextType);
             ReadOnlyMemory<char> opType = default;
-            schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+            schema[col].Metadata.GetValue(TensorFlowUtils.OpType, ref opType);
             Assert.Equal("Placeholder", opType.ToString());
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+            metadataType = schema[col].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.InputOps)?.Type;
             Assert.Null(metadataType);
 
             Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D/ReadVariableOp", out col));
-            type = (VectorType)schema.GetColumnType(col);
+            type = (VectorType) schema[col].Type;
             Assert.Equal(new[] { 5, 5, 1, 32 }, type.Dimensions);
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.OpType].Type;
             Assert.NotNull(metadataType);
             Assert.True(metadataType is TextType);
-            schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+            schema[col].Metadata.GetValue(TensorFlowUtils.OpType, ref opType);
             Assert.Equal("Identity", opType.ToString());
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.InputOps].Type;
             Assert.NotNull(metadataType);
             VBuffer<ReadOnlyMemory<char>> inputOps = default;
-            schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+            schema[col].Metadata.GetValue(TensorFlowUtils.InputOps, ref inputOps);
             Assert.Equal(1, inputOps.Length);
             Assert.Equal("conv2d/kernel", inputOps.GetValues()[0].ToString());
 
             Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D", out col));
-            type = (VectorType)schema.GetColumnType(col);
+            type = (VectorType)schema[col].Type;
             Assert.Equal(new[] { 28, 28, 32 }, type.Dimensions);
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.OpType].Type;
             Assert.NotNull(metadataType);
             Assert.True(metadataType is TextType);
-            schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+            schema[col].Metadata.GetValue(TensorFlowUtils.OpType, ref opType);
             Assert.Equal("Conv2D", opType.ToString());
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.InputOps].Type;
             Assert.NotNull(metadataType);
-            schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+            schema[col].Metadata.GetValue(TensorFlowUtils.InputOps, ref inputOps);
             Assert.Equal(2, inputOps.Length);
             Assert.Equal("reshape/Reshape", inputOps.GetValues()[0].ToString());
             Assert.Equal("conv2d/Conv2D/ReadVariableOp", inputOps.GetValues()[1].ToString());
 
             Assert.True(schema.TryGetColumnIndex("Softmax", out col));
-            type = (VectorType)schema.GetColumnType(col);
+            type = (VectorType)schema[col].Type;
             Assert.Equal(new[] { 10 }, type.Dimensions);
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.OpType].Type;
             Assert.NotNull(metadataType);
             Assert.True(metadataType is TextType);
-            schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+            schema[col].Metadata.GetValue(TensorFlowUtils.OpType, ref opType);
             Assert.Equal("Softmax", opType.ToString());
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.InputOps].Type;
             Assert.NotNull(metadataType);
-            schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+            schema[col].Metadata.GetValue(TensorFlowUtils.InputOps, ref inputOps);
             Assert.Equal(1, inputOps.Length);
             Assert.Equal("sequential/dense_1/BiasAdd", inputOps.GetValues()[0].ToString());
 
             model_location = "model_matmul/frozen_saved_model.pb";
             schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
             char name = 'a';
-            for (int i = 0; i < schema.ColumnCount; i++)
+            for (int i = 0; i < schema.Count; i++)
             {
-                Assert.Equal(name.ToString(), schema.GetColumnName(i));
-                type = (VectorType)schema.GetColumnType(i);
+                Assert.Equal(name.ToString(), schema[i].Name);
+                type = (VectorType)schema[i].Type;
                 Assert.Equal(new[] { 2, 2 }, type.Dimensions);
                 name++;
             }
@@ -257,18 +256,15 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMNISTConvTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var reader = mlContext.Data.TextReader(
-                new TextLoader.Arguments()
-                {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
+            var reader = mlContext.Data.CreateTextReader(
+                    columns: new[]
                     {
                         new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyRange(0, 9)),
                         new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
 
-                    }
-                });
+                    },
+                    hasHeader: true
+                );
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
@@ -287,7 +283,7 @@ namespace Microsoft.ML.Scenarios
 
             var oneSample = GetOneMNISTExample();
 
-            var predictFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+            var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
             var onePrediction = predictFunction.Predict(oneSample);
 
@@ -303,17 +299,12 @@ namespace Microsoft.ML.Scenarios
             try
             {
                 var mlContext = new MLContext(seed: 1, conc: 1);
-                var reader = mlContext.Data.TextReader(
-                    new TextLoader.Arguments
-                    {
-                        Separator = "tab",
-                        HasHeader = false,
-                        Column = new[]
+                var reader = mlContext.Data.CreateTextReader(columns: new[]
                         {
                             new TextLoader.Column("Label", DataKind.I8, 0),
                             new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
                         }
-                    });
+                    );
 
                 var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
                 var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
@@ -344,7 +335,7 @@ namespace Microsoft.ML.Scenarios
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted, label: "KeyLabel");
                 Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy, 1);
                 Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy, 1);
-                var predictionFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+                var predictionFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
                 var oneSample = GetOneMNISTExample();
                 var onePrediction = predictionFunction.Predict(oneSample);
@@ -398,17 +389,13 @@ namespace Microsoft.ML.Scenarios
             {
                 var mlContext = new MLContext(seed: 1, conc: 1);
 
-                var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-                {
-                    Separator = "tab",
-                    HasHeader = false,
-                    Column = new[]
+                var reader = mlContext.Data.CreateTextReader(new[]
                     {
                         new TextLoader.Column("Label", DataKind.U4, new []{ new TextLoader.Range(0) }, new KeyRange(0, 9)),
                         new TextLoader.Column("TfLabel", DataKind.I8, 0),
                         new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
                     }
-                });
+                );
 
                 var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
                 var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
@@ -455,6 +442,7 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     }))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
+                    .AppendCacheCheckpoint(mlContext)
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
                 var trainedModel = pipe.Fit(preprocessedTrainData);
@@ -466,7 +454,7 @@ namespace Microsoft.ML.Scenarios
                 Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy-.01, expectedMicroAccuracy+.01);
 
                 // Create prediction function and test prediction
-                var predictFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+                var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
                 var oneSample = GetOneMNISTExample();
 
@@ -490,16 +478,13 @@ namespace Microsoft.ML.Scenarios
             // of predicted label of a single in-memory example.
 
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-            {
-                Separator = "tab",
-                HasHeader = true,
-                Column = new[]
+            var reader = mlContext.Data.CreateTextReader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyRange(0, 9)),
                     new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
-                }
-            });
+                },
+                hasHeader: true
+            );
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
@@ -520,7 +505,7 @@ namespace Microsoft.ML.Scenarios
             // An in-memory example. Its label is predicted below.
             var oneSample = GetOneMNISTExample();
 
-            var predictFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+            var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
             var onePrediction = predictFunction.Predict(oneSample);
 
@@ -598,7 +583,6 @@ namespace Microsoft.ML.Scenarios
             [Column("0")]
             public long Label;
 
-            [Column(ordinal: "1-784")]
             [VectorType(784)]
             public float[] Placeholder;
         }
@@ -618,20 +602,19 @@ namespace Microsoft.ML.Scenarios
             var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, model_location);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorType)schema.GetColumnType(column);
+            var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
-            {
-                Column = new[]
-                {
+            var data = mlContext.Data.ReadFromTextFile(dataFile,
+                    columns: new[]
+                    {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
-            }, new MultiFileSource(dataFile));
+                    } 
+                );
 
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImagePath", "ImageReal"))
                 .Append(new ImageResizingEstimator(mlContext, "ImageReal", "ImageCropped", imageWidth, imageHeight))
@@ -653,7 +636,7 @@ namespace Microsoft.ML.Scenarios
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 
@@ -666,20 +649,18 @@ namespace Microsoft.ML.Scenarios
             var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, model_location);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorType)schema.GetColumnType(column);
+            var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
-            {
-                Column = new[]
+            var data = mlContext.Data.ReadFromTextFile(dataFile, columns: new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
-            }, new MultiFileSource(dataFile));
+                }
+            );
             var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
             {
                 Column = new ImageLoaderTransform.Column[1]
@@ -717,7 +698,7 @@ namespace Microsoft.ML.Scenarios
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 
@@ -731,14 +712,13 @@ namespace Microsoft.ML.Scenarios
             var imageWidth = 28;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
-            {
-                Column = new[]
+            var data = mlContext.Data.ReadFromTextFile(dataFile, 
+                columns: new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
-            }, new MultiFileSource(dataFile));
+                }
+            );
             var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
             {
                 Column = new ImageLoaderTransform.Column[1]

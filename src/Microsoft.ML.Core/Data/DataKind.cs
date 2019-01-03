@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Text;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Data type specifier.
@@ -52,7 +51,8 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Extension methods related to the DataKind enum.
     /// </summary>
-    public static class DataKindExtensions
+    [BestFriend]
+    internal static class DataKindExtensions
     {
         public const DataKind KindMin = DataKind.I1;
         public const DataKind KindLim = DataKind.U16 + 1;
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.Data
                 case DataKind.DZ:
                     return typeof(DateTimeOffset);
                 case DataKind.UG:
-                    return typeof(UInt128);
+                    return typeof(RowId);
             }
 
             return null;
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
                 kind = DataKind.DT;
             else if (type == typeof(DateTimeOffset))
                 kind = DataKind.DZ;
-            else if (type == typeof(UInt128))
+            else if (type == typeof(RowId))
                 kind = DataKind.UG;
             else
             {

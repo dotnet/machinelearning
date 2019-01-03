@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// This is a signature for classes that are 'holders' of entry points and components.

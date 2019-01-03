@@ -2,22 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.FeatureSelection;
-using Microsoft.ML.Transforms.Normalizers;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -40,28 +37,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create the reader: define the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-            {
-                Column = new[] {
-                    // A boolean column depicting the 'label'.
-                    new TextLoader.Column("IsOver50K", DataKind.BL, 0),
-                    // Three text columns.
-                    new TextLoader.Column("Workclass", DataKind.TX, 1),
-                    new TextLoader.Column("Education", DataKind.TX, 2),
-                    new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
-                },
+            // Read the data into a data view.
+            var data = mlContext.Data.ReadFromTextFile<InspectedRow>(dataPath,
                 // First line of the file is a header, not a data row.
-                HasHeader = true
-            });
+                hasHeader: true
+            );
 
             // Start creating our processing pipeline. For now, let's just concatenate all the text columns
             // together into one.
             var dynamicPipeline = mlContext.Transforms.Concatenate("AllFeatures", "Education", "MaritalStatus");
-
-            // Let's verify that the data has been read correctly. 
-            // First, we read the data file.
-            var data = reader.Read(dataPath);
 
             // Fit our data pipeline and transform data with it.
             var transformedData = dynamicPipeline.Fit(data).Transform(data);
@@ -69,7 +53,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // 'transformedData' is a 'promise' of data. Let's actually read it.
             var someRows = transformedData
                 // Convert to an enumerable of user-defined type. 
-                .AsEnumerable<InspectedRow>(mlContext, reuseRowObject: false)
+                .AsEnumerable<InspectedRowWithAllFeatures>(mlContext, reuseRowObject: false)
                 // Take a couple values as an array.
                 .Take(4).ToArray();
 
@@ -92,24 +76,19 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-            {
-                Column = new[] {
-                    // We read the first 11 values as a single float vector.
-                    new TextLoader.Column("FeatureVector", DataKind.R4, 0, 10),
-
-                    // Separately, read the target variable.
-                    new TextLoader.Column("Target", DataKind.R4, 11),
-                },
+            // Read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+            var trainData = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
                 // First line of the file is a header, not a data row.
-                HasHeader = true,
+                hasHeader: true,
                 // Default separator is tab, but we need a semicolon.
-                Separator = ";"
-            });
+                separatorChar: ';'
+            );
 
-            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var trainData = reader.Read(trainDataPath);
+            // Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
+            // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
+            // User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
+            // a caching step, which provides the same caching function, will be inserted in the considered "dynamicPipeline."
+            var cachedTrainData = mlContext.Data.Cache(trainData);
 
             // Step two: define the learning pipeline. 
 
@@ -118,6 +97,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // First 'normalize' the data (rescale to be
                 // between -1 and 1 for all examples), and then train the model.
                 mlContext.Transforms.Normalize("FeatureVector")
+                // We add a step for caching data in memory so that the downstream iterative training
+                // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+                // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+                // The data accessed in any downstream step will be cached since its first use. In general, you only
+                // need to add a caching step before trainable step, because caching is not helpful if the data is
+                // only scanned once. This step can be removed if user doesn't have enough memory to store the whole
+                // data set. Notice that in the upstream Transforms.Normalize step, we only scan through the data
+                // once so adding a caching step before it is not helpful.
+                .AppendCacheCheckpoint(mlContext)
                 // Add the SDCA regression trainer.
                 .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Target", featureColumn: "FeatureVector"));
 
@@ -125,7 +113,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = dynamicPipeline.Fit(trainData);
 
             // Read the test dataset.
-            var testData = reader.Read(testDataPath);
+            var testData = mlContext.Data.ReadFromTextFile<AdultData>(testDataPath,
+                // First line of the file is a header, not a data row.
+                hasHeader: true,
+                // Default separator is tab, but we need a semicolon.
+                separatorChar: ';'
+            );
+
             // Calculate metrics of the model on the test data.
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
 
@@ -155,23 +149,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-            {
-                Column = new[] {
-                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
-                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
-                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
-                    new TextLoader.Column("PetalWidth", DataKind.R4, 3),
-                    // Label: kind of iris.
-                    new TextLoader.Column("Label", DataKind.TX, 4),
-                },
+            //  Retrieve the training data.
+            var trainData = mlContext.Data.ReadFromTextFile<IrisInput>(irisDataPath,
                 // Default separator is tab, but the dataset has comma.
-                Separator = ","
-            });
-
-            // Retrieve the training data.
-            var trainData = reader.Read(irisDataPath);
+                separatorChar: ','
+            );
 
             // Build the training pipeline.
             var dynamicPipeline =
@@ -179,6 +161,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                // Cache data in memory for steps after the cache check point stage.
+                .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
                 // Apply the inverse conversion from 'PredictedLabel' column back to string value.
@@ -199,7 +183,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Make the prediction function object. Note that, on average, this call takes around 200x longer
             // than one prediction, so you might want to cache and reuse the prediction function, instead of
             // creating one per prediction.
-            var predictionFunc = model.MakePredictionFunction<IrisInput, IrisPrediction>(mlContext);
+            var predictionFunc = model.CreatePredictionEngine<IrisInput, IrisPrediction>(mlContext);
 
             // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
             // for simultaneous prediction, make sure each thread is using its own PredictionFunction.
@@ -222,21 +206,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-            {
-                Column = new[] {
-                    // The four features of the Iris dataset will be grouped together as one Features column.
-                    new TextLoader.Column("Features", DataKind.R4, 0, 3),
-                    // Label: kind of iris.
-                    new TextLoader.Column("Label", DataKind.TX, 4),
-                },
-                // Default separator is tab, but the dataset has comma.
-                Separator = ","
-            });
-
             // Read the training data.
-            var trainData = reader.Read(dataPath);
+            var trainData = mlContext.Data.ReadFromTextFile<IrisInputAllFeatures>(dataPath,
+                // Default separator is tab, but the dataset has comma.
+                separatorChar: ','
+            );
 
             // Apply all kinds of standard ML.NET normalization to the raw features.
             var pipeline =
@@ -255,17 +229,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         [Fact]
         public void Normalization()
             => NormalizationWorkout(GetDataPath("iris.data"));
-
-        private class IrisInput
-        {
-            // Unfortunately, we still need the dummy 'Label' column to be present.
-            [ColumnName("Label")]
-            public string IgnoredLabel { get; set; }
-            public float SepalLength { get; set; }
-            public float SepalWidth { get; set; }
-            public float PetalLength { get; set; }
-            public float PetalWidth { get; set; }
-        }
 
         private IEnumerable<CustomerChurnInfo> GetChurnInfo()
         {
@@ -286,14 +249,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-            {
-                Column = new[] {
+            var reader = mlContext.Data.CreateTextReader(new[] 
+                {
                     new TextLoader.Column("IsToxic", DataKind.BL, 0),
                     new TextLoader.Column("Message", DataKind.TX, 1),
                 },
-                HasHeader = true
-            });
+                hasHeader: true
+            );
 
             // Read the data.
             var data = reader.Read(dataPath);
@@ -354,9 +316,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-            {
-                Column = new[] {
+            var reader = mlContext.Data.CreateTextReader(new[] 
+                {
                     new TextLoader.Column("Label", DataKind.BL, 0),
                     // We will load all the categorical features into one vector column of size 8.
                     new TextLoader.Column("CategoricalFeatures", DataKind.TX, 1, 8),
@@ -365,8 +326,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     // Let's also separately load the 'Workclass' column.
                     new TextLoader.Column("Workclass", DataKind.TX, 1),
                 },
-                HasHeader = true
-            });
+                hasHeader: true
+            );
 
             // Read the data.
             var data = reader.Read(dataPath);
@@ -397,6 +358,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var fullLearningPipeline = dynamicPipeline
                 // Concatenate two of the 3 categorical pipelines, and the numeric features.
                 .Append(mlContext.Transforms.Concatenate("Features", "NumericalFeatures", "CategoricalBag", "WorkclassOneHotTrimmed"))
+                // Cache data in memory so that the following trainer will be able to access training examples without
+                // reading them from disk multiple times.
+                .AppendCacheCheckpoint(mlContext)
                 // Now we're ready to train. We chose our FastTree trainer for this classification task.
                 .Append(mlContext.BinaryClassification.Trainers.FastTree(numTrees: 50));
 
@@ -415,24 +379,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
-            // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-            {
-                Column = new[] {
-                    // We read the first 11 values as a single float vector.
-                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
-                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
-                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
-                    new TextLoader.Column("PetalWidth", DataKind.R4, 3),
-                    // Label: kind of iris.
-                    new TextLoader.Column("Label", DataKind.TX, 4),
-                },
+            var data = mlContext.Data.ReadFromTextFile<IrisInput>(dataPath,
                 // Default separator is tab, but the dataset has comma.
-                Separator = ","
-            });
-
-            // Read the data.
-            var data = reader.Read(dataPath);
+                separatorChar: ','
+            );
 
             // Build the training pipeline.
             var dynamicPipeline =
@@ -440,6 +390,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                // Cache data in memory so that SDCA trainer will be able to randomly access training examples without
+                // reading data from disk multiple times. Data will be cached at its first use in any downstream step.
+                // Notice that unused part in the data may not be cached.
+                .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
@@ -473,18 +427,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Create the reader: define the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] {
-	                // We read the first 10 values as a single float vector.
-                    new TextLoader.Column("FeatureVector", DataKind.R4, new[] {new TextLoader.Range(0, 9)}),
-                    // Separately, read the target variable.
-                    new TextLoader.Column("Target", DataKind.R4, 10)
-                },
-                // Default separator is tab, but we need a comma.
-                s => s.Separator = ",");
-
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var data = reader.Read(dataPath);
+            var reader = mlContext.Data.ReadFromTextFile<AdultData>(dataPath,
+                // Default separator is tab, but we need a comma.
+                separatorChar: ',' );
         }
 
         // Define a class for all the input columns that we intend to consume.
@@ -503,11 +449,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void CustomTransformer()
         {
             var mlContext = new MLContext();
-            var data = mlContext.Data.ReadFromTextFile(new[]
+            var data = mlContext.Data.ReadFromTextFile(GetDataPath("adult.tiny.with-schema.txt"), new[]
             {
                 new TextLoader.Column("Income", DataKind.R4, 10),
                 new TextLoader.Column("Features", DataKind.R4, 12, 14)
-            }, GetDataPath("adult.tiny.with-schema.txt"), s => { s.Separator = "\t"; s.HasHeader = true; });
+            }, hasHeader: true);
 
             PrepareData(mlContext, data);
             TrainModel(mlContext, data);
@@ -541,8 +487,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var estimator = mlContext.Transforms.CustomMapping<InputRow, OutputRow>(CustomMappings.IncomeMapping, nameof(CustomMappings.IncomeMapping))
                 .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label"));
 
+            // If memory is enough, we can cache the data in-memory to avoid reading them from file
+            // when it will be accessed multiple times. 
+            var cachedTrainData = mlContext.Data.Cache(trainData);
+
             // Train the model.
-            var model = estimator.Fit(trainData);
+            var model = estimator.Fit(cachedTrainData);
 
             // Save the model.
             using (var fs = File.Create(modelPath))
@@ -575,6 +525,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
             // Construct the learning pipeline.
             var estimator = mlContext.Transforms.CustomMapping(mapping, null)
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label"));
 
             return estimator.Fit(trainData);
@@ -598,11 +549,62 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private class InspectedRow
         {
+            [LoadColumn(0)]
             public bool IsOver50K { get; set; }
+
+            [LoadColumn(1)]
             public string Workclass { get; set; }
+
+            [LoadColumn(2)]
             public string Education { get; set; }
+
+            [LoadColumn(3)]
             public string MaritalStatus { get; set; }
+
+        }
+
+        private class InspectedRowWithAllFeatures : InspectedRow
+        {
             public string[] AllFeatures { get; set; }
         }
+
+        private class IrisInput
+        {
+            // Unfortunately, we still need the dummy 'Label' column to be present.
+            [ColumnName("Label"), LoadColumn(4)]
+            public string IgnoredLabel { get; set; }
+
+            [LoadColumn(0)]
+            public float SepalLength { get; set; }
+
+            [LoadColumn(1)]
+            public float SepalWidth { get; set; }
+
+            [LoadColumn(2)]
+            public float PetalLength { get; set; }
+
+            [LoadColumn(3)]
+            public float PetalWidth { get; set; }
+        }
+
+        private class IrisInputAllFeatures
+        {
+            // Unfortunately, we still need the dummy 'Label' column to be present.
+            [ColumnName("Label"), LoadColumn(4)]
+            public string IgnoredLabel { get; set; }
+
+            [LoadColumn(0, 3)]
+            public float Features { get; set; }
+        }
+
+        private class AdultData
+        {
+            [LoadColumn(0, 10), ColumnName("FeatureVector")]
+            public float Features { get; set; }
+
+            [LoadColumn(11)]
+            public float Target { get; set; }
+        }
+
     }
 }

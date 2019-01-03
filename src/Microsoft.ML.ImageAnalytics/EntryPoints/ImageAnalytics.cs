@@ -1,16 +1,16 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
+
+using Microsoft.ML;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.ImageAnalytics.EntryPoints;
 
 [assembly: LoadableClass(typeof(void), typeof(ImageAnalytics), null, typeof(SignatureEntryPointModule), "ImageAnalytics")]
-namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
+namespace Microsoft.ML.ImageAnalytics.EntryPoints
 {
     public static class ImageAnalytics
     {
-
         [TlcModule.EntryPoint(Name = "Transforms.ImageLoader", Desc = ImageLoaderTransform.Summary,
             UserName = ImageLoaderTransform.UserName, ShortName = ImageLoaderTransform.LoaderSignature)]
         public static CommonOutputs.TransformOutput ImageLoader(IHostEnvironment env, ImageLoaderTransform.Arguments input)
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = ImageLoaderTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = ImageResizerTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = ImagePixelExtractorTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = ImageGrayscaleTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
             var xf = new VectorToImageTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, xf, input.Data),
+                Model = new TransformModelImpl(h, xf, input.Data),
                 OutputData = xf
             };
         }

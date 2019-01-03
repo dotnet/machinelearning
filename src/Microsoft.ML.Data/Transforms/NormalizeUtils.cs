@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Transforms.Normalizers;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Transforms.Normalizers;
+using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(Normalize), null, typeof(SignatureEntryPointModule), "Normalize")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Signature for a repository based loader of a IColumnFunction
@@ -40,7 +39,8 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Interface to define an aggregate function over values
     /// </summary>
-    public interface IColumnAggregator<T>
+    [BestFriend]
+    internal interface IColumnAggregator<T>
     {
         /// <summary>
         /// Updates the aggregate function with a value
@@ -53,9 +53,10 @@ namespace Microsoft.ML.Runtime.Data
         void Finish();
     }
 
+    [BestFriend]
     internal interface IColumnFunction : ICanSaveModel
     {
-        Delegate GetGetter(IRow input, int icol);
+        Delegate GetGetter(Row input, int icol);
 
         void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
@@ -66,27 +67,6 @@ namespace Microsoft.ML.Runtime.Data
         bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
 
         NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
-    }
-
-    public static class NormalizeUtils
-    {
-        /// <summary>
-        /// Returns whether the feature column in the schema is indicated to be normalized. If the features column is not
-        /// specified on the schema, then this will return <c>null</c>.
-        /// </summary>
-        /// <param name="schema">The role-mapped schema to query</param>
-        /// <returns>Returns null if <paramref name="schema"/> does not have <see cref="RoleMappedSchema.Feature"/>
-        /// defined, and otherwise returns a Boolean value as returned from <see cref="MetadataUtils.IsNormalized(Schema, int)"/>
-        /// on that feature column</returns>
-        /// <seealso cref="MetadataUtils.IsNormalized(Schema, int)"/>
-        public static bool? FeaturesAreNormalized(this RoleMappedSchema schema)
-        {
-            // REVIEW: The role mapped data has the ability to have multiple columns fill the role of features, which is
-            // useful in some trainers that are nonetheless parameteric and can therefore benefit from normalization.
-            Contracts.CheckValue(schema, nameof(schema));
-            var featInfo = schema.Feature;
-            return featInfo == null ? default(bool?) : schema.Schema.IsNormalized(featInfo.Index);
-        }
     }
 
     /// <summary>
@@ -103,7 +83,7 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = NormalizeTransform.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.MeanVarianceNormalizer", Desc = NormalizeTransform.MeanVarNormalizerSummary, UserName = NormalizeTransform.MeanVarNormalizerUserName, ShortName = NormalizeTransform.MeanVarNormalizerShortName)]
@@ -115,7 +95,7 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = NormalizeTransform.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.LogMeanVarianceNormalizer", Desc = NormalizeTransform.LogMeanVarNormalizerSummary, UserName = NormalizeTransform.LogMeanVarNormalizerUserName, ShortName = NormalizeTransform.LogMeanVarNormalizerShortName)]
@@ -127,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = NormalizeTransform.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.BinNormalizer", Desc = NormalizeTransform.BinNormalizerSummary, UserName = NormalizeTransform.BinNormalizerUserName, ShortName = NormalizeTransform.BinNormalizerShortName)]
@@ -139,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = NormalizeTransform.Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.ConditionalNormalizer", Desc = "Normalize the columns only if needed", UserName = "Normalize If Needed")]
@@ -154,7 +134,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!schema.TryGetColumnIndex(column.Source, out int col))
                     throw env.ExceptUserArg(nameof(input.Column), $"Column '{column.Source}' does not exist.");
-                if (!schema.IsNormalized(col))
+                if (!schema[col].IsNormalized())
                     columnsToNormalize.Add(column);
             }
 

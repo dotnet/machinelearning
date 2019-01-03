@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(LabelIndicatorTransform), typeof(LabelIndicatorTransform.Arguments), typeof(SignatureDataTransform),
     LabelIndicatorTransform.UserName, LabelIndicatorTransform.LoadName, "LabelIndicator")]
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms
             return BoolType.Instance;
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input,
+        protected override Delegate GetGetterCore(IChannel ch, Row input,
             int iinfo, out Action disposer)
         {
             Host.AssertValue(ch);
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Transforms
             return GetGetter(ch, input, iinfo);
         }
 
-        private ValueGetter<bool> GetGetter(IChannel ch, IRow input, int iinfo)
+        private ValueGetter<bool> GetGetter(IChannel ch, Row input, int iinfo)
         {
             Host.AssertValue(ch);
             ch.AssertValue(input);
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = Create(host, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
     }
 }

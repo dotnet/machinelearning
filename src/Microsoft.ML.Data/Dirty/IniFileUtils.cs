@@ -4,9 +4,9 @@
 
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Internal.Calibration;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     [BestFriend]
     internal static class IniFileUtils
@@ -52,10 +52,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             StringBuilder newEvaluator = new StringBuilder();
             newEvaluator.AppendLine("EvaluatorType=Aggregator");
             newEvaluator.AppendLine("Type=Sigmoid");
-            newEvaluator.AppendLine("Bias=" + -calibrator.ParamB);
+            newEvaluator.AppendLine("Bias=" + -calibrator.Offset);
             newEvaluator.AppendLine("NumNodes=1");
             newEvaluator.AppendLine("Nodes=E:" + NumEvaluators(originalIni));
-            newEvaluator.AppendLine("Weights=" + -calibrator.ParamA);
+            newEvaluator.AppendLine("Weights=" + -calibrator.Slope);
             return newEvaluator.ToString();
         }
     }

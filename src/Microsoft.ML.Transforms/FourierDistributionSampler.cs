@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using System;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(GaussianFourierSampler), typeof(GaussianFourierSampler.Arguments), typeof(SignatureFourierDistributionSampler),
@@ -33,7 +34,7 @@ namespace Microsoft.ML.Transforms
 
     public interface IFourierDistributionSampler : ICanSaveModel
     {
-        float Next(IRandom rand);
+        float Next(Random rand);
     }
 
     [TlcModule.ComponentKind("FourierDistributionSampler")]
@@ -116,7 +117,7 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_gamma);
         }
 
-        public float Next(IRandom rand)
+        public float Next(Random rand)
         {
             return (float)Stats.SampleFromGaussian(rand) * MathUtils.Sqrt(2 * _gamma);
         }
@@ -197,7 +198,7 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_a);
         }
 
-        public float Next(IRandom rand)
+        public float Next(Random rand)
         {
             return _a * Stats.SampleFromCauchy(rand);
         }

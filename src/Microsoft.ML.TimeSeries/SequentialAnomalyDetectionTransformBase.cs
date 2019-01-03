@@ -3,18 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     // REVIEW: This base class and its children classes generate one output column of type VBuffer<Double> to output 3 different anomaly scores as well as
     // the alert flag. Ideally these 4 output information should be put in four seaparate columns instead of one VBuffer<> column. However, this is not currently
@@ -571,18 +569,18 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
-        private protected override IStatefulRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
+        private protected override IStatefulRowMapper MakeRowMapper(Schema schema) => new Mapper(Host, this, schema);
 
         private sealed class Mapper : IStatefulRowMapper
         {
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
-            private readonly ISchema _parentSchema;
+            private readonly Schema _parentSchema;
             private readonly int _inputColumnIndex;
             private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
             private TState State { get; set; }
 
-            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
+            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, Schema inputSchema)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register(nameof(Mapper));
@@ -592,7 +590,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 if (!inputSchema.TryGetColumnIndex(parent.InputColumnName, out _inputColumnIndex))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName);
 
-                var colType = inputSchema.GetColumnType(_inputColumnIndex);
+                var colType = inputSchema[_inputColumnIndex].Type;
                 if (colType != NumberType.R4)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, NumberType.R4.ToString(), colType.ToString());
 
@@ -625,7 +623,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 var getters = new Delegate[1];
@@ -637,7 +635,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             private delegate void ProcessData(ref TInput src, ref VBuffer<double> dst);
 
-            private Delegate MakeGetter(IRow input, TState state)
+            private Delegate MakeGetter(Row input, TState state)
             {
                 _host.AssertValue(input);
                 var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
@@ -653,7 +651,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return valueGetter;
             }
 
-            public Action<long> CreatePinger(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Action<long> CreatePinger(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 Action<long> pinger = null;
@@ -663,7 +661,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return pinger;
             }
 
-            private Action<long> MakePinger(IRow input, TState state)
+            private Action<long> MakePinger(Row input, TState state)
             {
                 _host.AssertValue(input);
                 var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);

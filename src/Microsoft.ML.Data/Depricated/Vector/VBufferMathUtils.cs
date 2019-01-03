@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Numeric
+namespace Microsoft.ML.Numeric
 {
     // REVIEW: Once we do the conversions from Vector/WritableVector, review names of methods,
     //   parameters, parameter order, etc.
@@ -298,7 +298,8 @@ namespace Microsoft.ML.Runtime.Numeric
             editor = VBufferEditor.Create(ref dst,
                 dst.Length,
                 dstValues.Length + gapCount,
-                keepOldOnResize: true);
+                keepOldOnResize: true,
+                requireIndicesOnDense: true);
             var indices = editor.Indices;
             values = editor.Values;
             if (gapCount > 0)

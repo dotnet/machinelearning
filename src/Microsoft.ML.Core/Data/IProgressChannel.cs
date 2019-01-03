@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// This is a factory interface for <see cref="IProgressChannel"/>.

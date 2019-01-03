@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
 
@@ -20,22 +20,22 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
         public class IrisData : IrisDataNoLabel
         {
-            [Column("0")]
+            [LoadColumn(0)]
             public string Label;
         }
 
         public class IrisDataNoLabel
         {
-            [Column("1")]
+            [LoadColumn(1)]
             public float SepalLength;
 
-            [Column("2")]
+            [LoadColumn(2)]
             public float SepalWidth;
 
-            [Column("3")]
+            [LoadColumn(3)]
             public float PetalLength;
 
-            [Column("4")]
+            [LoadColumn(4)]
             public float PetalWidth;
         }
 
@@ -46,9 +46,9 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 
         public class SentimentData
         {
-            [Column("0", name: "Label")]
+            [LoadColumn(0), ColumnName("Label")]
             public bool Sentiment;
-            [Column("1")]
+            [LoadColumn(1)]
             public string SentimentText;
         }
 

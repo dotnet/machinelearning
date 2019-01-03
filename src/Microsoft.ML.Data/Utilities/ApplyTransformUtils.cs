@@ -4,9 +4,9 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Utilities to rebind data transforms

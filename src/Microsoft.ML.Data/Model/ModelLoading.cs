@@ -6,9 +6,9 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Model
+namespace Microsoft.ML.Model
 {
     public sealed partial class ModelLoadContext : IDisposable
     {

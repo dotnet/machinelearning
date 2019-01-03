@@ -1,5 +1,5 @@
-﻿using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
+﻿using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using System;
 namespace Bubba
 {

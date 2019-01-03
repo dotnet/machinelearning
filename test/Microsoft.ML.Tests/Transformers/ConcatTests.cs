@@ -2,15 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
 using System.IO;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -44,7 +40,7 @@ namespace Microsoft.ML.Tests.Transformers
             ColumnType GetType(Schema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
-                return schema.GetColumnType(cIdx);
+                return schema[cIdx].Type;
             }
             var pipe = new ColumnConcatenatingEstimator(Env, "f1", "float1")
                 .Append(new ColumnConcatenatingEstimator(Env, "f2", "float1", "float1"))
@@ -100,7 +96,7 @@ namespace Microsoft.ML.Tests.Transformers
             ColumnType GetType(Schema schema, string name)
             {
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
-                return schema.GetColumnType(cIdx);
+                return schema[cIdx].Type;
             }
 
             data = TakeFilter.Create(Env, data, 10);

@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
     /// <summary>
     /// Drops slots from a fixed or variable sized column based on slot ranges.
@@ -29,7 +28,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// Constructs slot dropper. It expects the slot ranges to be in sorted order and not overlap.
         /// </summary>
         /// <param name="srcLength">0 indicates variable sized vector.</param>
-        /// <param name="slotsMin">Lower limit of ranges to be dropped.</param>
+        /// <param name="slotsMin">Low limit of ranges to be dropped.</param>
         /// <param name="slotsMax">Upper limit of ranges to be dropped. </param>
         public SlotDropper(int srcLength, int[] slotsMin, int[] slotsMax)
         {

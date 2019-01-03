@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.EntryPoints;
 
-[assembly: LoadableClass(typeof(Microsoft.ML.Runtime.LightGBM.SingleTrainer),
-    null, typeof(Microsoft.ML.Runtime.LightGBM.SignatureParallelTrainer), "single")]
+[assembly: LoadableClass(typeof(Microsoft.ML.LightGBM.SingleTrainer),
+    null, typeof(Microsoft.ML.LightGBM.SignatureParallelTrainer), "single")]
 
-[assembly: EntryPointModule(typeof(Microsoft.ML.Runtime.LightGBM.SingleTrainerFactory))]
+[assembly: EntryPointModule(typeof(Microsoft.ML.LightGBM.SingleTrainerFactory))]
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.LightGBM
 {
     public sealed class SingleTrainer : IParallel
     {

@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.StaticPipe.Runtime;
 using System;
+using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers.KMeans;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -33,7 +31,7 @@ namespace Microsoft.ML.StaticPipe
            Vector<float> features, Scalar<float> weights = null,
            int clustersCount = KMeansPlusPlusTrainer.Defaults.K,
            Action<KMeansPlusPlusTrainer.Arguments> advancedSettings = null,
-           Action<KMeansPredictor> onFit = null)
+           Action<KMeansModelParameters> onFit = null)
         {
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);

@@ -2,21 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(ColumnConcatenatingTransformer.Summary, typeof(IDataTransform), typeof(ColumnConcatenatingTransformer), typeof(ColumnConcatenatingTransformer.TaggedArguments), typeof(SignatureDataTransform),
     ColumnConcatenatingTransformer.UserName, ColumnConcatenatingTransformer.LoadName, "ConcatTransform", DocName = "transform/ConcatTransform.md")]
@@ -30,7 +28,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ColumnConcatenatingTransformer), null, typeof(SignatureLoadRowMapper),
     ColumnConcatenatingTransformer.UserName, ColumnConcatenatingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     using PfaType = PfaUtils.Type;
 
@@ -393,19 +391,19 @@ namespace Microsoft.ML.Runtime.Data
             return transformer.MakeDataTransform(input);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
         /// <summary>
         /// Factory method for SignatureLoadDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => new ColumnConcatenatingTransformer(env, ctx).MakeDataTransform(input);
 
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(inputSchema);
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
@@ -457,7 +455,7 @@ namespace Microsoft.ML.Runtime.Data
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
                     sources[i] = srcCol;
 
-                    var curType = inputSchema.GetColumnType(srcCol);
+                    var curType = inputSchema[srcCol].Type;
                     if (itemType == null)
                     {
                         itemType = curType.ItemType;
@@ -474,7 +472,7 @@ namespace Microsoft.ML.Runtime.Data
                     else
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, itemType.ToString(), curType.ToString());
 
-                    if (isNormalized && !inputSchema.IsNormalized(srcCol))
+                    if (isNormalized && !inputSchema[srcCol].IsNormalized())
                         isNormalized = false;
 
                     if (MetadataUtils.TryGetCategoricalFeatureIndices(inputSchema, srcCol, out int[] typeCat))
@@ -484,7 +482,7 @@ namespace Microsoft.ML.Runtime.Data
                         hasCategoricals = true;
                     }
 
-                    if (!hasSlotNames && !curType.IsVector || inputSchema.HasSlotNames(srcCol, curType.VectorSize))
+                    if (!hasSlotNames && !curType.IsVector || inputSchema[srcCol].HasSlotNames(curType.VectorSize))
                         hasSlotNames = true;
                 }
 
@@ -496,7 +494,7 @@ namespace Microsoft.ML.Runtime.Data
                     hasSlotNames = false;
                 }
 
-                return new BoundColumn(InputSchema, _parent._columns[iinfo], sources, new VectorType(itemType.AsPrimitive, totalSize),
+                return new BoundColumn(InputSchema, _parent._columns[iinfo], sources, new VectorType((PrimitiveType)itemType, totalSize),
                     isNormalized, hasSlotNames, hasCategoricals, totalSize, catCount);
             }
 
@@ -650,7 +648,7 @@ namespace Microsoft.ML.Runtime.Data
                     bldr.GetResult(ref dst);
                 }
 
-                public Delegate MakeGetter(IRow input)
+                public Delegate MakeGetter(Row input)
                 {
                     if (_isIdentity)
                         return Utils.MarshalInvoke(MakeIdentityGetter<int>, OutputType.RawType, input);
@@ -658,13 +656,13 @@ namespace Microsoft.ML.Runtime.Data
                     return Utils.MarshalInvoke(MakeGetter<int>, OutputType.ItemType.RawType, input);
                 }
 
-                private Delegate MakeIdentityGetter<T>(IRow input)
+                private Delegate MakeIdentityGetter<T>(Row input)
                 {
                     Contracts.Assert(SrcIndices.Length == 1);
                     return input.GetGetter<T>(SrcIndices[0]);
                 }
 
-                private Delegate MakeGetter<T>(IRow input)
+                private Delegate MakeGetter<T>(Row input)
                 {
                     var srcGetterOnes = new ValueGetter<T>[SrcIndices.Length];
                     var srcGetterVecs = new ValueGetter<VBuffer<T>>[SrcIndices.Length];
@@ -691,7 +689,7 @@ namespace Microsoft.ML.Runtime.Data
                                 if (type.VectorSize != 0 && type.VectorSize != tmpBufs[i].Length)
                                 {
                                     throw Contracts.Except("Column '{0}': expected {1} slots, but got {2}",
-                                        input.Schema.GetColumnName(SrcIndices[i]), type.VectorSize, tmpBufs[i].Length)
+                                        input.Schema[SrcIndices[i]].Name, type.VectorSize, tmpBufs[i].Length)
                                         .MarkSensitive(MessageSensitivity.Schema);
                                 }
                                 dstLength = checked(dstLength + tmpBufs[i].Length);
@@ -829,9 +827,9 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                var active = new bool[InputSchema.ColumnCount];
+                var active = new bool[InputSchema.Count];
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     if (activeOutput(i))
@@ -847,7 +845,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 return _columns[iinfo].MakeGetter(input);

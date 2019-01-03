@@ -4,10 +4,10 @@
 
 using System;
 using System.Collections;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     internal static class EnsembleUtils
     {
@@ -18,17 +18,18 @@ namespace Microsoft.ML.Runtime.Ensemble
         {
             Contracts.AssertValue(host);
             Contracts.AssertValue(data);
-            Contracts.Assert(data.Schema.Feature != null);
+            Contracts.Assert(data.Schema.Feature.HasValue);
             Contracts.AssertValue(features);
+            var featCol = data.Schema.Feature.Value;
 
-            var type = data.Schema.Feature.Type;
+            var type = featCol.Type;
             Contracts.Assert(features.Length == type.VectorSize);
             int card = Utils.GetCardinality(features);
             if (card == type.VectorSize)
                 return data;
 
             // REVIEW: This doesn't preserve metadata on the features column. Should it?
-            var name = data.Schema.Feature.Name;
+            var name = featCol.Name;
             var view = LambdaColumnMapper.Create(
                 host, "FeatureSelector", data.Data, name, name, type, type,
                 (in VBuffer<Single> src, ref VBuffer<Single> dst) => SelectFeatures(in src, features, card, ref dst));

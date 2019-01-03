@@ -2,20 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.SubsetSelector;
+using Microsoft.ML.EntryPoints;
 
 [assembly: LoadableClass(typeof(AllInstanceSelector), typeof(AllInstanceSelector.Arguments),
     typeof(SignatureEnsembleDataSelector), AllInstanceSelector.UserName, AllInstanceSelector.LoadName)]
 
 [assembly: EntryPointModule(typeof(AllInstanceSelector))]
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
 {
-    public sealed class AllInstanceSelector : BaseSubsetSelector<AllInstanceSelector.Arguments>
+    internal sealed class AllInstanceSelector : BaseSubsetSelector<AllInstanceSelector.Arguments>
     {
         public const string UserName = "All Instance Selector";
         public const string LoadName = "AllInstanceSelector";
@@ -31,7 +32,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         {
         }
 
-        public override IEnumerable<Subset> GetSubsets(Batch batch, IRandom rand)
+        public override IEnumerable<Subset> GetSubsets(Batch batch, Random rand)
         {
             for (int i = 0; i < Size; i++)
                 yield return FeatureSelector.SelectFeatures(batch.TrainInstances, rand);

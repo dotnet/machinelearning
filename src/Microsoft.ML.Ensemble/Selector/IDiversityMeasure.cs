@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.Selector.DiversityMeasure;
+using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector
+namespace Microsoft.ML.Ensemble.Selector
 {
     public interface IDiversityMeasure<TOutput>
     {

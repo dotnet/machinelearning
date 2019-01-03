@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Trainers.Online;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Training;
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Learners
 {
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
 
@@ -87,18 +87,18 @@ namespace Microsoft.ML.Runtime.Learners
         {
             return Args.PredictorType != null ?
                 Args.PredictorType.CreateComponent(Host) :
-                new LinearSvm(Host, new LinearSvm.Arguments());
+                new LinearSvmTrainer(Host, new LinearSvmTrainer.Arguments());
         }
 
-        protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)
+        private protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)
         {
             Host.AssertValue(type);
             Host.Assert(type.RawType == typeof(T));
             Host.AssertValue(equalsTarget);
             Host.AssertValue(data);
-            Host.AssertValue(data.Schema.Label);
+            Host.Assert(data.Schema.Label.HasValue);
 
-            var lab = data.Schema.Label;
+            var lab = data.Schema.Label.Value;
 
             InPredicate<T> isMissing;
             if (!Args.ImputeMissingLabelsAsNegative && Conversions.Instance.TryGetIsNAPredicate(type, out isMissing))
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Learners
                     dst = equalsTarget(in src) ? 1 : default(float));
         }
 
-        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
+        private protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
 
         /// <summary>
         /// The legacy train method.
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (LabelColumn != null)
+            if (LabelColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
                     throw Host.ExceptSchemaMismatch(nameof(labelCol), DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Learners
                     throw Host.Except($"Label column '{LabelColumn.Name}' is not compatible");
             }
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
             foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 
@@ -167,12 +167,12 @@ namespace Microsoft.ML.Runtime.Learners
 
         private SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
-            if (LabelColumn != null)
+            if (LabelColumn.IsValid)
             {
                 bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
                 Contracts.Assert(success);
 
-                var metadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+                var metadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
                                 .Concat(MetadataForScoreColumn()));
                 return new[]
                 {

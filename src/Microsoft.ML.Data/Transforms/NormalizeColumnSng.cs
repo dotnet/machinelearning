@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Transforms.Normalizers
 {
@@ -316,7 +315,7 @@ namespace Microsoft.ML.Transforms.Normalizers
     /// It tracks min, max, number of non-sparse values (vCount) and number of ProcessValue() calls (trainCount).
     /// NaNs are ignored when updating min and max.
     /// </summary>
-    public sealed class MinMaxSngAggregator : IColumnAggregator<VBuffer<TFloat>>
+    internal sealed class MinMaxSngAggregator : IColumnAggregator<VBuffer<TFloat>>
     {
         private readonly TFloat[] _min;
         private readonly TFloat[] _max;
@@ -585,7 +584,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         return true;
                     }
 
-                    public override Delegate GetGetter(IRow input, int icol)
+                    public override Delegate GetGetter(Row input, int icol)
                     {
                         var getSrc = input.GetGetter<TFloat>(icol);
                         ValueGetter<TFloat> del =
@@ -660,7 +659,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         return true;
                     }
 
-                    public override Delegate GetGetter(IRow input, int icol)
+                    public override Delegate GetGetter(Row input, int icol)
                     {
                         var getSrc = input.GetGetter<VBuffer<TFloat>>(icol);
                         var bldr = new BufferBuilder<TFloat>(R4Adder.Instance);
@@ -905,7 +904,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         CdfNormSerializationUtils.SaveModel(ctx, UseLog, new[] { Mean }, new[] { Stddev });
                     }
 
-                    public override Delegate GetGetter(IRow input, int icol)
+                    public override Delegate GetGetter(Row input, int icol)
                     {
                         if (Stddev <= TFloat.Epsilon)
                         {
@@ -960,7 +959,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         CdfNormSerializationUtils.SaveModel(ctx, UseLog, Mean, Stddev);
                     }
 
-                    public override Delegate GetGetter(IRow input, int icol)
+                    public override Delegate GetGetter(Row input, int icol)
                     {
                         var getSrc = input.GetGetter<VBuffer<TFloat>>(icol);
                         var bldr = new BufferBuilder<TFloat>(R4Adder.Instance);
@@ -1090,7 +1089,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                             c => BinNormSerializationUtils.SaveModel(c, new[] { _binUpperBounds }, saveText: true));
                     }
 
-                    public override Delegate GetGetter(IRow input, int icol)
+                    public override Delegate GetGetter(Row input, int icol)
                     {
                         var getSrc = input.GetGetter<TFloat>(icol);
                         ValueGetter<TFloat> del =
@@ -1175,7 +1174,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         ctx.SaveSubModel("BinNormalizer", c => BinNormSerializationUtils.SaveModel(c, _binUpperBounds, saveText: true));
                     }
 
-                    public override Delegate GetGetter(IRow input, int icol)
+                    public override Delegate GetGetter(Row input, int icol)
                     {
                         var getSrc = input.GetGetter<VBuffer<TFloat>>(icol);
                         var bldr = new BufferBuilder<TFloat>(R4Adder.Instance);
@@ -1850,7 +1849,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 private readonly int _numBins;
                 private readonly int _minBinSize;
 
-                private SupervisedBinOneColumnFunctionBuilder(IHost host, long lim, bool fix, int numBins, int minBinSize, int valueColumnId, int labelColumnId, IRow dataRow)
+                private SupervisedBinOneColumnFunctionBuilder(IHost host, long lim, bool fix, int numBins, int minBinSize, int valueColumnId, int labelColumnId, Row dataRow)
                     : base(host, lim, valueColumnId, labelColumnId, dataRow)
                 {
                     _fix = fix;
@@ -1870,15 +1869,15 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return BinColumnFunction.Create(Host, binUpperBounds, _fix);
                 }
 
-                public static IColumnFunctionBuilder Create(SupervisedBinArguments args, IHost host, int argsColumnIndex, int valueColumnId, int labelColumnId, IRow dataRow)
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumn column, IHost host, int valueColumnId, int labelColumnId, Row dataRow)
                 {
-                    var lim = args.Column[argsColumnIndex].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = args.Column[argsColumnIndex].FixZero ?? args.FixZero;
-                    var numBins = args.Column[argsColumnIndex].NumBins ?? args.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "Must be greater than 1");
-                    host.CheckUserArg(args.MinBinSize > 0, nameof(args.MinBinSize), "Must be positive");
-                    return new SupervisedBinOneColumnFunctionBuilder(host, lim, fix, numBins, args.MinBinSize, valueColumnId, labelColumnId, dataRow);
+                    var lim = column.MaxTrainingExamples;
+                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    bool fix = column.FixZero;
+                    var numBins = column.NumBins;
+                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
+                    host.CheckUserArg(column.MinBinSize > 0, nameof(column.MinBinSize), "Must be positive");
+                    return new SupervisedBinOneColumnFunctionBuilder(host, lim, fix, numBins, column.MinBinSize, valueColumnId, labelColumnId, dataRow);
                 }
             }
 
@@ -1888,7 +1887,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 private readonly int _numBins;
                 private readonly int _minBinSize;
 
-                private SupervisedBinVecColumnFunctionBuilder(IHost host, long lim, bool fix, int numBins, int minBinSize, int valueColumnId, int labelColumnId, IRow dataRow)
+                private SupervisedBinVecColumnFunctionBuilder(IHost host, long lim, bool fix, int numBins, int minBinSize, int valueColumnId, int labelColumnId, Row dataRow)
                     : base(host, lim, valueColumnId, labelColumnId, dataRow)
                 {
                     _fix = fix;
@@ -1910,15 +1909,15 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return BinColumnFunction.Create(Host, binUpperBounds, _fix);
                 }
 
-                public static IColumnFunctionBuilder Create(SupervisedBinArguments args, IHost host, int argsColumnIndex, int valueColumnId, int labelColumnId, IRow dataRow)
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.SupervisedBinningColumn column, IHost host, int valueColumnId, int labelColumnId, Row dataRow)
                 {
-                    var lim = args.Column[argsColumnIndex].MaxTrainingExamples ?? args.MaxTrainingExamples;
-                    host.CheckUserArg(lim > 1, nameof(args.MaxTrainingExamples), "Must be greater than 1");
-                    bool fix = args.Column[argsColumnIndex].FixZero ?? args.FixZero;
-                    var numBins = args.Column[argsColumnIndex].NumBins ?? args.NumBins;
-                    host.CheckUserArg(numBins > 1, nameof(args.NumBins), "Must be greater than 1");
-                    host.CheckUserArg(args.MinBinSize > 0, nameof(args.MinBinSize), "Must be positive");
-                    return new SupervisedBinVecColumnFunctionBuilder(host, lim, fix, numBins, args.MinBinSize, valueColumnId, labelColumnId, dataRow);
+                    var lim = column.MaxTrainingExamples;
+                    host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
+                    bool fix = column.FixZero;
+                    var numBins = column.NumBins;
+                    host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
+                    host.CheckUserArg(column.MinBinSize > 0, nameof(column.MinBinSize), "Must be positive");
+                    return new SupervisedBinVecColumnFunctionBuilder(host, lim, fix, numBins, column.MinBinSize, valueColumnId, labelColumnId, dataRow);
                 }
             }
         }

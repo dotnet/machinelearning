@@ -6,14 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(UngroupTransform.Summary, typeof(UngroupTransform), typeof(UngroupTransform.Arguments), typeof(SignatureDataTransform),
@@ -163,7 +161,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema Schema => _schemaImpl.AsSchema;
+        public override Schema OutputSchema => _schemaImpl.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -179,19 +177,19 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             var activeInput = _schemaImpl.GetActiveInput(predicate);
             var inputCursor = Source.GetRowCursor(col => activeInput[col], null);
             return new Cursor(Host, inputCursor, _schemaImpl, predicate);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
-            int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate,
+            int n, Random rand = null)
         {
             var activeInput = _schemaImpl.GetActiveInput(predicate);
-            var inputCursors = Source.GetRowCursorSet(out consolidator, col => activeInput[col], n, null);
-            return Utils.BuildArray<IRowCursor>(inputCursors.Length,
+            var inputCursors = Source.GetRowCursorSet(col => activeInput[col], n, null);
+            return Utils.BuildArray<RowCursor>(inputCursors.Length,
                 x => new Cursor(Host, inputCursors[x], _schemaImpl, predicate));
         }
 
@@ -201,15 +199,15 @@ namespace Microsoft.ML.Transforms
             {
                 switch (kind)
                 {
-                case MetadataUtils.Kinds.IsNormalized:
-                case MetadataUtils.Kinds.KeyValues:
-                case MetadataUtils.Kinds.ScoreColumnSetId:
-                case MetadataUtils.Kinds.ScoreColumnKind:
-                case MetadataUtils.Kinds.ScoreValueKind:
-                case MetadataUtils.Kinds.IsUserVisible:
-                    return true;
-                default:
-                    return false;
+                    case MetadataUtils.Kinds.IsNormalized:
+                    case MetadataUtils.Kinds.KeyValues:
+                    case MetadataUtils.Kinds.ScoreColumnSetId:
+                    case MetadataUtils.Kinds.ScoreColumnKind:
+                    case MetadataUtils.Kinds.ScoreValueKind:
+                    case MetadataUtils.Kinds.IsUserVisible:
+                        return true;
+                    default:
+                        return false;
                 }
             }
 
@@ -259,7 +257,7 @@ namespace Microsoft.ML.Transforms
                 CheckAndBind(_ectx, inputSchema, pivotColumns, out _infos);
 
                 _pivotColMap = new Dictionary<string, int>();
-                _pivotIndex = Utils.CreateArray(_inputSchema.ColumnCount, -1);
+                _pivotIndex = Utils.CreateArray(_inputSchema.Count, -1);
                 for (int i = 0; i < _infos.Length; i++)
                 {
                     var info = _infos[i];
@@ -271,7 +269,7 @@ namespace Microsoft.ML.Transforms
                 AsSchema = Schema.Create(this);
             }
 
-            private static void CheckAndBind(IExceptionContext ectx, ISchema inputSchema,
+            private static void CheckAndBind(IExceptionContext ectx, Schema inputSchema,
                 string[] pivotColumns, out PivotColumnInfo[] infos)
             {
                 Contracts.AssertValueOrNull(ectx);
@@ -287,11 +285,11 @@ namespace Microsoft.ML.Transforms
                     int col;
                     if (!inputSchema.TryGetColumnIndex(name, out col))
                         throw ectx.ExceptUserArg(nameof(Arguments.Column), "Pivot column '{0}' is not found", name);
-                    var colType = inputSchema.GetColumnType(col);
+                    var colType = inputSchema[col].Type;
                     if (!colType.IsVector || !colType.ItemType.IsPrimitive)
                         throw ectx.ExceptUserArg(nameof(Arguments.Column),
                             "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, colType);
-                    infos[i] = new PivotColumnInfo(name, col, colType.VectorSize, colType.ItemType.AsPrimitive);
+                    infos[i] = new PivotColumnInfo(name, col, colType.VectorSize, (PrimitiveType)colType.ItemType);
                 }
             }
 
@@ -392,10 +390,7 @@ namespace Microsoft.ML.Transforms
                 return size;
             }
 
-            public int ColumnCount
-            {
-                get { return _inputSchema.ColumnCount; }
-            }
+            public int ColumnCount => _inputSchema.Count;
 
             public bool TryGetColumnIndex(string name, out int col)
             {
@@ -404,14 +399,14 @@ namespace Microsoft.ML.Transforms
 
             public string GetColumnName(int col)
             {
-                return _inputSchema.GetColumnName(col);
+                return _inputSchema[col].Name;
             }
 
             public ColumnType GetColumnType(int col)
             {
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (!IsPivot(col))
-                    return _inputSchema.GetColumnType(col);
+                    return _inputSchema[col].Type;
                 _ectx.Assert(0 <= _pivotIndex[col] && _pivotIndex[col] < _infos.Length);
                 return _infos[_pivotIndex[col]].ItemType;
             }
@@ -420,8 +415,8 @@ namespace Microsoft.ML.Transforms
             {
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (!IsPivot(col))
-                    return _inputSchema.GetMetadataTypes(col);
-                return _inputSchema.GetMetadataTypes(col).Where(pair => ShouldPreserveMetadata(pair.Key));
+                    return _inputSchema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
+                return _inputSchema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type)).Where(pair => ShouldPreserveMetadata(pair.Key));
             }
 
             public ColumnType GetMetadataTypeOrNull(string kind, int col)
@@ -429,7 +424,7 @@ namespace Microsoft.ML.Transforms
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (IsPivot(col) && !ShouldPreserveMetadata(kind))
                     return null;
-                return _inputSchema.GetMetadataTypeOrNull(kind, col);
+                return _inputSchema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             }
 
             public void GetMetadata<TValue>(string kind, int col, ref TValue value)
@@ -437,11 +432,11 @@ namespace Microsoft.ML.Transforms
                 _ectx.Check(0 <= col && col < ColumnCount);
                 if (IsPivot(col) && !ShouldPreserveMetadata(kind))
                     throw _ectx.ExceptGetMetadata();
-                _inputSchema.GetMetadata(kind, col, ref value);
+                _inputSchema[col].Metadata.GetValue(kind, ref value);
             }
         }
 
-        private sealed class Cursor : LinkedRootCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : LinkedRootCursorBase
         {
             private readonly SchemaImpl _schemaImpl;
 
@@ -467,7 +462,7 @@ namespace Microsoft.ML.Transforms
             // Parallel to columns.
             private int[] _colSizes;
 
-            public Cursor(IChannelProvider provider, IRowCursor input, SchemaImpl schema, Func<int, bool> predicate)
+            public Cursor(IChannelProvider provider, RowCursor input, SchemaImpl schema, Func<int, bool> predicate)
                 : base(provider, input)
             {
                 _schemaImpl = schema;
@@ -512,13 +507,13 @@ namespace Microsoft.ML.Transforms
                 get { return Input.Batch; }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 var idGetter = Input.GetIdGetter();
-                return (ref UInt128 val) =>
+                return (ref RowId val) =>
                 {
                     idGetter(ref val);
-                    val = val.Combine(new UInt128((ulong)_pivotColPosition, 0));
+                    val = val.Combine(new RowId((ulong)_pivotColPosition, 0));
                 };
             }
 
@@ -582,15 +577,15 @@ namespace Microsoft.ML.Transforms
                     };
             }
 
-            public Schema Schema => _schemaImpl.AsSchema;
+            public override Schema Schema => _schemaImpl.AsSchema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _schemaImpl.ColumnCount);
                 return _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _schemaImpl.ColumnCount, nameof(col));
 
@@ -614,7 +609,7 @@ namespace Microsoft.ML.Transforms
                 // cachedIndex == row.Count || _pivotColPosition <= row.Indices[cachedIndex].
                 int cachedIndex = 0;
                 VBuffer<T> row = default(VBuffer<T>);
-                T naValue = Runtime.Data.Conversion.Conversions.Instance.GetNAOrDefault<T>(itemType);
+                T naValue = Data.Conversion.Conversions.Instance.GetNAOrDefault<T>(itemType);
                 return
                     (ref T value) =>
                     {
@@ -670,7 +665,7 @@ namespace Microsoft.ML.Transforms
             var view = new UngroupTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

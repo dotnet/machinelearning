@@ -1,0 +1,31 @@
+---- BoundLoader ----
+1 columns:
+  Text: Text
+---- RowToRowMapperTransform ----
+2 columns:
+  Text: Text
+  TfIdf: Vec<Text>
+---- RowToRowMapperTransform ----
+3 columns:
+  Text: Text
+  TfIdf: Vec<Text>
+  TfIdf: Vec<Key<U4, 0-4>>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] 'A', [1] 'B', [2] 'C', [3] 'D', [4] 'E'
+---- RowToRowMapperTransform ----
+4 columns:
+  Text: Text
+  TfIdf: Vec<Text>
+  TfIdf: Vec<Key<U4, 0-4>>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] 'A', [1] 'B', [2] 'C', [3] 'D', [4] 'E'
+  TfIdf: Vec<R4, 15>
+    Metadata 'SlotNames': Vec<Text, 15>: Length=15, Count=15
+      [0] 'A', [1] 'A|B', [2] 'A|B|C', [3] 'B', [4] 'B|C', [5] 'B|C|D', [6] 'C', [7] 'C|D', [8] 'D', [9] 'E'
+      [10] 'E|*', [11] 'E|*|*', [12] '*|*', [13] '*|*|*', [14] '*|*|A'
+---- SelectColumnsDataTransform ----
+1 columns:
+  TfIdf: Vec<R4, 15>
+    Metadata 'SlotNames': Vec<Text, 15>: Length=15, Count=15
+      [0] 'A', [1] 'A|B', [2] 'A|B|C', [3] 'B', [4] 'B|C', [5] 'B|C|D', [6] 'C', [7] 'C|D', [8] 'D', [9] 'E'
+      [10] 'E|*', [11] 'E|*|*', [12] '*|*', [13] '*|*|*', [14] '*|*|A'

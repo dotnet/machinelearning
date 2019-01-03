@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.StaticPipe.Runtime;
 using System;
+using Microsoft.ML.Learners;
+using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers.Online;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -54,7 +52,7 @@ namespace Microsoft.ML.StaticPipe
                 float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
                 int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
                 Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null,
-                Action<LinearBinaryPredictor> onFit = null
+                Action<LinearBinaryModelParameters> onFit = null
             )
         {
             OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit, advancedSettings);
@@ -116,7 +114,7 @@ namespace Microsoft.ML.StaticPipe
             float l2RegularizerWeight = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
             Action<AveragedLinearArguments> advancedSettings = null,
-            Action<LinearRegressionPredictor> onFit = null)
+            Action<LinearRegressionModelParameters> onFit = null)
         {
             OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit, advancedSettings);
             Contracts.CheckValueOrNull(lossFunction);

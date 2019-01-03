@@ -1,7 +1,7 @@
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.StaticPipe;
 using System;
+using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
+using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static
 {
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Samples.Static
             var (trainData, testData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
-            LinearRegressionPredictor pred = null;
+            LinearRegressionModelParameters pred = null;
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()

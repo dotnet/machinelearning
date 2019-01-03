@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Pfa;
+using Newtonsoft.Json.Linq;
 using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
@@ -1119,7 +1118,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <param name="featureToId">A map of feature index (in the features array)
         /// to the ID as it will be written in the file. This instance should be
         /// used for all </param>
-        public void ToTreeEnsembleFormat(StringBuilder sbEvaluator, StringBuilder sbInput, FeaturesToContentMap featureContents,
+        internal void ToTreeEnsembleFormat(StringBuilder sbEvaluator, StringBuilder sbInput, FeaturesToContentMap featureContents,
             ref int evaluatorCounter, Dictionary<int, int> featureToId)
         {
             Contracts.AssertValue(sbEvaluator);
@@ -1259,7 +1258,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
         // prints the tree out as a string (in old Bing format used by LambdaMART and AdIndex)
-        public string ToOldIni(FeatureNameCollection featureNames)
+        internal string ToOldIni(FeatureNameCollection featureNames)
         {
             // print the root node
             StringBuilder output = new StringBuilder();

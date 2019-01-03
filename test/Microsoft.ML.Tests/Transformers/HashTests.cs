@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Tools;
+using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -81,29 +79,21 @@ namespace Microsoft.ML.Tests.Transformers
 
         private void ValidateMetadata(IDataView result)
         {
-
-            Assert.True(result.Schema.TryGetColumnIndex("HashA", out int HashA));
-            Assert.True(result.Schema.TryGetColumnIndex("HashAUnlim", out int HashAUnlim));
-            Assert.True(result.Schema.TryGetColumnIndex("HashAUnlimOrdered", out int HashAUnlimOrdered));
             VBuffer<ReadOnlyMemory<char>> keys = default;
-            var types = result.Schema.GetMetadataTypes(HashA);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);
-            Assert.True(keys.Length == 1024);
-            //REVIEW: This is weird. I specified invertHash to 1 so I expect only one value to be in key values, but i got two.
+            var column = result.Schema["HashA"];
+            Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
+            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
-            types = result.Schema.GetMetadataTypes(HashAUnlim);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);
-            Assert.True(keys.Length == 1024);
+            column = result.Schema["HashAUnlim"];
+            Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
+            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
             Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
 
-            types = result.Schema.GetMetadataTypes(HashAUnlimOrdered);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);
-            Assert.True(keys.Length == 1024);
-            Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
+            column = result.Schema["HashAUnlimOrdered"];
+            Assert.Equal(column.Metadata.Schema.Single().Name, MetadataUtils.Kinds.KeyValues);
+            column.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keys);
+            Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "0:3.5", "1:2.5" });
         }
 
         [Fact]
@@ -133,26 +123,20 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        private sealed class Counted : ICounted
-        {
-            public long Position => 0;
-            public long Batch => 0;
-            public ValueGetter<UInt128> GetIdGetter() => (ref UInt128 val) => val = default;
-        }
-
         private void HashTestCore<T>(T val, PrimitiveType type, uint expected, uint expectedOrdered, uint expectedOrdered3)
         {
             const int bits = 10;
 
-            var col = RowColumnUtils.GetColumn("Foo", type, ref val);
-            var inRow = RowColumnUtils.GetRow(new Counted(), col);
+            var builder = new MetadataBuilder();
+            builder.AddPrimitiveValue("Foo", type, val);
+            var inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
             // First do an unordered hash.
             var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits);
             var xf = new HashingTransformer(Env, new[] { info });
             var mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out int outCol);
-            var outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out int outCol);
+            var outRow = mapper.GetRow(inRow, c => c == outCol);
 
             var getter = outRow.GetGetter<uint>(outCol);
             uint result = 0;
@@ -163,8 +147,8 @@ namespace Microsoft.ML.Tests.Transformers
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
 
             getter = outRow.GetGetter<uint>(outCol);
             getter(ref result);
@@ -174,14 +158,15 @@ namespace Microsoft.ML.Tests.Transformers
             // at least in the first position, and in the unordered case, the last position.
             const int vecLen = 5;
             var denseVec = new VBuffer<T>(vecLen, Utils.CreateArray(vecLen, val));
-            col = RowColumnUtils.GetColumn("Foo", new VectorType(type, vecLen), ref denseVec);
-            inRow = RowColumnUtils.GetRow(new Counted(), col);
+            builder = new MetadataBuilder();
+            builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
+            inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: false);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
 
             var vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             VBuffer<uint> vecResult = default;
@@ -195,8 +180,8 @@ namespace Microsoft.ML.Tests.Transformers
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             vecGetter(ref vecResult);
 
@@ -207,14 +192,15 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Let's now do a sparse vector.
             var sparseVec = new VBuffer<T>(10, 3, Utils.CreateArray(3, val), new[] { 0, 3, 7 });
-            col = RowColumnUtils.GetColumn("Foo", new VectorType(type, vecLen), ref sparseVec);
-            inRow = RowColumnUtils.GetRow(new Counted(), col);
+            builder = new MetadataBuilder();
+            builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
+            inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: false);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             vecGetter(ref vecResult);
 
@@ -226,8 +212,8 @@ namespace Microsoft.ML.Tests.Transformers
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
-            outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
+            outRow = mapper.GetRow(inRow, c => c == outCol);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             vecGetter(ref vecResult);
 
@@ -260,7 +246,7 @@ namespace Microsoft.ML.Tests.Transformers
             HashTestCore(value, NumberType.U8, expected, expectedOrdered, expectedOrdered3);
             HashTestCore((ulong)value, new KeyType(typeof(ulong), 0, 0), eKey, eoKey, e3Key);
 
-            HashTestCore(new UInt128(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
+            HashTestCore(new RowId(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
 
             // Next let's check signed numbers.
 

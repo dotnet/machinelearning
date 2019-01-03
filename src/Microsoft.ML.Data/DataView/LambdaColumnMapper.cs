@@ -4,16 +4,17 @@
 
 using System;
 using System.Reflection;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This applies the user provided ValueMapper to a column to produce a new column. It automatically
     /// injects a standard conversion from the actual type of the source column to typeSrc (if needed).
     /// </summary>
-    public static class LambdaColumnMapper
+    [BestFriend]
+    internal static class LambdaColumnMapper
     {
         // REVIEW: It would be nice to support propagation of select metadata.
         public static IDataView Create<TSrc, TDst>(IHostEnvironment env, string name, IDataView input,
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
             bool tmp = input.Schema.TryGetColumnIndex(src, out int colSrc);
             if (!tmp)
                 throw env.ExceptParam(nameof(src), "The input data doesn't have a column named '{0}'", src);
-            var typeOrig = input.Schema.GetColumnType(colSrc);
+            var typeOrig = input.Schema[colSrc].Type;
 
             // REVIEW: Ideally this should support vector-type conversion. It currently doesn't.
             bool ident;
@@ -150,7 +151,7 @@ namespace Microsoft.ML.Runtime.Data
                 return _typeDst;
             }
 
-            protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+            protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
             {
                 Host.AssertValueOrNull(ch);
                 Host.AssertValue(input);

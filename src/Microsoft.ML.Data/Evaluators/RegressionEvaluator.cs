@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Model;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(RegressionEvaluator), typeof(RegressionEvaluator), typeof(RegressionEvaluator.Arguments), typeof(SignatureEvaluator),
@@ -22,7 +21,7 @@ using Float = System.Single;
 [assembly: LoadableClass(typeof(RegressionPerInstanceEvaluator), null, typeof(SignatureLoadRowMapper),
     "", RegressionPerInstanceEvaluator.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed class RegressionEvaluator :
         RegressionEvaluatorBase<RegressionEvaluator.Aggregator, Float, Double>
@@ -52,30 +51,29 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
-            if (t.IsVector || t.ItemType != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be R4", score, t);
-            Host.Check(schema.Label != null, "Could not find the label column");
-            t = schema.Label.Type;
+            if (t != NumberType.Float)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4", t.ToString());
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
+            t = schema.Label.Value.Type;
             if (t != NumberType.R4)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be R4", schema.Label.Name, t);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "R4", t.ToString());
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             return new Aggregator(Host, LossFunction, schema.Weight != null, stratName);
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Contracts.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
+            Contracts.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Contracts.AssertValue(scoreInfo);
 
-            return new RegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Name);
+            return new RegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -157,73 +155,6 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public sealed class Result
-        {
-            /// <summary>
-            /// Gets the absolute loss of the model.
-            /// </summary>
-            /// <remarks>
-            /// The absolute loss is defined as
-            /// L1 = (1/m) * sum( abs( yi - y&apos;i))
-            /// where m is the number of instances in the test set.
-            /// y'i are the predicted labels for each instance.
-            /// yi are the correct labels of each instance.
-            /// </remarks>
-            public double L1 { get; }
-
-            /// <summary>
-            /// Gets the squared loss of the model.
-            /// </summary>
-            /// <remarks>
-            /// The squared loss is defined as
-            /// L2 = (1/m) * sum(( yi - y&apos;i)^2)
-            /// where m is the number of instances in the test set.
-            /// y'i are the predicted labels for each instance.
-            /// yi are the correct labels of each instance.
-            /// </remarks>
-            public double L2 { get; }
-
-            /// <summary>
-            /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss.
-            /// </summary>
-            public double Rms { get; }
-
-            /// <summary>
-            /// Gets the user defined loss function.
-            /// </summary>
-            /// <remarks>
-            /// This is the average of a loss function defined by the user,
-            /// computed over all the instances in the test set.
-            /// </remarks>
-            public double LossFn { get; }
-
-            /// <summary>
-            /// Gets the R squared value of the model, which is also known as
-            /// the coefficient of determination​.
-            /// </summary>
-            public double RSquared { get; }
-
-            internal Result(IExceptionContext ectx, IRow overallResult)
-            {
-                double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-                L1 = Fetch(RegressionEvaluator.L1);
-                L2 = Fetch(RegressionEvaluator.L2);
-                Rms = Fetch(RegressionEvaluator.Rms);
-                LossFn = Fetch(RegressionEvaluator.Loss);
-                RSquared = Fetch(RegressionEvaluator.RSquared);
-            }
-
-            [BestFriend]
-            internal Result(double l1, double l2, double rms, double lossFunction, double rSquared)
-            {
-                L1 = l1;
-                L2 = l2;
-                Rms = rms;
-                LossFn = lossFunction;
-                RSquared = rSquared;
-            }
-        }
-
         /// <summary>
         /// Evaluates scored regression data.
         /// </summary>
@@ -231,7 +162,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="label">The name of the label column.</param>
         /// <param name="score">The name of the predicted score column.</param>
         /// <returns>The evaluation metrics for these outputs.</returns>
-        public Result Evaluate(IDataView data, string label, string score)
+        public RegressionMetrics Evaluate(IDataView data, string label, string score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -240,16 +171,16 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedSchema.ColumnRole.Label.Bind(label),
                 RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
 
-            var resultDict = Evaluate(roles);
+            var resultDict = ((IEvaluator)this).Evaluate(roles);
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            Result result;
+            RegressionMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new Result(Host, cursor);
+                result = new RegressionMetrics(Host, cursor);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -277,13 +208,13 @@ namespace Microsoft.ML.Runtime.Data
         public const string L1 = "L1-loss";
         public const string L2 = "L2-loss";
 
-        public RegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol)
+        public RegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string labelCol)
             : base(env, schema, scoreCol, labelCol)
         {
             CheckInputColumnTypes(schema);
         }
 
-        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private RegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema);
@@ -292,7 +223,7 @@ namespace Microsoft.ML.Runtime.Data
             // base
         }
 
-        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static RegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -312,13 +243,13 @@ namespace Microsoft.ML.Runtime.Data
             base.Save(ctx);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             return
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             var infos = new Schema.DetachedColumn[2];
             infos[L1Col] = new Schema.DetachedColumn(L1, NumberType.R8, null);
@@ -326,7 +257,7 @@ namespace Microsoft.ML.Runtime.Data
             return infos;
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);
@@ -380,16 +311,16 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(LabelIndex);
+            var t = schema[(int) LabelIndex].Type;
             if (t != NumberType.R4)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4", LabelCol, t);
 
-            t = schema.GetColumnType(ScoreIndex);
+            t = schema[ScoreIndex].Type;
             if (t.IsVector || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", ScoreCol, t);
         }
@@ -405,7 +336,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly RegressionEvaluator _evaluator;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public RegressionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.Regression, "RegressionMamlEvaluator")
@@ -417,16 +348,16 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new RegressionEvaluator(Host, evalArgs);
         }
 
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
 
             // The regression evaluator outputs the label and score columns.
-            yield return schema.Label.Name;
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            yield return schema.Label.Value.Name;
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.Regression);
-            yield return scoreInfo.Name;
+            yield return scoreCol.Name;
 
             // Return the output columns.
             yield return RegressionPerInstanceEvaluator.L1;
@@ -453,7 +384,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new RegressionMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new RegressionMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

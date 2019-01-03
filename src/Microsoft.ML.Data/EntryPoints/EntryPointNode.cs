@@ -7,13 +7,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints.JsonUtils;
+using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     public class VarSerializer : JsonConverter
     {
@@ -77,11 +77,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return
                 type == typeof(IDataView) ||
                 type == typeof(IFileHandle) ||
-                type == typeof(IPredictorModel) ||
-                type == typeof(ITransformModel) ||
+                type == typeof(PredictorModel) ||
+                type == typeof(TransformModel) ||
                 type == typeof(CommonInputs.IEvaluatorInput) ||
-                type == typeof(CommonOutputs.IEvaluatorOutput) ||
-                type == typeof(IMlState);
+                type == typeof(CommonOutputs.IEvaluatorOutput);
         }
     }
 
@@ -185,8 +184,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (variableType == typeof(CommonInputs.IEvaluatorInput))
                 return true;
             if (variableType == typeof(CommonOutputs.IEvaluatorOutput))
-                return true;
-            if (variableType == typeof(IMlState))
                 return true;
 
             var kind = TlcModule.GetDataType(variableType);

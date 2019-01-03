@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for transformer which operates on pairs input and output columns.
@@ -68,7 +67,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private void CheckInput(ISchema inputSchema, int col, out int srcCol)
+        private void CheckInput(Schema inputSchema, int col, out int srcCol)
         {
             Contracts.AssertValue(inputSchema);
             Contracts.Assert(0 <= col && col < ColumnPairs.Length);
@@ -78,7 +77,7 @@ namespace Microsoft.ML.Runtime.Data
             CheckInputColumn(inputSchema, col, srcCol);
         }
 
-        protected virtual void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected virtual void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             // By default, there are no extra checks.
         }
@@ -101,9 +100,9 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                var active = new bool[InputSchema.ColumnCount];
+                var active = new bool[InputSchema.Count];
                 foreach (var pair in ColMapNewToOld)
                     if (activeOutput(pair.Key))
                         active[pair.Value] = true;

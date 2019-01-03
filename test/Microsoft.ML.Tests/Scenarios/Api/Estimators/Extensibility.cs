@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -29,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
 
             var ml = new MLContext();
-            var data = ml.Data.TextReader(MakeIrisTextLoaderArgs())
+            var data = ml.Data.CreateTextReader(TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
                 .Read(dataPath);
 
             Action<IrisData, IrisData> action = (i, j) =>
@@ -47,9 +44,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Append(new KeyToValueMappingEstimator(ml, "PredictedLabel"));
 
             var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
-            var engine = model.MakePredictionFunction<IrisDataNoLabel, IrisPrediction>(ml);
+            var engine = model.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(ml);
 
-            var testLoader = TextLoader.ReadFile(ml, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+            var testLoader = ml.Data.ReadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',');
             var testData = testLoader.AsEnumerable<IrisData>(ml, false);
             foreach (var input in testData.Take(20))
             {

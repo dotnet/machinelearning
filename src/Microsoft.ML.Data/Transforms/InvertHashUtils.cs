@@ -6,14 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
-    public static class InvertHashUtils
+    [BestFriend]
+    internal static class InvertHashUtils
     {
         /// <summary>
         /// Clears a destination StringBuilder. If it is currently null, allocates it.
@@ -35,23 +35,23 @@ namespace Microsoft.ML.Runtime.Data
         public static ValueMapper<T, StringBuilder> GetSimpleMapper<T>(Schema schema, int col)
         {
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
-            var type = schema.GetColumnType(col).ItemType;
+            Contracts.Assert(0 <= col && col < schema.Count);
+            var type = schema[col].Type.ItemType;
             Contracts.Assert(type.RawType == typeof(T));
             var conv = Conversion.Conversions.Instance;
 
             // First: if not key, then get the standard string converison.
-            if (!type.IsKey)
+            if (!(type is KeyType keyType))
                 return conv.GetStringConversion<T>(type);
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema.HasKeyValues(col, type.KeyCount))
+            if (schema[col].HasKeyValues(keyType.KeyCount))
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
                 VBuffer<ReadOnlyMemory<char>> keyValues = default;
-                schema.GetMetadata(MetadataUtils.Kinds.KeyValues, col, ref keyValues);
+                schema[col].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
                 ReadOnlyMemory<char> value = default;
 
                 // REVIEW: We could optimize for identity, but it's probably not worthwhile.
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // Third choice: just use the key value itself, subject to offsetting by the min.
-            return conv.GetKeyStringConversion<T>(type.AsKey);
+            return conv.GetKeyStringConversion<T>(keyType);
         }
 
         public static ValueMapper<KeyValuePair<int, T>, StringBuilder> GetPairMapper<T>(ValueMapper<T, StringBuilder> submap)
@@ -101,7 +101,8 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class InvertHashCollector<T>
+    [BestFriend]
+    internal sealed class InvertHashCollector<T>
     {
         /// <summary>
         /// This is a small struct that is meant to compare akin to the value,

@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Text;
-using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -39,6 +38,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(ML, "text", "bag_of_words")
+                .AppendCacheCheckpoint(ML)
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("bag_of_words", "bag_of_words_count", 10)
                 .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("bag_of_words", "bag_of_words_mi", labelColumn: "label")));
 
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Tests.Transformers
                 VectorDouble: ctx.LoadDouble(4, 8)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+            var data = ML.Data.Cache(reader.Read(new MultiFileSource(dataPath)).AsDynamic);
 
             var columns = new[] {
                 new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "FeatureSelectDouble", minCount: 1),

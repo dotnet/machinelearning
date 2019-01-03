@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(SlotsDroppingTransformer.Summary, typeof(IDataTransform), typeof(SlotsDroppingTransformer), typeof(SlotsDroppingTransformer.Arguments), typeof(SignatureDataTransform),
     SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature, "DropSlots")]
@@ -200,7 +199,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// Describes how the transformer handles one input-output column pair.
             /// </summary>
             /// <param name="input">Name of the input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="slots">Ranges of indices in the input column to be dropped. Setting max in <paramref name="slots"/> to null sets max to int.MaxValue.</param>
             public ColumnInfo(string input, string output = null, params (int min, int? max)[] slots)
             {
@@ -252,7 +251,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="input">Name of the input column.</param>
-        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
         public SlotsDroppingTransformer(IHostEnvironment env, string input, string output = null, int min = default, int? max = null)
@@ -316,8 +315,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -434,7 +433,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return true;
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(Schema schema)
             => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
@@ -463,7 +462,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 {
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
-                    _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
+                    _srcTypes[i] = inputSchema[_cols[i]].Type;
                     if (!IsValidColumnType(_srcTypes[i].ItemType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _slotDropper[i] = new SlotDropper(_srcTypes[i].ValueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
@@ -517,8 +516,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 {
                     Host.Assert(typeSrc.IsKnownSizeVector);
                     var dstLength = slotDropper.DstLength;
-                    var hasSlotNames = input.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
-                    type = new VectorType(typeSrc.ItemType.AsPrimitive, Math.Max(dstLength, 1));
+                    var hasSlotNames = input[_cols[iinfo]].HasSlotNames(_srcTypes[iinfo].VectorSize);
+                    type = new VectorType((PrimitiveType)typeSrc.ItemType, Math.Max(dstLength, 1));
                     suppressed = dstLength == 0;
                 }
             }
@@ -528,7 +527,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
-                InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, _cols[iinfo], ref names);
+                InputSchema[_cols[iinfo]].GetSlotNames(ref names);
                 _slotDropper[iinfo].DropSlots(ref names, ref dst);
             }
 
@@ -692,7 +691,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 newRangeMax = maxRange2;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -711,7 +710,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return MakeVecGetter(input, iinfo);
             }
 
-            private Delegate MakeOneTrivialGetter(IRow input, int iinfo)
+            private Delegate MakeOneTrivialGetter(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -734,7 +733,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 value = default(TDst);
             }
 
-            private Delegate MakeVecTrivialGetter(IRow input, int iinfo)
+            private Delegate MakeVecTrivialGetter(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -757,19 +756,19 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 VBufferUtils.Resize(ref value, 1, 0);
             }
 
-            private Delegate MakeVecGetter(IRow input, int iinfo)
+            private Delegate MakeVecGetter(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 Host.Assert(_srcTypes[iinfo].IsVector);
                 Host.Assert(!_suppressed[iinfo]);
 
-                Func<IRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
+                Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
             }
 
-            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(IRow input, int iinfo)
+            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(Row input, int iinfo)
             {
                 var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
                 var typeDst = _dstTypes[iinfo];
@@ -786,7 +785,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     };
             }
 
-            private ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo)
+            private ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -795,12 +794,12 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return input.GetGetter<T>(src);
             }
 
-            private Delegate GetSrcGetter(ColumnType typeDst, IRow row, int iinfo)
+            private Delegate GetSrcGetter(ColumnType typeDst, Row row, int iinfo)
             {
                 Host.CheckValue(typeDst, nameof(typeDst));
                 Host.CheckValue(row, nameof(row));
 
-                Func<IRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
+                Func<Row, int, ValueGetter<int>> del = GetSrcGetter<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
             }
@@ -821,8 +820,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     if (_srcTypes[iinfo].IsVector && _srcTypes[iinfo].IsKnownSizeVector)
                     {
                         var dstLength = _slotDropper[iinfo].DstLength;
-                        var hasSlotNames = InputSchema.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
-                        var type = new VectorType(_srcTypes[iinfo].ItemType.AsPrimitive, Math.Max(dstLength, 1));
+                        var hasSlotNames = InputSchema[_cols[iinfo]].HasSlotNames(_srcTypes[iinfo].VectorSize);
+                        var type = new VectorType((PrimitiveType)_srcTypes[iinfo].ItemType, Math.Max(dstLength, 1));
 
                         if (hasSlotNames && dstLength > 0)
                         {

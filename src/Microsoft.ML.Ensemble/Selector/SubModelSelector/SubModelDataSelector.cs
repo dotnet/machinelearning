@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Internallearn;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 {
-    public abstract class SubModelDataSelector<TOutput> : BaseSubModelSelector<TOutput>
+    internal abstract class SubModelDataSelector<TOutput> : BaseSubModelSelector<TOutput>
     {
         public abstract class ArgumentsBase
         {

@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.Ensemble;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Trainers.FastTree.Internal;
 
 [assembly: LoadableClass(typeof(TreeEnsembleCombiner), null, typeof(SignatureModelCombiner), "Fast Tree Model Combiner", "FastTreeCombiner")]
 
@@ -55,9 +55,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                     _host.Check(calibrated.Calibrator is PlattCalibrator,
                         "Combining FastTree models can only be done when the models are calibrated with Platt calibrator");
                     predictor = calibrated.SubPredictor;
-                    paramA = -(calibrated.Calibrator as PlattCalibrator).ParamA;
+                    paramA = -(calibrated.Calibrator as PlattCalibrator).Slope;
                 }
-                var tree = predictor as FastTreePredictionWrapper;
+                var tree = predictor as TreeEnsembleModelParameters;
                 if (tree == null)
                     throw _host.Except("Model is not a tree ensemble");
                 foreach (var t in tree.TrainedEnsemble.Trees)
@@ -99,14 +99,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             {
                 case PredictionKind.BinaryClassification:
                     if (!binaryClassifier)
-                        return new FastTreeBinaryPredictor(_host, ensemble, featureCount, null);
+                        return new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null);
 
                     var cali = new PlattCalibrator(_host, -1, 0);
-                    return new FeatureWeightsCalibratedPredictor(_host, new FastTreeBinaryPredictor(_host, ensemble, featureCount, null), cali);
+                    return new FeatureWeightsCalibratedPredictor(_host, new FastTreeBinaryModelParameters(_host, ensemble, featureCount, null), cali);
                 case PredictionKind.Regression:
-                    return new FastTreeRegressionPredictor(_host, ensemble, featureCount, null);
+                    return new FastTreeRegressionModelParameters(_host, ensemble, featureCount, null);
                 case PredictionKind.Ranking:
-                    return new FastTreeRankingPredictor(_host, ensemble, featureCount, null);
+                    return new FastTreeRankingModelParameters(_host, ensemble, featureCount, null);
                 default:
                     _host.Assert(false);
                     throw _host.ExceptNotSupp();

@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using System;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 
 namespace Microsoft.ML.Legacy
 {
@@ -47,12 +46,12 @@ namespace Microsoft.ML.Legacy
     public interface ILearningPipelineDataStep : ILearningPipelineStep
     {
         Var<IDataView> Data { get; }
-        Var<ITransformModel> Model { get; }
+        Var<TransformModel> Model { get; }
     }
 
     [Obsolete]
     public interface ILearningPipelinePredictorStep : ILearningPipelineStep
     {
-        Var<IPredictorModel> Model { get; }
+        Var<PredictorModel> Model { get; }
     }
 }
