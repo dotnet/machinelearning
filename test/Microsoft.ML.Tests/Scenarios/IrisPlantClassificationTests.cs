@@ -11,7 +11,7 @@ namespace Microsoft.ML.Scenarios
     public partial class ScenariosTests
     {
         [Fact]
-        public void New_TrainAndPredictIrisModelTest()
+        public void TrainAndPredictIrisModelTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
@@ -79,18 +79,17 @@ namespace Microsoft.ML.Scenarios
 
             // Evaluate the trained pipeline
             var predicted = trainedModel.Transform(testData);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topK:3);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predicted, topK: 3);
 
             Assert.Equal(.98, metrics.AccuracyMacro);
             Assert.Equal(.98, metrics.AccuracyMicro, 2);
-            Assert.InRange(metrics.LogLoss, .05, .06);
-            Assert.InRange(metrics.LogLossReduction, 94, 96);
+            Assert.Equal(.06, metrics.LogLoss, 2);
+            Assert.Equal(1, metrics.TopKAccuracy);
 
             Assert.Equal(3, metrics.PerClassLogLoss.Length);
             Assert.Equal(0, metrics.PerClassLogLoss[0], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);
-            Assert.Equal(1, metrics.TopKAccuracy);
         }
 
         public class IrisData
