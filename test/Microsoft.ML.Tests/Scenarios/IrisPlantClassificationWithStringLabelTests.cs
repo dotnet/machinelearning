@@ -97,11 +97,6 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, metrics.PerClassLogLoss[0], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);
-
-            // Dummy Initialization
-            var dummy1 = new IrisDataWithStringLabel() { IrisPlantType = default };
-            var dummy2 = new IrisPredictionWithStringLabel() { PredictedScores = default, PredictedPlant = default };
-
         }
 
         private class IrisDataWithStringLabel
@@ -119,16 +114,16 @@ namespace Microsoft.ML.Scenarios
             public float PetalWidth;
 
             [LoadColumn(4)]
-            public string IrisPlantType;
+            public string IrisPlantType { get; set; }
         }
 
         private class IrisPredictionWithStringLabel
         {
             [ColumnName("Score")]
-            public float[] PredictedScores;
+            public float[] PredictedScores { get; set; }
 
             [ColumnName("Plant")]
-            public string PredictedPlant;
+            public string PredictedPlant { get; set; }
         }
     }
 }
