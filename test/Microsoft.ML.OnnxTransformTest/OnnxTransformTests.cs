@@ -10,10 +10,10 @@ using System.Runtime.InteropServices;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Model;
 using Microsoft.ML.OnnxTransform.StaticPipe;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoader.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateReader(env, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);

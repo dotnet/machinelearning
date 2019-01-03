@@ -14,6 +14,7 @@ using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
+using static Microsoft.ML.Transforms.Text.TextFeaturizingEstimator;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -1502,6 +1503,39 @@ namespace Microsoft.ML.StaticPipe
     /// </summary>
     public static class TextFeaturizerStaticExtensions
     {
+        internal sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Scalar<string>[] Inputs;
+
+            public OutPipelineColumn(IEnumerable<Scalar<string>> inputs, Action<Settings> advancedSettings)
+                : base(new Reconciler(advancedSettings), inputs.ToArray())
+            {
+                Inputs = inputs.ToArray();
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly Action<Settings> _settings;
+
+            public Reconciler(Action<Settings> advancedSettings)
+            {
+                _settings = advancedSettings;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var outCol = (OutPipelineColumn)toOutput[0];
+                var inputs = outCol.Inputs.Select(x => inputNames[x]);
+                return new TextFeaturizingEstimator(env, inputs, outputNames[outCol], _settings);
+            }
+        }
         /// <summary>
         /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
         /// </summary>
@@ -1514,7 +1548,137 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValueOrNull(otherInputs);
             otherInputs = otherInputs ?? new Scalar<string>[0];
-            return new TextFeaturizingEstimator.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
+            return new OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
         }
+    }
+
+    public static class RffStaticExtenensions
+    {
+        private readonly struct Config
+        {
+            public readonly int NewDim;
+            public readonly bool UseSin;
+            public readonly int? Seed;
+            public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
+
+            public Config(int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator, int? seed = null)
+            {
+                NewDim = newDim;
+                UseSin = useSin;
+                Generator = generator;
+                Seed = seed;
+            }
+        }
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+            Config Config { get; }
+        }
+
+        private sealed class ImplVector<T> : Vector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplVector(PipelineColumn input, Config config) : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static readonly Reconciler Inst = new Reconciler();
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new RandomFourierFeaturizingTransformer.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var tcol = (IColInput)toOutput[i];
+                    infos[i] = new RandomFourierFeaturizingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, tcol.Config.Generator, tcol.Config.Seed);
+                }
+                return new RandomFourierFeaturizingEstimator(env, infos);
+            }
+        }
+
+        /// <summary>
+        /// It maps input to a random low-dimensional feature space. It is useful when data has non-linear features, since the transform
+        /// is designed so that the inner products of the transformed data are approximately equal to those in the feature space of a user
+        /// speciﬁed shift-invariant kernel. With this transform, we are able to use linear methods (which are scalable) to approximate more complex kernel SVM models.
+        /// </summary>
+        /// <param name="input">The column to apply Random Fourier transfomration.</param>
+        /// <param name="newDim">Expected size of new vector.</param>
+        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin) </param>
+        /// <param name="generator">Which kernel to use. (<see cref="GaussianFourierSampler"/> by default)</param>
+        /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
+        public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
+            int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim, bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin,
+            IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new ImplVector<string>(input, new Config(newDim, useSin, generator, seed));
+        }
+    }
+
+    public static class PcaEstimatorExtensions
+    {
+        private sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Vector<float> Input;
+
+            public OutPipelineColumn(Vector<float> input, string weightColumn, int rank,
+                                     int overSampling, bool center, int? seed = null)
+                : base(new Reconciler(weightColumn, rank, overSampling, center, seed), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly PcaTransform.ColumnInfo _colInfo;
+
+            public Reconciler(string weightColumn, int rank, int overSampling, bool center, int? seed = null)
+            {
+                _colInfo = new PcaTransform.ColumnInfo(
+                    null, null, weightColumn, rank, overSampling, center, seed);
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+                var outCol = (OutPipelineColumn)toOutput[0];
+                var inputColName = inputNames[outCol.Input];
+                var outputColName = outputNames[outCol];
+                return new PrincipalComponentAnalysisEstimator(env, inputColName, outputColName,
+                                         _colInfo.WeightColumn, _colInfo.Rank, _colInfo.Oversampling,
+                                         _colInfo.Center, _colInfo.Seed);
+            }
+        }
+
+        /// <summary>
+        /// Replaces the input vector with its projection to the principal component subspace,
+        /// which can significantly reduce size of vector.
+        /// </summary>
+        /// <include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name="PCA"]/*'/>
+        /// <param name="input">The column to apply PCA to.</param>
+        /// <param name="weightColumn">The name of the weight column.</param>
+        /// <param name="rank">The number of components in the PCA.</param>
+        /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
+        /// <param name="center">If enabled, data is centered to be zero mean.</param>
+        /// <param name="seed">The seed for random number generation</param>
+        /// <returns>Vector containing the principal components.</returns>
+        public static Vector<float> ToPrincipalComponents(this Vector<float> input,
+            string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
+            int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
+            int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
+            bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,
+            int? seed = null) => new OutPipelineColumn(input, weightColumn, rank, overSampling, center, seed);
     }
 }

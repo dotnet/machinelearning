@@ -6,10 +6,9 @@ using System;
 using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Defines static extension methods that allow operations like train-test split, cross-validate,

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -84,7 +85,7 @@ namespace Microsoft.ML.Tests
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             var data = reader.Read(dataSource);

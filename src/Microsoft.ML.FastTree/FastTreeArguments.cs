@@ -138,12 +138,13 @@ namespace Microsoft.ML.Trainers.FastTree
         Adjacent = 2
     }
 
+    [BestFriend]
     internal static class Defaults
     {
-        internal const int NumTrees = 100;
-        internal const int NumLeaves = 20;
-        internal const int MinDocumentsInLeaves = 10;
-        internal const double LearningRates = 0.2;
+        public const int NumTrees = 100;
+        public const int NumLeaves = 20;
+        public const int MinDocumentsInLeaves = 10;
+        public const double LearningRates = 0.2;
     }
 
     public abstract class TreeArgs : LearnerInputBaseWithGroupId

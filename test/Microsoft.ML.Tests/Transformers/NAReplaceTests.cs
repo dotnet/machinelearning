@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void NAReplaceStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(Env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(Env, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),

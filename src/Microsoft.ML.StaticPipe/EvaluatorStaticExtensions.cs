@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Extension methods for evaluation.

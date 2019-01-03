@@ -4,9 +4,9 @@
 
 using System;
 using System.Drawing;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.ImageAnalytics;
 
-namespace Microsoft.ML.ImageAnalytics
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// A type used in the generic argument to <see cref="Scalar{T}"/>. We must simultaneously distinguish
@@ -33,7 +33,7 @@ namespace Microsoft.ML.ImageAnalytics
         {
             Contracts.CheckValue(path, nameof(path));
             Contracts.CheckValueOrNull(relativeTo);
-            return new ImageLoadingEstimator.OutPipelineColumn(path, relativeTo);
+            return new ImageLoadingStaticExtensions.OutPipelineColumn(path, relativeTo);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.ML.ImageAnalytics
         public static Custom<UnknownSizeBitmap> AsGrayscale(this Custom<UnknownSizeBitmap> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImageGrayscalingEstimator.OutPipelineColumn<UnknownSizeBitmap>(input);
+            return new ImageGreyScalingStaticExtensions.OutPipelineColumn<UnknownSizeBitmap>(input);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.ML.ImageAnalytics
         public static Custom<Bitmap> AsGrayscale(this Custom<Bitmap> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImageGrayscalingEstimator.OutPipelineColumn<Bitmap>(input);
+            return new ImageGreyScalingStaticExtensions.OutPipelineColumn<Bitmap>(input);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace Microsoft.ML.ImageAnalytics
             Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
             Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
 
-            return new ImageResizingEstimator.OutPipelineColumn(input, width, height, resizing, cropAnchor);
+            return new ImageResizingStaticExtensions.OutPipelineColumn(input, width, height, resizing, cropAnchor);
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace Microsoft.ML.ImageAnalytics
             Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
             Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
 
-            return new ImageResizingEstimator.OutPipelineColumn(input, width, height, resizing, cropAnchor);
+            return new ImageResizingStaticExtensions.OutPipelineColumn(input, width, height, resizing, cropAnchor);
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Offset = offset,
                 Convert = true
             };
-            return new ImagePixelExtractingEstimator.OutPipelineColumn<float>(input, colParams);
+            return new ImagePixelExtractingStaticExtensions.OutPipelineColumn<float>(input, colParams);
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace Microsoft.ML.ImageAnalytics
                 InterleaveArgb = interleaveArgb,
                 Convert = false
             };
-            return new ImagePixelExtractingEstimator.OutPipelineColumn<byte>(input, colParams);
+            return new ImagePixelExtractingStaticExtensions.OutPipelineColumn<byte>(input, colParams);
         }
     }
 }

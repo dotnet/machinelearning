@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static class SgdExtensions
+    public static class SgdStaticExtensions
     {
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.StochasticGradientDescentClassificationTrainer"/> trainer.

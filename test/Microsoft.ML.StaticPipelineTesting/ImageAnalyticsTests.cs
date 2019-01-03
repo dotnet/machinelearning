@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,7 +21,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 ctx => ctx.LoadText(0).LoadAsImage().AsGrayscale().Resize(10, 8).ExtractPixels());
 
             var schema = reader.AsDynamic.GetOutputSchema();
@@ -35,7 +35,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(8, vecType.Dimensions[1]);
             Assert.Equal(10, vecType.Dimensions[2]);
 
-            var readAsImage = TextLoader.CreateReader(env,
+            var readAsImage = TextLoaderStatic.CreateReader(env,
                 ctx => ctx.LoadText(0).LoadAsImage());
             var est = readAsImage.MakeNewEstimator().Append(r => r.AsGrayscale().Resize(10, 8).ExtractPixels());
             var pipe= readAsImage.Append(est);
