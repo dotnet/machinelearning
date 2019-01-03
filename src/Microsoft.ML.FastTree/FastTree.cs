@@ -115,19 +115,16 @@ namespace Microsoft.ML.Trainers.FastTree
             int numLeaves,
             int numTrees,
             int minDatapointsInLeaves,
-            Action<TArgs> advancedSettings)
+            TArgs options)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
-            Args = new TArgs();
+            Args = options ?? new TArgs();
 
             // set up the directly provided values
             // override with the directly provided values.
             Args.NumLeaves = numLeaves;
             Args.NumTrees = numTrees;
             Args.MinDocumentsInLeafs = minDatapointsInLeaves;
-
-            //apply the advanced args, if the user supplied any
-            advancedSettings?.Invoke(Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;

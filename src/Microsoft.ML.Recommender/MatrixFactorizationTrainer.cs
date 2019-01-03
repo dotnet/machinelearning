@@ -258,7 +258,7 @@ namespace Microsoft.ML.Trainers
             Options options = null)
             : base(env, LoadNameValue)
         {
-            var args = options;
+            var args = options ?? new Options();
 
             _fun = (int)args.LossFunction;
             _lambda = args.Lambda;

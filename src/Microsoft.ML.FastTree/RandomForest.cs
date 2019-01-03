@@ -36,7 +36,7 @@ namespace Microsoft.ML.Trainers.FastTree
             int numTrees,
             int minDatapointsInLeaves,
             double learningRate,
-            Action<TArgs> advancedSettings,
+            TArgs advancedSettings,
             bool quantileEnabled = false)
             : base(env, label, featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, advancedSettings)
         {

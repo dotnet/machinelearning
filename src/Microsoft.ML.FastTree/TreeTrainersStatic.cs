@@ -53,8 +53,11 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
+                   var options = new FastTreeRegressionTrainer.Options();
+                   advancedSettings?.Invoke(options);
+
                    var trainer = new FastTreeRegressionTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       numTrees, minDatapointsInLeaves, learningRate, advancedSettings);
+                       numTrees, minDatapointsInLeaves, learningRate, options);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -103,8 +106,11 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
+                   var options = new FastTreeBinaryClassificationTrainer.Options();
+                   advancedSettings?.Invoke(options);
+
                    var trainer = new FastTreeBinaryClassificationTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       numTrees, minDatapointsInLeaves, learningRate, advancedSettings);
+                       numTrees, minDatapointsInLeaves, learningRate, options);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -149,8 +155,11 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
+                   var options = new FastTreeRankingTrainer.Options();
+                   advancedSettings?.Invoke(options);
+
                    var trainer = new FastTreeRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, numLeaves,
-                       numTrees, minDatapointsInLeaves, learningRate, advancedSettings);
+                       numTrees, minDatapointsInLeaves, learningRate, options);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
