@@ -25,10 +25,29 @@ using Microsoft.ML.Model;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// The FeatureContributionCalculationTransformer computes model-specific contribution scores for each feature.
+    /// The FeatureContributionCalculationTransformer computes model-specific per-feature contributions to the score of each data point.
     /// See the list of currently supported models below.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Scorind a data set with a trained model produces a score, or prediction, for each data sample. To understand and explain these predictions
+    /// it can be useful to inspect which features influenced them most significantly. FeatureContributionCalculationTransformer computes a model-specific
+    /// list of per-feature contributions to the score for each data sample. These contributions can be positive (they make the score higher) or negative
+    /// (they make the score lower).
+    /// </para>
+    /// <para>
+    /// For linear models, the contribution of a given feature is just equal to the product of feature times the corresponding weight. Similarly, for
+    /// Generalized Additive Models (GAM), the contrubution of a feature is equal to the shape function for the given feature evaluated at the feature value.
+    /// </para>
+    /// <para>
+    /// For tree based models, the contribution of a feature is equal to the change in score produced by exploring the opposite sub-tree every time a decision
+    /// node for the given feature is encountered. Consider a simple case with a singe decision tree that has a decision node for the binary feature F1.
+    /// Given a data sample that has feature F1 equal to true, we can calculate the score it would have obtained if we chose the subtree corresponding to
+    /// the feature F1 being equal to false while keeping the other features constant. The contribution of feature F1 for the given sample is the difference
+    /// between the original score and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extendes
+    /// naturally to models with many decision trees.
+    /// </para>
+    /// <para>
     /// Feature Contribution Calculation is currently supported for the following models:
     ///     Regression:
     ///         OrdinaryLeastSquares, StochasticDualCoordinateAscent (SDCA), OnlineGradientDescent, PoissonRegression,
@@ -39,8 +58,10 @@ namespace Microsoft.ML.Data
     ///         FastForest, FastTree, LightGbm
     ///     Ranking:
     ///         FastTree, LightGbm
-    ///
+    /// </para>
+    /// <para>
     /// See the sample below for an example of how to compute feature importance using the FeatureContributionCalculatingTransformer.
+    /// </para>
     /// </remarks>
     /// <example>
     /// <format type="text/markdown">
