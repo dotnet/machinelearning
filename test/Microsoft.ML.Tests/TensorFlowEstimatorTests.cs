@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TensorFlow.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoader.CreateReader(mlContext, ctx => (
+            var data = TextLoaderStatic.CreateReader(mlContext, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoader.CreateReader(mlContext, ctx => (
+            var data = TextLoaderStatic.CreateReader(mlContext, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);

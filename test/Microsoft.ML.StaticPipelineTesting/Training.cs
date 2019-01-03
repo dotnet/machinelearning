@@ -38,7 +38,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -81,7 +81,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var ctx = new RegressionContext(env);
 
             // Here we introduce another column called "Score" to collide with the name of the default output. Heh heh heh...
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10), Score: c.LoadText(2)),
                 separator: ';', hasHeader: true);
 
@@ -110,7 +110,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             LinearBinaryModelParameters pred = null;
@@ -156,7 +156,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             LinearBinaryModelParameters pred = null;
@@ -200,7 +200,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             LinearBinaryModelParameters pred = null;
@@ -236,7 +236,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             LinearBinaryModelParameters pred = null;
@@ -272,7 +272,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features1: c.LoadFloat(1, 4), features2: c.LoadFloat(5, 9)));
 
             FieldAwareFactorizationMachineModelParameters pred = null;
@@ -304,7 +304,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
             MulticlassLogisticRegressionModelParameters pred = null;
@@ -354,7 +354,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
             var est = reader.MakeNewEstimator()
@@ -378,7 +378,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             IPredictorWithFeatureWeights<float> pred = null;
@@ -418,7 +418,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -459,7 +459,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             IPredictorWithFeatureWeights<float> pred = null;
@@ -500,7 +500,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -542,7 +542,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -584,7 +584,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             IPredictorWithFeatureWeights<float> pred = null;
@@ -623,7 +623,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
             MulticlassLogisticRegressionModelParameters pred = null;
@@ -668,7 +668,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -709,7 +709,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
             KMeansModelParameters pred = null;
@@ -766,7 +766,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RankingContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
                 separator: '\t', hasHeader: true);
 
@@ -807,7 +807,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RankingContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
                 separator: '\t', hasHeader: true);
 
@@ -847,7 +847,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
             OvaModelParameters pred = null;
@@ -885,7 +885,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
             MultiClassNaiveBayesModelParameters pred = null;
@@ -930,7 +930,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             IPredictorWithFeatureWeights<float> pred = null;

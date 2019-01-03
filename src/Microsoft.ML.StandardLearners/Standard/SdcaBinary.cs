@@ -1658,11 +1658,13 @@ namespace Microsoft.ML.Trainers
                 if (ConvergenceTolerance <= 0)
                     ConvergenceTolerance = float.Epsilon;
             }
+
+            [BestFriend]
             internal static class Defaults
             {
-                internal const float L2Weight = 1e-6f;
-                internal const int MaxIterations = 20;
-                internal const double InitLearningRate = 0.01;
+                public const float L2Weight = 1e-6f;
+                public const int MaxIterations = 20;
+                public const double InitLearningRate = 0.01;
             }
         }
 

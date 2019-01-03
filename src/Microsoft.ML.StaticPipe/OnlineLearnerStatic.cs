@@ -12,7 +12,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static class AveragedPerceptronExtensions
+    public static class AveragedPerceptronStaticExtensions
     {
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.

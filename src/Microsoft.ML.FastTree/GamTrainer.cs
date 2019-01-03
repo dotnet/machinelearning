@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.ML;
+using Microsoft.ML.Calibrator;
 using Microsoft.ML.Command;
 using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
@@ -647,7 +648,7 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     public abstract class GamModelParametersBase : ModelParametersBase<float>, IValueMapper, ICalculateFeatureContribution,
-        IFeatureContributionMapper, ICanSaveInTextFormat, ICanSaveSummary
+        IFeatureContributionMapper, ICanSaveInTextFormat, ICanSaveSummary, ICanSaveInIniFormat
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
@@ -833,6 +834,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             double value = Intercept;
             var featuresValues = features.GetValues();
+
             if (features.IsDense)
             {
                 for (int i = 0; i < featuresValues.Length; ++i)
@@ -1026,6 +1028,114 @@ namespace Microsoft.ML.Trainers.FastTree
             }
             contributions = editor.Commit();
             Numeric.VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
+        }
+
+        void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
+        {
+            Host.CheckValue(writer, nameof(writer));
+            var ensemble = new TreeEnsemble();
+
+            for (int featureIndex = 0; featureIndex < _numFeatures; featureIndex++)
+            {
+                var effects = _binEffects[featureIndex];
+                var binThresholds = _binUpperBounds[featureIndex];
+
+                Host.Assert(effects.Length == binThresholds.Length);
+                var numLeaves = effects.Length;
+                var numInternalNodes = numLeaves - 1;
+
+                var splitFeatures = Enumerable.Repeat(featureIndex, numInternalNodes).ToArray();
+                var (treeThresholds, lteChild, gtChild) = CreateBalancedTree(numInternalNodes, binThresholds);
+                var tree = CreateRegressionTree(numLeaves, splitFeatures, treeThresholds, lteChild, gtChild, effects);
+                ensemble.AddTree(tree);
+            }
+
+            // Adding the intercept as a dummy tree with the output values being the model intercept,
+            // works for reaching parity.
+            var interceptTree = CreateRegressionTree(
+                numLeaves: 2,
+                splitFeatures: new[] { 0 },
+                rawThresholds: new[] { 0f },
+                lteChild: new[] { ~0 },
+                gtChild: new[] { ~1 },
+                leafValues: new[] { Intercept, Intercept });
+            ensemble.AddTree(interceptTree);
+
+            var ini = FastTreeIniFileUtils.TreeEnsembleToIni(
+                Host, ensemble, schema, calibrator, string.Empty, false, false);
+
+            // Remove the SplitGain values which are all 0.
+            // It's eaiser to remove them here, than to modify the FastTree code.
+            var goodLines = ini.Split(new[] { '\n' }).Where(line => !line.StartsWith("SplitGain="));
+            ini = string.Join("\n", goodLines);
+            writer.WriteLine(ini);
+        }
+
+        // GAM bins should be converted to balanced trees / binary search trees
+        // so that scoring takes O(log(n)) instead of O(n). The following utility
+        // creates a balanced tree.
+        private (float[], int[], int[]) CreateBalancedTree(int numInternalNodes, double[] binThresholds)
+        {
+            var binIndices = Enumerable.Range(0, numInternalNodes).ToArray();
+            var internalNodeIndices = new List<int>();
+            var lteChild = new List<int>();
+            var gtChild = new List<int>();
+            var internalNodeId = numInternalNodes;
+
+            CreateBalancedTreeRecursive(
+                0, binIndices.Length - 1, internalNodeIndices, lteChild, gtChild, ref internalNodeId);
+            // internalNodeId should have been counted all the way down to 0 (root node)
+            Host.Assert(internalNodeId == 0);
+
+            var tree = (
+                thresholds: internalNodeIndices.Select(x => (float)binThresholds[binIndices[x]]).ToArray(),
+                lteChild: lteChild.ToArray(),
+                gtChild: gtChild.ToArray());
+            return tree;
+        }
+
+        private int CreateBalancedTreeRecursive(int lower, int upper,
+            List<int> internalNodeIndices, List<int> lteChild, List<int> gtChild, ref int internalNodeId)
+        {
+            if (lower > upper)
+            {
+                // Base case: we've reached a leaf node
+                Host.Assert(lower == upper + 1);
+                return ~lower;
+            }
+            else
+            {
+                // This is postorder traversal algorithm and populating the internalNodeIndices/lte/gt lists in reverse.
+                // Preorder is the only option, because we need the results of both left/right recursions for populating the lists.
+                // As a result, lists are populated in reverse, because the root node should be the first item on the lists.
+                // Binary search tree algorithm (recursive splitting to half) is used for creating balanced tree.
+                var mid = (lower + upper) / 2;
+                var left = CreateBalancedTreeRecursive(
+                    lower, mid - 1, internalNodeIndices, lteChild, gtChild, ref internalNodeId);
+                var right = CreateBalancedTreeRecursive(
+                    mid + 1, upper, internalNodeIndices, lteChild, gtChild, ref internalNodeId);
+                internalNodeIndices.Insert(0, mid);
+                lteChild.Insert(0, left);
+                gtChild.Insert(0, right);
+                return --internalNodeId;
+            }
+        }
+        private static RegressionTree CreateRegressionTree(
+            int numLeaves, int[] splitFeatures, float[] rawThresholds, int[] lteChild, int[] gtChild, double[] leafValues)
+        {
+            var numInternalNodes = numLeaves - 1;
+            return RegressionTree.Create(
+                numLeaves: numLeaves,
+                splitFeatures: splitFeatures,
+                rawThresholds: rawThresholds,
+                lteChild: lteChild,
+                gtChild: gtChild.ToArray(),
+                leafValues: leafValues,
+                // Ignored arguments
+                splitGain: new double[numInternalNodes],
+                defaultValueForMissing: new float[numInternalNodes],
+                categoricalSplitFeatures: new int[numInternalNodes][],
+                categoricalSplit: new bool[numInternalNodes]);
         }
 
         /// <summary>

@@ -4,7 +4,7 @@
 
 using System;
 using Microsoft.ML.Data;
-using static Microsoft.ML.Data.TextLoader;
+using static Microsoft.ML.StaticPipe.TextLoaderStatic;
 
 namespace Microsoft.ML.StaticPipe
 {

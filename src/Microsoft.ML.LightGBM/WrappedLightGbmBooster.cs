@@ -96,10 +96,24 @@ namespace Microsoft.ML.LightGBM
 
         private static double[] Str2DoubleArray(string str, char delimiter)
         {
-            return str.Split(delimiter).Select(
-                x => { double t; double.TryParse(x, out t); return t; }
-            ).ToArray();
+            var values = new List<double>();
+            foreach (var token in str.Split(delimiter))
+            {
+                var trimmed = token.Trim();
 
+                if (trimmed.Equals("inf", StringComparison.OrdinalIgnoreCase))
+                    values.Add(double.PositiveInfinity);
+                else if (trimmed.Equals("-inf", StringComparison.OrdinalIgnoreCase))
+                    values.Add(double.NegativeInfinity);
+                else if (trimmed.Contains("nan"))
+                    values.Add(double.NaN);
+                else
+                    // The value carried in the trimmed string is not inf, -inf, or nan.
+                    // Therefore, double.Parse should be able to generate a valid number from it.
+                    // If parsing fails, an exception will be thrown.
+                    values.Add(double.Parse(trimmed));
+            }
+            return values.ToArray();
         }
 
         private static int[] Str2IntArray(string str, char delimiter)

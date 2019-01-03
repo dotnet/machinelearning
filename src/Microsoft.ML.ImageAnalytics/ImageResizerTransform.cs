@@ -16,8 +16,6 @@ using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(ImageResizerTransform.Summary, typeof(IDataTransform), typeof(ImageResizerTransform), typeof(ImageResizerTransform.Arguments),
     typeof(SignatureDataTransform), ImageResizerTransform.UserName, "ImageResizerTransform", "ImageResizer")]
@@ -458,59 +456,6 @@ namespace Microsoft.ML.ImageAnalytics
             }
 
             return new SchemaShape(result.Values);
-        }
-
-        internal sealed class OutPipelineColumn : Custom<Bitmap>
-        {
-            private readonly PipelineColumn _input;
-            private readonly int _width;
-            private readonly int _height;
-            private readonly ImageResizerTransform.ResizingKind _resizing;
-            private readonly ImageResizerTransform.Anchor _cropAnchor;
-
-            public OutPipelineColumn(PipelineColumn input, int width, int height,
-            ImageResizerTransform.ResizingKind resizing, ImageResizerTransform.Anchor cropAnchor)
-                : base(Reconciler.Inst, input)
-            {
-                Contracts.AssertValue(input);
-                _input = input;
-                _width = width;
-                _height = height;
-                _resizing = resizing;
-                _cropAnchor = cropAnchor;
-            }
-
-            private ImageResizerTransform.ColumnInfo MakeColumnInfo(string input, string output)
-                => new ImageResizerTransform.ColumnInfo(input, output, _width, _height, _resizing, _cropAnchor);
-
-            /// <summary>
-            /// Reconciler to an <see cref="ImageResizerTransform"/> for the <see cref="PipelineColumn"/>.
-            /// </summary>
-            /// <seealso cref="ImageStaticPipe.Resize(Custom{Bitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
-            /// <seealso cref="ImageStaticPipe.Resize(Custom{UnknownSizeBitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
-            private sealed class Reconciler : EstimatorReconciler
-            {
-                public static Reconciler Inst = new Reconciler();
-
-                private Reconciler()
-                {
-                }
-
-                public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                    PipelineColumn[] toOutput,
-                    IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                    IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                    IReadOnlyCollection<string> usedNames)
-                {
-                    var cols = new ImageResizerTransform.ColumnInfo[toOutput.Length];
-                    for (int i = 0; i < toOutput.Length; ++i)
-                    {
-                        var outCol = (OutPipelineColumn)toOutput[i];
-                        cols[i] = outCol.MakeColumnInfo(inputNames[outCol._input], outputNames[outCol]);
-                    }
-                    return new ImageResizingEstimator(env, cols);
-                }
-            }
         }
     }
 }

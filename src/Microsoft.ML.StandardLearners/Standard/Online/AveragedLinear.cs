@@ -52,11 +52,12 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "The inexactness tolerance for averaging", ShortName = "avgtol")]
         public Float AveragedTolerance = (Float)1e-2;
 
+        [BestFriend]
         internal class AveragedDefaultArgs : OnlineDefaultArgs
         {
-            internal const Float LearningRate = 1;
-            internal const bool DecreaseLearningRate = false;
-            internal const Float L2RegularizerWeight = 0;
+            public const Float LearningRate = 1;
+            public const bool DecreaseLearningRate = false;
+            public const Float L2RegularizerWeight = 0;
         }
 
         internal abstract IComponentFactory<IScalarOutputLoss> LossFunctionFactory { get; }

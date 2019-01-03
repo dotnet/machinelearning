@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// MultiClass Classification trainer estimators.
     /// </summary>
-    public static partial class MultiClassClassificationTrainers
+    public static partial class MultiClassClassificationStaticExtensions
     {
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the <see cref="MultiClassNaiveBayesTrainer"/> trainer.

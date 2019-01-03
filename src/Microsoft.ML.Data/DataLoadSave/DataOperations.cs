@@ -14,6 +14,7 @@ namespace Microsoft.ML
     /// </summary>
     public sealed class DataOperations
     {
+        [BestFriend]
         internal IHostEnvironment Environment { get; }
 
         internal DataOperations(IHostEnvironment env)
