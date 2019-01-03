@@ -424,7 +424,7 @@ namespace Microsoft.ML.Data
                 Contracts.CheckNonEmpty(kind, nameof(kind));
                 Contracts.CheckValue(type, nameof(type));
                 Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type), "Given type doesn't match type parameter");
-                Contracts.CheckParam(type.IsPrimitive, nameof(type), "Must be a primitive type");
+                Contracts.CheckParam(type is PrimitiveType, nameof(type), "Must be a primitive type");
 
                 if (_getters != null && _getters.Any(g => g.Kind == kind))
                     throw Contracts.Except("Duplicate specification of metadata");

@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public static Builder Create(ColumnType type, SortOrder sortOrder)
             {
                 Contracts.AssertValue(type);
-                Contracts.Assert(type.IsVector || type.IsPrimitive);
+                Contracts.Assert(type.IsVector || type is PrimitiveType);
                 // Right now we have only two. This "public" interface externally looks like it might
                 // accept any value, but currently the internal implementations of Builder are split
                 // along this being a purely binary option, for now (though this can easily change
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         IValueCodec codec;
                         if (!codecFactory.TryReadCodec(ctx.Reader.BaseStream, out codec))
                             throw ectx.Except("Unrecognized codec read");
-                        ectx.CheckDecode(codec.Type.IsPrimitive);
+                        ectx.CheckDecode(codec.Type is PrimitiveType);
                         int count = ctx.Reader.ReadInt32();
                         ectx.CheckDecode(count >= 0);
                         return Utils.MarshalInvoke(LoadCodecCore<int>, codec.Type.RawType, ctx, ectx, codec, count);
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 ectx.AssertValue(ctx);
                 ectx.AssertValue(codec);
                 ectx.Assert(codec is IValueCodec<T>);
-                ectx.Assert(codec.Type.IsPrimitive);
+                ectx.Assert(codec.Type is PrimitiveType);
                 ectx.Assert(count >= 0);
 
                 IValueCodec<T> codecT = (IValueCodec<T>)codec;
@@ -699,7 +699,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         throw host.Except("We do not know how to serialize terms of type '{0}'", ItemType);
                     ctx.Writer.Write((byte)MapType.Codec);
                     host.Assert(codec.Type.Equals(ItemType));
-                    host.Assert(codec.Type.IsPrimitive);
+                    host.Assert(codec.Type is PrimitiveType);
                     codecFactory.WriteCodec(ctx.Writer.BaseStream, codec);
                     IValueCodec<T> codecT = (IValueCodec<T>)codec;
                     ctx.Writer.Write(_values.Count);

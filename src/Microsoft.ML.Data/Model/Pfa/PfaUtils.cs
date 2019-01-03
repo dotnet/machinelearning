@@ -173,7 +173,7 @@ namespace Microsoft.ML.Model.Pfa
             {
                 Contracts.AssertValue(itemType);
 
-                if (!itemType.IsPrimitive)
+                if (!(itemType is PrimitiveType))
                     return null;
 
                 if (itemType.IsKey)

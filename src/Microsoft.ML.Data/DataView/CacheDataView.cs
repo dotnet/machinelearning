@@ -1369,7 +1369,7 @@ namespace Microsoft.ML.Data
                     pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
                 else
                 {
-                    host.Assert(type.IsPrimitive);
+                    host.Assert(type is PrimitiveType);
                     pipeType = typeof(ImplOne<>).MakeGenericType(type.RawType);
                 }
                 if (_pipeConstructorTypes == null)

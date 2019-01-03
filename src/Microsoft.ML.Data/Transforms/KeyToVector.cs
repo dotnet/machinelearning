@@ -758,7 +758,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if ((col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType.IsPrimitive))
+                if ((col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType is PrimitiveType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 var metadata = new List<SchemaShape.Column>();

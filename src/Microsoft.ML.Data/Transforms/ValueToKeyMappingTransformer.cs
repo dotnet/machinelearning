@@ -263,7 +263,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         internal string TestIsKnownDataKind(ColumnType type)
         {
-            if (type.ItemType.RawKind != default && (type.IsVector || type.IsPrimitive))
+            if (type.ItemType.RawKind != default && (type.IsVector || type is PrimitiveType))
                 return null;
             return "standard type or a vector of standard type";
         }

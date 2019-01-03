@@ -46,13 +46,13 @@ namespace Microsoft.ML.Data
         public static Delegate GetGetterAs(ColumnType typeDst, Row row, int col)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsPrimitive, nameof(typeDst));
+            Contracts.CheckParam(typeDst is PrimitiveType, nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<int>> del = GetGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeDst.RawType);
@@ -66,14 +66,14 @@ namespace Microsoft.ML.Data
         public static ValueGetter<TDst> GetGetterAs<TDst>(ColumnType typeDst, Row row, int col)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsPrimitive, nameof(typeDst));
+            Contracts.CheckParam(typeDst is PrimitiveType, nameof(typeDst));
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<TDst>> del = GetGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeof(TDst));
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
             return Utils.MarshalInvoke(GetGetterAsStringBuilderCore<int>, typeSrc.RawType, typeSrc, row, col);
         }
 

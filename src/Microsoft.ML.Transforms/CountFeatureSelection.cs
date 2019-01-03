@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             public CountAggregator(ColumnType type, ValueGetter<T> getter)
             {
-                Contracts.Assert(type.IsPrimitive);
+                Contracts.Assert(type is PrimitiveType);
                 _count = new long[1];
                 _buffer = new VBuffer<T>(1, new T[1]);
                 var t = default(T);

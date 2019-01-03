@@ -791,7 +791,7 @@ namespace Microsoft.ML.Data
                         var srcName = _columnInfo.Inputs[i].name;
                         if ((srcTokens[i] = ctx.TokenOrNullForName(srcName)) == null)
                             return new KeyValuePair<string, JToken>(outName, null);
-                        srcPrimitive[i] = _srcTypes[i].IsPrimitive;
+                        srcPrimitive[i] = _srcTypes[i] is PrimitiveType;
                     }
                     Contracts.Assert(srcTokens.All(tok => tok != null));
                     var itemColumnType = OutputType.ItemType;

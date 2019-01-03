@@ -190,7 +190,7 @@ namespace Microsoft.ML.Data
                     del = CreateDirectVBufferGetterDelegate<int>;
                     genericType = colType.ItemType.RawType;
                 }
-                else if (colType.IsPrimitive)
+                else if (colType is PrimitiveType)
                 {
                     if (outputType == typeof(string))
                     {
@@ -932,7 +932,7 @@ namespace Microsoft.ML.Data
                     .MakeGenericMethod(MetadataType.ItemType.RawType)
                     .Invoke(this, new object[] { }) as ValueGetter<TDst>;
             }
-            if (MetadataType.IsPrimitive)
+            if (MetadataType is PrimitiveType)
             {
                 if (typeT == typeof(string))
                 {

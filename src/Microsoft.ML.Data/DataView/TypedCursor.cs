@@ -296,7 +296,7 @@ namespace Microsoft.ML.Data
                     del = CreateVBufferToVBufferSetter<int>;
                     genericType = colType.ItemType.RawType;
                 }
-                else if (colType.IsPrimitive)
+                else if (colType is PrimitiveType)
                 {
                     if (fieldType == typeof(string))
                     {
