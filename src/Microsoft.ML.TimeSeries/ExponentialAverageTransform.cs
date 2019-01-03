@@ -3,21 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.TimeSeriesProcessing;
 
 [assembly: LoadableClass(ExponentialAverageTransform.Summary, typeof(ExponentialAverageTransform), typeof(ExponentialAverageTransform.Arguments), typeof(SignatureDataTransform),
     ExponentialAverageTransform.UserName, ExponentialAverageTransform.LoaderSignature, ExponentialAverageTransform.ShortName)]
 [assembly: LoadableClass(ExponentialAverageTransform.Summary, typeof(ExponentialAverageTransform), null, typeof(SignatureLoadDataTransform),
     ExponentialAverageTransform.UserName, ExponentialAverageTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     /// <summary>
     /// ExponentialAverageTransform is a weighted average of the values: ExpAvg(y_t) = a * y_t + (1-a) * ExpAvg(y_(t-1)).

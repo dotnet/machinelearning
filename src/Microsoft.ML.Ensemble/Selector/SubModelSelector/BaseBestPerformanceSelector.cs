@@ -6,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.CommandLine;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 {
-    public abstract class BaseBestPerformanceSelector<TOutput> : SubModelDataSelector<TOutput>
+    internal abstract class BaseBestPerformanceSelector<TOutput> : SubModelDataSelector<TOutput>
     {
         protected abstract string MetricName { get; }
 

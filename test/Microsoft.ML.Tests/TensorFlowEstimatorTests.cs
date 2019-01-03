@@ -1,19 +1,19 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.TensorFlow;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TensorFlow.StaticPipe;
+using Microsoft.ML.Tools;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.TensorFlow;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Tests
             var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorType)schema.GetColumnType(column);
+            var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Tests
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 

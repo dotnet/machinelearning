@@ -9,12 +9,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.CommandLine
 {
 
     /// <summary>
@@ -537,16 +535,10 @@ namespace Microsoft.ML.Runtime.CommandLine
 
         private static ArgumentAttribute GetAttribute(FieldInfo field)
         {
-            var attrs = field.GetCustomAttributes(typeof(ArgumentAttribute), false).ToArray();
-            if (attrs.Length == 1)
-            {
-                var argumentAttribute = (ArgumentAttribute)attrs[0];
-                if (argumentAttribute.Visibility == ArgumentAttribute.VisibilityType.EntryPointsOnly)
-                    return null;
-                return argumentAttribute;
-            }
-            Contracts.Assert(attrs.Length == 0);
-            return null;
+            var argumentAttribute = field.GetCustomAttribute<ArgumentAttribute>(false);
+            if (argumentAttribute?.Visibility == ArgumentAttribute.VisibilityType.EntryPointsOnly)
+                return null;
+            return argumentAttribute;
         }
 
         private void ReportUnrecognizedArgument(string argument)

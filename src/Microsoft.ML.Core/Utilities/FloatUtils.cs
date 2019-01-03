@@ -6,7 +6,7 @@ using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     [BestFriend]
     internal static class FloatUtils

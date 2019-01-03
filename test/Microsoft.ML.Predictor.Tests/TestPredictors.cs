@@ -7,23 +7,23 @@ using System.Collections.Generic;
 using System.IO;
 using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
-    using Microsoft.ML.Runtime;
-    using Microsoft.ML.Runtime.Data;
-    using Microsoft.ML.Runtime.EntryPoints;
-    using Microsoft.ML.Runtime.Ensemble;
-    using Microsoft.ML.Runtime.Internal.Utilities;
-    using Microsoft.ML.Runtime.Learners;
-    using Microsoft.ML.Runtime.LightGBM;
+    using System.Linq;
+    using System.Runtime.InteropServices;
+    using Microsoft.ML;
+    using Microsoft.ML.Data;
+    using Microsoft.ML.Ensemble;
+    using Microsoft.ML.EntryPoints;
+    using Microsoft.ML.Internal.Utilities;
+    using Microsoft.ML.Learners;
+    using Microsoft.ML.LightGBM;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers.FastTree;
     using Microsoft.ML.Trainers.FastTree.Internal;
     using Microsoft.ML.Trainers.Online;
     using Microsoft.ML.Trainers.SymSgd;
     using Microsoft.ML.Transforms.Categorical;
-    using System.Linq;
-    using System.Runtime.InteropServices;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             base.InitializeEnvironment(environment);
 
-            environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
         }
 
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
@@ -230,6 +230,17 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             };
             Run_CV(predictor, TestDatasets.mnistTiny28, extraTag: "DifferentClassCounts");
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Multiclass")]
+        public void MulticlassReductionTest()
+        {
+            RunOneAllTests(TestLearners.Ova, TestDatasets.iris);
+            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris);
+            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris);
+
             Done();
         }
 
@@ -313,7 +324,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers with non-negative coefficients
         ///</summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))]  // netcore3.0 and x86 output differs from Baseline
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNonNegativeTest()
         {
@@ -326,7 +337,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
@@ -339,7 +350,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))] // x86 output differs from Baseline and flaky on netcore 3.0
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionGaussianNormTest()
         {
@@ -595,12 +606,12 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var fastTrees = new IPredictorModel[3];
+            var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -617,13 +628,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var cat = new OneHotEncodingEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
-            var fastTrees = new IPredictorModel[3];
+            var cat = new OneHotEncodingEstimator(ML, "Categories", "Features").Fit(dataView).Transform(dataView);
+            var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -636,14 +647,14 @@ namespace Microsoft.ML.Runtime.RunTests
             CombineAndTestTreeEnsembles(cat, fastTrees);
         }
 
-        private void CombineAndTestTreeEnsembles(IDataView idv, IPredictorModel[] fastTrees)
+        private void CombineAndTestTreeEnsembles(IDataView idv, PredictorModel[] fastTrees)
         {
             var combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
 
             var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
-            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModel(Env, data, idv, fastTree) }).ScoredData;
+            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, fastTree) }).ScoredData;
             Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
             Assert.True(scored.Schema.TryGetColumnIndex("Probability", out int probCol));
             Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out int predCol));
@@ -661,7 +672,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
             }
 
-            var cursors = new IRowCursor[predCount];
+            var cursors = new RowCursor[predCount];
             for (int i = 0; i < predCount; i++)
                 cursors[i] = scoredArray[i].GetRowCursor(c => c == scoreColArray[i] || c == probColArray[i] || c == predColArray[i]);
 
@@ -718,11 +729,11 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var predictors = new IPredictorModel[]
+            var predictors = new PredictorModel[]
             {
-                FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -730,7 +741,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     LabelColumn = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                AveragedPerceptronTrainer.TrainBinary(Env, new AveragedPerceptronTrainer.Arguments()
+                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Arguments()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -738,7 +749,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -746,7 +757,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -764,9 +775,9 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestMultiClassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+            var dataView = ML.Data.ReadFromTextFile(dataPath);
 
-            var predictors = new IPredictorModel[]
+            var predictors = new PredictorModel[]
             {
                 LightGbm.TrainMultiClass(Env, new LightGbmArguments
                 {
@@ -797,7 +808,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         private void CombineAndTestEnsembles(IDataView idv, string name, string options, PredictionKind predictionKind,
-            IPredictorModel[] predictors)
+            PredictorModel[] predictors)
         {
             var combiner = ComponentCatalog.CreateInstance<IModelCombiner>(
                 Env, typeof(SignatureModelCombiner), name, options, predictionKind);
@@ -805,7 +816,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var predictor = combiner.CombineModels(predictors.Select(pm => pm.Predictor));
 
             var data = new RoleMappedData(idv, label: null, feature: "Features");
-            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModel(Env, data, idv, predictor) }).ScoredData;
+            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModelImpl(Env, data, idv, predictor) }).ScoredData;
 
             var predCount = Utils.Size(predictors);
 
@@ -839,7 +850,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             }
 
-            var cursors = new IRowCursor[predCount];
+            var cursors = new RowCursor[predCount];
             for (int i = 0; i < predCount; i++)
                 cursors[i] = scoredArray[i].GetRowCursor(c => c == scoreColArray[i] || c == probColArray[i] || c == predColArray[i]);
 
@@ -904,7 +915,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             predGetters[i](ref preds[i]);
                         }
                         if (scores.All(s => !float.IsNaN(s)))
-                            Assert.Equal(score, scores.Sum() / predCount, 3);
+                            CompareNumbersWithTolerance(score, scores.Sum() / predCount);
                         for (int i = 0; i < predCount; i++)
                             Assert.Equal(vectorScore.Length, vectorScores[i].Length);
                         for (int i = 0; i < vectorScore.Length; i++)
@@ -1411,8 +1422,8 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 PredictorUtils.Save(mem, pred, null, null, null, useFileSystem: true);
                 mem.Seek(0, SeekOrigin.Begin);
-                Microsoft.ML.Runtime.Model.IDataModel model;
-                Microsoft.ML.Runtime.Model.IDataStats stats;
+                Microsoft.ML.Model.IDataModel model;
+                Microsoft.ML.Model.IDataStats stats;
                 return (OlsLinearRegressionPredictor)PredictorUtils.LoadPredictor(out model, out stats, mem, false);
             }
         }
@@ -1561,7 +1572,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for no calibrators
         ///</summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
         [TestCategory("Calibrator")]
         public void DefaultCalibratorPerceptronTest()
         {
@@ -1573,7 +1584,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
         [TestCategory("Calibrator")]
         public void PAVCalibratorPerceptronTest()
         {
@@ -1585,7 +1596,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for random calibrators
         ///</summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))]  // netcore3.0 and x86 output differs from Baseline
         [TestCategory("Calibrator")]
         public void RandomCalibratorPerceptronTest()
         {

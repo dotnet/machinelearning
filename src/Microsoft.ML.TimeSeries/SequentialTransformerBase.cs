@@ -3,19 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.TimeSeries;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
+using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
-using System.IO;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.TimeSeries;
+using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     /// <summary>
     /// The base class for sequential processing transforms. This class implements the basic sliding window buffering. The derived classes need to specify the transform logic,
@@ -259,7 +258,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public bool IsRowToRowMapper => false;
 
-        public TState StateRef{ get; set; }
+        public TState StateRef { get; set; }
 
         public int StateRefCount;
 
@@ -343,7 +342,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public abstract Schema GetOutputSchema(Schema inputSchema);
 
-        private protected abstract IStatefulRowMapper MakeRowMapper(ISchema schema);
+        private protected abstract IStatefulRowMapper MakeRowMapper(Schema schema);
 
         private protected SequentialDataTransform MakeDataTransform(IDataView input)
         {
@@ -386,7 +385,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
                     _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
                 _mapper = mapper;
-                _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
+                _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
             }
 
             public void CloneStateInMapper() => _mapper.CloneState();
@@ -429,7 +428,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override bool CanShuffle { get { return false; } }
 
-            protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+            protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
             {
                 var srcCursor = _transform.GetRowCursor(predicate, rand);
                 var clone = (SequentialDataTransform)MemberwiseClone();
@@ -443,17 +442,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return false;
             }
 
-            public override Schema Schema => _bindings.Schema;
-
             public override long? GetRowCount()
             {
                 return _transform.GetRowCount();
             }
 
-            public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+            public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
             {
-                consolidator = null;
-                return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+                return new RowCursor[] { GetRowCursorCore(predicate, rand) };
             }
 
             public override void Save(ModelSaveContext ctx)
@@ -467,9 +463,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             public Schema InputSchema => Source.Schema;
+
+            public override Schema OutputSchema => _bindings.Schema;
+
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => true;
@@ -477,42 +476,55 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return col => false;
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer) =>
-                new Row(_bindings.Schema, input, _mapper.CreateGetters(input, active, out disposer),
-                    _mapper.CreatePinger(input, active, out disposer));
-
+            public Row GetRow(Row input, Func<int, bool> active)
+            {
+                var getters = _mapper.CreateGetters(input, active, out Action disposer);
+                var pingers = _mapper.CreatePinger(input, active, out Action pingerDisposer);
+                return new RowImpl(_bindings.Schema, input, getters, pingers, disposer + pingerDisposer);
+            }
         }
 
-        private sealed class Row : IStatefulRow
+        private sealed class RowImpl : StatefulRow
         {
             private readonly Schema _schema;
-            private readonly IRow _input;
+            private readonly Row _input;
             private readonly Delegate[] _getters;
             private readonly Action<long> _pinger;
+            private readonly Action _disposer;
+            private bool _disposed;
 
-            public Schema Schema { get { return _schema; } }
+            public override Schema Schema => _schema;
 
-            public long Position { get { return _input.Position; } }
+            public override long Position => _input.Position;
 
-            public long Batch { get { return _input.Batch; } }
+            public override long Batch => _input.Batch;
 
-            public Row(Schema schema, IRow input, Delegate[] getters, Action<long> pinger)
+            public RowImpl(Schema schema, Row input, Delegate[] getters, Action<long> pinger, Action disposer)
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(Utils.Size(getters) == schema.ColumnCount);
+                Contracts.Check(Utils.Size(getters) == schema.Count);
                 _schema = schema;
                 _input = input;
                 _getters = getters ?? new Delegate[0];
                 _pinger = pinger;
+                _disposer = disposer;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            protected override void Dispose(bool disposing)
             {
-                return _input.GetIdGetter();
+                if (_disposed)
+                    return;
+                if (disposing)
+                    _disposer?.Invoke();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
-            public ValueGetter<T> GetGetter<T>(int col)
+            public override ValueGetter<RowId> GetIdGetter()
+                => _input.GetIdGetter();
+
+            public override ValueGetter<T> GetGetter<T>(int col)
             {
                 Contracts.CheckParam(0 <= col && col < _getters.Length, nameof(col), "Invalid col value in GetGetter");
                 Contracts.Check(IsColumnActive(col));
@@ -522,10 +534,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return fn;
             }
 
-            public Action<long> GetPinger() =>
+            public override Action<long> GetPinger() =>
                 _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Contracts.Check(0 <= col && col < _getters.Length);
                 return _getters[col] != null;
@@ -535,26 +547,26 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <summary>
         /// A wrapper around the cursor which replaces the schema.
         /// </summary>
-        private sealed class Cursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly SequentialDataTransform _parent;
 
-            public Cursor(IHost host, SequentialDataTransform parent, IRowCursor input)
+            public Cursor(IHost host, SequentialDataTransform parent, RowCursor input)
                 : base(host, input)
             {
-                Ch.Assert(input.Schema.ColumnCount == parent.Schema.ColumnCount);
+                Ch.Assert(input.Schema.Count == parent.OutputSchema.Count);
                 _parent = parent;
             }
 
-            public Schema Schema { get { return _parent.Schema; } }
+            public override Schema Schema => _parent.OutputSchema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount, "col");
+                Ch.Check(0 <= col && col < Schema.Count, "col");
                 return Input.IsColumnActive(col);
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col), "col");
                 return Input.GetGetter<TValue>(col);
@@ -586,7 +598,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 loaderAssemblyName: typeof(TimeSeriesRowToRowMapperTransform).Assembly.FullName);
         }
 
-        public override Schema Schema => _bindings.Schema;
+        public override Schema OutputSchema => _bindings.Schema;
+
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
@@ -596,14 +609,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             Contracts.CheckValue(mapper, nameof(mapper));
             _mapper = mapper;
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
 
-        public static Schema GetOutputSchema(ISchema inputSchema, IRowMapper mapper)
+        public static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));
-            return new ColumnBindings(Schema.Create(inputSchema), mapper.GetOutputColumns()).Schema;
+            return new ColumnBindings(inputSchema, mapper.GetOutputColumns()).Schema;
         }
 
         private TimeSeriesRowToRowMapperTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -613,7 +626,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // _mapper
 
             ctx.LoadModel<IStatefulRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
         }
 
         public static TimeSeriesRowToRowMapperTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -645,12 +658,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         private bool[] GetActive(Func<int, bool> predicate, out Func<int, bool> predicateInput)
         {
-            int n = _bindings.Schema.ColumnCount;
+            int n = _bindings.Schema.Count;
             var active = Utils.BuildArray(n, predicate);
             Contracts.Assert(active.Length == n);
 
             var activeInput = _bindings.GetActiveInput(predicate);
-            Contracts.Assert(activeInput.Length == _bindings.InputSchema.ColumnCount);
+            Contracts.Assert(activeInput.Length == _bindings.InputSchema.Count);
 
             // Get a predicate that determines which outputs are active.
             var predicateOut = GetActiveOutputColumns(active);
@@ -668,7 +681,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private Func<int, bool> GetActiveOutputColumns(bool[] active)
         {
             Contracts.AssertValue(active);
-            Contracts.Assert(active.Length == _bindings.Schema.ColumnCount);
+            Contracts.Assert(active.Length == _bindings.Schema.Count);
 
             return
                 col =>
@@ -686,14 +699,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
-            return new RowCursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
+            return new Cursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -701,16 +714,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
 
-            var inputs = Source.GetRowCursorSet(out consolidator, predicateInput, n, rand);
+            var inputs = Source.GetRowCursorSet(predicateInput, n, rand);
             Host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))
-                inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
+                inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(Host, inputs[i], this, active);
+                cursors[i] = new Cursor(Host, inputs[i], this, active);
             return cursors;
         }
 
@@ -743,52 +756,57 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         Schema IRowToRowMapper.InputSchema => Source.Schema;
 
-        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
             Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
 
-            disposer = null;
             using (var ch = Host.Start("GetEntireRow"))
             {
-                Action disp;
-                var activeArr = new bool[Schema.ColumnCount];
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                var activeArr = new bool[OutputSchema.Count];
+                for (int i = 0; i < OutputSchema.Count; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
-                var getters = _mapper.CreateGetters(input, pred, out disp);
-                disposer += disp;
-                return new StatefulRow(input, this, Schema, getters,
-                    _mapper.CreatePinger(input, pred, out disp));
+                var getters = _mapper.CreateGetters(input, pred, out Action disp);
+                var pingers = _mapper.CreatePinger(input, pred, out Action pingerDisp);
+                return new StatefulRowImpl(input, this, OutputSchema, getters, pingers, disp + pingerDisp);
             }
         }
 
-        private sealed class StatefulRow : IStatefulRow
+        private sealed class StatefulRowImpl : StatefulRow
         {
-            private readonly IRow _input;
+            private readonly Row _input;
             private readonly Delegate[] _getters;
             private readonly Action<long> _pinger;
+            private readonly Action _disposer;
 
             private readonly TimeSeriesRowToRowMapperTransform _parent;
 
-            public long Batch { get { return _input.Batch; } }
+            public override long Batch => _input.Batch;
 
-            public long Position { get { return _input.Position; } }
+            public override long Position => _input.Position;
 
-            public Schema Schema { get; }
+            public override Schema Schema { get; }
 
-            public StatefulRow(IRow input, TimeSeriesRowToRowMapperTransform parent,
-                Schema schema, Delegate[] getters, Action<long> pinger)
+            public StatefulRowImpl(Row input, TimeSeriesRowToRowMapperTransform parent,
+                Schema schema, Delegate[] getters, Action<long> pinger, Action disposer)
             {
                 _input = input;
                 _parent = parent;
                 Schema = schema;
                 _getters = getters;
                 _pinger = pinger;
+                _disposer = disposer;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                    _disposer?.Invoke();
+            }
+
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 bool isSrc;
                 int index = _parent._bindings.MapColumnIndex(out isSrc, col);
@@ -802,12 +820,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return fn;
             }
 
-            public Action<long> GetPinger() =>
+            public override Action<long> GetPinger() =>
                 _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
 
-            public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
+            public override ValueGetter<RowId> GetIdGetter() => _input.GetIdGetter();
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 bool isSrc;
                 int index = _parent._bindings.MapColumnIndex(out isSrc, col);
@@ -817,16 +835,17 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Delegate[] _getters;
             private readonly bool[] _active;
             private readonly ColumnBindings _bindings;
             private readonly Action _disposer;
+            private bool _disposed;
 
-            public Schema Schema => _bindings.Schema;
+            public override Schema Schema => _bindings.Schema;
 
-            public RowCursor(IChannelProvider provider, IRowCursor input, TimeSeriesRowToRowMapperTransform parent, bool[] active)
+            public Cursor(IChannelProvider provider, RowCursor input, TimeSeriesRowToRowMapperTransform parent, bool[] active)
                 : base(provider, input)
             {
                 var pred = parent.GetActiveOutputColumns(active);
@@ -835,13 +854,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _bindings = parent._bindings;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < _bindings.Schema.ColumnCount);
+                Ch.Check(0 <= col && col < _bindings.Schema.Count);
                 return _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -852,19 +871,21 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
                 Ch.AssertValue(_getters);
                 var getter = _getters[index];
-                Ch.Assert(getter != null);
-                var fn = getter as ValueGetter<TValue>;
-                if (fn == null)
-                    throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
-                return fn;
+                Ch.AssertValue(getter);
+                if (getter is ValueGetter<TValue> fn)
+                    return fn;
+                throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                _disposer?.Invoke();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                    _disposer?.Invoke();
+                _disposed = true;
+                base.Dispose(disposing);
             }
         }
     }
-
 }

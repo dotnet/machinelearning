@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
 
@@ -39,7 +37,7 @@ namespace Microsoft.ML.Data
             //     - If this is the same type, we can map directly.
             //     - Otherwise, we need a conversion delegate.
 
-            var colType = data.Schema.GetColumnType(col);
+            var colType = data.Schema[col].Type;
             if (colType.RawType == typeof(T))
             {
                 // Direct mapping is possible.
@@ -82,7 +80,7 @@ namespace Microsoft.ML.Data
         private static IEnumerable<T> GetColumnDirect<T>(IDataView data, int col)
         {
             Contracts.AssertValue(data);
-            Contracts.Assert(0 <= col && col < data.Schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < data.Schema.Count);
 
             using (var cursor = data.GetRowCursor(col.Equals))
             {
@@ -99,7 +97,7 @@ namespace Microsoft.ML.Data
         private static IEnumerable<TOut> GetColumnConvert<TOut, TData>(IDataView data, int col, Func<TData, TOut> convert)
         {
             Contracts.AssertValue(data);
-            Contracts.Assert(0 <= col && col < data.Schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < data.Schema.Count);
 
             using (var cursor = data.GetRowCursor(col.Equals))
             {
@@ -116,7 +114,7 @@ namespace Microsoft.ML.Data
         private static IEnumerable<T[]> GetColumnArrayDirect<T>(IDataView data, int col)
         {
             Contracts.AssertValue(data);
-            Contracts.Assert(0 <= col && col < data.Schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < data.Schema.Count);
 
             using (var cursor = data.GetRowCursor(col.Equals))
             {
@@ -137,7 +135,7 @@ namespace Microsoft.ML.Data
         private static IEnumerable<TOut[]> GetColumnArrayConvert<TOut, TData>(IDataView data, int col, Func<TData, TOut> convert)
         {
             Contracts.AssertValue(data);
-            Contracts.Assert(0 <= col && col < data.Schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < data.Schema.Count);
 
             using (var cursor = data.GetRowCursor(col.Equals))
             {

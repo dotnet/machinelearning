@@ -1,8 +1,8 @@
-﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.StaticPipe;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Samples.Static
 {
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Static
             var data = reader.Read(dataFile);
 
             // The predictor that gets produced out of training
-            FastTreeRegressionPredictor pred = null;
+            FastTreeRegressionModelParameters pred = null;
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()

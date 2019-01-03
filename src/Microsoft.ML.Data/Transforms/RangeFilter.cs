@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Reflection;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 using Float = System.Single;
 
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Arguments), typeof(SignatureDataTransform),
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
 
             using (var ch = Host.Start("Checking parameters"))
             {
-                _type = schema.GetColumnType(_index);
+                _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
                     throw ch.ExceptUserArg(nameof(args.Column), "Column '{0}' does not have compatible type", args.Column);
                 if (_type.IsKey)
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms
             if (!schema.TryGetColumnIndex(column, out _index))
                 throw Host.Except("column", "Source column '{0}' not found", column);
 
-            _type = schema.GetColumnType(_index);
+            _type = schema[_index].Type;
             if (_type != NumberType.R4 && _type != NumberType.R8 && _type.KeyCount == 0)
                 throw Host.Except("column", "Column '{0}' does not have compatible type", column);
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Transforms
             // byte: includeMin
             // byte: includeMax
             ctx.Writer.Write(sizeof(Float));
-            ctx.SaveNonEmptyString(Source.Schema.GetColumnName(_index));
+            ctx.SaveNonEmptyString(Source.Schema[_index].Name);
             Host.Assert(_min < _max);
             ctx.Writer.Write(_min);
             ctx.Writer.Write(_max);
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -215,25 +215,24 @@ namespace Microsoft.ML.Transforms
             return CreateCursorCore(input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
             bool[] active;
             Func<int, bool> inputPred = GetActive(predicate, out active);
-            var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = CreateCursorCore(inputs[i], active);
             return cursors;
         }
 
-        private IRowCursor CreateCursorCore(IRowCursor input, bool[] active)
+        private RowCursor CreateCursorCore(RowCursor input, bool[] active)
         {
             if (_type == NumberType.R4)
                 return new SingleRowCursor(this, input, active);
@@ -246,8 +245,8 @@ namespace Microsoft.ML.Transforms
         private Func<int, bool> GetActive(Func<int, bool> predicate, out bool[] active)
         {
             Host.AssertValue(predicate);
-            active = new bool[Source.Schema.ColumnCount];
-            bool[] activeInput = new bool[Source.Schema.ColumnCount];
+            active = new bool[Source.Schema.Count];
+            bool[] activeInput = new bool[Source.Schema.Count];
             for (int i = 0; i < active.Length; i++)
                 activeInput[i] = active[i] = predicate(i);
             activeInput[_index] = true;
@@ -268,8 +267,8 @@ namespace Microsoft.ML.Transforms
             private readonly Double _min;
             private readonly Double _max;
 
-            protected RowCursorBase(RangeFilter parent, IRowCursor input, bool[] active)
-                : base(parent.Host, input, parent.Schema, active)
+            protected RowCursorBase(RangeFilter parent, RowCursor input, bool[] active)
+                : base(parent.Host, input, parent.OutputSchema, active)
             {
                 Parent = parent;
                 _min = Parent._min;
@@ -307,7 +306,7 @@ namespace Microsoft.ML.Transforms
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount);
+                Ch.Check(0 <= col && col < Schema.Count);
                 Ch.Check(IsColumnActive(col));
 
                 if (col != Parent._index)
@@ -319,15 +318,15 @@ namespace Microsoft.ML.Transforms
                 return fn;
             }
 
-            public static IRowCursor CreateKeyRowCursor(RangeFilter filter, IRowCursor input, bool[] active)
+            public static RowCursor CreateKeyRowCursor(RangeFilter filter, RowCursor input, bool[] active)
             {
                 Contracts.Assert(filter._type.IsKey);
-                Func<RangeFilter, IRowCursor, bool[], IRowCursor> del = CreateKeyRowCursor<int>;
+                Func<RangeFilter, RowCursor, bool[], RowCursor> del = CreateKeyRowCursor<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(filter._type.RawType);
-                return (IRowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
+                return (RowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
             }
 
-            private static IRowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, IRowCursor input, bool[] active)
+            private static RowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, RowCursor input, bool[] active)
             {
                 Contracts.Assert(filter._type.IsKey);
                 return new KeyRowCursor<TSrc>(filter, input, active);
@@ -340,7 +339,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<Single> _getter;
             private Single _value;
 
-            public SingleRowCursor(RangeFilter parent, IRowCursor input, bool[] active)
+            public SingleRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type == NumberType.R4);
@@ -373,7 +372,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<Double> _getter;
             private Double _value;
 
-            public DoubleRowCursor(RangeFilter parent, IRowCursor input, bool[] active)
+            public DoubleRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type == NumberType.R8);
@@ -408,7 +407,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueMapper<T, ulong> _conv;
             private readonly int _count;
 
-            public KeyRowCursor(RangeFilter parent, IRowCursor input, bool[] active)
+            public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type.KeyCount > 0);
@@ -421,7 +420,7 @@ namespace Microsoft.ML.Transforms
                         dst = _value;
                     };
                 bool identity;
-                _conv = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberType.U8, out identity);
+                _conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberType.U8, out identity);
             }
 
             protected override Delegate GetGetter()

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using System;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
 using Xunit;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests

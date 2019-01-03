@@ -3,53 +3,82 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Learners;
-using System.Linq;
 using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Benchmarks
 {
     public class HashBench
     {
-        private sealed class Counted : ICounted
+        private sealed class RowImpl : Row
         {
-            public long Position { get; set; }
+            public long PositionValue;
 
-            public long Batch => 0;
+            public override Schema Schema { get; }
+            public override long Position => PositionValue;
+            public override long Batch => 0;
+            public override ValueGetter<RowId> GetIdGetter()
+                => (ref RowId val) => val = new RowId((ulong)Position, 0);
 
-            public ValueGetter<UInt128> GetIdGetter()
-                => (ref UInt128 val) => val = new UInt128((ulong)Position, 0);
+            private readonly Delegate _getter;
+
+            public override bool IsColumnActive(int col)
+            {
+                if (col != 0)
+                    throw new Exception();
+                return true;
+            }
+
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            {
+                if (col != 0)
+                    throw new Exception();
+                if (_getter is ValueGetter<TValue> typedGetter)
+                    return typedGetter;
+                throw new Exception();
+            }
+
+            public static RowImpl Create<T>(ColumnType type, ValueGetter<T> getter)
+            {
+                if (type.RawType != typeof(T))
+                    throw new Exception();
+                return new RowImpl(type, getter);
+            }
+
+            private RowImpl(ColumnType type, Delegate getter)
+            {
+                var builder = new SchemaBuilder();
+                builder.AddColumn("Foo", type, null);
+                Schema = builder.GetSchema();
+                _getter = getter;
+            }
         }
 
         private const int Count = 100_000;
 
         private readonly IHostEnvironment _env = new MLContext();
 
-        private Counted _counted;
+        private RowImpl _inRow;
         private ValueGetter<uint> _getter;
         private ValueGetter<VBuffer<uint>> _vecGetter;
 
-        private void InitMap<T>(T val, ColumnType type, int hashBits = 20)
+        private void InitMap<T>(T val, ColumnType type, int hashBits = 20, ValueGetter<T> getter = null)
         {
-            var col = RowColumnUtils.GetColumn("Foo", type, ref val);
-            _counted = new Counted();
-            var inRow = RowColumnUtils.GetRow(_counted, col);
+            if (getter == null)
+                getter = (ref T dst) => dst = val;
+            _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
             var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
             var xf = new HashingTransformer(_env, new[] { info });
-            var mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out int outCol);
-            var outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
+            var mapper = xf.GetRowToRowMapper(_inRow.Schema);
+            var column = mapper.OutputSchema["Bar"];
+            var outRow = mapper.GetRow(_inRow, c => c == column.Index);
             if (type is VectorType)
-                _vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
+                _vecGetter = outRow.GetGetter<VBuffer<uint>>(column.Index);
             else
-                _getter = outRow.GetGetter<uint>(outCol);
+                _getter = outRow.GetGetter<uint>(column.Index);
         }
 
         /// <summary>
@@ -61,14 +90,14 @@ namespace Microsoft.ML.Benchmarks
             for (int i = 0; i < Count; ++i)
             {
                 _getter(ref val);
-                ++_counted.Position;
+                ++_inRow.PositionValue;
             }
         }
 
         private void InitDenseVecMap<T>(T[] vals, PrimitiveType itemType, int hashBits = 20)
         {
             var vbuf = new VBuffer<T>(vals.Length, vals);
-            InitMap(vbuf, new VectorType(itemType, vals.Length), hashBits);
+            InitMap(vbuf, new VectorType(itemType, vals.Length), hashBits, vbuf.CopyTo);
         }
 
         /// <summary>
@@ -80,7 +109,7 @@ namespace Microsoft.ML.Benchmarks
             for (int i = 0; i < Count; ++i)
             {
                 _vecGetter(ref val);
-                ++_counted.Position;
+                ++_inRow.PositionValue;
             }
         }
 

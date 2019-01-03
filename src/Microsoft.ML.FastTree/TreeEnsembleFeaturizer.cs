@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TreePredictor;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.TreePredictor;
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(TreeEnsembleFeaturizerTransform), typeof(TreeEnsembleFeaturizerBindableMapper.Arguments),
     typeof(SignatureBindableMapper), "Tree Ensemble Featurizer Mapper", TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]
@@ -33,7 +32,7 @@ using System.IO;
 
 [assembly: LoadableClass(typeof(void), typeof(TreeFeaturize), null, typeof(SignatureEntryPointModule), "TreeFeaturize")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A bindable mapper wrapper for tree ensembles, that creates a bound mapper with three outputs:
@@ -174,8 +173,9 @@ namespace Microsoft.ML.Runtime.Data
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public Schema Schema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema OutputSchema { get; }
+            private Schema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
 
             public ISchemaBindableMapper Bindable => _owner;
 
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(ectx);
                 ectx.AssertValue(owner);
                 ectx.AssertValue(schema);
-                ectx.AssertValue(schema.Feature);
+                ectx.Assert(schema.Feature.HasValue);
 
                 _ectx = ectx;
 
@@ -205,18 +205,17 @@ namespace Microsoft.ML.Runtime.Data
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
                 var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.TrainedEnsemble.NumTrees);
-                Schema = Schema.Create(new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType));
+                OutputSchema = Schema.Create(new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType));
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 _ectx.CheckValue(input, nameof(input));
                 _ectx.CheckValue(predicate, nameof(predicate));
-                disposer = null;
-                return new SimpleRow(Schema, input, CreateGetters(input, predicate));
+                return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
             }
 
-            private Delegate[] CreateGetters(IRow input, Func<int, bool> predicate)
+            private Delegate[] CreateGetters(Row input, Func<int, bool> predicate)
             {
                 _ectx.AssertValue(input);
                 _ectx.AssertValue(predicate);
@@ -230,7 +229,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!treeValueActive && !leafIdActive && !pathIdActive)
                     return delegates;
 
-                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, InputRoleMappedSchema.Feature.Index);
+                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, FeatureColumn.Index);
 
                 // Get the tree value getter.
                 if (treeValueActive)
@@ -259,8 +258,8 @@ namespace Microsoft.ML.Runtime.Data
             private sealed class State
             {
                 private readonly IExceptionContext _ectx;
-                private readonly IRow _input;
-                private readonly FastTreePredictionWrapper _ensemble;
+                private readonly Row _input;
+                private readonly TreeEnsembleModelParameters _ensemble;
                 private readonly int _numTrees;
                 private readonly int _numLeaves;
 
@@ -276,7 +275,7 @@ namespace Microsoft.ML.Runtime.Data
                 private long _cachedLeafBuilderPosition;
                 private long _cachedPathBuilderPosition;
 
-                public State(IExceptionContext ectx, IRow input, FastTreePredictionWrapper ensemble, int numLeaves, int featureIndex)
+                public State(IExceptionContext ectx, Row input, TreeEnsembleModelParameters ensemble, int numLeaves, int featureIndex)
                 {
                     Contracts.AssertValue(ectx);
                     _ectx = ectx;
@@ -392,15 +391,15 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(FeatureColumn.Name);
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
-                        return col => col == InputRoleMappedSchema.Feature.Index;
+                        return col => col == FeatureColumn.Index;
                 }
                 return col => false;
             }
@@ -422,7 +421,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly IHost _host;
-        private readonly FastTreePredictionWrapper _ensemble;
+        private readonly TreeEnsembleModelParameters _ensemble;
         private readonly int _totalLeafCount;
 
         public TreeEnsembleFeaturizerBindableMapper(IHostEnvironment env, Arguments args, IPredictor predictor)
@@ -434,7 +433,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (predictor is CalibratedPredictorBase)
                 predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-            _ensemble = predictor as FastTreePredictionWrapper;
+            _ensemble = predictor as TreeEnsembleModelParameters;
             _host.Check(_ensemble != null, "Predictor in model file does not have compatible type");
 
             _totalLeafCount = CountLeaves(_ensemble);
@@ -449,7 +448,7 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // ensemble
 
-            ctx.LoadModel<FastTreePredictionWrapper, SignatureLoadModel>(env, out _ensemble, "Ensemble");
+            ctx.LoadModel<TreeEnsembleModelParameters, SignatureLoadModel>(env, out _ensemble, "Ensemble");
             _totalLeafCount = CountLeaves(_ensemble);
         }
 
@@ -466,7 +465,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveModel(_ensemble, "Ensemble");
         }
 
-        private static int CountLeaves(FastTreePredictionWrapper ensemble)
+        private static int CountLeaves(TreeEnsembleModelParameters ensemble)
         {
             Contracts.AssertValue(ensemble);
 
@@ -526,7 +525,7 @@ namespace Microsoft.ML.Runtime.Data
             dst = editor.Commit();
         }
 
-        public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
@@ -576,7 +575,7 @@ namespace Microsoft.ML.Runtime.Data
             public int LabelPermutationSeed;
 
             [Argument(ArgumentType.Required, HelpText = "Trainer to use", SortOrder = 10, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public IPredictorModel PredictorModel;
+            public PredictorModel PredictorModel;
         }
 #pragma warning restore CS0649
 
@@ -640,22 +639,23 @@ namespace Microsoft.ML.Runtime.Data
 
                     ch.Trace("Creating scorer");
                     var data = TrainAndScoreTransformer.CreateDataFromArgs(ch, input, args);
+                    Contracts.Assert(data.Schema.Feature.HasValue);
 
                     // Make sure that the given predictor has the correct number of input features.
                     if (predictor is CalibratedPredictorBase)
                         predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-                    // Predictor should be a FastTreePredictionWrapper, which implements IValueMapper, so this should
+                    // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                     // be non-null.
                     var vm = predictor as IValueMapper;
                     ch.CheckUserArg(vm != null, nameof(args.TrainedModelFile), "Predictor in model file does not have compatible type");
-                    if (vm.InputType.VectorSize != data.Schema.Feature.Type.VectorSize)
+                    if (vm.InputType.VectorSize != data.Schema.Feature.Value.Type.VectorSize)
                     {
                         throw ch.ExceptUserArg(nameof(args.TrainedModelFile),
                             "Predictor in model file expects {0} features, but data has {1} features",
-                            vm.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
+                            vm.InputType.VectorSize, data.Schema.Feature.Value.Type.VectorSize);
                     }
 
-                    var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
+                    ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                     var bound = bindable.Bind(env, data.Schema);
                     xf = new GenericScorer(env, scorerArgs, input, bound, data.Schema);
                 }
@@ -703,23 +703,24 @@ namespace Microsoft.ML.Runtime.Data
                 RoleMappedData data = null;
                 args.PredictorModel.PrepareData(env, input, out data, out var predictor2);
                 ch.AssertValue(data);
+                ch.Assert(data.Schema.Feature.HasValue);
                 ch.Assert(predictor == predictor2);
 
                 // Make sure that the given predictor has the correct number of input features.
                 if (predictor is CalibratedPredictorBase)
                     predictor = ((CalibratedPredictorBase)predictor).SubPredictor;
-                // Predictor should be a FastTreePredictionWrapper, which implements IValueMapper, so this should
+                // Predictor should be a TreeEnsembleModelParameters, which implements IValueMapper, so this should
                 // be non-null.
                 var vm = predictor as IValueMapper;
                 ch.CheckUserArg(vm != null, nameof(args.PredictorModel), "Predictor does not have compatible type");
-                if (data != null && vm.InputType.VectorSize != data.Schema.Feature.Type.VectorSize)
+                if (data != null && vm.InputType.VectorSize != data.Schema.Feature.Value.Type.VectorSize)
                 {
                     throw ch.ExceptUserArg(nameof(args.PredictorModel),
                         "Predictor expects {0} features, but data has {1} features",
-                        vm.InputType.VectorSize, data.Schema.Feature.Type.VectorSize);
+                        vm.InputType.VectorSize, data.Schema.Feature.Value.Type.VectorSize);
                 }
 
-                var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
+                ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                 var bound = bindable.Bind(env, data.Schema);
                return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
             }
@@ -781,7 +782,7 @@ namespace Microsoft.ML.Runtime.Data
             int col;
             if (!input.Schema.TryGetColumnIndex(labelName, out col))
                 throw ch.Except("Label column '{0}' not found.", labelName);
-            ColumnType labelType = input.Schema.GetColumnType(col);
+            ColumnType labelType = input.Schema[col].Type;
             if (!labelType.IsKey)
             {
                 if (labelPermutationSeed != 0)
@@ -789,7 +790,7 @@ namespace Microsoft.ML.Runtime.Data
                         "labelPermutationSeed != 0 only applies on a multi-class learning problem when the label type is a key.");
                 return input;
             }
-            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, labelType.AsKey,
+            return Utils.MarshalInvoke(AppendFloatMapper<int>, labelType.RawType, env, ch, input, labelName, (KeyType)labelType,
                 labelPermutationSeed);
         }
     }
@@ -810,7 +811,7 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointUtils.CheckInputArgs(host, input);
 
             var xf = TreeEnsembleFeaturizerTransform.CreateForEntryPoint(env, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+            return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, xf, input.Data), OutputData = xf };
         }
 #pragma warning restore CS0649
     }

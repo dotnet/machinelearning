@@ -3,17 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.SubModelSelector;
 
 [assembly: LoadableClass(typeof(AllSelectorMultiClass), null, typeof(SignatureEnsembleSubModelSelector),
     AllSelectorMultiClass.UserName, AllSelectorMultiClass.LoadName)]
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
+namespace Microsoft.ML.Ensemble.Selector.SubModelSelector
 {
-    public class AllSelectorMultiClass : BaseSubModelSelector<VBuffer<Single>>, IMulticlassSubModelSelector
+    internal sealed class AllSelectorMultiClass : BaseSubModelSelector<VBuffer<Single>>, IMulticlassSubModelSelector
     {
         public const string UserName = "All Selector";
         public const string LoadName = "AllSelectorMultiClass";

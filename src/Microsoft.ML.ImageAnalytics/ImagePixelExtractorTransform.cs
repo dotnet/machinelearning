@@ -8,15 +8,14 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 
@@ -32,7 +31,7 @@ using Microsoft.ML.StaticPipe.Runtime;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadRowMapper),
     ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.ImageAnalytics
+namespace Microsoft.ML.ImageAnalytics
 {
     /// <summary>
     /// Transform which takes one or many columns of <see cref="ImageType"/> and convert them into vector representation.
@@ -378,8 +377,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -400,14 +399,14 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 info.Save(ctx);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].Input;
-            var imageType = inputSchema.GetColumnType(srcCol) as ImageType;
+            var imageType = inputSchema[srcCol].Type as ImageType;
             if (imageType == null)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema.GetColumnType(srcCol).ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema[srcCol].Type.ToString());
             if (imageType.Height <= 0 || imageType.Width <= 0)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "known-size image", "unknown-size image");
             if ((long)imageType.Height * imageType.Width > int.MaxValue / 4)
@@ -429,7 +428,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
                 => _parent._columns.Select((x, idx) => new Schema.DetachedColumn(x.Output, _types[idx], null)).ToArray();
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
@@ -440,7 +439,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             //REVIEW Rewrite it to where TValue : IConvertible
-            private ValueGetter<VBuffer<TValue>> GetGetterCore<TValue>(IRow input, int iinfo, out Action disposer)
+            private ValueGetter<VBuffer<TValue>> GetGetterCore<TValue>(Row input, int iinfo, out Action disposer)
                 where TValue : struct
             {
                 var type = _types[iinfo];
@@ -483,7 +482,9 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             return;
                         }
 
-                        Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                        Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb
+                            || src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format24bppRgb,
+                            "Transform only supports pixel formats Format24bppRgb and Format32bppArgb");
                         Host.Check(src.Height == height && src.Width == width);
 
                         var editor = VBufferEditor.Create(ref dst, size);
@@ -542,28 +543,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         else
                         {
                             int idstMin = 0;
-                            if (ex.Alpha)
-                            {
-                                // The image only has rgb but we need to supply alpha as well, so fake it up,
-                                // assuming that it is 0xFF.
-                                if (!vf.IsEmpty)
-                                {
-                                    Single v = (0xFF - offset) * scale;
-                                    for (int i = 0; i < cpix; i++)
-                                        vf[i] = v;
-                                }
-                                else
-                                {
-                                    for (int i = 0; i < cpix; i++)
-                                        vb[i] = 0xFF;
-                                }
-                                idstMin = cpix;
-
-                                // We've preprocessed alpha, avoid it in the
-                                // scan operation below.
-                                a = false;
-                            }
-
                             for (int y = 0; y < h; ++y)
                             {
                                 int idstBase = idstMin + y * w;
@@ -655,7 +634,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

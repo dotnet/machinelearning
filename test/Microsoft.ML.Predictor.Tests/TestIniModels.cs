@@ -6,12 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Tools;
+using Xunit;
+using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
-    using TestLearners = TestLearnersBase;
 
 #if OLD_TESTS // REVIEW: Need to port the INI stuff.
     /// <summary>
@@ -504,4 +510,95 @@ namespace Microsoft.ML.Runtime.RunTests
         }
     }
 #endif
+
+    public sealed class TestIniModels : TestDataPipeBase
+    {
+        public TestIniModels(ITestOutputHelper output) : base(output)
+        {
+        }
+
+        [Fact]
+        public void TestGamRegressionIni()
+        {
+            var mlContext = new MLContext(seed: 0);
+            var idv = mlContext.Data.CreateTextReader(
+                    new TextLoader.Arguments()
+                    {
+                        HasHeader = false,
+                        Column = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.R4, 0),
+                            new TextLoader.Column("Features", DataKind.R4, 1, 9)
+                        }
+                    }).Read(GetDataPath("breast-cancer.txt"));
+
+            var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
+                .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels());
+            var model = pipeline.Fit(idv);
+            var data = model.Transform(idv);
+
+            var roleMappedSchema = new RoleMappedSchema(data.Schema, false,
+                new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
+                new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
+
+            string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
+            using (Stream iniStream = File.Create(modelIniPath))
+            using (StreamWriter iniWriter = Utils.OpenWriter(iniStream))
+                ((ICanSaveInIniFormat)model.LastTransformer.Model).SaveAsIni(iniWriter, roleMappedSchema);
+
+            var results = mlContext.Regression.Evaluate(data);
+
+            // Getting parity results from maml.exe:
+            // maml.exe ini ini=model.ini out=model_ini.zip data=breast-cancer.txt  loader=TextLoader{col=Label:R4:0 col=Features:R4:1-9} xf=NAHandleTransform{col=Features slot=- ind=-} kind=Regression
+            Assert.Equal(0.093256807643323947, results.L1);
+            Assert.Equal(0.025707474358979077, results.L2);
+            Assert.Equal(0.16033550560926635, results.Rms);
+            Assert.Equal(0.88620288753853549, results.RSquared);
+        }
+
+        [Fact]
+        public void TestGamBinaryClassificationIni()
+        {
+            var mlContext = new MLContext(seed: 0);
+            var idv = mlContext.Data.CreateTextReader(
+                    new TextLoader.Arguments()
+                    {
+                        HasHeader = false,
+                        Column = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.BL, 0),
+                            new TextLoader.Column("Features", DataKind.R4, 1, 9)
+                        }
+                    }).Read(GetDataPath("breast-cancer.txt"));
+
+            var pipeline = mlContext.Transforms.ReplaceMissingValues("Features")
+                .Append(mlContext.BinaryClassification.Trainers.GeneralizedAdditiveModels());
+            var model = pipeline.Fit(idv);
+            var data = model.Transform(idv);
+
+            var roleMappedSchema = new RoleMappedSchema(data.Schema, false,
+                new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, "Features"),
+                new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
+
+            var calibratedPredictor = model.LastTransformer.Model as CalibratedPredictor;
+            var predictor = calibratedPredictor.SubPredictor as ICanSaveInIniFormat;
+            string modelIniPath = GetOutputPath(FullTestName + "-model.ini");
+
+            using (Stream iniStream = File.Create(modelIniPath))
+            using (StreamWriter iniWriter = Utils.OpenWriter(iniStream))
+                predictor.SaveAsIni(iniWriter, roleMappedSchema, calibratedPredictor.Calibrator);
+
+            var results = mlContext.BinaryClassification.Evaluate(data);
+
+            // Getting parity results from maml.exe:
+            // maml.exe ini ini=model.ini out=model_ini.zip data=breast-cancer.txt  loader=TextLoader{col=Label:R4:0 col=Features:R4:1-9} xf=NAHandleTransform{col=Features slot=- ind=-} kind=Binary
+            Assert.Equal(0.99545199224483139, results.Auc);
+            Assert.Equal(0.96995708154506433, results.Accuracy);
+            Assert.Equal(0.95081967213114749, results.PositivePrecision);
+            Assert.Equal(0.96265560165975106, results.PositiveRecall);
+            Assert.Equal(0.95670103092783509, results.F1Score);
+            Assert.Equal(0.11594021906091197, results.LogLoss);
+        }
+    }
+
 }

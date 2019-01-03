@@ -1,7 +1,6 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -31,16 +30,14 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // First, we define the reader: specify the data columns and where to find them in the text file. Notice that we combine entries from
             // all the feature columns into entries of a vector of a single column named "Features".
-            var reader = ml.Data.TextReader(new TextLoader.Arguments()
-            {
-                Separator = "tab",
-                HasHeader = true,
-                Column = new[]
+            var reader = ml.Data.CreateTextReader(
+                columns: new[]
                     {
                         new TextLoader.Column("Label", DataKind.BL, 0),
                         new TextLoader.Column("Features", DataKind.Num, new [] { new TextLoader.Range(1, 9) })
-                    }
-            });
+                    },
+                hasHeader: true
+            );
 
             // Then, we use the reader to read the data as an IDataView.
             var data = reader.Read(dataFilePath);

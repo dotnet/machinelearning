@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms.Conversions;
 using System.IO;
 
@@ -43,7 +42,7 @@ namespace Microsoft.ML.Benchmarks
                 " tr=FastTreeRanking{}";
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -58,7 +57,7 @@ namespace Microsoft.ML.Benchmarks
                 " tr=LightGBMRanking{}";
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, LightGbmMulticlassTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
     }
 
@@ -97,7 +96,7 @@ namespace Microsoft.ML.Benchmarks
                 " out={" + _modelPath_MSLR + "}";
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -107,7 +106,7 @@ namespace Microsoft.ML.Benchmarks
             string cmd = @"Test data=" + _mslrWeb10k_Test + " in=" + _modelPath_MSLR;
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
     }
 }

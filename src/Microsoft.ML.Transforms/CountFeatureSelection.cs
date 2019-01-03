@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Arguments), typeof(SignatureDataTransform),
     CountFeatureSelectingEstimator.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
@@ -29,6 +28,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         private readonly IHost _host;
         private readonly ColumnInfo[] _columns;
 
+        [BestFriend]
         internal static class Defaults
         {
             public const long Count = 1;
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// Describes the parameters of the feature selection process for a column pair.
             /// </summary>
             /// <param name="input">Name of the input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="minCount">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
             public ColumnInfo(string input, string output = null, long minCount = Defaults.Count)
             {
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in _columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var schema = input.Schema;
             var size = columns.Length;
-            var activeInput = new bool[schema.ColumnCount];
+            var activeInput = new bool[schema.Count];
             var colSrcs = new int[size];
             var colTypes = new ColumnType[size];
             colSizes = new int[size];
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Source column '{0}' not found", colName);
 
-                var colType = schema.GetColumnType(colSrc);
+                var colType = schema[colSrc].Type;
                 if (colType.IsVector && !colType.IsKnownSizeVector)
                     throw env.ExceptUserArg(nameof(CountFeatureSelectingEstimator.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
 
@@ -285,26 +285,26 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         public static bool IsValidColumnType(ColumnType type)
             => type == NumberType.R4 || type == NumberType.R8 || type.IsText;
 
-        private static CountAggregator GetOneAggregator(IRow row, ColumnType colType, int colSrc)
+        private static CountAggregator GetOneAggregator(Row row, ColumnType colType, int colSrc)
         {
-            Func<IRow, ColumnType, int, CountAggregator> del = GetOneAggregator<int>;
+            Func<Row, ColumnType, int, CountAggregator> del = GetOneAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetOneAggregator<T>(IRow row, ColumnType colType, int colSrc)
+        private static CountAggregator GetOneAggregator<T>(Row row, ColumnType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
         }
 
-        private static CountAggregator GetVecAggregator(IRow row, ColumnType colType, int colSrc)
+        private static CountAggregator GetVecAggregator(Row row, ColumnType colType, int colSrc)
         {
-            Func<IRow, ColumnType, int, CountAggregator> del = GetVecAggregator<int>;
+            Func<Row, ColumnType, int, CountAggregator> del = GetVecAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.ItemType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetVecAggregator<T>(IRow row, ColumnType colType, int colSrc)
+        private static CountAggregator GetVecAggregator<T>(Row row, ColumnType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
         }
@@ -335,8 +335,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         getter(ref t);
                         VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = t;
                     };
-                _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
-                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
+                _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
+                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
                     _isMissing = (in T value) => false;
             }
 
@@ -346,8 +346,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 var size = type.ValueCount;
                 _count = new long[size];
                 _fillBuffer = () => getter(ref _buffer);
-                _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
+                _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
                     _isMissing = (in T value) => false;
             }
 

@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     internal static partial class Utils
     {

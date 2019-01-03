@@ -4,9 +4,9 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     public sealed class FeatureSubsetModel<TPredictor> where TPredictor : IPredictor
     {

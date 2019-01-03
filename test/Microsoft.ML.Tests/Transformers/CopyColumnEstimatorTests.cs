@@ -2,17 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
+using Microsoft.ML.Data;
+using Microsoft.ML.Model;
+using Microsoft.ML.Tools;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 
 namespace Microsoft.ML.Tests
@@ -141,12 +137,12 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("T1", out int copyIndex);
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
-            var type1 = result.Schema.GetColumnType(termIndex);
+            var type1 = result.Schema[termIndex].Type;
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
             int size = (itemType1 as KeyType)?.Count ?? -1;
-            var type2 = result.Schema.GetColumnType(copyIndex);
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, copyIndex, ref names2);
+            var type2 = result.Schema[copyIndex].Type;
+            result.Schema[termIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names1);
+            result.Schema[copyIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref names2);
             Assert.True(CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
         }
 

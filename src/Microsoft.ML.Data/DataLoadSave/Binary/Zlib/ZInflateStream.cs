@@ -4,9 +4,8 @@
 
 using System;
 using System.IO;
-using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Runtime.Data.IO.Zlib
+namespace Microsoft.ML.Data.IO.Zlib
 {
     public sealed class ZInflateStream : Stream
     {

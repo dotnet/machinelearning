@@ -4,13 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
 using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Numeric
+namespace Microsoft.ML.Numeric
 {
     /// <summary>
     /// A series of vector utility functions, generally operating over arrays or <see cref="VBuffer{T}"/>
@@ -150,7 +149,7 @@ namespace Microsoft.ML.Runtime.Numeric
             }
 
             if (!aEditor.Indices.IsEmpty)
-                GenericSpanSortHelper<int, float>.Sort(aEditor.Indices, aEditor.Values, 0, newCount);
+                GenericSpanSortHelper<int>.Sort(aEditor.Indices, aEditor.Values, 0, newCount);
             a = aEditor.Commit();
         }
 

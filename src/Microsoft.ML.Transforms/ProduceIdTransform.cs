@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ProduceIdTransform.Summary, typeof(ProduceIdTransform), typeof(ProduceIdTransform.Arguments), typeof(SignatureDataTransform),
@@ -35,7 +34,7 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Bindings : ColumnBindingsBase
         {
-            public Bindings(ISchema input, bool user, string name)
+            public Bindings(Schema input, bool user, string name)
                 : base(input, user, name)
             {
                 Contracts.Assert(InfoCount == 1);
@@ -47,7 +46,7 @@ namespace Microsoft.ML.Transforms
                 return NumberType.UG;
             }
 
-            public static Bindings Create(ModelLoadContext ctx, ISchema input)
+            public static Bindings Create(ModelLoadContext ctx, Schema input)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -72,7 +71,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(predicate);
 
                 var active = GetActiveInput(predicate);
-                Contracts.Assert(active.Length == Input.ColumnCount);
+                Contracts.Assert(active.Length == Input.Count);
                 return col => 0 <= col && col < active.Length && active[col];
             }
         }
@@ -92,7 +91,7 @@ namespace Microsoft.ML.Transforms
 
         private readonly Bindings _bindings;
 
-        public override Schema Schema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -136,7 +135,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(ctx);
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -145,19 +144,19 @@ namespace Microsoft.ML.Transforms
             var input = Source.GetRowCursor(inputPred, rand);
             bool active = predicate(_bindings.MapIinfoToCol(0));
 
-            return new RowCursor(Host, _bindings, input, active);
+            return new Cursor(Host, _bindings, input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
             var inputPred = _bindings.GetDependencies(predicate);
-            IRowCursor[] cursors = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            RowCursor[] cursors = Source.GetRowCursorSet(inputPred, n, rand);
             bool active = predicate(_bindings.MapIinfoToCol(0));
             for (int c = 0; c < cursors.Length; ++c)
-                cursors[c] = new RowCursor(Host, _bindings, cursors[c], active);
+                cursors[c] = new Cursor(Host, _bindings, cursors[c], active);
             return cursors;
         }
 
@@ -167,14 +166,14 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool _active;
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
-            public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool active)
+            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));
@@ -182,7 +181,7 @@ namespace Microsoft.ML.Transforms
                 _active = active;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _bindings.ColumnCount, nameof(col));
                 bool isSrc;
@@ -193,7 +192,7 @@ namespace Microsoft.ML.Transforms
                 return _active;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _bindings.ColumnCount, nameof(col));
                 Ch.CheckParam(IsColumnActive(col), nameof(col));

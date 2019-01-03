@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
@@ -32,7 +30,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(maxRows >= 0, nameof(maxRows));
             Schema = data.Schema;
 
-            int n = data.Schema.ColumnCount;
+            int n = data.Schema.Count;
 
             var rows = new List<RowInfo>();
             var columns = new List<object>[n];
@@ -63,7 +61,7 @@ namespace Microsoft.ML.Data
         public override string ToString()
             => $"{Schema.Count} columns, {RowView.Length} rows";
 
-        private Action<RowInfo, List<object>> MakeSetter<T>(IRow row, int col)
+        private Action<RowInfo, List<object>> MakeSetter<T>(Row row, int col)
         {
             var getter = row.GetGetter<T>(col);
             string name = row.Schema[col].Name;

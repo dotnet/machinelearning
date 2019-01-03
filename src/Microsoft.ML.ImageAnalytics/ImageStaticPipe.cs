@@ -6,7 +6,7 @@ using System;
 using System.Drawing;
 using Microsoft.ML.StaticPipe;
 
-namespace Microsoft.ML.Runtime.ImageAnalytics
+namespace Microsoft.ML.ImageAnalytics
 {
     /// <summary>
     /// A type used in the generic argument to <see cref="Scalar{T}"/>. We must simultaneously distinguish

@@ -3,20 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
+using Microsoft.ML;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 using Xunit.Abstractions;
 
 [assembly: LoadableClass(typeof(FastTreeParallelInterfaceChecker),
     null, typeof(Microsoft.ML.Trainers.FastTree.SignatureParallelTrainer), "FastTreeParallelInterfaceChecker")]
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
-    using SplitInfo = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
     using LeafSplitCandidates = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
 
     public sealed class FastTreeParallelInterfaceChecker : Microsoft.ML.Trainers.FastTree.IParallelTraining
     {
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
         }
 
-        [Fact]
+        [Fact(Skip = "'checker' is not a valid value for the 'parag' argument in FastTree")]
         [TestCategory("ParallelFasttree")]
         public void CheckFastTreeParallelInterface()
         {
@@ -185,7 +185,8 @@ namespace Microsoft.ML.Runtime.RunTests
             var trainArgs = string.Format(
                 "train data={{{0}}} loader=Text{{col=Label:0 col=F!1:1-5 col=F2:6-9}} xf=Concat{{col=Features:F!1,F2}}  tr=FastTreeBinaryClassification{{lr=0.1 nl=12 mil=10 iter=1 parag=checker}} out={{{1}}}",
                 dataPath, modelOutPath);
-            MainForTest(trainArgs);
+            var res = MainForTest(trainArgs);
+            Assert.Equal(0, res);
         }
     }
 }

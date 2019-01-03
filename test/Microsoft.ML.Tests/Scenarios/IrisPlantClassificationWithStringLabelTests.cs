@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime.Api;
 using Xunit;
+using TextLoader = Microsoft.ML.Legacy.Data.TextLoader;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -127,19 +127,19 @@ namespace Microsoft.ML.Scenarios
 
         public class IrisDataWithStringLabel
         {
-            [Column("0")]
+            [LoadColumn(0)]
             public float SepalLength;
 
-            [Column("1")]
+            [LoadColumn(1)]
             public float SepalWidth;
 
-            [Column("2")]
+            [LoadColumn(2)]
             public float PetalLength;
 
-            [Column("3")]
+            [LoadColumn(3)]
             public float PetalWidth;
 
-            [Column("4", name: "Label")]
+            [LoadColumn(4), ColumnName("Label")]
             public string IrisPlantType;
         }
     }

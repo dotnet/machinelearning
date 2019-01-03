@@ -4,18 +4,17 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LogisticRegression.Summary, typeof(LogisticRegression), typeof(LogisticRegression.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -26,7 +25,7 @@ using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(LogisticRegression), null, typeof(SignatureEntryPointModule), LogisticRegression.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Learners
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public LogisticRegression(IHostEnvironment env,
@@ -108,7 +107,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        protected override void CheckLabel(RoleMappedData data)
+        private protected override void CheckLabel(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckBinaryLabel();
@@ -160,7 +159,7 @@ namespace Microsoft.ML.Runtime.Learners
             return weight * datumLoss;
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
+        private protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(cursorFactory);
@@ -208,12 +207,12 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Info("AIC:               \t{0}", 2 * numParams + deviance);
 
             // Show the coefficients statistics table.
-            var featureColIdx = cursorFactory.Data.Schema.Feature.Index;
+            var featureCol = cursorFactory.Data.Schema.Feature.Value;
             var schema = cursorFactory.Data.Data.Schema;
             var featureLength = CurrentWeights.Length - BiasCount;
             var namesSpans = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featureLength);
-            if (schema.HasSlotNames(featureColIdx, featureLength))
-                schema.GetMetadata(MetadataUtils.Kinds.SlotNames, featureColIdx, ref namesSpans);
+            if (featureCol.HasSlotNames(featureLength))
+                featureCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref namesSpans);
             Host.Assert(namesSpans.Length == featureLength);
 
             // Inverse mapping of non-zero weight slots.
@@ -367,7 +366,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         //Override default termination criterion MeanRelativeImprovementCriterion with
-        protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
+        private protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<float> init, out ITerminationCriterion terminationCriterion)
         {
             var opt = base.InitializeOptimizer(ch, cursorFactory, out init, out terminationCriterion);
@@ -384,9 +383,9 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Contracts.AssertValue(srcPredictor);
 
-            var pred = srcPredictor.SubPredictor as LinearBinaryPredictor;
+            var pred = srcPredictor.SubPredictor as LinearBinaryModelParameters;
             Contracts.AssertValue(pred);
-            return InitializeWeights(pred.Weights2, new[] { pred.Bias });
+            return InitializeWeights(pred.Weights, new[] { pred.Bias });
         }
 
         protected override ParameterMixingCalibratedPredictor CreatePredictor()
@@ -400,7 +399,7 @@ namespace Microsoft.ML.Runtime.Learners
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedPredictor(Host,
-                new LinearBinaryPredictor(Host, in weights, bias, _stats),
+                new LinearBinaryModelParameters(Host, in weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }
 

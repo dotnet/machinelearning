@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Online;
-using System;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(OnlineGradientDescentTrainer.Summary, typeof(OnlineGradientDescentTrainer), typeof(OnlineGradientDescentTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -28,7 +27,7 @@ namespace Microsoft.ML.Trainers.Online
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="OGD"]/*' />
-    public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
+    public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<RegressionPredictionTransformer<LinearRegressionModelParameters>, LinearRegressionModelParameters>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
         internal const string UserNameValue = "Stochastic Gradient Descent (Regression)";
@@ -62,12 +61,12 @@ namespace Microsoft.ML.Trainers.Online
 
         private sealed class TrainState : AveragedTrainStateBase
         {
-            public TrainState(IChannel ch, int numFeatures, LinearPredictor predictor, OnlineGradientDescentTrainer parent)
+            public TrainState(IChannel ch, int numFeatures, LinearModelParameters predictor, OnlineGradientDescentTrainer parent)
                 : base(ch, numFeatures, predictor, parent)
             {
             }
 
-            public override LinearRegressionPredictor CreatePredictor()
+            public override LinearRegressionModelParameters CreatePredictor()
             {
                 Contracts.Assert(WeightsScale == 1);
                 VBuffer<float> weights = default;
@@ -84,7 +83,7 @@ namespace Microsoft.ML.Trainers.Online
                     VectorUtils.ScaleBy(ref weights, 1 / (float)NumWeightUpdates);
                     bias = TotalBias / (float)NumWeightUpdates;
                 }
-                return new LinearRegressionPredictor(ParentHost, in weights, bias);
+                return new LinearRegressionModelParameters(ParentHost, in weights, bias);
             }
         }
 
@@ -138,7 +137,7 @@ namespace Microsoft.ML.Trainers.Online
         }
 
         internal OnlineGradientDescentTrainer(IHostEnvironment env, Arguments args)
-        : base(args, env, UserNameValue, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
+        : base(args, env, UserNameValue, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
         {
             LossFunction = args.LossFunction.CreateComponent(env);
         }
@@ -153,12 +152,12 @@ namespace Microsoft.ML.Trainers.Online
             };
         }
 
-        protected override void CheckLabels(RoleMappedData data)
+        private protected override void CheckLabels(RoleMappedData data)
         {
             data.CheckRegressionLabel();
         }
 
-        private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearPredictor predictor)
+        private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearModelParameters predictor)
         {
             return new TrainState(ch, numFeatures, predictor, this);
         }
@@ -181,10 +180,10 @@ namespace Microsoft.ML.Trainers.Online
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
-        protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, Schema trainSchema)
-        => new RegressionPredictionTransformer<LinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+        protected override RegressionPredictionTransformer<LinearRegressionModelParameters> MakeTransformer(LinearRegressionModelParameters model, Schema trainSchema)
+        => new RegressionPredictionTransformer<LinearRegressionModelParameters>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<LinearRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+        public RegressionPredictionTransformer<LinearRegressionModelParameters> Train(IDataView trainData, IPredictor initialPredictor = null)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
     }
 }

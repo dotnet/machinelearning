@@ -2,15 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +12,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(BinaryLoader.Summary, typeof(BinaryLoader), typeof(BinaryLoader.Arguments), typeof(SignatureDataLoader),
     "Binary Loader",
@@ -34,7 +33,7 @@ using System.Threading.Tasks;
 [assembly: LoadableClass(typeof(BinaryLoader.InfoCommand), typeof(BinaryLoader.InfoCommand.Arguments), typeof(SignatureCommand),
     "", BinaryLoader.InfoCommand.LoadName, "idv")]
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     public sealed class BinaryLoader : IDataLoader, IDisposable
     {
@@ -754,7 +753,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private const ulong SlotNamesVersion = 0x0001000100010003;
 
         /// <summary>
-        /// Lower inclusive bound of versions this reader can read.
+        /// Low inclusive bound of versions this reader can read.
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 
@@ -1016,7 +1015,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             var saver = new BinarySaver(env, saverArgs);
 
             var cols = Enumerable.Range(0, schema.Count)
-                .Select(x => new { col = x, isSavable = saver.IsColumnSavable(schema.GetColumnType(x)) });
+                .Select(x => new { col = x, isSavable = saver.IsColumnSavable(schema[x].Type) });
             int[] toSave = cols.Where(x => x.isSavable).Select(x => x.col).ToArray();
             unsavableColIndices = cols.Where(x => !x.isSavable).Select(x => x.col).ToArray();
             ctx.SaveBinaryStream("Schema.idv", w => saver.SaveData(w.BaseStream, noRows, toSave));
@@ -1234,7 +1233,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             return entry;
         }
 
-        private IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        private RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             if (rand != null && _randomShufflePoolRows > 0)
             {
@@ -1247,23 +1246,21 @@ namespace Microsoft.ML.Runtime.Data.IO
             return new Cursor(this, predicate, rand);
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
             return GetRowCursorCore(predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private const string _badCursorState = "cursor is either not started or is ended, and cannot get values";
 
@@ -1284,8 +1281,9 @@ namespace Microsoft.ML.Runtime.Data.IO
             private readonly ExceptionMarshaller _exMarshaller;
 
             private volatile bool _disposed;
+            private volatile bool _done;
 
-            public Schema Schema => _parent.Schema;
+            public override Schema Schema => _parent.Schema;
 
             public override long Batch
             {
@@ -1293,7 +1291,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 get { return 0; }
             }
 
-            public Cursor(BinaryLoader parent, Func<int, bool> predicate, IRandom rand)
+            public Cursor(BinaryLoader parent, Func<int, bool> predicate, Random rand)
                 : base(parent._host)
             {
                 _parent = parent;
@@ -1363,60 +1361,71 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _pipeTask = SetupDecompressTask();
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (!_disposed && _readerThread != null)
+                if (_disposed)
+                    return;
+                if (_done)
                 {
-                    // We should reach this block only in the event of a dispose
-                    // before all rows have been iterated upon.
-
-                    // First set the flag on the cursor. The stream-reader and the
-                    // pipe-decompressor workers will detect this, stop their work,
-                    // and do whatever "cleanup" is natural for them to perform.
-                    _disposed = true;
-
-                    // In the disk read -> decompress -> codec read pipeline, we
-                    // clean up in reverse order.
-                    // 1. First we clear out any pending codec readers, for each pipe.
-                    // 2. Then we join the pipe worker threads, which in turn should
-                    // have cleared out all of the pending blocks to decompress.
-                    // 3. Then finally we join against the reader thread.
-
-                    // This code is analogous to the stuff in MoveNextCore, except
-                    // nothing is actually done with the resulting blocks.
-
-                    try
-                    {
-                        for (; ; )
-                        {
-                            // This cross-block-index access pattern is deliberate, as
-                            // by having a consistent access pattern everywhere we can
-                            // have much greater confidence this will never deadlock.
-                            bool anyTrue = false;
-                            for (int c = 0; c < _pipes.Length; ++c)
-                                anyTrue |= _pipes[c].MoveNextCleanup();
-                            if (!anyTrue)
-                                break;
-                        }
-                    }
-                    catch (OperationCanceledException ex)
-                    {
-                        // REVIEW: Encountering this here means that we did not encounter
-                        // the exception during normal cursoring, but at some later point. I feel
-                        // we should not be tolerant of this, and should throw, though it might be
-                        // an ambiguous point.
-                        Contracts.Assert(ex.CancellationToken == _exMarshaller.Token);
-                        _exMarshaller.ThrowIfSet(Ch);
-                        Contracts.Assert(false);
-                    }
-                    finally
-                    {
-                        _pipeTask.Wait();
-                        _readerThread.Join();
-                    }
+                    base.Dispose(disposing);
+                    return;
                 }
 
-                base.Dispose();
+                if (disposing)
+                {
+                    if (_readerThread != null)
+                    {
+                        // We should reach this block only in the event of a dispose
+                        // before all rows have been iterated upon.
+
+                        // First set the flag on the cursor. The stream-reader and the
+                        // pipe-decompressor workers will detect this, stop their work,
+                        // and do whatever "cleanup" is natural for them to perform.
+                        _disposed = true;
+
+                        // In the disk read -> decompress -> codec read pipeline, we
+                        // clean up in reverse order.
+                        // 1. First we clear out any pending codec readers, for each pipe.
+                        // 2. Then we join the pipe worker threads, which in turn should
+                        // have cleared out all of the pending blocks to decompress.
+                        // 3. Then finally we join against the reader thread.
+
+                        // This code is analogous to the stuff in MoveNextCore, except
+                        // nothing is actually done with the resulting blocks.
+
+                        try
+                        {
+                            for (; ; )
+                            {
+                                // This cross-block-index access pattern is deliberate, as
+                                // by having a consistent access pattern everywhere we can
+                                // have much greater confidence this will never deadlock.
+                                bool anyTrue = false;
+                                for (int c = 0; c < _pipes.Length; ++c)
+                                    anyTrue |= _pipes[c].MoveNextCleanup();
+                                if (!anyTrue)
+                                    break;
+                            }
+                        }
+                        catch (OperationCanceledException ex)
+                        {
+                            // REVIEW: Encountering this here means that we did not encounter
+                            // the exception during normal cursoring, but at some later point. I feel
+                            // we should not be tolerant of this, and should throw, though it might be
+                            // an ambiguous point.
+                            Contracts.Assert(ex.CancellationToken == _exMarshaller.Token);
+                            _exMarshaller.ThrowIfSet(Ch);
+                            Contracts.Assert(false);
+                        }
+                        finally
+                        {
+                            _pipeTask.Wait();
+                            _readerThread.Join();
+                        }
+                    }
+                }
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             private Task SetupDecompressTask()
@@ -2009,7 +2018,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;
@@ -2032,7 +2041,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                         // threads will exit if all potentially blocking operations are
                         // waiting on the same cancellation token that we catch here.
                         Contracts.Assert(ex.CancellationToken == _exMarshaller.Token);
-                        _disposed = true;
+                        _done = true;
                         // Unlike the early non-error dispose case, we do not make any
                         // effort to recycle buffers since it would be exceptionally difficult
                         // to do so. All threads are already unblocked, one of them with the
@@ -2060,7 +2069,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     // Set the _disposed flag, so that when the Dispose
                     // method is called it does not trigger the "premature
                     // exit" handling.
-                    _disposed = true;
+                    _done = true;
                     // If we got to this point these threads must have already
                     // completed their work, but for the sake of hygiene join
                     // against them anyway.
@@ -2070,7 +2079,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 return more;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 Ch.CheckParam(_colToActivesIndex[col] >= 0, nameof(col), "requested column not active");
@@ -2099,15 +2108,15 @@ namespace Microsoft.ML.Runtime.Data.IO
                 return del;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 if (_blockShuffleOrder == null)
                 {
                     return
-                        (ref UInt128 val) =>
+                        (ref RowId val) =>
                         {
                             Ch.Check(IsGood, "Cannot call ID getter in current state");
-                            val = new UInt128((ulong)Position, 0);
+                            val = new RowId((ulong)Position, 0);
                         };
                 }
                 // Find the index of the last block. Because the last block is unevenly sized,
@@ -2123,7 +2132,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 long firstPositionToCorrect = ((long)lastBlockIdx * _rowsPerBlock) + _rowsInLastBlock;
 
                 return
-                    (ref UInt128 val) =>
+                    (ref RowId val) =>
                     {
                         Ch.Check(IsGood, "Cannot call ID getter in current state");
                         long pos = Position;
@@ -2133,7 +2142,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                         long blockPos = (long)_rowsPerBlock * _blockShuffleOrder[(int)(pos / _rowsPerBlock)];
                         blockPos += (pos % _rowsPerBlock);
                         Ch.Assert(0 <= blockPos && blockPos < _parent.RowCount);
-                        val = new UInt128((ulong)blockPos, 0);
+                        val = new RowId((ulong)blockPos, 0);
                     };
             }
         }

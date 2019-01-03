@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.EntryPoints;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// Instances of this class are used to set up a bundle of named delegates. These

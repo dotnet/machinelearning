@@ -2,21 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Sweeper;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(NelderMeadSweeper), typeof(NelderMeadSweeper.Arguments), typeof(SignatureSweeper),
     "Nelder Mead Sweeper", "NelderMeadSweeper", "NelderMead", "NM")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     public sealed class NelderMeadSweeper : ISweeper
     {

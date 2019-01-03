@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Model;
 using System;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for transformer which produce new columns, but doesn't affect existing ones.
@@ -33,7 +32,8 @@ namespace Microsoft.ML.Runtime.Data
             return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);
         }
 
-        protected abstract IRowMapper MakeRowMapper(Schema schema);
+        [BestFriend]
+        private protected abstract IRowMapper MakeRowMapper(Schema schema);
 
         public Schema GetOutputSchema(Schema inputSchema)
         {
@@ -67,9 +67,9 @@ namespace Microsoft.ML.Runtime.Data
 
             protected abstract Schema.DetachedColumn[] GetOutputColumnsCore();
 
-            public Schema.DetachedColumn[] GetOutputColumns() => _outputColumns.Value;
+            Schema.DetachedColumn[] IRowMapper.GetOutputColumns() => _outputColumns.Value;
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
                 // of the input row.
@@ -98,9 +98,13 @@ namespace Microsoft.ML.Runtime.Data
                 return result;
             }
 
-            protected abstract Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer);
+            protected abstract Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer);
 
-            public abstract Func<int, bool> GetDependencies(Func<int, bool> activeOutput);
+            Func<int, bool> IRowMapper.GetDependencies(Func<int, bool> activeOutput)
+                => GetDependenciesCore(activeOutput);
+
+            [BestFriend]
+            private protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput);
 
             public abstract void Save(ModelSaveContext ctx);
         }

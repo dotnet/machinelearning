@@ -4,9 +4,8 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
 using Xunit;
 
@@ -62,7 +61,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             pipe = pipe.Append(new LogisticRegression(Env, "Label", "Features", advancedSettings: s => { s.ShowTrainingStats = true; }));
             var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
 
-            var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryPredictor;
+            var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryModelParameters;
             var stats = linearModel.Statistics;
             LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
 
@@ -83,7 +82,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
 
-            var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryPredictor;
+            var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryModelParameters;
             var stats = linearModel.Statistics;
             LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
 

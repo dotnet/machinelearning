@@ -6,7 +6,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     // REVIEW: May want to add an IEnumerable<KeyValuePair<int, TItem>>.
 

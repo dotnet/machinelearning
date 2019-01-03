@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -15,13 +13,13 @@ namespace Microsoft.ML.Benchmarks
     public class PredictionEngineBench
     {
         private IrisData _irisExample;
-        private PredictionFunction<IrisData, IrisPrediction> _irisModel;
+        private PredictionEngine<IrisData, IrisPrediction> _irisModel;
 
         private SentimentData _sentimentExample;
-        private PredictionFunction<SentimentData, SentimentPrediction> _sentimentModel;
+        private PredictionEngine<SentimentData, SentimentPrediction> _sentimentModel;
 
         private BreastCancerData _breastCancerExample;
-        private PredictionFunction<BreastCancerData, BreastCancerPrediction> _breastCancerModel;
+        private PredictionEngine<BreastCancerData, BreastCancerPrediction> _breastCancerModel;
 
         [GlobalSetup(Target = nameof(MakeIrisPredictions))]
         public void SetupIrisPipeline()
@@ -38,19 +36,16 @@ namespace Microsoft.ML.Benchmarks
 
             var env = new MLContext(seed: 1, conc: 1);
             var reader = new TextLoader(env,
-                new TextLoader.Arguments()
-                {
-                    Separator = "\t",
-                    HasHeader = true,
-                    Column = new[]
+                    columns: new[]
                     {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("SepalLength", DataKind.R4, 1),
                             new TextLoader.Column("SepalWidth", DataKind.R4, 2),
                             new TextLoader.Column("PetalLength", DataKind.R4, 3),
                             new TextLoader.Column("PetalWidth", DataKind.R4, 4),
-                    }
-                });
+                    },
+                    hasHeader: true
+                );
 
             IDataView data = reader.Read(_irisDataPath);
 
@@ -59,7 +54,7 @@ namespace Microsoft.ML.Benchmarks
 
             var model = pipeline.Fit(data);
 
-            _irisModel = model.MakePredictionFunction<IrisData, IrisPrediction>(env);
+            _irisModel = model.CreatePredictionEngine<IrisData, IrisPrediction>(env);
         }
 
         [GlobalSetup(Target = nameof(MakeSentimentPredictions))]
@@ -73,17 +68,13 @@ namespace Microsoft.ML.Benchmarks
             string _sentimentDataPath = Program.GetInvariantCultureDataPath("wikipedia-detox-250-line-data.tsv");
 
             var env = new MLContext(seed: 1, conc: 1);
-            var reader = new TextLoader(env,
-                    new TextLoader.Arguments()
-                    {
-                        Separator = "\t",
-                        HasHeader = true,
-                        Column = new[]
+            var reader = new TextLoader(env, columns: new[]
                         {
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                        }
-                    });
+                        },
+                        hasHeader: true                        
+                    );
 
             IDataView data = reader.Read(_sentimentDataPath);
 
@@ -92,7 +83,7 @@ namespace Microsoft.ML.Benchmarks
 
             var model = pipeline.Fit(data);
 
-            _sentimentModel = model.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
+            _sentimentModel = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(env);
         }
 
         [GlobalSetup(Target = nameof(MakeBreastCancerPredictions))]
@@ -106,17 +97,13 @@ namespace Microsoft.ML.Benchmarks
             string _breastCancerDataPath = Program.GetInvariantCultureDataPath("breast-cancer.txt");
 
             var env = new MLContext(seed: 1, conc: 1);
-            var reader = new TextLoader(env,
-                    new TextLoader.Arguments()
-                    {
-                        Separator = "\t",
-                        HasHeader = false,
-                        Column = new[]
+            var reader = new TextLoader(env, columns: new[]
                         {
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(1, 9) })
-                        }
-                    });
+                        }, 
+                        hasHeader: false
+                    );
 
             IDataView data = reader.Read(_breastCancerDataPath);
 
@@ -124,7 +111,7 @@ namespace Microsoft.ML.Benchmarks
 
             var model = pipeline.Fit(data);
 
-            _breastCancerModel = model.MakePredictionFunction<BreastCancerData, BreastCancerPrediction>(env);
+            _breastCancerModel = model.CreatePredictionEngine<BreastCancerData, BreastCancerPrediction>(env);
         }
 
         [Benchmark]
@@ -157,10 +144,10 @@ namespace Microsoft.ML.Benchmarks
 
     public class SentimentData
     {
-        [ColumnName("Label"), Column("0")]
+        [ColumnName("Label"), LoadColumn(0)]
         public bool Sentiment;
 
-        [Column("1")]
+        [LoadColumn(1)]
         public string SentimentText;
     }
 

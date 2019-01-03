@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.StaticPipe.Runtime;
 using System;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -48,7 +46,7 @@ namespace Microsoft.ML.StaticPipe
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
             Action<FastTreeRegressionTrainer.Arguments> advancedSettings = null,
-            Action<FastTreeRegressionPredictor> onFit = null)
+            Action<FastTreeRegressionModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings, onFit);
 
@@ -144,7 +142,7 @@ namespace Microsoft.ML.StaticPipe
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
             Action<FastTreeRankingTrainer.Arguments> advancedSettings = null,
-            Action<FastTreeRankingPredictor> onFit = null)
+            Action<FastTreeRankingModelParameters> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings, onFit);
 

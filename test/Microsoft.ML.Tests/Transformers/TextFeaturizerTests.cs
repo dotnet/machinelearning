@@ -1,17 +1,19 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
+using System;
+using System.IO;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
-using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -165,6 +167,38 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void StopWordsRemoverFromFactory()
+        {
+            var factory = new PredefinedStopWordsRemoverFactory();
+            string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var data = TextLoader.Create(ML, new TextLoader.Arguments()
+            {
+                Column = new[]
+                {
+                    new TextLoader.Column("Text", DataKind.TX, 1)
+                }
+            }, new MultiFileSource(sentimentDataPath));
+
+            var tokenized = new WordTokenizingTransformer(ML, new[]
+            {
+                new WordTokenizingTransformer.ColumnInfo("Text", "Text")
+            }).Transform(data);
+
+            var xf = factory.CreateComponent(ML, tokenized,
+                new[] {
+                    new StopWordsRemovingTransformer.Column() { Name = "Text", Source = "Text" }
+                });
+
+            using (var cursor = xf.GetRowCursor(col => true))
+            {
+                VBuffer<ReadOnlyMemory<char>> text = default;
+                var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"].Index);
+                while (cursor.MoveNext())
+                    getter(ref text);
+            }
+        }
+
+        [Fact]
         public void WordBagWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -179,7 +213,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words").
-                Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash", invertHash:-1));
+                Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash", invertHash: -1));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
@@ -217,7 +251,7 @@ namespace Microsoft.ML.Tests.Transformers
             var est = new WordTokenizingEstimator(Env, "text", "text")
                 .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
                 .Append(new NgramExtractingEstimator(Env, "terms", "ngrams"))
-                .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));
+                .Append(new NgramHashingEstimator(Env, "terms", "ngramshash"));
 
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -234,6 +268,23 @@ namespace Microsoft.ML.Tests.Transformers
 
             CheckEquality("Text", "ngrams.tsv");
             Done();
+        }
+
+        [Fact]
+        void TestNgramCompatColumns()
+        {
+            string dropModelPath = GetDataPath("backcompat/ngram.zip");
+            string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var data = TextLoader.CreateReader(ML, ctx => (
+                    Sentiment: ctx.LoadBool(0),
+                    SentimentText: ctx.LoadText(1)), hasHeader: true)
+                .Read(sentimentDataPath);
+            using (FileStream fs = File.OpenRead(dropModelPath))
+            {
+                var result = ModelFileUtils.LoadTransforms(Env, data.AsDynamic, fs);
+                var featureColumn = result.Schema.GetColumnOrNull("Features");
+                Assert.NotNull(featureColumn);
+            }
         }
 
         [Fact]
@@ -272,7 +323,7 @@ namespace Microsoft.ML.Tests.Transformers
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
 
-                Assert.Equal(10, (savedData.Schema.GetColumnType(0) as VectorType)?.Size);
+                Assert.Equal(10, (savedData.Schema[0].Type as VectorType)?.Size);
             }
 
             // Diabling this check due to the following issue with consitency of output.

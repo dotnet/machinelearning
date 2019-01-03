@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Globalization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
-using System.Collections.Generic;
-using System.Globalization;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -64,30 +63,29 @@ namespace Microsoft.ML.Benchmarks
         {
             var env = new MLContext(seed: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env,
-                new TextLoader.Arguments()
+            var arguments = new TextLoader.Arguments()
+            {
+                Column = new TextLoader.Column[]
                 {
-                    AllowQuoting = false,
-                    AllowSparse = false,
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
+                    new TextLoader.Column()
                     {
-                            new TextLoader.Column()
-                            {
-                                Name = "Label",
-                                Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
-                                Type = DataKind.Num
-                            },
+                        Name = "Label",
+                        Source = new[] { new TextLoader.Range() { Min = 0, Max = 0 } },
+                        Type = DataKind.Num
+                    },
 
-                            new TextLoader.Column()
-                            {
-                                Name = "SentimentText",
-                                Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
-                                Type = DataKind.Text
-                            }
+                    new TextLoader.Column()
+                    {
+                        Name = "SentimentText",
+                        Source = new[] { new TextLoader.Range() { Min = 1, Max = 1 } },
+                        Type = DataKind.Text
                     }
-                }, new MultiFileSource(_sentimentDataPath));
+                },
+                HasHeader = true,
+                AllowQuoting = false,
+                AllowSparse = false
+            };
+            var loader = env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
 
             var text = TextFeaturizingEstimator.Create(env,
                 new TextFeaturizingEstimator.Arguments()
@@ -168,19 +166,19 @@ namespace Microsoft.ML.Benchmarks
 
     public class IrisData
     {
-        [Column("0")]
+        [LoadColumn(0)]
         public float Label;
 
-        [Column("1")]
+        [LoadColumn(1)]
         public float SepalLength;
 
-        [Column("2")]
+        [LoadColumn(2)]
         public float SepalWidth;
 
-        [Column("3")]
+        [LoadColumn(3)]
         public float PetalLength;
 
-        [Column("4")]
+        [LoadColumn(4)]
         public float PetalWidth;
     }
 

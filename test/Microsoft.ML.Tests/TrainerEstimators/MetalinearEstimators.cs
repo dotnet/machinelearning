@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Xunit;
 
@@ -61,6 +63,24 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
             pipeline = pipeline.Append(new Pkpd(Env, sdcaTrainer))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+
+            TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        [Fact]
+        public void MetacomponentsFeaturesRenamed()
+        {
+            var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
+                .Read(GetDataPath(TestDatasets.irisData.trainFilename));
+
+            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Vars", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
+            var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
+                .Append(new Ova(Env, sdcaTrainer))
+                .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
+
+            var model = pipeline.Fit(data);
 
             TestEstimatorCore(pipeline, data);
             Done();

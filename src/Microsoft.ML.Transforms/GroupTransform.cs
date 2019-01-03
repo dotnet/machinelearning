@@ -6,13 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(GroupTransform.Summary, typeof(GroupTransform), typeof(GroupTransform.Arguments), typeof(SignatureDataTransform),
@@ -154,9 +153,9 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema Schema => _groupSchema.AsSchema;
+        public override Schema OutputSchema => _groupSchema.AsSchema;
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -173,12 +172,11 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return false; } }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate) };
+            return new RowCursor[] { GetRowCursorCore(predicate) };
         }
 
         /// <summary>
@@ -195,7 +193,7 @@ namespace Microsoft.ML.Transforms
                 new[] { MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues };
 
             private readonly IExceptionContext _ectx;
-            private readonly ISchema _input;
+            private readonly Schema _input;
 
             private readonly string[] _groupColumns;
             private readonly string[] _keepColumns;
@@ -210,7 +208,7 @@ namespace Microsoft.ML.Transforms
 
             public Schema AsSchema { get; }
 
-            public GroupSchema(IExceptionContext ectx, ISchema inputSchema, string[] groupColumns, string[] keepColumns)
+            public GroupSchema(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
             {
                 Contracts.AssertValue(ectx);
                 _ectx = ectx;
@@ -232,7 +230,7 @@ namespace Microsoft.ML.Transforms
                 AsSchema = Schema.Create(this);
             }
 
-            public GroupSchema(ISchema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
+            public GroupSchema(Schema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(env);
                 _ectx = env.Register(LoaderSignature);
@@ -281,14 +279,15 @@ namespace Microsoft.ML.Transforms
                 return map;
             }
 
-            private static ColumnType[] BuildColumnTypes(ISchema input, int[] ids)
+            private static ColumnType[] BuildColumnTypes(Schema input, int[] ids)
             {
                 var types = new ColumnType[ids.Length];
                 for (int i = 0; i < ids.Length; i++)
                 {
-                    var srcType = input.GetColumnType(ids[i]);
-                    Contracts.Assert(srcType.IsPrimitive);
-                    types[i] = new VectorType(srcType.AsPrimitive, size: 0);
+                    var srcType = input[ids[i]].Type;
+                    var primitiveType = srcType as PrimitiveType;
+                    Contracts.Assert(primitiveType != null);
+                    types[i] = new VectorType(primitiveType, size: 0);
                 }
                 return types;
             }
@@ -320,7 +319,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private int[] GetColumnIds(ISchema schema, string[] names, Func<string, Exception> except)
+            private int[] GetColumnIds(Schema schema, string[] names, Func<string, Exception> except)
             {
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(names);
@@ -332,7 +331,7 @@ namespace Microsoft.ML.Transforms
                     if (!schema.TryGetColumnIndex(names[i], out col))
                         throw except(string.Format("Could not find column '{0}'", names[i]));
 
-                    var colType = schema.GetColumnType(col);
+                    var colType = schema[col].Type;
                     if (!colType.IsPrimitive)
                         throw except(string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType));
 
@@ -366,7 +365,7 @@ namespace Microsoft.ML.Transforms
             {
                 CheckColumnInRange(col);
                 if (col < _groupCount)
-                    return _input.GetColumnType(GroupIds[col]);
+                    return _input[GroupIds[col]].Type;
                 return _columnTypes[col - _groupCount];
             }
 
@@ -374,13 +373,13 @@ namespace Microsoft.ML.Transforms
             {
                 CheckColumnInRange(col);
                 if (col < _groupCount)
-                    return _input.GetMetadataTypes(GroupIds[col]);
+                    return _input[GroupIds[col]].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
 
                 col -= _groupCount;
                 var result = new List<KeyValuePair<string, ColumnType>>();
                 foreach (var kind in _preservedMetadata)
                 {
-                    var colType = _input.GetMetadataTypeOrNull(kind, KeepIds[col]);
+                    var colType = _input[KeepIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
                     if (colType != null)
                         result.Add(colType.GetPair(kind));
                 }
@@ -392,11 +391,11 @@ namespace Microsoft.ML.Transforms
             {
                 CheckColumnInRange(col);
                 if (col < _groupCount)
-                    return _input.GetMetadataTypeOrNull(kind, GroupIds[col]);
+                    return _input[GroupIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
 
                 col -= _groupCount;
                 if (_preservedMetadata.Contains(kind))
-                    return _input.GetMetadataTypeOrNull(kind, KeepIds[col]);
+                    return _input[KeepIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
                 return null;
             }
 
@@ -405,14 +404,14 @@ namespace Microsoft.ML.Transforms
                 CheckColumnInRange(col);
                 if (col < _groupCount)
                 {
-                    _input.GetMetadata(kind, GroupIds[col], ref value);
+                    _input[GroupIds[col]].Metadata.GetValue(kind, ref value);
                     return;
                 }
 
                 col -= _groupCount;
                 if (_preservedMetadata.Contains(kind))
                 {
-                    _input.GetMetadata(kind, KeepIds[col], ref value);
+                    _input[KeepIds[col]].Metadata.GetValue(kind, ref value);
                     return;
                 }
 
@@ -430,7 +429,7 @@ namespace Microsoft.ML.Transforms
         /// - The group column getters are taken directly from the trailing cursor.
         /// - The keep column getters are provided by the aggregators.
         /// </summary>
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             /// <summary>
             /// This class keeps track of the previous group key and tests the current group key against the previous one.
@@ -439,7 +438,7 @@ namespace Microsoft.ML.Transforms
             {
                 public readonly Func<bool> IsSameKey;
 
-                private static Func<bool> MakeSameChecker<T>(IRow row, int col)
+                private static Func<bool> MakeSameChecker<T>(Row row, int col)
                 {
                     T oldValue = default(T);
                     T newValue = default(T);
@@ -465,12 +464,12 @@ namespace Microsoft.ML.Transforms
                         };
                 }
 
-                public GroupKeyColumnChecker(IRow row, int col)
+                public GroupKeyColumnChecker(Row row, int col)
                 {
                     Contracts.AssertValue(row);
-                    var type = row.Schema.GetColumnType(col);
+                    var type = row.Schema[col].Type;
 
-                    Func<IRow, int, Func<bool>> del = MakeSameChecker<int>;
+                    Func<Row, int, Func<bool>> del = MakeSameChecker<int>;
                     var mi = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
                     IsSameKey = (Func<bool>)mi.Invoke(null, new object[] { row, col });
                 }
@@ -480,7 +479,7 @@ namespace Microsoft.ML.Transforms
             // REVIEW: Currently, it always produces dense buffers. The anticipated use cases don't include many
             // default values at the moment.
             /// <summary>
-            /// This class handles the aggregation of one 'keep' column into a vector. It wraps around an <see cref="IRow"/>'s
+            /// This class handles the aggregation of one 'keep' column into a vector. It wraps around an <see cref="Row"/>'s
             /// column, reads the data and aggregates.
             /// </summary>
             private abstract class KeepColumnAggregator
@@ -489,15 +488,15 @@ namespace Microsoft.ML.Transforms
                 public abstract void SetSize(int size);
                 public abstract void ReadValue(int position);
 
-                public static KeepColumnAggregator Create(IRow row, int col)
+                public static KeepColumnAggregator Create(Row row, int col)
                 {
                     Contracts.AssertValue(row);
-                    var colType = row.Schema.GetColumnType(col);
+                    var colType = row.Schema[col].Type;
                     Contracts.Assert(colType.IsPrimitive);
 
                     var type = typeof(ListAggregator<>);
 
-                    var cons = type.MakeGenericType(colType.RawType).GetConstructor(new[] { typeof(IRow), typeof(int) });
+                    var cons = type.MakeGenericType(colType.RawType).GetConstructor(new[] { typeof(Row), typeof(int) });
                     return cons.Invoke(new object[] { row, col }) as KeepColumnAggregator;
                 }
 
@@ -508,7 +507,7 @@ namespace Microsoft.ML.Transforms
                     private TValue[] _buffer;
                     private int _size;
 
-                    public ListAggregator(IRow row, int col)
+                    public ListAggregator(Row row, int col)
                     {
                         Contracts.AssertValue(row);
                         _srcGetter = row.GetGetter<TValue>(col);
@@ -546,15 +545,15 @@ namespace Microsoft.ML.Transforms
             private readonly bool[] _active;
             private readonly int _groupCount;
 
-            private readonly IRowCursor _leadingCursor;
-            private readonly IRowCursor _trailingCursor;
+            private readonly RowCursor _leadingCursor;
+            private readonly RowCursor _trailingCursor;
 
             private readonly GroupKeyColumnChecker[] _groupCheckers;
             private readonly KeepColumnAggregator[] _aggregators;
 
-            public override long Batch { get { return 0; } }
+            public override long Batch => 0;
 
-            public Schema Schema => _parent.Schema;
+            public override Schema Schema => _parent.OutputSchema;
 
             public Cursor(GroupTransform parent, Func<int, bool> predicate)
                 : base(parent.Host)
@@ -566,12 +565,12 @@ namespace Microsoft.ML.Transforms
                 _active = Utils.BuildArray(schema.ColumnCount, predicate);
                 _groupCount = schema.GroupIds.Length;
 
-                bool[] srcActiveLeading = new bool[_parent.Source.Schema.ColumnCount];
+                bool[] srcActiveLeading = new bool[_parent.Source.Schema.Count];
                 foreach (var col in schema.GroupIds)
                     srcActiveLeading[col] = true;
                 _leadingCursor = parent.Source.GetRowCursor(x => srcActiveLeading[x]);
 
-                bool[] srcActiveTrailing = new bool[_parent.Source.Schema.ColumnCount];
+                bool[] srcActiveTrailing = new bool[_parent.Source.Schema.Count];
                 for (int i = 0; i < _groupCount; i++)
                 {
                     if (_active[i])
@@ -596,12 +595,12 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<RowId> GetIdGetter()
             {
                 return _trailingCursor.GetIdGetter();
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 _parent._groupSchema.CheckColumnInRange(col);
                 return _active[col];
@@ -662,14 +661,22 @@ namespace Microsoft.ML.Transforms
                 return result;
             }
 
-            public override void Dispose()
+            private bool _disposed;
+
+            protected override void Dispose(bool disposing)
             {
-                _leadingCursor.Dispose();
-                _trailingCursor.Dispose();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                {
+                    _leadingCursor.Dispose();
+                    _trailingCursor.Dispose();
+                }
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 _parent._groupSchema.CheckColumnInRange(col);
                 if (!_active[col])
@@ -700,7 +707,7 @@ namespace Microsoft.ML.Transforms
             var view = new GroupTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }

@@ -5,9 +5,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.StaticPipe
@@ -76,6 +73,15 @@ namespace Microsoft.ML.StaticPipe
                 var newOut = StaticSchemaShape.Make<TNewOutShape>(method.ReturnParameter);
                 return new Estimator<TInShape, TNewOutShape, ITransformer>(Env, est, _inShape, newOut);
             }
+        }
+
+        /// <summary>
+        /// Cache data produced in memory by this estimator. It may append an extra estimator to the this estimator
+        /// for caching. The newly added estimator would be returned.
+        /// </summary>
+        public Estimator<TInShape, TOutShape, ITransformer> AppendCacheCheckpoint()
+        {
+            return new Estimator<TInShape, TOutShape, ITransformer>(Env, AsDynamic.AppendCacheCheckpoint(Env), _inShape, Shape);
         }
     }
 }

@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers.FastTree;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     //=========================== Binary classifiers ====================
     public class PredictorAndArgs
@@ -128,6 +128,25 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             Trainer = new SubComponent("AveragedPerceptron", "lr=0.01 iter=100 lazy+ reg=0.002"),
             Tag = "AveragedPerceptron-Reg"
+        };
+
+        public static PredictorAndArgs Ova = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("OVA", "p=AvgPer{ lr=0.8 }"),
+            MamlArgs = new[] { "norm=no" },
+        };
+
+        public static PredictorAndArgs OvaWithFastForest = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("OVA", "p=FastForest{ }"),
+            MamlArgs = new[] { "norm=no" },
+            Tag = "OVA-FastForest",
+        };
+
+        public static PredictorAndArgs Pkpd = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("PKPD", "p=AvgPer { lr=0.8 }"),
+            MamlArgs = new[] { "norm=no" },
         };
 
         // Old.

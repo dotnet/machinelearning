@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -18,6 +17,13 @@ namespace Microsoft.ML
         /// <param name="modelLocation">Location of the TensorFlow model.</param>
         /// <param name="inputs"> The names of the model inputs.</param>
         /// <param name="outputs">The names of the requested model outputs.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ScoreTensorFlowModel](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TensorFlowTransform.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static TensorFlowEstimator ScoreTensorFlowModel(this TransformsCatalog catalog,
             string modelLocation,
             string[] inputs,

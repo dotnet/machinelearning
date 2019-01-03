@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Numeric;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Numeric;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
@@ -26,7 +25,7 @@ using Float = System.Single;
 [assembly: LoadableClass(typeof(MultiOutputRegressionPerInstanceEvaluator), null, typeof(SignatureLoadRowMapper),
     "", MultiOutputRegressionPerInstanceEvaluator.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed class MultiOutputRegressionEvaluator : RegressionLossEvaluatorBase<MultiOutputRegressionEvaluator.Aggregator>
     {
@@ -47,28 +46,27 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Host.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
-            var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Host.AssertValue(scoreInfo);
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
+            var scoreCol = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
 
-            return new MultiOutputRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Name);
+            return new MultiOutputRegressionPerInstanceEvaluator(Host, schema.Schema, scoreCol.Name, schema.Label.Value.Name);
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = score.Type;
             if (t.VectorSize == 0 || t.ItemType != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be a known length vector of type R4", score.Name, t);
-            Host.Check(schema.Label != null, "Could not find the label column");
-            t = schema.Label.Type;
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "known size vector of R4", t.ToString());
+            Host.Check(schema.Label.HasValue, "Could not find the label column");
+            t = schema.Label.Value.Type;
             if (!t.IsKnownSizeVector || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
-                throw Host.Except("Label column '{0}' has type '{1}' but must be a known-size vector of R4 or R8", schema.Label.Name, t);
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "known size vector of R4 or R8", t.ToString());
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             Host.Assert(score.Type.VectorSize > 0);
@@ -92,7 +90,7 @@ namespace Microsoft.ML.Runtime.Data
                 groupName: "label", nameFormat: string.Format("{0} (Label_{{0}}", PerLabelLoss));
         }
 
-        protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
+        private protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
@@ -299,20 +297,20 @@ namespace Microsoft.ML.Runtime.Data
                 WeightedCounters = Weighted ? new Counters(lossFunction, _size) : null;
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Contracts.Assert(PassNum < 1);
-                Contracts.AssertValue(schema.Label);
+                Contracts.Assert(schema.Label.HasValue);
 
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetVecGetterAs<Float>(NumberType.Float, row, schema.Label.Index);
+                _labelGetter = RowCursorUtils.GetVecGetterAs<Float>(NumberType.Float, row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<VBuffer<Float>>(score.Index);
                 Contracts.AssertValue(_labelGetter);
                 Contracts.AssertValue(_scoreGetter);
 
-                if (schema.Weight != null)
-                    _weightGetter = row.GetGetter<Float>(schema.Weight.Index);
+                if (schema.Weight.HasValue)
+                    _weightGetter = row.GetGetter<Float>(schema.Weight.Value.Index);
             }
 
             public override void ProcessRow()
@@ -416,13 +414,13 @@ namespace Microsoft.ML.Runtime.Data
             // base
         }
 
-        public static MultiOutputRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static MultiOutputRegressionPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new MultiOutputRegressionPerInstanceEvaluator(env, ctx, Schema.Create(schema));
+            return new MultiOutputRegressionPerInstanceEvaluator(env, ctx, schema);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -436,7 +434,7 @@ namespace Microsoft.ML.Runtime.Data
             base.Save(ctx);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             return
                 col =>
@@ -446,7 +444,7 @@ namespace Microsoft.ML.Runtime.Data
                     (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             var infos = new Schema.DetachedColumn[5];
             infos[LabelOutput] = new Schema.DetachedColumn(LabelCol, _labelType, _labelMetadata);
@@ -457,7 +455,7 @@ namespace Microsoft.ML.Runtime.Data
             return infos;
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);
@@ -546,19 +544,19 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(LabelIndex);
+            var t = schema[(int) LabelIndex].Type;
             if (!t.IsKnownSizeVector || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
                 throw Host.Except("Label column '{0}' has type '{1}' but must be a known-size vector of R4 or R8", LabelCol, t);
-            labelType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
+            labelType = new VectorType((PrimitiveType)t.ItemType, t.VectorSize);
             var slotNamesType = new VectorType(TextType.Instance, t.VectorSize);
             var builder = new MetadataBuilder();
             builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, LabelIndex, labelType.VectorSize, "True"));
             labelMetadata = builder.GetMetadata();
 
-            t = schema.GetColumnType(ScoreIndex);
+            t = schema[ScoreIndex].Type;
             if (t.VectorSize == 0 || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be a known length vector of type R4", ScoreCol, t);
-            scoreType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
+            scoreType = new VectorType((PrimitiveType)t.ItemType, t.VectorSize);
             builder = new MetadataBuilder();
             builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.VectorSize, "Predicted"));
 
@@ -590,13 +588,13 @@ namespace Microsoft.ML.Runtime.Data
             dst = MetadataUtils.Const.ScoreValueKind.Score.AsMemory();
         }
 
-        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(ISchema schema, int column, int length, string prefix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(Schema schema, int column, int length, string prefix)
         {
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, column);
+            var type = schema[column].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
             if (type != null && type.IsText)
             {
                 return
-                    (ref VBuffer<ReadOnlyMemory<char>> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, column, ref dst);
+                    (ref VBuffer<ReadOnlyMemory<char>> dst) => schema[column].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref dst);
             }
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
@@ -623,7 +621,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly MultiOutputRegressionEvaluator _evaluator;
         private readonly bool _supressScoresAndLabels;
 
-        protected override IEvaluator Evaluator { get { return _evaluator; } }
+        private protected override IEvaluator Evaluator => _evaluator;
 
         public MultiOutputRegressionMamlEvaluator(IHostEnvironment env, Arguments args)
             : base(args, env, MetadataUtils.Const.ScoreColumnKind.MultiOutputRegression, "RegressionMamlEvaluator")
@@ -636,7 +634,7 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new MultiOutputRegressionEvaluator(Host, evalArgs);
         }
 
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
             Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
@@ -644,11 +642,11 @@ namespace Microsoft.ML.Runtime.Data
             // The multi output regression evaluator outputs the label and score column if requested by the user.
             if (!_supressScoresAndLabels)
             {
-                yield return schema.Label.Name;
+                yield return schema.Label.Value.Name;
 
-                var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+                var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                     MetadataUtils.Const.ScoreColumnKind.MultiOutputRegression);
-                yield return scoreInfo.Name;
+                yield return scoreCol.Name;
             }
 
             // Return the output columns.
@@ -658,7 +656,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // The multi-output regression evaluator prints only the per-label metrics for each fold.
-        protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
+        private protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
         {
             IDataView fold;
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out fold))
@@ -673,7 +671,7 @@ namespace Microsoft.ML.Runtime.Data
             bool hasStratVals = fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             ch.Assert(hasStrats == hasStratVals);
 
-            var colCount = fold.Schema.ColumnCount;
+            var colCount = fold.Schema.Count;
             var vBufferGetters = new ValueGetter<VBuffer<double>>[colCount];
 
             using (var cursor = fold.GetRowCursor(col => true))
@@ -688,22 +686,22 @@ namespace Microsoft.ML.Runtime.Data
                 ValueGetter<uint> stratGetter;
                 if (hasStrats)
                 {
-                    var type = cursor.Schema.GetColumnType(stratCol);
+                    var type = cursor.Schema[stratCol].Type;
                     stratGetter = RowCursorUtils.GetGetterAs<uint>(type, cursor, stratCol);
                 }
                 else
                     stratGetter = (ref uint dst) => dst = 0;
 
                 int labelCount = 0;
-                for (int i = 0; i < fold.Schema.ColumnCount; i++)
+                for (int i = 0; i < fold.Schema.Count; i++)
                 {
-                    if (fold.Schema.IsHidden(i) || (needWeighted && i == isWeightedCol) ||
+                    if (fold.Schema[i].IsHidden || (needWeighted && i == isWeightedCol) ||
                         (hasStrats && (i == stratCol || i == stratVal)))
                     {
                         continue;
                     }
 
-                    var type = fold.Schema.GetColumnType(i);
+                    var type = fold.Schema[i].Type;
                     if (type.IsKnownSizeVector && type.ItemType == NumberType.R8)
                     {
                         vBufferGetters[i] = cursor.GetGetter<VBuffer<double>>(i);
@@ -752,7 +750,7 @@ namespace Microsoft.ML.Runtime.Data
                             vBufferGetters[i](ref metricVals);
                             ch.Assert(metricVals.Length == labelCount);
 
-                            sb.AppendFormat("{0}{1,12}:", isWeighted ? "Weighted " : "", fold.Schema.GetColumnName(i));
+                            sb.AppendFormat("{0}{1,12}:", isWeighted ? "Weighted " : "", fold.Schema[i].Name);
                             foreach (var metric in metricVals.Items(all: true))
                                 sb.AppendFormat(" {0,20:G20}", metric.Value);
                             sb.AppendLine();
@@ -781,7 +779,7 @@ namespace Microsoft.ML.Runtime.Data
             string weight;
             string name;
             MatchColumns(host, input, out label, out weight, out name);
-            var evaluator = new MultiOutputRegressionMamlEvaluator(host, input);
+            IMamlEvaluator evaluator = new MultiOutputRegressionMamlEvaluator(host, input);
             var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 

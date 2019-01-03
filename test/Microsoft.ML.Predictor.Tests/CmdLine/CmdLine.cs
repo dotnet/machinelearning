@@ -10,18 +10,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public sealed class CmdLine : BaseTestBaseline
     {
-        private const string ResourcePrefix = "Microsoft.ML.Runtime.RunTests.CmdLine.";
+        private const string ResourcePrefix = "Microsoft.ML.RunTests.CmdLine.";
 
         public CmdLine(ITestOutputHelper helper)
             : base(helper)

@@ -4,16 +4,6 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +11,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(StopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(StopWordsRemovingTransformer), typeof(StopWordsRemovingTransformer.Arguments), typeof(SignatureDataTransform),
     "Stopwords Remover Transform", "StopWordsRemoverTransform", "StopWordsRemover", "StopWords")]
@@ -51,21 +50,17 @@ using System.Threading;
 
 namespace Microsoft.ML.Transforms.Text
 {
-
-    public interface IStopWordsRemoverTransform : IDataTransform { }
-
     [TlcModule.ComponentKind("StopWordsRemover")]
-    public interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IStopWordsRemoverTransform> { }
+    public interface IStopWordsRemoverFactory : IComponentFactory<IDataView, OneToOneColumn[], IDataTransform> { }
 
     [TlcModule.Component(Name = "Predefined", FriendlyName = "Predefined Stopwords List Remover", Alias = "PredefinedStopWordsRemover,PredefinedStopWords",
         Desc = "Remover with predefined list of stop words.")]
     public sealed class PredefinedStopWordsRemoverFactory : IStopWordsRemoverFactory
     {
-        public IStopWordsRemoverTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
+        public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
         {
-            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.Source, x.Name)).ToArray()).Fit(input).Transform(input) as IStopWordsRemoverTransform;
+            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.Source, x.Name)).ToArray()).Fit(input).Transform(input) as IDataTransform;
         }
-
     }
 
     /// <summary>
@@ -184,7 +179,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public class ColumnInfo
+        public sealed class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;
@@ -213,9 +208,9 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             if (!StopWordsRemovingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, StopWordsRemovingEstimator.ExpectedColumnType, type.ToString());
         }
@@ -304,10 +299,10 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private void CheckResources()
         {
@@ -396,7 +391,7 @@ namespace Microsoft.ML.Transforms.Text
                     _parent.CheckInputColumn(InputSchema, i, srcCol);
                     _colMapNewToOld.Add(i, srcCol);
 
-                    var srcType = InputSchema.GetColumnType(srcCol);
+                    var srcType = InputSchema[srcCol].Type;
                     if (!StopWordsRemovingEstimator.IsColumnTypeValid(srcType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent._columns[i].Input, StopWordsRemovingEstimator.ExpectedColumnType, srcType.ToString());
 
@@ -425,7 +420,7 @@ namespace Microsoft.ML.Transforms.Text
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -491,9 +486,9 @@ namespace Microsoft.ML.Transforms.Text
                     (_resourcesExist[langVal] ?? (_resourcesExist[langVal] = GetResourceFileStreamOrNull(lang) != null).Value);
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                var active = new bool[InputSchema.ColumnCount];
+                var active = new bool[InputSchema.Count];
                 foreach (var pair in _colMapNewToOld)
                     if (activeOutput(pair.Key))
                     {
@@ -582,7 +577,7 @@ namespace Microsoft.ML.Transforms.Text
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
@@ -647,12 +642,12 @@ namespace Microsoft.ML.Transforms.Text
             Desc = "Remover with list of stopwords specified by the user.")]
         public sealed class LoaderArguments : ArgumentsBase, IStopWordsRemoverFactory
         {
-            public IStopWordsRemoverTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
+            public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {
                 if (Utils.Size(Stopword) > 0)
-                    return new CustomStopWordsRemovingTransform(env, Stopword, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IStopWordsRemoverTransform;
+                    return new CustomStopWordsRemovingTransform(env, Stopword, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
                 else
-                    return new CustomStopWordsRemovingTransform(env, Stopwords, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IStopWordsRemoverTransform;
+                    return new CustomStopWordsRemovingTransform(env, Stopwords, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
             }
         }
 
@@ -722,17 +717,13 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     if (stopwordsCol == null)
                         stopwordsCol = "Stopwords";
-                    dataLoader = TextLoader.Create(
+                    dataLoader = new TextLoader(
                         Host,
-                        new TextLoader.Arguments()
+                        columns: new[]
                         {
-                            Separator = "tab",
-                            Column = new[]
-                            {
-                                new TextLoader.Column(stopwordsCol, DataKind.TX, 0)
-                            }
+                            new TextLoader.Column(stopwordsCol, DataKind.TX, 0)
                         },
-                        fileSource);
+                        dataSample: fileSource).Read(fileSource) as IDataLoader;
                 }
                 ch.AssertNonEmpty(stopwordsCol);
             }
@@ -963,10 +954,10 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-           => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+           => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -981,7 +972,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int srcCol);
-                    var srcType = inputSchema.GetColumnType(srcCol);
+                    var srcType = inputSchema[srcCol].Type;
                     if (!StopWordsRemovingEstimator.IsColumnTypeValid(srcType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.ColumnPairs[i].input, StopWordsRemovingEstimator.ExpectedColumnType, srcType.ToString());
 
@@ -1001,7 +992,7 @@ namespace Microsoft.ML.Transforms.Text
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -1076,7 +1067,7 @@ namespace Microsoft.ML.Transforms.Text
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.input, out var col))

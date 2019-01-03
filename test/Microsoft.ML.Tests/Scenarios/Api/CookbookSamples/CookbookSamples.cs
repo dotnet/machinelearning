@@ -2,24 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.FeatureSelection;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -43,7 +41,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Create the reader: define the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(ctx => (
+            var reader = mlContext.Data.CreateTextReader(ctx => (
                     // A boolean column depicting the 'target label'.
                     IsOver50K: ctx.LoadBool(0),
                     // Three text columns.
@@ -99,7 +97,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(ctx => (
+            var reader = mlContext.Data.CreateTextReader(ctx => (
                     // We read the first 11 values as a single float vector.
                     FeatureVector: ctx.LoadFloat(0, 10),
                     // Separately, read the target variable.
@@ -114,10 +112,24 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var trainData = reader.Read(trainDataPath);
 
+            // Sometime, caching data in-memory after its first access can save some loading time when the data is going to used
+            // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
+            // User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
+            // a caching step, which provides the same caching function, will be inserted in the considered "learningPipeline."
+            var cachedTrainData = trainData.Cache();
+
             // Step two: define the learning pipeline. 
 
             // We 'start' the pipeline with the output of the reader.
             var learningPipeline = reader.MakeNewEstimator()
+                // We add a step for caching data in memory so that the downstream iterative training
+                // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+                // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+                // The data accessed in any downstream step will be cached since its first use. In general, you only
+                // need to add a caching step before trainable step, because caching is not helpful if the data is
+                // only scanned once. This step can be removed if user doesn't have enough memory to store the whole
+                // data set.
+                .AppendCacheCheckpoint()
                 // Now we can add any 'training steps' to it. In our case we want to 'normalize' the data (rescale to be
                 // between -1 and 1 for all examples), and then train the model.
                 .Append(r => (
@@ -164,7 +176,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(ctx => (
+            var reader = mlContext.Data.CreateTextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -185,6 +197,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     r.Label,
                     // Concatenate all the features together into one column 'Features'.
                     Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                // We add a step for caching data in memory so that the downstream iterative training
+                // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+                // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+                // The data accessed in any downstream step will be cached since its first use. In general, you only
+                // need to add a caching step before trainable step, because caching is not helpful if the data is
+                // only scanned once.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
@@ -210,7 +229,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Make the prediction function object. Note that, on average, this call takes around 200x longer
             // than one prediction, so you might want to cache and reuse the prediction function, instead of
             // creating one per prediction.
-            var predictionFunc = model.MakePredictionFunction<IrisInput, IrisPrediction>(mlContext);
+            var predictionFunc = model.CreatePredictionEngine<IrisInput, IrisPrediction>(mlContext);
 
             // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
             // for simultaneous prediction, make sure each thread is using its own PredictionFunction.
@@ -235,7 +254,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(ctx => (
+            var reader = mlContext.Data.CreateTextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -251,7 +270,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var trainData = reader.Read(dataPath);
 
             // This is the predictor ('weights collection') that we will train.
-            MulticlassLogisticRegressionPredictor predictor = null;
+            MulticlassLogisticRegressionModelParameters predictor = null;
             // And these are the normalizer scales that we will learn.
             ImmutableArray<float> normScales;
             // Build the training pipeline.
@@ -267,6 +286,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                         // When the normalizer is trained, the below delegate is going to be called.
                         // We use it to memorize the scales.
                         onFit: (scales, offsets) => normScales = scales)))
+                // Cache data used in memory because the subsequently trainer needs to access the data multiple times.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
@@ -305,7 +326,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(ctx => (
+            var reader = mlContext.Data.CreateTextReader(ctx => (
                     // The four features of the Iris dataset will be grouped together as one Features column.
                     Features: ctx.LoadFloat(0, 3),
                     // Label: kind of iris.
@@ -386,6 +407,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
                 .Append(new ColumnConcatenatingEstimator (mlContext, "Features", "DemographicCategory", "LastVisits"))
+                .AppendCacheCheckpoint(mlContext) // FastTree will benefit from caching data in memory.
                 .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
             var dynamicModel = dynamicLearningPipeline.Fit(trainData);
@@ -402,6 +424,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(r => (
                     r.HasChurned,
                     Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
+                .AppendCacheCheckpoint() // FastTree will benefit from caching data in memory.
                 .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
 
             var staticModel = staticLearningPipeline.Fit(staticData);
@@ -419,7 +442,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(ctx => (
+            var reader = mlContext.Data.CreateTextReader(ctx => (
                     IsToxic: ctx.LoadBool(0),
                     Message: ctx.LoadText(1)
                 ), hasHeader: true);
@@ -432,6 +455,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Apply various kinds of text operations supported by ML.NET.
             var learningPipeline = reader.MakeNewEstimator()
+                // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
+                // cached in memory at their first uses. This step can be removed if user's machine doesn't
+                // have enough memory.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     // One-stop shop to run the full text featurization.
                     TextFeatures: r.Message.FeaturizeText(),
@@ -477,7 +504,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(ctx => (
+            var reader = mlContext.Data.CreateTextReader(ctx => (
                     Label: ctx.LoadBool(0),
                     // We will load all the categorical features into one vector column of size 8.
                     CategoricalFeatures: ctx.LoadText(1, 8),
@@ -495,6 +522,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Build several alternative featurization pipelines.
             var learningPipeline = reader.MakeNewEstimator()
+                // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
+                // cached in memory at their first uses. This step can be removed if user's machine doesn't
+                // have enough memory.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     r.NumericalFeatures,
@@ -540,7 +571,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(ctx => (
+            var reader = mlContext.Data.CreateTextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -562,6 +593,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     Label: r.Label.ToKey(),
                     // Concatenate all the features together into one column 'Features'.
                     Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                // Add a step for caching data in memory so that the downstream iterative training
+                // algorithm can efficiently scan through the data multiple times.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
@@ -597,7 +631,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(ctx => (
+            var reader = mlContext.Data.CreateTextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),

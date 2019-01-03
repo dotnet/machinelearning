@@ -4,12 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
 
 [assembly: LoadableClass(typeof(GenericScorer), typeof(GenericScorer.Arguments), typeof(SignatureDataScorer),
     "Generic Scorer", GenericScorer.LoadName, "Generic")]
@@ -17,7 +16,7 @@ using Microsoft.ML.Runtime.Model.Pfa;
 [assembly: LoadableClass(typeof(GenericScorer), null, typeof(SignatureLoadDataTransform),
     "Generic Scorer", GenericScorer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This class is a scorer that passes through all the ISchemaBound columns without adding any "derived columns".
@@ -138,9 +137,9 @@ namespace Microsoft.ML.Runtime.Data
         private const string RegistrationName = "GenericScore";
 
         private readonly Bindings _bindings;
-        protected override BindingsBase GetBindings() => _bindings;
+        private protected override BindingsBase GetBindings() => _bindings;
 
-        public override Schema Schema { get; }
+        public override Schema OutputSchema { get; }
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
@@ -149,7 +148,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The <see cref="SignatureDataScorer"/> entry point for creating a <see cref="GenericScorer"/>.
         /// </summary>
-        public GenericScorer(IHostEnvironment env, ScorerArgumentsBase args, IDataView data,
+        [BestFriend]
+        internal GenericScorer(IHostEnvironment env, ScorerArgumentsBase args, IDataView data,
             ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
             : base(env, data, RegistrationName, Contracts.CheckRef(mapper, nameof(mapper)).Bindable)
         {
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
             var rowMapper = mapper as ISchemaBoundRowMapper;
             Host.CheckParam(rowMapper != null, nameof(mapper), "mapper should implement ISchemaBoundRowMapper");
             _bindings = Bindings.Create(data.Schema, rowMapper, args.Suffix);
-            Schema = Schema.Create(_bindings);
+            OutputSchema = _bindings.AsSchema;
         }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, data, RegistrationName, transform.Bindable)
         {
             _bindings = transform._bindings.ApplyToSchema(env, data.Schema);
-            Schema = Schema.Create(_bindings);
+            OutputSchema = _bindings.AsSchema;
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(ctx);
             _bindings = Bindings.Create(ctx, host, Bindable, input.Schema);
-            Schema = Schema.Create(_bindings);
+            OutputSchema = _bindings.AsSchema;
         }
 
         /// <summary>
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.Data
             return h.Apply("Loading Model", ch => new GenericScorer(h, ctx, input));
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -261,12 +261,12 @@ namespace Microsoft.ML.Runtime.Data
             return new GenericScorer(env, this, newSource);
         }
 
-        protected override Delegate[] GetGetters(IRow output, Func<int, bool> predicate)
+        protected override Delegate[] GetGetters(Row output, Func<int, bool> predicate)
         {
             Host.Assert(_bindings.DerivedColumnCount == 0);
             Host.AssertValue(output);
             Host.AssertValue(predicate);
-            Host.Assert(output.Schema == _bindings.RowMapper.Schema);
+            Host.Assert(output.Schema == _bindings.RowMapper.OutputSchema);
 
             return GetGettersFromRow(output, predicate);
         }

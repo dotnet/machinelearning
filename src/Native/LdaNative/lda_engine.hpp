@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #pragma once
-
+#include "../Stdafx.h"
 #include <memory>
 #include <cstdint>
 #include <utility>
@@ -16,12 +16,6 @@
 #include "hybrid_alias_map.h"
 
 #include "alias_multinomial_rng_int.hpp"
-
-#ifdef _MSC_VER
-#define EXPORT_API(ret) extern "C" __declspec(dllexport) ret __stdcall
-#else
-#define EXPORT_API(ret) extern "C" __attribute__((visibility("default"))) ret
-#endif
 
 //ignore all such warnings since our stl class will not used internally in the class as private member
 #pragma warning(disable : 4251)

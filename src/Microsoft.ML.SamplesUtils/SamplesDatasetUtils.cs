@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.SamplesUtils
 {
@@ -21,7 +21,7 @@ namespace Microsoft.ML.SamplesUtils
         /// Downloads the wikipedia detox dataset from the ML.NET repo.
         /// </summary>
         public static string DownloadSentimentDataset()
-        => Download("https://github.com/dotnet/machinelearning/blob/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");
+         => Download("https://raw.githubusercontent.com/dotnet/machinelearning/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");
 
         /// <summary>
         /// Downloads the adult dataset from the ML.NET repo.

@@ -4,9 +4,9 @@
 
 using System;
 using System.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Wraps a potentially compound path as an IMultiStreamSource.
@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Initializes a new instance of <see cref="MultiFileSource"/>.
-        /// In case of in case of usage from Maml, the paths would be wildcard concatenated in the first string of <paramref name="paths"/>.
+        /// In case of usage from Maml, the paths would be wildcard concatenated in the first string of <paramref name="paths"/>.
         /// </summary>
         /// <param name="paths">The paths of the files to load.</param>
         public MultiFileSource(params string[] paths)

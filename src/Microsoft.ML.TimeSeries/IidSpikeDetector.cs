@@ -4,15 +4,15 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
-using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
+using Microsoft.ML.TimeSeriesProcessing;
+using static Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(IidSpikeDetector.Summary, typeof(IDataTransform), typeof(IidSpikeDetector), typeof(IidSpikeDetector.Arguments), typeof(SignatureDataTransform),
     IidSpikeDetector.UserName, IidSpikeDetector.LoaderSignature, IidSpikeDetector.ShortName)]
@@ -26,7 +26,7 @@ using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectio
 [assembly: LoadableClass(typeof(IRowMapper), typeof(IidSpikeDetector), null, typeof(SignatureLoadRowMapper),
    IidSpikeDetector.UserName, IidSpikeDetector.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     /// <summary>
     /// This class implements the spike detector transform for an i.i.d. sequence based on adaptive kernel density estimation.
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
             resultDic[Transformer.OutputColumnName] = new SchemaShape.Column(
                 Transformer.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 

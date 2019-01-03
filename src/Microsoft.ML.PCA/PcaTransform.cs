@@ -2,23 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.Projections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Projections;
 
 [assembly: LoadableClass(PcaTransform.Summary, typeof(IDataTransform), typeof(PcaTransform), typeof(PcaTransform.Arguments), typeof(SignatureDataTransform),
     PcaTransform.UserName, PcaTransform.LoaderSignature, PcaTransform.ShortName)]
@@ -285,8 +284,8 @@ namespace Microsoft.ML.Transforms.Projections
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -347,14 +346,14 @@ namespace Microsoft.ML.Transforms.Projections
             var omega = new float[_numColumns][][];
             var mean = new float[_numColumns][];
             var oversampledRank = new int[_numColumns];
-            var rnd = Host.Rand;
-            Double totalMemoryUsageEstimate = 0;
+            double totalMemoryUsageEstimate = 0;
             for (int iinfo = 0; iinfo < _numColumns; iinfo++)
             {
+                var rnd = columns[iinfo].Seed == null ? Host.Rand : new Random(columns[iinfo].Seed.Value);
                 oversampledRank[iinfo] = Math.Min(transformInfos[iinfo].Rank + columns[iinfo].Oversampling, transformInfos[iinfo].Dimension);
 
                 //exact: (size of the 2 big matrices + other minor allocations) / (2^30)
-                Double colMemoryUsageEstimate = 2.0 * transformInfos[iinfo].Dimension * oversampledRank[iinfo] * sizeof(float) / 1e9;
+                double colMemoryUsageEstimate = 2.0 * transformInfos[iinfo].Dimension * oversampledRank[iinfo] * sizeof(float) / 1e9;
                 totalMemoryUsageEstimate += colMemoryUsageEstimate;
                 if (colMemoryUsageEstimate > 2)
                 {
@@ -449,7 +448,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             Double[] totalColWeight = new Double[_numColumns];
 
-            bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
+            bool[] activeColumns = new bool[trainingData.Schema.Count];
             foreach (var sInfo in _schemaInfos)
             {
                 activeColumns[sInfo.InputIndex] = true;
@@ -540,11 +539,11 @@ namespace Microsoft.ML.Transforms.Projections
             return y;
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            ValidatePcaInput(Host, inputSchema.GetColumnName(srcCol), inputSchema.GetColumnType(srcCol));
+            ValidatePcaInput(Host, inputSchema[srcCol].Name, inputSchema[srcCol].Type);
         }
 
         internal static void ValidatePcaInput(IExceptionContext ectx, string name, ColumnType type)
@@ -609,7 +608,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _numColumns);
@@ -654,7 +653,7 @@ namespace Microsoft.ML.Transforms.Projections
             var view = PcaTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
-                Model = new TransformModel(h, view, input.Data),
+                Model = new TransformModelImpl(h, view, input.Data),
                 OutputData = view
             };
         }
@@ -707,7 +706,7 @@ namespace Microsoft.ML.Transforms.Projections
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

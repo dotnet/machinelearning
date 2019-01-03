@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Transforms
 {
@@ -14,7 +13,7 @@ namespace Microsoft.ML.Transforms
 
     public sealed partial class MissingValueReplacingTransformer
     {
-        private static StatAggregator CreateStatAggregator(IChannel ch, ColumnType type, ReplacementKind? kind, bool bySlot, IRowCursor cursor, int col)
+        private static StatAggregator CreateStatAggregator(IChannel ch, ColumnType type, ReplacementKind? kind, bool bySlot, RowCursor cursor, int col)
         {
             ch.Assert(type.ItemType.IsNumber);
             if (!type.IsVector)
@@ -150,7 +149,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public long RowCount { get { return _rowCount; } }
 
-            protected StatAggregator(IChannel ch, IRowCursor cursor, int col)
+            protected StatAggregator(IChannel ch, RowCursor cursor, int col)
                 : base(ch)
             {
                 Ch.AssertValue(cursor);
@@ -171,14 +170,14 @@ namespace Microsoft.ML.Transforms
         private abstract class StatAggregatorAcrossSlots<TItem, TStat> : StatAggregator<VBuffer<TItem>, TStat>
         {
             // The number of values that have been processed.
-            private UInt128 _valueCount;
+            private RowId _valueCount;
 
             /// <summary>
             /// Returns the number of values that have been processed so far.
             /// </summary>
-            public UInt128 ValueCount { get { return _valueCount; } }
+            public RowId ValueCount { get { return _valueCount; } }
 
-            protected StatAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col)
+            protected StatAggregatorAcrossSlots(IChannel ch, RowCursor cursor, int col)
                 : base(ch, cursor, col)
             {
             }
@@ -199,7 +198,7 @@ namespace Microsoft.ML.Transforms
 
         private abstract class StatAggregatorBySlot<TItem, TStatItem> : StatAggregator<VBuffer<TItem>, TStatItem[]>
         {
-            protected StatAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col)
+            protected StatAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col)
                 : base(ch, cursor, col)
             {
                 Ch.AssertValue(type);
@@ -235,7 +234,7 @@ namespace Microsoft.ML.Transforms
             private delegate void ProcessValueDelegate(in TValue val);
             private readonly ProcessValueDelegate _processValueDelegate;
 
-            protected MinMaxAggregatorOne(IChannel ch, IRowCursor cursor, int col, bool returnMax)
+            protected MinMaxAggregatorOne(IChannel ch, RowCursor cursor, int col, bool returnMax)
                 : base(ch, cursor, col)
             {
                 ReturnMax = returnMax;
@@ -272,7 +271,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public long ValuesProcessed { get { return _valuesProcessed; } }
 
-            protected MinMaxAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col, bool returnMax)
+            protected MinMaxAggregatorAcrossSlots(IChannel ch, RowCursor cursor, int col, bool returnMax)
                 : base(ch, cursor, col)
             {
                 ReturnMax = returnMax;
@@ -300,7 +299,7 @@ namespace Microsoft.ML.Transforms
             // The count of the number of times ProcessValue has been called on a specific slot (used for tracking sparsity).
             private readonly long[] _valuesProcessed;
 
-            protected MinMaxAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
+            protected MinMaxAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col, bool returnMax)
                 : base(ch, type, cursor, col)
             {
                 Ch.AssertValue(type);
@@ -388,11 +387,11 @@ namespace Microsoft.ML.Transforms
                 return stat;
             }
 
-            public Double GetCurrentValue(IChannel ch, UInt128 count)
+            public Double GetCurrentValue(IChannel ch, RowId count)
             {
                 Contracts.Assert(Double.MinValue <= _cur && _cur <= Double.MaxValue);
                 Contracts.Assert(_cnz >= 0 && _cna >= 0);
-                Contracts.Assert(count.Hi != 0 || count.Lo >= (ulong)_cna);
+                Contracts.Assert(count.High != 0 || count.Low >= (ulong)_cna);
 
                 // If all values in the column are NAs, emit a warning and return 0.
                 // Is this what we want to do or should an error be thrown?
@@ -489,7 +488,7 @@ namespace Microsoft.ML.Transforms
                 return neg ? -(long)res : (long)res;
             }
 
-            public long GetCurrentValue(IChannel ch, UInt128 count, long valMax)
+            public long GetCurrentValue(IChannel ch, RowId count, long valMax)
             {
                 AssertValid(valMax);
                 Contracts.Assert(count >= (ulong)_cna);
@@ -527,7 +526,7 @@ namespace Microsoft.ML.Transforms
                 // call won't throw.
                 Contracts.Assert(count > sumHi);
 
-                ulong res = IntUtils.DivRound(sumLo, sumHi, count.Lo, count.Hi);
+                ulong res = IntUtils.DivRound(sumLo, sumHi, count.Low, count.High);
                 Contracts.Assert(0 <= res && res <= (ulong)valMax);
                 return neg ? -(long)res : (long)res;
             }
@@ -540,7 +539,7 @@ namespace Microsoft.ML.Transforms
             // mean of a set of Single values. Conversion to Single happens in GetStat.
             public sealed class MeanAggregatorOne : StatAggregator<Single, MeanStatDouble>
             {
-                public MeanAggregatorOne(IChannel ch, IRowCursor cursor, int col)
+                public MeanAggregatorOne(IChannel ch, RowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
@@ -560,7 +559,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<Single, MeanStatDouble>
             {
-                public MeanAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col)
+                public MeanAggregatorAcrossSlots(IChannel ch, RowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
@@ -580,7 +579,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<Single, MeanStatDouble>
             {
-                public MeanAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col)
+                public MeanAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
@@ -606,7 +605,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<Single, Single>
             {
-                public MinMaxAggregatorOne(IChannel ch, IRowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorOne(IChannel ch, RowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
                 {
                     Stat = ReturnMax ? Single.NegativeInfinity : Single.PositiveInfinity;
@@ -627,7 +626,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<Single, Single>
             {
-                public MinMaxAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorAcrossSlots(IChannel ch, RowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
                 {
                     Stat = ReturnMax ? Single.NegativeInfinity : Single.PositiveInfinity;
@@ -659,7 +658,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<Single, Single>
             {
-                public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
                 {
                     Single bound = ReturnMax ? Single.NegativeInfinity : Single.PositiveInfinity;
@@ -701,7 +700,7 @@ namespace Microsoft.ML.Transforms
         {
             public sealed class MeanAggregatorOne : StatAggregator<Double, MeanStatDouble>
             {
-                public MeanAggregatorOne(IChannel ch, IRowCursor cursor, int col)
+                public MeanAggregatorOne(IChannel ch, RowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
@@ -719,7 +718,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MeanAggregatorAcrossSlots : StatAggregatorAcrossSlots<Double, MeanStatDouble>
             {
-                public MeanAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col)
+                public MeanAggregatorAcrossSlots(IChannel ch, RowCursor cursor, int col)
                     : base(ch, cursor, col)
                 {
                 }
@@ -737,7 +736,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<Double, MeanStatDouble>
             {
-                public MeanAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col)
+                public MeanAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
@@ -759,7 +758,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorOne : MinMaxAggregatorOne<Double, Double>
             {
-                public MinMaxAggregatorOne(IChannel ch, IRowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorOne(IChannel ch, RowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
                 {
                     Stat = ReturnMax ? Double.NegativeInfinity : Double.PositiveInfinity;
@@ -780,7 +779,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorAcrossSlots : MinMaxAggregatorAcrossSlots<Double, Double>
             {
-                public MinMaxAggregatorAcrossSlots(IChannel ch, IRowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorAcrossSlots(IChannel ch, RowCursor cursor, int col, bool returnMax)
                     : base(ch, cursor, col, returnMax)
                 {
                     Stat = ReturnMax ? Double.NegativeInfinity : Double.PositiveInfinity;
@@ -812,7 +811,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<Double, Double>
             {
-                public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, IRowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
                 {
                     Double bound = ReturnMax ? Double.MinValue : Double.MaxValue;

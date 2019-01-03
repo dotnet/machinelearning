@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FactorizationMachine;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Training;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.FactorizationMachine;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
     typeof(FieldAwareFactorizationMachineTrainer.Arguments), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
@@ -22,7 +22,7 @@ using System.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(FieldAwareFactorizationMachineTrainer), null, typeof(SignatureEntryPointModule), FieldAwareFactorizationMachineTrainer.LoadName)]
 
-namespace Microsoft.ML.Runtime.FactorizationMachine
+namespace Microsoft.ML.FactorizationMachine
 {
     /*
      Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
     /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
-    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<FieldAwareFactorizationMachinePredictor>,
+    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<FieldAwareFactorizationMachineModelParameters>,
         IEstimator<FieldAwareFactorizationMachinePredictionTransformer>
     {
         internal const string Summary = "Train a field-aware factorization machine for binary classification";
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 FeatureColumns[i] = new SchemaShape.Column(featureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
             LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-            WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : null;
+            WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : default;
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _radius = args.Radius;
         }
 
-        private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachinePredictor predictor, out float[] linearWeights,
+        private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachineModelParameters predictor, out float[] linearWeights,
             out AlignedArray latentWeightsAligned, out float[] linearAccumulatedSquaredGrads, out AlignedArray latentAccumulatedSquaredGradsAligned)
         {
             linearWeights = new float[featureCount];
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             int latentDimAligned, AlignedArray latentSum, int[] featureFieldBuffer, int[] featureIndexBuffer, float[] featureValueBuffer, VBuffer<float> buffer, ref long badExampleCount)
         {
             var featureColumns = data.Schema.GetColumns(RoleMappedSchema.ColumnRole.Feature);
-            Func<int, bool> pred = c => featureColumns.Select(ci => ci.Index).Contains(c) || c == data.Schema.Label.Index || (data.Schema.Weight != null && c == data.Schema.Weight.Index);
+            Func<int, bool> pred = c => featureColumns.Select(ci => ci.Index).Contains(c) || c == data.Schema.Label.Value.Index || c == data.Schema.Weight?.Index;
             var getters = new ValueGetter<VBuffer<float>>[featureColumns.Count];
             float label = 0;
             float weight = 1;
@@ -256,8 +256,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             int count = 0;
             using (var cursor = data.Data.GetRowCursor(pred))
             {
-                var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Index); ;
-                var weightGetter = data.Schema.Weight == null ? null : cursor.GetGetter<float>(data.Schema.Weight.Index);
+                var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
+                var weightGetter = data.Schema.Weight?.Index is int weightIdx ? cursor.GetGetter<float>(weightIdx) : null;
                 for (int f = 0; f < featureColumns.Count; f++)
                     getters[f] = cursor.GetGetter<VBuffer<float>>(featureColumns[f].Index);
                 while (cursor.MoveNext())
@@ -285,8 +285,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return loss / exampleCount;
         }
 
-        private FieldAwareFactorizationMachinePredictor TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data,
-            RoleMappedData validData = null, FieldAwareFactorizationMachinePredictor predictor = null)
+        private FieldAwareFactorizationMachineModelParameters TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data,
+            RoleMappedData validData = null, FieldAwareFactorizationMachineModelParameters predictor = null)
         {
             Host.AssertValue(ch);
             Host.AssertValue(pch);
@@ -299,14 +299,14 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             for (int f = 0; f < fieldCount; f++)
             {
                 var col = featureColumns[f];
-                Host.Assert(col.Type.AsVector.VectorSize > 0);
-                if (col == null)
-                    throw ch.ExceptParam(nameof(data), "Empty feature column not allowed");
-                Host.Assert(!data.Schema.Schema.IsHidden(col.Index));
-                if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
+                Host.Assert(!col.IsHidden);
+                if (!(col.Type is VectorType vectorType) ||
+                    !vectorType.IsKnownSizeVector ||
+                    vectorType.ItemType != NumberType.Float)
                     throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
+                Host.Assert(vectorType.VectorSize > 0);
                 fieldColumnIndexes[f] = col.Index;
-                totalFeatureCount += col.Type.AsVector.VectorSize;
+                totalFeatureCount += vectorType.VectorSize;
             }
             ch.Check(checked(totalFeatureCount * fieldCount * _latentDimAligned) <= Utils.ArrayMaxSize, "Latent dimension or the number of fields too large");
             if (predictor != null)
@@ -320,7 +320,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 var validFeatureColumns = data.Schema.GetColumns(RoleMappedSchema.ColumnRole.Feature);
                 Host.Assert(fieldCount == validFeatureColumns.Count);
                 for (int f = 0; f < fieldCount; f++)
-                    Host.Assert(featureColumns[f] == validFeatureColumns[f]);
+                {
+                    var featCol = featureColumns[f];
+                    var validFeatCol = validFeatureColumns[f];
+                    Host.Assert(featCol.Name == validFeatCol.Name);
+                    Host.Assert(featCol.Type == validFeatCol.Type);
+                }
             }
             bool shuffle = _shuffle;
             if (shuffle && !data.Data.CanShuffle)
@@ -349,7 +354,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 entry.SetProgress(0, iter, _numIterations);
                 entry.SetProgress(1, exampleCount);
             });
-            Func<int, bool> pred = c => fieldColumnIndexes.Contains(c) || c == data.Schema.Label.Index || (data.Schema.Weight != null && c == data.Schema.Weight.Index);
+            Func<int, bool> pred = c => fieldColumnIndexes.Contains(c) || c == data.Schema.Label.Value.Index || c == data.Schema.Weight?.Index;
             InitializeTrainingState(fieldCount, totalFeatureCount, predictor, out float[] linearWeights,
                 out AlignedArray latentWeightsAligned, out float[] linearAccSqGrads, out AlignedArray latentAccSqGradsAligned);
 
@@ -358,8 +363,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             {
                 using (var cursor = data.Data.GetRowCursor(pred, rng))
                 {
-                    var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Index);
-                    var weightGetter = data.Schema.Weight == null ? null : RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, data.Schema.Weight.Index);
+                    var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
+                    var weightGetter = data.Schema.Weight?.Index is int weightIdx ? RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, weightIdx) : null;
                     for (int i = 0; i < fieldCount; i++)
                         featureGetters[i] = cursor.GetGetter<VBuffer<float>>(fieldColumnIndexes[i]);
                     loss = 0;
@@ -417,15 +422,15 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             if (validBadExampleCount != 0)
                 ch.Warning($"Skipped {validBadExampleCount} examples with bad label/weight/features in validation set");
 
-            return new FieldAwareFactorizationMachinePredictor(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
+            return new FieldAwareFactorizationMachineModelParameters(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
         }
 
-        private protected override FieldAwareFactorizationMachinePredictor Train(TrainContext context)
+        private protected override FieldAwareFactorizationMachineModelParameters Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachinePredictor;
+            var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachineModelParameters;
             Host.CheckParam(context.InitialPredictor == null || initPredictor != null, nameof(context),
-                "Initial predictor should have been " + nameof(FieldAwareFactorizationMachinePredictor));
+                "Initial predictor should have been " + nameof(FieldAwareFactorizationMachineModelParameters));
 
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
@@ -451,9 +456,9 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         public FieldAwareFactorizationMachinePredictionTransformer Train(IDataView trainData,
-            IDataView validationData = null, FieldAwareFactorizationMachinePredictor initialPredictor = null)
+            IDataView validationData = null, FieldAwareFactorizationMachineModelParameters initialPredictor = null)
         {
-            FieldAwareFactorizationMachinePredictor model = null;
+            FieldAwareFactorizationMachineModelParameters model = null;
 
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
             foreach (var feat in FeatureColumns)
@@ -461,7 +466,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, LabelColumn.Name));
 
-            if (WeightColumn != null)
+            if (WeightColumn.IsValid)
                 roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, WeightColumn.Name));
 
             var trainingData = new RoleMappedData(trainData, roles);
@@ -470,7 +475,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
             {
-                model = TrainCore(ch, pch, trainingData, validData, initialPredictor as FieldAwareFactorizationMachinePredictor);
+                model = TrainCore(ch, pch, trainingData, validData, initialPredictor as FieldAwareFactorizationMachineModelParameters);
             }
 
             return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, trainData.Schema, FeatureColumns.Select(x => x.Name).ToArray());
@@ -500,10 +505,10 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 CheckColumnsCompatible(feat, DefaultColumnNames.Features);
             }
 
-            if (WeightColumn != null)
+            if (WeightColumn.IsValid)
                 CheckColumnsCompatible(WeightColumn, DefaultColumnNames.Weight);
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
             foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 

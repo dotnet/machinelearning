@@ -4,18 +4,17 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Sweeper;
 
 [assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeper),
     "Random Grid Sweeper", "RandomGridSweeper", "RandomGrid")]
 [assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeperFromParameterList),
     "Random Grid Sweeper", "RandomGridSweeperParamList", "RandomGridpl")]
 
-namespace Microsoft.ML.Runtime.Sweeper
+namespace Microsoft.ML.Sweeper
 {
     /// <summary>
     /// Signature for the GUI loaders of sweepers.
