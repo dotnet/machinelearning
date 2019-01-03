@@ -356,7 +356,7 @@ namespace Microsoft.ML.Data
 
         public static string TestGetLabelGetter(ColumnType type, bool allowKeys)
         {
-            if (type == NumberType.R4 || type == NumberType.R8 || type.IsBool)
+            if (type == NumberType.R4 || type == NumberType.R8 || type is BoolType)
                 return null;
 
             if (allowKeys && type.IsKey)
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(type != NumberType.R4 && type != NumberType.R8);
 
             // boolean type label mapping: True -> 1, False -> 0.
-            if (type.IsBool)
+            if (type is BoolType)
             {
                 var getBoolSrc = cursor.GetGetter<bool>(labelIndex);
                 return
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Data
             var type = cursor.GetSlotType().ItemType;
             if (type == NumberType.R4)
                 return cursor.GetGetter<Single>();
-            if (type == NumberType.R8 || type.IsBool)
+            if (type == NumberType.R8 || type is BoolType)
                 return GetVecGetterAs<Single>(NumberType.R4, cursor);
             Contracts.Check(type.IsKey, "Only floating point number, boolean, and key type values can be used as label.");
             Contracts.Assert(TestGetLabelGetter(type) == null);

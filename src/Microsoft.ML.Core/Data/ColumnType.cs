@@ -102,27 +102,11 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Whether this type is the standard boolean type. External code should use <c>is <see cref="BoolType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsBool
-        {
-            get
-            {
-                if (!(this is BoolType))
-                    return false;
-                // BoolType is a singleton.
-                Contracts.Assert(this == BoolType.Instance);
-                return true;
-            }
-        }
-
-        /// <summary>
         /// Whether this type is a standard scalar type completely determined by its <see cref="RawType"/>
         /// (not a <see cref="KeyType"/> or <see cref="StructuredType"/>, etc).
         /// </summary>
         [BestFriend]
-        internal bool IsStandardScalar => IsNumber || IsText || IsBool ||
+        internal bool IsStandardScalar => IsNumber || IsText || (this is BoolType) ||
             (this is TimeSpanType) || (this is DateTimeType) || (this is DateTimeOffsetType);
 
         /// <summary>

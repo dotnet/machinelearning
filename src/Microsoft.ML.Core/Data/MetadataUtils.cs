@@ -365,7 +365,7 @@ namespace Microsoft.ML.Data
         public static bool IsNormalized(this Schema.Column column)
         {
             var metaColumn = column.Metadata.Schema.GetColumnOrNull((Kinds.IsNormalized));
-            if (metaColumn == null || !metaColumn.Value.Type.IsBool)
+            if (metaColumn == null || !(metaColumn.Value.Type is BoolType))
                 return false;
 
             bool value = default;

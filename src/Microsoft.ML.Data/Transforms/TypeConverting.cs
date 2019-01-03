@@ -454,7 +454,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     }
                     if (srcType.ItemType.IsNumber && _types[i].ItemType.IsNumber)
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.IsNormalized);
-                    if (srcType.IsBool && _types[i].ItemType.IsNumber)
+                    if (srcType is BoolType && _types[i].ItemType.IsNumber)
                     {
                         ValueGetter<bool> getter = (ref bool dst) => dst = true;
                         builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
@@ -558,7 +558,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.Input} into {newType.ToString()}");
                 var metadata = new List<SchemaShape.Column>();
-                if (col.ItemType.IsBool && newType.ItemType.IsNumber)
+                if (col.ItemType is BoolType && newType.ItemType.IsNumber)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     if (col.Kind == SchemaShape.Column.VectorKind.Vector)
