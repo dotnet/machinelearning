@@ -8,7 +8,7 @@ namespace Microsoft.ML.Samples.Dynamic
         public static void FeatureContributionCalculationTransform_Regression()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
-            // This will create a sentiment.tsv file in the filesystem.
+            // This will create a housing.txt file in the filesystem.
             // You can open this file, if you want to see the data. 
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var weights = new VBuffer<float>();
             model.Model.GetFeatureWeights(ref weights);
 
-            // Let's now walk through the first ten reconds and see which feature drove the values the most
+            // Let's now walk through the first ten records and see which feature drove the values the most
             // Get prediction scores and contributions
             var scoringEnumerator = outputData.AsEnumerable<HousingRegressionScoreAndContribution>(mlContext, true).GetEnumerator();
             int index = 0;
