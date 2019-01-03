@@ -27,12 +27,12 @@ namespace Microsoft.ML.Learners
     public readonly struct CoefficientStatistics
     {
         public readonly string Name;
-        public readonly Single Estimate;
-        public readonly Single StandardError;
-        public readonly Single ZScore;
-        public readonly Single PValue;
+        public readonly float Estimate;
+        public readonly float StandardError;
+        public readonly float ZScore;
+        public readonly float PValue;
 
-        public CoefficientStatistics(string name, Single estimate, Single stdError, Single zScore, Single pValue)
+        public CoefficientStatistics(string name, float estimate, float stdError, float zScore, float pValue)
         {
             Contracts.AssertNonEmpty(name);
             Name = name;
@@ -69,10 +69,10 @@ namespace Microsoft.ML.Learners
         private readonly long _trainingExampleCount;
 
         // The deviance of this model.
-        private readonly Single _deviance;
+        private readonly float _deviance;
 
         // The deviance of the null hypothesis.
-        private readonly Single _nullDeviance;
+        private readonly float _nullDeviance;
 
         // Total count of parameters.
         private readonly int _paramCount;
@@ -82,17 +82,17 @@ namespace Microsoft.ML.Learners
         // It could be null when there are too many non-zero weights so that
         // the memory is insufficient to hold the Hessian matrix necessary for the computation
         // of the variance-covariance matrix.
-        private readonly VBuffer<Single>? _coeffStdError;
+        private readonly VBuffer<float>? _coeffStdError;
 
         public long TrainingExampleCount => _trainingExampleCount;
 
-        public Single Deviance => _deviance;
+        public float Deviance => _deviance;
 
-        public Single NullDeviance => _nullDeviance;
+        public float NullDeviance => _nullDeviance;
 
         public int ParametersCount => _paramCount;
 
-        internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance)
+        internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance)
         {
             Contracts.AssertValue(env);
             env.Assert(trainingExampleCount > 0);
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Learners
             _nullDeviance = nullDeviance;
         }
 
-        internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance, in VBuffer<Single> coeffStdError)
+        internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance, in VBuffer<float> coeffStdError)
             : this(env, trainingExampleCount, paramCount, deviance, nullDeviance)
         {
             _env.Assert(coeffStdError.GetValues().Length == _paramCount);
@@ -120,10 +120,10 @@ namespace Microsoft.ML.Learners
             // *** Binary Format ***
             // int: count of parameters
             // long: count of training examples
-            // Single: deviance
-            // Single: null deviance
+            // float: deviance
+            // float: null deviance
             // bool: whether standard error is included
-            // (Conditional) Single[_paramCount]: values of std errors of coefficients
+            // (Conditional) float[_paramCount]: values of std errors of coefficients
             // (Conditional) int: length of std errors of coefficients
             // (Conditional) int[_paramCount]: indices of std errors of coefficients
 
@@ -143,18 +143,18 @@ namespace Microsoft.ML.Learners
                 return;
             }
 
-            Single[] stdErrorValues = ctx.Reader.ReadFloatArray(_paramCount);
+            float[] stdErrorValues = ctx.Reader.ReadFloatArray(_paramCount);
             int length = ctx.Reader.ReadInt32();
             _env.CheckDecode(length >= _paramCount);
             if (length == _paramCount)
             {
-                _coeffStdError = new VBuffer<Single>(length, stdErrorValues);
+                _coeffStdError = new VBuffer<float>(length, stdErrorValues);
                 return;
             }
 
             _env.Assert(length > _paramCount);
             int[] stdErrorIndices = ctx.Reader.ReadIntArray(_paramCount);
-            _coeffStdError = new VBuffer<Single>(length, _paramCount, stdErrorValues, stdErrorIndices);
+            _coeffStdError = new VBuffer<float>(length, _paramCount, stdErrorValues, stdErrorIndices);
         }
 
         internal static LinearModelStatistics Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -178,10 +178,10 @@ namespace Microsoft.ML.Learners
             // *** Binary Format ***
             // int: count of parameters
             // long: count of training examples
-            // Single: deviance
-            // Single: null deviance
+            // float: deviance
+            // float: null deviance
             // bool: whether standard error is included
-            // (Conditional) Single[_paramCount]: values of std errors of coefficients
+            // (Conditional) float[_paramCount]: values of std errors of coefficients
             // (Conditional) int: length of std errors of coefficients
             // (Conditional) int[_paramCount]: indices of std errors of coefficients
 
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Learners
         /// <summary>
         /// Computes the standart deviation, Z-Score and p-Value.
         /// </summary>
-        public static bool TryGetBiasStatistics(LinearModelStatistics stats, Single bias, out Single stdError, out Single zScore, out Single pValue)
+        public static bool TryGetBiasStatistics(LinearModelStatistics stats, float bias, out float stdError, out float zScore, out float pValue)
         {
             if (!stats._coeffStdError.HasValue)
             {
@@ -226,12 +226,12 @@ namespace Microsoft.ML.Learners
             stdError = stats._coeffStdError.Value.GetValues()[0];
             Contracts.Assert(stdError == stats._coeffStdError.Value.GetItemOrDefault(0));
             zScore = bias / stdError;
-            pValue = 1.0f - (Single)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
+            pValue = 1.0f - (float)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
             return true;
         }
 
-        private static void GetUnorderedCoefficientStatistics(LinearModelStatistics stats, in VBuffer<Single> weights, in VBuffer<ReadOnlyMemory<char>> names,
-            ref VBuffer<Single> estimate, ref VBuffer<Single> stdErr, ref VBuffer<Single> zScore, ref VBuffer<Single> pValue, out ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames)
+        private static void GetUnorderedCoefficientStatistics(LinearModelStatistics stats, in VBuffer<float> weights, in VBuffer<ReadOnlyMemory<char>> names,
+            ref VBuffer<float> estimate, ref VBuffer<float> stdErr, ref VBuffer<float> zScore, ref VBuffer<float> pValue, out ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames)
         {
             if (!stats._coeffStdError.HasValue)
             {
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Learners
                 var weight = estimateEditor.Values[i - 1] = weights.GetItemOrDefault(wi);
                 var stdError = stdErrorEditor.Values[wi] = coeffStdErrorValues[i];
                 zScoreEditor.Values[i - 1] = weight / stdError;
-                pValueEditor.Values[i - 1] = 1 - (Single)ProbabilityFunctions.Erf(Math.Abs(zScoreEditor.Values[i - 1] / sqrt2));
+                pValueEditor.Values[i - 1] = 1 - (float)ProbabilityFunctions.Erf(Math.Abs(zScoreEditor.Values[i - 1] / sqrt2));
             }
 
             estimate = estimateEditor.Commit();
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Learners
                 };
         }
 
-        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryModelParameters parent, RoleMappedSchema schema)
+        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryModelParameters parent, Schema.Column featureColumn)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
@@ -291,12 +291,14 @@ namespace Microsoft.ML.Learners
             if (!_coeffStdError.HasValue)
                 return new List<CoefficientStatistics>();
 
-            var weights = parent.Weights as IReadOnlyList<Single>;
+            var weights = parent.Weights as IReadOnlyList<float>;
             _env.Assert(_paramCount == 1 || weights != null);
             _env.Assert(_coeffStdError.Value.Length == weights.Count + 1);
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Count, ref names);
+
+            featureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
+            _env.Assert(names.Length > 0, "FeatureColumn has no metadata.");
 
             ReadOnlySpan<float> stdErrorValues = _coeffStdError.Value.GetValues();
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
@@ -304,7 +306,7 @@ namespace Microsoft.ML.Learners
             List<CoefficientStatistics> result = new List<CoefficientStatistics>(_paramCount - 1);
             bool denseStdError = _coeffStdError.Value.IsDense;
             ReadOnlySpan<int> stdErrorIndices = _coeffStdError.Value.GetIndices();
-            Single[] zScores = new Single[_paramCount - 1];
+            float[] zScores = new float[_paramCount - 1];
             for (int i = 1; i < _paramCount; i++)
             {
                 int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
@@ -315,7 +317,7 @@ namespace Microsoft.ML.Learners
                 var weight = weights[wi];
                 var stdError = stdErrorValues[i];
                 var zScore = zScores[i - 1] = weight / stdError;
-                var pValue = 1 - (Single)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
+                var pValue = 1 - (float)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
                 result.Add(new CoefficientStatistics(name, weight, stdError, zScore, pValue));
             }
             return result;
@@ -324,33 +326,31 @@ namespace Microsoft.ML.Learners
         /// <summary>
         /// Gets the coefficient statistics as an object.
         /// </summary>
-        internal CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
+        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, Schema.Column featureColumn, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
-            _env.CheckValue(schema, nameof(schema));
             _env.CheckParam(paramCountCap >= 0, nameof(paramCountCap));
 
             if (paramCountCap > _paramCount)
                 paramCountCap = _paramCount;
 
-            Single stdError;
-            Single zScore;
-            Single pValue;
+            float stdError;
+            float zScore;
+            float pValue;
             var bias = parent.Bias;
             if (!TryGetBiasStatistics(parent.Statistics, bias, out stdError, out zScore, out pValue))
                 return null;
 
-            var order = GetUnorderedCoefficientStatistics(parent, schema).OrderByDescending(stat => stat.ZScore).Take(paramCountCap - 1);
+            var order = GetUnorderedCoefficientStatistics(parent, featureColumn).OrderByDescending(stat => stat.ZScore).Take(paramCountCap - 1);
             return order.Prepend(new[] { new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue) }).ToArray();
         }
 
-        internal void SaveText(TextWriter writer, LinearBinaryModelParameters parent, RoleMappedSchema schema, int paramCountCap)
+        internal void SaveText(TextWriter writer, LinearBinaryModelParameters parent, Schema.Column featureColumn, int paramCountCap)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(writer, nameof(writer));
             _env.AssertValueOrNull(parent);
-            _env.AssertValueOrNull(schema);
             writer.WriteLine();
             writer.WriteLine("*** MODEL STATISTICS SUMMARY ***   ");
             writer.WriteLine("Count of training examples:\t{0}", _trainingExampleCount);
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Learners
             if (parent == null)
                 return;
 
-            var coeffStats = GetCoefficientStatistics(parent, schema, paramCountCap);
+            var coeffStats = GetCoefficientStatistics(parent, featureColumn, paramCountCap);
             if (coeffStats == null)
                 return;
 
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Learners
         /// Support method for linear models and <see cref="ICanGetSummaryInKeyValuePairs"/>.
         /// </summary>
         internal void SaveSummaryInKeyValuePairs(LinearBinaryModelParameters parent,
-            RoleMappedSchema schema, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
+            Schema.Column featureColumn, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
         {
             Contracts.AssertValue(_env);
             _env.AssertValue(resultCollection);
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Learners
             if (parent == null)
                 return;
 
-            var coeffStats = GetCoefficientStatistics(parent, schema, paramCountCap);
+            var coeffStats = GetCoefficientStatistics(parent, featureColumn, paramCountCap);
             if (coeffStats == null)
                 return;
 
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Learners
             {
                 resultCollection.Add(new KeyValuePair<string, object>(
                     coeffStat.Name,
-                    new Single[] { coeffStat.Estimate, coeffStat.StandardError, coeffStat.ZScore, coeffStat.PValue }));
+                    new float[] { coeffStat.Estimate, coeffStat.StandardError, coeffStat.ZScore, coeffStat.PValue }));
             }
         }
 
@@ -458,7 +458,7 @@ namespace Microsoft.ML.Learners
             return builder.GetMetadata();
         }
 
-        private string DecorateProbabilityString(Single probZ)
+        private string DecorateProbabilityString(float probZ)
         {
             Contracts.AssertValue(_env);
             _env.Assert(0 <= probZ && probZ <= 1);
