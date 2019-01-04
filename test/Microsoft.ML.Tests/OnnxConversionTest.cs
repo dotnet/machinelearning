@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -31,7 +32,7 @@ namespace Microsoft.ML.Tests
         /// <summary>
         /// In this test, we convert a trained <see cref="TransformerChain"/> into ONNX <see cref="UniversalModelFormat.Onnx.ModelProto"/> file and then
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
-        /// ML.NET model's outputs. 
+        /// ML.NET model's outputs.
         /// </summary>
         [Fact]
         public void SimpleEndToEndOnnxConversionTest()
@@ -52,12 +53,12 @@ namespace Microsoft.ML.Tests
             var transformedData = model.Transform(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = mlContext.Model.Portability.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
             var onnxFileName = "model.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, null);
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
             {
                 // Step 3: Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
                 string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
@@ -70,7 +71,8 @@ namespace Microsoft.ML.Tests
                 CompareSelectedR4ScalarColumns("Score", "Score0", transformedData, onnxResult, 2);
             }
 
-            // Step 5: Check ONNX model's text format.
+            // Step 5: Check ONNX model's text format. This test will be not necessary if Step 3 and Step 4 can run on Linux and
+            // Mac to support cross-platform tests.
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Regression", "Adult");
             var onnxTextName = "SimplePipeline.txt";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
@@ -86,11 +88,6 @@ namespace Microsoft.ML.Tests
             public float[] Features;
         }
 
-        private void CreateDummyExamplesToMakeComplierHappy()
-        {
-            var dummyExample = new BreastCancerFeatureVector() { Features = null };
-        }
-
         [Fact]
         public void KmeansOnnxConversionTest()
         {
@@ -102,24 +99,24 @@ namespace Microsoft.ML.Tests
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var data = mlContext.Data.ReadFromTextFile<BreastCancerFeatureVector>(dataPath,
                 hasHeader: true,
-                separatorChar: '\t' );
+                separatorChar: '\t');
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Clustering.Trainers.KMeans(features: "Features", advancedSettings: settings =>
                 {
-                      settings.MaxIterations = 1;
-                      settings.K = 4;
-                      settings.NumThreads = 1;
-                      settings.InitAlgorithm = Trainers.KMeans.KMeansPlusPlusTrainer.InitAlgorithm.KMeansPlusPlus;
+                    settings.MaxIterations = 1;
+                    settings.K = 4;
+                    settings.NumThreads = 1;
+                    settings.InitAlgorithm = Trainers.KMeans.KMeansPlusPlusTrainer.InitAlgorithm.KMeansPlusPlus;
                 }));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 
-            var onnxModel = mlContext.Model.Portability.ConvertToOnnx(model, data);
+            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
 
             // Compare results produced by ML.NET and ONNX's runtime.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && Environment.Is64BitProcess)
             {
                 var onnxFileName = "model.onnx";
                 var onnxModelPath = GetOutputPath(onnxFileName);
@@ -134,6 +131,9 @@ namespace Microsoft.ML.Tests
                 CompareSelectedR4VectorColumns("Score", "Score0", transformedData, onnxResult, 3);
             }
 
+            // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
+            // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
+            // can support Linux and Mac.
             var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Cluster", "BreastCancer");
             var onnxTextName = "Kmeans.txt";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
@@ -142,7 +142,12 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision=6)
+        private void CreateDummyExamplesToMakeComplierHappy()
+        {
+            var dummyExample = new BreastCancerFeatureVector() { Features = null };
+        }
+
+        private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumnIndex = left.Schema[leftColumnName].Index;
             var rightColumnIndex = right.Schema[rightColumnName].Index;
@@ -166,7 +171,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        private void CompareSelectedR4ScalarColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision=6)
+        private void CompareSelectedR4ScalarColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
         {
             var leftColumnIndex = left.Schema[leftColumnName].Index;
             var rightColumnIndex = right.Schema[rightColumnName].Index;

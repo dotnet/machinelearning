@@ -116,7 +116,7 @@ namespace Microsoft.ML.Model.Onnx
 
         internal static void GetPipe(OnnxContextImpl ctx, IChannel ch, IDataView end, out IDataView source, out IDataView trueEnd, out LinkedList<ITransformCanSaveOnnx> transforms)
         {
-            Contracts.AssertValue(end);
+            ch.AssertValue(end);
 
             source = trueEnd = (end as CompositeDataLoader)?.View ?? end;
             IDataTransform transform = source as IDataTransform;
@@ -136,10 +136,10 @@ namespace Microsoft.ML.Model.Onnx
                 transform = (source = transform.Source) as IDataTransform;
             }
 
-            Contracts.AssertValue(source);
+            ch.AssertValue(source);
         }
 
-        internal static ModelProto ConvertTransformListToOnnxModel(OnnxContextImpl ctx, IDataView inputData, IDataView outputData,
+        internal static ModelProto ConvertTransformListToOnnxModel(OnnxContextImpl ctx, IChannel ch, IDataView inputData, IDataView outputData,
             LinkedList<ITransformCanSaveOnnx> transforms, HashSet<string> inputColumnNamesToDrop=null, HashSet<string> outputColumnNamesToDrop=null)
         {
             inputColumnNamesToDrop = inputColumnNamesToDrop ?? new HashSet<string>();
@@ -158,7 +158,10 @@ namespace Microsoft.ML.Model.Onnx
 
             // Create graph nodes, outputs and intermediate values.
             foreach (var trans in transforms)
+            {
+                ch.Assert(trans.CanSaveOnnx(ctx));
                 trans.SaveAsOnnx(ctx);
+            }
 
             // Add graph outputs.
             for (int i = 0; i < outputData.Schema.Count; ++i)
@@ -255,7 +258,7 @@ namespace Microsoft.ML.Model.Onnx
                     nameof(Arguments.LoadPredictor), "We were explicitly told to load the predictor but one was not present.");
             }
 
-            var model = ConvertTransformListToOnnxModel(ctx, source, end, transforms, _inputsToDrop, _outputsToDrop);
+            var model = ConvertTransformListToOnnxModel(ctx, ch, source, end, transforms, _inputsToDrop, _outputsToDrop);
 
             using (var file = Host.CreateOutputFile(_outputModelPath))
             using (var stream = file.CreateWriteStream())
