@@ -36,9 +36,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void SimpleEndToEndOnnxConversionTest()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var mlContext = new MLContext(seed: 1, conc: 1);
@@ -60,15 +57,26 @@ namespace Microsoft.ML.Tests
             var onnxModelPath = GetOutputPath(onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, null);
 
-            // Step 3: Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-            string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-            string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-            var onnxEstimator = new OnnxScoringEstimator(mlContext, onnxModelPath, inputNames, outputNames);
-            var onnxTransformer = onnxEstimator.Fit(data);
-            var onnxResult = onnxTransformer.Transform(data);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // Step 3: Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = new OnnxScoringEstimator(mlContext, onnxModelPath, inputNames, outputNames);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
 
-            // Step 4: Compare ONNX and ML.NET results.
-            CompareSelectedR4ScalarColumns("Score", "Score0", transformedData, onnxResult, 2);
+                // Step 4: Compare ONNX and ML.NET results.
+                CompareSelectedR4ScalarColumns("Score", "Score0", transformedData, onnxResult, 2);
+            }
+
+            // Step 5: Check ONNX model's text format.
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Regression", "Adult");
+            var onnxTextName = "SimplePipeline.txt";
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+            SaveOnnxModel(onnxModel, null, onnxTextPath);
+            CheckEquality(subDir, onnxTextName);
+
             Done();
         }
 
@@ -86,9 +94,6 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void KmeansOnnxConversionTest()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1, conc: 1);
@@ -113,18 +118,27 @@ namespace Microsoft.ML.Tests
 
             var onnxModel = mlContext.Model.Portability.ConvertToOnnx(model, data);
 
-            var onnxFileName = "model.onnx";
-            var onnxModelPath = GetOutputPath(onnxFileName);
-            SaveOnnxModel(onnxModel, onnxModelPath, null);
+            // Compare results produced by ML.NET and ONNX's runtime.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var onnxFileName = "model.onnx";
+                var onnxModelPath = GetOutputPath(onnxFileName);
+                SaveOnnxModel(onnxModel, onnxModelPath, null);
 
-            // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
-            string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-            string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
-            var onnxEstimator = new OnnxScoringEstimator(mlContext, onnxModelPath, inputNames, outputNames);
-            var onnxTransformer = onnxEstimator.Fit(data);
-            var onnxResult = onnxTransformer.Transform(data);
+                // Evaluate the saved ONNX model using the data used to train the ML.NET pipeline.
+                string[] inputNames = onnxModel.Graph.Input.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                string[] outputNames = onnxModel.Graph.Output.Select(valueInfoProto => valueInfoProto.Name).ToArray();
+                var onnxEstimator = new OnnxScoringEstimator(mlContext, onnxModelPath, inputNames, outputNames);
+                var onnxTransformer = onnxEstimator.Fit(data);
+                var onnxResult = onnxTransformer.Transform(data);
+                CompareSelectedR4VectorColumns("Score", "Score0", transformedData, onnxResult, 3);
+            }
 
-            CompareSelectedR4VectorColumns("Score", "Score0", transformedData, onnxResult, 3);
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Cluster", "BreastCancer");
+            var onnxTextName = "Kmeans.txt";
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+            SaveOnnxModel(onnxModel, null, onnxTextPath);
+            CheckEquality(subDir, onnxTextName);
             Done();
         }
 
