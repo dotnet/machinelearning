@@ -2,22 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(LatentDirichletAllocationTransformer.Summary, typeof(IDataTransform), typeof(LatentDirichletAllocationTransformer), typeof(LatentDirichletAllocationTransformer.Arguments), typeof(SignatureDataTransform),
     "Latent Dirichlet Allocation Transform", LatentDirichletAllocationTransformer.LoaderSignature, "Lda")]
@@ -234,9 +233,18 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             internal ColumnInfo(Column item, Arguments args) :
-                this(item.Source, item.Name,
-                    args.NumTopic, args.AlphaSum, args.Beta, args.Mhstep, args.NumIterations,
-                    args.LikelihoodInterval, args.NumThreads, args.NumMaxDocToken, args.NumSummaryTermPerTopic, args.NumBurninIterations, args.ResetRandomGenerator)
+                this(item.Source ?? item.Name, item.Name,
+                    item.NumTopic ?? args.NumTopic,
+                    item.AlphaSum ?? args.AlphaSum,
+                    item.Beta ?? args.Beta,
+                    item.Mhstep ?? args.Mhstep,
+                    item.NumIterations ?? args.NumIterations,
+                    item.LikelihoodInterval ?? args.LikelihoodInterval,
+                    item.NumThreads ?? args.NumThreads,
+                    item.NumMaxDocToken ?? args.NumMaxDocToken,
+                    item.NumSummaryTermPerTopic ?? args.NumSummaryTermPerTopic,
+                    item.NumBurninIterations ?? args.NumBurninIterations,
+                    item.ResetRandomGenerator ?? args.ResetRandomGenerator)
             {
             }
 
@@ -342,6 +350,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
+        [BestFriend]
         internal LdaSummary GetLdaDetails(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
@@ -924,7 +933,7 @@ namespace Microsoft.ML.Transforms.Text
             ch.AssertValue(states);
             ch.Assert(states.Length == columns.Length);
 
-            bool[] activeColumns = new bool[inputData.Schema.ColumnCount];
+            bool[] activeColumns = new bool[inputData.Schema.Count];
             int[] numVocabs = new int[columns.Length];
             int[] srcCols = new int[columns.Length];
 
@@ -936,7 +945,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputData.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol))
                     throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].Input);
 
-                var srcColType = inputSchema.GetColumnType(srcCol);
+                var srcColType = inputSchema[srcCol].Type;
                 if (!srcColType.IsKnownSizeVector || !(srcColType.ItemType is NumberType))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats", srcColType.ToString());
 
@@ -945,8 +954,8 @@ namespace Microsoft.ML.Transforms.Text
                 numVocabs[i] = 0;
 
                 VBuffer<ReadOnlyMemory<char>> dst = default;
-                if (inputSchema.HasSlotNames(srcCol, srcColType.ValueCount))
-                    inputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, srcCol, ref dst);
+                if (inputSchema[srcCol].HasSlotNames(srcColType.ValueCount))
+                    inputSchema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref dst);
                 else
                     dst = default(VBuffer<ReadOnlyMemory<char>>);
                 columnMappings.Add(dst);
@@ -1075,6 +1084,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
     public sealed class LatentDirichletAllocationEstimator : IEstimator<LatentDirichletAllocationTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const int NumTopic = 100;

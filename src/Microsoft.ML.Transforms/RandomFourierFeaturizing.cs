@@ -2,22 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.Projections;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Transforms.Projections;
 
 [assembly: LoadableClass(RandomFourierFeaturizingTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierFeaturizingTransformer), typeof(RandomFourierFeaturizingTransformer.Arguments), typeof(SignatureDataTransform),
     "Random Fourier Features Transform", "RffTransform", "Rff")]
@@ -272,7 +268,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             string reason = TestColumnType(type);
             if (reason != null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
@@ -289,7 +285,7 @@ namespace Microsoft.ML.Transforms.Projections
             for (int i = 0; i < columns.Length; i++)
             {
                 input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
-                var typeSrc = input.Schema.GetColumnType(srcCol);
+                var typeSrc = input.Schema[srcCol].Type;
                 _transformInfos[i] = new TransformInfo(Host.Register(string.Format("column{0}", i)), columns[i],
                     typeSrc.ValueCount, avgDistances[i]);
             }
@@ -311,13 +307,13 @@ namespace Microsoft.ML.Transforms.Projections
         {
             var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
-            bool[] activeColumns = new bool[input.Schema.ColumnCount];
+            bool[] activeColumns = new bool[input.Schema.Count];
             int[] srcCols = new int[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
-                var type = input.Schema.GetColumnType(srcCol);
+                var type = input.Schema[srcCol].Type;
                 string reason = TestColumnType(type);
                 if (reason != null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input, reason, type.ToString());
@@ -330,7 +326,7 @@ namespace Microsoft.ML.Transforms.Projections
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var rng = columns[i].Seed.HasValue ? RandomUtils.Create(columns[i].Seed.Value) : Host.Rand;
-                    var srcType = input.Schema.GetColumnType(srcCols[i]);
+                    var srcType = input.Schema[srcCols[i]].Type;
                     if (srcType.IsVector)
                     {
                         var get = cursor.GetGetter<VBuffer<float>>(srcCols[i]);
@@ -644,6 +640,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// </summary>
     public sealed class RandomFourierFeaturizingEstimator : IEstimator<RandomFourierFeaturizingTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const int NewDim = 1000;
@@ -690,76 +687,6 @@ namespace Microsoft.ML.Transforms.Projections
             }
 
             return new SchemaShape(result.Values);
-        }
-    }
-
-    public static class RffExtenensions
-    {
-        private readonly struct Config
-        {
-            public readonly int NewDim;
-            public readonly bool UseSin;
-            public readonly int? Seed;
-            public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
-
-            public Config(int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator, int? seed = null)
-            {
-                NewDim = newDim;
-                UseSin = useSin;
-                Generator = generator;
-                Seed = seed;
-            }
-        }
-        private interface IColInput
-        {
-            PipelineColumn Input { get; }
-            Config Config { get; }
-        }
-
-        private sealed class ImplVector<T> : Vector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-            public ImplVector(PipelineColumn input, Config config) : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            public static readonly Reconciler Inst = new Reconciler();
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
-            {
-                var infos = new RandomFourierFeaturizingTransformer.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierFeaturizingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, tcol.Config.Generator, tcol.Config.Seed);
-                }
-                return new RandomFourierFeaturizingEstimator(env, infos);
-            }
-        }
-
-        /// <summary>
-        /// It maps input to a random low-dimensional feature space. It is useful when data has non-linear features, since the transform
-        /// is designed so that the inner products of the transformed data are approximately equal to those in the feature space of a user
-        /// speciﬁed shift-invariant kernel. With this transform, we are able to use linear methods (which are scalable) to approximate more complex kernel SVM models.
-        /// </summary>
-        /// <param name="input">The column to apply Random Fourier transfomration.</param>
-        /// <param name="newDim">Expected size of new vector.</param>
-        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin) </param>
-        /// <param name="generator">Which kernel to use. (<see cref="GaussianFourierSampler"/> by default)</param>
-        /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
-        public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
-            int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim, bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin,
-            IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new ImplVector<string>(input, new Config(newDim, useSin, generator, seed));
         }
     }
 }

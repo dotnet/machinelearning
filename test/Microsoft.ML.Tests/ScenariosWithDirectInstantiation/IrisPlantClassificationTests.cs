@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Models;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using System.IO;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -49,11 +47,11 @@ namespace Microsoft.ML.Scenarios
             var predicted = trainedModel.Transform(testData);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
             CompareMatrics(metrics);
-            var predictFunction = trainedModel.MakePredictionFunction<IrisData, IrisPrediction>(mlContext);
+            var predictFunction = trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
             ComparePredictions(predictFunction);
         }
 
-        private void ComparePredictions(PredictionFunction<IrisData, IrisPrediction> model)
+        private void ComparePredictions(PredictionEngine<IrisData, IrisPrediction> model)
         {
             IrisPrediction prediction = model.Predict(new IrisData()
             {

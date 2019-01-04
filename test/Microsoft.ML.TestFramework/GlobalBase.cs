@@ -14,7 +14,7 @@ using System;
 using System.Runtime.InteropServices;
 using Xunit;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
+namespace Microsoft.ML.Internal.Internallearn.Test
 {
     internal static class GlobalBase
     {

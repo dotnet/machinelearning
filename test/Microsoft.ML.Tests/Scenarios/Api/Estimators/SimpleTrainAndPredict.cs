@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -22,8 +21,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_SimpleTrainAndPredict()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var reader = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true);
-            var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
+
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
                 .AppendCacheCheckpoint(ml)
@@ -33,10 +32,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data);
 
             // Create prediction engine and test predictions.
-            var engine = model.MakePredictionFunction<SentimentData, SentimentPrediction>(ml);
+            var engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
 
             // Take a couple examples out of the test data and run predictions on top.
-            var testData = reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename))
+            var testData = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true)
                 .AsEnumerable<SentimentData>(ml, false);
             foreach (var input in testData.Take(5))
             {

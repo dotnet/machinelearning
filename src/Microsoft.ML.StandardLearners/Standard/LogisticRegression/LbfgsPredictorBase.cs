@@ -5,16 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Training;
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Learners
 {
     public abstract class LbfgsTrainerBase<TArgs, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : ISingleFeaturePredictionTransformer<TModel>
@@ -92,14 +92,15 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enforce non-negative weights", ShortName = "nn", SortOrder = 90)]
             public bool EnforceNonNegativity = Defaults.EnforceNonNegativity;
 
+            [BestFriend]
             internal static class Defaults
             {
-                internal const float L2Weight = 1;
-                internal const float L1Weight = 1;
-                internal const float OptTol = 1e-7f;
-                internal const int MemorySize = 20;
-                internal const int MaxIterations = int.MaxValue;
-                internal const bool EnforceNonNegativity = false;
+                public const float L2Weight = 1;
+                public const float L1Weight = 1;
+                public const float OptTol = 1e-7f;
+                public const int MemorySize = 20;
+                public const int MaxIterations = int.MaxValue;
+                public const bool EnforceNonNegativity = false;
             }
         }
 

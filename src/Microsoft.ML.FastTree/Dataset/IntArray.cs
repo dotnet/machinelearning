@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +11,6 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 #if USE_SINGLE_PRECISION
     using FloatType = System.Single;
 #else
-    using FloatType = System.Double;
 #endif
 
     public enum IntArrayType { Dense, Sparse, Repeat, Segmented, Current };

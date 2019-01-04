@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.Online;
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Scenarios
             var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
 
             // Pipeline
-            var pipeline = new Ova(mlContext, new LinearSvm(mlContext, numIterations: 100),  useProbabilities: false);
+            var pipeline = new Ova(mlContext, new LinearSvmTrainer(mlContext, numIterations: 100),  useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);

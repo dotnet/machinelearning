@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Numeric;
+using Float = System.Single;
 
 // TODO: Check if it works properly if Averaged is set to false
 
@@ -54,11 +52,12 @@ namespace Microsoft.ML.Trainers.Online
         [Argument(ArgumentType.AtMostOnce, HelpText = "The inexactness tolerance for averaging", ShortName = "avgtol")]
         public Float AveragedTolerance = (Float)1e-2;
 
+        [BestFriend]
         internal class AveragedDefaultArgs : OnlineDefaultArgs
         {
-            internal const Float LearningRate = 1;
-            internal const bool DecreaseLearningRate = false;
-            internal const Float L2RegularizerWeight = 0;
+            public const Float LearningRate = 1;
+            public const bool DecreaseLearningRate = false;
+            public const Float L2RegularizerWeight = 0;
         }
 
         internal abstract IComponentFactory<IScalarOutputLoss> LossFunctionFactory { get; }

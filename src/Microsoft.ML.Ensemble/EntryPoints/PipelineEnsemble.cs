@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.EntryPoints;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
 
 [assembly: EntryPointModule(typeof(PipelineEnsemble))]
 
-namespace Microsoft.ML.Runtime.Ensemble.EntryPoints
+namespace Microsoft.ML.Ensemble.EntryPoints
 {
     public static class PipelineEnsemble
     {

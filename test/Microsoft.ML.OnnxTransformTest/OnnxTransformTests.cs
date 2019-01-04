@@ -2,20 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Model;
+using Microsoft.ML.OnnxTransform.StaticPipe;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Tools;
+using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoader.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateReader(env, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Tests
                     }
                     });
 
-                var onnx = OnnxTransform.Create(env, dataView, modelFile,
+                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
                     new[] { "data_0" },
                     new[] { "softmaxout_1" });
 
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Tests
                     }
                     });
 
-                var onnx = OnnxTransform.Create(env, dataView, modelFile,
+                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
                     new[] { "ina", "inb" },
                     new[] { "outa", "outb" });
 

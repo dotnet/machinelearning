@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 // REVIEW: As soon as we stop writing sizeof(Float), or when we retire the double builds, we can remove this.
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 using Float = System.Single;
 
 [assembly: LoadableClass(NAFilter.Summary, typeof(NAFilter), typeof(NAFilter.Arguments), typeof(SignatureDataTransform),
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
                 if (_srcIndexToInfoIndex.ContainsKey(index))
                     throw Host.ExceptUserArg(nameof(args.Column), "Source column '{0}' specified multiple times", src);
 
-                var type = schema.GetColumnType(index);
+                var type = schema[index].Type;
                 if (!TestType(type))
                     throw Host.ExceptUserArg(nameof(args.Column), $"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
 
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms
                 if (_srcIndexToInfoIndex.ContainsKey(index))
                     throw Host.Except("Source column '{0}' specified multiple times", src);
 
-                var type = schema.GetColumnType(index);
+                var type = schema[index].Type;
                 if (!TestType(type))
                     throw Host.Except($"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
 
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms
             Host.Assert(_infos.Length > 0);
             ctx.Writer.Write(_infos.Length);
             foreach (var info in _infos)
-                ctx.SaveNonEmptyString(Source.Schema.GetColumnName(info.Index));
+                ctx.SaveNonEmptyString(Source.Schema[info.Index].Name);
         }
 
         private static bool TestType(ColumnType type)
@@ -215,15 +215,14 @@ namespace Microsoft.ML.Transforms
             return new Cursor(this, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
             bool[] active;
             Func<int, bool> inputPred = GetActive(predicate, out active);
-            var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
@@ -236,8 +235,8 @@ namespace Microsoft.ML.Transforms
         private Func<int, bool> GetActive(Func<int, bool> predicate, out bool[] active)
         {
             Host.AssertValue(predicate);
-            active = new bool[Source.Schema.ColumnCount];
-            bool[] activeInput = new bool[Source.Schema.ColumnCount];
+            active = new bool[Source.Schema.Count];
+            bool[] activeInput = new bool[Source.Schema.Count];
             for (int i = 0; i < active.Length; i++)
                 activeInput[i] = active[i] = predicate(i);
             for (int i = 0; i < _infos.Length; i++)
@@ -288,7 +287,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(info.Type.RawType == typeof(T));
 
                     var getSrc = cursor.Input.GetGetter<T>(info.Index);
-                    var hasBad = Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(info.Type);
+                    var hasBad = Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(info.Type);
                     return new ValueOne<T>(cursor, getSrc, hasBad);
                 }
 
@@ -300,7 +299,7 @@ namespace Microsoft.ML.Transforms
                     Contracts.Assert(info.Type.RawType == typeof(VBuffer<T>));
 
                     var getSrc = cursor.Input.GetGetter<VBuffer<T>>(info.Index);
-                    var hasBad = Runtime.Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorType)info.Type);
+                    var hasBad = Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorType)info.Type);
                     return new ValueVec<T>(cursor, getSrc, hasBad);
                 }
 

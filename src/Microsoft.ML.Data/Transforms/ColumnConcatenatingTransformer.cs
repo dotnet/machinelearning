@@ -2,21 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(ColumnConcatenatingTransformer.Summary, typeof(IDataTransform), typeof(ColumnConcatenatingTransformer), typeof(ColumnConcatenatingTransformer.TaggedArguments), typeof(SignatureDataTransform),
     ColumnConcatenatingTransformer.UserName, ColumnConcatenatingTransformer.LoadName, "ConcatTransform", DocName = "transform/ConcatTransform.md")]
@@ -30,7 +28,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ColumnConcatenatingTransformer), null, typeof(SignatureLoadRowMapper),
     ColumnConcatenatingTransformer.UserName, ColumnConcatenatingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     using PfaType = PfaUtils.Type;
 
@@ -457,7 +455,7 @@ namespace Microsoft.ML.Runtime.Data
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
                     sources[i] = srcCol;
 
-                    var curType = inputSchema.GetColumnType(srcCol);
+                    var curType = inputSchema[srcCol].Type;
                     if (itemType == null)
                     {
                         itemType = curType.ItemType;
@@ -474,7 +472,7 @@ namespace Microsoft.ML.Runtime.Data
                     else
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, itemType.ToString(), curType.ToString());
 
-                    if (isNormalized && !inputSchema.IsNormalized(srcCol))
+                    if (isNormalized && !inputSchema[srcCol].IsNormalized())
                         isNormalized = false;
 
                     if (MetadataUtils.TryGetCategoricalFeatureIndices(inputSchema, srcCol, out int[] typeCat))
@@ -484,7 +482,7 @@ namespace Microsoft.ML.Runtime.Data
                         hasCategoricals = true;
                     }
 
-                    if (!hasSlotNames && !curType.IsVector || inputSchema.HasSlotNames(srcCol, curType.VectorSize))
+                    if (!hasSlotNames && !curType.IsVector || inputSchema[srcCol].HasSlotNames(curType.VectorSize))
                         hasSlotNames = true;
                 }
 
@@ -691,7 +689,7 @@ namespace Microsoft.ML.Runtime.Data
                                 if (type.VectorSize != 0 && type.VectorSize != tmpBufs[i].Length)
                                 {
                                     throw Contracts.Except("Column '{0}': expected {1} slots, but got {2}",
-                                        input.Schema.GetColumnName(SrcIndices[i]), type.VectorSize, tmpBufs[i].Length)
+                                        input.Schema[SrcIndices[i]].Name, type.VectorSize, tmpBufs[i].Length)
                                         .MarkSensitive(MessageSensitivity.Schema);
                                 }
                                 dstLength = checked(dstLength + tmpBufs[i].Length);
@@ -831,7 +829,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
-                var active = new bool[InputSchema.ColumnCount];
+                var active = new bool[InputSchema.Count];
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     if (activeOutput(i))

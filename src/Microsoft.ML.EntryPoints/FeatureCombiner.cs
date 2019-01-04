@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(typeof(void), typeof(FeatureCombiner), null, typeof(SignatureEntryPointModule), "FeatureCombiner")]
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     public static class FeatureCombiner
     {
@@ -120,11 +119,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var schema = data.Schema;
             if (!schema.TryGetColumnIndex(colName, out col))
                 return null;
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, col);
+            var type = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             if (type == null || !type.IsKnownSizeVector || !type.ItemType.IsText)
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
-            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, col, ref metadata);
+            schema[col].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
             if (!metadata.IsDense)
                 return null;
             var sb = new StringBuilder();
@@ -149,7 +148,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return viewTrain;
         }
 
-        private static List<KeyToVectorMappingTransformer.ColumnInfo> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
+        private static List<KeyToVectorMappingTransformer.ColumnInfo> ConvertFeatures(IEnumerable<Schema.Column> feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
             out List<TypeConvertingTransformer.ColumnInfo> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);
@@ -235,7 +234,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             int labelCol;
             if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
-            var labelType = input.Data.Schema.GetColumnType(labelCol);
+            var labelType = input.Data.Schema[labelCol].Type;
             if (labelType.IsKey || labelType.IsBool)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
@@ -270,7 +269,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             int predictedLabelCol;
             if (!input.Data.Schema.TryGetColumnIndex(input.PredictedLabelColumn, out predictedLabelCol))
                 throw host.Except($"Column '{input.PredictedLabelColumn}' not found.");
-            var predictedLabelType = input.Data.Schema.GetColumnType(predictedLabelCol);
+            var predictedLabelType = input.Data.Schema[predictedLabelCol].Type;
             if (predictedLabelType.IsNumber || predictedLabelType.IsBool)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
@@ -292,7 +291,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             int labelCol;
             if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
-            var labelType = input.Data.Schema.GetColumnType(labelCol);
+            var labelType = input.Data.Schema[labelCol].Type;
             if (labelType == NumberType.R4 || !labelType.IsNumber)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);

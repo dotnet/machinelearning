@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Legacy.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Data;
+using Microsoft.ML.Legacy.Transforms;
 
 namespace Microsoft.ML.Legacy
 {
@@ -86,17 +84,17 @@ namespace Microsoft.ML.Legacy
                 var colIndex = colIndices[i];
                 result[i] = new PipelineItemDebugColumn()
                 {
-                    Name = dataView.Schema.GetColumnName(colIndex),
-                    Type = dataView.Schema.GetColumnType(colIndex).ToString()
+                    Name = dataView.Schema[colIndex].Name,
+                    Type = dataView.Schema[colIndex].Type.ToString()
                 };
 
-                if (dataView.Schema.GetColumnType(colIndex).IsVector)
+                if (dataView.Schema[colIndex].Type.IsVector)
                 {
-                    var n = dataView.Schema.GetColumnType(colIndex).VectorSize;
-                    if (dataView.Schema.HasSlotNames(colIndex, n))
+                    var n = dataView.Schema[colIndex].Type.VectorSize;
+                    if (dataView.Schema[colIndex].HasSlotNames(n))
                     {
                         var slots = default(VBuffer<ReadOnlyMemory<char>>);
-                        dataView.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref slots);
+                        dataView.Schema[colIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slots);
 
                         bool appendEllipse = false;
                         IEnumerable<ReadOnlyMemory<char>> slotNames = slots.Items(true).Select(x => x.Value);
@@ -208,13 +206,13 @@ namespace Microsoft.ML.Legacy
 
         private static List<int> GetColIndices(IDataView dataView)
         {
-            int totalColCount = dataView.Schema.ColumnCount;
+            int totalColCount = dataView.Schema.Count;
             // getting distinct columns
             HashSet<string> columnNames = new HashSet<string>();
             var colIndices = new List<int>();
             for (int i = totalColCount - 1; i >= 0; i--)
             {
-                var name = dataView.Schema.GetColumnName(i);
+                var name = dataView.Schema[i].Name;
                 if (columnNames.Add(name))
                     colIndices.Add(i);
             }

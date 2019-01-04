@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(HashingTransformer.Summary, typeof(IDataTransform), typeof(HashingTransformer), typeof(HashingTransformer.Arguments), typeof(SignatureDataTransform),
     "Hash Transform", "HashTransform", "Hash", DocName = "transform/HashTransform.md")]
@@ -208,7 +207,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             if (!HashingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptParam(nameof(inputSchema), HashingEstimator.ExpectedColumnType);
         }
@@ -224,7 +223,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var keyCount = column.HashBits < 31 ? 1 << column.HashBits : 0;
             inputSchema.TryGetColumnIndex(column.Input, out int srcCol);
             var itemType = new KeyType(DataKind.U4, 0, keyCount, keyCount > 0);
-            var srcType = inputSchema.GetColumnType(srcCol);
+            var srcType = inputSchema[srcCol].Type;
             if (!srcType.IsVector)
                 return itemType;
             else
@@ -316,7 +315,7 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.Assert(0 <= iinfo && iinfo < _columns.Length);
             disposer = null;
             input.Schema.TryGetColumnIndex(_columns[iinfo].Input, out int srcCol);
-            var srcType = input.Schema.GetColumnType(srcCol);
+            var srcType = input.Schema[srcCol].Type;
             if (!srcType.IsVector)
                 return ComposeGetterOne(input, iinfo, srcCol, srcType);
             return ComposeGetterVec(input, iinfo, srcCol, srcType);
@@ -717,8 +716,8 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             Contracts.AssertValue(input);
-            Contracts.Assert(0 <= srcCol && srcCol < input.Schema.ColumnCount);
-            Contracts.Assert(input.Schema.GetColumnType(srcCol).RawType == typeof(T));
+            Contracts.Assert(0 <= srcCol && srcCol < input.Schema.Count);
+            Contracts.Assert(input.Schema[srcCol].Type.RawType == typeof(T));
 
             var srcGetter = input.GetGetter<T>(srcCol);
             T src = default;
@@ -934,7 +933,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Row = row;
                 row.Schema.TryGetColumnIndex(ex.Input, out int srcCol);
                 _srcCol = srcCol;
-                _srcType = row.Schema.GetColumnType(srcCol);
+                _srcType = row.Schema[srcCol].Type;
                 _ex = ex;
                 // If this is a vector and ordered, then we must include the slot as part of the representation.
                 _includeSlot = _srcType.IsVector && _ex.Ordered;
@@ -952,7 +951,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public static InvertHashHelper Create(Row row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
             {
                 row.Schema.TryGetColumnIndex(ex.Input, out int srcCol);
-                ColumnType typeSrc = row.Schema.GetColumnType(srcCol);
+                ColumnType typeSrc = row.Schema[srcCol].Type;
                 Type t = typeSrc.IsVector ? (ex.Ordered ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
                 t = t.MakeGenericType(typeSrc.ItemType.RawType);
                 var consTypes = new Type[] { typeof(Row), typeof(ColumnInfo), typeof(int), typeof(Delegate) };

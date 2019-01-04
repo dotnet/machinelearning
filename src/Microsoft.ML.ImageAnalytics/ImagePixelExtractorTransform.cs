@@ -8,17 +8,14 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(IDataTransform), typeof(ImagePixelExtractorTransform), typeof(ImagePixelExtractorTransform.Arguments), typeof(SignatureDataTransform),
     ImagePixelExtractorTransform.UserName, "ImagePixelExtractorTransform", "ImagePixelExtractor")]
@@ -32,7 +29,7 @@ using Microsoft.ML.StaticPipe.Runtime;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadRowMapper),
     ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.ImageAnalytics
+namespace Microsoft.ML.ImageAnalytics
 {
     /// <summary>
     /// Transform which takes one or many columns of <see cref="ImageType"/> and convert them into vector representation.
@@ -405,9 +402,9 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].Input;
-            var imageType = inputSchema.GetColumnType(srcCol) as ImageType;
+            var imageType = inputSchema[srcCol].Type as ImageType;
             if (imageType == null)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema.GetColumnType(srcCol).ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "image", inputSchema[srcCol].Type.ToString());
             if (imageType.Height <= 0 || imageType.Width <= 0)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputColName, "known-size image", "unknown-size image");
             if ((long)imageType.Height * imageType.Width > int.MaxValue / 4)
@@ -648,71 +645,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             return new SchemaShape(result.Values);
-        }
-
-        private interface IColInput
-        {
-            Custom<Bitmap> Input { get; }
-
-            ImagePixelExtractorTransform.ColumnInfo MakeColumnInfo(string input, string output);
-        }
-
-        internal sealed class OutPipelineColumn<T> : Vector<T>, IColInput
-        {
-            public Custom<Bitmap> Input { get; }
-            private static readonly ImagePixelExtractorTransform.Arguments _defaultArgs = new ImagePixelExtractorTransform.Arguments();
-            private readonly ImagePixelExtractorTransform.Column _colParam;
-
-            public OutPipelineColumn(Custom<Bitmap> input, ImagePixelExtractorTransform.Column col)
-                : base(Reconciler.Inst, input)
-            {
-                Contracts.AssertValue(input);
-                Contracts.Assert(typeof(T) == typeof(float) || typeof(T) == typeof(byte));
-                Input = input;
-                _colParam = col;
-            }
-
-            public ImagePixelExtractorTransform.ColumnInfo MakeColumnInfo(string input, string output)
-            {
-                // In principle, the analyzer should only call the the reconciler once for these columns.
-                Contracts.Assert(_colParam.Source == null);
-                Contracts.Assert(_colParam.Name == null);
-
-                _colParam.Name = output;
-                _colParam.Source = input;
-                return new ImagePixelExtractorTransform.ColumnInfo(_colParam, _defaultArgs);
-            }
-        }
-
-        /// <summary>
-        /// Reconciler to an <see cref="ImagePixelExtractingEstimator"/> for the <see cref="PipelineColumn"/>.
-        /// </summary>
-        /// <remarks>Because we want to use the same reconciler for </remarks>
-        /// <see cref="ImageStaticPipe.ExtractPixels(Custom{Bitmap}, bool, bool, bool, bool, bool, float, float)"/>
-        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Custom{Bitmap}, bool, bool, bool, bool, bool)"/>
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            /// <summary>
-            /// Because there are no global settings that cannot be overridden, we can always just use the same reconciler.
-            /// </summary>
-            public static Reconciler Inst = new Reconciler();
-
-            private Reconciler() { }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                var cols = new ImagePixelExtractorTransform.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var outCol = (IColInput)toOutput[i];
-                    cols[i] = outCol.MakeColumnInfo(inputNames[outCol.Input], outputNames[toOutput[i]]);
-                }
-                return new ImagePixelExtractingEstimator(env, cols);
-            }
         }
     }
 }

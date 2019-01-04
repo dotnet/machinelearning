@@ -5,12 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This is a base class for TLC evaluators. It implements both of the <see cref="IEvaluator"/> methods: <see cref="Evaluate"/> and
@@ -22,7 +20,8 @@ namespace Microsoft.ML.Runtime.Data
     {
         protected readonly IHost Host;
 
-        protected EvaluatorBase(IHostEnvironment env, string registrationName)
+        [BestFriend]
+        private protected EvaluatorBase(IHostEnvironment env, string registrationName)
         {
             Contracts.CheckValue(env, nameof(env));
             Host = env.Register(registrationName);
@@ -44,11 +43,12 @@ namespace Microsoft.ML.Runtime.Data
         /// Checks the column types of the evaluator's input columns. The base class implementation checks only the type
         /// of the weight column, and all other columns should be checked by the deriving classes in <see cref="CheckCustomColumnTypesCore"/>.
         /// </summary>
-        protected void CheckColumnTypes(RoleMappedSchema schema)
+        [BestFriend]
+        private protected void CheckColumnTypes(RoleMappedSchema schema)
         {
             // Check the weight column type.
-            if (schema.Weight != null)
-                EvaluateUtils.CheckWeightType(Host, schema.Weight.Type);
+            if (schema.Weight.HasValue)
+                EvaluateUtils.CheckWeightType(Host, schema.Weight.Value.Type);
             CheckScoreAndLabelTypes(schema);
             // Check the other column types.
             CheckCustomColumnTypesCore(schema);
@@ -60,13 +60,15 @@ namespace Microsoft.ML.Runtime.Data
         /// Access the label column with the <see cref="RoleMappedSchema.Label"/> property, and the score column with the
         /// <see cref="RoleMappedSchema.GetUniqueColumn"/> or <see cref="RoleMappedSchema.GetColumns"/> methods.
         /// </summary>
-        protected abstract void CheckScoreAndLabelTypes(RoleMappedSchema schema);
+        [BestFriend]
+        private protected abstract void CheckScoreAndLabelTypes(RoleMappedSchema schema);
 
         /// <summary>
         /// Check the types of any other columns needed by the evaluator. Only override if the evaluator uses
         /// columns other than label, score and weight.
         /// </summary>
-        protected virtual void CheckCustomColumnTypesCore(RoleMappedSchema schema)
+        [BestFriend]
+        private protected virtual void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
         }
 
@@ -84,11 +86,12 @@ namespace Microsoft.ML.Runtime.Data
         /// and the stratification columns.
         /// Override if other input columns need to be activated.
         /// </summary>
-        protected virtual Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
+        [BestFriend]
+        private protected virtual Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var label = schema.Label == null ? -1 : schema.Label.Index;
-            var weight = schema.Weight == null ? -1 : schema.Weight.Index;
+            int label = schema.Label?.Index ?? -1;
+            int weight = schema.Weight?.Index ?? -1;
             return i => i == score.Index || i == label || i == weight;
         }
 
@@ -116,7 +119,8 @@ namespace Microsoft.ML.Runtime.Data
             return list.ToArray();
         }
 
-        protected abstract TAgg GetAggregatorCore(RoleMappedSchema schema, string stratName);
+        [BestFriend]
+        private protected abstract TAgg GetAggregatorCore(RoleMappedSchema schema, string stratName);
 
         // This method does as many passes over the data as needed by the evaluator, and computes the metrics, outputting the
         // results in a dictionary from the metric kind (overal/per-fold/confusion matrix/PR-curves etc.), to a data view containing
@@ -192,10 +196,12 @@ namespace Microsoft.ML.Runtime.Data
         /// is called after <paramref name="addAgg"/> has been called on all the aggregators, and it returns
         /// the dictionary of metric data views.
         /// </summary>
-        protected abstract void GetAggregatorConsolidationFuncs(TAgg aggregator, AggregatorDictionaryBase[] dictionaries,
+        [BestFriend]
+        private protected abstract void GetAggregatorConsolidationFuncs(TAgg aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, TAgg> addAgg, out Func<Dictionary<string, IDataView>> consolidate);
 
-        protected ValueGetter<VBuffer<ReadOnlyMemory<char>>> GetKeyValueGetter(AggregatorDictionaryBase[] dictionaries)
+        [BestFriend]
+        private protected ValueGetter<VBuffer<ReadOnlyMemory<char>>> GetKeyValueGetter(AggregatorDictionaryBase[] dictionaries)
         {
             if (Utils.Size(dictionaries) == 0)
                 return null;
@@ -236,7 +242,8 @@ namespace Microsoft.ML.Runtime.Data
 
             protected int PassNum;
 
-            protected AggregatorBase(IHostEnvironment env, string stratName)
+            [BestFriend]
+            private protected AggregatorBase(IHostEnvironment env, string stratName)
             {
                 Contracts.AssertValue(env);
                 Host = env.Register("Aggregator");
@@ -256,7 +263,8 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// This method should get the getters of the new IRow that are needed for the next pass.
             /// </summary>
-            public abstract void InitializeNextPass(Row row, RoleMappedSchema schema);
+            [BestFriend]
+            internal abstract void InitializeNextPass(Row row, RoleMappedSchema schema);
 
             /// <summary>
             /// Call the getters once, and process the input as necessary.
@@ -327,15 +335,15 @@ namespace Microsoft.ML.Runtime.Data
         // When a new value is encountered, it uses a callback for creating a new aggregator.
         protected abstract class AggregatorDictionaryBase
         {
-            protected Row Row;
-            protected readonly Func<string, TAgg> CreateAgg;
-            protected readonly RoleMappedSchema Schema;
+            private protected Row Row;
+            private protected readonly Func<string, TAgg> CreateAgg;
+            private protected readonly RoleMappedSchema Schema;
 
             public string ColName { get; }
 
             public abstract int Count { get; }
 
-            protected AggregatorDictionaryBase(RoleMappedSchema schema, string stratCol, Func<string, TAgg> createAgg)
+            private protected AggregatorDictionaryBase(RoleMappedSchema schema, string stratCol, Func<string, TAgg> createAgg)
             {
                 Contracts.AssertValue(schema);
                 Contracts.AssertNonWhiteSpace(stratCol);
@@ -351,7 +359,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public abstract void Reset(Row row);
 
-            public static AggregatorDictionaryBase Create(RoleMappedSchema schema, string stratCol, ColumnType stratType,
+            internal static AggregatorDictionaryBase Create(RoleMappedSchema schema, string stratCol, ColumnType stratType,
                 Func<string, TAgg> createAgg)
             {
                 Contracts.AssertNonWhiteSpace(stratCol);
@@ -438,7 +446,8 @@ namespace Microsoft.ML.Runtime.Data
     public abstract class RowToRowEvaluatorBase<TAgg> : EvaluatorBase<TAgg>
         where TAgg : EvaluatorBase<TAgg>.AggregatorBase
     {
-        protected RowToRowEvaluatorBase(IHostEnvironment env, string registrationName)
+        [BestFriend]
+        private protected RowToRowEvaluatorBase(IHostEnvironment env, string registrationName)
             : base(env, registrationName)
         {
         }

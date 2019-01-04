@@ -7,21 +7,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Ensemble;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(SchemaBindablePipelineEnsembleBase), null, typeof(SignatureLoadModel),
     SchemaBindablePipelineEnsembleBase.UserName, SchemaBindablePipelineEnsembleBase.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     /// <summary>
     /// This class represents an ensemble predictor, where each predictor has its own featurization pipeline. It is
@@ -90,7 +89,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => _inputColIndices.Contains(col);
@@ -161,29 +160,31 @@ namespace Microsoft.ML.Runtime.Ensemble
                 public ValueGetter<Single> GetLabelGetter(Row input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
-                    Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label != null, "Mapper was not trained using a label column");
+                    Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label.HasValue, "Mapper was not trained using a label column");
+                    var labelCol = Mappers[i].InputRoleMappedSchema.Label.Value;
 
                     // The label should be in the output row of the i'th pipeline
-                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == Mappers[i].InputRoleMappedSchema.Label.Index);
+                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == labelCol.Index);
                     disposer = pipelineRow.Dispose;
-                    return RowCursorUtils.GetLabelGetter(pipelineRow, Mappers[i].InputRoleMappedSchema.Label.Index);
+                    return RowCursorUtils.GetLabelGetter(pipelineRow, labelCol.Index);
                 }
 
                 public ValueGetter<Single> GetWeightGetter(Row input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
 
-                    if (Mappers[i].InputRoleMappedSchema.Weight == null)
+                    if (!Mappers[i].InputRoleMappedSchema.Weight.HasValue)
                     {
                         ValueGetter<Single> weight = (ref float dst) => dst = 1;
                         disposer = null;
                         return weight;
                     }
+                    var weightCol = Mappers[i].InputRoleMappedSchema.Weight.Value;
                     // The weight should be in the output row of the i'th pipeline if it exists.
-                    var inputPredicate = Mappers[i].GetDependencies(col => col == Mappers[i].InputRoleMappedSchema.Weight.Index);
+                    var inputPredicate = Mappers[i].GetDependencies(col => col == weightCol.Index);
                     var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
                     disposer = pipelineRow.Dispose;
-                    return pipelineRow.GetGetter<float>(Mappers[i].InputRoleMappedSchema.Weight.Index);
+                    return pipelineRow.GetGetter<float>(weightCol.Index);
 
                 }
             }
@@ -218,7 +219,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 ctx.SaveModel(Combiner, "Combiner");
             }
 
-            public override ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
+            private protected override ISchemaBoundMapper BindCore(IHostEnvironment env, RoleMappedSchema schema)
             {
                 return new Bound(this, schema);
             }
@@ -416,22 +417,22 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (inputCols == null)
                 {
                     inputCols = new HashSet<string>();
-                    for (int j = 0; j < inputSchema.ColumnCount; j++)
+                    for (int j = 0; j < inputSchema.Count; j++)
                     {
-                        if (inputSchema.IsHidden(j))
+                        if (inputSchema[j].IsHidden)
                             continue;
-                        inputCols.Add(inputSchema.GetColumnName(j));
+                        inputCols.Add(inputSchema[j].Name);
                     }
                     _inputCols = inputCols.ToArray();
                 }
                 else
                 {
                     int nonHiddenCols = 0;
-                    for (int j = 0; j < inputSchema.ColumnCount; j++)
+                    for (int j = 0; j < inputSchema.Count; j++)
                     {
-                        if (inputSchema.IsHidden(j))
+                        if (inputSchema[j].IsHidden)
                             continue;
-                        var name = inputSchema.GetColumnName(j);
+                        var name = inputSchema[j].Name;
                         if (!inputCols.Contains(name))
                             throw Host.Except("Inconsistent schemas: Some schemas do not contain the column '{0}'", name);
                         nonHiddenCols++;
@@ -558,7 +559,9 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
         }
 
-        public abstract ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema);
+        ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema) => BindCore(env, schema);
+
+        private protected abstract ISchemaBoundMapper BindCore(IHostEnvironment env, RoleMappedSchema schema);
 
         void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
@@ -588,22 +591,22 @@ namespace Microsoft.ML.Runtime.Ensemble
             var model = models[0];
             var edv = new EmptyDataView(env, model.TransformModel.InputSchema);
             model.PrepareData(env, edv, out RoleMappedData rmd, out IPredictor pred);
-            var labelInfo = rmd.Schema.Label;
-            if (labelInfo == null)
+            if (!rmd.Schema.Label.HasValue)
                 throw env.Except("Training schema for model 0 does not have a label column");
+            var labelCol = rmd.Schema.Label.Value;
 
-            var labelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index);
+            var labelType = labelCol.Type;
             if (!labelType.IsKey)
                 return CheckNonKeyLabelColumnCore(env, pred, models, isBinary, labelType);
 
             if (isBinary && labelType.KeyCount != 2)
                 throw env.Except("Label is not binary");
             var schema = rmd.Schema.Schema;
-            var mdType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelInfo.Index);
+            var mdType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             if (mdType == null || !mdType.IsKnownSizeVector)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
-            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyType)labelType, schema, labelInfo.Index, mdType);
+            return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyType)labelType, schema, labelCol.Index, mdType);
         }
 
         // When the label column is not a key, we check that the number of classes is the same for all the predictors, by checking the
@@ -642,7 +645,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));
             env.AssertNonEmpty(models);
             var labelNames = default(VBuffer<T>);
-            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelIndex, ref labelNames);
+            schema[labelIndex].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
             var classCount = labelNames.Length;
 
             var curLabelNames = default(VBuffer<T>);
@@ -651,18 +654,19 @@ namespace Microsoft.ML.Runtime.Ensemble
                 var model = models[i];
                 var edv = new EmptyDataView(env, model.TransformModel.InputSchema);
                 model.PrepareData(env, edv, out RoleMappedData rmd, out IPredictor pred);
-                var labelInfo = rmd.Schema.Label;
-                if (labelInfo == null)
+                var labelInfo = rmd.Schema.Label.HasValue;
+                if (!rmd.Schema.Label.HasValue)
                     throw env.Except("Training schema for model {0} does not have a label column", i);
+                var labelCol = rmd.Schema.Label.Value;
 
-                var curLabelType = rmd.Schema.Schema.GetColumnType(rmd.Schema.Label.Index) as KeyType;
+                var curLabelType = labelCol.Type as KeyType;
                 if (!labelType.Equals(curLabelType))
                     throw env.Except("Label column of model {0} has different type than model 0", i);
 
-                var mdType = rmd.Schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelInfo.Index);
+                var mdType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                 if (!mdType.Equals(keyValuesType))
                     throw env.Except("Label column of model {0} has different key value type than model 0", i);
-                rmd.Schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelInfo.Index, ref curLabelNames);
+                labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref curLabelNames);
                 if (!AreEqual(in labelNames, in curLabelNames))
                     throw env.Except("Label of model {0} has different values than model 0", i);
             }

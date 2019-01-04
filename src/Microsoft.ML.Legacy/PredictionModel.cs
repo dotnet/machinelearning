@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 
 namespace Microsoft.ML.Legacy
 {
@@ -41,12 +39,12 @@ namespace Microsoft.ML.Legacy
             if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
                 return false;
 
-            int expectedLabelCount = schema.GetColumnType(colIndex).ValueCount;
-            if (!schema.HasSlotNames(colIndex, expectedLabelCount))
+            int expectedLabelCount = schema[colIndex].Type.ValueCount;
+            if (!schema[colIndex].HasSlotNames(expectedLabelCount))
                 return false;
 
             VBuffer<ReadOnlyMemory<char>> labels = default;
-            schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref labels);
+            schema[colIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labels);
 
             if (labels.Length != expectedLabelCount)
                 return false;

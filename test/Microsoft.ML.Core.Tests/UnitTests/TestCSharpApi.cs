@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Legacy.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
 #pragma warning disable 612, 618
     public class TestCSharpApi : BaseTestClass
@@ -45,10 +43,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var data = experiment.GetOutput(normalizeOutput.OutputData);
 
             var schema = data.Schema;
-            Assert.Equal(5, schema.ColumnCount);
+            Assert.Equal(5, schema.Count);
             var expected = new[] { "Label", "Workclass", "Categories", "NumericFeatures", "NumericFeatures" };
-            for (int i = 0; i < schema.ColumnCount; i++)
-                Assert.Equal(expected[i], schema.GetColumnName(i));
+            for (int i = 0; i < schema.Count; i++)
+                Assert.Equal(expected[i], schema[i].Name);
         }
 
         [Fact]
@@ -113,143 +111,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 double auc = 0;
                 getter(ref auc);
                 Assert.Equal(0.93, auc, 2);
-                b = cursor.MoveNext();
-                Assert.False(b);
-            }
-        }
-
-        [Fact]
-        public void TestTrainTestMacro()
-        {
-            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var env = new MLContext();
-            var subGraph = env.CreateExperiment();
-
-            var catInput = new Legacy.Transforms.CategoricalOneHotVectorizer();
-            catInput.AddColumn("Categories");
-            var catOutput = subGraph.Add(catInput);
-
-            var concatInput = new Legacy.Transforms.ColumnConcatenator
-            {
-                Data = catOutput.OutputData
-            };
-            concatInput.AddColumn("Features", "Categories", "NumericFeatures");
-            var concatOutput = subGraph.Add(concatInput);
-
-            var sdcaInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier
-            {
-                TrainingData = concatOutput.OutputData,
-                LossFunction = new HingeLossSDCAClassificationLossFunction() { Margin = 1.1f },
-                NumThreads = 1,
-                Shuffle = false
-            };
-            var sdcaOutput = subGraph.Add(sdcaInput);
-
-            var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
-            {
-                TransformModels = new ArrayVar<TransformModel>(catOutput.Model, concatOutput.Model),
-                PredictorModel = sdcaOutput.PredictorModel
-            };
-            var modelCombineOutput = subGraph.Add(modelCombine);
-
-            var experiment = env.CreateExperiment();
-
-            var importInput = new Legacy.Data.TextLoader(dataPath);
-            var importOutput = experiment.Add(importInput);
-
-            var trainTestInput = new Legacy.Models.TrainTestBinaryEvaluator
-            {
-                TrainingData = importOutput.Data,
-                TestingData = importOutput.Data,
-                Nodes = subGraph
-            };
-            trainTestInput.Inputs.Data = catInput.Data;
-            trainTestInput.Outputs.Model = modelCombineOutput.PredictorModel;
-            var trainTestOutput = experiment.Add(trainTestInput);
-
-            experiment.Compile();
-            experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
-            experiment.Run();
-            var data = experiment.GetOutput(trainTestOutput.OverallMetrics);
-
-            var schema = data.Schema;
-            var b = schema.TryGetColumnIndex("AUC", out int aucCol);
-            Assert.True(b);
-            using (var cursor = data.GetRowCursor(col => col == aucCol))
-            {
-                var getter = cursor.GetGetter<double>(aucCol);
-                b = cursor.MoveNext();
-                Assert.True(b);
-                double auc = 0;
-                getter(ref auc);
-                Assert.Equal(0.93, auc, 2);
-                b = cursor.MoveNext();
-                Assert.False(b);
-            }
-        }
-
-        [Fact]
-        public void TestCrossValidationBinaryMacro()
-        {
-            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var env = new MLContext();
-            var subGraph = env.CreateExperiment();
-
-            var catInput = new Legacy.Transforms.CategoricalOneHotVectorizer();
-            catInput.AddColumn("Categories");
-            var catOutput = subGraph.Add(catInput);
-
-            var concatInput = new Legacy.Transforms.ColumnConcatenator
-            {
-                Data = catOutput.OutputData
-            };
-            concatInput.AddColumn("Features", "Categories", "NumericFeatures");
-            var concatOutput = subGraph.Add(concatInput);
-
-            var lrInput = new Legacy.Trainers.LogisticRegressionBinaryClassifier
-            {
-                TrainingData = concatOutput.OutputData,
-                NumThreads = 1
-            };
-            var lrOutput = subGraph.Add(lrInput);
-
-            var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
-            {
-                TransformModels = new ArrayVar<TransformModel>(catOutput.Model, concatOutput.Model),
-                PredictorModel = lrOutput.PredictorModel
-            };
-            var modelCombineOutput = subGraph.Add(modelCombine);
-
-            var experiment = env.CreateExperiment();
-
-            var importInput = new Legacy.Data.TextLoader(dataPath);
-            var importOutput = experiment.Add(importInput);
-
-            var crossValidateBinary = new Legacy.Models.BinaryCrossValidator
-            {
-                Data = importOutput.Data,
-                Nodes = subGraph
-            };
-            crossValidateBinary.Inputs.Data = catInput.Data;
-            crossValidateBinary.Outputs.Model = modelCombineOutput.PredictorModel;
-            var crossValidateOutput = experiment.Add(crossValidateBinary);
-
-            experiment.Compile();
-            importInput.SetInput(env, experiment);
-            experiment.Run();
-            var data = experiment.GetOutput(crossValidateOutput.OverallMetrics[0]);
-
-            var schema = data.Schema;
-            var b = schema.TryGetColumnIndex("AUC", out int aucCol);
-            Assert.True(b);
-            using (var cursor = data.GetRowCursor(col => col == aucCol))
-            {
-                var getter = cursor.GetGetter<double>(aucCol);
-                b = cursor.MoveNext();
-                Assert.True(b);
-                double auc = 0;
-                getter(ref auc);
-                Assert.Equal(0.87, auc, 1);
                 b = cursor.MoveNext();
                 Assert.False(b);
             }
@@ -493,10 +354,10 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(b);
             b = schema.TryGetColumnIndex("Fold Index", out foldCol);
             Assert.True(b);
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, countCol);
+            var type = schema[countCol].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
             Assert.True(type is VectorType vecType && vecType.ItemType is TextType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
-            schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref slotNames);
+            schema[countCol].GetSlotNames(ref slotNames);
             var slotNameValues = slotNames.GetValues();
             for (int i = 0; i < slotNameValues.Length; i++)
             {
@@ -976,9 +837,9 @@ namespace Microsoft.ML.Runtime.RunTests
             var data = experiment.GetOutput(tfTransformOutput.OutputData);
 
             var schema = data.Schema;
-            Assert.Equal(3, schema.ColumnCount);
-            Assert.Equal("Softmax", schema.GetColumnName(2));
-            Assert.Equal(10, (schema.GetColumnType(2) as VectorType)?.Size);
+            Assert.Equal(3, schema.Count);
+            Assert.Equal("Softmax", schema[2].Name);
+            Assert.Equal(10, (schema[2].Type as VectorType)?.Size);
         }
     }
 #pragma warning restore 612, 618

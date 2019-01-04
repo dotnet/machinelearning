@@ -4,9 +4,8 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A structure serving as a sixteen-byte unsigned integer. It is used as the row id of <see cref="IDataView"/>.

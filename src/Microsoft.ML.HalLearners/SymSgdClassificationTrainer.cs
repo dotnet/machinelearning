@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Trainers.SymSgd;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Trainers.SymSgd;
+using Microsoft.ML.Training;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -124,13 +123,12 @@ namespace Microsoft.ML.Trainers.SymSgd
             var roles = examples.Schema.GetColumnRoleNames();
             var examplesToFeedTrain = new RoleMappedData(idvToFeedTrain, roles);
 
-            ch.AssertValue(examplesToFeedTrain.Schema.Label);
-            ch.AssertValue(examplesToFeedTrain.Schema.Feature);
-            if (examples.Schema.Weight != null)
-                ch.AssertValue(examplesToFeedTrain.Schema.Weight);
+            ch.Assert(examplesToFeedTrain.Schema.Label.HasValue);
+            ch.Assert(examplesToFeedTrain.Schema.Feature.HasValue);
+            if (examples.Schema.Weight.HasValue)
+                ch.Assert(examplesToFeedTrain.Schema.Weight.HasValue);
 
-            int numFeatures = examplesToFeedTrain.Schema.Feature.Type.VectorSize;
-            ch.Check(numFeatures > 0, "Training set has no features, aborting training.");
+            ch.Check(examplesToFeedTrain.Schema.Feature.Value.Type is VectorType vecType && vecType.Size > 0, "Training set has no features, aborting training.");
             return examplesToFeedTrain;
         }
 
@@ -173,7 +171,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             _args.FeatureColumn = featureColumn;
             _args.LabelColumn = labelColumn;
 
-            Info = new TrainerInfo(supportIncrementalTrain:true);
+            Info = new TrainerInfo(supportIncrementalTrain: true);
         }
 
         /// <summary>
@@ -203,7 +201,7 @@ namespace Microsoft.ML.Trainers.SymSgd
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         public BinaryPredictionTransformer<TPredictor> Train(IDataView trainData, TPredictor initialPredictor = null)
-            => TrainTransformer(trainData,  initPredictor: initialPredictor);
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
@@ -637,7 +635,7 @@ namespace Microsoft.ML.Trainers.SymSgd
 
         private TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
-            int numFeatures = data.Schema.Feature.Type.VectorSize;
+            int numFeatures = data.Schema.Feature.Value.Type.VectorSize;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
             int numThreads = 1;
             ch.CheckUserArg(numThreads > 0, nameof(_args.NumberOfThreads),
@@ -692,7 +690,8 @@ namespace Microsoft.ML.Trainers.SymSgd
                                 entry => entry.SetProgress(0, state.PassIteration, _args.NumberOfIterations));
                             // If fully loaded, call the SymSGDNative and do not come back until learned for all iterations.
                             Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsEditor.Values, ref bias, numFeatures,
-                                _args.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize, stateGCHandle);
+                                _args.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize,
+                                stateGCHandle, ch.Info);
                             shouldInitialize = false;
                         }
                         else
@@ -713,7 +712,8 @@ namespace Microsoft.ML.Trainers.SymSgd
                                 numPassesForThisBatch = Math.Max(1, numPassesForThisBatch);
                                 state.PassIteration = iter;
                                 Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsEditor.Values, ref bias, numFeatures,
-                                    numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize, stateGCHandle);
+                                    numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize,
+                                    stateGCHandle, ch.Info);
                                 shouldInitialize = false;
 
                                 // Check if we are done with going through the data
@@ -762,10 +762,14 @@ namespace Microsoft.ML.Trainers.SymSgd
 
             internal const string NativePath = "SymSgdNative";
             internal const string MklPath = "MklImports";
+
+            public delegate void ChannelCallBack(string message);
+
             [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
                 float** instValues, float* labels, bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
-                int numFeatres, int numPasses, int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize, State* state);
+                int numFeatres, int numPasses, int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize,
+                State* state, ChannelCallBack info);
 
             /// <summary>
             /// This method puts all of the buffered instances in array of pointers to pass it to SymSGDNative.
@@ -786,9 +790,10 @@ namespace Microsoft.ML.Trainers.SymSgd
             /// <param name="needShuffle">Specifies if data needs to be shuffled</param>
             /// <param name="shouldInitialize">Specifies if this is the first time to run SymSGD</param>
             /// <param name="stateGCHandle"></param>
+            /// <param name="info"></param>
             public static void LearnAll(InputDataManager inputDataManager, bool tuneLR,
                 ref float lr, float l2Const, float piw, Span<float> weightVector, ref float bias, int numFeatres, int numPasses,
-                int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize, GCHandle stateGCHandle)
+                int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize, GCHandle stateGCHandle, ChannelCallBack info)
             {
                 inputDataManager.PrepareCursoring();
 
@@ -829,7 +834,8 @@ namespace Microsoft.ML.Trainers.SymSgd
                 fixed (float* pInstLabels = &instLabels[0])
                 {
                     LearnAll(totalNumInstances, pInstSizes, pIndicesPointer, pValuesPointer, pInstLabels, tuneLR, ref lr, l2Const, piw,
-                            pweightVector, ref bias, numFeatres, numPasses, numThreads, tuneNumLocIter, ref numLocIter, tolerance, needShuffle, shouldInitialize, (State*)stateGCHandle.AddrOfPinnedObject());
+                            pweightVector, ref bias, numFeatres, numPasses, numThreads, tuneNumLocIter, ref numLocIter, tolerance, needShuffle,
+                            shouldInitialize, (State*)stateGCHandle.AddrOfPinnedObject(), info);
                 }
             }
 

@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     // REVIEW: There are a couple problems. Firstly, what to do about cases where
     // the number of rows exceeds int.MaxValue? Right now we just fail. Practically this makes
@@ -25,7 +23,8 @@ namespace Microsoft.ML.Runtime.Data
     /// is accessible in this fashion iff <see cref="TransposeSchema"/>'s
     /// <see cref="ITransposeSchema.GetSlotType"/> returns a non-null value.
     /// </summary>
-    public interface ITransposeDataView : IDataView
+    [BestFriend]
+    internal interface ITransposeDataView : IDataView
     {
         /// <summary>
         /// An enhanced schema, containing information on the transposition properties, if any,
@@ -44,7 +43,8 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// The transpose schema returns the schema information of the view we have transposed.
     /// </summary>
-    public interface ITransposeSchema : ISchema
+    [BestFriend]
+    internal interface ITransposeSchema : ISchema
     {
         /// <summary>
         /// Analogous to <see cref="ISchema.GetColumnType"/>, except instead of returning the type of value

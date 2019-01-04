@@ -6,15 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ColumnCopyingTransformer.Summary, typeof(IDataTransform), typeof(ColumnCopyingTransformer),
@@ -185,7 +184,7 @@ namespace Microsoft.ML.Transforms
                     => input.GetGetter<T>(index);
 
                 input.Schema.TryGetColumnIndex(_columns[iinfo].Source, out int colIndex);
-                var type = input.Schema.GetColumnType(colIndex);
+                var type = input.Schema[colIndex].Type;
                 return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
             }
 
@@ -208,7 +207,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var srcVariableName = ctx.GetVariableName(column.Source);
                     _schema.TryGetColumnIndex(column.Source, out int colIndex);
-                    var dstVariableName = ctx.AddIntermediateVariable(_schema.GetColumnType(colIndex), column.Name);
+                    var dstVariableName = ctx.AddIntermediateVariable(_schema[colIndex].Type, column.Name);
                     var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                     node.AddAttribute("type", LoaderSignature);
                 }

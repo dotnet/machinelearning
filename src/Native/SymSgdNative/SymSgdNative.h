@@ -143,3 +143,6 @@ struct SymSGDState
     int PassIteration;
     float WeightScaling;
 };
+
+// Logging call back signature for ML.NET
+typedef void(*ChannelFunc)(const char*);

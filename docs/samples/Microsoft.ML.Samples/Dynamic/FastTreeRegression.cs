@@ -1,7 +1,6 @@
-﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Data;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

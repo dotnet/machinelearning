@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
 using Xunit.Abstractions;
 
@@ -20,14 +19,22 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public class IrisData : IrisDataNoLabel
         {
+            [LoadColumn(4), ColumnName("Label")]
             public string Label;
         }
 
         public class IrisDataNoLabel
         {
+            [LoadColumn(0)]
             public float SepalLength;
+
+            [LoadColumn(1)]
             public float SepalWidth;
+
+            [LoadColumn(2)]
             public float PetalLength;
+
+            [LoadColumn(3)]
             public float PetalWidth;
         }
 
@@ -39,8 +46,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public class SentimentData
         {
-            [ColumnName("Label")]
+            [LoadColumn(0), ColumnName("Label")]
             public bool Sentiment;
+
+            [LoadColumn(1)]
             public string SentimentText;
         }
 

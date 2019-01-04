@@ -2,24 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.Projections;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(IDataTransform), typeof(TextFeaturizingEstimator), typeof(TextFeaturizingEstimator.Arguments), typeof(SignatureDataTransform),
     TextFeaturizingEstimator.UserName, "TextTransform", TextFeaturizingEstimator.LoaderSignature)]
@@ -621,61 +618,6 @@ namespace Microsoft.ML.Transforms.Text
                     loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(Transformer).Assembly.FullName);
             }
-        }
-
-        internal sealed class OutPipelineColumn : Vector<float>
-        {
-            public readonly Scalar<string>[] Inputs;
-
-            public OutPipelineColumn(IEnumerable<Scalar<string>> inputs, Action<Settings> advancedSettings)
-                : base(new Reconciler(advancedSettings), inputs.ToArray())
-            {
-                Inputs = inputs.ToArray();
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly Action<Settings> _settings;
-
-            public Reconciler(Action<Settings> advancedSettings)
-            {
-                _settings = advancedSettings;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-
-                var outCol = (OutPipelineColumn)toOutput[0];
-                var inputs = outCol.Inputs.Select(x => inputNames[x]);
-                return new TextFeaturizingEstimator(env, inputs, outputNames[outCol], _settings);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class TextFeaturizerStaticPipe
-    {
-        /// <summary>
-        /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
-        /// </summary>
-        /// <param name="input">Input data.</param>
-        /// <param name="otherInputs">Additional data.</param>
-        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
-        /// <returns></returns>
-        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextFeaturizingEstimator.Settings> advancedSettings = null)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckValueOrNull(otherInputs);
-            otherInputs = otherInputs ?? new Scalar<string>[0];
-            return new TextFeaturizingEstimator.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
         }
     }
 }

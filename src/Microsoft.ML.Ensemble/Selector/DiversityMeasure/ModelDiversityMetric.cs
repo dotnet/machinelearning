@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
+namespace Microsoft.ML.Ensemble.Selector.DiversityMeasure
 {
     public class ModelDiversityMetric<TOutput>
     {

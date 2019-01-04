@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Sweeper;
-using Microsoft.ML.Runtime.Tools;
+using System;
+using System.Reflection;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble;
+using Microsoft.ML.Sweeper;
+using Microsoft.ML.Tools;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Transforms.Categorical;
-using System;
-using System.Reflection;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     internal static class AssemblyRegistration
     {
@@ -41,16 +41,16 @@ namespace Microsoft.ML.Runtime
             Assembly dataAssembly = typeof(TextLoader).Assembly; // ML.Data
             AssemblyName dataAssemblyName = dataAssembly.GetName();
 
-            _ = typeof(EnsemblePredictor).Assembly; // ML.Ensemble
+            _ = typeof(EnsembleModelParameters).Assembly; // ML.Ensemble
             _ = typeof(FastTreeBinaryModelParameters).Assembly; // ML.FastTree
             _ = typeof(KMeansModelParameters).Assembly; // ML.KMeansClustering
             _ = typeof(Maml).Assembly; // ML.Maml
-            _ = typeof(PcaPredictor).Assembly; // ML.PCA
+            _ = typeof(PcaModelParameters).Assembly; // ML.PCA
             _ = typeof(SweepCommand).Assembly; // ML.Sweeper
             _ = typeof(OneHotEncodingTransformer).Assembly; // ML.Transforms
 
             // The following assemblies reference this assembly, so we can't directly reference them
-            //_ = typeof(Microsoft.ML.Runtime.Data.LinearPredictor).Assembly); // ML.StandardLearners
+            //_ = typeof(Microsoft.ML.Data.LinearPredictor).Assembly); // ML.StandardLearners
             _ = Assembly.Load(new AssemblyName()
             {
                 Name = "Microsoft.ML.StandardLearners",

@@ -6,14 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for transforms.
@@ -95,8 +94,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected abstract RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null);
 
-        public abstract RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null);
+        public abstract RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null);
     }
 
     /// <summary>
@@ -322,7 +320,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!input.TryGetColumnIndex(item.Source, out colSrc))
                         throw host.ExceptUserArg(nameof(OneToOneColumn.Source), "Source column '{0}' not found", item.Source);
 
-                    var type = input.GetColumnType(colSrc);
+                    var type = input[colSrc].Type;
                     if (testType != null)
                     {
                         string reason = testType(type);
@@ -371,7 +369,7 @@ namespace Microsoft.ML.Runtime.Data
                     int colSrc;
                     if (!input.TryGetColumnIndex(src, out colSrc))
                         throw host.Except("Source column '{0}' is required but not found", src);
-                    var type = input.GetColumnType(colSrc);
+                    var type = input[colSrc].Type;
                     if (testType != null)
                     {
                         string reason = testType(type);
@@ -398,7 +396,7 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var info in Infos)
                 {
                     ctx.SaveNonEmptyString(info.Name);
-                    ctx.SaveNonEmptyString(Input.GetColumnName(info.Source));
+                    ctx.SaveNonEmptyString(Input[info.Source].Name);
                 }
             }
 
@@ -406,7 +404,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.AssertValue(predicate);
 
-                var active = new bool[Input.ColumnCount];
+                var active = new bool[Input.Count];
                 for (int col = 0; col < ColumnCount; col++)
                 {
                     if (!predicate(col))
@@ -471,9 +469,9 @@ namespace Microsoft.ML.Runtime.Data
         // The ColInfos are exposed to sub-classes. They should be considered readonly.
         protected readonly ColInfo[] Infos;
         // The _input as a transposed data view, non-null iff _input is a transposed data view.
-        protected readonly ITransposeDataView InputTranspose;
+        private protected readonly ITransposeDataView InputTranspose;
         // The InputTranspose transpose schema, null iff InputTranspose is null.
-        protected ITransposeSchema InputTransposeSchema => InputTranspose?.TransposeSchema;
+        private protected ITransposeSchema InputTransposeSchema => InputTranspose?.TransposeSchema;
 
         bool ICanSavePfa.CanSavePfa => CanSavePfaCore;
 
@@ -641,7 +639,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed override Schema OutputSchema => _bindings.AsSchema;
 
-        public ITransposeSchema TransposeSchema => _bindings;
+        ITransposeSchema ITransposeDataView.TransposeSchema => _bindings;
 
         /// <summary>
         /// Return the (destination) column index for the indicated added column.
@@ -733,19 +731,18 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(Host, this, input, active);
         }
 
-        public sealed override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public sealed override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
             Host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && WantParallelCursors(predicate))
-                inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
+                inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
             var cursors = new RowCursor[inputs.Length];

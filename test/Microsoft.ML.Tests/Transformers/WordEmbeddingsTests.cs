@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.Scenarios;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms.Text;
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataPath = GetDataPath(ScenariosTests.SentimentDataPath);
             var testDataPath = GetDataPath(ScenariosTests.SentimentTestPath);
 
-            var data = TextLoader.CreateReader(Env, ctx => (
+            var data = TextLoaderStatic.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath);

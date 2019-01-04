@@ -5,19 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model.Pfa;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(SavePfaCommand.Summary, typeof(SavePfaCommand), typeof(SavePfaCommand.Arguments), typeof(SignatureCommand),
     "Save PFA", "SavePfa", DocName = "command/SavePfa.md")]
 
-namespace Microsoft.ML.Runtime.Model.Pfa
+namespace Microsoft.ML.Model.Pfa
 {
     internal sealed class SavePfaCommand : DataCommand.ImplBase<SavePfaCommand.Arguments>
     {
@@ -184,11 +184,11 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             }
 
             var toExport = new List<string>();
-            for (int i = 0; i < end.Schema.ColumnCount; ++i)
+            for (int i = 0; i < end.Schema.Count; ++i)
             {
-                if (end.Schema.IsHidden(i))
+                if (end.Schema[i].IsHidden)
                     continue;
-                var name = end.Schema.GetColumnName(i);
+                var name = end.Schema[i].Name;
                 if (_outputsToDrop.Contains(name))
                     continue;
                 if (!ctx.IsInput(name) || _keepInput)

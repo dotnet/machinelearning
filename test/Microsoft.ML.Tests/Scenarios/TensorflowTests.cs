@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics;
+using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
-using System;
-using System.IO;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -52,7 +50,7 @@ namespace Microsoft.ML.Scenarios
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
             Assert.Equal(1, metrics.AccuracyMicro, 2);
 
-            var predictFunction = transformer.MakePredictionFunction<CifarData, CifarPrediction>(mlContext);
+            var predictFunction = transformer.CreatePredictionEngine<CifarData, CifarPrediction>(mlContext);
             var prediction = predictFunction.Predict(new CifarData()
             {
                 ImagePath = GetDataPath("images/banana.jpg")
@@ -73,10 +71,10 @@ namespace Microsoft.ML.Scenarios
 
     public class CifarData
     {
-        [Column("0")]
+        [LoadColumn(0)]
         public string ImagePath;
 
-        [Column("1")]
+        [LoadColumn(1)]
         public string Label;
     }
 
@@ -88,10 +86,10 @@ namespace Microsoft.ML.Scenarios
 
     public class ImageNetData
     {
-        [Column("0")]
+        [LoadColumn(0)]
         public string ImagePath;
 
-        [Column("1")]
+        [LoadColumn(1)]
         public string Label;
     }
 

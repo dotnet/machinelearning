@@ -2,25 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.FeatureSelection;
-using Microsoft.ML.Transforms.Projections;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.HalLearners.StaticPipe;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.ML.Transforms.Text.LatentDirichletAllocationTransformer;
@@ -66,7 +63,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 + "1 1 2 4 15";
             var dataSource = new BytesStreamSource(data);
 
-            var text = TextLoader.CreateReader(env, ctx => (
+            var text = TextLoaderStatic.CreateReader(env, ctx => (
                 label: ctx.LoadBool(0),
                 text: ctx.LoadText(1),
                 numericFeatures: ctx.LoadFloat(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.
@@ -83,9 +80,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             CheckSchemaHasColumn(schema, "text", out int textIdx);
             CheckSchemaHasColumn(schema, "numericFeatures", out int numericFeaturesIdx);
             // Next verify they have the expected types.
-            Assert.Equal(BoolType.Instance, schema.GetColumnType(labelIdx));
-            Assert.Equal(TextType.Instance, schema.GetColumnType(textIdx));
-            Assert.Equal(new VectorType(NumberType.R4, 3), schema.GetColumnType(numericFeaturesIdx));
+            Assert.Equal(BoolType.Instance, schema[labelIdx].Type);
+            Assert.Equal(TextType.Instance, schema[textIdx].Type);
+            Assert.Equal(new VectorType(NumberType.R4, 3), schema[numericFeaturesIdx].Type);
             // Next actually inspect the data.
             using (var cursor = textData.GetRowCursor(c => true))
             {
@@ -128,8 +125,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             CheckSchemaHasColumn(schema, "label", out labelIdx);
             CheckSchemaHasColumn(schema, "text", out textIdx);
             // Next verify they have the expected types.
-            Assert.Equal(BoolType.Instance, schema.GetColumnType(textIdx));
-            Assert.Equal(new VectorType(NumberType.R4, 3), schema.GetColumnType(labelIdx));
+            Assert.Equal(BoolType.Instance, schema[textIdx].Type);
+            Assert.Equal(new VectorType(NumberType.R4, 3), schema[labelIdx].Type);
         }
 
         private sealed class Obnoxious1
@@ -172,10 +169,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             void Helper(Schema thisSchema, string name, ColumnType expected)
             {
                 Assert.True(thisSchema.TryGetColumnIndex(name, out int thisCol), $"Could not find column '{name}'");
-                Assert.Equal(expected, thisSchema.GetColumnType(thisCol));
+                Assert.Equal(expected, thisSchema[thisCol].Type);
             }
 
-            var text = TextLoader.CreateReader(env, ctx => (
+            var text = TextLoaderStatic.CreateReader(env, ctx => (
                 yo: new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 5)),
                 dawg: new Obnoxious2() { Biz = ctx.LoadText(2), Blam = ctx.LoadDouble(1, 2) },
                 how: MakeObnoxious3(ctx.LoadBool(2), new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 4)),
@@ -368,7 +365,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
@@ -381,9 +378,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("features", out int featCol));
             Assert.True(schema.TryGetColumnIndex("bin", out int binCol));
             Assert.True(schema.TryGetColumnIndex("mm", out int mmCol));
-            Assert.False(schema.IsNormalized(featCol));
-            Assert.True(schema.IsNormalized(binCol));
-            Assert.True(schema.IsNormalized(mmCol));
+            Assert.False(schema[featCol].IsNormalized());
+            Assert.True(schema[binCol].IsNormalized());
+            Assert.True(schema[mmCol].IsNormalized());
         }
 
         [Fact]
@@ -393,7 +390,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => c.LoadFloat(0, 2),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
@@ -425,7 +422,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     Separator = ",",
                     OutputHeader = false
                 });
-                saver.SaveData(stream, v, Utils.GetIdentityPermutation(v.Schema.ColumnCount));
+                saver.SaveData(stream, v, Utils.GetIdentityPermutation(v.Schema.Count));
                 Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
             }
         }
@@ -435,7 +432,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("iris.data");
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3)),
                 separator: ',');
             var dataSource = new MultiFileSource(dataPath);
@@ -451,13 +448,13 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("valuesKey", out int valuesCol));
             Assert.True(schema.TryGetColumnIndex("valuesKeyKey", out int valuesKeyCol));
 
-            Assert.Equal(3, (schema.GetColumnType(labelCol) as KeyType)?.Count);
-            Assert.True(schema.GetColumnType(valuesCol) is VectorType valuesVecType && valuesVecType.ItemType is KeyType);
-            Assert.True(schema.GetColumnType(valuesKeyCol) is VectorType valuesKeyVecType && valuesKeyVecType.ItemType is KeyType);
+            Assert.Equal(3, (schema[labelCol].Type as KeyType)?.Count);
+            Assert.True(schema[valuesCol].Type is VectorType valuesVecType && valuesVecType.ItemType is KeyType);
+            Assert.True(schema[valuesKeyCol].Type is VectorType valuesKeyVecType && valuesKeyVecType.ItemType is KeyType);
 
-            var labelKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelCol);
-            var valuesKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, valuesCol);
-            var valuesKeyKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, valuesKeyCol);
+            var labelKeyType = schema[labelCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var valuesKeyType = schema[valuesCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var valuesKeyKeyType = schema[valuesKeyCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             Assert.NotNull(labelKeyType);
             Assert.NotNull(valuesKeyType);
             Assert.NotNull(valuesKeyKeyType);
@@ -473,7 +470,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("iris.data");
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3), value: c.LoadFloat(2)),
                 separator: ',');
             var dataSource = new MultiFileSource(dataPath);
@@ -495,7 +492,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             int[] expectedLen = new int[] { 1, 2, 5, 9 };
             for (int i = 0; i < idx.Length; ++i)
             {
-                var type = schema.GetColumnType(idx[i]);
+                var type = schema[idx[i]].Type;
                 types[i] = type as VectorType;
                 Assert.True(types[i]?.Size > 0, $"Col c{i} had unexpected type {type}");
                 Assert.Equal(expectedLen[i], types[i].Size);
@@ -511,7 +508,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -526,11 +523,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
 
-            Assert.True(schema.TryGetColumnIndex("tokens", out int tokensCol));
-            var type = schema.GetColumnType(tokensCol);
+            var type = schema["tokens"].Type;
             Assert.True(type is VectorType vecType && vecType.Size == 0 && vecType.ItemType == TextType.Instance);
-            Assert.True(schema.TryGetColumnIndex("chars", out int charsCol));
-            type = schema.GetColumnType(charsCol);
+            type = schema["chars"].Type;
             Assert.True(type is VectorType vecType2 && vecType2.Size == 0 && vecType2.ItemType is KeyType
                     && vecType2.ItemType.RawType == typeof(ushort));
         }
@@ -540,7 +535,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -556,11 +551,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = tdata.AsDynamic.Schema;
 
             Assert.True(schema.TryGetColumnIndex("words_without_stopwords", out int stopwordsCol));
-            var type = schema.GetColumnType(stopwordsCol);
+            var type = schema[stopwordsCol].Type;
             Assert.True(type is VectorType vecType && vecType.Size == 0 && vecType.ItemType == TextType.Instance);
 
             Assert.True(schema.TryGetColumnIndex("normalized_text", out int normTextCol));
-            type = schema.GetColumnType(normTextCol);
+            type = schema[normTextCol].Type;
             Assert.Equal(TextType.Instance, type);
         }
 
@@ -569,7 +564,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -585,11 +580,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = tdata.AsDynamic.Schema;
 
             Assert.True(schema.TryGetColumnIndex("bagofword", out int bagofwordCol));
-            var type = schema.GetColumnType(bagofwordCol);
+            var type = schema[bagofwordCol].Type;
             Assert.True(type is VectorType vecType && vecType.Size > 0&& vecType.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("bagofhashedword", out int bagofhashedwordCol));
-            type = schema.GetColumnType(bagofhashedwordCol);
+            type = schema[bagofhashedwordCol].Type;
             Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
         }
 
@@ -598,7 +593,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -614,11 +609,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = tdata.AsDynamic.Schema;
 
             Assert.True(schema.TryGetColumnIndex("ngrams", out int ngramsCol));
-            var type = schema.GetColumnType(ngramsCol);
+            var type = schema[ngramsCol].Type;
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("ngramshash", out int ngramshashCol));
-            type = schema.GetColumnType(ngramshashCol);
+            type = schema[ngramshashCol].Type;
             Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
         }
 
@@ -630,7 +625,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
@@ -645,19 +640,19 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = tdata.AsDynamic.Schema;
 
             Assert.True(schema.TryGetColumnIndex("lpnorm", out int lpnormCol));
-            var type = schema.GetColumnType(lpnormCol);
+            var type = schema[lpnormCol].Type;
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("gcnorm", out int gcnormCol));
-            type = schema.GetColumnType(gcnormCol);
+            type = schema[gcnormCol].Type;
             Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("zcawhitened", out int zcawhitenedCol));
-            type = schema.GetColumnType(zcawhitenedCol);
+            type = schema[zcawhitenedCol].Type;
             Assert.True(type is VectorType vecType3 && vecType3.Size > 0 && vecType3.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("pcswhitened", out int pcswhitenedCol));
-            type = schema.GetColumnType(pcswhitenedCol);
+            type = schema[pcswhitenedCol].Type;
             Assert.True(type is VectorType vecType4 && vecType4.Size > 0 && vecType4.ItemType is NumberType);
         }
 
@@ -666,7 +661,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -685,7 +680,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var schema = tdata.AsDynamic.Schema;
             Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
-            var type = schema.GetColumnType(topicsCol);
+            var type = schema[topicsCol].Type;
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
         }
 
@@ -694,7 +689,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -710,11 +705,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = tdata.AsDynamic.Schema;
 
             Assert.True(schema.TryGetColumnIndex("bag_of_words_count", out int bagofwordCountCol));
-            var type = schema.GetColumnType(bagofwordCountCol);
+            var type = schema[bagofwordCountCol].Type;
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("bag_of_words_mi", out int bagofwordMiCol));
-            type = schema.GetColumnType(bagofwordMiCol);
+            type = schema[bagofwordMiCol].Type;
             Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
         }
 
@@ -727,7 +722,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));
             var data = reader.Read(dataSource);
 
@@ -755,7 +750,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
@@ -767,7 +762,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = tdata.AsDynamic.Schema;
 
             Assert.True(schema.TryGetColumnIndex("pca", out int pcaCol));
-            var type = schema.GetColumnType(pcaCol);
+            var type = schema[pcaCol].Type;
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
         }
 
@@ -777,7 +772,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(0);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -820,7 +815,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoaderStatic.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true);
             var dataSource = new MultiFileSource(dataPath);
@@ -837,22 +832,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
 
-            Assert.True(schema.TryGetColumnIndex("norm", out int norm));
-            var type = schema.GetColumnType(norm);
-            Assert.True(type is TextType);
-
-            Assert.True(schema.TryGetColumnIndex("norm_Upper", out int normUpper));
-            type = schema.GetColumnType(normUpper);
-            Assert.True(type is TextType);
-            Assert.True(schema.TryGetColumnIndex("norm_KeepDiacritics", out int diacritics));
-            type = schema.GetColumnType(diacritics);
-            Assert.True(type is TextType);
-            Assert.True(schema.TryGetColumnIndex("norm_NoPuctuations", out int punct));
-            type = schema.GetColumnType(punct);
-            Assert.True(type is TextType);
-            Assert.True(schema.TryGetColumnIndex("norm_NoNumbers", out int numbers));
-            type = schema.GetColumnType(numbers);
-            Assert.True(type is TextType);
+            Assert.True(schema["norm"].Type is TextType);
+            Assert.True(schema["norm_Upper"].Type is TextType);
+            Assert.True(schema["norm_KeepDiacritics"].Type is TextType);
+            Assert.True(schema["norm_NoPuctuations"].Type is TextType);
+            Assert.True(schema["norm_NoNumbers"].Type is TextType);
         }
 
         [Fact]
@@ -860,7 +844,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         {
             var env = new MLContext(0);
             var dataSource = GetDataPath("generated_regression_dataset.csv");
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);

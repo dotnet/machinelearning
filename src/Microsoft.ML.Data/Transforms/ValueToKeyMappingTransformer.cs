@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Transforms.Conversions;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Transforms.Conversions;
+using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueToKeyMappingTransformer),
     typeof(ValueToKeyMappingTransformer.Arguments), typeof(SignatureDataTransform),
@@ -277,7 +276,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
-                var type = inputSchema.GetColumnType(colSrc);
+                var type = inputSchema[colSrc].Type;
                 string reason = TestIsKnownDataKind(type);
                 if (reason != null)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input, reason, type.ToString());
@@ -477,7 +476,7 @@ namespace Microsoft.ML.Transforms.Conversions
             int colSrc;
             if (!termData.Schema.TryGetColumnIndex(src, out colSrc))
                 throw ch.ExceptUserArg(nameof(termsColumn), "Unknown column '{0}'", src);
-            var typeSrc = termData.Schema.GetColumnType(colSrc);
+            var typeSrc = termData.Schema[colSrc].Type;
             if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
                 throw ch.ExceptUserArg(nameof(termsColumn), "Must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
 

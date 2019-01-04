@@ -3,22 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
 
 [assembly: LoadableClass(typeof(RowToRowMapperTransform), null, typeof(SignatureLoadDataTransform),
     "", RowToRowMapperTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This interface is used to create a <see cref="RowToRowMapperTransform"/>.
@@ -92,7 +89,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(mapperFactory);
             _mapper = mapper;
             _mapperFactory = mapperFactory;
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
 
         [BestFriend]
@@ -110,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
             // _mapper
 
             ctx.LoadModel<IRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
         }
 
         public static RowToRowMapperTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -142,12 +139,12 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private bool[] GetActive(Func<int, bool> predicate, out Func<int, bool> predicateInput)
         {
-            int n = _bindings.Schema.ColumnCount;
+            int n = _bindings.Schema.Count;
             var active = Utils.BuildArray(n, predicate);
             Contracts.Assert(active.Length == n);
 
             var activeInput = _bindings.GetActiveInput(predicate);
-            Contracts.Assert(activeInput.Length == _bindings.InputSchema.ColumnCount);
+            Contracts.Assert(activeInput.Length == _bindings.InputSchema.Count);
 
             // Get a predicate that determines which outputs are active.
             var predicateOut = GetActiveOutputColumns(active);
@@ -165,7 +162,7 @@ namespace Microsoft.ML.Runtime.Data
         private Func<int, bool> GetActiveOutputColumns(bool[] active)
         {
             Contracts.AssertValue(active);
-            Contracts.Assert(active.Length == _bindings.Schema.ColumnCount);
+            Contracts.Assert(active.Length == _bindings.Schema.Count);
 
             return
                 col =>
@@ -190,7 +187,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -198,11 +195,11 @@ namespace Microsoft.ML.Runtime.Data
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
 
-            var inputs = Source.GetRowCursorSet(out consolidator, predicateInput, n, rand);
+            var inputs = Source.GetRowCursorSet(predicateInput, n, rand);
             Host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))
-                inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
+                inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
             var cursors = new RowCursor[inputs.Length];
@@ -248,8 +245,8 @@ namespace Microsoft.ML.Runtime.Data
 
             using (var ch = Host.Start("GetEntireRow"))
             {
-                var activeArr = new bool[OutputSchema.ColumnCount];
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                var activeArr = new bool[OutputSchema.Count];
+                for (int i = 0; i < OutputSchema.Count; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out Action disp);
@@ -355,7 +352,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < _bindings.Schema.ColumnCount);
+                Ch.Check(0 <= col && col < _bindings.Schema.Count);
                 return _active[col];
             }
 

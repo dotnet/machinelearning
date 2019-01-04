@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -82,8 +81,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Get output schema and check its column names
             var outputSchema = model.GetOutputSchema(data.Schema);
             var expectedOutputNames = new string[] { labelColumnName, userColumnName, itemColumnName, scoreColumnName };
-            foreach (var (i, col) in outputSchema.GetColumns())
-                Assert.True(col.Name == expectedOutputNames[i]);
+            foreach (var col in outputSchema)
+                Assert.True(col.Name == expectedOutputNames[col.Index]);
 
             // Retrieve label column's index from the test IDataView
             testData.Schema.TryGetColumnIndex(labelColumnName, out int labelColumnId);

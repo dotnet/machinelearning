@@ -2,23 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(ImageLoaderTransform.Summary, typeof(IDataTransform), typeof(ImageLoaderTransform), typeof(ImageLoaderTransform.Arguments), typeof(SignatureDataTransform),
     ImageLoaderTransform.UserName, "ImageLoaderTransform", "ImageLoader")]
@@ -30,7 +27,7 @@ using System.Text;
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(ImageLoaderTransform), null, typeof(SignatureLoadRowMapper), "", ImageLoaderTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.ImageAnalytics
+namespace Microsoft.ML.ImageAnalytics
 {
     /// <summary>
     /// Transform which takes one or many columns of type ReadOnlyMemory and loads them as <see cref="ImageType"/>
@@ -116,8 +113,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            if (!inputSchema.GetColumnType(srcCol).IsText)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextType.Instance.ToString(), inputSchema.GetColumnType(srcCol).ToString());
+            if (!inputSchema[srcCol].Type.IsText)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextType.Instance.ToString(), inputSchema[srcCol].Type.ToString());
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -242,63 +239,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             return new SchemaShape(result.Values);
-        }
-
-        internal sealed class OutPipelineColumn : Custom<UnknownSizeBitmap>
-        {
-            private readonly Scalar<string> _input;
-
-            public OutPipelineColumn(Scalar<string> path, string relativeTo)
-                : base(new Reconciler(relativeTo), path)
-            {
-                Contracts.AssertValue(path);
-                _input = path;
-            }
-
-            /// <summary>
-            /// Reconciler to an <see cref="ImageLoadingEstimator"/> for the <see cref="PipelineColumn"/>.
-            /// </summary>
-            /// <remarks>
-            /// We must create a new reconciler per call, because the relative path of <see cref="ImageLoaderTransform.Arguments.ImageFolder"/>
-            /// is considered a transform-wide option, as it is not specified in <see cref="ImageLoaderTransform.Column"/>. However, we still
-            /// implement <see cref="IEquatable{T}"/> so the analyzer can still equate two of these things if they happen to share the same
-            /// path, so we can be a bit more efficient with respect to our estimator declarations.
-            /// </remarks>
-            /// <see cref="ImageStaticPipe.LoadAsImage(Scalar{string}, string)"/>
-            private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
-            {
-                private readonly string _relTo;
-
-                public Reconciler(string relativeTo)
-                {
-                    Contracts.AssertValueOrNull(relativeTo);
-                    _relTo = relativeTo;
-                }
-
-                public bool Equals(Reconciler other)
-                    => other != null && other._relTo == _relTo;
-
-                public override bool Equals(object obj)
-                    => obj is Reconciler other && Equals(other);
-
-                public override int GetHashCode()
-                    => _relTo?.GetHashCode() ?? 0;
-
-                public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                    PipelineColumn[] toOutput,
-                    IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                    IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                    IReadOnlyCollection<string> usedNames)
-                {
-                    var cols = new (string input, string output)[toOutput.Length];
-                    for (int i = 0; i < toOutput.Length; ++i)
-                    {
-                        var outCol = (OutPipelineColumn)toOutput[i];
-                        cols[i] = (inputNames[outCol._input], outputNames[outCol]);
-                    }
-                    return new ImageLoadingEstimator(env, _relTo, cols);
-                }
-            }
         }
     }
 }

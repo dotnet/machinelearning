@@ -5,14 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble;
 using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Ensemble.OutputCombiners;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.Online;
 
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments),
@@ -23,7 +23,7 @@ using Microsoft.ML.Trainers.Online;
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments), typeof(SignatureModelCombiner),
     "Regression Ensemble Model Combiner", RegressionEnsembleTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.Ensemble
+namespace Microsoft.ML.Ensemble
 {
     using TScalarPredictor = IPredictorProducing<Single>;
     internal sealed class RegressionEnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
         {
-            return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
+            return new EnsembleModelParameters(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }
 
         public IPredictor CombineModels(IEnumerable<IPredictor> models)
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var combiner = _outputCombiner.CreateComponent(Host);
             var p = models.First();
 
-            var predictor = new EnsemblePredictor(Host, p.PredictionKind,
+            var predictor = new EnsembleModelParameters(Host, p.PredictionKind,
                     models.Select(k => new FeatureSubsetModel<TScalarPredictor>((TScalarPredictor)k)).ToArray(), combiner);
 
             return predictor;

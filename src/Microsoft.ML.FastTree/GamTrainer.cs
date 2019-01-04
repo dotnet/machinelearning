@@ -2,29 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Training;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.ML;
+using Microsoft.ML.Calibrator;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Training;
 using Timer = Microsoft.ML.Trainers.FastTree.Internal.Timer;
 
-[assembly: LoadableClass(typeof(GamPredictorBase.VisualizationCommand), typeof(GamPredictorBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
-    "GAM Vizualization Command", GamPredictorBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
+[assembly: LoadableClass(typeof(GamModelParametersBase.VisualizationCommand), typeof(GamModelParametersBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
+    "GAM Vizualization Command", GamModelParametersBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
 
 [assembly: LoadableClass(typeof(void), typeof(Gam), null, typeof(SignatureEntryPointModule), "GAM")]
 
@@ -226,7 +227,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 DefineScoreTrackers();
                 if (HasValidSet)
                     DefinePruningTest();
-                InputLength = context.TrainingSet.Schema.Feature.Type.ValueCount;
+                InputLength = context.TrainingSet.Schema.Feature.Value.Type.ValueCount;
 
                 TrainCore(ch);
             }
@@ -241,7 +242,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract void DefinePruningTest();
 
-        internal abstract void CheckLabel(RoleMappedData data);
+        private protected abstract void CheckLabel(RoleMappedData data);
 
         private void ConvertData(RoleMappedData trainData, RoleMappedData validationData)
         {
@@ -263,13 +264,11 @@ namespace Microsoft.ML.Trainers.FastTree
         private bool UseTranspose(bool? useTranspose, RoleMappedData data)
         {
             Host.AssertValue(data);
-            Host.AssertValue(data.Schema.Feature);
+            Host.Assert(data.Schema.Feature.HasValue);
 
             if (useTranspose.HasValue)
                 return useTranspose.Value;
-
-            ITransposeDataView td = data.Data as ITransposeDataView;
-            return td != null && td.TransposeSchema.GetSlotType(data.Schema.Feature.Index) != null;
+            return data.Data is ITransposeDataView td && td.TransposeSchema.GetSlotType(data.Schema.Feature.Value.Index) != null;
         }
 
         private void TrainCore(IChannel ch)
@@ -648,8 +647,8 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public abstract class GamPredictorBase : PredictorBase<float>, IValueMapper,
-        IFeatureContributionMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
+    public abstract class GamModelParametersBase : ModelParametersBase<float>, IValueMapper, ICalculateFeatureContribution,
+        IFeatureContributionMapper, ICanSaveInTextFormat, ICanSaveSummary, ICanSaveInIniFormat
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
@@ -669,7 +668,9 @@ namespace Microsoft.ML.Trainers.FastTree
         ColumnType IValueMapper.InputType => _inputType;
         ColumnType IValueMapper.OutputType => _outputType;
 
-        private protected GamPredictorBase(IHostEnvironment env, string name,
+        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
+
+        private protected GamModelParametersBase(IHostEnvironment env, string name,
             int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap)
             : base(env, name)
         {
@@ -740,7 +741,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        protected GamPredictorBase(IHostEnvironment env, string name, ModelLoadContext ctx)
+        protected GamModelParametersBase(IHostEnvironment env, string name, ModelLoadContext ctx)
             : base(env, name)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -791,7 +792,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _outputType = NumberType.Float;
         }
 
-        public override void Save(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -833,6 +834,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             double value = Intercept;
             var featuresValues = features.GetValues();
+
             if (features.IsDense)
             {
                 for (int i = 0; i < featuresValues.Length; ++i)
@@ -1025,12 +1027,120 @@ namespace Microsoft.ML.Trainers.FastTree
                 featureIndex++;
             }
             contributions = editor.Commit();
-            Runtime.Numeric.VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
+            Numeric.VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
+        }
+
+        void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
+        {
+            Host.CheckValue(writer, nameof(writer));
+            var ensemble = new TreeEnsemble();
+
+            for (int featureIndex = 0; featureIndex < _numFeatures; featureIndex++)
+            {
+                var effects = _binEffects[featureIndex];
+                var binThresholds = _binUpperBounds[featureIndex];
+
+                Host.Assert(effects.Length == binThresholds.Length);
+                var numLeaves = effects.Length;
+                var numInternalNodes = numLeaves - 1;
+
+                var splitFeatures = Enumerable.Repeat(featureIndex, numInternalNodes).ToArray();
+                var (treeThresholds, lteChild, gtChild) = CreateBalancedTree(numInternalNodes, binThresholds);
+                var tree = CreateRegressionTree(numLeaves, splitFeatures, treeThresholds, lteChild, gtChild, effects);
+                ensemble.AddTree(tree);
+            }
+
+            // Adding the intercept as a dummy tree with the output values being the model intercept,
+            // works for reaching parity.
+            var interceptTree = CreateRegressionTree(
+                numLeaves: 2,
+                splitFeatures: new[] { 0 },
+                rawThresholds: new[] { 0f },
+                lteChild: new[] { ~0 },
+                gtChild: new[] { ~1 },
+                leafValues: new[] { Intercept, Intercept });
+            ensemble.AddTree(interceptTree);
+
+            var ini = FastTreeIniFileUtils.TreeEnsembleToIni(
+                Host, ensemble, schema, calibrator, string.Empty, false, false);
+
+            // Remove the SplitGain values which are all 0.
+            // It's eaiser to remove them here, than to modify the FastTree code.
+            var goodLines = ini.Split(new[] { '\n' }).Where(line => !line.StartsWith("SplitGain="));
+            ini = string.Join("\n", goodLines);
+            writer.WriteLine(ini);
+        }
+
+        // GAM bins should be converted to balanced trees / binary search trees
+        // so that scoring takes O(log(n)) instead of O(n). The following utility
+        // creates a balanced tree.
+        private (float[], int[], int[]) CreateBalancedTree(int numInternalNodes, double[] binThresholds)
+        {
+            var binIndices = Enumerable.Range(0, numInternalNodes).ToArray();
+            var internalNodeIndices = new List<int>();
+            var lteChild = new List<int>();
+            var gtChild = new List<int>();
+            var internalNodeId = numInternalNodes;
+
+            CreateBalancedTreeRecursive(
+                0, binIndices.Length - 1, internalNodeIndices, lteChild, gtChild, ref internalNodeId);
+            // internalNodeId should have been counted all the way down to 0 (root node)
+            Host.Assert(internalNodeId == 0);
+
+            var tree = (
+                thresholds: internalNodeIndices.Select(x => (float)binThresholds[binIndices[x]]).ToArray(),
+                lteChild: lteChild.ToArray(),
+                gtChild: gtChild.ToArray());
+            return tree;
+        }
+
+        private int CreateBalancedTreeRecursive(int lower, int upper,
+            List<int> internalNodeIndices, List<int> lteChild, List<int> gtChild, ref int internalNodeId)
+        {
+            if (lower > upper)
+            {
+                // Base case: we've reached a leaf node
+                Host.Assert(lower == upper + 1);
+                return ~lower;
+            }
+            else
+            {
+                // This is postorder traversal algorithm and populating the internalNodeIndices/lte/gt lists in reverse.
+                // Preorder is the only option, because we need the results of both left/right recursions for populating the lists.
+                // As a result, lists are populated in reverse, because the root node should be the first item on the lists.
+                // Binary search tree algorithm (recursive splitting to half) is used for creating balanced tree.
+                var mid = (lower + upper) / 2;
+                var left = CreateBalancedTreeRecursive(
+                    lower, mid - 1, internalNodeIndices, lteChild, gtChild, ref internalNodeId);
+                var right = CreateBalancedTreeRecursive(
+                    mid + 1, upper, internalNodeIndices, lteChild, gtChild, ref internalNodeId);
+                internalNodeIndices.Insert(0, mid);
+                lteChild.Insert(0, left);
+                gtChild.Insert(0, right);
+                return --internalNodeId;
+            }
+        }
+        private static RegressionTree CreateRegressionTree(
+            int numLeaves, int[] splitFeatures, float[] rawThresholds, int[] lteChild, int[] gtChild, double[] leafValues)
+        {
+            var numInternalNodes = numLeaves - 1;
+            return RegressionTree.Create(
+                numLeaves: numLeaves,
+                splitFeatures: splitFeatures,
+                rawThresholds: rawThresholds,
+                lteChild: lteChild,
+                gtChild: gtChild.ToArray(),
+                leafValues: leafValues,
+                // Ignored arguments
+                splitGain: new double[numInternalNodes],
+                defaultValueForMissing: new float[numInternalNodes],
+                categoricalSplitFeatures: new int[numInternalNodes][],
+                categoricalSplit: new bool[numInternalNodes]);
         }
 
         /// <summary>
         /// The GAM model visualization command. Because the data access commands must access private members of
-        /// <see cref="GamPredictorBase"/>, it is convenient to have the command itself nested within the base
+        /// <see cref="GamModelParametersBase"/>, it is convenient to have the command itself nested within the base
         /// predictor class.
         /// </summary>
         internal sealed class VisualizationCommand : DataCommand.ImplBase<VisualizationCommand.Arguments>
@@ -1076,7 +1186,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             private sealed class Context
             {
-                private readonly GamPredictorBase _pred;
+                private readonly GamModelParametersBase _pred;
                 private readonly RoleMappedData _data;
 
                 private readonly VBuffer<ReadOnlyMemory<char>> _featNames;
@@ -1106,7 +1216,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 /// </summary>
                 public int NumFeatures => _pred._inputType.VectorSize;
 
-                public Context(IChannel ch, GamPredictorBase pred, RoleMappedData data, IEvaluator eval)
+                public Context(IChannel ch, GamModelParametersBase pred, RoleMappedData data, IEvaluator eval)
                 {
                     Contracts.AssertValue(ch);
                     ch.AssertValue(pred);
@@ -1117,11 +1227,12 @@ namespace Microsoft.ML.Trainers.FastTree
                     _pred = pred;
                     _data = data;
                     var schema = _data.Schema;
-                    ch.Check(schema.Feature.Type.ValueCount == _pred._inputLength);
+                    var featCol = schema.Feature.Value;
+                    ch.Check(featCol.Type.ValueCount == _pred._inputLength);
 
-                    int len = schema.Feature.Type.ValueCount;
-                    if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
-                        schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref _featNames);
+                    int len = featCol.Type.ValueCount;
+                    if (featCol.HasSlotNames(len))
+                        featCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _featNames);
                     else
                         _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 
@@ -1367,8 +1478,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     rawPred = calibrated.SubPredictor;
                     calibrated = rawPred as CalibratedPredictorBase;
                 }
-                var pred = rawPred as GamPredictorBase;
-                ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamPredictorBase));
+                var pred = rawPred as GamModelParametersBase;
+                ch.CheckUserArg(pred != null, nameof(Args.InputModelFile), "Predictor was not a " + nameof(GamModelParametersBase));
                 var data = new RoleMappedData(loader, schema.GetColumnRoleNames(), opt: true);
                 if (hadCalibrator && !string.IsNullOrWhiteSpace(Args.OutputModelFile))
                     ch.Warning("If you save the GAM model, only the GAM model, not the wrapping calibrator, will be saved.");
@@ -1376,7 +1487,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return new Context(ch, pred, data, InitEvaluator(pred));
             }
 
-            private IEvaluator InitEvaluator(GamPredictorBase pred)
+            private IEvaluator InitEvaluator(GamModelParametersBase pred)
             {
                 switch (pred.PredictionKind)
                 {

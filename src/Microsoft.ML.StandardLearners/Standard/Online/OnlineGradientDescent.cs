@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Learners;
+using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Online;
-using System;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(OnlineGradientDescentTrainer.Summary, typeof(OnlineGradientDescentTrainer), typeof(OnlineGradientDescentTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -53,10 +52,11 @@ namespace Microsoft.ML.Trainers.Online
 
             internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunction;
 
+            [BestFriend]
             internal class OgdDefaultArgs : AveragedDefaultArgs
             {
-                internal new const float LearningRate = 0.1f;
-                internal new const bool DecreaseLearningRate = true;
+                public new const float LearningRate = 0.1f;
+                public new const bool DecreaseLearningRate = true;
             }
         }
 

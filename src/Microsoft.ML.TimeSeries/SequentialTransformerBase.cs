@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.TimeSeries;
-using Microsoft.ML.Transforms;
 using System;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.TimeSeries;
+using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     /// <summary>
     /// The base class for sequential processing transforms. This class implements the basic sliding window buffering. The derived classes need to specify the transform logic,
@@ -386,7 +385,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
                     _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
                 _mapper = mapper;
-                _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
+                _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
             }
 
             public void CloneStateInMapper() => _mapper.CloneState();
@@ -448,9 +447,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return _transform.GetRowCount();
             }
 
-            public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
             {
-                consolidator = null;
                 return new RowCursor[] { GetRowCursorCore(predicate, rand) };
             }
 
@@ -470,7 +468,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return col => true;
@@ -505,7 +503,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(Utils.Size(getters) == schema.ColumnCount);
+                Contracts.Check(Utils.Size(getters) == schema.Count);
                 _schema = schema;
                 _input = input;
                 _getters = getters ?? new Delegate[0];
@@ -556,7 +554,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public Cursor(IHost host, SequentialDataTransform parent, RowCursor input)
                 : base(host, input)
             {
-                Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);
+                Ch.Assert(input.Schema.Count == parent.OutputSchema.Count);
                 _parent = parent;
             }
 
@@ -564,7 +562,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount, "col");
+                Ch.Check(0 <= col && col < Schema.Count, "col");
                 return Input.IsColumnActive(col);
             }
 
@@ -611,7 +609,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             Contracts.CheckValue(mapper, nameof(mapper));
             _mapper = mapper;
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, mapper.GetOutputColumns());
         }
 
         public static Schema GetOutputSchema(Schema inputSchema, IRowMapper mapper)
@@ -628,7 +626,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // _mapper
 
             ctx.LoadModel<IStatefulRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
-            _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(input.Schema, _mapper.GetOutputColumns());
         }
 
         public static TimeSeriesRowToRowMapperTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -660,12 +658,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         private bool[] GetActive(Func<int, bool> predicate, out Func<int, bool> predicateInput)
         {
-            int n = _bindings.Schema.ColumnCount;
+            int n = _bindings.Schema.Count;
             var active = Utils.BuildArray(n, predicate);
             Contracts.Assert(active.Length == n);
 
             var activeInput = _bindings.GetActiveInput(predicate);
-            Contracts.Assert(activeInput.Length == _bindings.InputSchema.ColumnCount);
+            Contracts.Assert(activeInput.Length == _bindings.InputSchema.Count);
 
             // Get a predicate that determines which outputs are active.
             var predicateOut = GetActiveOutputColumns(active);
@@ -683,7 +681,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private Func<int, bool> GetActiveOutputColumns(bool[] active)
         {
             Contracts.AssertValue(active);
-            Contracts.Assert(active.Length == _bindings.Schema.ColumnCount);
+            Contracts.Assert(active.Length == _bindings.Schema.Count);
 
             return
                 col =>
@@ -708,7 +706,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new Cursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -716,11 +714,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
 
-            var inputs = Source.GetRowCursorSet(out consolidator, predicateInput, n, rand);
+            var inputs = Source.GetRowCursorSet(predicateInput, n, rand);
             Host.AssertNonEmpty(inputs);
 
             if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))
-                inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
+                inputs = DataViewUtils.CreateSplitCursors(Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
             var cursors = new RowCursor[inputs.Length];
@@ -766,8 +764,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             using (var ch = Host.Start("GetEntireRow"))
             {
-                var activeArr = new bool[OutputSchema.ColumnCount];
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                var activeArr = new bool[OutputSchema.Count];
+                for (int i = 0; i < OutputSchema.Count; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out Action disp);
@@ -858,7 +856,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < _bindings.Schema.ColumnCount);
+                Ch.Check(0 <= col && col < _bindings.Schema.Count);
                 return _active[col];
             }
 

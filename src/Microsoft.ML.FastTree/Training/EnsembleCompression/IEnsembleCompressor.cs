@@ -1,10 +1,6 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="FileObjectStore.cs" company="Microsoft">
-//     Copyright (C) All Rights Reserved
-// </copyright>
-// -----------------------------------------------------------------------
-
-using Microsoft.ML.Runtime;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {

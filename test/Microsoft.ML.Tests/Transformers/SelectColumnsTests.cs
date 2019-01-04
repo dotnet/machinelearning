@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
 using System;
 using System.IO;
+using Microsoft.ML.Data;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Tools;
+using Microsoft.ML.Transforms;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Copied columns should equal AABBC, however we chose to keep A and C
             // so the result is AC
-            Assert.Equal(2, result.Schema.ColumnCount);
+            Assert.Equal(2, result.Schema.Count);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
             var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
             var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Input for SelectColumns should be AABBC, we chose to keep A and B
             // and keep hidden columns is true, therefore the output should be AABB
-            Assert.Equal(4, result.Schema.ColumnCount);
+            Assert.Equal(4, result.Schema.Count);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
             var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
             var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
@@ -184,9 +184,9 @@ namespace Microsoft.ML.Tests.Transformers
                 ms.Position = 0;
                 var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
                 var result = loadedTransformer.Transform(dataView);
-                Assert.Equal(2, result.Schema.ColumnCount);
-                Assert.Equal("A", result.Schema.GetColumnName(0));
-                Assert.Equal("B", result.Schema.GetColumnName(1));
+                Assert.Equal(2, result.Schema.Count);
+                Assert.Equal("A", result.Schema[0].Name);
+                Assert.Equal("B", result.Schema[1].Name);
             }
         }
 
@@ -204,9 +204,9 @@ namespace Microsoft.ML.Tests.Transformers
                 ms.Position = 0;
                 var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
                 var result = loadedTransformer.Transform(dataView);
-                Assert.Equal(2, result.Schema.ColumnCount);
-                Assert.Equal("A", result.Schema.GetColumnName(0));
-                Assert.Equal("B", result.Schema.GetColumnName(1));
+                Assert.Equal(2, result.Schema.Count);
+                Assert.Equal("A", result.Schema[0].Name);
+                Assert.Equal("B", result.Schema[1].Name);
             }
         }
 
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (FileStream fs = File.OpenRead(chooseModelPath))
             {
                 var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
-                Assert.Equal(6, result.Schema.ColumnCount);
+                Assert.Equal(6, result.Schema.Count);
                 var foundColumnFeature = result.Schema.TryGetColumnIndex("Features", out int featureIdx);
                 var foundColumnLabel = result.Schema.TryGetColumnIndex("Label", out int labelIdx);
                 var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);

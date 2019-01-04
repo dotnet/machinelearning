@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 using System;
 using System.IO;
 using System.Text;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Transforms.Conversions
 {
@@ -66,7 +64,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 // of building our term dictionary. For the other types (practically, only the UX types),
                 // we should ignore nothing.
                 InPredicate<T> mapsToMissing;
-                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type, out mapsToMissing))
+                if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type, out mapsToMissing))
                     mapsToMissing = (in T val) => false;
                 return new Impl<T>(type, mapsToMissing, sorted);
             }
@@ -206,7 +204,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public override void ParseAddTermArg(ref ReadOnlyMemory<char> terms, IChannel ch)
             {
                 T val;
-                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
+                var tryParse = Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
                 for (bool more = true; more;)
                 {
                     ReadOnlyMemory<char> term;
@@ -232,7 +230,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public override void ParseAddTermArg(string[] terms, IChannel ch)
             {
                 T val;
-                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
+                var tryParse = Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
                 foreach (var sterm in terms)
                 {
                     ReadOnlyMemory<char> term = sterm.AsMemory();
@@ -284,11 +282,11 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 Contracts.AssertValue(row);
                 var schema = row.Schema;
-                Contracts.Assert(0 <= col && col < schema.ColumnCount);
+                Contracts.Assert(0 <= col && col < schema.Count);
                 Contracts.Assert(count > 0);
                 Contracts.AssertValue(bldr);
 
-                var type = schema.GetColumnType(col);
+                var type = schema[col].Type;
                 Contracts.Assert(autoConvert || bldr.ItemType == type.ItemType);
                 // Auto conversion should only be possible when the type is text.
                 Contracts.Assert(type.IsText || !autoConvert);
@@ -747,7 +745,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     writer.WriteLine("# Number of terms of type '{0}' = {1}", ItemType, Count);
                     StringBuilder sb = null;
-                    var stringMapper = Runtime.Data.Conversion.Conversions.Instance.GetStringConversion<T>(ItemType);
+                    var stringMapper = Data.Conversion.Conversions.Instance.GetStringConversion<T>(ItemType);
                     for (int i = 0; i < _values.Count; ++i)
                     {
                         T val = _values.GetItem(i);
@@ -1045,7 +1043,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         return;
                     if (IsTextMetadata && !TypedMap.ItemType.IsText)
                     {
-                        var conv = Runtime.Data.Conversion.Conversions.Instance;
+                        var conv = Data.Conversion.Conversions.Instance;
                         var stringMapper = conv.GetStringConversion<T>(TypedMap.ItemType);
 
                         ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
@@ -1088,7 +1086,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
-                    ColumnType srcMetaType = _schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
+                    ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
                         TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
@@ -1105,7 +1103,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
-                    var convInst = Runtime.Data.Conversion.Conversions.Instance;
+                    var convInst = Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;
                     // If we can't convert this type to U4, don't try to pass along the metadata.
@@ -1117,7 +1115,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         (ref VBuffer<TMeta> dst) =>
                         {
                             VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
-                            _schema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref srcMeta);
+                            _schema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref srcMeta);
                             _host.Assert(srcMeta.Length == srcType.Count);
 
                             VBuffer<T> keyVals = default(VBuffer<T>);
@@ -1168,7 +1166,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
-                    ColumnType srcMetaType = _schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
+                    ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
                         TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
                     {
@@ -1184,7 +1182,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
-                    var convInst = Runtime.Data.Conversion.Conversions.Instance;
+                    var convInst = Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;
                     // If we can't convert this type to U4, don't try.
@@ -1193,7 +1191,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
 
                     VBuffer<TMeta> srcMeta = default(VBuffer<TMeta>);
-                    _schema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref srcMeta);
+                    _schema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref srcMeta);
                     if (srcMeta.Length != srcType.Count)
                         return false;
 

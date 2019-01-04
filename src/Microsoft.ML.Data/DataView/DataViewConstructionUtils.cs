@@ -2,17 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A helper class to create data views based on the user-provided types.
@@ -148,14 +145,14 @@ namespace Microsoft.ML.Runtime.Data
                 Host.AssertValue(schemaDef);
                 Host.AssertValue(peeks);
                 Host.AssertValue(predicate);
-                Host.Assert(schema.ColumnCount == schemaDef.Columns.Length);
-                Host.Assert(schema.ColumnCount == peeks.Length);
+                Host.Assert(schema.Count == schemaDef.Columns.Length);
+                Host.Assert(schema.Count == peeks.Length);
 
-                _colCount = schema.ColumnCount;
+                _colCount = schema.Count;
                 Schema = schema;
                 _getters = new Delegate[_colCount];
                 for (int c = 0; c < _colCount; c++)
-                    _getters[c] = predicate(c) ? CreateGetter(schema.GetColumnType(c), schemaDef.Columns[c], peeks[c]) : null;
+                    _getters[c] = predicate(c) ? CreateGetter(schema[c].Type, schemaDef.Columns[c], peeks[c]) : null;
             }
 
             //private Delegate CreateGetter(SchemaProxy schema, int index, Delegate peek)
@@ -399,10 +396,8 @@ namespace Microsoft.ML.Runtime.Data
 
             public abstract RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null);
 
-            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
-                int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
             {
-                consolidator = null;
                 return new[] { GetRowCursor(predicate, rand) };
             }
 

@@ -3,18 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(NopTransform.Summary, typeof(NopTransform), null, typeof(SignatureLoadDataTransform),
     "", NopTransform.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(NopTransform), null, typeof(SignatureEntryPointModule), "NopTransform")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// A transform that does nothing.
@@ -123,9 +122,9 @@ namespace Microsoft.ML.Runtime.Data
             return Source.GetRowCursor(predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
-            return Source.GetRowCursorSet(out consolidator, predicate, n, rand);
+            return Source.GetRowCursorSet(predicate, n, rand);
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)

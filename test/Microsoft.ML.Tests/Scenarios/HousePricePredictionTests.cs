@@ -53,67 +53,67 @@ namespace Microsoft.ML.Scenarios
 
         public class HousePriceData
         {
-            [Column(ordinal: "0")]
+            [LoadColumn(0)]
             public string Id;
 
-            [Column(ordinal: "1")]
+            [LoadColumn(1)]
             public string Date;
 
-            [Column(ordinal: "2", name: "Label")]
+            [LoadColumn(2), ColumnName("Label")]
             public float Price;
 
-            [Column(ordinal: "3")]
+            [LoadColumn(3)]
             public float Bedrooms;
 
-            [Column(ordinal: "4")]
+            [LoadColumn(4)]
             public float Bathrooms;
 
-            [Column(ordinal: "5")]
+            [LoadColumn(5)]
             public float SqftLiving;
 
-            [Column(ordinal: "6")]
+            [LoadColumn(6)]
             public float SqftLot;
 
-            [Column(ordinal: "7")]
+            [LoadColumn(7)]
             public float Floors;
 
-            [Column(ordinal: "8")]
+            [LoadColumn(8)]
             public float Waterfront;
 
-            [Column(ordinal: "9")]
+            [LoadColumn(9)]
             public float View;
 
-            [Column(ordinal: "10")]
+            [LoadColumn(10)]
             public float Condition;
 
-            [Column(ordinal: "11")]
+            [LoadColumn(11)]
             public float Grade;
 
-            [Column(ordinal: "12")]
+            [LoadColumn(12)]
             public float SqftAbove;
 
-            [Column(ordinal: "13")]
+            [LoadColumn(13)]
             public float SqftBasement;
 
-            [Column(ordinal: "14")]
+            [LoadColumn(14)]
             public float YearBuilt;
 
-            [Column(ordinal: "15")]
+            [LoadColumn(15)]
             public float YearRenovated;
 
-            [Column(ordinal: "16")]
+            [LoadColumn(16)]
             public float Zipcode;
 
-            [Column(ordinal: "17")]
+            [LoadColumn(17)]
             public float Lat;
 
-            [Column(ordinal: "18")]
+            [LoadColumn(18)]
             public float Long;
 
-            [Column(ordinal: "19")]
+            [LoadColumn(19)]
             public float SqftLiving15;
 
-            [Column(ordinal: "20")]
+            [LoadColumn(20)]
             public float SqftLot15;
         }
 

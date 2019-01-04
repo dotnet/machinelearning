@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
 #pragma warning disable MSML_GeneralName // This structure should be deprecated anyway.
     // REVIEW: Get rid of this. Everything should be in the ArgumentAttribute (or a class

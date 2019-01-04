@@ -3,14 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     // REVIEW: Currently, to enable shuffling, we require the row counts of the sources to be known.
     // We can think of the shuffling in AppendRowsDataView as a two-stage process:
@@ -109,10 +106,10 @@ namespace Microsoft.ML.Runtime.Data
             const string errMsg = "Inconsistent schema: all source dataviews must have identical column names, sizes, and item types.";
 
             int startingSchemaIndex = _schema == _sources[0].Schema ? 1 : 0;
-            int colCount = _schema.ColumnCount;
+            int colCount = _schema.Count;
 
             // Check if the column counts are identical.
-            _host.Check(_sources.All(source => source.Schema.ColumnCount == colCount), errMsg);
+            _host.Check(_sources.All(source => source.Schema.Count == colCount), errMsg);
 
             for (int c = 0; c < colCount; c++)
             {
@@ -122,8 +119,8 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = startingSchemaIndex; i < _sources.Length; i++)
                 {
                     var schema = _sources[i].Schema;
-                    _host.Check(schema.GetColumnName(c) == name, errMsg);
-                    _host.Check(schema.GetColumnType(c).SameSizeAndItemType(type), errMsg);
+                    _host.Check(schema[c].Name == name, errMsg);
+                    _host.Check(schema[c].Type.SameSizeAndItemType(type), errMsg);
                 }
             }
         }
@@ -154,9 +151,8 @@ namespace Microsoft.ML.Runtime.Data
             return new RandCursor(this, needCol, rand, _counts);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
-            consolidator = null;
             return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
@@ -175,7 +171,7 @@ namespace Microsoft.ML.Runtime.Data
                 Sources = parent._sources;
                 Ch.AssertNonEmpty(Sources);
                 Schema = parent._schema;
-                Getters = new Delegate[Schema.ColumnCount];
+                Getters = new Delegate[Schema.Count];
             }
 
             protected Delegate CreateGetter(int col)
@@ -199,7 +195,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public sealed override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount, "Column index is out of range");
+                Ch.Check(0 <= col && col < Schema.Count, "Column index is out of range");
                 return Getters[col] != null;
             }
         }

@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.CommandLine
+namespace Microsoft.ML.CommandLine
 {
     /// <summary>
     /// Used to control parsing of command line arguments.

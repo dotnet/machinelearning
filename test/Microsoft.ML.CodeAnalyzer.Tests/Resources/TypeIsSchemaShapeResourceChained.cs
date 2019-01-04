@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 
 namespace Bubba
@@ -11,34 +11,34 @@ namespace Bubba
     {
         public static void Bar()
         {
-            DataReader<IMultiStreamSource, T> Foo1<T>(Func<TextLoader.Context, T> m)
+            DataReader<IMultiStreamSource, T> Foo1<T>(Func<TextLoaderStatic.Context, T> m)
             {
                 IHostEnvironment env = null;
                 // We ought to fail here.
-                return TextLoader.CreateReader(env, m);
+                return TextLoaderStatic.CreateReader(env, m);
             }
 
-            DataReader<IMultiStreamSource, T> Foo2<[IsShape] T>(Func<TextLoader.Context, T> m)
+            DataReader<IMultiStreamSource, T> Foo2<[IsShape] T>(Func<TextLoaderStatic.Context, T> m)
             {
                 IHostEnvironment env = null;
                 // We ought not to fail here due to that [IsShape], but calls to this method might fail.
-                return TextLoader.CreateReader(env, m);
+                return TextLoaderStatic.CreateReader(env, m);
             }
 
-            DataReader<IMultiStreamSource, T> Foo3<T>(Func<TextLoader.Context, T> m)
+            DataReader<IMultiStreamSource, T> Foo3<T>(Func<TextLoaderStatic.Context, T> m)
                 where T : PipelineColumn
             {
                 IHostEnvironment env = null;
                 // This should work.
-                return TextLoader.CreateReader(env, m);
+                return TextLoaderStatic.CreateReader(env, m);
             }
 
-            DataReader<IMultiStreamSource, T> Foo4<T>(Func<TextLoader.Context, T> m)
+            DataReader<IMultiStreamSource, T> Foo4<T>(Func<TextLoaderStatic.Context, T> m)
                 where T : IEnumerable<int>
             {
                 IHostEnvironment env = null;
                 // This should not work.
-                return TextLoader.CreateReader(env, m);
+                return TextLoaderStatic.CreateReader(env, m);
             }
 
             void Scratch()

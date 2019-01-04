@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Reflection;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 using Float = System.Single;
 
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Arguments), typeof(SignatureDataTransform),
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Transforms
 
             using (var ch = Host.Start("Checking parameters"))
             {
-                _type = schema.GetColumnType(_index);
+                _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
                     throw ch.ExceptUserArg(nameof(args.Column), "Column '{0}' does not have compatible type", args.Column);
                 if (_type.IsKey)
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms
             if (!schema.TryGetColumnIndex(column, out _index))
                 throw Host.Except("column", "Source column '{0}' not found", column);
 
-            _type = schema.GetColumnType(_index);
+            _type = schema[_index].Type;
             if (_type != NumberType.R4 && _type != NumberType.R8 && _type.KeyCount == 0)
                 throw Host.Except("column", "Column '{0}' does not have compatible type", column);
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Transforms
             // byte: includeMin
             // byte: includeMax
             ctx.Writer.Write(sizeof(Float));
-            ctx.SaveNonEmptyString(Source.Schema.GetColumnName(_index));
+            ctx.SaveNonEmptyString(Source.Schema[_index].Name);
             Host.Assert(_min < _max);
             ctx.Writer.Write(_min);
             ctx.Writer.Write(_max);
@@ -215,15 +215,14 @@ namespace Microsoft.ML.Transforms
             return CreateCursorCore(input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
             bool[] active;
             Func<int, bool> inputPred = GetActive(predicate, out active);
-            var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
+            var inputs = Source.GetRowCursorSet(inputPred, n, rand);
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
@@ -246,8 +245,8 @@ namespace Microsoft.ML.Transforms
         private Func<int, bool> GetActive(Func<int, bool> predicate, out bool[] active)
         {
             Host.AssertValue(predicate);
-            active = new bool[Source.Schema.ColumnCount];
-            bool[] activeInput = new bool[Source.Schema.ColumnCount];
+            active = new bool[Source.Schema.Count];
+            bool[] activeInput = new bool[Source.Schema.Count];
             for (int i = 0; i < active.Length; i++)
                 activeInput[i] = active[i] = predicate(i);
             activeInput[_index] = true;
@@ -307,7 +306,7 @@ namespace Microsoft.ML.Transforms
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount);
+                Ch.Check(0 <= col && col < Schema.Count);
                 Ch.Check(IsColumnActive(col));
 
                 if (col != Parent._index)
@@ -421,7 +420,7 @@ namespace Microsoft.ML.Transforms
                         dst = _value;
                     };
                 bool identity;
-                _conv = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberType.U8, out identity);
+                _conv = Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberType.U8, out identity);
             }
 
             protected override Delegate GetGetter()

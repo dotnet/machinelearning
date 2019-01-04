@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
-using Microsoft.ML.InternalCodeAnalyzer;
 using Xunit;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests

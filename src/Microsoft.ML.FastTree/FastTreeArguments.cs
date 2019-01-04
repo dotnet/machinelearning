@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Trainers.FastTree;
 using System;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.FastTree;
 
 [assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Arguments))]
 [assembly: EntryPointModule(typeof(FastTreeRegressionTrainer.Arguments))]
@@ -139,12 +138,13 @@ namespace Microsoft.ML.Trainers.FastTree
         Adjacent = 2
     }
 
+    [BestFriend]
     internal static class Defaults
     {
-        internal const int NumTrees = 100;
-        internal const int NumLeaves = 20;
-        internal const int MinDocumentsInLeaves = 10;
-        internal const double LearningRates = 0.2;
+        public const int NumTrees = 100;
+        public const int NumLeaves = 20;
+        public const int MinDocumentsInLeaves = 10;
+        public const double LearningRates = 0.2;
     }
 
     public abstract class TreeArgs : LearnerInputBaseWithGroupId

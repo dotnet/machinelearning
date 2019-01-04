@@ -1,24 +1,23 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FactorizationMachine;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.RunTests;
+using System;
+using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.FactorizationMachine;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Learners;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.Recommender;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
-using System;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -39,7 +38,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -69,8 +68,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
 
         [Fact]
@@ -82,7 +81,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var ctx = new RegressionContext(env);
 
             // Here we introduce another column called "Score" to collide with the name of the default output. Heh heh heh...
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10), Score: c.LoadText(2)),
                 separator: ';', hasHeader: true);
 
@@ -97,10 +96,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Now, let's see if that column is still there, and still text!
             var schema = data.AsDynamic.Schema;
             Assert.True(schema.TryGetColumnIndex("Score", out int scoreCol), "Score column not present!");
-            Assert.Equal(TextType.Instance, schema.GetColumnType(scoreCol));
+            Assert.Equal(TextType.Instance, schema[scoreCol].Type);
 
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
 
         [Fact]
@@ -111,7 +110,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             LinearBinaryModelParameters pred = null;
@@ -145,8 +144,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
 
         [Fact]
@@ -157,7 +156,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             LinearBinaryModelParameters pred = null;
@@ -189,8 +188,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
         }
 
         [Fact]
@@ -201,7 +200,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             LinearBinaryModelParameters pred = null;
@@ -237,7 +236,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             LinearBinaryModelParameters pred = null;
@@ -273,10 +272,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features1: c.LoadFloat(1, 4), features2: c.LoadFloat(5, 9)));
 
-            FieldAwareFactorizationMachinePredictor pred = null;
+            FieldAwareFactorizationMachineModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -305,10 +304,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionPredictor pred = null;
+            MulticlassLogisticRegressionModelParameters pred = null;
 
             var loss = new HingeLoss(1);
 
@@ -339,8 +338,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
@@ -355,7 +354,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
             var est = reader.MakeNewEstimator()
@@ -379,7 +378,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             IPredictorWithFeatureWeights<float> pred = null;
@@ -419,7 +418,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -460,7 +459,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             IPredictorWithFeatureWeights<float> pred = null;
@@ -501,7 +500,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -543,7 +542,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -585,7 +584,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             IPredictorWithFeatureWeights<float> pred = null;
@@ -624,10 +623,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MulticlassLogisticRegressionPredictor pred = null;
+            MulticlassLogisticRegressionModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -652,8 +651,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
@@ -669,7 +668,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
 
@@ -710,7 +709,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
             KMeansModelParameters pred = null;
@@ -767,7 +766,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RankingContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
                 separator: '\t', hasHeader: true);
 
@@ -808,7 +807,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var ctx = new RankingContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
                 separator: '\t', hasHeader: true);
 
@@ -848,10 +847,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            OvaPredictor pred = null;
+            OvaModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -870,8 +869,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
@@ -886,10 +885,10 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new MulticlassClassificationContext(env);
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            MultiClassNaiveBayesPredictor pred = null;
+            MultiClassNaiveBayesModelParameters pred = null;
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -915,8 +914,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int c = 0; c < schema.Count; ++c)
+                Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
@@ -931,7 +930,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
 
-            var reader = TextLoader.CreateReader(env,
+            var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
 
             IPredictorWithFeatureWeights<float> pred = null;

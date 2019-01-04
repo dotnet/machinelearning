@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.TestFramework;
 using System;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -28,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios
             
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var env = new MLContext();
-            var data = TextLoader.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateReader(env, ctx => (
                 floatScalar: ctx.LoadFloat(1),
                 floatVector: ctx.LoadFloat(2, 6),
                 stringScalar: ctx.LoadText(4),
