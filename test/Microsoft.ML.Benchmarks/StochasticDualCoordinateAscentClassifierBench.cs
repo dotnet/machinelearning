@@ -7,10 +7,9 @@ using System.Globalization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using Microsoft.ML.Data;
-using Microsoft.ML.Legacy.Models;
-using Microsoft.ML.Legacy.Trainers;
-using Microsoft.ML.Legacy.Transforms;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
@@ -22,7 +21,6 @@ namespace Microsoft.ML.Benchmarks
         private readonly string _sentimentDataPath = Program.GetInvariantCultureDataPath("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
-        private readonly int[] _batchSizes = new int[] { 1, 2, 5 };
         private readonly IrisData _example = new IrisData()
         {
             SepalLength = 3.3f,
@@ -31,31 +29,42 @@ namespace Microsoft.ML.Benchmarks
             PetalWidth = 5.1f,
         };
 
-        private Legacy.PredictionModel<IrisData, IrisPrediction> _trainedModel;
-        private IrisData[][] _batches;
-        private ClassificationMetrics _metrics;
+        private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> _trainedModel;
+        private PredictionEngine<IrisData, IrisPrediction> _predictionEngine;
+        private MultiClassClassifierMetrics _metrics;
 
         protected override IEnumerable<Metric> GetMetrics()
         {
             if (_metrics != null)
                 yield return new Metric(
-                    nameof(ClassificationMetrics.AccuracyMacro),
+                    nameof(MultiClassClassifierMetrics.AccuracyMacro),
                     _metrics.AccuracyMacro.ToString("0.##", CultureInfo.InvariantCulture));
         }
 
         [Benchmark]
-        public Legacy.PredictionModel<IrisData, IrisPrediction> TrainIris() => Train(_dataPath);
+        public TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> TrainIris() => Train(_dataPath);
 
-        private Legacy.PredictionModel<IrisData, IrisPrediction> Train(string dataPath)
+        private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
         {
-            var pipeline = new Legacy.LearningPipeline();
+            var env = new MLContext(seed: 1, conc: 1);
+            var reader = new TextLoader(env,
+                    columns: new[]
+                    {
+                            new TextLoader.Column("Label", DataKind.R4, 0),
+                            new TextLoader.Column("SepalLength", DataKind.R4, 1),
+                            new TextLoader.Column("SepalWidth", DataKind.R4, 2),
+                            new TextLoader.Column("PetalLength", DataKind.R4, 3),
+                            new TextLoader.Column("PetalWidth", DataKind.R4, 4),
+                    },
+                    hasHeader: true
+                );
 
-            pipeline.Add(new Legacy.Data.TextLoader(dataPath).CreateFrom<IrisData>(useHeader: true));
-            pipeline.Add(new ColumnConcatenator(outputColumn: "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
+            IDataView data = reader.Read(dataPath);
 
-            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
+            var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(new SdcaMultiClassTrainer(env, "Label", "Features"));
 
-            return pipeline.Train<IrisData, IrisPrediction>();
+            return pipeline.Fit(data);
         }
 
         [Benchmark]
@@ -123,39 +132,34 @@ namespace Microsoft.ML.Benchmarks
             _consumer.Consume(predicted);
         }
 
-        [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]
+        [GlobalSetup(Target = nameof(PredictIris))]
         public void SetupPredictBenchmarks()
         {
+            var env = new MLContext(seed: 1, conc: 1);
             _trainedModel = Train(_dataPath);
-            _consumer.Consume(_trainedModel.Predict(_example));
+            _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(env);
+            _consumer.Consume(_predictionEngine.Predict(_example));
 
-            var testData = new Legacy.Data.TextLoader(_dataPath).CreateFrom<IrisData>(useHeader: true);
-            var evaluator = new ClassificationEvaluator();
-            _metrics = evaluator.Evaluate(_trainedModel, testData);
+            var reader = new TextLoader(env,
+                    columns: new[]
+                    {
+                            new TextLoader.Column("Label", DataKind.R4, 0),
+                            new TextLoader.Column("SepalLength", DataKind.R4, 1),
+                            new TextLoader.Column("SepalWidth", DataKind.R4, 2),
+                            new TextLoader.Column("PetalLength", DataKind.R4, 3),
+                            new TextLoader.Column("PetalWidth", DataKind.R4, 4),
+                    },
+                    hasHeader: true
+                );
 
-            _batches = new IrisData[_batchSizes.Length][];
-            for (int i = 0; i < _batches.Length; i++)
-            {
-                var batch = new IrisData[_batchSizes[i]];
-                _batches[i] = batch;
-                for (int bi = 0; bi < batch.Length; bi++)
-                {
-                    batch[bi] = _example;
-                }
-            }
+            IDataView testData = reader.Read(_dataPath);
+            IDataView scoredTestData = _trainedModel.Transform(testData);
+            var evaluator = new MultiClassClassifierEvaluator(env, new MultiClassClassifierEvaluator.Arguments());
+            _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
         }
 
         [Benchmark]
-        public float[] PredictIris() => _trainedModel.Predict(_example).PredictedLabels;
-
-        [Benchmark]
-        public void PredictIrisBatchOf1() => Consume(_trainedModel.Predict(_batches[0]));
-
-        [Benchmark]
-        public void PredictIrisBatchOf2() => Consume(_trainedModel.Predict(_batches[1]));
-
-        [Benchmark]
-        public void PredictIrisBatchOf5() => Consume(_trainedModel.Predict(_batches[2]));
+        public float[] PredictIris() => _predictionEngine.Predict(_example).PredictedLabels;
 
         private void Consume(IEnumerable<IrisPrediction> predictions)
         {
