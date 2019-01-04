@@ -18,7 +18,6 @@
       https://api.nuget.org/v3/index.json;
       https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
       https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
-      https://www.myget.org/F/onnxruntime-dev/api/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
 
