@@ -114,7 +114,6 @@ namespace Microsoft.ML.Model.Onnx
             }
         }
 
-        [BestFriend]
         internal static void GetPipe(OnnxContextImpl ctx, IChannel ch, IDataView end, out IDataView source, out IDataView trueEnd, out LinkedList<ITransformCanSaveOnnx> transforms)
         {
             Contracts.AssertValue(end);
@@ -140,7 +139,6 @@ namespace Microsoft.ML.Model.Onnx
             Contracts.AssertValue(source);
         }
 
-        [BestFriend]
         internal static ModelProto ConvertTransformListToOnnxModel(OnnxContextImpl ctx, IDataView inputData, IDataView outputData,
             LinkedList<ITransformCanSaveOnnx> transforms, HashSet<string> inputColumnNamesToDrop=null, HashSet<string> outputColumnNamesToDrop=null)
         {

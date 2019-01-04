@@ -17,12 +17,15 @@ namespace Microsoft.ML
 
         public ExplainabilityTransforms Explainability { get; }
 
+        public PortabilityTransforms Portability { get; }
+
         internal ModelOperationsCatalog(IHostEnvironment env)
         {
             Contracts.AssertValue(env);
             Environment = env;
 
             Explainability = new ExplainabilityTransforms(this);
+            Portability = new PortabilityTransforms(this);
         }
 
         public abstract class SubCatalogBase
@@ -33,7 +36,6 @@ namespace Microsoft.ML
             {
                 Environment = owner.Environment;
             }
-
         }
 
         /// <summary>
@@ -56,6 +58,17 @@ namespace Microsoft.ML
         public sealed class ExplainabilityTransforms : SubCatalogBase
         {
             internal ExplainabilityTransforms(ModelOperationsCatalog owner) : base(owner)
+            {
+            }
+        }
+
+        /// <summary>
+        /// The catalog of model protability operations. Member function of this classes are able to convert the associated object to a protable format,
+        /// so that the fitted pipeline can easily be depolyed to other platforms. Currently, the only supported format is ONNX (https://github.com/onnx/onnx).
+        /// </summary>
+        public sealed class PortabilityTransforms : SubCatalogBase
+        {
+            internal PortabilityTransforms(ModelOperationsCatalog owner) : base(owner)
             {
             }
         }

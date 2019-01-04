@@ -1,11 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
-using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.UniversalModelFormat.Onnx;
@@ -43,7 +41,7 @@ namespace Microsoft.ML.Tests
 
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var mlContext = new MLContext();
+            var mlContext = new MLContext(seed: 1, conc: 1);
             var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
                 hasHeader: true,
                 separatorChar: ';'
@@ -57,7 +55,7 @@ namespace Microsoft.ML.Tests
             var transformedData = model.Transform(data);
 
             // Step 2: Convert ML.NET model to ONNX format and save it as a file.
-            var onnxModel = TransformerChainOnnxConverter.Convert(model, data);
+            var onnxModel = mlContext.Model.Portability.ConvertToOnnx(model, data);
             var onnxFileName = "model.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
             SaveOnnxModel(onnxModel, onnxModelPath, null);
@@ -93,7 +91,7 @@ namespace Microsoft.ML.Tests
 
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1);
+            var mlContext = new MLContext(seed: 1, conc: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
@@ -113,7 +111,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);
 
-            var onnxModel = TransformerChainOnnxConverter.Convert(model, data);
+            var onnxModel = mlContext.Model.Portability.ConvertToOnnx(model, data);
 
             var onnxFileName = "model.onnx";
             var onnxModelPath = GetOutputPath(onnxFileName);
