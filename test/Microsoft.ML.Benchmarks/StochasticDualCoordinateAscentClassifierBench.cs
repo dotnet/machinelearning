@@ -21,6 +21,8 @@ namespace Microsoft.ML.Benchmarks
         private readonly string _sentimentDataPath = Program.GetInvariantCultureDataPath("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
+        private readonly int[] _batchSizes = new int[] { 1, 2, 5 };
+
         private readonly IrisData _example = new IrisData()
         {
             SepalLength = 3.3f,
@@ -31,6 +33,7 @@ namespace Microsoft.ML.Benchmarks
 
         private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> _trainedModel;
         private PredictionEngine<IrisData, IrisPrediction> _predictionEngine;
+        private IrisData[][] _batches;
         private MultiClassClassifierMetrics _metrics;
 
         protected override IEnumerable<Metric> GetMetrics()
@@ -132,7 +135,7 @@ namespace Microsoft.ML.Benchmarks
             _consumer.Consume(predicted);
         }
 
-        [GlobalSetup(Target = nameof(PredictIris))]
+        [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]
         public void SetupPredictBenchmarks()
         {
             var env = new MLContext(seed: 1, conc: 1);
@@ -156,15 +159,41 @@ namespace Microsoft.ML.Benchmarks
             IDataView scoredTestData = _trainedModel.Transform(testData);
             var evaluator = new MultiClassClassifierEvaluator(env, new MultiClassClassifierEvaluator.Arguments());
             _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
+
+            _batches = new IrisData[_batchSizes.Length][];
+            for (int i = 0; i < _batches.Length; i++)
+            {
+                var batch = new IrisData[_batchSizes[i]];
+                for (int bi = 0; bi < batch.Length; bi++)
+                {
+                    batch[bi] = _example;
+                }
+                _batches[i] = batch;
+            }
         }
 
         [Benchmark]
         public float[] PredictIris() => _predictionEngine.Predict(_example).PredictedLabels;
 
-        private void Consume(IEnumerable<IrisPrediction> predictions)
+        [Benchmark]
+        public void PredictIrisBatchOf1()
         {
-            foreach (var prediction in predictions)
-                _consumer.Consume(prediction);
+            var env = new MLContext(seed: 1, conc: 1);
+            _trainedModel.Transform(env.CreateStreamingDataView(_batches[0]));
+        }
+
+        [Benchmark]
+        public void PredictIrisBatchOf2()
+        {
+            var env = new MLContext(seed: 1, conc: 1);
+            _trainedModel.Transform(env.CreateStreamingDataView(_batches[1]));
+        }
+
+        [Benchmark]
+        public void PredictIrisBatchOf5()
+        {
+            var env = new MLContext(seed: 1, conc: 1);
+            _trainedModel.Transform(env.CreateStreamingDataView(_batches[2]));
         }
     }
 
