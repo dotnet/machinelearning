@@ -72,14 +72,6 @@ namespace Microsoft.ML.Data
         internal DataKind RawKind { get; }
 
         /// <summary>
-        /// Whether this type is a standard scalar type completely determined by its <see cref="RawType"/>
-        /// (not a <see cref="KeyType"/> or <see cref="StructuredType"/>, etc).
-        /// </summary>
-        [BestFriend]
-        internal bool IsStandardScalar => (this is NumberType)|| (this is TextType) || (this is BoolType) ||
-            (this is TimeSpanType) || (this is DateTimeType) || (this is DateTimeOffsetType);
-
-        /// <summary>
         /// Whether this type is a key type, which implies that the order of values is not significant,
         /// and arithmetic is non-sensical. A key type can define a cardinality.
         /// External code should use <c>is <see cref="KeyType"/></c>.
