@@ -177,8 +177,10 @@ namespace Microsoft.ML.Transforms.Categorical
 
         internal OneHotHashEncoding(HashingEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
         {
-            var chain = hash.Append(keyToVector);
-            _transformer = chain.Fit(input);
+            if (keyToVector != null)
+                _transformer = hash.Append(keyToVector).Fit(input);
+            else
+                _transformer = new TransformerChain<ITransformer>(hash.Fit(input));
         }
 
         public Schema GetOutputSchema(Schema inputSchema) => _transformer.GetOutputSchema(inputSchema);
@@ -312,7 +314,13 @@ namespace Microsoft.ML.Transforms.Categorical
             }
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _hash.Append(_toSomething).GetOutputSchema(inputSchema);
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            if (_toSomething != null)
+                return _hash.Append(_toSomething).GetOutputSchema(inputSchema);
+            else
+                return _hash.GetOutputSchema(inputSchema);
+        }
 
         public OneHotHashEncoding Fit(IDataView input) => new OneHotHashEncoding(_hash, _toSomething, input);
     }
