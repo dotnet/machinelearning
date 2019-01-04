@@ -46,13 +46,13 @@ namespace Microsoft.ML.Data
         public static Delegate GetGetterAs(ColumnType typeDst, Row row, int col)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsPrimitive, nameof(typeDst));
+            Contracts.CheckParam(typeDst is PrimitiveType, nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<int>> del = GetGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeDst.RawType);
@@ -66,14 +66,14 @@ namespace Microsoft.ML.Data
         public static ValueGetter<TDst> GetGetterAs<TDst>(ColumnType typeDst, Row row, int col)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsPrimitive, nameof(typeDst));
+            Contracts.CheckParam(typeDst is PrimitiveType, nameof(typeDst));
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<TDst>> del = GetGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeof(TDst));
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
             return Utils.MarshalInvoke(GetGetterAsStringBuilderCore<int>, typeSrc.RawType, typeSrc, row, col);
         }
 
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Data
 
         public static string TestGetLabelGetter(ColumnType type, bool allowKeys)
         {
-            if (type == NumberType.R4 || type == NumberType.R8 || type.IsBool)
+            if (type == NumberType.R4 || type == NumberType.R8 || type is BoolType)
                 return null;
 
             if (allowKeys && type.IsKey)
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Data
             Contracts.Assert(type != NumberType.R4 && type != NumberType.R8);
 
             // boolean type label mapping: True -> 1, False -> 0.
-            if (type.IsBool)
+            if (type is BoolType)
             {
                 var getBoolSrc = cursor.GetGetter<bool>(labelIndex);
                 return
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Data
             var type = cursor.GetSlotType().ItemType;
             if (type == NumberType.R4)
                 return cursor.GetGetter<Single>();
-            if (type == NumberType.R8 || type.IsBool)
+            if (type == NumberType.R8 || type is BoolType)
                 return GetVecGetterAs<Single>(NumberType.R4, cursor);
             Contracts.Check(type.IsKey, "Only floating point number, boolean, and key type values can be used as label.");
             Contracts.Assert(TestGetLabelGetter(type) == null);

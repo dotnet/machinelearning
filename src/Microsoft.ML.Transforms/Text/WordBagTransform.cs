@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckNonWhiteSpace(col.Source, nameof(col.Source));
                 int colId;
                 if (input.Schema.TryGetColumnIndex(col.Source, out colId) &&
-                    input.Schema[colId].Type.ItemType.IsText)
+                    input.Schema[colId].Type.ItemType is TextType)
                 {
                     termCols.Add(col);
                     isTermCol[i] = true;

@@ -617,7 +617,7 @@ namespace Microsoft.ML.RunTests
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
                 return Failed();
             }
-            if (!t1.ItemType.IsText)
+            if (!(t1.ItemType is TextType))
             {
                 if (!mustBeText)
                 {

@@ -113,7 +113,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            if (!inputSchema[srcCol].Type.IsText)
+            if (!(inputSchema[srcCol].Type is TextType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextType.Instance.ToString(), inputSchema[srcCol].Type.ToString());
         }
 
@@ -232,7 +232,7 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                if (!col.ItemType.IsText || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                if (!(col.ItemType is TextType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, TextType.Instance.ToString(), col.GetTypeString());
 
                 result[output] = new SchemaShape.Column(output, SchemaShape.Column.VectorKind.Scalar, _imageType, false);

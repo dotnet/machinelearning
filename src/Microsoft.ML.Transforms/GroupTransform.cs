@@ -332,7 +332,7 @@ namespace Microsoft.ML.Transforms
                         throw except(string.Format("Could not find column '{0}'", names[i]));
 
                     var colType = schema[col].Type;
-                    if (!colType.IsPrimitive)
+                    if (!(colType is PrimitiveType))
                         throw except(string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType));
 
                     ids[i] = col;
@@ -492,7 +492,7 @@ namespace Microsoft.ML.Transforms
                 {
                     Contracts.AssertValue(row);
                     var colType = row.Schema[col].Type;
-                    Contracts.Assert(colType.IsPrimitive);
+                    Contracts.Assert(colType is PrimitiveType);
 
                     var type = typeof(ListAggregator<>);
 
