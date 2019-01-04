@@ -22,7 +22,7 @@ namespace Microsoft.ML
         public static ModelProto ConvertToOnnx(this ModelOperationsCatalog catalog, ITransformer transform, IDataView inputData)
         {
             var env = catalog.Environment;
-            var ctx = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "ai.onnx.ml", OnnxVersion.Stable);
+            var ctx = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable);
             var outputData = transform.Transform(inputData);
             LinkedList<ITransformCanSaveOnnx> transforms = null;
             using (var ch = env.Start("ONNX conversion"))
