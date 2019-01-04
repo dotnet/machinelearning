@@ -16,17 +16,16 @@ namespace Microsoft.ML.Scenarios
          The application will let users submit information about their house, and see a price they could expect if they put the house for sale.
          Because real estate transaction data is public, Contoso has historical data they intend to use to train Machine Learning prediction engine. 
         */
+#pragma warning disable 612
         [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
-        public void PredictHousePriceModelTest()
+        public async void PredictHousePriceModelTest()
         {
-            var mlContext = new MLContext(seed: 1);
-            var data = ModelHelper.GetKcHouseDataView(mlContext, GetDataPath("kc_house_data.csv"));
-            var pipeline = ModelHelper.GetKcHousePipeline(mlContext);
-            var model = pipeline.Fit(data);
+            string modelFilePath = GetOutputPath("PredictHousePriceModelTest.zip");
+            ModelHelper.WriteKcHousePriceModel(GetDataPath("kc_house_data.csv"), modelFilePath);
 
-            var engine = model.CreatePredictionEngine<HousePriceData, HousePricePrediction>(mlContext);
+            var model = await Legacy.PredictionModel.ReadAsync<HousePriceData, HousePricePrediction>(modelFilePath);
 
-            HousePricePrediction prediction = engine.Predict(new HousePriceData()
+            HousePricePrediction prediction = model.Predict(new HousePriceData()
             {
                 Bedrooms = 3,
                 Bathrooms = 2,
@@ -50,6 +49,7 @@ namespace Microsoft.ML.Scenarios
 
             Assert.InRange(prediction.Price, 260_000, 330_000);
         }
+#pragma warning restore 612
 
         public class HousePriceData
         {
