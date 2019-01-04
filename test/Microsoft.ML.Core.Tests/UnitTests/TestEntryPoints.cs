@@ -3868,6 +3868,1794 @@ namespace Microsoft.ML.RunTests
                 });
         }
 
+        [Fact]
+        public void TestSimpleExperiment()
+        {
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
+            string inputGraph = @"{
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': null,
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$Var_642faec2bf064255bc9a2b1044e9d116'
+                        }
+                    }, {
+                        'Name': 'Transforms.MinMaxNormalizer',
+                        'Inputs': {
+                            'Column': [{
+                                    'FixZero': null,
+                                    'MaxTrainingExamples': null,
+                                    'Name': 'NumericFeatures',
+                                    'Source': 'NumericFeatures'
+                                }
+                            ],
+                            'FixZero': true,
+                            'MaxTrainingExamples': 1000000000,
+                            'Data': '$Var_642faec2bf064255bc9a2b1044e9d116'
+                        },
+                        'Outputs': {
+                            'OutputData': '$outputData',
+                            'Model': '$Var_9673b095f98f4ebcb19e8eb75a7a12e9'
+                        }
+                    }
+                ]
+            }";
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+            var data = runner.GetOutput<IDataView>("outputData");
+            var schema = data.Schema;
+            Assert.Equal(5, schema.Count);
+            var expected = new[] { "Label", "Workclass", "Categories", "NumericFeatures", "NumericFeatures" };
+            for (int i = 0; i < schema.Count; i++)
+                Assert.Equal(expected[i], schema[i].Name);
+        }
+
+        [Fact]
+        public void TestSimpleTrainExperiment()
+        {
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': null,
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$Var_99eb21288359485f936577da8f2e1061'
+                        }
+                    }, {
+                        'Name': 'Transforms.CategoricalOneHotVectorizer',
+                        'Inputs': {
+                            'Column': [{
+                                    'OutputKind': null,
+                                    'MaxNumTerms': null,
+                                    'Term': null,
+                                    'Sort': null,
+                                    'TextKeyValues': null,
+                                    'Name': 'Categories',
+                                    'Source': 'Categories'
+                                }
+                            ],
+                            'OutputKind': 'Ind',
+                            'MaxNumTerms': 1000000,
+                            'Term': null,
+                            'Sort': 'Occurrence',
+                            'TextKeyValues': true,
+                            'Data': '$Var_99eb21288359485f936577da8f2e1061'
+                        },
+                        'Outputs': {
+                            'OutputData': '$Var_c9e14b64d1a44114853331e80f1bde57',
+                            'Model': '$Var_85534ab1fc57480899180be5bbf20b38'
+                        }
+                    }, {
+                        'Name': 'Transforms.ColumnConcatenator',
+                        'Inputs': {
+                            'Column': [{
+                                    'Name': 'Features',
+                                    'Source': [
+                                        'Categories',
+                                        'NumericFeatures'
+                                    ]
+                                }
+                            ],
+                            'Data': '$Var_c9e14b64d1a44114853331e80f1bde57'
+                        },
+                        'Outputs': {
+                            'OutputData': '$Var_51d3ddc9792d4c6eb975e600e87b8cbc',
+                            'Model': '$Var_e3888e65f822424ca92959e442827d48'
+                        }
+                    }, {
+                        'Name': 'Trainers.StochasticDualCoordinateAscentBinaryClassifier',
+                        'Inputs': {
+                            'LossFunction': {
+                                'Name': 'HingeLoss',
+                                'Settings': {
+                                    'Margin': 1.1
+                                }
+                            },
+                            'PositiveInstanceWeight': 1.0,
+                            'Calibrator': {
+                                'Name': 'PlattCalibrator',
+                                'Settings': {}
+                            },
+                            'MaxCalibrationExamples': 1000000,
+                            'L2Const': null,
+                            'L1Threshold': null,
+                            'NumThreads': 1,
+                            'ConvergenceTolerance': 0.1,
+                            'MaxIterations': null,
+                            'Shuffle': false,
+                            'CheckFrequency': null,
+                            'BiasLearningRate': 0.0,
+                            'LabelColumn': 'Label',
+                            'TrainingData': '$Var_51d3ddc9792d4c6eb975e600e87b8cbc',
+                            'FeatureColumn': 'Features',
+                            'NormalizeFeatures': 'Auto',
+                            'Caching': 'Auto'
+                        },
+                        'Outputs': {
+                            'PredictorModel': '$Var_e7e860bdbf1c4a628a2a0912673afd36'
+                        }
+                    }, {
+                        'Name': 'Transforms.DatasetScorer',
+                        'Inputs': {
+                            'Data': '$Var_51d3ddc9792d4c6eb975e600e87b8cbc',
+                            'PredictorModel': '$Var_e7e860bdbf1c4a628a2a0912673afd36',
+                            'Suffix': null
+                        },
+                        'Outputs': {
+                            'ScoredData': '$Var_be77f9c4e45c43b7a67984304c291bf5',
+                            'ScoringTransform': '$Var_826e5697e56a467a81331c5ef3eff37f'
+                        }
+                    }, {
+                        'Name': 'Models.BinaryClassificationEvaluator',
+                        'Inputs': {
+                            'ProbabilityColumn': null,
+                            'Threshold': 0.0,
+                            'UseRawScoreThreshold': true,
+                            'NumRocExamples': 100000,
+                            'MaxAucExamples': -1,
+                            'NumAuPrcExamples': 100000,
+                            'LabelColumn': null,
+                            'WeightColumn': null,
+                            'ScoreColumn': null,
+                            'StratColumn': null,
+                            'Data': '$Var_be77f9c4e45c43b7a67984304c291bf5',
+                            'NameColumn': 'Name'
+                        },
+                        'Outputs': {
+                            'ConfusionMatrix': '$Var_cd6d3485a95d4405b469ce65c124e04a',
+                            'Warnings': '$Var_94528ba8fca14eb48b7e3f712aced38a',
+                            'OverallMetrics': '$Var_2130b277d4e0485f9cc5162c176767fa',
+                            'PerInstanceMetrics': '$Var_991a2f8bed28442bb9bd0a0b9ff14e45'
+                        }
+                    }
+                ]
+            }";
+
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+            var data = runner.GetOutput<IDataView>("Var_2130b277d4e0485f9cc5162c176767fa");
+
+            var schema = data.Schema;
+            var b = schema.TryGetColumnIndex("AUC", out int aucCol);
+            Assert.True(b);
+            using (var cursor = data.GetRowCursor(col => col == aucCol))
+            {
+                var getter = cursor.GetGetter<double>(aucCol);
+                b = cursor.MoveNext();
+                Assert.True(b);
+                double auc = 0;
+                getter(ref auc);
+                Assert.Equal(0.93, auc, 2);
+                b = cursor.MoveNext();
+                Assert.False(b);
+            }
+        }
+
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
+        public void TestCrossValidationMacro()
+        {
+            var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    ';'
+                                ],
+                                'Column': [{
+                                        'Name': 'Label',
+                                        'Type': 'R4',
+                                        'Source': [{
+                                                'Min': 11,
+                                                'Max': 11,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'Features',
+                                        'Type': 'R4',
+                                        'Source': [{
+                                                'Min': 0,
+                                                'Max': 10,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }
+                                ],
+                                'TrimWhitespace': false,
+                                'HasHeader': true
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$Var_6b6d6b5b5f894374a98904481d876a6e'
+                        }
+                    }, {
+                        'Name': 'Models.CrossValidator',
+                        'Inputs': {
+                            'Data': '$Var_6b6d6b5b5f894374a98904481d876a6e',
+                            'TransformModel': null,
+                            'Nodes': [{
+                                    'Name': 'Transforms.NoOperation',
+                                    'Inputs': {
+                                        'Data': '$Var_abda1d0923f64b56bd01dc42fb57db33'
+                                    },
+                                    'Outputs': {
+                                        'OutputData': '$Var_65ecee1d96a84b9d9645f616b278e77e',
+                                        'Model': '$Var_6807c0e8cb42452c8fc687545aabc43b'
+                                    }
+                                }, {
+                                    'Name': 'Transforms.RandomNumberGenerator',
+                                    'Inputs': {
+                                        'Column': [{
+                                                'Name': 'Weight1',
+                                                'UseCounter': null,
+                                                'Seed': null
+                                            }
+                                        ],
+                                        'UseCounter': false,
+                                        'Seed': 42,
+                                        'Data': '$Var_65ecee1d96a84b9d9645f616b278e77e'
+                                    },
+                                    'Outputs': {
+                                        'OutputData': '$Var_8b36a1e70c9f4504973140ad15eac72f',
+                                        'Model': '$Var_94bac81ee2e448ba82e3a21e116c0f9c'
+                                    }
+                                }, {
+                                    'Name': 'Trainers.PoissonRegressor',
+                                    'Inputs': {
+                                        'L2Weight': 1.0,
+                                        'L1Weight': 1.0,
+                                        'OptTol': 1E-07,
+                                        'MemorySize': 20,
+                                        'MaxIterations': 2147483647,
+                                        'SgdInitializationTolerance': 0.0,
+                                        'Quiet': false,
+                                        'InitWtsDiameter': 0.0,
+                                        'UseThreads': true,
+                                        'NumThreads': 1,
+                                        'DenseOptimizer': false,
+                                        'EnforceNonNegativity': false,
+                                        'WeightColumn': {
+                                            'Value': 'Weight1',
+                                            'IsExplicit': true
+                                        },
+                                        'LabelColumn': 'Label',
+                                        'TrainingData': '$Var_8b36a1e70c9f4504973140ad15eac72f',
+                                        'FeatureColumn': 'Features',
+                                        'NormalizeFeatures': 'Auto',
+                                        'Caching': 'Auto'
+                                    },
+                                    'Outputs': {
+                                        'PredictorModel': '$Var_5763097adbdb40e3b161540cb0c88b91'
+                                    }
+                                }, {
+                                    'Name': 'Transforms.ManyHeterogeneousModelCombiner',
+                                    'Inputs': {
+                                        'TransformModels': [
+                                            '$Var_6807c0e8cb42452c8fc687545aabc43b',
+                                            '$Var_94bac81ee2e448ba82e3a21e116c0f9c'
+                                        ],
+                                        'PredictorModel': '$Var_5763097adbdb40e3b161540cb0c88b91'
+                                    },
+                                    'Outputs': {
+                                        'PredictorModel': '$Var_77f3e99700ae453586513565171faf55'
+                                    }
+                                }
+                            ],
+                            'Inputs': {
+                                'Data': '$Var_abda1d0923f64b56bd01dc42fb57db33'
+                            },
+                            'Outputs': {
+                                'PredictorModel': '$Var_77f3e99700ae453586513565171faf55'
+                            },
+                            'StratificationColumn': null,
+                            'NumFolds': 2,
+                            'Kind': 'SignatureRegressorTrainer',
+                            'LabelColumn': 'Label',
+                            'WeightColumn': {
+                                'Value': 'Weight1',
+                                'IsExplicit': true
+                            },
+                            'GroupColumn': null,
+                            'NameColumn': null
+                        },
+                        'Outputs': {
+                            'PredictorModel': '$Var_5aaddf0cdc6d4d92b05a2804fcc3a2ee',
+                            'Warnings': '$Var_33701e91260c4a7184fd595ce392cb08',
+                            'OverallMetrics': '$overallMetrics',
+                            'PerInstanceMetrics': '$Var_89681d817cf543ecabbe6421bf37acb2',
+                            'ConfusionMatrix': '$Var_43fa86567b5f4e129e58bd12a575c06b'
+                        }
+                    }
+                ]
+            }";
+
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+            var data = runner.GetOutput<IDataView>("overallMetrics");
+
+            var schema = data.Schema;
+            var b = schema.TryGetColumnIndex("L1(avg)", out int metricCol);
+            Assert.True(b);
+            b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
+            Assert.True(b);
+            b = schema.TryGetColumnIndex("IsWeighted", out int isWeightedCol);
+            using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol || col == isWeightedCol))
+            {
+                var getter = cursor.GetGetter<double>(metricCol);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                ReadOnlyMemory<char> fold = default;
+                var isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
+                bool isWeighted = default;
+                double avg = 0;
+                double weightedAvg = 0;
+                for (int w = 0; w < 2; w++)
+                {
+                    // Get the average.
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    if (w == 1)
+                        getter(ref weightedAvg);
+                    else
+                        getter(ref avg);
+                    foldGetter(ref fold);
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Average", fold));
+                    isWeightedGetter(ref isWeighted);
+                    Assert.True(isWeighted == (w == 1));
+
+                    // Get the standard deviation.
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    double stdev = 0;
+                    getter(ref stdev);
+                    foldGetter(ref fold);
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
+                    if (w == 1)
+                        Assert.Equal(1.585, stdev, 3);
+                    else
+                        Assert.Equal(1.39, stdev, 2);
+                    isWeightedGetter(ref isWeighted);
+                    Assert.True(isWeighted == (w == 1));
+                }
+                double sum = 0;
+                double weightedSum = 0;
+                for (int f = 0; f < 2; f++)
+                {
+                    for (int w = 0; w < 2; w++)
+                    {
+                        b = cursor.MoveNext();
+                        Assert.True(b);
+                        double val = 0;
+                        getter(ref val);
+                        foldGetter(ref fold);
+                        if (w == 1)
+                            weightedSum += val;
+                        else
+                            sum += val;
+                        Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
+                        isWeightedGetter(ref isWeighted);
+                        Assert.True(isWeighted == (w == 1));
+                    }
+                }
+                Assert.Equal(weightedAvg, weightedSum / 2);
+                Assert.Equal(avg, sum / 2);
+                b = cursor.MoveNext();
+                Assert.False(b);
+            }
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroWithMultiClass()
+        {
+            var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': null,
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$Var_48530e4c7d0c4d0889ba9e6e80e6eb73'
+                        }
+                    }, {
+                        'Name': 'Models.CrossValidator',
+                        'Inputs': {
+                            'Data': '$Var_48530e4c7d0c4d0889ba9e6e80e6eb73',
+                            'TransformModel': null,
+                            'Nodes': [{
+                                    'Name': 'Transforms.NoOperation',
+                                    'Inputs': {
+                                        'Data': '$Var_1a2f44ae0aec4af4b4d1337d2cc733da'
+                                    },
+                                    'Outputs': {
+                                        'OutputData': '$Var_a060169d8a924964b71447904c0d2ee9',
+                                        'Model': '$Var_dbd0f197ee7145ce91ac26ef62936206'
+                                    }
+                                }, {
+                                    'Name': 'Trainers.StochasticDualCoordinateAscentClassifier',
+                                    'Inputs': {
+                                        'LossFunction': {
+                                            'Name': 'LogLoss',
+                                            'Settings': {}
+                                        },
+                                        'L2Const': null,
+                                        'L1Threshold': null,
+                                        'NumThreads': 1,
+                                        'ConvergenceTolerance': 0.1,
+                                        'MaxIterations': null,
+                                        'Shuffle': true,
+                                        'CheckFrequency': null,
+                                        'BiasLearningRate': 0.0,
+                                        'LabelColumn': 'Label',
+                                        'TrainingData': '$Var_a060169d8a924964b71447904c0d2ee9',
+                                        'FeatureColumn': 'Features',
+                                        'NormalizeFeatures': 'Auto',
+                                        'Caching': 'Auto'
+                                    },
+                                    'Outputs': {
+                                        'PredictorModel': '$Var_0bb334380a514e0ab6b2215b0c049846'
+                                    }
+                                }, {
+                                    'Name': 'Transforms.ManyHeterogeneousModelCombiner',
+                                    'Inputs': {
+                                        'TransformModels': [
+                                            '$Var_dbd0f197ee7145ce91ac26ef62936206'
+                                        ],
+                                        'PredictorModel': '$Var_0bb334380a514e0ab6b2215b0c049846'
+                                    },
+                                    'Outputs': {
+                                        'PredictorModel': '$Var_0b4526e0c7534eada0264802128c32c5'
+                                    }
+                                }
+                            ],
+                            'Inputs': {
+                                'Data': '$Var_1a2f44ae0aec4af4b4d1337d2cc733da'
+                            },
+                            'Outputs': {
+                                'PredictorModel': '$Var_0b4526e0c7534eada0264802128c32c5'
+                            },
+                            'StratificationColumn': null,
+                            'NumFolds': 2,
+                            'Kind': 'SignatureMultiClassClassifierTrainer',
+                            'LabelColumn': 'Label',
+                            'WeightColumn': null,
+                            'GroupColumn': null,
+                            'NameColumn': null
+                        },
+                        'Outputs': {
+                            'PredictorModel': '$Var_76decfcf71f5447d92869a4dd9200ea6',
+                            'Warnings': '$warnings',
+                            'OverallMetrics': '$overallMetrics',
+                            'PerInstanceMetrics': '$Var_74d0215056034d6c9a99f90485530b89',
+                            'ConfusionMatrix': '$confusionMatrix'
+                        }
+                    }
+                ]
+            }
+            ";
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+            var data = runner.GetOutput<IDataView>("overallMetrics");
+
+            var schema = data.Schema;
+            var b = schema.TryGetColumnIndex("Accuracy(micro-avg)", out int metricCol);
+            Assert.True(b);
+            b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
+            Assert.True(b);
+            using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+            {
+                var getter = cursor.GetGetter<double>(metricCol);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                ReadOnlyMemory<char> fold = default;
+
+                // Get the average.
+                b = cursor.MoveNext();
+                Assert.True(b);
+                double avg = 0;
+                getter(ref avg);
+                foldGetter(ref fold);
+                Assert.True(ReadOnlyMemoryUtils.EqualsStr("Average", fold));
+
+                // Get the standard deviation.
+                b = cursor.MoveNext();
+                Assert.True(b);
+                double stdev = 0;
+                getter(ref stdev);
+                foldGetter(ref fold);
+                Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
+                Assert.Equal(0.024809923969586353, stdev, 3);
+
+                double sum = 0;
+                double val = 0;
+                for (int f = 0; f < 2; f++)
+                {
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    getter(ref val);
+                    foldGetter(ref fold);
+                    sum += val;
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
+                }
+                Assert.Equal(avg, sum / 2);
+                b = cursor.MoveNext();
+                Assert.False(b);
+            }
+
+            var confusion = runner.GetOutput<IDataView>("confusionMatrix");
+            schema = confusion.Schema;
+            b = schema.TryGetColumnIndex("Count", out int countCol);
+            Assert.True(b);
+            b = schema.TryGetColumnIndex("Fold Index", out foldCol);
+            Assert.True(b);
+            var type = schema[countCol].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
+            Assert.True(type is VectorType vecType && vecType.ItemType is TextType && vecType.Size == 10);
+            var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
+            schema[countCol].GetSlotNames(ref slotNames);
+            var slotNameValues = slotNames.GetValues();
+            for (int i = 0; i < slotNameValues.Length; i++)
+            {
+                Assert.True(ReadOnlyMemoryUtils.EqualsStr(i.ToString(), slotNameValues[i]));
+            }
+            using (var curs = confusion.GetRowCursor(col => true))
+            {
+                var countGetter = curs.GetGetter<VBuffer<double>>(countCol);
+                var foldGetter = curs.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                var confCount = default(VBuffer<double>);
+                var foldIndex = default(ReadOnlyMemory<char>);
+                int rowCount = 0;
+                var foldCur = "Fold 0";
+                while (curs.MoveNext())
+                {
+                    countGetter(ref confCount);
+                    foldGetter(ref foldIndex);
+                    rowCount++;
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr(foldCur, foldIndex));
+                    if (rowCount == 10)
+                    {
+                        rowCount = 0;
+                        foldCur = "Fold 1";
+                    }
+                }
+                Assert.Equal(0, rowCount);
+            }
+
+            var warnings = runner.GetOutput<IDataView>("warnings");
+            using (var cursor = warnings.GetRowCursor(col => true))
+                Assert.False(cursor.MoveNext());
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroMultiClassWithWarnings()
+        {
+            var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': null,
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$Var_48dc3daef3924a22af794e67896272b0'
+                        }
+                    }, {
+                        'Name': 'Transforms.RowRangeFilter',
+                        'Inputs': {
+                            'Column': 'Label',
+                            'Min': 0.0,
+                            'Max': 5.0,
+                            'Complement': false,
+                            'IncludeMin': true,
+                            'IncludeMax': null,
+                            'Data': '$Var_48dc3daef3924a22af794e67896272b0'
+                        },
+                        'Outputs': {
+                            'OutputData': '$Var_64f1865a99b84b9d9e0c72292c14c3af',
+                            'Model': '$Var_4a34fa76d6d04c14b57b8f146010b9ad'
+                        }
+                    }, {
+                        'Name': 'Transforms.TextToKeyConverter',
+                        'Inputs': {
+                            'Column': [{
+                                    'MaxNumTerms': null,
+                                    'Term': null,
+                                    'Sort': 'Value',
+                                    'TextKeyValues': null,
+                                    'Name': 'Strat',
+                                    'Source': 'Label'
+                                }
+                            ],
+                            'MaxNumTerms': 1000000,
+                            'Term': null,
+                            'Sort': 'Occurrence',
+                            'TextKeyValues': false,
+                            'Data': '$Var_64f1865a99b84b9d9e0c72292c14c3af'
+                        },
+                        'Outputs': {
+                            'OutputData': '$Var_41d7ff9c3dcd45fc869f2691dd628797',
+                            'Model': '$Var_ee952a378c624306a7b6b8b65dbb8583'
+                        }
+                    }, {
+                        'Name': 'Models.CrossValidator',
+                        'Inputs': {
+                            'Data': '$Var_41d7ff9c3dcd45fc869f2691dd628797',
+                            'TransformModel': null,
+                            'Nodes': [{
+                                    'Name': 'Transforms.NoOperation',
+                                    'Inputs': {
+                                        'Data': '$Var_28af8fabe6dd446a9f20aa97c53c4d4e'
+                                    },
+                                    'Outputs': {
+                                        'OutputData': '$Var_fb8137cb48ac49a7b1b56aa3ed5e0b23',
+                                        'Model': '$Var_2cfc22486a4f475f8dc814feccb08f71'
+                                    }
+                                }, {
+                                    'Name': 'Trainers.LogisticRegressionClassifier',
+                                    'Inputs': {
+                                        'ShowTrainingStats': false,
+                                        'L2Weight': 1.0,
+                                        'L1Weight': 1.0,
+                                        'OptTol': 1E-07,
+                                        'MemorySize': 20,
+                                        'MaxIterations': 2147483647,
+                                        'SgdInitializationTolerance': 0.0,
+                                        'Quiet': false,
+                                        'InitWtsDiameter': 0.0,
+                                        'UseThreads': true,
+                                        'NumThreads': 1,
+                                        'DenseOptimizer': false,
+                                        'EnforceNonNegativity': false,
+                                        'WeightColumn': null,
+                                        'LabelColumn': 'Label',
+                                        'TrainingData': '$Var_fb8137cb48ac49a7b1b56aa3ed5e0b23',
+                                        'FeatureColumn': 'Features',
+                                        'NormalizeFeatures': 'Auto',
+                                        'Caching': 'Auto'
+                                    },
+                                    'Outputs': {
+                                        'PredictorModel': '$Var_05e29f93f3bb4c31a93d71e051dfbb2a'
+                                    }
+                                }
+                            ],
+                            'Inputs': {
+                                'Data': '$Var_28af8fabe6dd446a9f20aa97c53c4d4e'
+                            },
+                            'Outputs': {
+                                'PredictorModel': '$Var_05e29f93f3bb4c31a93d71e051dfbb2a'
+                            },
+                            'StratificationColumn': 'Strat',
+                            'NumFolds': 2,
+                            'Kind': 'SignatureMultiClassClassifierTrainer',
+                            'LabelColumn': 'Label',
+                            'WeightColumn': null,
+                            'GroupColumn': null,
+                            'NameColumn': null
+                        },
+                        'Outputs': {
+                            'PredictorModel': '$Var_2df88bffdbca48d5972decf058c26e3b',
+                            'Warnings': '$warning',
+                            'OverallMetrics': '$Var_94ec7af856fa4c2aa16f354cf51cee78',
+                            'PerInstanceMetrics': '$Var_637187e4984f4eed93cd37ab20685867',
+                            'ConfusionMatrix': '$Var_c5fe1a4fbded49898173662f6be2f6cc'
+                        }
+                    }
+                ]
+            }
+            ";
+
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+            var warnings = runner.GetOutput<IDataView>("warning");
+
+            var schema = warnings.Schema;
+            var b = schema.TryGetColumnIndex("WarningText", out int warningCol);
+            Assert.True(b);
+            using (var cursor = warnings.GetRowCursor(col => col == warningCol))
+            {
+                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(warningCol);
+
+                b = cursor.MoveNext();
+                Assert.True(b);
+                var warning = default(ReadOnlyMemory<char>);
+                getter(ref warning);
+                Assert.Contains("test instances with class values not seen in the training set.", warning.ToString());
+                b = cursor.MoveNext();
+                Assert.True(b);
+                getter(ref warning);
+                Assert.Contains("Detected columns of variable length: SortedScores, SortedClasses", warning.ToString());
+                b = cursor.MoveNext();
+                Assert.False(b);
+            }
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroWithStratification()
+        {
+            var dataPath = GetDataPath(@"breast-cancer.txt");
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': [{
+                                        'Name': 'Label',
+                                        'Type': null,
+                                        'Source': [{
+                                                'Min': 0,
+                                                'Max': 0,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'Strat',
+                                        'Type': null,
+                                        'Source': [{
+                                                'Min': 1,
+                                                'Max': 1,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'Features',
+                                        'Type': null,
+                                        'Source': [{
+                                                'Min': 2,
+                                                'Max': 9,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }
+                                ],
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$Var_95d56835dc384629bd288ea0a8879277'
+                        }
+                    }, {
+                        'Name': 'Models.CrossValidator',
+                        'Inputs': {
+                            'Data': '$Var_95d56835dc384629bd288ea0a8879277',
+                            'TransformModel': null,
+                            'Nodes': [{
+                                    'Name': 'Transforms.NoOperation',
+                                    'Inputs': {
+                                        'Data': '$Var_e02622de697b478e9b7d84a5220fee8c'
+                                    },
+                                    'Outputs': {
+                                        'OutputData': '$Var_44f5c60e439b49fe9e5bf372be4613ee',
+                                        'Model': '$Var_14976738a67940a58cfeffdf795a74c1'
+                                    }
+                                }, {
+                                    'Name': 'Trainers.StochasticDualCoordinateAscentBinaryClassifier',
+                                    'Inputs': {
+                                        'LossFunction': {
+                                            'Name': 'LogLoss',
+                                            'Settings': {}
+                                        },
+                                        'PositiveInstanceWeight': 1.0,
+                                        'Calibrator': {
+                                            'Name': 'PlattCalibrator',
+                                            'Settings': {}
+                                        },
+                                        'MaxCalibrationExamples': 1000000,
+                                        'L2Const': null,
+                                        'L1Threshold': null,
+                                        'NumThreads': 1,
+                                        'ConvergenceTolerance': 0.1,
+                                        'MaxIterations': null,
+                                        'Shuffle': true,
+                                        'CheckFrequency': null,
+                                        'BiasLearningRate': 0.0,
+                                        'LabelColumn': 'Label',
+                                        'TrainingData': '$Var_44f5c60e439b49fe9e5bf372be4613ee',
+                                        'FeatureColumn': 'Features',
+                                        'NormalizeFeatures': 'Auto',
+                                        'Caching': 'Auto'
+                                    },
+                                    'Outputs': {
+                                        'PredictorModel': '$Var_d0c2303905c146b6873693e58ed6e2aa'
+                                    }
+                                }, {
+                                    'Name': 'Transforms.ManyHeterogeneousModelCombiner',
+                                    'Inputs': {
+                                        'TransformModels': [
+                                            '$Var_14976738a67940a58cfeffdf795a74c1'
+                                        ],
+                                        'PredictorModel': '$Var_d0c2303905c146b6873693e58ed6e2aa'
+                                    },
+                                    'Outputs': {
+                                        'PredictorModel': '$Var_250e906783ab442e85af77298c531199'
+                                    }
+                                }
+                            ],
+                            'Inputs': {
+                                'Data': '$Var_e02622de697b478e9b7d84a5220fee8c'
+                            },
+                            'Outputs': {
+                                'PredictorModel': '$Var_250e906783ab442e85af77298c531199'
+                            },
+                            'StratificationColumn': 'Strat',
+                            'NumFolds': 2,
+                            'Kind': 'SignatureBinaryClassifierTrainer',
+                            'LabelColumn': 'Label',
+                            'WeightColumn': null,
+                            'GroupColumn': null,
+                            'NameColumn': null
+                        },
+                        'Outputs': {
+                            'PredictorModel': '$Var_c824c370674e4c358012ca07e04ee79e',
+                            'Warnings': '$Var_4f7a5c14043247fdb53ea3a264afcb6f',
+                            'OverallMetrics': '$overallmetrics',
+                            'PerInstanceMetrics': '$Var_1fe20a06e4a14215bc09ba8ff7ae603b',
+                            'ConfusionMatrix': '$Var_d159331c1bca445792a37ddd143b3a25'
+                        }
+                    }
+                ]
+            }
+            ";
+
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+            var data = runner.GetOutput<IDataView>("overallmetrics");
+
+            var schema = data.Schema;
+            var b = schema.TryGetColumnIndex("AUC", out int metricCol);
+            Assert.True(b);
+            b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
+            Assert.True(b);
+            using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+            {
+                var getter = cursor.GetGetter<double>(metricCol);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                ReadOnlyMemory<char> fold = default;
+
+                // Get the verage.
+                b = cursor.MoveNext();
+                Assert.True(b);
+                double avg = 0;
+                getter(ref avg);
+                foldGetter(ref fold);
+                Assert.True(ReadOnlyMemoryUtils.EqualsStr("Average", fold));
+
+                // Get the standard deviation.
+                b = cursor.MoveNext();
+                Assert.True(b);
+                double stdev = 0;
+                getter(ref stdev);
+                foldGetter(ref fold);
+                Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
+                Assert.Equal(0.00481, stdev, 5);
+
+                double sum = 0;
+                double val = 0;
+                for (int f = 0; f < 2; f++)
+                {
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    getter(ref val);
+                    foldGetter(ref fold);
+                    sum += val;
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
+                }
+                Assert.Equal(avg, sum / 2);
+                b = cursor.MoveNext();
+                Assert.False(b);
+            }
+        }
+
+        [Fact]
+        public void TestCrossValidationMacroWithNonDefaultNames()
+        {
+            string dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
+            string inputGraph = @"
+            {
+            'Nodes': [{
+                    'Name': 'Data.TextLoader',
+                    'Inputs': {
+                        'InputFile': '$inputFile',
+                        'Arguments': {
+                            'UseThreads': true,
+                            'HeaderFile': null,
+                            'MaxRows': null,
+                            'AllowQuoting': true,
+                            'AllowSparse': true,
+                            'InputSize': null,
+                            'Separator': [
+                                '\t'
+                            ],
+                            'Column': [{
+                                    'Name': 'Label',
+                                    'Type': null,
+                                    'Source': [{
+                                            'Min': 0,
+                                            'Max': 0,
+                                            'AutoEnd': false,
+                                            'VariableEnd': false,
+                                            'AllOther': false,
+                                            'ForceVector': false
+                                        }
+                                    ],
+                                    'KeyRange': null
+                                }, {
+                                    'Name': 'Workclass',
+                                    'Type': 'TX',
+                                    'Source': [{
+                                            'Min': 1,
+                                            'Max': 1,
+                                            'AutoEnd': false,
+                                            'VariableEnd': false,
+                                            'AllOther': false,
+                                            'ForceVector': false
+                                        }
+                                    ],
+                                    'KeyRange': null
+                                }, {
+                                    'Name': 'Features',
+                                    'Type': null,
+                                    'Source': [{
+                                            'Min': 9,
+                                            'Max': 14,
+                                            'AutoEnd': false,
+                                            'VariableEnd': false,
+                                            'AllOther': false,
+                                            'ForceVector': false
+                                        }
+                                    ],
+                                    'KeyRange': null
+                                }
+                            ],
+                            'TrimWhitespace': false,
+                            'HasHeader': true
+                        }
+                    },
+                    'Outputs': {
+                        'Data': '$Var_bfb5ef5be6f547de88af2409c8c35443'
+                    }
+                }, {
+                    'Name': 'Models.CrossValidator',
+                    'Inputs': {
+                        'Data': '$Var_bfb5ef5be6f547de88af2409c8c35443',
+                        'TransformModel': null,
+                        'Nodes': [{
+                                'Name': 'Transforms.TextToKeyConverter',
+                                'Inputs': {
+                                    'Column': [{
+                                            'MaxNumTerms': null,
+                                            'Term': null,
+                                            'Sort': null,
+                                            'TextKeyValues': null,
+                                            'Name': 'Label1',
+                                            'Source': 'Label'
+                                        }
+                                    ],
+                                    'MaxNumTerms': 1000000,
+                                    'Term': null,
+                                    'Sort': 'Occurrence',
+                                    'TextKeyValues': false,
+                                    'Data': '$Var_48d35aae527f439398805f51e5f0cfab'
+                                },
+                                'Outputs': {
+                                    'OutputData': '$Var_44ac8ba819da483089dacc0f12bae3d6',
+                                    'Model': '$Var_2039a1ba743549c1989de460c105b354'
+                                }
+                            }, {
+                                'Name': 'Transforms.HashConverter',
+                                'Inputs': {
+                                    'Column': [{
+                                            'Join': null,
+                                            'CustomSlotMap': null,
+                                            'HashBits': null,
+                                            'Seed': null,
+                                            'Ordered': null,
+                                            'Name': 'GroupId1',
+                                            'Source': 'Workclass'
+                                        }
+                                    ],
+                                    'Join': true,
+                                    'HashBits': 31,
+                                    'Seed': 314489979,
+                                    'Ordered': true,
+                                    'Data': '$Var_44ac8ba819da483089dacc0f12bae3d6'
+                                },
+                                'Outputs': {
+                                    'OutputData': '$Var_8f51ed90f5b642b2a80eeb628d67a5b3',
+                                    'Model': '$Var_5d04d6405abb40ed9efb0486c2e1688b'
+                                }
+                            }, {
+                                'Name': 'Trainers.FastTreeRanker',
+                                'Inputs': {
+                                    'CustomGains': '0,3,7,15,31',
+                                    'TrainDcg': false,
+                                    'SortingAlgorithm': 'DescendingStablePessimistic',
+                                    'LambdaMartMaxTruncation': 100,
+                                    'ShiftedNdcg': false,
+                                    'CostFunctionParam': 'w',
+                                    'DistanceWeight2': false,
+                                    'NormalizeQueryLambdas': false,
+                                    'BestStepRankingRegressionTrees': false,
+                                    'UseLineSearch': false,
+                                    'NumPostBracketSteps': 0,
+                                    'MinStepSize': 0.0,
+                                    'OptimizationAlgorithm': 'GradientDescent',
+                                    'EarlyStoppingRule': null,
+                                    'EarlyStoppingMetrics': 1,
+                                    'EnablePruning': false,
+                                    'UseTolerantPruning': false,
+                                    'PruningThreshold': 0.004,
+                                    'PruningWindowSize': 5,
+                                    'LearningRates': 0.2,
+                                    'Shrinkage': 1.0,
+                                    'DropoutRate': 0.0,
+                                    'GetDerivativesSampleRate': 1,
+                                    'WriteLastEnsemble': false,
+                                    'MaxTreeOutput': 100.0,
+                                    'RandomStart': false,
+                                    'FilterZeroLambdas': false,
+                                    'BaselineScoresFormula': null,
+                                    'BaselineAlphaRisk': null,
+                                    'PositionDiscountFreeform': null,
+                                    'ParallelTrainer': {
+                                        'Name': 'Single',
+                                        'Settings': {}
+                                    },
+                                    'NumThreads': 1,
+                                    'RngSeed': 123,
+                                    'FeatureSelectSeed': 123,
+                                    'EntropyCoefficient': 0.0,
+                                    'HistogramPoolSize': -1,
+                                    'DiskTranspose': null,
+                                    'FeatureFlocks': true,
+                                    'CategoricalSplit': false,
+                                    'MaxCategoricalGroupsPerNode': 64,
+                                    'MaxCategoricalSplitPoints': 64,
+                                    'MinDocsPercentageForCategoricalSplit': 0.001,
+                                    'MinDocsForCategoricalSplit': 100,
+                                    'Bias': 0.0,
+                                    'Bundling': 'None',
+                                    'MaxBins': 255,
+                                    'SparsifyThreshold': 0.7,
+                                    'FeatureFirstUsePenalty': 0.0,
+                                    'FeatureReusePenalty': 0.0,
+                                    'GainConfidenceLevel': 0.0,
+                                    'SoftmaxTemperature': 0.0,
+                                    'ExecutionTimes': false,
+                                    'NumLeaves': 20,
+                                    'MinDocumentsInLeafs': 10,
+                                    'NumTrees': 100,
+                                    'FeatureFraction': 1.0,
+                                    'BaggingSize': 0,
+                                    'BaggingTrainFraction': 0.7,
+                                    'SplitFraction': 1.0,
+                                    'Smoothing': 0.0,
+                                    'AllowEmptyTrees': true,
+                                    'FeatureCompressionLevel': 1,
+                                    'CompressEnsemble': false,
+                                    'MaxTreesAfterCompression': -1,
+                                    'PrintTestGraph': false,
+                                    'PrintTrainValidGraph': false,
+                                    'TestFrequency': 2147483647,
+                                    'GroupIdColumn': {
+                                        'Value': 'GroupId1',
+                                        'IsExplicit': true
+                                    },
+                                    'WeightColumn': null,
+                                    'LabelColumn': 'Label1',
+                                    'TrainingData': '$Var_8f51ed90f5b642b2a80eeb628d67a5b3',
+                                    'FeatureColumn': 'Features',
+                                    'NormalizeFeatures': 'Auto',
+                                    'Caching': 'Auto'
+                                },
+                                'Outputs': {
+                                    'PredictorModel': '$Var_53eb1dedb8234950affa64daaa770427'
+                                }
+                            }, {
+                                'Name': 'Transforms.ManyHeterogeneousModelCombiner',
+                                'Inputs': {
+                                    'TransformModels': [
+                                        '$Var_2039a1ba743549c1989de460c105b354',
+                                        '$Var_5d04d6405abb40ed9efb0486c2e1688b'
+                                    ],
+                                    'PredictorModel': '$Var_53eb1dedb8234950affa64daaa770427'
+                                },
+                                'Outputs': {
+                                    'PredictorModel': '$Var_dd7bc37a393741aea36b46ed609c72a1'
+                                }
+                            }
+                        ],
+                        'Inputs': {
+                            'Data': '$Var_48d35aae527f439398805f51e5f0cfab'
+                        },
+                        'Outputs': {
+                            'PredictorModel': '$Var_dd7bc37a393741aea36b46ed609c72a1'
+                        },
+                        'StratificationColumn': null,
+                        'NumFolds': 2,
+                        'Kind': 'SignatureRankerTrainer',
+                        'LabelColumn': 'Label1',
+                        'WeightColumn': null,
+                        'GroupColumn': {
+                            'Value': 'GroupId1',
+                            'IsExplicit': true
+                        },
+                        'NameColumn': {
+                            'Value': 'Workclass',
+                            'IsExplicit': true
+                        }
+                    },
+                    'Outputs': {
+                        'PredictorModel': '$Var_48c4f33d44c1437bb792a8640703e21e',
+                        'Warnings': '$Var_8f3381cecb1b48dda606a58d153dc022',
+                        'OverallMetrics': '$overallMetrics',
+                        'PerInstanceMetrics': '$perInstanceMetric',
+                        'ConfusionMatrix': '$Var_a06599dcbf52480a8dbb5f7414ee08fe'
+                    }
+                }
+            ]
+            }";
+
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+
+            var data = runner.GetOutput<IDataView>("overallMetrics");
+
+            var schema = data.Schema;
+            var b = schema.TryGetColumnIndex("NDCG", out int metricCol);
+            Assert.True(b);
+            b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
+            Assert.True(b);
+            using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+            {
+                var getter = cursor.GetGetter<VBuffer<double>>(metricCol);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                ReadOnlyMemory<char> fold = default;
+
+                // Get the verage.
+                b = cursor.MoveNext();
+                Assert.True(b);
+                var avg = default(VBuffer<double>);
+                getter(ref avg);
+                foldGetter(ref fold);
+                Assert.True(ReadOnlyMemoryUtils.EqualsStr("Average", fold));
+
+                // Get the standard deviation.
+                b = cursor.MoveNext();
+                Assert.True(b);
+                var stdev = default(VBuffer<double>);
+                getter(ref stdev);
+                foldGetter(ref fold);
+                Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
+                var stdevValues = stdev.GetValues();
+                Assert.Equal(2.462, stdevValues[0], 3);
+                Assert.Equal(2.763, stdevValues[1], 3);
+                Assert.Equal(3.273, stdevValues[2], 3);
+
+                var sumBldr = new BufferBuilder<double>(R8Adder.Instance);
+                sumBldr.Reset(avg.Length, true);
+                var val = default(VBuffer<double>);
+                for (int f = 0; f < 2; f++)
+                {
+                    b = cursor.MoveNext();
+                    Assert.True(b);
+                    getter(ref val);
+                    foldGetter(ref fold);
+                    sumBldr.AddFeatures(0, in val);
+                    Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
+                }
+                var sum = default(VBuffer<double>);
+                sumBldr.GetResult(ref sum);
+
+                var avgValues = avg.GetValues();
+                var sumValues = sum.GetValues();
+                for (int i = 0; i < avgValues.Length; i++)
+                    Assert.Equal(avgValues[i], sumValues[i] / 2);
+                b = cursor.MoveNext();
+                Assert.False(b);
+            }
+
+            data = runner.GetOutput<IDataView>("perInstanceMetric");
+            Assert.True(data.Schema.TryGetColumnIndex("Instance", out int nameCol));
+            using (var cursor = data.GetRowCursor(col => col == nameCol))
+            {
+                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(nameCol);
+                while (cursor.MoveNext())
+                {
+                    ReadOnlyMemory<char> name = default;
+                    getter(ref name);
+                    Assert.Subset(new HashSet<string>() { "Private", "?", "Federal-gov" }, new HashSet<string>() { name.ToString() });
+                    if (cursor.Position > 4)
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void TestOvaMacro()
+        {
+            var dataPath = GetDataPath(@"iris.txt");
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': [{
+                                        'Name': 'Label',
+                                        'Type': null,
+                                        'Source': [{
+                                                'Min': 0,
+                                                'Max': 0,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'Features',
+                                        'Type': null,
+                                        'Source': [{
+                                                'Min': 1,
+                                                'Max': 4,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }
+                                ],
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$Var_672f860e44304ba8bd1c1a6e4b5ba9c5'
+                        }
+                    }, {
+                        'Name': 'Models.OneVersusAll',
+                        'Inputs': {
+                            'Nodes': [{
+                                    'Name': 'Trainers.StochasticDualCoordinateAscentBinaryClassifier',
+                                    'Inputs': {
+                                        'LossFunction': {
+                                            'Name': 'LogLoss',
+                                            'Settings': {}
+                                        },
+                                        'PositiveInstanceWeight': 1.0,
+                                        'Calibrator': {
+                                            'Name': 'PlattCalibrator',
+                                            'Settings': {}
+                                        },
+                                        'MaxCalibrationExamples': 1000000,
+                                        'L2Const': null,
+                                        'L1Threshold': null,
+                                        'NumThreads': 1,
+                                        'ConvergenceTolerance': 0.1,
+                                        'MaxIterations': null,
+                                        'Shuffle': true,
+                                        'CheckFrequency': null,
+                                        'BiasLearningRate': 0.0,
+                                        'LabelColumn': 'Label',
+                                        'TrainingData': '$Var_9aa1732198964d7f979a0bbec5db66c2',
+                                        'FeatureColumn': 'Features',
+                                        'NormalizeFeatures': 'Auto',
+                                        'Caching': 'Auto'
+                                    },
+                                    'Outputs': {
+                                        'PredictorModel': '$Var_6219b70478204e599cef4ab3672656ff'
+                                    }
+                                }
+                            ],
+                            'OutputForSubGraph': {
+                                'Model': '$Var_a229f40df6494a93a794ffd5480d5549'
+                            },
+                            'UseProbabilities': true,
+                            'WeightColumn': null,
+                            'LabelColumn': 'Label',
+                            'TrainingData': '$Var_672f860e44304ba8bd1c1a6e4b5ba9c5',
+                            'FeatureColumn': 'Features',
+                            'NormalizeFeatures': 'Auto',
+                            'Caching': 'Auto'
+                        },
+                        'Outputs': {
+                            'PredictorModel': '$Var_a8423859a7994667b7f1075f8b7b0194'
+                        }
+                    }, {
+                        'Name': 'Transforms.DatasetScorer',
+                        'Inputs': {
+                            'Data': '$Var_672f860e44304ba8bd1c1a6e4b5ba9c5',
+                            'PredictorModel': '$Var_a8423859a7994667b7f1075f8b7b0194',
+                            'Suffix': null
+                        },
+                        'Outputs': {
+                            'ScoredData': '$Var_5454fd8c353c40288dd8c2d104be788f',
+                            'ScoringTransform': '$Var_df35ea0b6e814ed5a1d8f9d673a663b1'
+                        }
+                    }, {
+                        'Name': 'Models.ClassificationEvaluator',
+                        'Inputs': {
+                            'OutputTopKAcc': null,
+                            'NumTopClassesToOutput': 3,
+                            'NumClassesConfusionMatrix': 10,
+                            'OutputPerClassStatistics': false,
+                            'LabelColumn': null,
+                            'WeightColumn': null,
+                            'ScoreColumn': null,
+                            'StratColumn': null,
+                            'Data': '$Var_5454fd8c353c40288dd8c2d104be788f',
+                            'NameColumn': 'Name'
+                        },
+                        'Outputs': {
+                            'ConfusionMatrix': '$Var_ed441dd1ebcc46f7bf7e096d18b33fd7',
+                            'Warnings': '$Var_bec6f9da6bd647808c4a7a05b7e8b1be',
+                            'OverallMetrics': '$overallMetrics',
+                            'PerInstanceMetrics': '$Var_cfcc191521dd45c58ed6654ced067a28'
+                        }
+                    }
+                ]
+            }
+            ";
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+
+            var data = runner.GetOutput<IDataView>("overallMetrics");
+            var schema = data.Schema;
+            var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int accCol);
+            Assert.True(b);
+            using (var cursor = data.GetRowCursor(col => col == accCol))
+            {
+                var getter = cursor.GetGetter<double>(accCol);
+                b = cursor.MoveNext();
+                Assert.True(b);
+                double acc = 0;
+                getter(ref acc);
+                Assert.Equal(0.96, acc, 2);
+                b = cursor.MoveNext();
+                Assert.False(b);
+            }
+        }
+
+        [Fact]
+        public void TestOvaMacroWithUncalibratedLearner()
+        {
+            var dataPath = GetDataPath(@"iris.txt");
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': [{
+                                        'Name': 'Label',
+                                        'Type': null,
+                                        'Source': [{
+                                                'Min': 0,
+                                                'Max': 0,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'Features',
+                                        'Type': null,
+                                        'Source': [{
+                                                'Min': 1,
+                                                'Max': 4,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }
+                                ],
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$Var_f38b99289df746319edd57a3ccfb85a2'
+                        }
+                    }, {
+                        'Name': 'Models.OneVersusAll',
+                        'Inputs': {
+                            'Nodes': [{
+                                    'Name': 'Trainers.AveragedPerceptronBinaryClassifier',
+                                    'Inputs': {
+                                        'LossFunction': {
+                                            'Name': 'HingeLoss',
+                                            'Settings': {
+                                                'Margin': 1.0
+                                            }
+                                        },
+                                        'Calibrator': {
+                                            'Name': 'PlattCalibrator',
+                                            'Settings': {}
+                                        },
+                                        'MaxCalibrationExamples': 1000000,
+                                        'LearningRate': 1.0,
+                                        'DecreaseLearningRate': false,
+                                        'ResetWeightsAfterXExamples': null,
+                                        'DoLazyUpdates': true,
+                                        'L2RegularizerWeight': 0.0,
+                                        'RecencyGain': 0.0,
+                                        'RecencyGainMulti': false,
+                                        'Averaged': true,
+                                        'AveragedTolerance': 0.01,
+                                        'NumIterations': 1,
+                                        'InitialWeights': null,
+                                        'InitWtsDiameter': 0.0,
+                                        'Shuffle': false,
+                                        'StreamingCacheSize': 1000000,
+                                        'LabelColumn': 'Label',
+                                        'TrainingData': '$Var_9ccc8bce4f6540eb8a244ab40585602a',
+                                        'FeatureColumn': 'Features',
+                                        'NormalizeFeatures': 'Auto',
+                                        'Caching': 'Auto'
+                                    },
+                                    'Outputs': {
+                                        'PredictorModel': '$Var_4f1c140c153e4b5fb03fbe3ffb97a68b'
+                                    }
+                                }
+                            ],
+                            'OutputForSubGraph': {
+                                'Model': '$Var_b47f7facc1c540e39d8b82ab64df6592'
+                            },
+                            'UseProbabilities': true,
+                            'WeightColumn': null,
+                            'LabelColumn': 'Label',
+                            'TrainingData': '$Var_f38b99289df746319edd57a3ccfb85a2',
+                            'FeatureColumn': 'Features',
+                            'NormalizeFeatures': 'Auto',
+                            'Caching': 'Auto'
+                        },
+                        'Outputs': {
+                            'PredictorModel': '$Var_d67eb393a0e849c2962961c174eab3da'
+                        }
+                    }, {
+                        'Name': 'Transforms.DatasetScorer',
+                        'Inputs': {
+                            'Data': '$Var_f38b99289df746319edd57a3ccfb85a2',
+                            'PredictorModel': '$Var_d67eb393a0e849c2962961c174eab3da',
+                            'Suffix': null
+                        },
+                        'Outputs': {
+                            'ScoredData': '$Var_a20e37dc58d84bf5a1cb13ed13eae5ba',
+                            'ScoringTransform': '$Var_49f9a4a57ff043cda5947704678241a0'
+                        }
+                    }, {
+                        'Name': 'Models.ClassificationEvaluator',
+                        'Inputs': {
+                            'OutputTopKAcc': null,
+                            'NumTopClassesToOutput': 3,
+                            'NumClassesConfusionMatrix': 10,
+                            'OutputPerClassStatistics': false,
+                            'LabelColumn': null,
+                            'WeightColumn': null,
+                            'ScoreColumn': null,
+                            'StratColumn': null,
+                            'Data': '$Var_a20e37dc58d84bf5a1cb13ed13eae5ba',
+                            'NameColumn': 'Name'
+                        },
+                        'Outputs': {
+                            'ConfusionMatrix': '$Var_7db29303b67942e2a6267c20b9c4be77',
+                            'Warnings': '$Var_7751126378244c2385940cdf5a0e76e6',
+                            'OverallMetrics': '$overallMetrics',
+                            'PerInstanceMetrics': '$Var_67109dcdce504a0894a5c2f5616d21f9'
+                        }
+                    }
+                ]
+            }
+            ";
+
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+
+            var data = runner.GetOutput<IDataView>("overallMetrics");
+            var schema = data.Schema;
+            var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int accCol);
+            Assert.True(b);
+            using (var cursor = data.GetRowCursor(col => col == accCol))
+            {
+                var getter = cursor.GetGetter<double>(accCol);
+                b = cursor.MoveNext();
+                Assert.True(b);
+                double acc = 0;
+                getter(ref acc);
+                Assert.Equal(0.71, acc, 2);
+                b = cursor.MoveNext();
+                Assert.False(b);
+            }
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        public void TestTensorFlowEntryPoint()
+        {
+            var dataPath = GetDataPath("Train-Tiny-28x28.txt");
+            var env = new MLContext(42);
+            AssemblyRegistration.RegisterAssemblies(env);
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': [{
+                                        'Name': 'Label',
+                                        'Type': null,
+                                        'Source': [{
+                                                'Min': 0,
+                                                'Max': 0,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'Placeholder',
+                                        'Type': null,
+                                        'Source': [{
+                                                'Min': 1,
+                                                'Max': 784,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }
+                                ],
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$Var_2802f3e485814063828c2303ec60327c'
+                        }
+                    }, {
+                        'Name': 'Transforms.TensorFlowScorer',
+                        'Inputs': {
+                            'ModelLocation': 'mnist_model/frozen_saved_model.pb',
+                            'InputColumns': [
+                                'Placeholder'
+                            ],
+                            'OutputColumns': [
+                                'Softmax'
+                            ],
+                            'LabelColumn': null,
+                            'TensorFlowLabel': null,
+                            'OptimizationOperation': null,
+                            'LossOperation': null,
+                            'MetricOperation': null,
+                            'BatchSize': 64,
+                            'Epoch': 5,
+                            'LearningRateOperation': null,
+                            'LearningRate': 0.01,
+                            'SaveLocationOperation': 'save/Const',
+                            'SaveOperation': 'save/control_dependency',
+                            'ReTrain': false,
+                            'Data': '$Var_2802f3e485814063828c2303ec60327c'
+                        },
+                        'Outputs': {
+                            'OutputData': '$outputData',
+                            'Model': '$Var_c3a191a107c54725acc49e432bfdf104'
+                        }
+                    }
+                ]
+            }
+            ";
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
+
+            var data = runner.GetOutput<IDataView>("outputData");
+
+            var schema = data.Schema;
+            Assert.Equal(3, schema.Count);
+            Assert.Equal("Softmax", schema[2].Name);
+            Assert.Equal(10, (schema[2].Type as VectorType)?.Size);
+        }
 
     }
 #pragma warning restore 612
