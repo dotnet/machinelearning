@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        public OneHotEncodingTransformer(ValueToKeyMappingEstimator term, IEstimator<ITransformer> toVector, IDataView input)
+        internal OneHotEncodingTransformer(ValueToKeyMappingEstimator term, IEstimator<ITransformer> toVector, IDataView input)
         {
             if (toVector != null)
                 _transformer = term.Append(toVector).Fit(input);
