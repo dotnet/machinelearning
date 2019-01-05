@@ -158,13 +158,15 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyApplyATransform()
         {
             var environment = new MLContext();
+            AssemblyRegistration.RegisterAssemblies(environment);
+
             string inputGraph = @"
             {
                 'Nodes':
                 [{
                         'Name': 'Data.TextLoader',
                         'Inputs': {
-                            'InputFile': '$inputText',
+                            'InputFile': '$inputFile',
                             'Arguments': {
                                 'UseThreads': true,
                                 'HeaderFile': null,
@@ -229,6 +231,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             string dataPath = GetDataPath("QuotingData.csv");
             var environment = new MLContext();
+            AssemblyRegistration.RegisterAssemblies(environment);
 
             string inputGraph = @"
             {  
@@ -498,14 +501,15 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyTrimSpaces()
         {
             string dataPath = GetDataPath("TrimData.csv");
-
             var environment = new MLContext();
+            AssemblyRegistration.RegisterAssemblies(environment);
+
             string inputGraph = @"{
                 'Nodes':
                 [{
                         'Name': 'Data.TextLoader',
                         'Inputs': {
-                            'InputFile': '$Var_1f964a97c74f423b88d4cf9dfe2b619f',
+                            'InputFile': '$inputFile',
                             'Arguments': {
                                 'UseThreads': true,
                                 'HeaderFile': null,
@@ -549,7 +553,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                             }
                         },
                         'Outputs': {
-                            'Data': '$Var_1599b41968f9460ea2c67de8dd58a25f'
+                            'Data': '$data'
                         }
                     }
                 ]
@@ -597,8 +601,14 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ThrowsExceptionWithPropertyName()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            Exception ex = Assert.Throws<InvalidOperationException>(() => ml.Data.ReadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
-            Assert.StartsWith($"Field or property String1 is missing {nameof(LoadColumnAttribute)}", ex.Message);
+            try
+            {
+                ml.Data.ReadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
+            }
+            catch (Exception ex)
+            {
+                Assert.StartsWith($"Assert failed: Field or property String1 is missing the {nameof(LoadColumnAttribute)}", ex.Message);
+            }
         }
 
         public class QuoteInput
