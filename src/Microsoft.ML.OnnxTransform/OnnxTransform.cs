@@ -100,32 +100,8 @@ namespace Microsoft.ML.Transforms
             loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
-        {
-            var args = new Arguments {
-                ModelFile = modelFile,
-                InputColumns = new string[] { },
-                OutputColumns = new string[] { },
-                GpuDeviceId = gpuDeviceId,
-                FallbackToCpu = fallbackToCpu };
-
-            return Create(env, args, input);
-        }
-
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns, int? gpuDeviceId = null, bool fallbackToCpu = false)
-        {
-            var args = new Arguments {
-                ModelFile = modelFile,
-                InputColumns = inputColumns,
-                OutputColumns = outputColumns,
-                GpuDeviceId = gpuDeviceId,
-                FallbackToCpu = fallbackToCpu };
-
-            return Create(env, args, input);
-        }
-
         // Factory method for SignatureDataTransform
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             return new OnnxTransform(env, args).MakeDataTransform(input);
         }

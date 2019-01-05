@@ -95,10 +95,9 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        /// <summary>
-        /// Factory method for SignatureDataTransform.
-        /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        [BestFriend]
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -109,9 +108,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return transformer.MakeDataTransform(input);
         }
 
-        /// <summary>
-        /// Factory method for SignatureLoadModel.
-        /// </summary>
+        // Factory method for SignatureLoadModel.
         private static KeyToValueMappingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -126,15 +123,11 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        /// <summary>
-        /// Factory method for SignatureLoadDataTransform.
-        /// </summary>
+        // Factory method for SignatureLoadDataTransform.
         private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
-        /// <summary>
-        /// Factory method for SignatureLoadRowMapper.
-        /// </summary>
+        // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 

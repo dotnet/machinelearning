@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return infos;
         }
 
-        public ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
+        internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
             params ColumnInfo[] columns) :
             this(env, input, columns, null, null, null)
         { }

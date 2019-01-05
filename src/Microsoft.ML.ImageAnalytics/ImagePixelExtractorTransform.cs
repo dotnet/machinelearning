@@ -103,10 +103,10 @@ namespace Microsoft.ML.ImageAnalytics
             public bool UseBlue = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to separate each channel or interleave in ARGB order", ShortName = "interleave")]
-            public bool InterleaveArgb = false;
+            public bool InterleaveArgb = Defaults.Interleave;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to convert to floating point", ShortName = "conv")]
-            public bool Convert = true;
+            public bool Convert = Defaults.Convert;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Offset (pre-scale)")]
             public Single? Offset;
@@ -130,6 +130,18 @@ namespace Microsoft.ML.ImageAnalytics
             All = Alpha | Red | Green | Blue
         }
 
+        internal static class Defaults
+        {
+            public const ColorBits Colors = ColorBits.Rgb;
+            public const bool Interleave = false;
+            public const bool Convert = true;
+            public const float Scale = 1f;
+            public const float Offset = 0f;
+        }
+
+        /// <summary>
+        /// Describes how the transformer handles one image pixel extraction column pair.
+        /// </summary>
         public sealed class ColumnInfo
         {
             public readonly string Input;
@@ -137,11 +149,10 @@ namespace Microsoft.ML.ImageAnalytics
 
             public readonly ColorBits Colors;
             public readonly byte Planes;
-
-            public readonly bool Convert;
             public readonly float Offset;
             public readonly float Scale;
             public readonly bool Interleave;
+            public readonly bool AsFloat;
 
             public bool Alpha => (Colors & ColorBits.Alpha) != 0;
             public bool Red => (Colors & ColorBits.Red) != 0;
@@ -164,38 +175,43 @@ namespace Microsoft.ML.ImageAnalytics
 
                 Interleave = item.InterleaveArgb ?? args.InterleaveArgb;
 
-                Convert = item.Convert ?? args.Convert;
-                if (!Convert)
+                AsFloat = item.Convert ?? args.Convert;
+                if (!AsFloat)
                 {
-                    Offset = 0;
-                    Scale = 1;
+                    Offset = Defaults.Offset;
+                    Scale = Defaults.Scale;
                 }
                 else
                 {
-                    Offset = item.Offset ?? args.Offset ?? 0;
-                    Scale = item.Scale ?? args.Scale ?? 1;
+                    Offset = item.Offset ?? args.Offset ?? Defaults.Offset;
+                    Scale = item.Scale ?? args.Scale ?? Defaults.Scale;
                     Contracts.CheckUserArg(FloatUtils.IsFinite(Offset), nameof(item.Offset));
                     Contracts.CheckUserArg(FloatUtils.IsFiniteNonZero(Scale), nameof(item.Scale));
                 }
             }
 
-            public ColumnInfo(string input, string output, ColorBits colors = ColorBits.Rgb, bool interleave = false)
-                : this(input, output, colors, interleave, true, 1f, 0f)
-            {
-            }
+            /// <summary>
+            /// Describes how the transformer handles one input-output column pair.
+            /// </summary>
+            /// <param name="input">Name of the input column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="colors">What colors to extract.</param>
+            /// <param name="interleave"></param>
+            /// <param name="scale">Scale color pixel value by this amount.</param>
+            /// <param name="offset">Offset color pixel value by this amount.</param>
+            /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
 
-            public ColumnInfo(string input, string output, ColorBits colors = ColorBits.Rgb, bool interleave = false, float scale = 1f, float offset = 0f)
-                : this(input, output, colors, interleave, true, scale, offset)
+            public ColumnInfo(string input, string output = null,
+                ColorBits colors = Defaults.Colors,
+                bool interleave = Defaults.Interleave,
+                float scale = Defaults.Scale,
+                float offset = Defaults.Offset,
+                bool asFloat = Defaults.Convert)
             {
-            }
-
-            private ColumnInfo(string input, string output, ColorBits colors, bool interleave, bool convert, float scale, float offset)
-            {
-                Contracts.CheckNonEmpty(input, nameof(input));
-                Contracts.CheckNonEmpty(output, nameof(output));
+                Contracts.CheckNonWhiteSpace(input, nameof(input));
 
                 Input = input;
-                Output = output;
+                Output = output ?? input;
                 Colors = colors;
 
                 if ((Colors & ColorBits.Alpha) == ColorBits.Alpha) Planes++;
@@ -206,19 +222,19 @@ namespace Microsoft.ML.ImageAnalytics
 
                 Interleave = interleave;
 
-                Convert = convert;
-                if (!Convert)
+                AsFloat = asFloat;
+                if (!AsFloat)
                 {
-                    Offset = 0;
-                    Scale = 1;
+                    Offset = Defaults.Offset;
+                    Scale = Defaults.Scale;
                 }
                 else
                 {
                     Offset = offset;
                     Scale = scale;
-                    Contracts.CheckParam(FloatUtils.IsFinite(Offset), nameof(offset));
-                    Contracts.CheckParam(FloatUtils.IsFiniteNonZero(Scale), nameof(scale));
                 }
+                Contracts.CheckParam(FloatUtils.IsFinite(Offset), nameof(offset));
+                Contracts.CheckParam(FloatUtils.IsFiniteNonZero(Scale), nameof(scale));
             }
 
             internal ColumnInfo(string input, string output, ModelLoadContext ctx)
@@ -247,12 +263,12 @@ namespace Microsoft.ML.ImageAnalytics
                 Planes = (byte)planes;
                 Contracts.Assert(0 < Planes & Planes <= 4);
 
-                Convert = ctx.Reader.ReadBoolByte();
+                AsFloat = ctx.Reader.ReadBoolByte();
                 Offset = ctx.Reader.ReadFloat();
                 Contracts.CheckDecode(FloatUtils.IsFinite(Offset));
                 Scale = ctx.Reader.ReadFloat();
                 Contracts.CheckDecode(FloatUtils.IsFiniteNonZero(Scale));
-                Contracts.CheckDecode(Convert || Offset == 0 && Scale == 1);
+                Contracts.CheckDecode(AsFloat || Offset == 0 && Scale == 1);
                 Interleave = ctx.Reader.ReadBoolByte();
             }
 
@@ -276,11 +292,11 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.Assert(Colors != 0);
                 Contracts.Assert((Colors & ColorBits.All) == Colors);
                 ctx.Writer.Write((byte)Colors);
-                ctx.Writer.WriteBoolByte(Convert);
+                ctx.Writer.WriteBoolByte(AsFloat);
                 Contracts.Assert(FloatUtils.IsFinite(Offset));
                 ctx.Writer.Write(Offset);
                 Contracts.Assert(FloatUtils.IsFiniteNonZero(Scale));
-                Contracts.Assert(Convert || Offset == 0 && Scale == 1);
+                Contracts.Assert(AsFloat || Offset == 0 && Scale == 1);
                 ctx.Writer.Write(Scale);
                 ctx.Writer.WriteBoolByte(Interleave);
             }
@@ -288,7 +304,8 @@ namespace Microsoft.ML.ImageAnalytics
 
         internal const string Summary = "Extract color plane(s) from an image. Options include scaling, offset and conversion to floating point.";
         internal const string UserName = "Image Pixel Extractor Transform";
-        public const string LoaderSignature = "ImagePixelExtractor";
+        internal const string LoaderSignature = "ImagePixelExtractor";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -307,12 +324,29 @@ namespace Microsoft.ML.ImageAnalytics
 
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
 
-        public ImagePixelExtractorTransform(IHostEnvironment env, string inputColumn, string outputColumn,
-            ColorBits colors = ColorBits.Rgb, bool interleave = false)
-            : this(env, new ColumnInfo(inputColumn, outputColumn, colors, interleave))
+        ///<summary>
+        /// Extract pixels values from image and produce array of values.
+        ///</summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+        /// <param name="colors">What colors to extract.</param>
+        /// <param name="interleave"></param>
+        /// <param name="scale">Scale color pixel value by this amount.</param>
+        /// <param name="offset">Offset color pixel value by this amount.</param>
+        /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
+        public ImagePixelExtractorTransform(IHostEnvironment env, string input, string output = null,
+            ColorBits colors = ColorBits.Rgb, bool interleave = Defaults.Interleave, float scale = Defaults.Scale, float offset = Defaults.Offset,
+            bool asFloat = Defaults.Convert)
+            : this(env, new ColumnInfo(input, output, colors, interleave, scale, offset, asFloat))
         {
         }
 
+        ///<summary>
+        /// Extract pixels values from image and produce array of values.
+        ///</summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="columns">Describes the parameters of pixel extraction for each column pair.</param>
         public ImagePixelExtractorTransform(IHostEnvironment env, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
@@ -325,8 +359,8 @@ namespace Microsoft.ML.ImageAnalytics
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        // SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -431,7 +465,7 @@ namespace Microsoft.ML.ImageAnalytics
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
 
-                if (_parent._columns[iinfo].Convert)
+                if (_parent._columns[iinfo].AsFloat)
                     return GetGetterCore<Single>(input, iinfo, out disposer);
                 return GetGetterCore<byte>(input, iinfo, out disposer);
             }
@@ -607,23 +641,44 @@ namespace Microsoft.ML.ImageAnalytics
                     Contracts.Assert((long)height * width <= int.MaxValue / 4);
 
                     if (column.Interleave)
-                        types[i] = new VectorType(column.Convert ? NumberType.Float : NumberType.U1, height, width, column.Planes);
+                        types[i] = new VectorType(column.AsFloat ? NumberType.Float : NumberType.U1, height, width, column.Planes);
                     else
-                        types[i] = new VectorType(column.Convert ? NumberType.Float : NumberType.U1, column.Planes, height, width);
+                        types[i] = new VectorType(column.AsFloat ? NumberType.Float : NumberType.U1, column.Planes, height, width);
                 }
                 return types;
             }
         }
     }
 
+    /// <summary>
+    /// Estimator which extract pixel values out of image and produce array of values.
+    /// </summary>
     public sealed class ImagePixelExtractingEstimator : TrivialEstimator<ImagePixelExtractorTransform>
     {
-        public ImagePixelExtractingEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
-                ImagePixelExtractorTransform.ColorBits colors = ImagePixelExtractorTransform.ColorBits.Rgb, bool interleave = false)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransform(env, inputColumn, outputColumn, colors, interleave))
+        ///<summary>
+        /// Extract pixels values from image and produce array of values.
+        ///</summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
+        /// <param name="colors">What colors to extract.</param>
+        /// <param name="interleave"></param>
+        /// <param name="scale">Scale color pixel value by this amount.</param>
+        /// <param name="offset">Offset color pixel value by this amount.</param>
+        /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
+        public ImagePixelExtractingEstimator(IHostEnvironment env, string input,
+            string output = null, ImagePixelExtractorTransform.ColorBits colors = ImagePixelExtractorTransform.Defaults.Colors,
+            bool interleave = ImagePixelExtractorTransform.Defaults.Interleave, float scale = ImagePixelExtractorTransform.Defaults.Scale,
+            float offset = ImagePixelExtractorTransform.Defaults.Offset, bool asFloat = ImagePixelExtractorTransform.Defaults.Convert)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransform(env, input, output, colors, interleave))
         {
         }
 
+        ///<summary>
+        /// Extract pixels values from image and produce array of values.
+        ///</summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="columns">Describes the parameters of pixel extraction for each column pair.</param>
         public ImagePixelExtractingEstimator(IHostEnvironment env, params ImagePixelExtractorTransform.ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransform(env, columns))
         {
@@ -640,7 +695,7 @@ namespace Microsoft.ML.ImageAnalytics
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, new ImageType().ToString(), col.GetTypeString());
 
-                var itemType = colInfo.Convert ? NumberType.R4 : NumberType.U1;
+                var itemType = colInfo.AsFloat ? NumberType.R4 : NumberType.U1;
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, itemType, false);
             }
 

@@ -65,19 +65,26 @@ namespace Microsoft.ML.ImageAnalytics
 
         internal const string Summary = "Load images from files.";
         internal const string UserName = "Image Loader Transform";
-        public const string LoaderSignature = "ImageLoaderTransform";
+        internal const string LoaderSignature = "ImageLoaderTransform";
 
         public readonly string ImageFolder;
 
         public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
-        public ImageLoaderTransform(IHostEnvironment env, string imageFolder, params (string input, string output)[] columns)
+        /// <summary>
+        /// Load images in memory.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="imageFolder">Folder where to look for images.</param>
+        /// <param name="columns">Names of input and output columns.</param>
+        public ImageLoaderTransform(IHostEnvironment env, string imageFolder = null, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderTransform)), columns)
         {
             ImageFolder = imageFolder;
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
+        // Factory method for SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
         {
             return new ImageLoaderTransform(env, args.ImageFolder, args.Column.Select(x => (x.Source ?? x.Name, x.Name)).ToArray())
                 .MakeDataTransform(data);
@@ -209,16 +216,25 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
+    /// <summary>
+    /// Load images in memory.
+    /// </summary>
     public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoaderTransform>
     {
         private readonly ImageType _imageType;
 
+        /// <summary>
+        /// Load images in memory.
+        /// </summary>
+        /// <param name="env">The host environment.</param>
+        /// <param name="imageFolder">Folder where to look for images.</param>
+        /// <param name="columns">Names of input and output columns.</param>
         public ImageLoadingEstimator(IHostEnvironment env, string imageFolder, params (string input, string output)[] columns)
             : this(env, new ImageLoaderTransform(env, imageFolder, columns))
         {
         }
 
-        public ImageLoadingEstimator(IHostEnvironment env, ImageLoaderTransform transformer)
+        private ImageLoadingEstimator(IHostEnvironment env, ImageLoaderTransform transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingEstimator)), transformer)
         {
             _imageType = new ImageType();

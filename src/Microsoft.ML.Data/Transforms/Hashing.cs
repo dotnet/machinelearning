@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of output column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
@@ -135,7 +135,8 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
             /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-            public ColumnInfo(string input, string output,
+            public ColumnInfo(string input,
+                string output = null,
                 int hashBits = HashingEstimator.Defaults.HashBits,
                 uint seed = HashingEstimator.Defaults.Seed,
                 bool ordered = HashingEstimator.Defaults.Ordered,
@@ -145,9 +146,9 @@ namespace Microsoft.ML.Transforms.Conversions
                     throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
                 if (invertHash != 0 && hashBits >= 31)
                     throw Contracts.ExceptParam(nameof(hashBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", hashBits);
-
+                Contracts.CheckNonWhiteSpace(input, nameof(input));
                 Input = input;
-                Output = output;
+                Output = output ?? input;
                 HashBits = hashBits;
                 Seed = seed;
                 Ordered = ordered;
@@ -235,7 +236,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public HashingTransformer(IHostEnvironment env, ColumnInfo[] columns) :
+        public HashingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
               base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -246,7 +247,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        internal HashingTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns) :
+        internal HashingTransformer(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -373,7 +374,7 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -650,7 +651,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private readonly struct HashU16: IHasher<RowId>
+        private readonly struct HashU16 : IHasher<RowId>
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public uint HashCore(uint seed, uint mask, in RowId value)

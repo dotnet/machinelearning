@@ -458,19 +458,11 @@ namespace Microsoft.ML.RunTests
                     ScoreModel.Score(Env,
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
+                individualScores[i] = new ColumnCopyingTransformer(Env,(
+                    MetadataUtils.Const.ScoreValueKind.Score,
+                    (MetadataUtils.Const.ScoreValueKind.Score + i).ToString())
+                    ).Transform(individualScores[i]);
 
-                individualScores[i] = ColumnCopyingTransformer.Create(Env,
-                    new ColumnCopyingTransformer.Arguments()
-                    {
-                        Column = new[]
-                        {
-                            new ColumnCopyingTransformer.Column()
-                            {
-                                Name = MetadataUtils.Const.ScoreValueKind.Score + i,
-                                Source = MetadataUtils.Const.ScoreValueKind.Score
-                            },
-                        }
-                    }, individualScores[i]);
                 individualScores[i] = ColumnSelectingTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
@@ -756,23 +748,8 @@ namespace Microsoft.ML.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
 
-                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
-                {
-                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
-                }, data);
-
-                data = ValueToKeyMappingTransformer.Create(Env, new ValueToKeyMappingTransformer.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new ValueToKeyMappingTransformer.Column()
-                        {
-                            Name = "Label",
-                            Source = "Label",
-                            Sort = ValueToKeyMappingTransformer.SortOrder.Value
-                        }
-                    }
-                }, data);
+                data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
+                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", sort: ValueToKeyMappingTransformer.SortOrder.Value).Fit(data).Transform(data);
 
                 var lrInput = new LogisticRegression.Arguments
                 {
@@ -797,7 +774,7 @@ namespace Microsoft.ML.RunTests
             var binaryEnsembleModel = EnsembleCreator.CreateBinaryPipelineEnsemble(Env,
                 new EnsembleCreator.PipelineClassifierInput()
                 {
-                    ModelCombiner = EntryPoints.EnsembleCreator.ClassifierCombiner.Average,
+                    ModelCombiner = EnsembleCreator.ClassifierCombiner.Average,
                     Models = predictorModels
                 }).PredictorModel;
             var binaryEnsembleCalibrated = Calibrate.Platt(Env,
@@ -819,10 +796,10 @@ namespace Microsoft.ML.RunTests
                     PredictorModel = binaryEnsembleCalibrated
                 }).ScoredData;
 
-            var regressionEnsembleModel = EntryPoints.EnsembleCreator.CreateRegressionPipelineEnsemble(Env,
-                new EntryPoints.EnsembleCreator.PipelineRegressionInput()
+            var regressionEnsembleModel = EnsembleCreator.CreateRegressionPipelineEnsemble(Env,
+                new EnsembleCreator.PipelineRegressionInput()
                 {
-                    ModelCombiner = EntryPoints.EnsembleCreator.ScoreCombiner.Average,
+                    ModelCombiner = EnsembleCreator.ScoreCombiner.Average,
                     Models = predictorModels
                 }).PredictorModel;
             var regressionScored = ScoreModel.Score(Env,
@@ -832,8 +809,8 @@ namespace Microsoft.ML.RunTests
                     PredictorModel = regressionEnsembleModel
                 }).ScoredData;
 
-            var anomalyEnsembleModel = EntryPoints.EnsembleCreator.CreateAnomalyPipelineEnsemble(Env,
-                new EntryPoints.EnsembleCreator.PipelineAnomalyInput()
+            var anomalyEnsembleModel = EnsembleCreator.CreateAnomalyPipelineEnsemble(Env,
+                new EnsembleCreator.PipelineAnomalyInput()
                 {
                     ModelCombiner = EnsembleCreator.ScoreCombiner.Average,
                     Models = predictorModels
@@ -1020,12 +997,10 @@ namespace Microsoft.ML.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = TextFeaturizingEstimator.Create(Env,
-                        new TextFeaturizingEstimator.Arguments()
-                        {
-                            Column = new TextFeaturizingEstimator.Column() { Name = "Features", Source = new[] { "Text" } },
-                            UsePredefinedStopWordRemover = true
-                        }, data);
+                    data = new TextFeaturizingEstimator(Env, "Text", "Features", args =>
+                    {
+                        args.UseStopRemover = true;
+                    }).Fit(data).Transform(data);
                 }
                 else
                 {
@@ -1224,10 +1199,7 @@ namespace Microsoft.ML.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
-                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
-                {
-                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
-                }, data);
+                data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
                 var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
                 var rmd = new RoleMappedData(data, "Label", "Features");
@@ -1369,7 +1341,7 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new OneHotEncodingEstimator(Env,"Cat").Fit(data).Transform(data);
+                data = new OneHotEncodingEstimator(Env, "Cat").Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
@@ -1378,9 +1350,9 @@ namespace Microsoft.ML.RunTests
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
                         NumThreads = 1,
-                        ShowTrainingStats = true, 
+                        ShowTrainingStats = true,
                         StdComputer = new ComputeLRTrainingStdThroughHal()
-                };
+                    };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
@@ -3379,8 +3351,8 @@ namespace Microsoft.ML.RunTests
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumThreads = 1,
                 ShowTrainingStats = true,
-                StdComputer= new ComputeLRTrainingStdThroughHal()
-        };
+                StdComputer = new ComputeLRTrainingStdThroughHal()
+            };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 
             var mcLrInput = new MulticlassLogisticRegression.Arguments

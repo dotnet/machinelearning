@@ -86,7 +86,7 @@ namespace Microsoft.ML.Scenarios
                     new TextLoader.Column("Label", DataKind.Num, 0),
                     new TextLoader.Column("SentimentText", DataKind.Text, 1)
                 },
-                hasHeader: true 
+                hasHeader: true
             );
 
             var text = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
@@ -104,19 +104,10 @@ namespace Microsoft.ML.Scenarios
                 WordFeatureExtractor = null,
             },
             loader);
-
-            var trans = WordEmbeddingsExtractingTransformer.Create(env, new WordEmbeddingsExtractingTransformer.Arguments()
-            {
-                Column = new WordEmbeddingsExtractingTransformer.Column[1]
-                {
-                        new WordEmbeddingsExtractingTransformer.Column
-                        {
-                            Name = "Features",
-                            Source = "WordEmbeddings_TransformedText"
-                        }
-                },
-                ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
-            }, text);
+            var trans = new WordEmbeddingsExtractingTransformer(env,
+                "WordEmbeddings_TransformedText",
+                "Features",
+                WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe).Transform(text);
             // Train
             var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees: 5, minDatapointsInLeaves: 2);
 

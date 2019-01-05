@@ -205,9 +205,6 @@ namespace Microsoft.ML.Transforms.Conversions
                 _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, bags[i]);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
-             new KeyToVectorMappingTransformer(env, columns).MakeDataTransform(input);
-
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {

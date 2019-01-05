@@ -178,33 +178,61 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Creates <see cref="IDataTransform"/> using <see cref="TensorFlowTransform"/>.
-        /// This convenience method get the model file as input and loads the model internally.
-        /// If the model is already loaded please <see cref="TensorFlowTransform.Create(IHostEnvironment, IDataView, TensorFlowModelInfo, string[], string[])"/> to avoid reloading of model.
+        /// Transform for scoring Tensorflow models. Input data column names/types must exactly match
+        /// all model input names. Only the output columns specified will be generated.
+        /// If the model is already loaded please <see cref="TensorFlowTransform(IHostEnvironment, TensorFlowModelInfo, string, string)"/> to avoid reloading of model.
         /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="model">Path to the TensorFlow model. </param>
-        /// <param name="names">Name of the output column(s). Keep it same as in the Tensorflow model.</param>
-        /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source)
+        /// <param name="env">The environment to use.</param>
+        /// <param name="modelFile">Model file path.</param>
+        /// <param name="inputColumn">The name of the input data column. Must match model input name.</param>
+        /// <param name="outputColumn">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        public TensorFlowTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn)
+            : this(env, TensorFlowUtils.GetSession(env, modelFile), new[] { inputColumn }, new[] { outputColumn }, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
         {
-            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false).MakeDataTransform(input);
         }
 
         /// <summary>
-        /// Creates <see cref="IDataTransform"/> using <see cref="TensorFlowTransform"/>.
+        /// Transform for scoring Tensorflow models. Input data column names/types must exactly match
+        /// all model input names. Only the output columns specified will be generated.
+        /// If the model is already loaded please <see cref="TensorFlowTransform(IHostEnvironment, TensorFlowModelInfo, string[], string[])"/> to avoid reloading of model.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="modelFile">Model file path.</param>
+        /// <param name="inputColumns">The name of the input data columns. Must match model's input names.</param>
+        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        public TensorFlowTransform(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns)
+            : this(env, TensorFlowUtils.GetSession(env, modelFile), inputColumns, outputColumns, TensorFlowUtils.IsSavedModel(env, modelFile) ? modelFile : null, false)
+        {
+        }
+
+        /// <summary>
+        /// Transform for scoring Tensorflow models. Input data column names/types must exactly match
+        /// all model input names. Only the output columns specified will be generated.
         /// This convenience method avoids reloading of TensorFlow model.
         /// It is useful in a situation where user has already loaded TensorFlow model using <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/> for inspecting model schema.
         /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="env">The environment to use.</param>
         /// <param name="tfModelInfo"> <see cref="TensorFlowModelInfo"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
-        /// <param name="names">Name of the output column(s). Keep it same as in the Tensorflow model.</param>
-        /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, TensorFlowModelInfo tfModelInfo, string[] names, string[] source)
+        /// <param name="inputColumn">The name of the input data columns. Must match model's input names.</param>
+        /// <param name="outputColumn">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        public TensorFlowTransform(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string inputColumn, string outputColumn)
+            : this(env, tfModelInfo.Session, new[] { inputColumn }, new[] { outputColumn }, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
         {
-            return new TensorFlowTransform(env, tfModelInfo.Session, source, names, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false).MakeDataTransform(input);
+        }
+
+        /// <summary>
+        /// Transform for scoring Tensorflow models. Input data column names/types must exactly match
+        /// all model input names. Only the output columns specified will be generated.
+        /// This convenience method avoids reloading of TensorFlow model.
+        /// It is useful in a situation where user has already loaded TensorFlow model using <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/> for inspecting model schema.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="tfModelInfo"> <see cref="TensorFlowModelInfo"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
+        /// <param name="inputColumns">The name of the input data columns. Must match model's input names.</param>
+        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        public TensorFlowTransform(IHostEnvironment env, TensorFlowModelInfo tfModelInfo, string[] inputColumns, string[] outputColumns)
+            : this(env, tfModelInfo.Session, inputColumns, outputColumns, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false)
+        {
         }
 
         // Factory method for SignatureLoadModel.
@@ -268,7 +296,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));

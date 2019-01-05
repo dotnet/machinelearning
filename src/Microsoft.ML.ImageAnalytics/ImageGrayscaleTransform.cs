@@ -65,7 +65,8 @@ namespace Microsoft.ML.ImageAnalytics
         internal const string Summary = "Convert image into grayscale.";
 
         internal const string UserName = "Image Greyscale Transform";
-        public const string LoaderSignature = "ImageGrayscaleTransform";
+        internal const string LoaderSignature = "ImageGrayscaleTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -93,7 +94,7 @@ namespace Microsoft.ML.ImageAnalytics
         }
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -214,8 +215,17 @@ namespace Microsoft.ML.ImageAnalytics
         }
     }
 
+    /// <summary>
+    /// Converts the images to grayscale.
+    /// </summary>
     public sealed class ImageGrayscalingEstimator : TrivialEstimator<ImageGrayscaleTransform>
     {
+
+        /// <summary>
+        /// Converts the images to grayscale.
+        /// </summary>
+        /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
+        /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
         public ImageGrayscalingEstimator(IHostEnvironment env, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscalingEstimator)), new ImageGrayscaleTransform(env, columns))
         {

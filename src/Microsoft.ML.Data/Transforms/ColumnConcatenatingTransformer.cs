@@ -184,7 +184,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public ColumnInfo(ModelLoadContext ctx)
+            internal ColumnInfo(ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ctx);
                 // *** Binary format ***
@@ -265,10 +265,8 @@ namespace Microsoft.ML.Data
                 col.Save(ctx);
         }
 
-        /// <summary>
-        /// Constructor for SignatureLoadModel.
-        /// </summary>
-        public ColumnConcatenatingTransformer(IHostEnvironment env, ModelLoadContext ctx) :
+        // Factory method for SignatureLoadModel.
+        private ColumnConcatenatingTransformer(IHostEnvironment env, ModelLoadContext ctx) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnConcatenatingTransformer)))
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -351,10 +349,8 @@ namespace Microsoft.ML.Data
             return result;
         }
 
-        /// <summary>
-        /// Factory method corresponding to SignatureDataTransform.
-        /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -371,10 +367,9 @@ namespace Microsoft.ML.Data
             return transformer.MakeDataTransform(input);
         }
 
-        /// <summary>
-        /// Factory method corresponding to SignatureDataTransform.
-        /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, TaggedArguments args, IDataView input)
+        // Factory method corresponding to SignatureDataTransform.
+        [BestFriend]
+        internal static IDataTransform Create(IHostEnvironment env, TaggedArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -393,15 +388,11 @@ namespace Microsoft.ML.Data
 
         private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
-        /// <summary>
-        /// Factory method for SignatureLoadDataTransform.
-        /// </summary>
+        // Factory method for SignatureLoadDataTransform.
         private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => new ColumnConcatenatingTransformer(env, ctx).MakeDataTransform(input);
 
-        /// <summary>
-        /// Factory method for SignatureLoadRowMapper.
-        /// </summary>
+        // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(inputSchema);
 

@@ -8,7 +8,7 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.TensorFlow.StaticPipe
+namespace Microsoft.ML.Transforms.StaticPipe
 {
     public static class TensorFlowStaticExtensions
     {

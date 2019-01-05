@@ -15,7 +15,7 @@ namespace Microsoft.ML.Data
     {
         protected readonly (string input, string output)[] ColumnPairs;
 
-        protected OneToOneTransformerBase(IHost host, (string input, string output)[] columns) : base(host)
+        protected OneToOneTransformerBase(IHost host, params (string input, string output)[] columns) : base(host)
         {
             host.CheckValue(columns, nameof(columns));
             var newNames = new HashSet<string>();
