@@ -300,6 +300,39 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void LightGbmBinaryClassificationOnnxConversionTest()
+        {
+            // Step 1: Create and train a ML.NET pipeline.
+            var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var data = mlContext.Data.ReadFromTextFile<AdultData>(trainDataPath,
+                hasHeader: true,
+                separatorChar: ';'
+            );
+            var cachedTrainData = mlContext.Data.Cache(data);
+            var dynamicPipeline =
+                mlContext.Transforms.Normalize("FeatureVector")
+                .AppendCacheCheckpoint(mlContext)
+                .Append(mlContext.Regression.Trainers.LightGbm(labelColumn: "Target", featureColumn: "FeatureVector", numBoostRound: 3, numLeaves: 16, minDataPerLeaf: 100));
+            var model = dynamicPipeline.Fit(data);
+
+            // Step 2: Convert ML.NET model to ONNX format and save it as a file.
+            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+
+            // Step 3: Save ONNX model as binary and text files.
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
+            var onnxFileName = "LightGbmBinaryClassificationOnnxConversionTest.onnx";
+            var onnxFilePath = GetOutputPath(subDir, onnxFileName);
+            var onnxTextName = "LightGbmBinaryClassificationOnnxConversionTest.txt";
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+            SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
+
+            // Step 4: Check ONNX model's text format.
+            CheckEquality(subDir, onnxTextName);
+            Done();
+        }
+
+        [Fact]
         public void MulticlassClassificationLogisticRegressionSaveModelToOnnxTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
