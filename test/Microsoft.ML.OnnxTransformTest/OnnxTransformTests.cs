@@ -259,7 +259,7 @@ namespace Microsoft.ML.Tests
                     }
                     });
 
-                var onnx = new OnnxTransform(env, modelFile, "data_0", "softmaxout_1").Transform(dataView);
+                var onnx = new OnnxTransformer(env, modelFile, "data_0", "softmaxout_1").Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("softmaxout_1", out int scores);
                 using (var curs = onnx.GetRowCursor(col => col == scores))
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Tests
                         inb = new float[] {1,2,3,4,5}
                     }
                     });
-                var onnx = new OnnxTransform(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }).Transform(dataView);
+                var onnx = new OnnxTransformer(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }).Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
                 onnx.Schema.TryGetColumnIndex("outb", out int scoresb);

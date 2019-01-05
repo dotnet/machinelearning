@@ -17,24 +17,24 @@ using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 
-[assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(IDataTransform), typeof(ImagePixelExtractorTransform), typeof(ImagePixelExtractorTransform.Arguments), typeof(SignatureDataTransform),
-    ImagePixelExtractorTransform.UserName, "ImagePixelExtractorTransform", "ImagePixelExtractor")]
+[assembly: LoadableClass(ImagePixelExtractorTransformer.Summary, typeof(IDataTransform), typeof(ImagePixelExtractorTransformer), typeof(ImagePixelExtractorTransformer.Arguments), typeof(SignatureDataTransform),
+    ImagePixelExtractorTransformer.UserName, "ImagePixelExtractorTransform", "ImagePixelExtractor")]
 
-[assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(IDataTransform), typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadDataTransform),
-    ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
+[assembly: LoadableClass(ImagePixelExtractorTransformer.Summary, typeof(IDataTransform), typeof(ImagePixelExtractorTransformer), null, typeof(SignatureLoadDataTransform),
+    ImagePixelExtractorTransformer.UserName, ImagePixelExtractorTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadModel),
-    ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(ImagePixelExtractorTransformer), null, typeof(SignatureLoadModel),
+    ImagePixelExtractorTransformer.UserName, ImagePixelExtractorTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(ImagePixelExtractorTransform), null, typeof(SignatureLoadRowMapper),
-    ImagePixelExtractorTransform.UserName, ImagePixelExtractorTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ImagePixelExtractorTransformer), null, typeof(SignatureLoadRowMapper),
+    ImagePixelExtractorTransformer.UserName, ImagePixelExtractorTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.ImageAnalytics
 {
     /// <summary>
-    /// Transform which takes one or many columns of <see cref="ImageType"/> and convert them into vector representation.
+    /// Transformer which takes one or many columns of <see cref="ImageType"/> and convert them into vector representation.
     /// </summary>
-    public sealed class ImagePixelExtractorTransform : OneToOneTransformerBase
+    public sealed class ImagePixelExtractorTransformer : OneToOneTransformerBase
     {
         public class Column : OneToOneColumn
         {
@@ -315,7 +315,7 @@ namespace Microsoft.ML.ImageAnalytics
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(ImagePixelExtractorTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(ImagePixelExtractorTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImagePixelExtractor";
@@ -335,7 +335,7 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="scale">Scale color pixel value by this amount.</param>
         /// <param name="offset">Offset color pixel value by this amount.</param>
         /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
-        public ImagePixelExtractorTransform(IHostEnvironment env, string input, string output = null,
+        public ImagePixelExtractorTransformer(IHostEnvironment env, string input, string output = null,
             ColorBits colors = ColorBits.Rgb, bool interleave = Defaults.Interleave, float scale = Defaults.Scale, float offset = Defaults.Offset,
             bool asFloat = Defaults.Convert)
             : this(env, new ColumnInfo(input, output, colors, interleave, scale, offset, asFloat))
@@ -347,7 +347,7 @@ namespace Microsoft.ML.ImageAnalytics
         ///</summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of pixel extraction for each column pair.</param>
-        public ImagePixelExtractorTransform(IHostEnvironment env, params ColumnInfo[] columns)
+        public ImagePixelExtractorTransformer(IHostEnvironment env, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -375,22 +375,22 @@ namespace Microsoft.ML.ImageAnalytics
                 columns[i] = new ColumnInfo(item, args);
             }
 
-            var transformer = new ImagePixelExtractorTransform(env, columns);
+            var transformer = new ImagePixelExtractorTransformer(env, columns);
             return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema), transformer.MakeRowMapper);
         }
 
         // Factory method for SignatureLoadModel.
-        private static ImagePixelExtractorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ImagePixelExtractorTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new ImagePixelExtractorTransform(host, ctx);
+            return new ImagePixelExtractorTransformer(host, ctx);
         }
 
-        private ImagePixelExtractorTransform(IHost host, ModelLoadContext ctx)
+        private ImagePixelExtractorTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             // *** Binary format ***
@@ -447,10 +447,10 @@ namespace Microsoft.ML.ImageAnalytics
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly ImagePixelExtractorTransform _parent;
+            private readonly ImagePixelExtractorTransformer _parent;
             private readonly VectorType[] _types;
 
-            public Mapper(ImagePixelExtractorTransform parent, Schema inputSchema)
+            public Mapper(ImagePixelExtractorTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -653,7 +653,7 @@ namespace Microsoft.ML.ImageAnalytics
     /// <summary>
     /// Estimator which extract pixel values out of image and produce array of values.
     /// </summary>
-    public sealed class ImagePixelExtractingEstimator : TrivialEstimator<ImagePixelExtractorTransform>
+    public sealed class ImagePixelExtractingEstimator : TrivialEstimator<ImagePixelExtractorTransformer>
     {
         ///<summary>
         /// Extract pixels values from image and produce array of values.
@@ -667,10 +667,10 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="offset">Offset color pixel value by this amount.</param>
         /// <param name="asFloat">Output array as float array. If false, output as byte array.</param>
         public ImagePixelExtractingEstimator(IHostEnvironment env, string input,
-            string output = null, ImagePixelExtractorTransform.ColorBits colors = ImagePixelExtractorTransform.Defaults.Colors,
-            bool interleave = ImagePixelExtractorTransform.Defaults.Interleave, float scale = ImagePixelExtractorTransform.Defaults.Scale,
-            float offset = ImagePixelExtractorTransform.Defaults.Offset, bool asFloat = ImagePixelExtractorTransform.Defaults.Convert)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransform(env, input, output, colors, interleave))
+            string output = null, ImagePixelExtractorTransformer.ColorBits colors = ImagePixelExtractorTransformer.Defaults.Colors,
+            bool interleave = ImagePixelExtractorTransformer.Defaults.Interleave, float scale = ImagePixelExtractorTransformer.Defaults.Scale,
+            float offset = ImagePixelExtractorTransformer.Defaults.Offset, bool asFloat = ImagePixelExtractorTransformer.Defaults.Convert)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransformer(env, input, output, colors, interleave))
         {
         }
 
@@ -679,8 +679,8 @@ namespace Microsoft.ML.ImageAnalytics
         ///</summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of pixel extraction for each column pair.</param>
-        public ImagePixelExtractingEstimator(IHostEnvironment env, params ImagePixelExtractorTransform.ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransform(env, columns))
+        public ImagePixelExtractingEstimator(IHostEnvironment env, params ImagePixelExtractorTransformer.ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransformer(env, columns))
         {
         }
 

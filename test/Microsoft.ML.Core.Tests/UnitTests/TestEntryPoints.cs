@@ -347,8 +347,8 @@ namespace Microsoft.ML.RunTests
         private (IEnumerable<string> epListContents, JObject manifest) BuildManifests()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
@@ -3647,7 +3647,7 @@ namespace Microsoft.ML.RunTests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void EntryPointTensorFlowTransform()
         {
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
 
             TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
                 new[] { "Transforms.TensorFlowScorer" },

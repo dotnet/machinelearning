@@ -71,14 +71,14 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The now uniformly sized images</returns>
         /// <seealso cref="ImageResizingEstimator"/>
         public static Custom<Bitmap> Resize(this Custom<UnknownSizeBitmap> input, int width, int height,
-            ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop,
-            ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
+            ImageResizerTransformer.ResizingKind resizing = ImageResizerTransformer.ResizingKind.IsoCrop,
+            ImageResizerTransformer.Anchor cropAnchor = ImageResizerTransformer.Anchor.Center)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckParam(width > 0, nameof(width), "Must be positive");
             Contracts.CheckParam(height > 0, nameof(height), "Must be positive");
-            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
-            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
+            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransformer.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
+            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransformer.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
 
             return new ImageResizingStaticExtensions.OutPipelineColumn(input, width, height, resizing, cropAnchor);
         }
@@ -94,14 +94,14 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The resized images</returns>
         /// <seealso cref="ImageResizingEstimator"/>
         public static Custom<Bitmap> Resize(this Custom<Bitmap> input, int width, int height,
-            ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop,
-            ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
+            ImageResizerTransformer.ResizingKind resizing = ImageResizerTransformer.ResizingKind.IsoCrop,
+            ImageResizerTransformer.Anchor cropAnchor = ImageResizerTransformer.Anchor.Center)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckParam(width > 0, nameof(width), "Must be positive");
             Contracts.CheckParam(height > 0, nameof(height), "Must be positive");
-            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
-            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
+            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransformer.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
+            Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransformer.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
 
             return new ImageResizingStaticExtensions.OutPipelineColumn(input, width, height, resizing, cropAnchor);
         }
@@ -124,7 +124,7 @@ namespace Microsoft.ML.StaticPipe
         public static Vector<float> ExtractPixels(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
             bool useGreen = true, bool useBlue = true, bool interleaveArgb = false, float scale = 1.0f, float offset = 0.0f)
         {
-            var colParams = new ImagePixelExtractorTransform.Column
+            var colParams = new ImagePixelExtractorTransformer.Column
             {
                 UseAlpha = useAlpha,
                 UseRed = useRed,
@@ -154,7 +154,7 @@ namespace Microsoft.ML.StaticPipe
         public static Vector<byte> ExtractPixelsAsBytes(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
             bool useGreen = true, bool useBlue = true, bool interleaveArgb = false)
         {
-            var colParams = new ImagePixelExtractorTransform.Column
+            var colParams = new ImagePixelExtractorTransformer.Column
             {
                 UseAlpha = useAlpha,
                 UseRed = useRed,
