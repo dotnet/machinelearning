@@ -605,13 +605,8 @@ namespace Microsoft.ML.EntryPoints.Tests
                 mlContext.Data.ReadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
             }
             // REVIEW: the issue of different exceptions being thrown is tracked under #2037.
-            catch (Xunit.Sdk.TrueException ex)
-            {
-                Assert.StartsWith($"Assert failed: Field or property String1 is missing the {nameof(LoadColumnAttribute)}", ex.Message);
-            }
-            catch (NullReferenceException ex)
-            {
-                Assert.StartsWith($"Assert failed: Field or property String1 is missing the {nameof(LoadColumnAttribute)}", ex.Message);
+            catch (Xunit.Sdk.TrueException) { }
+            catch (NullReferenceException) { };
             }
         }
 
