@@ -518,7 +518,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         public OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
-            : this(env, new OnnxTransform(env, modelFile, new string[] { }, new string[] { }, gpuDeviceId, fallbackToCpu))
+            : this(env, new OnnxTransformer(env, modelFile, new string[] { }, new string[] { }, gpuDeviceId, fallbackToCpu))
         {
         }
 
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
         /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
         public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns, int? gpuDeviceId = null, bool fallbackToCpu = false)
-           : this(env, new OnnxTransform(env, modelFile, inputColumns, outputColumns, gpuDeviceId, fallbackToCpu))
+           : this(env, new OnnxTransformer(env, modelFile, inputColumns, outputColumns, gpuDeviceId, fallbackToCpu))
         {
         }
 
