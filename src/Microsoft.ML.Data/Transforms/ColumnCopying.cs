@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public ColumnCopyingEstimator(IHostEnvironment env, params (string source, string name)[] columns)
+        public ColumnCopyingEstimator(IHostEnvironment env, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnCopyingEstimator)), new ColumnCopyingTransformer(env, columns))
         {
         }
@@ -137,8 +137,8 @@ namespace Microsoft.ML.Transforms
             var columns = new (string Input, string Output)[length];
             for (int i = 0; i < length; i++)
             {
-                columns[i].Input = ctx.LoadNonEmptyString();
                 columns[i].Output = ctx.LoadNonEmptyString();
+                columns[i].Input = ctx.LoadNonEmptyString();
             }
             return new ColumnCopyingTransformer(env, columns);
         }
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Transforms
 
             public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
 
-            internal Mapper(ColumnCopyingTransformer parent, Schema inputSchema, (string Source, string Name)[] columns)
+            internal Mapper(ColumnCopyingTransformer parent, Schema inputSchema, (string Input, string Output)[] columns)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _schema = inputSchema;
