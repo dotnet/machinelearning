@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
+using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.UniversalModelFormat.Onnx;
@@ -104,6 +106,15 @@ namespace Microsoft.ML.Tests
             public string F2;
         }
 
+        private class BreastCancerMulticlassExample
+        {
+            [LoadColumn(1)]
+            public string Label;
+
+            [LoadColumn(2, 9), VectorType(8)]
+            public float[] Features;
+        }
+
         [Fact]
         public void KmeansOnnxConversionTest()
         {
@@ -188,10 +199,112 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void InitializerCreationTest()
+        {
+            var env = new MLContext();
+            // Create the actual implementation
+            var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Model.Onnx.OnnxVersion.Stable);
+
+            // Use implementation as in the actual conversion code
+            var ctx = ctxImpl as OnnxContext;
+            ctx.AddInitializer(9.4f, "float");
+            ctx.AddInitializer(17L, "int64");
+            ctx.AddInitializer("36", "string");
+            ctx.AddInitializer(new List<float> { 9.4f, 1.7f, 3.6f }, new List<long> { 1, 3 }, "floats");
+            ctx.AddInitializer(new List<long> { 94L, 17L, 36L }, new List<long> { 1, 3 }, "int64s");
+            ctx.AddInitializer(new List<string> { "94", "17", "36" }, new List<long> { 1, 3 }, "strings");
+
+            var model = ctxImpl.MakeModel();
+
+            var floatScalar = model.Graph.Initializer[0];
+            Assert.True(floatScalar.Name == "float");
+            Assert.True(floatScalar.Dims.Count == 0);
+            Assert.True(floatScalar.FloatData.Count == 1);
+            Assert.True(floatScalar.FloatData[0] == 9.4f);
+
+            var int64Scalar = model.Graph.Initializer[1];
+            Assert.True(int64Scalar.Name == "int64");
+            Assert.True(int64Scalar.Dims.Count == 0);
+            Assert.True(int64Scalar.Int64Data.Count == 1);
+            Assert.True(int64Scalar.Int64Data[0] == 17L);
+
+            var stringScalar = model.Graph.Initializer[2];
+            Assert.True(stringScalar.Name == "string");
+            Assert.True(stringScalar.Dims.Count == 0);
+            Assert.True(stringScalar.StringData.Count == 1);
+            Assert.True(stringScalar.StringData[0].ToStringUtf8() == "36");
+
+            var floatsTensor = model.Graph.Initializer[3];
+            Assert.True(floatsTensor.Name == "floats");
+            Assert.True(floatsTensor.Dims.Count == 2);
+            Assert.True(floatsTensor.Dims[0] == 1);
+            Assert.True(floatsTensor.Dims[1] == 3);
+            Assert.True(floatsTensor.FloatData.Count == 3);
+            Assert.True(floatsTensor.FloatData[0] == 9.4f);
+            Assert.True(floatsTensor.FloatData[1] == 1.7f);
+            Assert.True(floatsTensor.FloatData[2] == 3.6f);
+
+            var int64sTensor = model.Graph.Initializer[4];
+            Assert.True(int64sTensor.Name == "int64s");
+            Assert.True(int64sTensor.Dims.Count == 2);
+            Assert.True(int64sTensor.Dims[0] == 1);
+            Assert.True(int64sTensor.Dims[1] == 3);
+            Assert.True(int64sTensor.Int64Data.Count == 3);
+            Assert.True(int64sTensor.Int64Data[0] == 94L);
+            Assert.True(int64sTensor.Int64Data[1] == 17L);
+            Assert.True(int64sTensor.Int64Data[2] == 36L);
+
+            var stringsTensor = model.Graph.Initializer[5];
+            Assert.True(stringsTensor.Name == "strings");
+            Assert.True(stringsTensor.Dims.Count == 2);
+            Assert.True(stringsTensor.Dims[0] == 1);
+            Assert.True(stringsTensor.Dims[1] == 3);
+            Assert.True(stringsTensor.StringData.Count == 3);
+            Assert.True(stringsTensor.StringData[0].ToStringUtf8() == "94");
+            Assert.True(stringsTensor.StringData[1].ToStringUtf8() == "17");
+            Assert.True(stringsTensor.StringData[2].ToStringUtf8() == "36");
+        }
+
+        [Fact]
+        public void MulticlassClassificationLogisticRegressionSaveModelToOnnxTest()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var data = mlContext.Data.ReadFromTextFile<BreastCancerMulticlassExample>(dataPath,
+                hasHeader: true,
+                separatorChar: '\t');
+
+            var pipeline = mlContext.Transforms.Normalize("Features").
+                Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
+                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(labelColumn: "Label", featureColumn: "Features",
+                advancedSettings: settings =>
+                {
+                    settings.UseThreads = false;
+                }));
+
+            var model = pipeline.Fit(data);
+            var transformedData = model.Transform(data);
+            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "MultiClassClassification", "BreastCancer");
+            var onnxFileName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.onnx";
+            var onnxFilePath = GetOutputPath(subDir, onnxFileName);
+            var onnxTextName = "MultiClassificationLogisticRegressionSaveModelToOnnxTest.txt";
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+
+            SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
+
+            CheckEquality(subDir, onnxTextName);
+            Done();
+        }
+
         private void CreateDummyExamplesToMakeComplierHappy()
         {
             var dummyExample = new BreastCancerFeatureVector() { Features = null };
             var dummyExample1 = new BreastCancerCatFeatureExample() { Label = false, F1 = 0, F2 = "Amy" };
+            var dummyExample2 = new BreastCancerMulticlassExample() { Label = "Amy", Features = null };
         }
 
         private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
