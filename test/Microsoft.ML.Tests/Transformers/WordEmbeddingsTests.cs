@@ -22,8 +22,8 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestWordEmbeddings()
         {
-            var dataPath = GetDataPath(ScenariosTests.SentimentDataPath);
-            var testDataPath = GetDataPath(ScenariosTests.SentimentTestPath);
+            var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
+            var testDataPath = GetDataPath(TestDatasets.Sentiment.testFilename);
 
             var data = TextLoaderStatic.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
