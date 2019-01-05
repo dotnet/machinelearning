@@ -601,14 +601,8 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ThrowsExceptionWithPropertyName()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            try
-            {
-                ml.Data.ReadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
-            }
-            catch (Exception ex)
-            {
-                Assert.StartsWith($"Assert failed: Field or property String1 is missing the {nameof(LoadColumnAttribute)}", ex.Message);
-            }
+            Exception ex = Assert.Throws<Xunit.Sdk.TrueException>(() => ml.Data.ReadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
+            Assert.StartsWith($"Assert failed: Field or property String1 is missing the {nameof(LoadColumnAttribute)}", ex.Message);
         }
 
         public class QuoteInput
