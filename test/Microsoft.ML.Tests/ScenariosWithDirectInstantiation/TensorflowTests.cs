@@ -17,9 +17,6 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests
     {
-        public const string SentimentDataPath = "wikipedia-detox-250-line-data.tsv";
-        public const string SentimentTestPath = "wikipedia-detox-250-line-test.tsv";
-
         private class TestData
         {
             [VectorType(4)]

@@ -8,7 +8,6 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
-#pragma warning disable 612
     public partial class ScenariosTests
     {
         [Fact]
@@ -43,7 +42,7 @@ namespace Microsoft.ML.Scenarios
             // Make prediction and then evaluate the trained pipeline
             var predicted = trainedModel.Transform(testData);
             var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
-            CompareMatrics(metrics);
+            CompareMetrics(metrics);
             var predictFunction = trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(mlContext);
             ComparePredictions(predictFunction);
         }
@@ -87,7 +86,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
 
-        private void CompareMatrics(MultiClassClassifierMetrics metrics)
+        private void CompareMetrics(MultiClassClassifierMetrics metrics)
         {
             Assert.Equal(.98, metrics.AccuracyMacro);
             Assert.Equal(.98, metrics.AccuracyMicro, 2);
@@ -100,5 +99,4 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);
         }
     }
-#pragma warning restore 612
 }
