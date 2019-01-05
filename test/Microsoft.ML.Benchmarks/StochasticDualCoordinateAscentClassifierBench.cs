@@ -14,7 +14,6 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
-#pragma warning disable 612, 618
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
         private readonly string _dataPath = Program.GetInvariantCultureDataPath("iris.txt");
@@ -220,5 +219,4 @@ namespace Microsoft.ML.Benchmarks
         [ColumnName("Score")]
         public float[] PredictedLabels;
     }
-#pragma warning restore 612, 618
 }
