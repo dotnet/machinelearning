@@ -14743,7 +14743,7 @@ namespace Microsoft.ML
     {
 
         [Obsolete]
-        public sealed partial class ImageGrayscaleTransformColumn : OneToOneColumn<ImageGrayscaleTransformColumn>, IOneToOneColumn
+        public sealed partial class ImageGrayscaleTransformerColumn : OneToOneColumn<ImageGrayscaleTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -14794,15 +14794,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14811,7 +14811,7 @@ namespace Microsoft.ML
             /// New column definition(s) (optional form: name:src)
             /// </summary>
             [Obsolete]
-            public ImageGrayscaleTransformColumn[] Column { get; set; }
+            public ImageGrayscaleTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -14875,7 +14875,7 @@ namespace Microsoft.ML
     {
 
         [Obsolete]
-        public sealed partial class ImageLoaderTransformColumn : OneToOneColumn<ImageLoaderTransformColumn>, IOneToOneColumn
+        public sealed partial class ImageLoaderTransformerColumn : OneToOneColumn<ImageLoaderTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -14926,15 +14926,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14943,7 +14943,7 @@ namespace Microsoft.ML
             /// New column definition(s) (optional form: name:src)
             /// </summary>
             [Obsolete]
-            public ImageLoaderTransformColumn[] Column { get; set; }
+            public ImageLoaderTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Folder where to search for images
@@ -15013,7 +15013,7 @@ namespace Microsoft.ML
     {
 
         [Obsolete]
-        public sealed partial class ImagePixelExtractorTransformColumn : OneToOneColumn<ImagePixelExtractorTransformColumn>, IOneToOneColumn
+        public sealed partial class ImagePixelExtractorTransformerColumn : OneToOneColumn<ImagePixelExtractorTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Whether to use alpha channel
@@ -15112,15 +15112,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -15129,7 +15129,7 @@ namespace Microsoft.ML
             /// New column definition(s) (optional form: name:src)
             /// </summary>
             [Obsolete]
-            public ImagePixelExtractorTransformColumn[] Column { get; set; }
+            public ImagePixelExtractorTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to use alpha channel
@@ -15240,14 +15240,14 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
         [Obsolete]
-        public enum ImageResizerTransformResizingKind : byte
+        public enum ImageResizerTransformerResizingKind : byte
         {
             IsoPad = 0,
             IsoCrop = 1
         }
 
         [Obsolete]
-        public enum ImageResizerTransformAnchor : byte
+        public enum ImageResizerTransformerAnchor : byte
         {
             Right = 0,
             Left = 1,
@@ -15258,7 +15258,7 @@ namespace Microsoft.ML
 
 
         [Obsolete]
-        public sealed partial class ImageResizerTransformColumn : OneToOneColumn<ImageResizerTransformColumn>, IOneToOneColumn
+        public sealed partial class ImageResizerTransformerColumn : OneToOneColumn<ImageResizerTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Width of the resized image
@@ -15276,13 +15276,13 @@ namespace Microsoft.ML
             /// Resizing method
             /// </summary>
             [Obsolete]
-            public ImageResizerTransformResizingKind? Resizing { get; set; }
+            public ImageResizerTransformerResizingKind? Resizing { get; set; }
 
             /// <summary>
             /// Anchor for cropping
             /// </summary>
             [Obsolete]
-            public ImageResizerTransformAnchor? CropAnchor { get; set; }
+            public ImageResizerTransformerAnchor? CropAnchor { get; set; }
 
             /// <summary>
             /// Name of the new column
@@ -15333,15 +15333,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageResizerTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageResizerTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -15350,7 +15350,7 @@ namespace Microsoft.ML
             /// New column definition(s) (optional form: name:src)
             /// </summary>
             [Obsolete]
-            public ImageResizerTransformColumn[] Column { get; set; }
+            public ImageResizerTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Resized width of the image
@@ -15368,13 +15368,13 @@ namespace Microsoft.ML
             /// Resizing method
             /// </summary>
             [Obsolete]
-            public ImageResizerTransformResizingKind Resizing { get; set; } = ImageResizerTransformResizingKind.IsoCrop;
+            public ImageResizerTransformerResizingKind Resizing { get; set; } = ImageResizerTransformerResizingKind.IsoCrop;
 
             /// <summary>
             /// Anchor for cropping
             /// </summary>
             [Obsolete]
-            public ImageResizerTransformAnchor CropAnchor { get; set; } = ImageResizerTransformAnchor.Center;
+            public ImageResizerTransformerAnchor CropAnchor { get; set; } = ImageResizerTransformerAnchor.Center;
 
             /// <summary>
             /// Input dataset
