@@ -607,7 +607,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             // REVIEW: the issue of different exceptions being thrown is tracked under #2037.
             catch (Xunit.Sdk.TrueException) { }
             catch (NullReferenceException) { };
-            }
         }
 
         public class QuoteInput
