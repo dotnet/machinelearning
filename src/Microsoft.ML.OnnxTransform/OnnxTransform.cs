@@ -42,8 +42,8 @@ namespace Microsoft.ML.Transforms
     /// </format>
     /// </summary>
     /// <remarks>
-    /// <p>Supports inferencing of models in 1.2 and 1.3 format, using the
-    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/'>Microsoft.ML.OnnxRuntime</a> library.
+    /// <p>Supports inferencing of models in ONNX 1.2 and 1.3 format (opset 7, 8 and 9), using the
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime.Gpu/'>Microsoft.ML.OnnxRuntime.Gpu</a> library.
     /// </p>
     /// <p>Models are scored on CPU by default. If GPU execution is needed (optional), install
     /// <a href='https://developer.nvidia.com/cuda-downloads'>CUDA 10.0 Toolkit</a>
@@ -52,6 +52,7 @@ namespace Microsoft.ML.Transforms
     /// , and set the parameter 'gpuDeviceId' to a valid non-negative integer. Typical device ID values are 0 or 1.
     /// </p>
     /// <p>The inputs and outputs of the ONNX models must be Tensor type. Sequence and Maps are not yet supported.</p>
+    /// <p>OnnxRuntime currently works on Windows 64-bit platforms only. Linux and OSX to be supported soon.</p>
     /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
     /// <p>Refer to http://onnx.ai' for more information about ONNX.</p>
     /// </remarks>
@@ -531,13 +532,32 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransform>
     {
-        public OnnxScoringEstimator(IHostEnvironment env, string modelFile)
-            : this(env, new OnnxTransform(env, modelFile, new string[] { }, new string[] { }))
+        /// <summary>
+        /// Transform for scoring ONNX models. Input data column names/types must exactly match
+        /// all model input names. All possible output columns are generated, with names/types
+        /// specified by model.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="modelFile">Model file path.</param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
+            : this(env, new OnnxTransform(env, modelFile, new string[] { }, new string[] { }, gpuDeviceId, fallbackToCpu))
         {
         }
 
-        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
-           : this(env, new OnnxTransform(env, modelFile, inputs, outputs))
+        /// <summary>
+        /// Transform for scoring ONNX models. Input data column names/types must exactly match
+        /// all model input names. Only the output columns specified will be generated.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="modelFile">Model file path.</param>
+        /// <param name="inputColumns">The name of the input data columns. Must match model's input names.</param>
+        /// <param name="outputColumns">The output columns to generate. Names must match model specifications. Data types are inferred from model.</param>
+        /// <param name="gpuDeviceId">Optional GPU device ID to run execution on. Null for CPU.</param>
+        /// <param name="fallbackToCpu">If GPU error, raise exception or fallback to CPU.</param>
+        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns, int? gpuDeviceId = null, bool fallbackToCpu = false)
+           : this(env, new OnnxTransform(env, modelFile, inputColumns, outputColumns, gpuDeviceId, fallbackToCpu))
         {
         }
 
