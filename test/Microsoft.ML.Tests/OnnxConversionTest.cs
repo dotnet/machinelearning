@@ -92,6 +92,18 @@ namespace Microsoft.ML.Tests
             public float[] Features;
         }
 
+        private class BreastCancerCatFeatureExample
+        {
+            [LoadColumn(0)]
+            public bool Label;
+
+            [LoadColumn(1)]
+            public float F1;
+
+            [LoadColumn(2)]
+            public string F2;
+        }
+
         [Fact]
         public void KmeansOnnxConversionTest()
         {
@@ -146,9 +158,40 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        [Fact]
+        public void KeyToVectorWithBagOnnxConversionTest()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
+                hasHeader: true,
+                separatorChar: '\t');
+
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
+            .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+
+            var model = pipeline.Fit(data);
+            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+
+            // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
+            // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
+            // can support Linux and Mac.
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
+            var onnxTextName = "OneHotBagPipeline.txt";
+            var onnxFileName = "OneHotBagPipeline.onnx";
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+            var onnxFilePath = GetOutputPath(subDir, onnxFileName);
+            SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
+            CheckEquality(subDir, onnxTextName);
+            Done();
+        }
+
         private void CreateDummyExamplesToMakeComplierHappy()
         {
             var dummyExample = new BreastCancerFeatureVector() { Features = null };
+            var dummyExample1 = new BreastCancerCatFeatureExample() { Label = false, F1 = 0, F2 = "Amy" };
         }
 
         private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
