@@ -357,7 +357,7 @@ namespace Microsoft.ML.Data
                 throw ch.ExceptDecode();
             ch.AssertValue(codec);
             ch.CheckDecode(codec.Type.IsVector);
-            ch.CheckDecode(codec.Type.ItemType.IsText);
+            ch.CheckDecode(codec.Type.ItemType is TextType);
             var textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             var bufferLen = ctx.Reader.ReadInt32();

@@ -452,12 +452,12 @@ namespace Microsoft.ML.Data.Conversion
             }
             else if (typeDst is KeyType keyDst)
             {
-                if (!typeSrc.IsText)
+                if (!(typeSrc is TextType))
                     return false;
                 conv = GetKeyParse(keyDst);
                 return true;
             }
-            else if (!typeDst.IsStandardScalar)
+            else if (!typeDst.IsStandardScalar())
                 return false;
 
             Contracts.Assert(typeSrc.RawKind != 0);
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Data.Conversion
         public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsStandardScalar || typeDst.IsKey, nameof(typeDst),
+            Contracts.CheckParam(typeDst.IsStandardScalar() || typeDst.IsKey, nameof(typeDst),
                 "Parse conversion only supported for standard types");
             Contracts.Check(typeDst.RawType == typeof(TDst), "Wrong TDst type parameter");
 
@@ -676,7 +676,7 @@ namespace Microsoft.ML.Data.Conversion
 
             var t = type;
             Delegate del;
-            if (!t.IsStandardScalar && !t.IsKey || !_isDefaultDelegates.TryGetValue(t.RawKind, out del))
+            if (!t.IsStandardScalar() && !t.IsKey || !_isDefaultDelegates.TryGetValue(t.RawKind, out del))
                 throw Contracts.Except("No IsDefault predicate for '{0}'", type);
 
             return (InPredicate<T>)del;
@@ -719,7 +719,7 @@ namespace Microsoft.ML.Data.Conversion
                 Contracts.Assert(_isDefaultDelegates.ContainsKey(t.RawKind));
                 del = _isDefaultDelegates[t.RawKind];
             }
-            else if (!t.IsStandardScalar || !_isNADelegates.TryGetValue(t.RawKind, out del))
+            else if (!t.IsStandardScalar() || !_isNADelegates.TryGetValue(t.RawKind, out del))
             {
                 del = null;
                 return false;
@@ -742,7 +742,7 @@ namespace Microsoft.ML.Data.Conversion
                 Contracts.Assert(_hasZeroDelegates.ContainsKey(t.RawKind));
                 del = _hasZeroDelegates[t.RawKind];
             }
-            else if (!t.IsStandardScalar || !_hasNADelegates.TryGetValue(t.RawKind, out del))
+            else if (!t.IsStandardScalar() || !_hasNADelegates.TryGetValue(t.RawKind, out del))
                 throw Contracts.Except("No HasMissing predicate for '{0}'", type);
 
             return (InPredicate<VBuffer<T>>)del;

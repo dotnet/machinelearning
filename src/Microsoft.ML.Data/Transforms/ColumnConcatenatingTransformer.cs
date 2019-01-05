@@ -477,7 +477,7 @@ namespace Microsoft.ML.Data
                         hasSlotNames = true;
                 }
 
-                if (!itemType.IsNumber)
+                if (!(itemType is NumberType))
                     isNormalized = false;
                 if (totalSize == 0)
                 {
@@ -616,7 +616,7 @@ namespace Microsoft.ML.Data
                         if (inputMetadata != null && inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.SlotNames, out int idx))
                             typeNames = inputMetadata.Schema[idx].Type;
 
-                        if (typeNames != null && typeNames.VectorSize == typeSrc.VectorSize && typeNames.ItemType.IsText)
+                        if (typeNames != null && typeNames.VectorSize == typeSrc.VectorSize && typeNames.ItemType is TextType)
                         {
                             inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
                             sb.Clear();
@@ -782,7 +782,7 @@ namespace Microsoft.ML.Data
                         var srcName = _columnInfo.Inputs[i].name;
                         if ((srcTokens[i] = ctx.TokenOrNullForName(srcName)) == null)
                             return new KeyValuePair<string, JToken>(outName, null);
-                        srcPrimitive[i] = _srcTypes[i].IsPrimitive;
+                        srcPrimitive[i] = _srcTypes[i] is PrimitiveType;
                     }
                     Contracts.Assert(srcTokens.All(tok => tok != null));
                     var itemColumnType = OutputType.ItemType;

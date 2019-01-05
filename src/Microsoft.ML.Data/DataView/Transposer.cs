@@ -416,7 +416,7 @@ namespace Microsoft.ML.Data
                     Ch.Assert(parent._splitLim[iinfo] - _col == 1);
                 }
                 Ch.AssertValue(_view);
-                Ch.Assert(_view.Schema[_col].Type.IsPrimitive);
+                Ch.Assert(_view.Schema[_col].Type is PrimitiveType);
                 Ch.Assert(_view.Schema[_col].Type.RawType == typeof(T));
                 _len = parent.RowCount;
             }
@@ -1015,7 +1015,7 @@ namespace Microsoft.ML.Data
                 public static Splitter Create(IDataView view, int col)
                 {
                     var type = view.Schema[col].Type;
-                    Contracts.Assert(type.IsPrimitive || type.VectorSize > 0);
+                    Contracts.Assert(type is PrimitiveType || type.VectorSize > 0);
                     const int defaultSplitThreshold = 16;
                     if (type.VectorSize <= defaultSplitThreshold)
                         return Utils.MarshalInvoke(CreateCore<int>, type.RawType, view, col);

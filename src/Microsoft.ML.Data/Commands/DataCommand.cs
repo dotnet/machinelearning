@@ -167,7 +167,7 @@ namespace Microsoft.ML.Data
                             {
                                 var nameOfMetric = "TLC_" + cursor.Schema[currentIndex].Name;
                                 var type = cursor.Schema[currentIndex].Type;
-                                if (type.IsNumber)
+                                if (type is NumberType)
                                 {
                                     var getter = RowCursorUtils.GetGetterAs<double>(NumberType.R8, cursor, currentIndex);
                                     double metricValue = 0;

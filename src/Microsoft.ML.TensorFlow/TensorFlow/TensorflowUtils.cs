@@ -103,14 +103,14 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 var type = schema[i].Type;
 
                 var metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.OpType)?.Type;
-                Contracts.Assert(metadataType != null && metadataType.IsText);
+                Contracts.Assert(metadataType != null && metadataType is TextType);
                 ReadOnlyMemory<char> opType = default;
                 schema[i].Metadata.GetValue(TensorFlowUtils.OpType, ref opType);
                 metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.InputOps)?.Type;
                 VBuffer<ReadOnlyMemory<char>> inputOps = default;
                 if (metadataType != null)
                 {
-                    Contracts.Assert(metadataType.IsKnownSizeVector && metadataType.ItemType.IsText);
+                    Contracts.Assert(metadataType.IsKnownSizeVector && metadataType.ItemType is TextType);
                     schema[i].Metadata.GetValue(TensorFlowUtils.InputOps, ref inputOps);
                 }
 

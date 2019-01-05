@@ -4,11 +4,13 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Scenarios
 {
-    public partial class ScenariosTests
+    public partial class ScenariosTests : BaseTestClass
     {
         [Fact]
         public void TrainAndPredictIrisModelTest()
@@ -114,6 +116,10 @@ namespace Microsoft.ML.Scenarios
         {
             [ColumnName("Score")]
             public float[] PredictedLabels;
+        }
+
+        public ScenariosTests(ITestOutputHelper output) : base(output)
+        {
         }
     }
 }
