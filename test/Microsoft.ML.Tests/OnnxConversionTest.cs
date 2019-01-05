@@ -74,7 +74,7 @@ namespace Microsoft.ML.Tests
                 var onnxResult = onnxTransformer.Transform(data);
 
                 // Step 4: Compare ONNX and ML.NET results.
-                CompareSelectedR4ScalarColumns("Score", "Score0", transformedData, onnxResult, 2);
+                CompareSelectedR4ScalarColumns("Score", "Score0", transformedData, onnxResult, 1);
             }
 
             // Step 5: Check ONNX model's text format. This test will be not necessary if Step 3 and Step 4 can run on Linux and
@@ -180,6 +180,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t');
 
             var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
+            .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingTransformer.ColumnInfo("F2")))
             .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
             .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
 
@@ -299,7 +300,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmBinaryClassificationOnnxConversionTest()
         {
             // Step 1: Create and train a ML.NET pipeline.

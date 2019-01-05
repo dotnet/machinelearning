@@ -103,8 +103,33 @@
       },
       {
         "input": [
-          "F1",
           "F21"
+        ],
+        "output": [
+          "F22"
+        ],
+        "name": "Imputer",
+        "opType": "Imputer",
+        "attribute": [
+          {
+            "name": "replaced_value_float",
+            "f": "NaN",
+            "type": "FLOAT"
+          },
+          {
+            "name": "imputed_value_floats",
+            "floats": [
+              0
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "F1",
+          "F22"
         ],
         "output": [
           "Features"
@@ -334,10 +359,10 @@
       },
       {
         "input": [
-          "F21"
+          "F22"
         ],
         "output": [
-          "F22"
+          "F23"
         ],
         "name": "Identity1",
         "opType": "Identity"
@@ -478,7 +503,7 @@
         }
       },
       {
-        "name": "F22",
+        "name": "F23",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -589,6 +614,24 @@
       },
       {
         "name": "F21",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "10"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F22",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
