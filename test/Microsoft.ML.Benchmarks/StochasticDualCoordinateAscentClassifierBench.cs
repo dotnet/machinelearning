@@ -20,6 +20,8 @@ namespace Microsoft.ML.Benchmarks
         private readonly string _sentimentDataPath = Program.GetInvariantCultureDataPath("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
+        private readonly MLContext _env = new MLContext(seed: 1);
+
         private readonly int[] _batchSizes = new int[] { 1, 2, 5 };
 
         private readonly IrisData _example = new IrisData()
@@ -48,8 +50,7 @@ namespace Microsoft.ML.Benchmarks
 
         private TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> Train(string dataPath)
         {
-            var env = new MLContext(seed: 1, conc: 1);
-            var reader = new TextLoader(env,
+            var reader = new TextLoader(_env,
                     columns: new[]
                     {
                             new TextLoader.Column("Label", DataKind.R4, 0),
@@ -63,8 +64,8 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = reader.Read(dataPath);
 
-            var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(new SdcaMultiClassTrainer(env, "Label", "Features"));
+            var pipeline = new ColumnConcatenatingEstimator(_env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(new SdcaMultiClassTrainer(_env, "Label", "Features"));
 
             return pipeline.Fit(data);
         }
@@ -72,7 +73,6 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void TrainSentiment()
         {
-            var env = new MLContext(seed: 1);
             // Pipeline
             var arguments = new TextLoader.Arguments()
             {
@@ -96,9 +96,9 @@ namespace Microsoft.ML.Benchmarks
                 AllowQuoting = false,
                 AllowSparse = false
             };
-            var loader = env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
+            var loader = _env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
 
-            var text = TextFeaturizingEstimator.Create(env,
+            var text = TextFeaturizingEstimator.Create(_env,
                 new TextFeaturizingEstimator.Arguments()
                 {
                     Column = new TextFeaturizingEstimator.Column
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Benchmarks
                         WordFeatureExtractor = null,
                     }, loader);
 
-                var trans = WordEmbeddingsExtractingTransformer.Create(env,
+                var trans = WordEmbeddingsExtractingTransformer.Create(_env,
                     new WordEmbeddingsExtractingTransformer.Arguments()
                     {
                         Column = new WordEmbeddingsExtractingTransformer.Column[1]
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Benchmarks
                     }, text);
 
             // Train
-            var trainer = new SdcaMultiClassTrainer(env, "Label", "Features", maxIterations: 20);
+            var trainer = new SdcaMultiClassTrainer(_env, "Label", "Features", maxIterations: 20);
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }
@@ -137,12 +137,11 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]
         public void SetupPredictBenchmarks()
         {
-            var env = new MLContext(seed: 1, conc: 1);
             _trainedModel = Train(_dataPath);
-            _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(env);
+            _predictionEngine = _trainedModel.CreatePredictionEngine<IrisData, IrisPrediction>(_env);
             _consumer.Consume(_predictionEngine.Predict(_example));
 
-            var reader = new TextLoader(env,
+            var reader = new TextLoader(_env,
                     columns: new[]
                     {
                             new TextLoader.Column("Label", DataKind.R4, 0),
@@ -156,7 +155,7 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView testData = reader.Read(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
-            var evaluator = new MultiClassClassifierEvaluator(env, new MultiClassClassifierEvaluator.Arguments());
+            var evaluator = new MultiClassClassifierEvaluator(_env, new MultiClassClassifierEvaluator.Arguments());
             _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
 
             _batches = new IrisData[_batchSizes.Length][];
@@ -175,25 +174,13 @@ namespace Microsoft.ML.Benchmarks
         public float[] PredictIris() => _predictionEngine.Predict(_example).PredictedLabels;
 
         [Benchmark]
-        public void PredictIrisBatchOf1()
-        {
-            var env = new MLContext(seed: 1, conc: 1);
-            _trainedModel.Transform(env.CreateStreamingDataView(_batches[0]));
-        }
+        public void PredictIrisBatchOf1() => _trainedModel.Transform(_env.CreateStreamingDataView(_batches[0]));
 
         [Benchmark]
-        public void PredictIrisBatchOf2()
-        {
-            var env = new MLContext(seed: 1, conc: 1);
-            _trainedModel.Transform(env.CreateStreamingDataView(_batches[1]));
-        }
+        public void PredictIrisBatchOf2() => _trainedModel.Transform(_env.CreateStreamingDataView(_batches[1]));
 
         [Benchmark]
-        public void PredictIrisBatchOf5()
-        {
-            var env = new MLContext(seed: 1, conc: 1);
-            _trainedModel.Transform(env.CreateStreamingDataView(_batches[2]));
-        }
+        public void PredictIrisBatchOf5() => _trainedModel.Transform(_env.CreateStreamingDataView(_batches[2]));
     }
 
     public class IrisData
