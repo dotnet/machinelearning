@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests
             var onnxTextName = "SimplePipeline.txt";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
             SaveOnnxModel(onnxModel, null, onnxTextPath);
-            CheckEquality(subDir, onnxTextName);
+            CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
 
             Done();
         }
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Tests
                     settings.MaxIterations = 1;
                     settings.K = 4;
                     settings.NumThreads = 1;
-                    settings.InitAlgorithm = Trainers.KMeans.KMeansPlusPlusTrainer.InitAlgorithm.KMeansPlusPlus;
+                    settings.InitAlgorithm = Trainers.KMeans.KMeansPlusPlusTrainer.InitAlgorithm.Random;
                 }));
 
             var model = pipeline.Fit(data);
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void LogisticRegressionSaveModelToOnnxTest()
+        public void LogisticRegressionOnnxConversionTest()
         {
             // Step 1: Create and train a ML.NET pipeline.
             var trainDataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void MulticlassClassificationLogisticRegressionSaveModelToOnnxTest()
+        public void MulticlassLogisticRegressionOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
@@ -364,6 +364,52 @@ namespace Microsoft.ML.Tests
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
 
             CheckEquality(subDir, onnxTextName);
+            Done();
+        }
+
+        [Fact]
+        public void RemoveVariablesInPipelineTest()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
+                hasHeader: true,
+                separatorChar: '\t');
+
+            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding("F2", "F2", Transforms.Categorical.OneHotEncodingTransformer.OutputKind.Bag)
+            .Append(mlContext.Transforms.ReplaceMissingValues(new MissingValueReplacingTransformer.ColumnInfo("F2")))
+            .Append(mlContext.Transforms.Concatenate("Features", "F1", "F2"))
+            .Append(mlContext.Transforms.Normalize("Features"))
+            .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label", featureColumn: "Features", numLeaves: 2, numTrees: 1, minDatapointsInLeaves: 2));
+
+            var model = pipeline.Fit(data);
+            var transformedData = model.Transform(data);
+
+            var onnxConversionContext = new OnnxContextImpl(mlContext, "A Simple Pipeline", "ML.NET", "0", 0, "machinelearning.dotnet", OnnxVersion.Stable);
+
+            LinkedList<ITransformCanSaveOnnx> transforms = null;
+            using (var conversionChannel = (mlContext as IChannelProvider).Start("ONNX conversion"))
+            {
+                SaveOnnxCommand.GetPipe(onnxConversionContext, conversionChannel, transformedData, out IDataView root, out IDataView sink, out transforms);
+                // Input columns' names to be excluded in the resulted ONNX model.
+                var redundantInputColumnNames = new HashSet<string> { "Label" };
+                // Output columns' names to be excluded in the resulted ONNX model.
+                var redundantOutputColumnNames = new HashSet<string> { "Label", "F1", "F2", "Features" };
+                var onnxModel = SaveOnnxCommand.ConvertTransformListToOnnxModel(onnxConversionContext, conversionChannel, root, sink, transforms,
+                    redundantInputColumnNames, redundantOutputColumnNames);
+
+                // Check ONNX model's text format. We save the produced ONNX model as a text file and compare it against
+                // the associated file in ML.NET repo. Such a comparison can be retired if ONNXRuntime ported to ML.NET
+                // can support Linux and Mac.
+                var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
+                var onnxTextName = "ExcludeVariablesInOnnxConversion.txt";
+                var onnxFileName = "ExcludeVariablesInOnnxConversion.onnx";
+                var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+                var onnxFilePath = GetOutputPath(subDir, onnxFileName);
+                SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
+                CheckEquality(subDir, onnxTextName);
+            }
             Done();
         }
 
