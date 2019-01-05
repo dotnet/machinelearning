@@ -10,3 +10,6 @@ using Microsoft.ML;
 
 [assembly: InternalsVisibleTo("Microsoft.ML.Legacy" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.ResultProcessor" + PublicKey.Value)]
+
+[assembly: InternalsVisibleTo("RunTests" + InternalPublicKey.Value)]
+[assembly: InternalsVisibleTo("TLC" + InternalPublicKey.Value)]
