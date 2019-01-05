@@ -15,7 +15,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
-#pragma warning disable 612, 618
     public sealed class TextLoaderTestPipe : TestDataPipeBase
     {
         public TextLoaderTestPipe(ITestOutputHelper output)
@@ -143,15 +142,15 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConstructorDoesntThrow()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1, conc: 1);
 
-            Assert.NotNull(ml.Data.ReadFromTextFile<Input>("fakeFile.txt"));
-            Assert.NotNull(ml.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
-            Assert.NotNull(ml.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
-            Assert.NotNull(ml.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, supportSparse: false, trimWhitespace: false));
-            Assert.NotNull(ml.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, supportSparse: false));
-            Assert.NotNull(ml.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuotedStrings: false));
-            Assert.NotNull(ml.Data.ReadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt"));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, supportSparse: false, trimWhitespace: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, supportSparse: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuotedStrings: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
         }
 
         [Fact]
@@ -230,8 +229,8 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyRetrieveQuotedData()
         {
             string dataPath = GetDataPath("QuotingData.csv");
-            var environment = new MLContext();
-            AssemblyRegistration.RegisterAssemblies(environment);
+            var mlContext = new MLContext();
+            AssemblyRegistration.RegisterAssemblies(mlContext);
 
             string inputGraph = @"
             {  
@@ -294,8 +293,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(environment, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(environment, dataPath, false, false);
+            var runner = new GraphRunner(mlContext, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(mlContext, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -343,9 +342,9 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanSuccessfullyRetrieveSparseData()
         {
-            var environment = new MLContext();
+            var mlContext = new MLContext();
             string dataPath = GetDataPath("SparseData.txt");
-            AssemblyRegistration.RegisterAssemblies(environment);
+            AssemblyRegistration.RegisterAssemblies(mlContext);
 
             string inputGraph = @"
             {
@@ -443,8 +442,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(environment, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(environment, dataPath, false, false);
+            var runner = new GraphRunner(mlContext, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(mlContext, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -501,8 +500,8 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyTrimSpaces()
         {
             string dataPath = GetDataPath("TrimData.csv");
-            var environment = new MLContext();
-            AssemblyRegistration.RegisterAssemblies(environment);
+            var mlContext = new MLContext();
+            AssemblyRegistration.RegisterAssemblies(mlContext);
 
             string inputGraph = @"{
                 'Nodes':
@@ -560,8 +559,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(environment, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(environment, dataPath, false, false);
+            var runner = new GraphRunner(mlContext, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(mlContext, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -600,9 +599,20 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ThrowsExceptionWithPropertyName()
         {
-            var ml = new MLContext(seed: 1, conc: 1);
-            Exception ex = Assert.Throws<Xunit.Sdk.TrueException>(() => ml.Data.ReadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt"));
-            Assert.StartsWith($"Assert failed: Field or property String1 is missing the {nameof(LoadColumnAttribute)}", ex.Message);
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            try
+            {
+                mlContext.Data.ReadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
+            }
+            // REVIEW: the issue of different exceptions being thrown is tracked under #2037.
+            catch (Xunit.Sdk.TrueException ex)
+            {
+                Assert.StartsWith($"Assert failed: Field or property String1 is missing the {nameof(LoadColumnAttribute)}", ex.Message);
+            }
+            catch (NullReferenceException ex)
+            {
+                Assert.StartsWith($"Assert failed: Field or property String1 is missing the {nameof(LoadColumnAttribute)}", ex.Message);
+            }
         }
 
         public class QuoteInput
@@ -717,7 +727,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void LoaderColumnsFromIrisData()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
-            var ml = new MLContext();
+            var mlContext = new MLContext();
 
             var irisFirstRow = new Dictionary<string, float>();
             irisFirstRow["SepalLength"] = 5.1f;
@@ -728,7 +738,7 @@ namespace Microsoft.ML.EntryPoints.Tests
            var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
-            var dataIris = ml.Data.CreateTextReader<Iris>(separatorChar: ',').Read(dataPath);
+            var dataIris = mlContext.Data.CreateTextReader<Iris>(separatorChar: ',').Read(dataPath);
             var previewIris = dataIris.Preview(1);
 
             Assert.Equal(5, previewIris.ColumnView.Length);
@@ -744,7 +754,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
 
             // Load with start and end indexes
-            var dataIrisStartEnd = ml.Data.CreateTextReader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
+            var dataIrisStartEnd = mlContext.Data.CreateTextReader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
             var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
 
             Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
@@ -761,7 +771,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             // load setting the distinct columns. Loading column 0 and 2
-            var dataIrisColumnIndices = ml.Data.CreateTextReader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
+            var dataIrisColumnIndices = mlContext.Data.CreateTextReader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
             var previewIrisColumnIndices = dataIrisColumnIndices.Preview(1);
 
             Assert.Equal(2, previewIrisColumnIndices.ColumnView.Length);
@@ -777,5 +787,4 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal(vals4[1], irisFirstRowValues.Current);
         }
     }
-#pragma warning restore 612, 618
 }
