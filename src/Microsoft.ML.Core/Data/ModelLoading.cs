@@ -111,6 +111,39 @@ namespace Microsoft.ML
         }
 
         /// <summary>
+        /// Try to load from the given repository entry using the default loader(s) specified in the header.
+        /// Returns false iff the default loader(s) could not be bound to a compatible loadable class.
+        /// </summary>
+        public static bool TryLoadModel<TRes, TSig>(IHostEnvironment env, out TRes result, RepositoryReader rep, string dir, params object[] extra)
+        where TRes : class
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(rep, nameof(rep));
+            var ent = rep.OpenEntryOrNull(dir, ModelStreamName);
+            if (ent != null)
+            {
+                using (ent)
+                {
+                    // Provide the repository, entry, and directory name to the loadable class ctor.
+                    env.Assert(ent.Stream.Position == 0);
+                    return TryLoadModel<TRes, TSig>(env, out result, rep, ent, dir, extra);
+                }
+            }
+
+            if ((ent = rep.OpenEntryOrNull(dir, NameBinary)) != null)
+            {
+                using (ent)
+                {
+                    env.Assert(ent.Stream.Position == 0);
+                    return TryLoadModel<TRes, TSig>(env, out result, ent.Stream, extra);
+                }
+            }
+
+            result = null;
+            return false;
+        }
+
+        /// <summary>
         /// Load an object from the repository directory.
         /// </summary>
         public static void LoadModel<TRes, TSig>(IHostEnvironment env, out TRes result, RepositoryReader rep, string dir, params object[] extra)
@@ -134,6 +167,18 @@ namespace Microsoft.ML
             _ectx.CheckValue(env, nameof(env));
             _ectx.Check(InRepository, "Can't load a sub-model when reading from a single stream");
             return LoadModelOrNull<TRes, TSig>(env, out result, Repository, Path.Combine(Directory ?? "", name), extra);
+        }
+
+        /// <summary>
+        /// Try to load from the given repository entry using the default loader(s) specified in the header.
+        /// Returns false iff the default loader(s) could not be bound to a compatible loadable class.
+        /// </summary>
+        public bool TryLoadModel<TRes, TSig>(IHostEnvironment env, out TRes result, string name, params object[] extra)
+            where TRes : class
+        {
+            _ectx.CheckValue(env, nameof(env));
+            _ectx.Check(InRepository, "Can't load a sub-model when reading from a single stream");
+            return TryLoadModel<TRes, TSig>(env, out result, Repository, Path.Combine(Directory ?? "", name), extra);
         }
 
         /// <summary>
@@ -165,8 +210,6 @@ namespace Microsoft.ML
                     return true;
             }
 
-            // TryLoadModelCore should rewind on failure.
-            Contracts.Assert(fp == ent.Stream.Position);
             return false;
         }
 
@@ -259,7 +302,12 @@ namespace Microsoft.ML
                 }
                 // REVIEW: Should this fall through?
             }
-            _ectx.Assert(Reader.BaseStream.Position == FpMin + Header.FpModel);
+
+            if (Reader.BaseStream.Position != FpMin + Header.FpModel)
+            {
+                result = null;
+                return false;
+            }
 
             string sigAlt = ModelHeader.GetLoaderSigAlt(ref Header);
             if (!string.IsNullOrWhiteSpace(sigAlt) &&
@@ -273,10 +321,12 @@ namespace Microsoft.ML
                 }
                 // REVIEW: Should this fall through?
             }
-            _ectx.Assert(Reader.BaseStream.Position == FpMin + Header.FpModel);
+
+            result = null;
+            if (Reader.BaseStream.Position != FpMin + Header.FpModel)
+                return false;
 
             Reader.BaseStream.Position = FpMin;
-            result = null;
             return false;
         }
 

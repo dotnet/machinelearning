@@ -15,16 +15,21 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
 
 // This is for deserialization from a model repository.
-[assembly: LoadableClass(typeof(LinearModelStatistics), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(LinearModelParameterStatistics), null, typeof(SignatureLoadModel),
     "Linear Model Statistics",
-    LinearModelStatistics.LoaderSignature)]
+    LinearModelParameterStatistics.LoaderSignature)]
+
+// This is for deserialization from a model repository.
+[assembly: LoadableClass(typeof(ModelStatistics), null, typeof(SignatureLoadModel),
+    "Model Statistics",
+   ModelStatistics.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Represents a coefficient statistics object.
     /// </summary>
-    public readonly struct CoefficientStatistics
+    public sealed class CoefficientStatistics
     {
         public readonly string Name;
         public readonly float Estimate;
@@ -43,221 +48,303 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    // REVIEW: Make this class a loadable class and implement ICanSaveModel.
     // REVIEW: Reconcile with the stats in OLS learner.
     /// <summary>
     /// The statistics for linear predictor.
     /// </summary>
-    public sealed class LinearModelStatistics : ICanSaveModel
+    public abstract class ModelStatisticsBase : ICanSaveModel
     {
-        internal const string LoaderSignature = "LinearModelStats";
+        protected IHostEnvironment Env;
 
-        private static VersionInfo GetVersionInfo()
+        // Total count of training examples used to train the model.
+        public readonly long TrainingExampleCount;
+
+        // The deviance of this model.
+        public readonly float Deviance;
+
+        // The deviance of the null hypothesis.
+        public readonly float NullDeviance;
+
+        // Total count of parameters.
+        public readonly int ParametersCount;
+
+        private protected ModelStatisticsBase(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            Env = env;
+
+            Env.Assert(trainingExampleCount > 0);
+            Env.Assert(paramCount > 0);
+
+            ParametersCount = paramCount;
+            TrainingExampleCount = trainingExampleCount;
+            Deviance = deviance;
+            NullDeviance = nullDeviance;
+        }
+
+        private protected ModelStatisticsBase(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            Env = env;
+            Env.AssertValue(ctx);
+
+            // *** Binary Format ***
+            // int: count of parameters
+            // long: count of training examples
+            // float: deviance
+            // float: null deviance
+
+            ParametersCount = ctx.Reader.ReadInt32();
+            Env.CheckDecode(ParametersCount > 0);
+
+            TrainingExampleCount = ctx.Reader.ReadInt64();
+            Env.CheckDecode(TrainingExampleCount > 0);
+
+            Deviance = ctx.Reader.ReadFloat();
+            NullDeviance = ctx.Reader.ReadFloat();
+        }
+
+        protected abstract VersionInfo GetVersionInfo();
+
+        void ICanSaveModel.Save(ModelSaveContext ctx)
+        {
+            Contracts.AssertValue(Env);
+            Env.CheckValue(ctx, nameof(ctx));
+            SaveCore(ctx);
+            ctx.SetVersionInfo(GetVersionInfo());
+        }
+
+        protected virtual void SaveCore(ModelSaveContext ctx)
+        {
+            // *** Binary Format ***
+            // int: count of parameters
+            // long: count of training examples
+            // float: deviance
+            // float: null deviance
+
+            Env.Assert(ParametersCount > 0);
+            ctx.Writer.Write(ParametersCount);
+
+            Env.Assert(TrainingExampleCount > 0);
+            ctx.Writer.Write(TrainingExampleCount);
+
+            ctx.Writer.Write(Deviance);
+            ctx.Writer.Write(NullDeviance);
+        }
+
+        internal virtual void SaveText(TextWriter writer, DataViewSchema.Column featureColumn, int paramCountCap)
+        {
+            Contracts.AssertValue(Env);
+            Env.CheckValue(writer, nameof(writer));
+
+            writer.WriteLine();
+            writer.WriteLine("*** MODEL STATISTICS SUMMARY ***   ");
+            writer.WriteLine("Count of training examples:\t{0}", TrainingExampleCount);
+            writer.WriteLine("Residual Deviance:         \t{0}", Deviance);
+            writer.WriteLine("Null Deviance:             \t{0}", NullDeviance);
+            writer.WriteLine("AIC:                       \t{0}", 2 * ParametersCount + Deviance);
+        }
+
+        /// <summary>
+        /// Support method for linear models and <see cref="ICanGetSummaryInKeyValuePairs"/>.
+        /// </summary>
+        internal virtual void SaveSummaryInKeyValuePairs(DataViewSchema.Column featureColumn, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
+        {
+            Contracts.AssertValue(Env);
+            Env.AssertValue(resultCollection);
+
+            resultCollection.Add(new KeyValuePair<string, object>("Count of training examples", TrainingExampleCount));
+            resultCollection.Add(new KeyValuePair<string, object>("Residual Deviance", Deviance));
+            resultCollection.Add(new KeyValuePair<string, object>("Null Deviance", NullDeviance));
+            resultCollection.Add(new KeyValuePair<string, object>("AIC", 2 * ParametersCount + Deviance));
+        }
+
+        internal virtual DataViewSchema.Annotations MakeStatisticsMetadata(RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
+        {
+            var builder = new DataViewSchema.Annotations.Builder();
+
+            builder.AddPrimitiveValue("Count of training examples", NumberDataViewType.Int64, TrainingExampleCount);
+            builder.AddPrimitiveValue("Residual Deviance", NumberDataViewType.Single, Deviance);
+            builder.AddPrimitiveValue("Null Deviance", NumberDataViewType.Single, NullDeviance);
+            builder.AddPrimitiveValue("AIC", NumberDataViewType.Single, 2 * ParametersCount + Deviance);
+
+           return builder.ToAnnotations();
+        }
+    }
+
+    public sealed class ModelStatistics : ModelStatisticsBase
+    {
+        public const string LoaderSignature = "ModelStats";
+
+        internal ModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance)
+            :base(env, trainingExampleCount, paramCount, deviance, nullDeviance)
+        {
+
+        }
+
+        internal ModelStatistics(IHostEnvironment env, ModelLoadContext ctx)
+            :base(env, ctx)
+        {
+
+        }
+
+        protected override VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "LMODSTAT",
+                modelSignature: "MOD STAT",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LinearModelStatistics).Assembly.FullName);
+                loaderAssemblyName: typeof(ModelStatisticsBase).Assembly.FullName);
         }
+    }
 
-        private readonly IHostEnvironment _env;
+    // REVIEW: Reconcile with the stats in OLS learner.
+    /// <summary>
+    /// The statistics for linear predictor.
+    /// </summary>
+    public sealed class LinearModelParameterStatistics : ModelStatisticsBase
+    {
+        public const string LoaderSignature = "LinearModelStats";
 
-        // Total count of training examples used to train the model.
-        private readonly long _trainingExampleCount;
+        private const int CoeffStatsRefactorVersion = 0x00010002;
 
-        // The deviance of this model.
-        private readonly float _deviance;
-
-        // The deviance of the null hypothesis.
-        private readonly float _nullDeviance;
-
-        // Total count of parameters.
-        private readonly int _paramCount;
+        protected override VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "LMODSTAT",
+                // verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Refactored the stats for the parameters in the base class.
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LinearModelParameterStatistics).Assembly.FullName);
+        }
 
         // The standard errors of coefficients, including the bias.
         // The standard error of bias is placed at index zero.
         // It could be null when there are too many non-zero weights so that
         // the memory is insufficient to hold the Hessian matrix necessary for the computation
         // of the variance-covariance matrix.
-        private readonly VBuffer<float>? _coeffStdError;
+        private readonly VBuffer<float> _coeffStdError;
 
-        public long TrainingExampleCount => _trainingExampleCount;
+        /// <summary>
+        /// The weights of the LinearModelParams trained.
+        /// </summary>
+        private readonly VBuffer<float> _weights;
 
-        public float Deviance => _deviance;
+        /// <summary>
+        /// The bias of the LinearModelParams trained.
+        /// </summary>
+        private readonly float _bias;
 
-        public float NullDeviance => _nullDeviance;
-
-        public int ParametersCount => _paramCount;
-
-        internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance)
+        internal LinearModelParameterStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance,
+            in VBuffer<float> coeffStdError, VBuffer<float> weights, float bias)
+            :base(env, trainingExampleCount, paramCount, deviance, nullDeviance)
         {
-            Contracts.AssertValue(env);
-            env.Assert(trainingExampleCount > 0);
-            env.Assert(paramCount > 0);
-            _env = env;
-            _paramCount = paramCount;
-            _trainingExampleCount = trainingExampleCount;
-            _deviance = deviance;
-            _nullDeviance = nullDeviance;
-        }
+            Env.Assert(trainingExampleCount > 0);
+            Env.Assert(paramCount > 0);
+            Env.Assert(coeffStdError.Length > 0, nameof(coeffStdError));
+            Env.Assert(weights.Length > 0, nameof(weights));
 
-        internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, float deviance, float nullDeviance, in VBuffer<float> coeffStdError)
-            : this(env, trainingExampleCount, paramCount, deviance, nullDeviance)
-        {
-            _env.Assert(coeffStdError.GetValues().Length == _paramCount);
             _coeffStdError = coeffStdError;
+            _weights = weights;
+            _bias = bias;
         }
 
-        internal LinearModelStatistics(IHostEnvironment env, ModelLoadContext ctx)
+        private LinearModelParameterStatistics(IHostEnvironment env, ModelLoadContext ctx)
+            :base(env, ctx)
         {
-            Contracts.CheckValue(env, nameof(env));
-            _env = env;
-            _env.AssertValue(ctx);
-
-            // *** Binary Format ***
-            // int: count of parameters
-            // long: count of training examples
-            // float: deviance
-            // float: null deviance
+            // *** Binary format ***
+            // <base>
             // bool: whether standard error is included
-            // (Conditional) float[_paramCount]: values of std errors of coefficients
-            // (Conditional) int: length of std errors of coefficients
-            // (Conditional) int[_paramCount]: indices of std errors of coefficients
+            // float[_paramCount]: values of std errors of coefficients
+            // int: length of std errors of coefficients
+            // (Conditional)int[_paramCount]: indices of std errors of coefficients
 
-            _paramCount = ctx.Reader.ReadInt32();
-            _env.CheckDecode(_paramCount > 0);
-
-            _trainingExampleCount = ctx.Reader.ReadInt64();
-            _env.CheckDecode(_trainingExampleCount > 0);
-
-            _deviance = ctx.Reader.ReadFloat();
-            _nullDeviance = ctx.Reader.ReadFloat();
-
-            var hasStdErrors = ctx.Reader.ReadBoolean();
-            if (!hasStdErrors)
+            //backwards compatibility
+            if (ctx.Header.ModelVerWritten < CoeffStatsRefactorVersion)
             {
-                _env.Assert(_coeffStdError == null);
-                return;
+                if(!ctx.Reader.ReadBoolean())
+                    return;
             }
 
-            float[] stdErrorValues = ctx.Reader.ReadFloatArray(_paramCount);
+            float[] stdErrorValues = ctx.Reader.ReadFloatArray(ParametersCount);
             int length = ctx.Reader.ReadInt32();
-            _env.CheckDecode(length >= _paramCount);
-            if (length == _paramCount)
+            Env.CheckDecode(length >= ParametersCount);
+            if (length == ParametersCount)
             {
                 _coeffStdError = new VBuffer<float>(length, stdErrorValues);
                 return;
             }
 
-            _env.Assert(length > _paramCount);
-            int[] stdErrorIndices = ctx.Reader.ReadIntArray(_paramCount);
-            _coeffStdError = new VBuffer<float>(length, _paramCount, stdErrorValues, stdErrorIndices);
+            Env.Assert(length > ParametersCount);
+            int[] stdErrorIndices = ctx.Reader.ReadIntArray(ParametersCount);
+            _coeffStdError = new VBuffer<float>(length, ParametersCount, stdErrorValues, stdErrorIndices);
+
         }
 
-        internal static LinearModelStatistics Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            return new LinearModelStatistics(env, ctx);
-        }
-
-        void ICanSaveModel.Save(ModelSaveContext ctx)
-        {
-            Contracts.AssertValue(_env);
-            _env.CheckValue(ctx, nameof(ctx));
-            SaveCore(ctx);
-            ctx.SetVersionInfo(GetVersionInfo());
-        }
-
-        private void SaveCore(ModelSaveContext ctx)
+        protected override void SaveCore(ModelSaveContext ctx)
         {
             // *** Binary Format ***
-            // int: count of parameters
-            // long: count of training examples
-            // float: deviance
-            // float: null deviance
-            // bool: whether standard error is included
+            // <base>
             // (Conditional) float[_paramCount]: values of std errors of coefficients
             // (Conditional) int: length of std errors of coefficients
             // (Conditional) int[_paramCount]: indices of std errors of coefficients
 
-            _env.Assert(_paramCount > 0);
-            ctx.Writer.Write(_paramCount);
+            base.SaveCore(ctx);
 
-            _env.Assert(_trainingExampleCount > 0);
-            ctx.Writer.Write(_trainingExampleCount);
-
-            ctx.Writer.Write(_deviance);
-            ctx.Writer.Write(_nullDeviance);
-
-            bool hasStdErrors = _coeffStdError.HasValue;
-            ctx.Writer.Write(hasStdErrors);
-            if (!hasStdErrors)
-                return;
-
-            var coeffStdErrorValues = _coeffStdError.Value.GetValues();
-            _env.Assert(coeffStdErrorValues.Length == _paramCount);
+            var coeffStdErrorValues = _coeffStdError.GetValues();
+            Env.Assert(coeffStdErrorValues.Length == ParametersCount);
             ctx.Writer.WriteSinglesNoCount(coeffStdErrorValues);
-            ctx.Writer.Write(_coeffStdError.Value.Length);
-            if (_coeffStdError.Value.IsDense)
+            ctx.Writer.Write(_coeffStdError.Length);
+            if (_coeffStdError.IsDense)
                 return;
 
-            ctx.Writer.WriteIntsNoCount(_coeffStdError.Value.GetIndices());
+            ctx.Writer.WriteIntsNoCount(_coeffStdError.GetIndices());
         }
 
         /// <summary>
         /// Computes the standart deviation, Z-Score and p-Value.
         /// </summary>
-        public static bool TryGetBiasStatistics(LinearModelStatistics stats, float bias, out float stdError, out float zScore, out float pValue)
+        public CoefficientStatistics GetBiasStatisticsForValue(float bias)
         {
-            if (!stats._coeffStdError.HasValue)
-            {
-                stdError = 0;
-                zScore = 0;
-                pValue = 0;
-                return false;
-            }
+            const double sqrt2 = 1.41421356237; // Math.Sqrt(2);
+            var stdError = _coeffStdError.GetValues()[0];
+            Contracts.Assert(stdError == _coeffStdError.GetItemOrDefault(0));
+            var zScore = bias / stdError;
+            var pValue = 1.0f - (float)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
 
-            const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
-            stdError = stats._coeffStdError.Value.GetValues()[0];
-            Contracts.Assert(stdError == stats._coeffStdError.Value.GetItemOrDefault(0));
-            zScore = bias / stdError;
-            pValue = 1.0f - (float)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
-            return true;
+            //string name, float estimate, float stdError, float zScore, float pValue
+            return new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue);
         }
 
-        private static void GetUnorderedCoefficientStatistics(LinearModelStatistics stats, in VBuffer<float> weights, in VBuffer<ReadOnlyMemory<char>> names,
+        // sefilipi: do we want to offer this? Do we want to offer setting the weights?
+        public CoefficientStatistics GetBiasStatistics() => GetBiasStatisticsForValue(_bias);
+
+        private void GetUnorderedCoefficientStatistics(in VBuffer<ReadOnlyMemory<char>> names,
             ref VBuffer<float> estimate, ref VBuffer<float> stdErr, ref VBuffer<float> zScore, ref VBuffer<float> pValue, out ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames)
         {
-            if (!stats._coeffStdError.HasValue)
-            {
-                getSlotNames = null;
-                return;
-            }
+            Contracts.Assert(_coeffStdError.Length == _weights.Length + 1);
 
-            Contracts.Assert(stats._coeffStdError.Value.Length == weights.Length + 1);
-
-            var statisticsCount = stats.ParametersCount - 1;
+            var statisticsCount = ParametersCount - 1;
 
             var estimateEditor = VBufferEditor.Create(ref estimate, statisticsCount);
             var stdErrorEditor = VBufferEditor.Create(ref stdErr, statisticsCount);
             var zScoreEditor = VBufferEditor.Create(ref zScore, statisticsCount);
             var pValueEditor = VBufferEditor.Create(ref pValue, statisticsCount);
 
-            const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
+            const double sqrt2 = 1.41421356237; // Math.Sqrt(2);
 
-            bool denseStdError = stats._coeffStdError.Value.IsDense;
-            ReadOnlySpan<int> stdErrorIndices = stats._coeffStdError.Value.GetIndices();
-            ReadOnlySpan<float> coeffStdErrorValues = stats._coeffStdError.Value.GetValues();
-            for (int i = 1; i < stats.ParametersCount; i++)
+            bool denseStdError = _coeffStdError.IsDense;
+            ReadOnlySpan<int> stdErrorIndices = _coeffStdError.GetIndices();
+            ReadOnlySpan<float> coeffStdErrorValues = _coeffStdError.GetValues();
+            for (int i = 1; i < ParametersCount; i++)
             {
                 int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
-                Contracts.Assert(0 <= wi && wi < weights.Length);
-                var weight = estimateEditor.Values[i - 1] = weights.GetItemOrDefault(wi);
+                Contracts.Assert(0 <= wi && wi < _weights.Length);
+                var weight = estimateEditor.Values[i - 1] = _weights.GetItemOrDefault(wi);
                 var stdError = stdErrorEditor.Values[wi] = coeffStdErrorValues[i];
                 zScoreEditor.Values[i - 1] = weight / stdError;
                 pValueEditor.Values[i - 1] = 1 - (float)ProbabilityFunctions.Erf(Math.Abs(zScoreEditor.Values[i - 1] / sqrt2));
@@ -273,7 +360,7 @@ namespace Microsoft.ML.Trainers
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var editor = VBufferEditor.Create(ref dst, statisticsCount);
-                    ReadOnlySpan<int> stdErrorIndices2 = stats._coeffStdError.Value.GetIndices();
+                    ReadOnlySpan<int> stdErrorIndices2 = _coeffStdError.GetIndices();
                     for (int i = 1; i <= statisticsCount; i++)
                     {
                         int wi = denseStdError ? i - 1 : stdErrorIndices2[i] - 1;
@@ -283,38 +370,32 @@ namespace Microsoft.ML.Trainers
                 };
         }
 
-        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryModelParameters parent, DataViewSchema.Column featureColumn)
+        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(DataViewSchema.Column featureColumn)
         {
-            Contracts.AssertValue(_env);
-            _env.CheckValue(parent, nameof(parent));
+            Contracts.AssertValue(Env);
 
-            if (!_coeffStdError.HasValue)
-                return new List<CoefficientStatistics>();
-
-            var weights = parent.Weights as IReadOnlyList<float>;
-            _env.Assert(_paramCount == 1 || weights != null);
-            _env.Assert(_coeffStdError.Value.Length == weights.Count + 1);
+            Env.Assert(_coeffStdError.Length == _weights.Length + 1);
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
 
             featureColumn.Annotations.GetValue(AnnotationUtils.Kinds.SlotNames, ref names);
             _env.Assert(names.Length > 0, "FeatureColumnName has no metadata.");
 
-            ReadOnlySpan<float> stdErrorValues = _coeffStdError.Value.GetValues();
+            ReadOnlySpan<float> stdErrorValues = _coeffStdError.GetValues();
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
 
-            List<CoefficientStatistics> result = new List<CoefficientStatistics>(_paramCount - 1);
-            bool denseStdError = _coeffStdError.Value.IsDense;
-            ReadOnlySpan<int> stdErrorIndices = _coeffStdError.Value.GetIndices();
-            float[] zScores = new float[_paramCount - 1];
-            for (int i = 1; i < _paramCount; i++)
+            List<CoefficientStatistics> result = new List<CoefficientStatistics>(ParametersCount - 1);
+            bool denseStdError = _coeffStdError.IsDense;
+            ReadOnlySpan<int> stdErrorIndices = _coeffStdError.GetIndices();
+            float[] zScores = new float[ParametersCount - 1];
+            for (int i = 1; i < ParametersCount; i++)
             {
                 int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
-                _env.Assert(0 <= wi && wi < weights.Count);
+                Env.Assert(0 <= wi && wi < _weights.Length);
                 var name = names.GetItemOrDefault(wi).ToString();
                 if (string.IsNullOrEmpty(name))
                     name = $"f{wi}";
-                var weight = weights[wi];
+                var weight = _weights.GetItemOrDefault(wi);
                 var stdError = stdErrorValues[i];
                 var zScore = zScores[i - 1] = weight / stdError;
                 var pValue = 1 - (float)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
@@ -326,48 +407,51 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Gets the coefficient statistics as an object.
         /// </summary>
-        public CoefficientStatistics[] GetCoefficientStatistics(LinearBinaryModelParameters parent, DataViewSchema.Column featureColumn, int paramCountCap)
+        public CoefficientStatistics[] GetCoefficientStatistics(DataViewSchema.Column featureColumn, int paramCountCap)
         {
-            Contracts.AssertValue(_env);
-            _env.CheckValue(parent, nameof(parent));
-            _env.CheckParam(paramCountCap >= 0, nameof(paramCountCap));
+            Env.CheckParam(paramCountCap >= 0, nameof(paramCountCap));
 
-            if (paramCountCap > _paramCount)
-                paramCountCap = _paramCount;
+            if (paramCountCap > ParametersCount)
+                paramCountCap = ParametersCount;
 
-            float stdError;
-            float zScore;
-            float pValue;
-            var bias = parent.Bias;
-            if (!TryGetBiasStatistics(parent.Statistics, bias, out stdError, out zScore, out pValue))
-                return null;
-
-            var order = GetUnorderedCoefficientStatistics(parent, featureColumn).OrderByDescending(stat => stat.ZScore).Take(paramCountCap - 1);
-            return order.Prepend(new[] { new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue) }).ToArray();
+            var biasStats = GetBiasStatistics();
+            var order = GetUnorderedCoefficientStatistics(featureColumn).OrderByDescending(stat => stat.ZScore).Take(paramCountCap - 1);
+            return order.Prepend(biasStats).ToArray();
         }
 
-        internal void SaveText(TextWriter writer, LinearBinaryModelParameters parent, DataViewSchema.Column featureColumn, int paramCountCap)
+        /// <summary>
+        /// Saves the statistics in Text format.
+        /// </summary>
+        /// <param name="writer"></param>
+        /// <param name="featureColumn"></param>
+        /// <param name="paramCountCap"></param>
+        internal override void SaveText(TextWriter writer, DataViewSchema.Column featureColumn, int paramCountCap)
         {
-            Contracts.AssertValue(_env);
-            _env.CheckValue(writer, nameof(writer));
-            _env.AssertValueOrNull(parent);
-            writer.WriteLine();
-            writer.WriteLine("*** MODEL STATISTICS SUMMARY ***   ");
-            writer.WriteLine("Count of training examples:\t{0}", _trainingExampleCount);
-            writer.WriteLine("Residual Deviance:         \t{0}", _deviance);
-            writer.WriteLine("Null Deviance:             \t{0}", _nullDeviance);
-            writer.WriteLine("AIC:                       \t{0}", 2 * _paramCount + _deviance);
+            base.SaveText(writer, featureColumn, paramCountCap);
 
-            if (parent == null)
-                return;
-
-            var coeffStats = GetCoefficientStatistics(parent, featureColumn, paramCountCap);
+            var coeffStats = GetCoefficientStatistics(featureColumn, paramCountCap);
             if (coeffStats == null)
                 return;
 
             writer.WriteLine();
             writer.WriteLine("Coefficients statistics:");
             writer.WriteLine("Coefficient    \tEstimate\tStd. Error\tz value  \tPr(>|z|)");
+
+            Func<float, string> decorateProbabilityString = (float probZ) =>
+            {
+                Contracts.AssertValue(Env);
+                Env.Assert(0 <= probZ && probZ <= 1);
+                if (probZ < 0.001)
+                    return string.Format("{0} ***", probZ);
+                if (probZ < 0.01)
+                    return string.Format("{0} **", probZ);
+                if (probZ < 0.05)
+                    return string.Format("{0} *", probZ);
+                if (probZ < 0.1)
+                    return string.Format("{0} .", probZ);
+
+                return probZ.ToString();
+            };
 
             foreach (var coeffStat in coeffStats)
             {
@@ -376,7 +460,7 @@ namespace Microsoft.ML.Trainers
                             coeffStat.Estimate,
                             coeffStat.StandardError,
                             coeffStat.ZScore,
-                            DecorateProbabilityString(coeffStat.PValue));
+                            decorateProbabilityString(coeffStat.PValue));
             }
 
             writer.WriteLine("---");
@@ -386,21 +470,13 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Support method for linear models and <see cref="ICanGetSummaryInKeyValuePairs"/>.
         /// </summary>
-        internal void SaveSummaryInKeyValuePairs(LinearBinaryModelParameters parent,
-            DataViewSchema.Column featureColumn, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
+        internal override void SaveSummaryInKeyValuePairs(DataViewSchema.Column featureColumn, int paramCountCap, List<KeyValuePair<string, object>> resultCollection)
         {
-            Contracts.AssertValue(_env);
-            _env.AssertValue(resultCollection);
+            Env.AssertValue(resultCollection);
 
-            resultCollection.Add(new KeyValuePair<string, object>("Count of training examples", _trainingExampleCount));
-            resultCollection.Add(new KeyValuePair<string, object>("Residual Deviance", _deviance));
-            resultCollection.Add(new KeyValuePair<string, object>("Null Deviance", _nullDeviance));
-            resultCollection.Add(new KeyValuePair<string, object>("AIC", 2 * _paramCount + _deviance));
+            base.SaveSummaryInKeyValuePairs(featureColumn, paramCountCap, resultCollection);
 
-            if (parent == null)
-                return;
-
-            var coeffStats = GetCoefficientStatistics(parent, featureColumn, paramCountCap);
+            var coeffStats = GetCoefficientStatistics(featureColumn, paramCountCap);
             if (coeffStats == null)
                 return;
 
@@ -412,38 +488,25 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        internal DataViewSchema.Annotations MakeStatisticsMetadata(LinearBinaryModelParameters parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
+        internal override DataViewSchema.Annotations MakeStatisticsMetadata(RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
         {
-            _env.AssertValueOrNull(parent);
-            _env.AssertValue(schema);
+            Env.AssertValue(schema);
 
             var builder = new DataViewSchema.Annotations.Builder();
+            builder.Add(base.MakeStatisticsMetadata(schema, names), c => true);
 
-            builder.AddPrimitiveValue("Count of training examples", NumberDataViewType.Int64, _trainingExampleCount);
-            builder.AddPrimitiveValue("Residual Deviance", NumberDataViewType.Single, _deviance);
-            builder.AddPrimitiveValue("Null Deviance", NumberDataViewType.Single, _nullDeviance);
-            builder.AddPrimitiveValue("AIC", NumberDataViewType.Single, 2 * _paramCount + _deviance);
-
-            if (parent == null)
-                return builder.ToAnnotations();
-
-            if (!TryGetBiasStatistics(parent.Statistics, parent.Bias, out float biasStdErr, out float biasZScore, out float biasPValue))
-                return builder.ToAnnotations();
-
-            var biasEstimate = parent.Bias;
+            var biasStats = GetBiasStatistics();
             builder.AddPrimitiveValue("BiasEstimate", NumberDataViewType.Single, biasEstimate);
             builder.AddPrimitiveValue("BiasStandardError", NumberDataViewType.Single, biasStdErr);
             builder.AddPrimitiveValue("BiasZScore", NumberDataViewType.Single, biasZScore);
             builder.AddPrimitiveValue("BiasPValue", NumberDataViewType.Single, biasPValue);
 
-            var weights = default(VBuffer<float>);
-            ((IHaveFeatureWeights)parent).GetFeatureWeights(ref weights);
             var estimate = default(VBuffer<float>);
             var stdErr = default(VBuffer<float>);
             var zScore = default(VBuffer<float>);
             var pValue = default(VBuffer<float>);
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames;
-            GetUnorderedCoefficientStatistics(parent.Statistics, in weights, in names, ref estimate, ref stdErr, ref zScore, ref pValue, out getSlotNames);
+            GetUnorderedCoefficientStatistics(in names, ref estimate, ref stdErr, ref zScore, ref pValue, out getSlotNames);
 
             var subMetaBuilder = new DataViewSchema.Annotations.Builder();
             subMetaBuilder.AddSlotNames(stdErr.Length, getSlotNames);
@@ -456,22 +519,6 @@ namespace Microsoft.ML.Trainers
             builder.Add("PValue", colType, (ref VBuffer<float> dst) => pValue.CopyTo(ref dst), subMeta);
 
             return builder.ToAnnotations();
-        }
-
-        private string DecorateProbabilityString(float probZ)
-        {
-            Contracts.AssertValue(_env);
-            _env.Assert(0 <= probZ && probZ <= 1);
-            if (probZ < 0.001)
-                return string.Format("{0} ***", probZ);
-            if (probZ < 0.01)
-                return string.Format("{0} **", probZ);
-            if (probZ < 0.05)
-                return string.Format("{0} *", probZ);
-            if (probZ < 0.1)
-                return string.Format("{0} .", probZ);
-
-            return probZ.ToString();
         }
     }
 }

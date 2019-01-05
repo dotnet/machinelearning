@@ -60,11 +60,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
 
             var linearModel = transformerChain.LastTransformer.Model.SubModel as LinearBinaryModelParameters;
-            var stats = linearModel.Statistics;
-            LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
+            var stats = linearModel.Statistics as ModelStatistics;
 
-            Assert.Equal(0f, stdError);
-            Assert.Equal(0f, zScore);
+            Assert.NotNull(stats);
+
+            var stats2 = linearModel.Statistics as LinearModelParameterStatistics;
+
+            Assert.Null(stats2);
         }
 
         [Fact]
@@ -82,21 +84,66 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var transformer = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<CalibratedModelParametersBase<LinearBinaryModelParameters, PlattCalibrator>>>;
 
             var linearModel = transformer.LastTransformer.Model.SubModel as LinearBinaryModelParameters;
-            var stats = linearModel.Statistics;
-            LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
+            var stats = linearModel.Statistics as LinearModelParameterStatistics;
 
-            CompareNumbersWithTolerance(stdError, 0.250672936);
-            CompareNumbersWithTolerance(zScore, 7.97852373);
+            var biasStats = stats?.GetBiasStatistics();
+            Assert.NotNull(biasStats);
+
+            biasStats = stats.GetBiasStatisticsForValue(2);
+
+            Assert.NotNull(biasStats);
+
+            CompareNumbersWithTolerance(biasStats.StandardError, 0.250672936);
+            CompareNumbersWithTolerance(biasStats.ZScore, 7.97852373);
 
             var scoredData = transformer.Transform(dataView);
 
-            var coeffcients = stats.GetCoefficientStatistics(linearModel, scoredData.Schema["Features"], 100);
+            var coefficients  = stats.GetCoefficientStatistics(scoredData.Schema["Features"], 100) ;
 
-            Assert.Equal(19, coeffcients.Length);
+            Assert.Equal(19, coefficients.Length);
 
-            foreach (var coefficient in coeffcients)
+            foreach(var coefficient in coefficients)
                 Assert.True(coefficient.StandardError < 1.0);
 
+        }
+
+        [Fact]
+        public void TestLRWithStatsBackCompatibility()
+        {
+            string dropModelPath = GetDataPath("backcompat/LrWithStats.zip");
+            string trainData = GetDataPath("adult.tiny.with-schema.txt");
+
+            using (FileStream fs = File.OpenRead(dropModelPath))
+            {
+                var result = ModelFileUtils.LoadPredictorOrNull(Env, fs) as ParameterMixingCalibratedPredictor;
+
+                var subPredictor = result?.SubPredictor as LinearBinaryModelParameters;
+                var stats = subPredictor?.Statistics;
+
+                Assert.Equal(458.970917f, stats.Deviance);
+                Assert.Equal(539.276367f, stats.NullDeviance);
+                Assert.Equal(7, stats.ParametersCount);
+                Assert.Equal(500, stats.TrainingExampleCount);
+
+            }
+        }
+
+        [Fact]
+        public void TestMLRWithStatsBackCompatibility()
+        {
+            string dropModelPath = GetDataPath("backcompat/MlrWithStats.zip");
+            string trainData = GetDataPath("iris.data");
+
+            using (FileStream fs = File.OpenRead(dropModelPath))
+            {
+                var result = ModelFileUtils.LoadPredictorOrNull(Env, fs) as MulticlassLogisticRegressionModelParameters;
+                var stats = result?.Statistics;
+
+                Assert.Equal(132.012238f, stats.Deviance);
+                Assert.Equal(329.583679f, stats.NullDeviance);
+                Assert.Equal(11, stats.ParametersCount);
+                Assert.Equal(150, stats.TrainingExampleCount);
+            }
         }
     }
 }
