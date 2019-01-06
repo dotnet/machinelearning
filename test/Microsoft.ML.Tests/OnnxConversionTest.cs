@@ -323,7 +323,7 @@ namespace Microsoft.ML.Tests
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
 
             // Step 4: Check ONNX model's text format.
-            CheckEquality(subDir, onnxTextName);
+            CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
             Done();
         }
 
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Tests
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
 
             // Step 4: Check ONNX model's text format.
-            CheckEquality(subDir, onnxTextName);
+            CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
             Done();
         }
 
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Tests
 
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
 
-            CheckEquality(subDir, onnxTextName);
+            CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
             Done();
         }
 
