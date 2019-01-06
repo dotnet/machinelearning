@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// they sometimes want the actual models too.)
         /// </summary>
         [Fact]
-        void New_CrossValidation()
+        void CrossValidation()
         {
             var ml = new MLContext(seed: 1, conc: 1);
 

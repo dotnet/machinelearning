@@ -39,7 +39,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.RunTests
 {
-#pragma warning disable 612
     public partial class TestEntryPoints : CoreBaseTestClass
     {
         public TestEntryPoints(ITestOutputHelper output) : base(output)
@@ -51,7 +50,7 @@ namespace Microsoft.ML.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            return Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            return EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -71,7 +70,7 @@ namespace Microsoft.ML.RunTests
         {
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            return Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            return EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -985,7 +984,7 @@ namespace Microsoft.ML.RunTests
         {
             var dataPath = GetDataPath("lm.sample.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -1199,7 +1198,7 @@ namespace Microsoft.ML.RunTests
         {
             var dataPath = GetDataPath("iris.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -1346,8 +1345,8 @@ namespace Microsoft.ML.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             var dataView =
-                Legacy.EntryPoints.ImportTextData.TextLoader(Env,
-                    new Legacy.EntryPoints.ImportTextData.LoaderInput
+                EntryPoints.ImportTextData.TextLoader(Env,
+                    new EntryPoints.ImportTextData.LoaderInput
                     {
                         InputFile = inputFile,
                         Arguments =
@@ -3357,7 +3356,7 @@ namespace Microsoft.ML.RunTests
             var dataPath = GetDataPath("breast-cancer-withheader.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
 
-            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -3431,7 +3430,7 @@ namespace Microsoft.ML.RunTests
             var dataPath = GetDataPath("MNIST.Train.0-class.tiny.txt");
             using (var inputFile = new SimpleFileHandle(Env, dataPath, false, false))
             {
-                var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+                var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
                 {
                     Arguments =
                 {
@@ -3638,7 +3637,7 @@ namespace Microsoft.ML.RunTests
                 "The five boxing wizards jump quickly."
             });
             var inputFile = new SimpleFileHandle(Env, dataFile, false, false);
-            var dataView = Legacy.EntryPoints.ImportTextData.TextLoader(Env, new Legacy.EntryPoints.ImportTextData.LoaderInput()
+            var dataView = EntryPoints.ImportTextData.TextLoader(Env, new EntryPoints.ImportTextData.LoaderInput()
             {
                 Arguments =
                 {
@@ -5557,8 +5556,7 @@ namespace Microsoft.ML.RunTests
         public void TestTensorFlowEntryPoint()
         {
             var dataPath = GetDataPath("Train-Tiny-28x28.txt");
-            var env = new MLContext(42);
-            AssemblyRegistration.RegisterAssemblies(env);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
             string inputGraph = @"
             {
                 'Nodes':
@@ -5644,8 +5642,8 @@ namespace Microsoft.ML.RunTests
             }
             ";
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -5658,5 +5656,4 @@ namespace Microsoft.ML.RunTests
         }
 
     }
-#pragma warning restore 612
 }
