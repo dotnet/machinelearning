@@ -166,7 +166,7 @@ namespace Microsoft.ML.Tests
             var onnxTextName = "Kmeans.txt";
             var onnxTextPath = GetOutputPath(subDir, onnxTextName);
             SaveOnnxModel(onnxModel, null, onnxTextPath);
-            CheckEquality(subDir, onnxTextName);
+            CheckEquality(subDir, onnxTextName, digitsOfPrecision: 2);
             Done();
         }
 
