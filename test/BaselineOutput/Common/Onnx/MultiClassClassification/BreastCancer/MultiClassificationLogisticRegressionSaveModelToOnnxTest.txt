@@ -1,0 +1,432 @@
+{
+  "irVersion": "3",
+  "producerName": "ML.NET",
+  "producerVersion": "##VERSION##",
+  "domain": "machinelearning.dotnet",
+  "graph": {
+    "node": [
+      {
+        "input": [
+          "Features"
+        ],
+        "output": [
+          "Features0"
+        ],
+        "name": "Scaler",
+        "opType": "Scaler",
+        "attribute": [
+          {
+            "name": "offset",
+            "floats": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "scale",
+            "floats": [
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Label"
+        ],
+        "output": [
+          "Label0"
+        ],
+        "name": "LabelEncoder",
+        "opType": "LabelEncoder",
+        "attribute": [
+          {
+            "name": "classes_strings",
+            "strings": [
+              "NQ==",
+              "Mw==",
+              "Ng==",
+              "NA==",
+              "OA==",
+              "MQ==",
+              "Mg==",
+              "Nw==",
+              "MTA=",
+              "OQ=="
+            ],
+            "type": "STRINGS"
+          },
+          {
+            "name": "default_int64",
+            "i": "-1",
+            "type": "INT"
+          },
+          {
+            "name": "default_string",
+            "s": "IA==",
+            "type": "STRING"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Features0"
+        ],
+        "output": [
+          "PredictedLabel",
+          "Score"
+        ],
+        "name": "LinearClassifier",
+        "opType": "LinearClassifier",
+        "attribute": [
+          {
+            "name": "post_transform",
+            "s": "Tk9ORQ==",
+            "type": "STRING"
+          },
+          {
+            "name": "multi_class",
+            "i": "1",
+            "type": "INT"
+          },
+          {
+            "name": "coefficients",
+            "floats": [
+              -0.0871891156,
+              0.209310874,
+              0.747134566,
+              0.364765137,
+              -0.377612084,
+              -0.6847462,
+              0,
+              -0.5566554,
+              -0.3849638,
+              -1.29262471,
+              0,
+              0,
+              -0.479907274,
+              -0.08740093,
+              -0.5489706,
+              0,
+              0.630316138,
+              0,
+              0,
+              0,
+              0.07319626,
+              0.171390951,
+              0.6936194,
+              0,
+              0,
+              -0.6189027,
+              0,
+              -0.732489467,
+              -0.71812433,
+              0.2614429,
+              -0.4669126,
+              -0.250123739,
+              1.01838875,
+              0.7936676,
+              0,
+              0,
+              0.8072781,
+              0,
+              0.833407462,
+              0,
+              -1.67462111,
+              -1.19559848,
+              -0.553805768,
+              -0.5710498,
+              -0.7325714,
+              -0.5470721,
+              -0.7483947,
+              0,
+              -0.5655844,
+              -0.9892823,
+              -0.237264976,
+              0,
+              -0.81984,
+              -0.0930810943,
+              -0.4526821,
+              0,
+              0,
+              0,
+              0.726712048,
+              0,
+              1.12171924,
+              0.323810369,
+              0.245762676,
+              0.07872447,
+              0.939905643,
+              0.923160553,
+              0,
+              0,
+              1.10209334,
+              0.704743862,
+              0,
+              0.322121173,
+              0.5064917,
+              1.30212963,
+              0,
+              0.8623323,
+              0.0155395176,
+              0,
+              0.192209348,
+              0.262786478
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "intercepts",
+            "floats": [
+              1.23585367,
+              1.68783426,
+              -0.8096311,
+              1.35599542,
+              -1.59806383,
+              2.57355452,
+              1.03064489,
+              -1.67592752,
+              -1.40655541,
+              -2.39366078
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "classlabels_ints",
+            "ints": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9"
+            ],
+            "type": "INTS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Label0"
+        ],
+        "output": [
+          "Label1"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Features0"
+        ],
+        "output": [
+          "Features1"
+        ],
+        "name": "Identity0",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "PredictedLabel"
+        ],
+        "output": [
+          "PredictedLabel0"
+        ],
+        "name": "Identity1",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Score"
+        ],
+        "output": [
+          "Score0"
+        ],
+        "name": "Identity2",
+        "opType": "Identity"
+      }
+    ],
+    "name": "model",
+    "input": [
+      {
+        "name": "Label",
+        "type": {
+          "tensorType": {
+            "elemType": "STRING",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Features",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "8"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "output": [
+      {
+        "name": "Label1",
+        "type": {
+          "tensorType": {
+            "elemType": "INT64",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Features1",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "8"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "PredictedLabel0",
+        "type": {
+          "tensorType": {
+            "elemType": "INT64",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "10"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "valueInfo": [
+      {
+        "name": "Features0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "8"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Label0",
+        "type": {
+          "tensorType": {
+            "elemType": "INT64",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "1"
+    },
+    {
+      "version": "7"
+    }
+  ]
+}

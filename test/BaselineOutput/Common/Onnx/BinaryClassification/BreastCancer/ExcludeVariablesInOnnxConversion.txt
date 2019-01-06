@@ -2,7 +2,7 @@
   "irVersion": "3",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
-  "domain": "Onnx",
+  "domain": "machinelearning.dotnet",
   "graph": {
     "node": [
       {
@@ -103,8 +103,33 @@
       },
       {
         "input": [
-          "F1",
           "F21"
+        ],
+        "output": [
+          "F22"
+        ],
+        "name": "Imputer",
+        "opType": "Imputer",
+        "attribute": [
+          {
+            "name": "replaced_value_float",
+            "f": "NaN",
+            "type": "FLOAT"
+          },
+          {
+            "name": "imputed_value_floats",
+            "floats": [
+              0
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "F1",
+          "F22"
         ],
         "output": [
           "Features"
@@ -126,6 +151,53 @@
       {
         "input": [
           "Features"
+        ],
+        "output": [
+          "Features0"
+        ],
+        "name": "Scaler",
+        "opType": "Scaler",
+        "attribute": [
+          {
+            "name": "offset",
+            "floats": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "scale",
+            "floats": [
+              0.1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Features0"
         ],
         "output": [
           "Score"
@@ -343,7 +415,7 @@
         "opType": "Identity"
       }
     ],
-    "name": "KeyToVectorBag",
+    "name": "A Simple Pipeline",
     "input": [
       {
         "name": "F1",
@@ -476,7 +548,43 @@
         }
       },
       {
+        "name": "F22",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "10"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
         "name": "Features",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Features0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",

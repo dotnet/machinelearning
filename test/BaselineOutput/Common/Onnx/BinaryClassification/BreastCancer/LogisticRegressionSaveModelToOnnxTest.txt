@@ -2,15 +2,15 @@
   "irVersion": "3",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
-  "domain": "Onnx",
+  "domain": "machinelearning.dotnet",
   "graph": {
     "node": [
       {
         "input": [
-          "Features"
+          "FeatureVector"
         ],
         "output": [
-          "Features0"
+          "FeatureVector0"
         ],
         "name": "Scaler",
         "opType": "Scaler",
@@ -26,6 +26,8 @@
               0,
               0,
               0,
+              0,
+              0,
               0
             ],
             "type": "FLOATS"
@@ -33,15 +35,17 @@
           {
             "name": "scale",
             "floats": [
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1
+              0.2544529,
+              0.3184713,
+              0.259740263,
+              0.324675322,
+              0.3144654,
+              0.332225919,
+              0.3436426,
+              0.321543425,
+              0.30864197,
+              0.3154574,
+              0.344827563
             ],
             "type": "FLOATS"
           }
@@ -50,7 +54,7 @@
       },
       {
         "input": [
-          "Features0"
+          "FeatureVector0"
         ],
         "output": [
           "Score"
@@ -71,22 +75,24 @@
           {
             "name": "coefficients",
             "floats": [
-              2.6596148,
-              1.67937,
-              1.94177353,
-              1.42409551,
-              0.852847636,
-              2.93048549,
-              1.74959826,
-              1.58030283,
-              0.5948697
+              300.146545,
+              -0.224054649,
+              286.670166,
+              -0.8098665,
+              -0.8306167,
+              -0.9863483,
+              55.934185,
+              12.6538782,
+              -0.265024453,
+              0.6916245,
+              238.776855
             ],
             "type": "FLOATS"
           },
           {
             "name": "intercepts",
             "floats": [
-              -6.183617
+              373.62085
             ],
             "type": "FLOATS"
           }
@@ -95,62 +101,22 @@
       },
       {
         "input": [
-          "Score"
+          "FeatureVector0"
         ],
         "output": [
-          "linearOutput"
-        ],
-        "name": "Affine",
-        "opType": "Affine",
-        "attribute": [
-          {
-            "name": "alpha",
-            "f": 1,
-            "type": "FLOAT"
-          },
-          {
-            "name": "beta",
-            "f": -1E-07,
-            "type": "FLOAT"
-          }
-        ]
-      },
-      {
-        "input": [
-          "linearOutput"
-        ],
-        "output": [
-          "Probability"
-        ],
-        "name": "Sigmoid",
-        "opType": "Sigmoid"
-      },
-      {
-        "input": [
-          "Probability"
-        ],
-        "output": [
-          "PredictedLabel"
-        ],
-        "name": "Binarizer",
-        "opType": "Binarizer",
-        "attribute": [
-          {
-            "name": "threshold",
-            "f": 0.5,
-            "type": "FLOAT"
-          }
-        ],
-        "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "PredictedLabel"
-        ],
-        "output": [
-          "PredictedLabel0"
+          "FeatureVector1"
         ],
         "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Target"
+        ],
+        "output": [
+          "Target0"
+        ],
+        "name": "Identity0",
         "opType": "Identity"
       },
       {
@@ -160,24 +126,14 @@
         "output": [
           "Score0"
         ],
-        "name": "Identity0",
-        "opType": "Identity"
-      },
-      {
-        "input": [
-          "Probability"
-        ],
-        "output": [
-          "Probability0"
-        ],
         "name": "Identity1",
         "opType": "Identity"
       }
     ],
-    "name": "BinaryClassificationLRSaveModelToOnnxTest",
+    "name": "model",
     "input": [
       {
-        "name": "Features",
+        "name": "FeatureVector",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -187,7 +143,25 @@
                   "dimValue": "1"
                 },
                 {
-                  "dimValue": "9"
+                  "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Target",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
                 }
               ]
             }
@@ -197,7 +171,25 @@
     ],
     "output": [
       {
-        "name": "PredictedLabel0",
+        "name": "FeatureVector1",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Target0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -231,9 +223,11 @@
             }
           }
         }
-      },
+      }
+    ],
+    "valueInfo": [
       {
-        "name": "Probability0",
+        "name": "FeatureVector0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -243,17 +237,15 @@
                   "dimValue": "1"
                 },
                 {
-                  "dimValue": "1"
+                  "dimValue": "11"
                 }
               ]
             }
           }
         }
-      }
-    ],
-    "valueInfo": [
+      },
       {
-        "name": "Features0",
+        "name": "Score",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -263,7 +255,7 @@
                   "dimValue": "1"
                 },
                 {
-                  "dimValue": "9"
+                  "dimValue": "1"
                 }
               ]
             }

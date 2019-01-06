@@ -2,15 +2,15 @@
   "irVersion": "3",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
-  "domain": "Onnx",
+  "domain": "machinelearning.dotnet",
   "graph": {
     "node": [
       {
         "input": [
-          "Features"
+          "FeatureVector"
         ],
         "output": [
-          "Features0"
+          "FeatureVector0"
         ],
         "name": "Scaler",
         "opType": "Scaler",
@@ -26,6 +26,8 @@
               0,
               0,
               0,
+              0,
+              0,
               0
             ],
             "type": "FLOATS"
@@ -33,15 +35,17 @@
           {
             "name": "scale",
             "floats": [
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1,
-              0.1
+              0.2544529,
+              0.3184713,
+              0.259740263,
+              0.324675322,
+              0.3144654,
+              0.332225919,
+              0.3436426,
+              0.321543425,
+              0.30864197,
+              0.3154574,
+              0.344827563
             ],
             "type": "FLOATS"
           }
@@ -50,98 +54,67 @@
       },
       {
         "input": [
-          "Features0"
-        ],
-        "output": [
-          "X2"
-        ],
-        "name": "ReduceSumSquare",
-        "opType": "ReduceSumSquare"
-      },
-      {
-        "input": [
-          "Features0",
-          "C",
-          "zero"
-        ],
-        "output": [
-          "XC2"
-        ],
-        "name": "Gemm",
-        "opType": "Gemm",
-        "attribute": [
-          {
-            "name": "alpha",
-            "f": -2,
-            "type": "FLOAT"
-          },
-          {
-            "name": "transB",
-            "i": "1",
-            "type": "INT"
-          }
-        ]
-      },
-      {
-        "input": [
-          "X2",
-          "XC2"
-        ],
-        "output": [
-          "Z"
-        ],
-        "name": "Add",
-        "opType": "Add"
-      },
-      {
-        "input": [
-          "Z",
-          "C2"
+          "FeatureVector0"
         ],
         "output": [
           "Score"
         ],
-        "name": "Add0",
-        "opType": "Add"
-      },
-      {
-        "input": [
-          "Score"
-        ],
-        "output": [
-          "PredictedLabel"
-        ],
-        "name": "ArgMin",
-        "opType": "ArgMin",
+        "name": "LinearRegressor",
+        "opType": "LinearRegressor",
         "attribute": [
           {
-            "name": "axis",
+            "name": "post_transform",
+            "s": "Tk9ORQ==",
+            "type": "STRING"
+          },
+          {
+            "name": "targets",
             "i": "1",
             "type": "INT"
           },
           {
-            "name": "keepdims",
-            "i": "1",
-            "type": "INT"
+            "name": "coefficients",
+            "floats": [
+              300.146545,
+              -0.224054649,
+              286.670166,
+              -0.8098665,
+              -0.8306167,
+              -0.9863483,
+              55.934185,
+              12.6538782,
+              -0.265024453,
+              0.6916245,
+              238.776855
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "intercepts",
+            "floats": [
+              373.62085
+            ],
+            "type": "FLOATS"
           }
-        ]
+        ],
+        "domain": "ai.onnx.ml"
       },
       {
         "input": [
-          "Features0"
+          "FeatureVector0"
         ],
         "output": [
-          "Features1"
+          "FeatureVector1"
         ],
         "name": "Identity",
         "opType": "Identity"
       },
       {
         "input": [
-          "PredictedLabel"
+          "Target"
         ],
         "output": [
-          "PredictedLabel0"
+          "Target0"
         ],
         "name": "Identity0",
         "opType": "Identity"
@@ -157,61 +130,10 @@
         "opType": "Identity"
       }
     ],
-    "name": "Kmeans",
-    "initializer": [
-      {
-        "dims": [
-          "2",
-          "9"
-        ],
-        "dataType": "FLOAT",
-        "floatData": [
-          0.5522167,
-          0.3039403,
-          0.319211155,
-          0.261575729,
-          0.320196062,
-          0.344088882,
-          0.293349,
-          0.273151934,
-          0.15763472,
-          0.285144627,
-          0.332245946,
-          0.325724274,
-          0.315217048,
-          0.328623,
-          0.3706516,
-          0.41992715,
-          0.307970464,
-          0.164492577
-        ],
-        "name": "C"
-      },
-      {
-        "dims": [
-          "2"
-        ],
-        "dataType": "FLOAT",
-        "floatData": [
-          0.9740776,
-          0.940771043
-        ],
-        "name": "C2"
-      },
-      {
-        "dims": [
-          "1"
-        ],
-        "dataType": "FLOAT",
-        "floatData": [
-          0
-        ],
-        "name": "zero"
-      }
-    ],
+    "name": "model",
     "input": [
       {
-        "name": "Features",
+        "name": "FeatureVector",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -221,7 +143,25 @@
                   "dimValue": "1"
                 },
                 {
-                  "dimValue": "9"
+                  "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Target",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
                 }
               ]
             }
@@ -231,7 +171,7 @@
     ],
     "output": [
       {
-        "name": "Features1",
+        "name": "FeatureVector1",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -241,7 +181,7 @@
                   "dimValue": "1"
                 },
                 {
-                  "dimValue": "9"
+                  "dimValue": "11"
                 }
               ]
             }
@@ -249,10 +189,10 @@
         }
       },
       {
-        "name": "PredictedLabel0",
+        "name": "Target0",
         "type": {
           "tensorType": {
-            "elemType": "INT64",
+            "elemType": "FLOAT",
             "shape": {
               "dim": [
                 {
@@ -277,7 +217,7 @@
                   "dimValue": "1"
                 },
                 {
-                  "dimValue": "2"
+                  "dimValue": "1"
                 }
               ]
             }
@@ -287,7 +227,7 @@
     ],
     "valueInfo": [
       {
-        "name": "Features0",
+        "name": "FeatureVector0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -297,7 +237,25 @@
                   "dimValue": "1"
                 },
                 {
-                  "dimValue": "9"
+                  "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
                 }
               ]
             }

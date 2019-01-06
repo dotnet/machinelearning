@@ -2,12 +2,12 @@
   "irVersion": "3",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
-  "domain": "Onnx",
+  "domain": "machinelearning.dotnet",
   "graph": {
     "node": [
       {
         "input": [
-          "Cat"
+          "Tokens"
         ],
         "output": [
           "LabelEncodedInput"
@@ -328,7 +328,7 @@
           "MaxWeights"
         ],
         "output": [
-          "Cat0"
+          "Embed"
         ],
         "name": "Concat",
         "opType": "Concat",
@@ -342,16 +342,26 @@
       },
       {
         "input": [
-          "Cat0"
+          "Tokens"
         ],
         "output": [
-          "Cat1"
+          "Tokens0"
         ],
         "name": "Identity",
         "opType": "Identity"
+      },
+      {
+        "input": [
+          "Embed"
+        ],
+        "output": [
+          "Embed0"
+        ],
+        "name": "Identity0",
+        "opType": "Identity"
       }
     ],
-    "name": "WordEmbeddings",
+    "name": "model",
     "initializer": [
       {
         "dims": [
@@ -1023,7 +1033,7 @@
     ],
     "input": [
       {
-        "name": "Cat",
+        "name": "Tokens",
         "type": {
           "tensorType": {
             "elemType": "STRING",
@@ -1043,7 +1053,25 @@
     ],
     "output": [
       {
-        "name": "Cat1",
+        "name": "Tokens0",
+        "type": {
+          "tensorType": {
+            "elemType": "STRING",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "4"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Embed0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -1063,7 +1091,7 @@
     ],
     "valueInfo": [
       {
-        "name": "Cat0",
+        "name": "Embed",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",

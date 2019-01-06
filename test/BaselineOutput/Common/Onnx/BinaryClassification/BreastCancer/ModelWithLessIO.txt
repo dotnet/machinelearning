@@ -1,0 +1,906 @@
+{
+  "irVersion": "3",
+  "producerName": "ML.NET",
+  "producerVersion": "##VERSION##",
+  "domain": "machinelearning.dotnet",
+  "graph": {
+    "node": [
+      {
+        "input": [
+          "F2"
+        ],
+        "output": [
+          "F20"
+        ],
+        "name": "LabelEncoder",
+        "opType": "LabelEncoder",
+        "attribute": [
+          {
+            "name": "classes_strings",
+            "strings": [
+              "MQ==",
+              "NQ==",
+              "NA==",
+              "Mg==",
+              "Mw==",
+              "Nw==",
+              "MTA=",
+              "OA==",
+              "Ng=="
+            ],
+            "type": "STRINGS"
+          },
+          {
+            "name": "default_int64",
+            "i": "-1",
+            "type": "INT"
+          },
+          {
+            "name": "default_string",
+            "s": "IA==",
+            "type": "STRING"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "F20"
+        ],
+        "output": [
+          "F21"
+        ],
+        "name": "OneHotEncoder",
+        "opType": "OneHotEncoder",
+        "attribute": [
+          {
+            "name": "cats_int64s",
+            "ints": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "zeros",
+            "i": "1",
+            "type": "INT"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "F1",
+          "F21"
+        ],
+        "output": [
+          "Features"
+        ],
+        "name": "FeatureVectorizer",
+        "opType": "FeatureVectorizer",
+        "attribute": [
+          {
+            "name": "inputdimensions",
+            "ints": [
+              "8",
+              "9"
+            ],
+            "type": "INTS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Features"
+        ],
+        "output": [
+          "Score"
+        ],
+        "name": "TreeEnsembleRegressor",
+        "opType": "TreeEnsembleRegressor",
+        "attribute": [
+          {
+            "name": "post_transform",
+            "s": "Tk9ORQ==",
+            "type": "STRING"
+          },
+          {
+            "name": "n_targets",
+            "i": "1",
+            "type": "INT"
+          },
+          {
+            "name": "base_values",
+            "floats": [
+              0
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "aggregate_function",
+            "s": "U1VN",
+            "type": "STRING"
+          },
+          {
+            "name": "nodes_treeids",
+            "ints": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_nodeids",
+            "ints": [
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_featureids",
+            "ints": [
+              "1",
+              "2",
+              "5",
+              "1",
+              "5",
+              "5",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "1",
+              "2",
+              "6",
+              "1",
+              "5",
+              "4",
+              "5",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "1",
+              "5",
+              "7",
+              "3",
+              "0",
+              "6",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_modes",
+            "strings": [
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg=="
+            ],
+            "type": "STRINGS"
+          },
+          {
+            "name": "nodes_values",
+            "floats": [
+              2.5,
+              2.5,
+              4.5,
+              4.5,
+              2.5,
+              1.5,
+              6.5,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              2.5,
+              2.5,
+              4.5,
+              4.5,
+              2.5,
+              2.5,
+              3.5,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              3.5,
+              5.5,
+              3.5,
+              5.5,
+              6.5,
+              4.5,
+              5.5,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "nodes_truenodeids",
+            "ints": [
+              "2",
+              "5",
+              "7",
+              "4",
+              "9",
+              "8",
+              "12",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "2",
+              "5",
+              "6",
+              "4",
+              "9",
+              "8",
+              "7",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "1",
+              "2",
+              "6",
+              "4",
+              "5",
+              "8",
+              "7",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_falsenodeids",
+            "ints": [
+              "1",
+              "3",
+              "10",
+              "11",
+              "6",
+              "13",
+              "14",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "1",
+              "3",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "3",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "nodes_missing_value_tracks_true",
+            "ints": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "target_treeids",
+            "ints": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "target_nodeids",
+            "ints": [
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14",
+              "7",
+              "8",
+              "9",
+              "10",
+              "11",
+              "12",
+              "13",
+              "14"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "target_ids",
+            "ints": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "target_weights",
+            "floats": [
+              -0.9850374,
+              -1,
+              -0.428571433,
+              0.05882353,
+              0.9655172,
+              0.478260875,
+              7.006492E-45,
+              0.9354839,
+              -0.837172,
+              -0.896625638,
+              -0.3455931,
+              0.223126009,
+              0.8040303,
+              0.60825175,
+              -0.06932944,
+              -0.402043074,
+              -0.7417274,
+              -0.408434927,
+              0.7105746,
+              0.1875386,
+              0.7631735,
+              0.706173241,
+              0.625906467,
+              -0.35968104
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Score"
+        ],
+        "output": [
+          "linearOutput"
+        ],
+        "name": "Affine",
+        "opType": "Affine",
+        "attribute": [
+          {
+            "name": "alpha",
+            "f": 0.4,
+            "type": "FLOAT"
+          },
+          {
+            "name": "beta",
+            "f": -1E-07,
+            "type": "FLOAT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "linearOutput"
+        ],
+        "output": [
+          "Probability"
+        ],
+        "name": "Sigmoid",
+        "opType": "Sigmoid"
+      },
+      {
+        "input": [
+          "Probability"
+        ],
+        "output": [
+          "PredictedLabel"
+        ],
+        "name": "Binarizer",
+        "opType": "Binarizer",
+        "attribute": [
+          {
+            "name": "threshold",
+            "f": 0.5,
+            "type": "FLOAT"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "PredictedLabel"
+        ],
+        "output": [
+          "PredictedLabel0"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Score"
+        ],
+        "output": [
+          "Score0"
+        ],
+        "name": "Identity0",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Probability"
+        ],
+        "output": [
+          "Probability0"
+        ],
+        "name": "Identity1",
+        "opType": "Identity"
+      }
+    ],
+    "name": "modelWithLessIO",
+    "input": [
+      {
+        "name": "F1",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "8"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F2",
+        "type": {
+          "tensorType": {
+            "elemType": "STRING",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "output": [
+      {
+        "name": "PredictedLabel0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Probability0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "valueInfo": [
+      {
+        "name": "F20",
+        "type": {
+          "tensorType": {
+            "elemType": "INT64",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "F21",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Features",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "17"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "1"
+    },
+    {
+      "version": "7"
+    }
+  ]
+}

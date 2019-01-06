@@ -2,40 +2,15 @@
   "irVersion": "3",
   "producerName": "ML.NET",
   "producerVersion": "##VERSION##",
-  "domain": "Onnx",
+  "domain": "machinelearning.dotnet",
   "graph": {
     "node": [
       {
         "input": [
-          "F1"
+          "FeatureVector"
         ],
         "output": [
-          "F10"
-        ],
-        "name": "Imputer",
-        "opType": "Imputer",
-        "attribute": [
-          {
-            "name": "replaced_value_float",
-            "f": "NaN",
-            "type": "FLOAT"
-          },
-          {
-            "name": "imputed_value_floats",
-            "floats": [
-              0
-            ],
-            "type": "FLOATS"
-          }
-        ],
-        "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "F10"
-        ],
-        "output": [
-          "F11"
+          "FeatureVector0"
         ],
         "name": "Scaler",
         "opType": "Scaler",
@@ -43,6 +18,16 @@
           {
             "name": "offset",
             "floats": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
               0
             ],
             "type": "FLOATS"
@@ -50,7 +35,17 @@
           {
             "name": "scale",
             "floats": [
-              0.1
+              0.2544529,
+              0.3184713,
+              0.259740263,
+              0.324675322,
+              0.3144654,
+              0.332225919,
+              0.3436426,
+              0.321543425,
+              0.30864197,
+              0.3154574,
+              0.344827563
             ],
             "type": "FLOATS"
           }
@@ -59,102 +54,7 @@
       },
       {
         "input": [
-          "F2"
-        ],
-        "output": [
-          "F20"
-        ],
-        "name": "LabelEncoder",
-        "opType": "LabelEncoder",
-        "attribute": [
-          {
-            "name": "classes_strings",
-            "strings": [
-              "NA==",
-              "MQ==",
-              "OA==",
-              "MTA=",
-              "Mg==",
-              "Mw==",
-              "Nw==",
-              "NQ==",
-              "Ng==",
-              "OQ=="
-            ],
-            "type": "STRINGS"
-          },
-          {
-            "name": "default_int64",
-            "i": "-1",
-            "type": "INT"
-          },
-          {
-            "name": "default_string",
-            "s": "IA==",
-            "type": "STRING"
-          }
-        ],
-        "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "F20"
-        ],
-        "output": [
-          "F21"
-        ],
-        "name": "OneHotEncoder",
-        "opType": "OneHotEncoder",
-        "attribute": [
-          {
-            "name": "cats_int64s",
-            "ints": [
-              "0",
-              "1",
-              "2",
-              "3",
-              "4",
-              "5",
-              "6",
-              "7",
-              "8",
-              "9"
-            ],
-            "type": "INTS"
-          },
-          {
-            "name": "zeros",
-            "i": "1",
-            "type": "INT"
-          }
-        ],
-        "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "F11",
-          "F21"
-        ],
-        "output": [
-          "Features"
-        ],
-        "name": "FeatureVectorizer",
-        "opType": "FeatureVectorizer",
-        "attribute": [
-          {
-            "name": "inputdimensions",
-            "ints": [
-              "1",
-              "10"
-            ],
-            "type": "INTS"
-          }
-        ],
-        "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "Features"
+          "FeatureVector0"
         ],
         "output": [
           "Score"
@@ -189,7 +89,23 @@
             "ints": [
               "0",
               "0",
-              "0"
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "1",
+              "2",
+              "2",
+              "2",
+              "2",
+              "2"
             ],
             "type": "INTS"
           },
@@ -198,14 +114,46 @@
             "ints": [
               "0",
               "1",
-              "2"
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "0",
+              "1",
+              "2",
+              "3",
+              "4"
             ],
             "type": "INTS"
           },
           {
             "name": "nodes_featureids",
             "ints": [
+              "0",
+              "10",
+              "10",
+              "0",
+              "0",
+              "0",
+              "0",
               "2",
+              "0",
+              "10",
+              "0",
+              "0",
+              "0",
+              "0",
+              "10",
+              "2",
+              "0",
               "0",
               "0"
             ],
@@ -215,6 +163,22 @@
             "name": "nodes_modes",
             "strings": [
               "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "TEVBRg==",
+              "QlJBTkNIX0xFUQ==",
+              "QlJBTkNIX0xFUQ==",
+              "TEVBRg==",
               "TEVBRg==",
               "TEVBRg=="
             ],
@@ -223,7 +187,23 @@
           {
             "name": "nodes_values",
             "floats": [
-              0.5,
+              0.0292620845,
+              -0.07068965,
+              0.106896549,
+              0,
+              0,
+              0,
+              0,
+              0.019480519,
+              -0.03689567,
+              0.0741379261,
+              0,
+              0,
+              0,
+              0,
+              -0.09310344,
+              -0.035064932,
+              0,
               0,
               0
             ],
@@ -233,6 +213,22 @@
             "name": "nodes_truenodeids",
             "ints": [
               "1",
+              "3",
+              "4",
+              "0",
+              "0",
+              "0",
+              "0",
+              "1",
+              "3",
+              "4",
+              "0",
+              "0",
+              "0",
+              "0",
+              "2",
+              "3",
+              "0",
               "0",
               "0"
             ],
@@ -242,6 +238,22 @@
             "name": "nodes_falsenodeids",
             "ints": [
               "2",
+              "5",
+              "6",
+              "0",
+              "0",
+              "0",
+              "0",
+              "2",
+              "5",
+              "6",
+              "0",
+              "0",
+              "0",
+              "0",
+              "1",
+              "4",
+              "0",
               "0",
               "0"
             ],
@@ -252,6 +264,22 @@
             "ints": [
               "0",
               "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
               "0"
             ],
             "type": "INTS"
@@ -260,21 +288,48 @@
             "name": "target_treeids",
             "ints": [
               "0",
-              "0"
+              "0",
+              "0",
+              "0",
+              "1",
+              "1",
+              "1",
+              "1",
+              "2",
+              "2",
+              "2"
             ],
             "type": "INTS"
           },
           {
             "name": "target_nodeids",
             "ints": [
-              "1",
-              "2"
+              "3",
+              "4",
+              "5",
+              "6",
+              "3",
+              "4",
+              "5",
+              "6",
+              "2",
+              "3",
+              "4"
             ],
             "type": "INTS"
           },
           {
             "name": "target_ids",
             "ints": [
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
+              "0",
               "0",
               "0"
             ],
@@ -283,8 +338,17 @@
           {
             "name": "target_weights",
             "floats": [
-              0.504761934,
-              -0.979112267
+              349.8905,
+              384.05722,
+              378.0647,
+              408.230774,
+              -25.229887,
+              2.39983654,
+              -1.27583647,
+              25.22761,
+              -13.8603878,
+              -3.890484,
+              16.6648388
             ],
             "type": "FLOATS"
           }
@@ -293,62 +357,22 @@
       },
       {
         "input": [
-          "Score"
+          "FeatureVector0"
         ],
         "output": [
-          "linearOutput"
-        ],
-        "name": "Affine",
-        "opType": "Affine",
-        "attribute": [
-          {
-            "name": "alpha",
-            "f": 0.4,
-            "type": "FLOAT"
-          },
-          {
-            "name": "beta",
-            "f": -1E-07,
-            "type": "FLOAT"
-          }
-        ]
-      },
-      {
-        "input": [
-          "linearOutput"
-        ],
-        "output": [
-          "Probability"
-        ],
-        "name": "Sigmoid",
-        "opType": "Sigmoid"
-      },
-      {
-        "input": [
-          "Probability"
-        ],
-        "output": [
-          "PredictedLabel"
-        ],
-        "name": "Binarizer",
-        "opType": "Binarizer",
-        "attribute": [
-          {
-            "name": "threshold",
-            "f": 0.5,
-            "type": "FLOAT"
-          }
-        ],
-        "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "PredictedLabel"
-        ],
-        "output": [
-          "PredictedLabel0"
+          "FeatureVector1"
         ],
         "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Target"
+        ],
+        "output": [
+          "Target0"
+        ],
+        "name": "Identity0",
         "opType": "Identity"
       },
       {
@@ -358,24 +382,14 @@
         "output": [
           "Score0"
         ],
-        "name": "Identity0",
-        "opType": "Identity"
-      },
-      {
-        "input": [
-          "Probability"
-        ],
-        "output": [
-          "Probability0"
-        ],
         "name": "Identity1",
         "opType": "Identity"
       }
     ],
-    "name": "BinaryClassificationFastTreeSaveModelToOnnxTest",
+    "name": "model",
     "input": [
       {
-        "name": "F1",
+        "name": "FeatureVector",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -385,7 +399,7 @@
                   "dimValue": "1"
                 },
                 {
-                  "dimValue": "1"
+                  "dimValue": "11"
                 }
               ]
             }
@@ -393,10 +407,10 @@
         }
       },
       {
-        "name": "F2",
+        "name": "Target",
         "type": {
           "tensorType": {
-            "elemType": "STRING",
+            "elemType": "FLOAT",
             "shape": {
               "dim": [
                 {
@@ -413,7 +427,25 @@
     ],
     "output": [
       {
-        "name": "PredictedLabel0",
+        "name": "FeatureVector1",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Target0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -447,101 +479,11 @@
             }
           }
         }
-      },
-      {
-        "name": "Probability0",
-        "type": {
-          "tensorType": {
-            "elemType": "FLOAT",
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "1"
-                }
-              ]
-            }
-          }
-        }
       }
     ],
     "valueInfo": [
       {
-        "name": "F10",
-        "type": {
-          "tensorType": {
-            "elemType": "FLOAT",
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "1"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "name": "F11",
-        "type": {
-          "tensorType": {
-            "elemType": "FLOAT",
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "1"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "name": "F20",
-        "type": {
-          "tensorType": {
-            "elemType": "INT64",
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "1"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "name": "F21",
-        "type": {
-          "tensorType": {
-            "elemType": "FLOAT",
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "10"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "name": "Features",
+        "name": "FeatureVector0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -552,6 +494,24 @@
                 },
                 {
                   "dimValue": "11"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
                 }
               ]
             }
