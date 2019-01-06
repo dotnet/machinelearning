@@ -390,7 +390,7 @@ namespace Microsoft.ML.Tests
 
             SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
 
-            CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
+            CheckEquality(subDir, onnxTextName, digitsOfPrecision: 2);
             Done();
         }
 
