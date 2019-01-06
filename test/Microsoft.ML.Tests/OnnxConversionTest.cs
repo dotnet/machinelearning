@@ -435,11 +435,42 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
+        private class SmallSentimentExample
+        {
+            [LoadColumn(0,3), VectorType(4)]
+            public string[] Tokens;
+        }
+
+        [Fact]
+        public void WordEmbeddingsTest()
+        {
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var dataPath = GetDataPath(@"small-sentiment-test.tsv");
+            var embedNetworkPath = GetDataPath(@"shortsentiment.emd");
+            var data = mlContext.Data.ReadFromTextFile<SmallSentimentExample>(dataPath, hasHeader: false, separatorChar: '\t');
+
+            var pipeline = mlContext.Transforms.Text.ExtractWordEmbeddings("Tokens", embedNetworkPath, "Embed");
+            var model = pipeline.Fit(data);
+            var transformedData = model.Transform(data);
+
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Transforms", "Sentiment");
+            var onnxTextName = "SmallWordEmbed.txt";
+            var onnxFileName = "SmallWordEmbed.onnx";
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+            var onnxFilePath = GetOutputPath(subDir, onnxFileName);
+            var onnxModel = mlContext.Model.ConvertToOnnx(model, data);
+            SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
+
+            CheckEquality(subDir, onnxTextName);
+            Done();
+        }
+
         private void CreateDummyExamplesToMakeComplierHappy()
         {
             var dummyExample = new BreastCancerFeatureVector() { Features = null };
             var dummyExample1 = new BreastCancerCatFeatureExample() { Label = false, F1 = 0, F2 = "Amy" };
             var dummyExample2 = new BreastCancerMulticlassExample() { Label = "Amy", Features = null };
+            var dummyExample3 = new SmallSentimentExample() { Tokens = null };
         }
 
         private void CompareSelectedR4VectorColumns(string leftColumnName, string rightColumnName, IDataView left, IDataView right, int precision = 6)
