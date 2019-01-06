@@ -12,6 +12,7 @@ using Google.Protobuf;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.UniversalModelFormat.Onnx;
 using Newtonsoft.Json;
@@ -170,11 +171,32 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        void CommandLineOnnxConversionTest()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            string modelPath = GetOutputPath("ModelWithLessIO.zip");
+            var trainingPathArgs = $"data={dataPath} out={modelPath}";
+            var trainingArgs = " loader=text{col=Label:BL:0 col=F1:R4:1-8 col=F2:TX:9} xf=Cat{col=F2} xf=Concat{col=Features:F1,F2} tr=ft{numThreads=1 numLeaves=8 numTrees=3} seed=1";
+            Assert.Equal(0, Maml.Main(new[] { "train " + trainingPathArgs + trainingArgs}));
+
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
+            var onnxTextName = "ModelWithLessIO.txt";
+            var onnxFileName = "ModelWithLessIO.onnx";
+            var onnxTextPath = GetOutputPath(subDir, onnxTextName);
+            var onnxFilePath = GetOutputPath(subDir, onnxFileName);
+            string conversionCommand = $"saveonnx in={modelPath} onnx={onnxFilePath} json={onnxTextPath} domain=machinelearning.dotnet name=modelWithLessIO inputsToDrop=Label outputsToDrop=F1,F2,Features,Label";
+            Assert.Equal(0, Maml.Main(new[] { conversionCommand }));
+            CheckEquality(subDir, onnxTextName);
+            Done();
+        }
+
+        [Fact]
         public void KeyToVectorWithBagOnnxConversionTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
             string dataPath = GetDataPath("breast-cancer.txt");
+
             var data = mlContext.Data.ReadFromTextFile<BreastCancerCatFeatureExample>(dataPath,
                 hasHeader: true,
                 separatorChar: '\t');
