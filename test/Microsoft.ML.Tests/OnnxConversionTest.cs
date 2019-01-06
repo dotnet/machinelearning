@@ -430,7 +430,7 @@ namespace Microsoft.ML.Tests
                 var onnxTextPath = GetOutputPath(subDir, onnxTextName);
                 var onnxFilePath = GetOutputPath(subDir, onnxFileName);
                 SaveOnnxModel(onnxModel, onnxFilePath, onnxTextPath);
-                CheckEquality(subDir, onnxTextName);
+                CheckEquality(subDir, onnxTextName, digitsOfPrecision: 3);
             }
             Done();
         }
@@ -543,7 +543,8 @@ namespace Microsoft.ML.Tests
 
                 // Strip the version information.
                 var fileText = File.ReadAllText(textFormatPath);
-                fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
+
+                fileText = Regex.Replace(fileText, "\"producerVersion\": \".*\"", "\"producerVersion\": \"##VERSION##\"");
                 File.WriteAllText(textFormatPath, fileText);
             }
         }
