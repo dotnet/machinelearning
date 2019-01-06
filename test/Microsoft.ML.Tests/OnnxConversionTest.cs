@@ -186,6 +186,11 @@ namespace Microsoft.ML.Tests
             var onnxFilePath = GetOutputPath(subDir, onnxFileName);
             string conversionCommand = $"saveonnx in={modelPath} onnx={onnxFilePath} json={onnxTextPath} domain=machinelearning.dotnet name=modelWithLessIO inputsToDrop=Label outputsToDrop=F1,F2,Features,Label";
             Assert.Equal(0, Maml.Main(new[] { conversionCommand }));
+
+            var fileText = File.ReadAllText(onnxTextPath);
+            fileText = Regex.Replace(fileText, "\"producerVersion\": \".*\"", "\"producerVersion\": \"##VERSION##\"");
+            File.WriteAllText(onnxTextPath, fileText);
+
             CheckEquality(subDir, onnxTextName);
             Done();
         }

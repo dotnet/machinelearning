@@ -1,7 +1,7 @@
 {
   "irVersion": "3",
   "producerName": "ML.NET",
-  "producerVersion": "0.10.27305.0",
+  "producerVersion": "##VERSION##",
   "domain": "machinelearning.dotnet",
   "graph": {
     "node": [
