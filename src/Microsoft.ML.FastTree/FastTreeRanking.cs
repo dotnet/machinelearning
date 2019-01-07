@@ -95,10 +95,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastTreeRankingTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string groupIdColumn = DefaultColumnNames.GroupId,
-            string weightColumn = null,
+            string labelColumn,
+            string featureColumn,
+            string groupIdColumn,
+            string weightColumn,
             Action<Arguments> advancedSettings = null)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
