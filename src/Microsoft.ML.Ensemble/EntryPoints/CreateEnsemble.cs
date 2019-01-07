@@ -355,7 +355,7 @@ namespace Microsoft.ML.EntryPoints
         /// <see ref="dataZipEntryNames"/> and <see ref="dataSerialized"/>.
         /// This method throws if for any of the entries the name/byte sequence are not identical.
         /// </summary>
-        private static void CheckSamePipeline(IHostEnvironment env, IChannel ch,
+        internal static void CheckSamePipeline(IHostEnvironment env, IChannel ch,
             RoleMappedData dataToCompare, byte[][] dataSerialized, string[] dataZipEntryNames)
         {
             Contracts.CheckValue(env, nameof(env));
