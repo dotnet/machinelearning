@@ -1083,9 +1083,6 @@ namespace Microsoft.ML.StaticPipelineTesting
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            // Context for calling static classifiers. It contains constructors of classifiers and evaluation utilities.
-            var ctx = new MulticlassClassificationContext(mlContext);
-
             // Create in-memory examples as C# native class.
             var examples = GenerateRandomExamples(1000);
 
@@ -1106,7 +1103,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                         r.Label,
                         // Train multi-class LightGBM. The trained model maps Features to Label and probability of each class.
                         // The call of ToKey() is needed to convert string labels to integer indexes.
-                        Predictions: ctx.Trainers.LightGbm(r.Label.ToKey(), r.Features)
+                        Predictions: mlContext.MulticlassClassification.Trainers.LightGbm(r.Label.ToKey(), r.Features)
                     ))
                     .Append(r => (
                         // Actual label.
@@ -1123,7 +1120,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Split the static-typed data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var (trainingData, testingData) = ctx.TrainTestSplit(staticDataView, testFraction: 0.5);
+            var (trainingData, testingData) = mlContext.MulticlassClassification.TrainTestSplit(staticDataView, testFraction: 0.5);
 
             // Train the model.
             var model = pipe.Fit(trainingData);
@@ -1132,7 +1129,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var prediction = model.Transform(testingData);
 
             // Evaluate the trained model is the test set.
-            var metrics = ctx.Evaluate(prediction, r => r.LabelIndex, r => r.Predictions);
+            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, r => r.LabelIndex, r => r.Predictions);
 
             // Check if metrics are resonable.
             Assert.Equal(0.863482146891263, metrics.AccuracyMacro, 6);
@@ -1156,6 +1153,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Scores and nativeLabels are two parallel attributes; that is, Scores[i] is the probability of being nativeLabels[i].
             for (int i = 0; i < labelBuffer.Length; ++i)
                 Assert.Equal(expectedProbabilities[i], nativePrediction.Scores[i], 6);
+
+            // The predicted label below should be  with probability 0.922597349.
+            Console.WriteLine("Our predicted label to this example is {0} with probability {1}",
+                nativeLabels[(int)nativePrediction.PredictedLabelIndex-1],
+                nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex-1]);
         }
     }
 }

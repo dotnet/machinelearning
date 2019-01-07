@@ -78,10 +78,7 @@ namespace Microsoft.ML.Samples.Static
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
             // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext(seed: 1, conc: 1);
-
-            // Context for calling static classifiers. It contains constructors of classifiers and evaluation utilities.
-            var ctx = new MulticlassClassificationContext(mlContext);
+            var mlContext = new MLContext();
 
             // Create in-memory examples as C# native class.
             var examples = GenerateRandomExamples(1000);
@@ -103,7 +100,7 @@ namespace Microsoft.ML.Samples.Static
                         r.Label,
                         // Train multi-class LightGBM. The trained model maps Features to Label and probability of each class.
                         // The call of ToKey() is needed to convert string labels to integer indexes.
-                        Predictions: ctx.Trainers.LightGbm(r.Label.ToKey(), r.Features)
+                        Predictions: mlContext.MulticlassClassification.Trainers.LightGbm(r.Label.ToKey(), r.Features)
                     ))
                     .Append(r => (
                         // Actual label.
@@ -120,7 +117,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Split the static-typed data into training and test sets. Only training set is used in fitting
             // the created pipeline. Metrics are computed on the test.
-            var (trainingData, testingData) = ctx.TrainTestSplit(staticDataView, testFraction: 0.5);
+            var (trainingData, testingData) = mlContext.MulticlassClassification.TrainTestSplit(staticDataView, testFraction: 0.5);
 
             // Train the model.
             var model = pipe.Fit(trainingData);
@@ -129,7 +126,7 @@ namespace Microsoft.ML.Samples.Static
             var prediction = model.Transform(testingData);
 
             // Evaluate the trained model is the test set.
-            var metrics = ctx.Evaluate(prediction, r => r.LabelIndex, r => r.Predictions);
+            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, r => r.LabelIndex, r => r.Predictions);
 
             // Check if metrics are resonable.
             Console.WriteLine ("Macro accuracy: {0}, Micro accuracy: {1}.", 0.863482146891263, 0.86309523809523814);
@@ -146,16 +143,25 @@ namespace Microsoft.ML.Samples.Static
             // Retrieve the mapping from labels to label indexes.
             var labelBuffer = new VBuffer<ReadOnlyMemory<char>>(); 
             schema[nameof(NativeExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
-            var nativeLabels = labelBuffer.DenseValues().ToList(); // nativeLabels[nativePrediction.PredictedLabelIndex-1] is the original label indexed by nativePrediction.PredictedLabelIndex.
+            // nativeLabels is { "AA" , "BB", "CC", "DD" }
+            var nativeLabels = labelBuffer.DenseValues().ToArray(); // nativeLabels[nativePrediction.PredictedLabelIndex - 1] is the original label indexed by nativePrediction.PredictedLabelIndex.
+
 
             // Show prediction result for the 3rd example.
             var nativePrediction = nativePredictions[2];
+            // Console output:
+            //   Our predicted label to this example is "AA" with probability 0.922597349.
             Console.WriteLine("Our predicted label to this example is {0} with probability {1}",
-                nativeLabels[(int)nativePrediction.PredictedLabelIndex-1],
-                nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex-1]);
+                nativeLabels[(int)nativePrediction.PredictedLabelIndex - 1],
+                nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex - 1]);
 
             var expectedProbabilities = new float[] { 0.922597349f, 0.07508608f, 0.00221699756f, 9.95488E-05f };
             // Scores and nativeLabels are two parallel attributes; that is, Scores[i] is the probability of being nativeLabels[i].
+            // Console output:
+            //  The probability of being class "AA" is 0.922597349.
+            //  The probability of being class "BB" is 0.07508608.
+            //  The probability of being class "CC" is 0.00221699756.
+            //  The probability of being class "DD" is 9.95488E-05.
             for (int i = 0; i < labelBuffer.Length; ++i)
                 Console.WriteLine("The probability of being class {0} is {1}.", nativeLabels[i], nativePrediction.Scores[i]);
         }
