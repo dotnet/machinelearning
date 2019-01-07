@@ -180,32 +180,31 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// The output schema collects columns used to group columns (aka group-key columns) columns being grouped from the source scheam.
-        /// In an output schema, group-key columns are followed by grouped columns. For example, if column "Age" is used to group "UserId" column,
-        /// the first column and the second column in the output schema produced by <see cref="GroupTransform"/> would be "Age" and "UserId," respectively.
-        /// For group columns, the schema information is intact.
+        /// This class describes the relation between <see cref="GroupTransform"/>'s input <see cref="Schema"/>,
+        /// <see cref="GroupBinding._input"/>, and output <see cref="Schema"/>, <see cref="GroupBinding.OutputSchema"/>.
         ///
-        /// For keep columns, the type is Vector of original type and variable length.
-        /// The only metadata preserved is the KeyNames and IsNormalized.
+        /// The <see cref="GroupBinding.OutputSchema"/> contains columns used to group columns and columns being aggregated from input data.
+        /// In <see cref="GroupBinding.OutputSchema"/>, group columns are followed by aggregated columns. For example, if column "Age" is used to group "UserId" column,
+        /// the first column and the second column in <see cref="GroupBinding.OutputSchema"/> produced by <see cref="GroupTransform"/> would be "Age" and "UserId," respectively.
+        /// Note that "Age" is a group column while "UserId" is an aggregated (also call keep) column.
         ///
-        /// All other columns are dropped.
+        /// For group columns, the schema information is intact. For aggregated columns, the type is Vector of original type and variable length.
+        /// The only metadata preserved is the KeyNames and IsNormalized. All other columns are dropped. Please see
+        /// <see cref="GroupBinding.BuildOutputSchema(Schema)"/> how this idea got implemented.
         /// </summary>
         private sealed class GroupBinding
         {
-            private static readonly string[] _preservedMetadata =
-                new[] { MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues };
-
             private readonly IExceptionContext _ectx;
             private readonly Schema _input;
 
             // Column names in source schema used to group rows.
             private readonly string[] _groupColumns;
-            // Column names in source schema grouped into row's vector-typed columns.
+            // Column names in source schema aggregated into row's vector-typed columns.
             private readonly string[] _keepColumns;
 
-            // GroupIds[i] is the i-th group-key column's column index in the source schema.
+            // GroupIds[i] is the i-th group(-key) column's column index in the source schema.
             public readonly int[] GroupColumnIndexes;
-            // GroupIds[i] is the i-th grouped column's column index in the source schema.
+            // GroupIds[i] is the i-th aggregated column's column index in the source schema.
             public readonly int[] KeepColumnIndexes;
 
             public Schema OutputSchema { get; }
@@ -250,7 +249,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < g; i++)
                     _groupColumns[i] = ctx.LoadNonEmptyString();
 
-                // Load keep columns (aka columns being grouped).
+                // Load keep columns (aka columns being aggregated).
                 int k = ctx.Reader.ReadInt32();
                 _ectx.CheckDecode(k >= 0);
                 _keepColumns = new string[k];
@@ -272,6 +271,7 @@ namespace Microsoft.ML.Transforms
             /// <returns>The associated output schema produced by <see cref="GroupTransform"/>.</returns>
             private Schema BuildOutputSchema(Schema sourceSchema)
             {
+                // Create schema build. We will sequentially add group columns and then aggregated columns.
                 var schemaBuilder = new SchemaBuilder();
 
                 // Handle group(-key) columns. Those columns are used as keys to partition rows in the input data; specifically,
@@ -279,22 +279,22 @@ namespace Microsoft.ML.Transforms
                 foreach (var groupKeyColumnName in _groupColumns)
                     schemaBuilder.AddColumn(groupKeyColumnName, sourceSchema[groupKeyColumnName].Type, sourceSchema[groupKeyColumnName].Metadata);
 
-                // Handle grouped (aka keep) columns.
+                // Handle aggregated (aka keep) columns.
                 foreach (var groupValueColumnName in _keepColumns)
                 {
-                    // Prepare column's metadata
+                    // Prepare column's metadata.
                     var metadataBuilder = new MetadataBuilder();
                     metadataBuilder.Add(sourceSchema[groupValueColumnName].Metadata,
                         s => s == MetadataUtils.Kinds.IsNormalized || s == MetadataUtils.Kinds.KeyValues);
 
-                    // Prepare column's type
-                    var elementType = sourceSchema[groupValueColumnName].Type as PrimitiveType;
-                    if (elementType == null)
-                        _ectx.CheckValue(elementType, nameof(elementType), "Columns being grouped must be primitive types such as string, float, or integer");
-                    var groupedValueType = new VectorType(sourceSchema[groupValueColumnName].Type as PrimitiveType);
+                    // Prepare column's type.
+                    var aggragatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveType;
+                    if (aggragatedValueType == null)
+                        _ectx.CheckValue(aggragatedValueType, nameof(aggragatedValueType), "Columns being aggregated must be primitive types such as string, float, or integer");
+                    var aggregatedValueType = new VectorType(aggragatedValueType);
 
                     // Add column into output schema.
-                    schemaBuilder.AddColumn(groupValueColumnName, groupedValueType, metadataBuilder.GetMetadata());
+                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedValueType, metadataBuilder.GetMetadata());
                 }
 
                 return schemaBuilder.GetSchema();
