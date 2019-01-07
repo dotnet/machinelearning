@@ -95,7 +95,9 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        // Factory method for SignatureDataTransform.
+        /// <summary>
+        /// Factory method for SignatureDataTransform.
+        /// </summary>
         [BestFriend]
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
