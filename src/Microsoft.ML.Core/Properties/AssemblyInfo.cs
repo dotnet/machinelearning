@@ -81,7 +81,6 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.NeuralNetworks" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.PowerShellIntegration" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.RServerScoring.NeuralNetworks" + InternalPublicKey.Value)]
-[assembly: InternalsVisibleTo(assemblyName: "RunTestsCSharpApi" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "TMSNStreams" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.TlcAzurePublish" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.VowpalWabbit" + InternalPublicKey.Value)]
