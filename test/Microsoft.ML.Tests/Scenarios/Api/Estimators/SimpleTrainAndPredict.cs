@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// (for example, the prediction does not happen over a file as it did during training).
         /// </summary>
         [Fact]
-        public void New_SimpleTrainAndPredict()
+        public void SimpleTrainAndPredict()
         {
             var ml = new MLContext(seed: 1, conc: 1);
             var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);

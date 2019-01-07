@@ -464,9 +464,6 @@
           "Type": "DataView",
           "Desc": "The resulting data view"
         }
-      ],
-      "InputKind": [
-        "ILearningPipelineLoader"
       ]
     },
     {
@@ -29195,10 +29192,6 @@
           "Type": "DataView"
         }
       ]
-    },
-    {
-      "Kind": "ILearningPipelineLoader",
-      "Settings": []
     },
     {
       "Kind": "IMulticlassClassificationOutput",

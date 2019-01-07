@@ -325,30 +325,6 @@ namespace Microsoft.ML.Data
             };
         }
 
-        [Obsolete("The usages of this appear to be based on a total misunderstanding of what Batch actually is. It is a mechanism " +
-            "to enable sharding and recovery of parallelized data, and has nothing to do with actual data.")]
-        [BestFriend]
-        internal static Func<bool> GetIsNewBatchDelegate(Row cursor, int batchSize)
-        {
-            Contracts.CheckParam(batchSize > 0, nameof(batchSize), "Batch size must be > 0");
-            long lastNewBatchPosition = -1;
-            return () =>
-            {
-                if (cursor.Position % batchSize != 0)
-                    return false;
-
-                // If the cursor just moved to a new batch, we need to return true.
-                if (lastNewBatchPosition != cursor.Position)
-                {
-                    lastNewBatchPosition = cursor.Position;
-                    return true;
-                }
-
-                // The cursor is already in the new batch, if the condition is tested again, we need to return false.
-                return false;
-            };
-        }
-
         public static string TestGetLabelGetter(ColumnType type)
         {
             return TestGetLabelGetter(type, true);
