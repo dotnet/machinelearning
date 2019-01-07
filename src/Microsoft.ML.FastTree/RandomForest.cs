@@ -36,9 +36,23 @@ namespace Microsoft.ML.Trainers.FastTree
             int numTrees,
             int minDatapointsInLeaves,
             double learningRate,
+            bool quantileEnabled = false)
+            : base(env, label, featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves)
+        {
+            _quantileEnabled = quantileEnabled;
+        }
+
+        /// <summary>
+        /// Constructor invoked by the API code-path.
+        /// </summary>
+        protected RandomForestTrainerBase(IHostEnvironment env,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            string groupIdColumn,
             Action<TArgs> advancedSettings,
             bool quantileEnabled = false)
-            : base(env, label, featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, advancedSettings)
+            : base(env, label, featureColumn, weightColumn, null, advancedSettings)
         {
             _quantileEnabled = quantileEnabled;
         }

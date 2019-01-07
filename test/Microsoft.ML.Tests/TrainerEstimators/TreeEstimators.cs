@@ -24,10 +24,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new FastTreeBinaryClassificationTrainer(Env, "Label", "Features", numTrees: 10, numLeaves: 5, advancedSettings: s =>
-            {
-                s.NumThreads = 1;
-            });
+            var trainer = new FastTreeBinaryClassificationTrainer(Env, DefaultColumnNames.Label, DefaultColumnNames.Features, null,
+                advancedSettings: s =>  {
+                    s.NumThreads = 1;
+                    s.NumTrees = 10;
+                    s.NumLeaves = 5;
+                });
+
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -80,7 +83,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new FastForestClassification(Env, "Label", "Features", advancedSettings: s =>
+            var trainer = new FastForestClassification(Env, DefaultColumnNames.Label, DefaultColumnNames.Features, null, advancedSettings: s =>
             {
                 s.NumLeaves = 10;
                 s.NumTrees = 20;
@@ -211,7 +214,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FastForestRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new FastForestRegression(Env, "Label", "Features", advancedSettings: s =>
+            var trainer = new FastForestRegression(Env, DefaultColumnNames.Label, DefaultColumnNames.Features, null, advancedSettings: s =>
             {
                 s.BaggingSize = 2;
                 s.NumTrees = 10;

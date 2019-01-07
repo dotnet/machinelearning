@@ -135,7 +135,8 @@ namespace Microsoft.ML.Sweeper
             {
                 // Set relevant random forest arguments.
                 // Train random forest.
-                var trainer = new FastForestRegression(_host, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s =>
+                var trainer = new FastForestRegression(_host, DefaultColumnNames.Label, DefaultColumnNames.Features, null,
+                    advancedSettings: s =>
                     {
                         s.FeatureFraction = _args.SplitRatio;
                         s.NumTrees = _args.NumOfTrees;

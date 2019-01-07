@@ -114,8 +114,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string groupIdColumn,
             int numLeaves,
             int numTrees,
-            int minDatapointsInLeaves,
-            Action<TArgs> advancedSettings)
+            int minDatapointsInLeaves)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
             Args = new TArgs();
@@ -125,6 +124,41 @@ namespace Microsoft.ML.Trainers.FastTree
             Args.NumLeaves = numLeaves;
             Args.NumTrees = numTrees;
             Args.MinDocumentsInLeafs = minDatapointsInLeaves;
+
+            Args.LabelColumn = label.Name;
+            Args.FeatureColumn = featureColumn;
+
+            if (weightColumn != null)
+                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
+
+            if (groupIdColumn != null)
+                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
+
+            // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
+            // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
+            // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
+            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true, supportTest: true);
+            // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
+            // with memory consumption more than 5GB, GC get stuck in infinite loop.
+            // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
+            // mechanism to detect that we are running in Scope.
+            AllowGC = true;
+
+            Initialize(env);
+        }
+
+        /// <summary>
+        /// Constructor to use when instantiating the classes deriving from here through the API.
+        /// </summary>
+        private protected FastTreeTrainerBase(IHostEnvironment env,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            string groupIdColumn,
+            Action<TArgs> advancedSettings)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
+        {
+            Args = new TArgs();
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
