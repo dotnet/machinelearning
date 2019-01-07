@@ -66,8 +66,6 @@ namespace Microsoft.ML.Data
 
         public sealed override bool MoveNext() => Root.MoveNext();
 
-        public sealed override bool MoveMany(long count) => Root.MoveMany(count);
-
         public sealed override ValueGetter<RowId> GetIdGetter() => Input.GetIdGetter();
     }
 }

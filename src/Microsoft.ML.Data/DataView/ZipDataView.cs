@@ -159,19 +159,6 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            protected override bool MoveManyCore(long count)
-            {
-                Ch.Assert(State != CursorState.Done);
-                foreach (var cursor in _cursors)
-                {
-                    Ch.Assert(cursor.State != CursorState.Done);
-                    if (!cursor.MoveMany(count))
-                        return false;
-                }
-
-                return true;
-            }
-
             public override Schema Schema => _zipBinding.OutputSchema;
 
             public override bool IsColumnActive(int col)

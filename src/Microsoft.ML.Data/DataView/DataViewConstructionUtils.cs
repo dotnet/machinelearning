@@ -425,7 +425,6 @@ namespace Microsoft.ML.Data
                     => _toWrap.GetGetter<TValue>(col);
                 public override ValueGetter<RowId> GetIdGetter() => _toWrap.GetIdGetter();
                 public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
-                public override bool MoveMany(long count) => _toWrap.MoveMany(count);
                 public override bool MoveNext() => _toWrap.MoveNext();
             }
 
@@ -491,51 +490,6 @@ namespace Microsoft.ML.Data
                     }
 
                     Dispose();
-                    return false;
-                }
-
-                public bool MoveMany(long count)
-                {
-                    // Note: If we decide to allow count == 0, then we need to special case
-                    // that MoveNext() has never been called. It's not entirely clear what the return
-                    // result would be in that case.
-                    Ch.CheckParam(count > 0, nameof(count));
-
-                    if (State == CursorState.Done)
-                        return false;
-
-                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                    if (MoveManyCore(count))
-                    {
-                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
-                        _position += count;
-                        State = CursorState.Good;
-                        return true;
-                    }
-
-                    Dispose();
-                    return false;
-                }
-
-                /// <summary>
-                /// Default implementation is to simply call MoveNextCore repeatedly. Derived classes should
-                /// override if they can do better.
-                /// </summary>
-                /// <param name="count">The number of rows to move forward.</param>
-                /// <returns>Whether the move forward is on a valid row</returns>
-                protected virtual bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                    Ch.Assert(count > 0);
-
-                    while (MoveNextCore())
-                    {
-                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                        if (--count <= 0)
-                            return true;
-                    }
-
                     return false;
                 }
 
@@ -632,13 +586,6 @@ namespace Microsoft.ML.Data
                     Ch.Assert(State != CursorState.Done);
                     Ch.Assert(Position < _data.Count);
                     return Position + 1 < _data.Count;
-                }
-
-                protected override bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    Ch.Assert(Position < _data.Count);
-                    return count < _data.Count - Position;
                 }
             }
         }
@@ -769,12 +716,6 @@ namespace Microsoft.ML.Data
                 protected override TRow GetCurrentRowObject() => _currentRow;
 
                 protected override bool MoveNextCore()
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    return true;
-                }
-
-                protected override bool MoveManyCore(long count)
                 {
                     Ch.Assert(State != CursorState.Done);
                     return true;

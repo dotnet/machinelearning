@@ -182,18 +182,17 @@ namespace Microsoft.ML.Data
 
     /// <summary>
     /// The basic cursor base class to cursor through rows of an <see cref="IDataView"/>. Note that
-    /// this is also an <see cref="Row"/>. The <see cref="Row.Position"/> is incremented by <see cref="MoveNext"/>
-    /// and <see cref="MoveMany"/>. When the cursor state is <see cref="CursorState.NotStarted"/> or
-    /// <see cref="CursorState.Done"/>, <see cref="Row.Position"/> is <c>-1</c>. Otherwise,
-    /// <see cref="Row.Position"/> >= 0.
+    /// this is also an <see cref="Row"/>. The <see cref="Row.Position"/> is incremented by <see cref="MoveNext"/>.
+    /// When the cursor state is <see cref="CursorState.NotStarted"/> or <see cref="CursorState.Done"/>,
+    /// <see cref="Row.Position"/> is <c>-1</c>. Otherwise, <see cref="Row.Position"/> >= 0.
     /// </summary>
     public abstract class RowCursor : Row
     {
         /// <summary>
-        /// Returns the state of the cursor. Before the first call to <see cref="MoveNext"/> or
-        /// <see cref="MoveMany(long)"/> this should be <see cref="CursorState.NotStarted"/>. After
-        /// any call those move functions that returns <see langword="true"/>, this should return
-        /// <see cref="CursorState.Good"/>,
+        /// Returns the state of the cursor. Before the first call to <see cref="MoveNext"/>, this should be
+        /// <see cref="CursorState.NotStarted"/>. After a call to <see cref="MoveNext"/> returns <see langword="true"/>,
+        /// this should be <see cref="CursorState.Good"/>, and after any call that returns <see langword="false"/>
+        /// it should be <see cref="CursorState.Done"/>.
         /// </summary>
         public abstract CursorState State { get; }
 
@@ -202,12 +201,5 @@ namespace Microsoft.ML.Data
         /// move to the first row. Returns <c>false</c> if there are no more rows.
         /// </summary>
         public abstract bool MoveNext();
-
-        /// <summary>
-        /// Logically equivalent to calling <see cref="MoveNext"/> the given number of times. The
-        /// <paramref name="count"/> parameter must be positive. Note that cursor implementations may be
-        /// able to optimize this.
-        /// </summary>
-        public abstract bool MoveMany(long count);
     }
 }

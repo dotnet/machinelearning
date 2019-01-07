@@ -5,8 +5,7 @@
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Base class for a cursor has an input cursor, but still needs to do work on
-    /// <see cref="RowCursor.MoveNext"/> / <see cref="RowCursor.MoveMany(long)"/>.
+    /// Base class for a cursor has an input cursor, but still needs to do work on <see cref="RowCursor.MoveNext"/>.
     /// </summary>
     [BestFriend]
     internal abstract class LinkedRootCursorBase : RootCursorBase

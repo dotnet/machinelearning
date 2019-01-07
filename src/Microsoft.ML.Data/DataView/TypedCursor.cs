@@ -508,7 +508,6 @@ namespace Microsoft.ML.Data
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
             public override ValueGetter<RowId> GetIdGetter() => _cursor.GetIdGetter();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
-            public override bool MoveMany(long count) => _cursor.MoveMany(count);
             public override bool MoveNext() => _cursor.MoveNext();
         }
 
@@ -531,7 +530,6 @@ namespace Microsoft.ML.Data
             public CursorState State => _input.State;
 
             public bool MoveNext() => _input.MoveNext();
-            public bool MoveMany(long count) => _input.MoveMany(count);
         }
     }
 

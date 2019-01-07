@@ -8,11 +8,9 @@ namespace Microsoft.ML.Data
     // ownership of the channel so the derived classes don't have to.
 
     /// <summary>
-    /// Base class for creating a cursor with default tracking of <see cref="Position"/> and <see cref="State"/>
-    /// with a default implementation of <see cref="MoveManyCore(long)"/> (call <see cref="MoveNextCore"/> repeatedly).
-    /// All calls to <see cref="MoveNext"/>/<see cref="MoveMany(long)"/> calls will be seen by subclasses of this
-    /// cursor. For a cursor that has an input cursor and does not need notification on <see cref="MoveNext"/>/<see
-    /// cref="MoveMany(long)"/>, use <see cref="SynchronizedCursorBase"/> .
+    /// Base class for creating a cursor with default tracking of <see cref="Position"/> and <see cref="State"/>.
+    /// All calls to <see cref="MoveNext"/> calls will be seen by subclasses of this cursor. For a cursor that has
+    /// an input cursor and does not need notification on <see cref="MoveNext"/>, use <see cref="SynchronizedCursorBase"/>.
     /// </summary>
     [BestFriend]
     internal abstract class RootCursorBase : RowCursor
@@ -72,51 +70,6 @@ namespace Microsoft.ML.Data
             }
 
             Dispose();
-            return false;
-        }
-
-        public sealed override bool MoveMany(long count)
-        {
-            // Note: If we decide to allow count == 0, then we need to special case
-            // that MoveNext() has never been called. It's not entirely clear what the return
-            // result would be in that case.
-            Ch.CheckParam(count > 0, nameof(count));
-
-            if (State == CursorState.Done)
-                return false;
-
-            Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-            if (MoveManyCore(count))
-            {
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
-                _position += count;
-                _state = CursorState.Good;
-                return true;
-            }
-
-            Dispose();
-            return false;
-        }
-
-        /// <summary>
-        /// Default implementation is to simply call MoveNextCore repeatedly. Derived classes should
-        /// override if they can do better.
-        /// </summary>
-        /// <param name="count">The number of rows to move forward.</param>
-        /// <returns>Whether the move forward is on a valid row</returns>
-        protected virtual bool MoveManyCore(long count)
-        {
-            Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-            Ch.Assert(count > 0);
-
-            while (MoveNextCore())
-            {
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                if (--count <= 0)
-                    return true;
-            }
-
             return false;
         }
 

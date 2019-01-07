@@ -333,13 +333,6 @@ namespace Microsoft.ML.Data
                     return 1 < _view._rowCount - Position;
                 }
 
-                protected override bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    Ch.Assert(Position < _view._rowCount);
-                    return count < _view._rowCount - Position;
-                }
-
                 private int MappedIndex()
                 {
                     Ch.Assert(IsGood);
