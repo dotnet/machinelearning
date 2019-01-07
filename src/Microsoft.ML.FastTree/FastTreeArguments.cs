@@ -8,10 +8,10 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Trainers.FastTree;
 
-[assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Arguments))]
-[assembly: EntryPointModule(typeof(FastTreeRegressionTrainer.Arguments))]
-[assembly: EntryPointModule(typeof(FastTreeTweedieTrainer.Arguments))]
-[assembly: EntryPointModule(typeof(FastTreeRankingTrainer.Arguments))]
+[assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Options))]
+[assembly: EntryPointModule(typeof(FastTreeRegressionTrainer.Options))]
+[assembly: EntryPointModule(typeof(FastTreeTweedieTrainer.Options))]
+[assembly: EntryPointModule(typeof(FastTreeRankingTrainer.Options))]
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeBinaryClassificationTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Arguments : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Options : BoostedTreeArgs, IFastTreeTrainerFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
@@ -37,9 +37,9 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeRegressionTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Arguments : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Options : BoostedTreeArgs, IFastTreeTrainerFactory
         {
-            public Arguments()
+            public Options()
             {
                 EarlyStoppingMetrics = 1; // Use L1 by default.
             }
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeTweedieTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Arguments : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Options : BoostedTreeArgs, IFastTreeTrainerFactory
         {
             // REVIEW: It is possible to estimate this index parameter from the distribution of data, using
             // a combination of univariate optimization and grid search, following section 4.2 of the paper. However
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Trainers.FastTree
     public sealed partial class FastTreeRankingTrainer
     {
         [TlcModule.Component(Name = LoadNameValue, FriendlyName = UserNameValue, Desc = Summary)]
-        public sealed class Arguments : BoostedTreeArgs, IFastTreeTrainerFactory
+        public sealed class Options : BoostedTreeArgs, IFastTreeTrainerFactory
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Comma seperated list of gains associated to each relevance label.", ShortName = "gains")]
             [TGUI(NoSweep = true)]
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Trainers.FastTree
             [TGUI(NotGui = true)]
             public bool NormalizeQueryLambdas;
 
-            public Arguments()
+            public Options()
             {
                 EarlyStoppingMetrics = 1;
             }

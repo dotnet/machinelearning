@@ -17,7 +17,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(FastTreeBinaryClassificationTrainer.Summary, typeof(FastTreeBinaryClassificationTrainer), typeof(FastTreeBinaryClassificationTrainer.Arguments),
+[assembly: LoadableClass(FastTreeBinaryClassificationTrainer.Summary, typeof(FastTreeBinaryClassificationTrainer), typeof(FastTreeBinaryClassificationTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
     FastTreeBinaryClassificationTrainer.UserNameValue,
     FastTreeBinaryClassificationTrainer.LoadNameValue,
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
     /// <include file = 'doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer :
-        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Arguments, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
+        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Options, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
     {
         /// <summary>
         /// The LoadName for the assembly containing the trainer.
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string labelColumn,
             string featureColumn,
             string weightColumn,
-            Action<Arguments> advancedSettings)
+            Action<Options> advancedSettings)
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
@@ -161,9 +161,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the legacy <see cref="Arguments"/> class.
+        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the legacy <see cref="Options"/> class.
         /// </summary>
-        internal FastTreeBinaryClassificationTrainer(IHostEnvironment env, Arguments args)
+        internal FastTreeBinaryClassificationTrainer(IHostEnvironment env, Options args)
             : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
@@ -419,14 +419,14 @@ namespace Microsoft.ML.Trainers.FastTree
             ShortName = FastTreeBinaryClassificationTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTree""]/*' />",
                                  @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastTreeBinaryClassifier""]/*' />" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastTreeBinaryClassificationTrainer.Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastTreeBinaryClassificationTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainFastTree");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<FastTreeBinaryClassificationTrainer.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<FastTreeBinaryClassificationTrainer.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new FastTreeBinaryClassificationTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),

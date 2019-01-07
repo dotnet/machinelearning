@@ -3581,7 +3581,7 @@ namespace Microsoft.ML.RunTests
                 Column = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
-            var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+            var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Options
             {
                 FeatureColumn = "Features",
                 NumTrees = 5,

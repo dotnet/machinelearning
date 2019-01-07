@@ -17,7 +17,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(FastForestClassification.Summary, typeof(FastForestClassification), typeof(FastForestClassification.Arguments),
+[assembly: LoadableClass(FastForestClassification.Summary, typeof(FastForestClassification), typeof(FastForestClassification.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
     FastForestClassification.UserNameValue,
     FastForestClassification.LoadNameValue,
@@ -110,9 +110,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestClassification :
-        RandomForestTrainerBase<FastForestClassification.Arguments, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
+        RandomForestTrainerBase<FastForestClassification.Options, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
     {
-        public sealed class Arguments : FastForestArgumentsBase
+        public sealed class Options : FastForestArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
             public Double MaxTreeOutput = 100;
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string labelColumn,
             string featureColumn,
             string weightColumn,
-            Action<Arguments> advancedSettings)
+            Action<Options> advancedSettings)
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -179,9 +179,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastForestClassification"/> by using the legacy <see cref="Arguments"/> class.
+        /// Initializes a new instance of <see cref="FastForestClassification"/> by using the legacy <see cref="Options"/> class.
         /// </summary>
-        public FastForestClassification(IHostEnvironment env, Arguments args)
+        public FastForestClassification(IHostEnvironment env, Options args)
             : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
         }
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             private readonly bool[] _labels;
 
-            public ObjectiveFunctionImpl(Dataset trainSet, bool[] trainSetLabels, Arguments args)
+            public ObjectiveFunctionImpl(Dataset trainSet, bool[] trainSetLabels, Options args)
                 : base(trainSet, args, args.MaxTreeOutput)
             {
                 _labels = trainSetLabels;
@@ -272,14 +272,14 @@ namespace Microsoft.ML.Trainers.FastTree
             ShortName = FastForestClassification.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
                                  @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestBinaryClassifier""]/*' />"})]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainFastForest");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<FastForestClassification.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<FastForestClassification.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new FastForestClassification(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),

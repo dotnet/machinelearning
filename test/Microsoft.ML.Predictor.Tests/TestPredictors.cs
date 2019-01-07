@@ -611,7 +611,7 @@ namespace Microsoft.ML.RunTests
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -634,7 +634,7 @@ namespace Microsoft.ML.RunTests
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -733,7 +733,7 @@ namespace Microsoft.ML.RunTests
 
             var predictors = new PredictorModel[]
             {
-                FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
+                FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,

@@ -15,7 +15,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(FastForestRegression.Summary, typeof(FastForestRegression), typeof(FastForestRegression.Arguments),
+[assembly: LoadableClass(FastForestRegression.Summary, typeof(FastForestRegression), typeof(FastForestRegression.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
     FastForestRegression.UserNameValue,
     FastForestRegression.LoadNameValue,
@@ -136,9 +136,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestRegression
-        : RandomForestTrainerBase<FastForestRegression.Arguments, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>
+        : RandomForestTrainerBase<FastForestRegression.Options, RegressionPredictionTransformer<FastForestRegressionModelParameters>, FastForestRegressionModelParameters>
     {
-        public sealed class Arguments : FastForestArgumentsBase
+        public sealed class Options : FastForestArgumentsBase
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Shuffle the labels on every iteration. " +
                 "Useful probably only if using this tree as a tree leaf featurizer for multiclass.")]
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string labelColumn,
             string featureColumn,
             string weightColumn,
-            Action<Arguments> advancedSettings)
+            Action<Options> advancedSettings)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -197,9 +197,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastForestRegression"/> by using the legacy <see cref="Arguments"/> class.
+        /// Initializes a new instance of <see cref="FastForestRegression"/> by using the legacy <see cref="Options"/> class.
         /// </summary>
-        public FastForestRegression(IHostEnvironment env, Arguments args)
+        public FastForestRegression(IHostEnvironment env, Options args)
             : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn), true)
         {
         }
@@ -256,14 +256,14 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             private readonly float[] _labels;
 
-            public static ObjectiveFunctionImplBase Create(Dataset trainData, Arguments args)
+            public static ObjectiveFunctionImplBase Create(Dataset trainData, Options args)
             {
                 if (args.ShuffleLabels)
                     return new ShuffleImpl(trainData, args);
                 return new BasicImpl(trainData, args);
             }
 
-            private ObjectiveFunctionImplBase(Dataset trainData, Arguments args)
+            private ObjectiveFunctionImplBase(Dataset trainData, Options args)
                 : base(trainData, args, double.MaxValue) // No notion of maximum step size.
             {
                 _labels = FastTreeRegressionTrainer.GetDatasetRegressionLabels(trainData);
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 private readonly Random _rgen;
                 private readonly int _labelLim;
 
-                public ShuffleImpl(Dataset trainData, Arguments args)
+                public ShuffleImpl(Dataset trainData, Options args)
                     : base(trainData, args)
                 {
                     Contracts.AssertValue(args);
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             private sealed class BasicImpl : ObjectiveFunctionImplBase
             {
-                public BasicImpl(Dataset trainData, Arguments args)
+                public BasicImpl(Dataset trainData, Options args)
                     : base(trainData, args)
                 {
                 }
@@ -337,14 +337,14 @@ namespace Microsoft.ML.Trainers.FastTree
             ShortName = FastForestRegression.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
                                  @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestRegressor""]/*' />"})]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastForestRegression.Arguments input)
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastForestRegression.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainFastForest");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<FastForestRegression.Arguments, CommonOutputs.RegressionOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<FastForestRegression.Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new FastForestRegression(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),

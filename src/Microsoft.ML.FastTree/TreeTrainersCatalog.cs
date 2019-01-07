@@ -50,7 +50,7 @@ namespace Microsoft.ML
             string labelColumn,
             string featureColumn,
             string weights,
-            Action<FastTreeRegressionTrainer.Arguments> advancedSettings)
+            Action<FastTreeRegressionTrainer.Options> advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -94,7 +94,7 @@ namespace Microsoft.ML
             string labelColumn,
             string featureColumn,
             string weights,
-            Action<FastTreeBinaryClassificationTrainer.Arguments> advancedSettings)
+            Action<FastTreeBinaryClassificationTrainer.Options> advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -142,7 +142,7 @@ namespace Microsoft.ML
             string featureColumn,
             string groupId,
             string weights,
-            Action<FastTreeRankingTrainer.Arguments> advancedSettings)
+            Action<FastTreeRankingTrainer.Options> advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -236,7 +236,7 @@ namespace Microsoft.ML
             string labelColumn,
             string featureColumn,
             string weights,
-            Action<FastTreeTweedieTrainer.Arguments> advancedSettings = null)
+            Action<FastTreeTweedieTrainer.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -280,7 +280,7 @@ namespace Microsoft.ML
             string labelColumn,
             string featureColumn,
             string weights,
-            Action<FastForestRegression.Arguments> advancedSettings = null)
+            Action<FastForestRegression.Options> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -324,7 +324,7 @@ namespace Microsoft.ML
             string labelColumn,
             string featureColumn,
             string weights,
-            Action<FastForestClassification.Arguments> advancedSettings)
+            Action<FastForestClassification.Options> advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
