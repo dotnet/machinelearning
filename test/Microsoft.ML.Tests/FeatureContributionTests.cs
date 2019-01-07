@@ -30,9 +30,9 @@ namespace Microsoft.ML.Tests
 
             var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn)
                 .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, normalize: false))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, bottom: 0))
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, top: 0, bottom: 0));
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numNegativeContributions: 0))
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, numPositiveContributions: 0, numNegativeContributions: 0));
 
             TestEstimatorCore(estPipe, data);
             Done();
@@ -181,10 +181,10 @@ namespace Microsoft.ML.Tests
             Assert.NotNull(predictor);
 
             // Calculate feature contributions.
-            var est = new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 3, bottom: 0)
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 0, bottom: 3))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1))
-                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", top: 1, bottom: 1, normalize: false));
+            var est = new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 3, numNegativeContributions: 0)
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 0, numNegativeContributions: 3))
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1))
+                .Append(new FeatureContributionCalculatingEstimator(ML, predictor, "Features", numPositiveContributions: 1, numNegativeContributions: 1, normalize: false));
 
             TestEstimatorCore(est, data);
             // Verify output.
