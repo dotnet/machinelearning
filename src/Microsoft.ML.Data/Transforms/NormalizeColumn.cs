@@ -263,7 +263,9 @@ namespace Microsoft.ML.Transforms.Normalizers
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
-        // Factory method corresponding to SignatureDataTransform.
+        /// <summary>
+        /// Factory method corresponding to SignatureDataTransform.
+        /// </summary>
         internal static IDataTransform Create(IHostEnvironment env, MinMaxArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -299,7 +301,9 @@ namespace Microsoft.ML.Transforms.Normalizers
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
-        // Factory method corresponding to SignatureDataTransform.
+        /// <summary>
+        /// Factory method corresponding to SignatureDataTransform.
+        /// </summary>
         internal static IDataTransform Create(IHostEnvironment env, LogMeanVarArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -317,7 +321,9 @@ namespace Microsoft.ML.Transforms.Normalizers
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
-        // Factory method corresponding to SignatureDataTransform.
+        /// <summary>
+        /// Factory method corresponding to SignatureDataTransform.
+        /// </summary>
         internal static IDataTransform Create(IHostEnvironment env, BinArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));

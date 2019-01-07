@@ -265,7 +265,9 @@ namespace Microsoft.ML.Data
                 col.Save(ctx);
         }
 
-        // Factory method for SignatureLoadModel.
+        /// <summary>
+        /// Factory method for SignatureLoadModel.
+        /// </summary>
         private ColumnConcatenatingTransformer(IHostEnvironment env, ModelLoadContext ctx) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnConcatenatingTransformer)))
         {
@@ -349,7 +351,9 @@ namespace Microsoft.ML.Data
             return result;
         }
 
-        // Factory method for SignatureDataTransform.
+        ///<summary>
+        /// Factory method for SignatureDataTransform.
+        /// </summary>
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -366,8 +370,9 @@ namespace Microsoft.ML.Data
             var transformer = new ColumnConcatenatingTransformer(env, cols);
             return transformer.MakeDataTransform(input);
         }
-
-        // Factory method corresponding to SignatureDataTransform.
+        /// <summary>
+        /// Factory method corresponding to SignatureDataTransform.
+        /// </summary>
         [BestFriend]
         internal static IDataTransform Create(IHostEnvironment env, TaggedArguments args, IDataView input)
         {
@@ -388,11 +393,15 @@ namespace Microsoft.ML.Data
 
         private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
-        // Factory method for SignatureLoadDataTransform.
+        /// <summary>
+        /// Factory method for SignatureLoadDataTransform.
+        /// </summary>
         private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => new ColumnConcatenatingTransformer(env, ctx).MakeDataTransform(input);
 
-        // Factory method for SignatureLoadRowMapper.
+        /// <summary>
+        /// Factory method for SignatureLoadRowMapper.
+        /// </summary>
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
             => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(inputSchema);
 
