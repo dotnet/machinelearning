@@ -3360,7 +3360,7 @@ namespace Microsoft.ML.RunTests
             {
                 Arguments =
                 {
-                    SeparatorChars = new []{'\t' },
+                    Separators = new []{'\t' },
                     HasHeader = true,
                     Column = new[]
                     {
@@ -3434,7 +3434,7 @@ namespace Microsoft.ML.RunTests
                 {
                     Arguments =
                 {
-                    SeparatorChars = new []{'\t' },
+                    Separators = new []{'\t' },
                     HasHeader = false,
                     Column = new[]
                     {
@@ -3641,7 +3641,7 @@ namespace Microsoft.ML.RunTests
             {
                 Arguments =
                 {
-                    SeparatorChars = new []{' '},
+                    Separators = new []{' '},
                     Column = new[]
                     {
                         new TextLoader.Column("Text", DataKind.Text,

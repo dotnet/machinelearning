@@ -50,7 +50,7 @@ namespace Microsoft.ML.StaticPipe
             args.AllowQuoting = allowQuoting;
             args.AllowSparse = allowSparse;
             args.HasHeader = hasHeader;
-            args.SeparatorChars = new[] { separator };
+            args.Separators = new[] { separator };
             args.TrimWhitespace = trimWhitspace;
 
             var rec = new TextReconciler(args, files);
