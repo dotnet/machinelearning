@@ -181,7 +181,7 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// This class describes the relation between <see cref="GroupTransform"/>'s input <see cref="Schema"/>,
-        /// <see cref="GroupBinding._input"/>, and output <see cref="Schema"/>, <see cref="GroupBinding.OutputSchema"/>.
+        /// <see cref="GroupBinding._inputSchema"/>, and output <see cref="Schema"/>, <see cref="GroupBinding.OutputSchema"/>.
         ///
         /// The <see cref="GroupBinding.OutputSchema"/> contains columns used to group columns and columns being aggregated from input data.
         /// In <see cref="GroupBinding.OutputSchema"/>, group columns are followed by aggregated columns. For example, if column "Age" is used to group "UserId" column,
@@ -195,18 +195,25 @@ namespace Microsoft.ML.Transforms
         private sealed class GroupBinding
         {
             private readonly IExceptionContext _ectx;
-            private readonly Schema _input;
+            private readonly Schema _inputSchema;
 
             // Column names in source schema used to group rows.
             private readonly string[] _groupColumns;
             // Column names in source schema aggregated into row's vector-typed columns.
             private readonly string[] _keepColumns;
 
-            // GroupIds[i] is the i-th group(-key) column's column index in the source schema.
+            /// <summary>
+            /// <see cref="GroupColumnIndexes"/>[i] is the i-th group(-key) column's column index in the source schema.
+            /// </summary>
             public readonly int[] GroupColumnIndexes;
-            // GroupIds[i] is the i-th aggregated column's column index in the source schema.
+            /// <summary>
+            /// <see cref="KeepColumnIndexes"/>[i] is the i-th aggregated column's column index in the source schema.
+            /// </summary>
             public readonly int[] KeepColumnIndexes;
 
+            /// <summary>
+            /// Output <see cref="Schema"/> of <see cref="GroupTransform"/> when input schema is <see cref="_inputSchema"/>.
+            /// </summary>
             public Schema OutputSchema { get; }
 
             public GroupBinding(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
@@ -216,7 +223,7 @@ namespace Microsoft.ML.Transforms
                 _ectx.AssertValue(inputSchema);
                 _ectx.AssertNonEmpty(groupColumns);
                 _ectx.AssertValue(keepColumns);
-                _input = inputSchema;
+                _inputSchema = inputSchema;
 
                 _groupColumns = groupColumns;
                 GroupColumnIndexes = GetColumnIds(inputSchema, groupColumns, x => _ectx.ExceptUserArg(nameof(Arguments.GroupKey), x));
@@ -240,7 +247,7 @@ namespace Microsoft.ML.Transforms
                 // int[G]: ids of group column names
                 // int: K: number of keep columns
                 // int[K]: ids of keep column names
-                _input = inputSchema;
+                _inputSchema = inputSchema;
 
                 // Load group columns.
                 int g = ctx.Reader.ReadInt32();
@@ -288,13 +295,13 @@ namespace Microsoft.ML.Transforms
                         s => s == MetadataUtils.Kinds.IsNormalized || s == MetadataUtils.Kinds.KeyValues);
 
                     // Prepare column's type.
-                    var aggragatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveType;
-                    if (aggragatedValueType == null)
-                        _ectx.CheckValue(aggragatedValueType, nameof(aggragatedValueType), "Columns being aggregated must be primitive types such as string, float, or integer");
-                    var aggregatedValueType = new VectorType(aggragatedValueType);
+                    var aggregatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveType;
+                    if (aggregatedValueType == null)
+                        _ectx.CheckValue(aggregatedValueType, nameof(aggregatedValueType), "Columns being aggregated must be primitive types such as string, float, or integer");
+                    var aggregatedResultType = new VectorType(aggregatedValueType);
 
                     // Add column into output schema.
-                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedValueType, metadataBuilder.GetMetadata());
+                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedResultType, metadataBuilder.GetMetadata());
                 }
 
                 return schemaBuilder.GetSchema();
@@ -347,12 +354,12 @@ namespace Microsoft.ML.Transforms
                     var retrievedColumn = schema.GetColumnOrNull(names[i]);
 
                     // Throw if no such a column in schema.
-                    if (!retrievedColumn.HasValue)
-                        throw except(string.Format("Could not find column '{0}'", names[i]));
+                    var errorMessage = string.Format("Could not find column '{0}'", names[i]);
+                    _ectx.Check(retrievedColumn.HasValue, errorMessage);
 
                     var colType = retrievedColumn.Value.Type;
-                    if (!(colType is PrimitiveType))
-                        throw except(string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType));
+                    errorMessage = string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType);
+                    _ectx.Check(colType is PrimitiveType, errorMessage);
 
                     ids[i] = retrievedColumn.Value.Index;
                 }
