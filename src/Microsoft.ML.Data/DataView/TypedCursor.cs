@@ -507,7 +507,6 @@ namespace Microsoft.ML.Data
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
             public override ValueGetter<RowId> GetIdGetter() => _cursor.GetIdGetter();
-            public override RowCursor GetRootCursor() => _cursor.GetRootCursor();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
             public override bool MoveMany(long count) => _cursor.MoveMany(count);
             public override bool MoveNext() => _cursor.MoveNext();
@@ -533,7 +532,6 @@ namespace Microsoft.ML.Data
 
             public bool MoveNext() => _input.MoveNext();
             public bool MoveMany(long count) => _input.MoveMany(count);
-            public RowCursor GetRootCursor() => _input.GetRootCursor();
         }
     }
 

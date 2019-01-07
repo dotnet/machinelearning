@@ -10,10 +10,9 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Base class for creating a cursor with default tracking of <see cref="Position"/> and <see cref="State"/>
     /// with a default implementation of <see cref="MoveManyCore(long)"/> (call <see cref="MoveNextCore"/> repeatedly).
-    /// This cursor base class returns "this" from <see cref="GetRootCursor"/>. That is, all
-    /// <see cref="MoveNext"/>/<see cref="MoveMany(long)"/> calls will be seen by this cursor. For a cursor
-    /// that has an input cursor and does NOT need notification on <see cref="MoveNext"/>/<see cref="MoveMany(long)"/>,
-    /// use <see cref="SynchronizedCursorBase"/> .
+    /// All calls to <see cref="MoveNext"/>/<see cref="MoveMany(long)"/> calls will be seen by subclasses of this
+    /// cursor. For a cursor that has an input cursor and does not need notification on <see cref="MoveNext"/>/<see
+    /// cref="MoveMany(long)"/>, use <see cref="SynchronizedCursorBase"/> .
     /// </summary>
     [BestFriend]
     internal abstract class RootCursorBase : RowCursor
@@ -126,13 +125,5 @@ namespace Microsoft.ML.Data
         /// <see cref="CursorState.Done"/>.
         /// </summary>
         protected abstract bool MoveNextCore();
-
-        /// <summary>
-        /// Returns a cursor that can be used for invoking <see cref="Position"/>, <see cref="State"/>,
-        /// <see cref="MoveNext"/>, and <see cref="MoveMany(long)"/>, with results identical to calling
-        /// those on this cursor. Generally, if the root cursor is not the same as this cursor, using
-        /// the root cursor will be faster.
-        /// </summary>
-        public override RowCursor GetRootCursor() => this;
     }
 }

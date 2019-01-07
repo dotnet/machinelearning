@@ -209,14 +209,5 @@ namespace Microsoft.ML.Data
         /// able to optimize this.
         /// </summary>
         public abstract bool MoveMany(long count);
-
-        /// <summary>
-        /// Returns a cursor that can be used for invoking <see cref="Row.Position"/>, <see cref="State"/>,
-        /// <see cref="MoveNext"/>, and <see cref="MoveMany"/>, with results identical to calling those
-        /// on this cursor. Generally, if the root cursor is not the same as this cursor, using the
-        /// root cursor will be faster. As an aside, note that this is not necessarily the case of
-        /// values from <see cref="Row.GetIdGetter"/>.
-        /// </summary>
-        public abstract RowCursor GetRootCursor();
     }
 }

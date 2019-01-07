@@ -464,8 +464,6 @@ namespace Microsoft.ML.Data
 
             public override ValueGetter<RowId> GetIdGetter() => _index.GetIdGetter();
 
-            public override RowCursor GetRootCursor() => this;
-
             public override bool MoveNext()
             {
                 if (_state == CursorState.Done)
@@ -602,7 +600,6 @@ namespace Microsoft.ML.Data
 
             public override bool MoveNext() => throw Ch.ExceptNotSupp();
             public override bool MoveMany(long count) => throw Ch.ExceptNotSupp();
-            public override RowCursor GetRootCursor() => throw Ch.ExceptNotSupp();
         }
 
         private interface IWaiter

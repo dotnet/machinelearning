@@ -424,7 +424,6 @@ namespace Microsoft.ML.Data
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     => _toWrap.GetGetter<TValue>(col);
                 public override ValueGetter<RowId> GetIdGetter() => _toWrap.GetIdGetter();
-                public override RowCursor GetRootCursor() => this;
                 public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
                 public override bool MoveMany(long count) => _toWrap.MoveMany(count);
                 public override bool MoveNext() => _toWrap.MoveNext();
