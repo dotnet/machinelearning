@@ -208,11 +208,6 @@ namespace Microsoft.ML.Transforms
             // GroupIds[i] is the i-th grouped column's column index in the source schema.
             public readonly int[] KeepColumnIndexes;
 
-            private readonly int _groupCount;
-            private readonly ColumnType[] _keepColumnTypes;
-
-            private readonly Dictionary<string, int> _columnNameMap;
-
             public Schema OutputSchema { get; }
 
             public GroupBinding(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
@@ -226,14 +221,11 @@ namespace Microsoft.ML.Transforms
 
                 _groupColumns = groupColumns;
                 GroupColumnIndexes = GetColumnIds(inputSchema, groupColumns, x => _ectx.ExceptUserArg(nameof(Arguments.GroupKey), x));
-                _groupCount = GroupColumnIndexes.Length;
 
                 _keepColumns = keepColumns;
                 KeepColumnIndexes = GetColumnIds(inputSchema, keepColumns, x => _ectx.ExceptUserArg(nameof(Arguments.Column), x));
-                _keepColumnTypes = BuildColumnTypes(_input, KeepColumnIndexes);
 
-                _columnNameMap = BuildColumnNameMap();
-
+                // Compute output schema from the specified input schema.
                 OutputSchema = BuildOutputSchema(inputSchema);
             }
 
@@ -251,26 +243,25 @@ namespace Microsoft.ML.Transforms
                 // int[K]: ids of keep column names
                 _input = inputSchema;
 
+                // Load group columns.
                 int g = ctx.Reader.ReadInt32();
                 _ectx.CheckDecode(g > 0);
                 _groupColumns = new string[g];
                 for (int i = 0; i < g; i++)
                     _groupColumns[i] = ctx.LoadNonEmptyString();
 
+                // Load keep columns (aka columns being grouped).
                 int k = ctx.Reader.ReadInt32();
                 _ectx.CheckDecode(k >= 0);
                 _keepColumns = new string[k];
                 for (int i = 0; i < k; i++)
                     _keepColumns[i] = ctx.LoadNonEmptyString();
 
+                // Translate column names to column indexes in source schema.
                 GroupColumnIndexes = GetColumnIds(inputSchema, _groupColumns, _ectx.Except);
-                _groupCount = GroupColumnIndexes.Length;
-
                 KeepColumnIndexes = GetColumnIds(inputSchema, _keepColumns, _ectx.Except);
 
-                _keepColumnTypes = BuildColumnTypes(_input, KeepColumnIndexes);
-                _columnNameMap = BuildColumnNameMap();
-
+                // Compute output schema from the specified input schema.
                 OutputSchema = BuildOutputSchema(inputSchema);
             }
 
@@ -282,8 +273,13 @@ namespace Microsoft.ML.Transforms
             private Schema BuildOutputSchema(Schema sourceSchema)
             {
                 var schemaBuilder = new SchemaBuilder();
+
+                // Handle group(-key) columns. Those columns are used as keys to partition rows in the input data; specifically,
+                // rows with the same key value will be merged into one row in the output data.
                 foreach (var groupKeyColumnName in _groupColumns)
                     schemaBuilder.AddColumn(groupKeyColumnName, sourceSchema[groupKeyColumnName].Type, sourceSchema[groupKeyColumnName].Metadata);
+
+                // Handle grouped (aka keep) columns.
                 foreach (var groupValueColumnName in _keepColumns)
                 {
                     // Prepare column's metadata
@@ -294,38 +290,14 @@ namespace Microsoft.ML.Transforms
                     // Prepare column's type
                     var elementType = sourceSchema[groupValueColumnName].Type as PrimitiveType;
                     if (elementType == null)
-                        _ectx.CheckValue(elementType, nameof(elementType), "Columns being grouped must be primitive types such as string, float, or integers");
+                        _ectx.CheckValue(elementType, nameof(elementType), "Columns being grouped must be primitive types such as string, float, or integer");
                     var groupedValueType = new VectorType(sourceSchema[groupValueColumnName].Type as PrimitiveType);
 
                     // Add column into output schema.
                     schemaBuilder.AddColumn(groupValueColumnName, groupedValueType, metadataBuilder.GetMetadata());
                 }
+
                 return schemaBuilder.GetSchema();
-            }
-
-            private Dictionary<string, int> BuildColumnNameMap()
-            {
-                var map = new Dictionary<string, int>();
-                for (int i = 0; i < _groupCount; i++)
-                    map[_groupColumns[i]] = i;
-
-                for (int i = 0; i < _keepColumns.Length; i++)
-                    map[_keepColumns[i]] = i + _groupCount;
-
-                return map;
-            }
-
-            private static ColumnType[] BuildColumnTypes(Schema input, int[] ids)
-            {
-                var types = new ColumnType[ids.Length];
-                for (int i = 0; i < ids.Length; i++)
-                {
-                    var srcType = input[ids[i]].Type;
-                    var primitiveType = srcType as PrimitiveType;
-                    Contracts.Assert(primitiveType != null);
-                    types[i] = new VectorType(primitiveType, size: 0);
-                }
-                return types;
             }
 
             public void Save(ModelSaveContext ctx)
@@ -395,7 +367,7 @@ namespace Microsoft.ML.Transforms
             /// <param name="col">Column index of <see cref="OutputSchema"/></param>
             public void CheckColumnInRange(int col)
             {
-                _ectx.Check(0 <= col && col < _groupCount + KeepColumnIndexes.Length);
+                _ectx.Check(0 <= col && col < GroupColumnIndexes.Length + KeepColumnIndexes.Length);
             }
         }
 
