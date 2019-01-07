@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.Data;
 using Microsoft.ML.LightGBM.StaticPipe;
+using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.StaticPipe;
 using System;
 using System.Collections.Generic;
@@ -9,71 +10,6 @@ namespace Microsoft.ML.Samples.Static
 {
     class LightGBMMulticlassWithInMemoryData
     {
-        /// <summary>
-        /// Number of features per example used in <see cref="MultiClassLightGbmStaticPipelineWithInMemoryData"/>.
-        /// </summary>
-        private const int _featureVectorLength = 10;
-
-        /// <summary>
-        /// Data point used in <see cref="MultiClassLightGbmStaticPipelineWithInMemoryData"/>. A data set there 
-        /// is a collection of <see cref="NativeExample"/>.
-        /// </summary>
-        private class NativeExample
-        {
-            [VectorType(_featureVectorLength)]
-            public float[] Features;
-            [ColumnName("Label")]
-            public string Label;
-            public uint LabelIndex;
-            public uint PredictedLabelIndex;
-            [VectorType(4)]
-            // The probabilities of being "AA", "BB", "CC", and "DD".
-            public float[] Scores;
-
-            public NativeExample()
-            {
-                Features = new float[_featureVectorLength];
-            }
-        }
-
-        /// <summary>
-        /// Helper function used to generate <see cref="NativeExample"/>s.
-        /// </summary>
-        private static List<NativeExample> GenerateRandomExamples(int count)
-        {
-            var examples = new List<NativeExample>();
-            var rnd = new Random(0);
-            for (int i = 0; i < count; ++i)
-            {
-                var example = new NativeExample();
-                var res = i % 4;
-                // Generate random float feature values.
-                for (int j = 0; j < _featureVectorLength; ++j)
-                {
-                    var value = (float)rnd.NextDouble() + res * 0.2f;
-                    example.Features[j] = value;
-                }
-
-                // Generate label based on feature sum.
-                if (res == 0)
-                    example.Label = "AA";
-                else if (res == 1)
-                    example.Label = "BB";
-                else if (res == 2)
-                    example.Label = "CC";
-                else
-                    example.Label = "DD";
-
-                // The following three attributes are just placeholder for storing prediction results.
-                example.LabelIndex = default;
-                example.PredictedLabelIndex = default;
-                example.Scores = new float[4];
-
-                examples.Add(example);
-            }
-            return examples;
-        }
-
         public void MultiClassLightGbmStaticPipelineWithInMemoryData()
         {
             // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
@@ -81,7 +17,7 @@ namespace Microsoft.ML.Samples.Static
             var mlContext = new MLContext();
 
             // Create in-memory examples as C# native class.
-            var examples = GenerateRandomExamples(1000);
+            var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
 
             // Convert native C# class to IDataView, a consumble format to ML.NET functions.
             var dataView = ComponentCreation.CreateDataView(mlContext, examples);
@@ -132,7 +68,7 @@ namespace Microsoft.ML.Samples.Static
             Console.WriteLine ("Macro accuracy: {0}, Micro accuracy: {1}.", 0.863482146891263, 0.86309523809523814);
 
             // Convert prediction in ML.NET format to native C# class.
-            var nativePredictions = new List<NativeExample>(prediction.AsDynamic.AsEnumerable<NativeExample>(mlContext, false));
+            var nativePredictions = new List<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic.AsEnumerable<DatasetUtils.MulticlassClassificationExample>(mlContext, false));
 
             // Get schema object out of the prediction. It contains metadata such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA"). The call to "AsDynamic" converts our statically-typed pipeline into
@@ -142,7 +78,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Retrieve the mapping from labels to label indexes.
             var labelBuffer = new VBuffer<ReadOnlyMemory<char>>(); 
-            schema[nameof(NativeExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
+            schema[nameof(DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
             // nativeLabels is { "AA" , "BB", "CC", "DD" }
             var nativeLabels = labelBuffer.DenseValues().ToArray(); // nativeLabels[nativePrediction.PredictedLabelIndex - 1] is the original label indexed by nativePrediction.PredictedLabelIndex.
 
