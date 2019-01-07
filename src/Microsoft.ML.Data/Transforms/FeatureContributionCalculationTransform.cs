@@ -53,12 +53,14 @@ namespace Microsoft.ML.Data
     /// the feature value.
     /// </para>
     /// <para>
-    /// For tree-based models, the contribution of a feature is equal to the change in score produced by exploring the opposite sub-tree every time a decision
-    /// node for the given feature is encountered. Consider a simple case with a single decision tree that has a decision node for the binary feature F1.
-    /// Given an example that has feature F1 equal to true, we can calculate the score it would have obtained if we chose the subtree corresponding to
-    /// the feature F1 being equal to false while keeping the other features constant. The contribution of feature F1 for the given example is the difference
-    /// between the original score and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends
-    /// naturally to models with many decision trees.
+    /// For tree-based models, the calculation of feature contribution essentially consists in determining which splits in the tree have the most impact
+    /// on the final score and assigning the value of the impact to the features determining the split. More precisely, the contribution of a feature
+    /// is equal to the change in score produced by exploring the opposite sub-tree every time a decision node for the given feature is encountered.
+    /// Consider a simple case with a single decision tree that has a decision node for the binary feature F1. Given an example that has feature F1
+    /// equal to true, we can calculate the score it would have obtained if we chose the subtree corresponding to the feature F1 being equal to false
+    /// while keeping the other features constant. The contribution of feature F1 for the given example is the difference between the original score
+    /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
+    /// many decision trees.
     /// </para>
     /// <para>
     /// See the sample below for an example of how to compute feature importance using the FeatureContributionCalculatingTransformer.
