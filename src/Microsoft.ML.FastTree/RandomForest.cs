@@ -50,7 +50,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string featureColumn,
             string weightColumn,
             string groupIdColumn,
-            Action<TArgs> advancedSettings,
+            TArgs advancedSettings,
             bool quantileEnabled = false)
             : base(env, label, featureColumn, weightColumn, null, advancedSettings)
         {

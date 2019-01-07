@@ -84,10 +84,11 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static Scalar<float> FastTree(this RegressionContext.RegressionTrainers ctx,
             Scalar<float> label, Vector<float> features, Scalar<float> weights,
-            Action<FastTreeRegressionTrainer.Options> advancedSettings,
+            FastTreeRegressionTrainer.Options advancedSettings,
             Action<FastTreeRegressionModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, advancedSettings, onFit);
+            Contracts.CheckValueOrNull(advancedSettings);
+            CheckUserValues(label, features, weights, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
@@ -175,10 +176,11 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            Action<FastTreeBinaryClassificationTrainer.Options> advancedSettings,
+            FastTreeBinaryClassificationTrainer.Options advancedSettings,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
-            CheckUserValues(label, features, weights, advancedSettings, onFit);
+            Contracts.CheckValueOrNull(advancedSettings);
+            CheckUserValues(label, features, weights, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
@@ -254,10 +256,11 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The Score output column indicating the predicted value.</returns>
         public static Scalar<float> FastTree<TVal>(this RankingContext.RankingTrainers ctx,
             Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights,
-            Action<FastTreeRankingTrainer.Options> advancedSettings,
+            FastTreeRankingTrainer.Options advancedSettings,
             Action<FastTreeRankingModelParameters> onFit = null)
         {
-            CheckUserValues(label, features, weights, advancedSettings, onFit);
+            Contracts.CheckValueOrNull(advancedSettings);
+            CheckUserValues(label, features, weights, onFit);
 
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
@@ -289,13 +292,11 @@ namespace Microsoft.ML.StaticPipe
         }
 
         internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
-            Delegate advancedSettings,
             Delegate onFit)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);
-            Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
         }
     }

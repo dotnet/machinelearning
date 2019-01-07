@@ -155,13 +155,10 @@ namespace Microsoft.ML.Trainers.FastTree
             string featureColumn,
             string weightColumn,
             string groupIdColumn,
-            Action<TArgs> advancedSettings)
+            TArgs advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
-            Args = new TArgs();
-
-            //apply the advanced args, if the user supplied any
-            advancedSettings?.Invoke(Args);
+            Args = advancedSettings;
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;

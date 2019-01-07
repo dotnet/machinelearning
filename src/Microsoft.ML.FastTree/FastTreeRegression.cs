@@ -81,12 +81,12 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
         public FastTreeRegressionTrainer(IHostEnvironment env,
             string labelColumn,
             string featureColumn,
             string weightColumn,
-            Action<Options> advancedSettings = null)
+            Options advancedSettings)
             : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
         }

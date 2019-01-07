@@ -44,7 +44,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string featureColumn,
             string weightColumn,
             string groupIdColumn,
-            Action<TArgs> advancedSettings)
+            TArgs advancedSettings)
             : base(env, label, featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
         }
