@@ -44,7 +44,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreColumn.Name);
 
             // Check score column type.
-            Assert.True(scoreColumn.Type.IsKey);
+            Assert.True(scoreColumn.Type is KeyType);
             Assert.Equal((scoreColumnType as KeyType).Min, (scoreColumn.Type as KeyType).Min);
             Assert.Equal((scoreColumnType as KeyType).Count, (scoreColumn.Type as KeyType).Count);
             Assert.Equal((scoreColumnType as KeyType).RawKind, (scoreColumn.Type as KeyType).RawKind);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreColumn.Name);
 
             // Check score column type.
-            Assert.True(scoreColumn.Type.IsKey);
+            Assert.True(scoreColumn.Type is KeyType);
             Assert.Equal((scoreColumnType as KeyType).Min, (scoreColumn.Type as KeyType).Min);
             Assert.Equal((scoreColumnType as KeyType).Count, (scoreColumn.Type as KeyType).Count);
             Assert.Equal((scoreColumnType as KeyType).RawKind, (scoreColumn.Type as KeyType).RawKind);

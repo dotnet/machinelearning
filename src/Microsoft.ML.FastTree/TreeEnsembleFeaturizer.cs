@@ -788,7 +788,7 @@ namespace Microsoft.ML.Data
                 throw ch.ExceptSchemaMismatch(nameof(input), "Label", labelName);
 
             ColumnType labelType = col.Value.Type;
-            if (!labelType.IsKey)
+            if (!(labelType is KeyType))
             {
                 if (labelPermutationSeed != 0)
                     ch.Warning(
