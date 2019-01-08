@@ -823,7 +823,7 @@ namespace Microsoft.ML.Data.IO
         /// <param name="args">Arguments</param>
         /// <param name="env">Host environment</param>
         /// <param name="leaveOpen">Whether to leave the input stream open</param>
-        public BinaryLoader(IHostEnvironment env, Arguments args, Stream stream, bool leaveOpen = true)
+        internal BinaryLoader(IHostEnvironment env, Arguments args, Stream stream, bool leaveOpen = true)
             : this(args, env.Register(LoadName), stream, leaveOpen)
         {
         }
@@ -904,7 +904,7 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        public static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        private static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(LoadName);
@@ -940,7 +940,7 @@ namespace Microsoft.ML.Data.IO
         /// Creates a binary loader from a stream that is not owned by the loader.
         /// This creates its own independent copy of input stream for the binary loader.
         /// </summary>
-        public static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, Stream stream)
+        private static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, Stream stream)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(LoadName);

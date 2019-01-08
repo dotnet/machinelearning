@@ -11,7 +11,7 @@ namespace Microsoft.ML
     public static class BinaryLoaderSaverCatalog
     {
         /// <summary>
-        /// Read a data view from a Stream on a binary file using <see cref="BinaryLoader"/>.
+        /// Read a data view from an <see cref="IMultiStreamSource"/> on a binary file using <see cref="BinaryLoader"/>.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="fileSource">The file source to read from. This can be a <see cref="MultiFileSource"/>, for example.</param>
