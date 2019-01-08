@@ -89,6 +89,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// Make certain to also use <see cref="MixHash"/> on the final hashed value, if you
         /// depend upon having distinct bits.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint MurmurRound(uint hash, uint chunk)
         {
             chunk *= 0xCC9E2D51;
@@ -113,6 +114,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// * 0x0800 to 0xFFFF : 1110xxxx 10xxxxxx 10xxxxxx
         /// NOTE: This MUST match the StringBuilder version below.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint MurmurHash(uint hash, ReadOnlySpan<char> span, bool toUpper = false)
         {
             // Byte length (in pseudo UTF-8 form).
@@ -182,6 +184,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// * 0x0800 to 0xFFFF : 1110xxxx 10xxxxxx 10xxxxxx
         /// NOTE: This MUST match the string version above.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint MurmurHash(uint hash, StringBuilder data, int ichMin, int ichLim, bool toUpper = false)
         {
             Contracts.Assert(0 <= ichMin & ichMin <= ichLim & ichLim <= Utils.Size(data));
@@ -249,6 +252,7 @@ namespace Microsoft.ML.Internal.Utilities
         /// <summary>
         /// Performs a MurmurRound on each int in the sequence
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint MurmurHash(uint hash, uint[] data, int min, int lim)
         {
             Contracts.Check(0 <= min);
@@ -282,6 +286,7 @@ namespace Microsoft.ML.Internal.Utilities
             return hash;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint Rotate(uint x, int r)
         {
             return (x << r) | (x >> (32 - r));
