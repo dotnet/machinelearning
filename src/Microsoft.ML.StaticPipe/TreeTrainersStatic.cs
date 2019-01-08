@@ -69,7 +69,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -84,16 +84,16 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static Scalar<float> FastTree(this RegressionContext.RegressionTrainers ctx,
             Scalar<float> label, Vector<float> features, Scalar<float> weights,
-            FastTreeRegressionTrainer.Options advancedSettings,
+            FastTreeRegressionTrainer.Options options,
             Action<FastTreeRegressionModelParameters> onFit = null)
         {
-            Contracts.CheckValueOrNull(advancedSettings);
+            Contracts.CheckValueOrNull(options);
             CheckUserValues(label, features, weights, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new FastTreeRegressionTrainer(env, advancedSettings);
+                   var trainer = new FastTreeRegressionTrainer(env, options);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -176,16 +176,16 @@ namespace Microsoft.ML.StaticPipe
         /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights,
-            FastTreeBinaryClassificationTrainer.Options advancedSettings,
+            FastTreeBinaryClassificationTrainer.Options options,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
-            Contracts.CheckValueOrNull(advancedSettings);
+            Contracts.CheckValueOrNull(options);
             CheckUserValues(label, features, weights, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new FastTreeBinaryClassificationTrainer(env, advancedSettings);
+                   var trainer = new FastTreeBinaryClassificationTrainer(env, options);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -247,7 +247,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The features column.</param>
         /// <param name="groupId">The groupId column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -256,16 +256,16 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The Score output column indicating the predicted value.</returns>
         public static Scalar<float> FastTree<TVal>(this RankingContext.RankingTrainers ctx,
             Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights,
-            FastTreeRankingTrainer.Options advancedSettings,
+            FastTreeRankingTrainer.Options options,
             Action<FastTreeRankingModelParameters> onFit = null)
         {
-            Contracts.CheckValueOrNull(advancedSettings);
+            Contracts.CheckValueOrNull(options);
             CheckUserValues(label, features, weights, onFit);
 
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   var trainer = new FastTreeRankingTrainer(env, advancedSettings);
+                   var trainer = new FastTreeRankingTrainer(env, options);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;

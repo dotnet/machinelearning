@@ -6687,13 +6687,13 @@ namespace Microsoft.ML
 
 
             /// <summary>
-            /// Should we use derivatives optimized for unbalanced sets
+            /// Option for using derivatives optimized for unbalanced sets
             /// </summary>
             [Obsolete]
             public bool UnbalancedSets { get; set; } = false;
 
             /// <summary>
-            /// Use best regression step trees?
+            /// Option for using best regression step trees
             /// </summary>
             [Obsolete]
             public bool BestStepRankingRegressionTrees { get; set; } = false;
@@ -7199,7 +7199,7 @@ namespace Microsoft.ML
             public bool NormalizeQueryLambdas { get; set; } = false;
 
             /// <summary>
-            /// Use best regression step trees?
+            /// Option for using best regression step trees
             /// </summary>
             [Obsolete]
             public bool BestStepRankingRegressionTrees { get; set; } = false;
@@ -7657,7 +7657,7 @@ namespace Microsoft.ML
 
 
             /// <summary>
-            /// Use best regression step trees?
+            /// Option for using best regression step trees
             /// </summary>
             [Obsolete]
             public bool BestStepRankingRegressionTrees { get; set; } = false;
@@ -8120,7 +8120,7 @@ namespace Microsoft.ML
             public double Index { get; set; } = 1.5d;
 
             /// <summary>
-            /// Use best regression step trees?
+            /// Option for using best regression step trees
             /// </summary>
             [Obsolete]
             public bool BestStepRankingRegressionTrees { get; set; } = false;
@@ -21112,13 +21112,13 @@ namespace Microsoft.ML
     public sealed class FastTreeBinaryClassificationFastTreeTrainer : FastTreeTrainer
     {
         /// <summary>
-        /// Should we use derivatives optimized for unbalanced sets
+        /// Option for using derivatives optimized for unbalanced sets
         /// </summary>
         [Obsolete]
         public bool UnbalancedSets { get; set; } = false;
 
         /// <summary>
-        /// Use best regression step trees?
+        /// Option for using best regression step trees
         /// </summary>
         [Obsolete]
         public bool BestStepRankingRegressionTrees { get; set; } = false;
@@ -21582,7 +21582,7 @@ namespace Microsoft.ML
         public bool NormalizeQueryLambdas { get; set; } = false;
 
         /// <summary>
-        /// Use best regression step trees?
+        /// Option for using best regression step trees
         /// </summary>
         [Obsolete]
         public bool BestStepRankingRegressionTrees { get; set; } = false;
@@ -21998,7 +21998,7 @@ namespace Microsoft.ML
     public sealed class FastTreeRegressionFastTreeTrainer : FastTreeTrainer
     {
         /// <summary>
-        /// Use best regression step trees?
+        /// Option for using best regression step trees
         /// </summary>
         [Obsolete]
         public bool BestStepRankingRegressionTrees { get; set; } = false;
@@ -22420,7 +22420,7 @@ namespace Microsoft.ML
         public double Index { get; set; } = 1.5d;
 
         /// <summary>
-        /// Use best regression step trees?
+        /// Option for using best regression step trees
         /// </summary>
         [Obsolete]
         public bool BestStepRankingRegressionTrees { get; set; } = false;

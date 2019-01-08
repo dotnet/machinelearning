@@ -162,8 +162,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Initializes a new instance of <see cref="FastForestClassification"/> by using the <see cref="Options"/> class.
         /// </summary>
-        public FastForestClassification(IHostEnvironment env, Options args)
-            : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
+        public FastForestClassification(IHostEnvironment env, Options options)
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
         }
 
@@ -229,8 +231,8 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             private readonly bool[] _labels;
 
-            public ObjectiveFunctionImpl(Dataset trainSet, bool[] trainSetLabels, Options args)
-                : base(trainSet, args, args.MaxTreeOutput)
+            public ObjectiveFunctionImpl(Dataset trainSet, bool[] trainSetLabels, Options options)
+                : base(trainSet, options, options.MaxTreeOutput)
             {
                 _labels = trainSetLabels;
             }

@@ -88,8 +88,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/> by using the <see cref="Options"/> class.
         /// </summary>
-        public FastTreeRankingTrainer(IHostEnvironment env, Options args)
-        : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
+        /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
+        public FastTreeRankingTrainer(IHostEnvironment env, Options options)
+        : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
         {
         }
 
@@ -546,14 +548,14 @@ namespace Microsoft.ML.Trainers.FastTree
             // Keeps track of labels of top 3 documents per query
             public short[][] TrainQueriesTopLabels;
 
-            public LambdaRankObjectiveFunction(Dataset trainset, short[] labels, Options args, IParallelTraining parallelTraining)
+            public LambdaRankObjectiveFunction(Dataset trainset, short[] labels, Options options, IParallelTraining parallelTraining)
                 : base(trainset,
-                    args.LearningRates,
-                    args.Shrinkage,
-                    args.MaxTreeOutput,
-                    args.GetDerivativesSampleRate,
-                    args.BestStepRankingRegressionTrees,
-                    args.RngSeed)
+                    options.LearningRates,
+                    options.Shrinkage,
+                    options.MaxTreeOutput,
+                    options.GetDerivativesSampleRate,
+                    options.BestStepRankingRegressionTrees,
+                    options.RngSeed)
             {
 
                 _labels = labels;
@@ -567,8 +569,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     _labelCounts[q] = new int[relevancyLevel];
 
                 // precomputed arrays
-                _maxDcgTruncationLevel = args.LambdaMartMaxTruncation;
-                _trainDcg = args.TrainDcg;
+                _maxDcgTruncationLevel = options.LambdaMartMaxTruncation;
+                _trainDcg = options.TrainDcg;
                 if (_trainDcg)
                 {
                     _inverseMaxDcgt = new double[Dataset.NumQueries];
@@ -583,7 +585,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 }
 
                 _discount = new double[Dataset.MaxDocsPerQuery];
-                FillDiscounts(args.PositionDiscountFreeform);
+                FillDiscounts(options.PositionDiscountFreeform);
 
                 _oneTwoThree = new int[Dataset.MaxDocsPerQuery];
                 for (int d = 0; d < Dataset.MaxDocsPerQuery; ++d)
@@ -593,7 +595,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 int numThreads = BlockingThreadPool.NumThreads;
                 _comparers = new DcgPermutationComparer[numThreads];
                 for (int i = 0; i < numThreads; ++i)
-                    _comparers[i] = DcgPermutationComparerFactory.GetDcgPermutationFactory(args.SortingAlgorithm);
+                    _comparers[i] = DcgPermutationComparerFactory.GetDcgPermutationFactory(options.SortingAlgorithm);
 
                 _permutationBuffers = new int[numThreads][];
                 for (int i = 0; i < numThreads; ++i)
@@ -603,13 +605,13 @@ namespace Microsoft.ML.Trainers.FastTree
                 FillGainLabels();
 
                 #region parameters
-                _sigmoidParam = args.LearningRates;
-                _costFunctionParam = args.CostFunctionParam;
-                _distanceWeight2 = args.DistanceWeight2;
-                _normalizeQueryLambdas = args.NormalizeQueryLambdas;
+                _sigmoidParam = options.LearningRates;
+                _costFunctionParam = options.CostFunctionParam;
+                _distanceWeight2 = options.DistanceWeight2;
+                _normalizeQueryLambdas = options.NormalizeQueryLambdas;
 
-                _useShiftedNdcg = args.ShiftedNdcg;
-                _filterZeroLambdas = args.FilterZeroLambdas;
+                _useShiftedNdcg = options.ShiftedNdcg;
+                _filterZeroLambdas = options.FilterZeroLambdas;
                 #endregion
 
                 _scoresCopy = new double[Dataset.NumDocs];
@@ -620,7 +622,7 @@ namespace Microsoft.ML.Trainers.FastTree
 #if OLD_DATALOAD
             SetupSecondaryGains(cmd);
 #endif
-                SetupBaselineRisk(args);
+                SetupBaselineRisk(options);
                 _parallelTraining = parallelTraining;
             }
 
@@ -644,7 +646,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 #endif
 
-            private void SetupBaselineRisk(Options args)
+            private void SetupBaselineRisk(Options options)
             {
                 double[] scores = Dataset.Skeleton.GetData<double>("BaselineScores");
                 if (scores == null)
@@ -652,10 +654,10 @@ namespace Microsoft.ML.Trainers.FastTree
 
                 // Calculate the DCG with the discounts as they exist in the objective function (this
                 // can differ versus the actual DCG discount)
-                DcgCalculator calc = new DcgCalculator(Dataset.MaxDocsPerQuery, args.SortingAlgorithm);
+                DcgCalculator calc = new DcgCalculator(Dataset.MaxDocsPerQuery, options.SortingAlgorithm);
                 _baselineDcg = calc.DcgFromScores(Dataset, scores, _discount);
 
-                IniFileParserInterface ffi = IniFileParserInterface.CreateFromFreeform(string.IsNullOrEmpty(args.BaselineAlphaRisk) ? "0" : args.BaselineAlphaRisk);
+                IniFileParserInterface ffi = IniFileParserInterface.CreateFromFreeform(string.IsNullOrEmpty(options.BaselineAlphaRisk) ? "0" : options.BaselineAlphaRisk);
                 IniFileParserInterface.FeatureEvaluator ffe = ffi.GetFeatureEvaluators()[0];
                 IniFileParserInterface.FeatureMap ffmap = ffi.GetFeatureMap();
                 string[] ffnames = Enumerable.Range(0, ffmap.RawFeatureCount)
@@ -672,7 +674,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 uint[] vals = new uint[ffmap.RawFeatureCount];
                 int iInd = Array.IndexOf(ffnames, "I");
                 int tInd = Array.IndexOf(ffnames, "T");
-                int totalTrees = args.NumTrees;
+                int totalTrees = options.NumTrees;
                 if (tInd >= 0)
                     vals[tInd] = (uint)totalTrees;
                 _baselineAlpha = Enumerable.Range(0, totalTrees).Select(i =>

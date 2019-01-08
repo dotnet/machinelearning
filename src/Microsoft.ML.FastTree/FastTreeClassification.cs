@@ -144,8 +144,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the <see cref="Options"/> class.
         /// </summary>
-        public FastTreeBinaryClassificationTrainer(IHostEnvironment env, Options args)
-            : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
+        public FastTreeBinaryClassificationTrainer(IHostEnvironment env, Options options)
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
             _sigmoidParameter = 2.0 * Args.LearningRates;

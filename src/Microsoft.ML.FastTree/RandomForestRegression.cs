@@ -180,8 +180,10 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Initializes a new instance of <see cref="FastForestRegression"/> by using the <see cref="Options"/> class.
         /// </summary>
-        public FastForestRegression(IHostEnvironment env, Options args)
-            : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn), true)
+        /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
+        public FastForestRegression(IHostEnvironment env, Options options)
+            : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn), true)
         {
         }
 
@@ -237,15 +239,15 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             private readonly float[] _labels;
 
-            public static ObjectiveFunctionImplBase Create(Dataset trainData, Options args)
+            public static ObjectiveFunctionImplBase Create(Dataset trainData, Options options)
             {
-                if (args.ShuffleLabels)
-                    return new ShuffleImpl(trainData, args);
-                return new BasicImpl(trainData, args);
+                if (options.ShuffleLabels)
+                    return new ShuffleImpl(trainData, options);
+                return new BasicImpl(trainData, options);
             }
 
-            private ObjectiveFunctionImplBase(Dataset trainData, Options args)
-                : base(trainData, args, double.MaxValue) // No notion of maximum step size.
+            private ObjectiveFunctionImplBase(Dataset trainData, Options options)
+                : base(trainData, options, double.MaxValue) // No notion of maximum step size.
             {
                 _labels = FastTreeRegressionTrainer.GetDatasetRegressionLabels(trainData);
                 Contracts.Assert(_labels.Length == trainData.NumDocs);
@@ -264,11 +266,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 private readonly Random _rgen;
                 private readonly int _labelLim;
 
-                public ShuffleImpl(Dataset trainData, Options args)
-                    : base(trainData, args)
+                public ShuffleImpl(Dataset trainData, Options options)
+                    : base(trainData, options)
                 {
-                    Contracts.AssertValue(args);
-                    Contracts.Assert(args.ShuffleLabels);
+                    Contracts.AssertValue(options);
+                    Contracts.Assert(options.ShuffleLabels);
 
                     _rgen = new Random(0); // Ideally we'd get this from the host.
 
@@ -277,7 +279,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         var lab = _labels[i];
                         if (!(0 <= lab && lab < Utils.ArrayMaxSize))
                         {
-                            throw Contracts.ExceptUserArg(nameof(args.ShuffleLabels),
+                            throw Contracts.ExceptUserArg(nameof(options.ShuffleLabels),
                                 "Label {0} for example {1} outside of allowed range" +
                                 "[0,{2}) when doing shuffled labels", lab, i, Utils.ArrayMaxSize);
                         }
@@ -302,8 +304,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
             private sealed class BasicImpl : ObjectiveFunctionImplBase
             {
-                public BasicImpl(Dataset trainData, Options args)
-                    : base(trainData, args)
+                public BasicImpl(Dataset trainData, Options options)
+                    : base(trainData, options)
                 {
                 }
             }
