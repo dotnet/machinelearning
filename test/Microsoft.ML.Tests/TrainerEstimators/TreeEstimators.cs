@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new FastTreeBinaryClassificationTrainer(Env, DefaultColumnNames.Label, DefaultColumnNames.Features, null,
+            var trainer = new FastTreeBinaryClassificationTrainer(Env,
                 new FastTreeBinaryClassificationTrainer.Options { 
                     NumThreads = 1,
                     NumTrees = 10,
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new FastForestClassification(Env, DefaultColumnNames.Label, DefaultColumnNames.Features, null, 
+            var trainer = new FastForestClassification(Env, 
                 new FastForestClassification.Options { 
                     NumLeaves = 10,
                     NumTrees = 20,
@@ -105,7 +105,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetRankingPipeline();
 
-            var trainer = new FastTreeRankingTrainer(Env, "Label0", "NumericFeatures", "Group", null, new FastTreeRankingTrainer.Options { NumTrees = 10 });
+            var trainer = new FastTreeRankingTrainer(Env,
+                new FastTreeRankingTrainer.Options {
+                    FeatureColumn = "NumericFeatures",
+                    NumTrees = 10
+                });
+
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 
@@ -139,7 +144,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FastTreeRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new FastTreeRegressionTrainer(Env, DefaultColumnNames.Label, DefaultColumnNames.Features, null,
+            var trainer = new FastTreeRegressionTrainer(Env,
                 new FastTreeRegressionTrainer.Options { NumTrees = 10, NumThreads = 1, NumLeaves = 5 });
 
             TestEstimatorCore(trainer, dataView);
@@ -192,7 +197,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TweedieRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new FastTreeTweedieTrainer(Env, "Label", "Features", null, 
+            var trainer = new FastTreeTweedieTrainer(Env, 
                 new FastTreeTweedieTrainer.Options { 
                     EntropyCoefficient = 0.3,
                     OptimizationAlgorithm = BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent,
@@ -210,7 +215,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FastForestRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new FastForestRegression(Env, DefaultColumnNames.Label, DefaultColumnNames.Features, null, 
+            var trainer = new FastForestRegression(Env, 
                 new FastForestRegression.Options { 
                     BaggingSize = 2,
                     NumTrees = 10,

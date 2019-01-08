@@ -42,21 +42,6 @@ namespace Microsoft.ML.Trainers.FastTree
             _quantileEnabled = quantileEnabled;
         }
 
-        /// <summary>
-        /// Constructor invoked by the API code-path.
-        /// </summary>
-        protected RandomForestTrainerBase(IHostEnvironment env,
-            SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            string groupIdColumn,
-            TArgs advancedSettings,
-            bool quantileEnabled = false)
-            : base(env, label, featureColumn, weightColumn, null, advancedSettings)
-        {
-            _quantileEnabled = quantileEnabled;
-        }
-
         protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
         {
             Host.CheckValue(ch, nameof(ch));

@@ -148,42 +148,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Constructor to use when instantiating the classes deriving from here through the API.
-        /// </summary>
-        private protected FastTreeTrainerBase(IHostEnvironment env,
-            SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            string groupIdColumn,
-            TArgs advancedSettings)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
-        {
-            Args = advancedSettings;
-
-            Args.LabelColumn = label.Name;
-            Args.FeatureColumn = featureColumn;
-
-            if (weightColumn != null)
-                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
-
-            if (groupIdColumn != null)
-                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
-
-            // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
-            // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
-            // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
-            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true, supportTest: true);
-            // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
-            // with memory consumption more than 5GB, GC get stuck in infinite loop.
-            // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
-            // mechanism to detect that we are running in Scope.
-            AllowGC = true;
-
-            Initialize(env);
-        }
-
-        /// <summary>
-        /// Legacy constructor that is used when invoking the classes deriving from this, through maml.
+        /// Constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))

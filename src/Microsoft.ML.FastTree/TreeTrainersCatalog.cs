@@ -42,19 +42,13 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeRegressionTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="labelColumn">The label column.</param>
-        /// <param name="featureColumn">The feature column.</param>
-        /// <param name="weights">The optional weights column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastTreeRegressionTrainer FastTree(this RegressionContext.RegressionTrainers ctx,
-            string labelColumn,
-            string featureColumn,
-            string weights,
             FastTreeRegressionTrainer.Options advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new FastTreeRegressionTrainer(env, labelColumn, featureColumn, weights, advancedSettings);
+            return new FastTreeRegressionTrainer(env, advancedSettings);
         }
 
         /// <summary>
@@ -86,19 +80,13 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastTreeBinaryClassificationTrainer FastTree(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-            string labelColumn,
-            string featureColumn,
-            string weights,
             FastTreeBinaryClassificationTrainer.Options advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new FastTreeBinaryClassificationTrainer(env, labelColumn, featureColumn, weights, advancedSettings);
+            return new FastTreeBinaryClassificationTrainer(env, advancedSettings);
         }
 
         /// <summary>
@@ -132,21 +120,13 @@ namespace Microsoft.ML
         /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="FastTreeRankingTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RankingContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="groupId">The groupId column.</param>
-        /// <param name="weights">The optional weights column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastTreeRankingTrainer FastTree(this RankingContext.RankingTrainers ctx,
-            string labelColumn,
-            string featureColumn,
-            string groupId,
-            string weights,
             FastTreeRankingTrainer.Options advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new FastTreeRankingTrainer(env, labelColumn, featureColumn, groupId, weights, advancedSettings);
+            return new FastTreeRankingTrainer(env, advancedSettings);
         }
 
         /// <summary>
@@ -228,19 +208,13 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeTweedieTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastTreeTweedieTrainer FastTreeTweedie(this RegressionContext.RegressionTrainers ctx,
-            string labelColumn,
-            string featureColumn,
-            string weights,
-            FastTreeTweedieTrainer.Options advancedSettings = null)
+            FastTreeTweedieTrainer.Options advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new FastTreeTweedieTrainer(env, labelColumn, featureColumn, weights, advancedSettings);
+            return new FastTreeTweedieTrainer(env, advancedSettings);
         }
 
         /// <summary>
@@ -272,19 +246,13 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="FastForestRegression"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastForestRegression FastForest(this RegressionContext.RegressionTrainers ctx,
-            string labelColumn,
-            string featureColumn,
-            string weights,
-            FastForestRegression.Options advancedSettings = null)
+            FastForestRegression.Options advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new FastForestRegression(env, labelColumn, featureColumn, weights, advancedSettings);
+            return new FastForestRegression(env, advancedSettings);
         }
 
         /// <summary>
@@ -316,19 +284,13 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="FastForestClassification"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
-        /// <param name="featureColumn">The featureColumn column.</param>
-        /// <param name="weights">The optional weights column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastForestClassification FastForest(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-            string labelColumn,
-            string featureColumn,
-            string weights,
             FastForestClassification.Options advancedSettings)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new FastForestClassification(env, labelColumn, featureColumn, weights, advancedSettings);
+            return new FastForestClassification(env, advancedSettings);
         }
     }
 }

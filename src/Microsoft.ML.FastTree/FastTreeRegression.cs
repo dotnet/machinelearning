@@ -75,26 +75,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/>
-        /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
-        public FastTreeRegressionTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
-            string weightColumn,
-            Options advancedSettings)
-            : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, advancedSettings)
-        {
-        }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/> by using the legacy <see cref="Options"/> class.
         /// </summary>
-        internal FastTreeRegressionTrainer(IHostEnvironment env, Options args)
+        public FastTreeRegressionTrainer(IHostEnvironment env, Options args)
             : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
         {
         }

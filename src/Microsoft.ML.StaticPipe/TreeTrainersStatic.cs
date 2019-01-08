@@ -93,7 +93,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new FastTreeRegressionTrainer(env, labelName, featuresName, weightsName, advancedSettings);
+                   var trainer = new FastTreeRegressionTrainer(env, advancedSettings);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -185,7 +185,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
-                   var trainer = new FastTreeBinaryClassificationTrainer(env, labelName, featuresName, weightsName, advancedSettings);
+                   var trainer = new FastTreeBinaryClassificationTrainer(env, advancedSettings);
 
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -265,7 +265,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   var trainer = new FastTreeRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, advancedSettings);
+                   var trainer = new FastTreeRankingTrainer(env, advancedSettings);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;

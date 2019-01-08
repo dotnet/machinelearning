@@ -86,29 +86,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/>
-        /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
-        public FastTreeRankingTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
-            string groupIdColumn,
-            string weightColumn,
-            Options advancedSettings)
-            : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
-        {
-            Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
-        }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/> by using the legacy <see cref="Options"/> class.
         /// </summary>
-        internal FastTreeRankingTrainer(IHostEnvironment env, Options args)
+        public FastTreeRankingTrainer(IHostEnvironment env, Options args)
         : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
         {
         }

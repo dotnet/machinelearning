@@ -142,28 +142,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/>
-        /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
-        public FastTreeBinaryClassificationTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
-            string weightColumn,
-            Options advancedSettings)
-            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
-        {
-            // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
-            _sigmoidParameter = 2.0 * Args.LearningRates;
-        }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the legacy <see cref="Options"/> class.
         /// </summary>
-        internal FastTreeBinaryClassificationTrainer(IHostEnvironment env, Options args)
+        public FastTreeBinaryClassificationTrainer(IHostEnvironment env, Options args)
             : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss

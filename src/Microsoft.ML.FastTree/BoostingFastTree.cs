@@ -31,22 +31,7 @@ namespace Microsoft.ML.Trainers.FastTree
             double learningRate)
             : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDatapointsInLeaves)
         {
-
-            if (Args.LearningRates != learningRate)
-            {
-                using (var ch = Host.Start($"Setting learning rate to: {learningRate} as supplied in the direct arguments."))
-                    Args.LearningRates = learningRate;
-            }
-        }
-
-        protected BoostingFastTreeTrainerBase(IHostEnvironment env,
-            SchemaShape.Column label,
-            string featureColumn,
-            string weightColumn,
-            string groupIdColumn,
-            TArgs advancedSettings)
-            : base(env, label, featureColumn, weightColumn, groupIdColumn, advancedSettings)
-        {
+            Args.LearningRates = learningRate;
         }
 
         protected override void CheckArgs(IChannel ch)

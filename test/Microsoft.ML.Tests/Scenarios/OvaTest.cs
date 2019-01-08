@@ -104,8 +104,7 @@ namespace Microsoft.ML.Scenarios
             // Pipeline
             var pipeline = new Ova(
                 mlContext,
-                new FastTreeBinaryClassificationTrainer(mlContext, DefaultColumnNames.Label, DefaultColumnNames.Features, null,
-                    new FastTreeBinaryClassificationTrainer.Options { NumThreads = 1 }),
+                new FastTreeBinaryClassificationTrainer(mlContext, new FastTreeBinaryClassificationTrainer.Options { NumThreads = 1 }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

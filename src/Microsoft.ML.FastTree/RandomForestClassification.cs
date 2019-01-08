@@ -160,25 +160,6 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastForestClassification"/>
-        /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
-        public FastForestClassification(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
-            string weightColumn,
-            Options advancedSettings)
-            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
-        {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-        }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="FastForestClassification"/> by using the legacy <see cref="Options"/> class.
         /// </summary>
         public FastForestClassification(IHostEnvironment env, Options args)
