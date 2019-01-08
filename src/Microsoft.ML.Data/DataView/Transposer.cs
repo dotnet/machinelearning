@@ -375,7 +375,7 @@ namespace Microsoft.ML.Data
                         Ch.Check(IsGood, "Cannot get values in the cursor's current state");
                         if (!valid)
                         {
-                            using (var cursor = _view.GetRowCursor(new[] { _view.Schema[_col] }))
+                            using (var cursor = _view.GetRowCursor(_view.Schema[_col]))
                             {
                                 int[] indices = null;
                                 T[] values = null;
@@ -526,7 +526,7 @@ namespace Microsoft.ML.Data
                 // is having its values loaded into _indices/_values/_counts while the current column is being
                 // served up to the consumer through _cbuff.
 
-                using (var cursor = _view.GetRowCursor(new[] { _view.Schema[_colCurr] }))
+                using (var cursor = _view.GetRowCursor(_view.Schema[_colCurr]))
                 {
                     // Make sure that the buffers (and subbuffers) are all of appropriate size.
                     Utils.EnsureSize(ref _indices, vecLen);

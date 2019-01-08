@@ -407,7 +407,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 {
                     // curs1 should have all columns active (for simplicity of the code here).
                     Contracts.Assert(curs1.IsColumnActive(col));
-                    cursors[col] = view2.GetRowCursor(curs1.Schema);
+                    cursors[col] = view2.GetRowCursor(view2.Schema[col]);
                 }
 
                 // Get the comparison delegates for each column.

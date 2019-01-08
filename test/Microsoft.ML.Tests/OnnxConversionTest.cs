@@ -481,8 +481,8 @@ namespace Microsoft.ML.Tests
             var leftColumnIndex = left.Schema[leftColumnName].Index;
             var rightColumnIndex = right.Schema[rightColumnName].Index;
 
-            using (var expectedCursor = left.GetRowCursor(left.Schema.Where(columnIndex => leftColumnIndex == columnIndex.Index)))
-            using (var actualCursor = right.GetRowCursor(right.Schema.Where(columnIndex => rightColumnIndex == columnIndex.Index)))
+            using (var expectedCursor = left.GetRowCursor(left.Schema[leftColumnIndex]))
+            using (var actualCursor = right.GetRowCursor(right.Schema[rightColumnIndex]))
             {
                 VBuffer<float> expected = default;
                 VBuffer<float> actual = default;
@@ -505,8 +505,8 @@ namespace Microsoft.ML.Tests
             var leftColumnIndex = left.Schema[leftColumnName].Index;
             var rightColumnIndex = right.Schema[rightColumnName].Index;
 
-            using (var expectedCursor = left.GetRowCursor(left.Schema.Where(columnIndex => leftColumnIndex == columnIndex.Index)))
-            using (var actualCursor = right.GetRowCursor(right.Schema.Where(columnIndex => rightColumnIndex == columnIndex.Index)))
+            using (var expectedCursor = left.GetRowCursor(left.Schema[leftColumnIndex]))
+            using (var actualCursor = right.GetRowCursor(right.Schema[rightColumnIndex]))
             {
                 float expected = default;
                 VBuffer<float> actual = default;

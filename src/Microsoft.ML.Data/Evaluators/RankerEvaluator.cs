@@ -256,7 +256,7 @@ namespace Microsoft.ML.Data
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             RankerMetrics result;
-            using (var cursor = overall.GetRowCursor(data.Schema))
+            using (var cursor = overall.GetRowCursor(overall.Schema))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);

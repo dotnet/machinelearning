@@ -399,7 +399,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var keyType = dataView.Schema[keyIdx].Type;
             var valueType = dataView.Schema[valueIdx].Type;
             var valueMap = ValueMap.Create(keyType, valueType, _valueMetadata);
-            using (var cursor = dataView.GetRowCursor(dataView.Schema.Where(c => c.Index == keyIdx || c.Index == valueIdx)))
+            using (var cursor = dataView.GetRowCursor(dataView.Schema[keyIdx], dataView.Schema[valueIdx]))
                 valueMap.Train(Host, cursor);
             return valueMap;
         }

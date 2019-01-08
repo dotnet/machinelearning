@@ -178,7 +178,14 @@ namespace Microsoft.ML.Transforms
                 var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(parent.Host, _parent._addedSchema);
                 appendedDataView.SetCurrentRowObject(_dst);
 
-                _appendedRow = appendedDataView.GetRowCursor(_parent._bindings.Schema);
+                Func<int, bool> appendedPredicate =
+                col =>
+                {
+                    col = _parent._bindings.AddedColumnIndices[col];
+                    return predicate(col);
+                };
+
+                _appendedRow = appendedDataView.GetRowCursor(appendedDataView.Schema);
             }
 
             protected override void Dispose(bool disposing)

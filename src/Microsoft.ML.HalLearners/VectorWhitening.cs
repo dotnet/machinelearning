@@ -352,7 +352,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             int maxRows = columns.Max(i => i.MaxRow);
             long r = 0;
-            using (var cursor = inputData.GetRowCursor(null))
+            using (var cursor = inputData.GetRowCursor())
             {
                 while (r < maxRows && cursor.MoveNext())
                     r++;
