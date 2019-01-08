@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            var vectorKind = Transformer.ValueColumnType.IsVector ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
+            var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
             var isKey = Transformer.ValueColumnType is KeyType;
             var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
                                     Transformer.ValueColumnType;
@@ -799,7 +799,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 // For keys that are not in the mapping, the missingValue will be returned.
                 _missingValue = default;
-                if (!ValueType.IsVector)
+                if (!(ValueType is VectorType))
                 {
                     // For handling missing values, this follows how a missing value is handled when loading from a text source.
                     // First check if there is a String->ValueType conversion method. If so, call the conversion method with an
@@ -842,8 +842,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     getSrc(ref src);
                     if (_mapping.ContainsKey(src))
                     {
-                        if (ValueType.IsVector)
-                            dst = Utils.MarshalInvoke(GetVector<int>, ValueType.ItemType.RawType, _mapping[src]);
+                        if (ValueType is VectorType vectorType)
+                            dst = Utils.MarshalInvoke(GetVector<int>, vectorType.ItemType.RawType, _mapping[src]);
                         else
                             dst = Utils.MarshalInvoke(GetValue<int>, ValueType.RawType, _mapping[src]);
                     }

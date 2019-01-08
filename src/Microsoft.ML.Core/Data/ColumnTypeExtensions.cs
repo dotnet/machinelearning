@@ -22,5 +22,44 @@ namespace Microsoft.ML.Data
         /// Zero return means either it's not a key type or the cardinality is unknown.
         /// </summary>
         public static int GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
+
+        public static ColumnType ItemType(this ColumnType columnType) => (columnType as VectorType)?.ItemType ?? columnType;
+
+        /// <summary>
+        /// Zero return means either it's not a vector or the size is unknown.
+        /// </summary>
+        public static int VectorSize(this ColumnType columnType) => (columnType as VectorType)?.Size ?? 0;
+
+        /// <summary>
+        /// For non-vectors, this returns one. For unknown size vectors, it returns zero.
+        /// For known sized vectors, it returns size.
+        /// </summary>
+        public static int ValueCount(this ColumnType columnType) => (columnType as VectorType)?.Size ?? 1;
+
+        /// <summary>
+        /// Whether this is a vector type with known size. Returns false for non-vector types.
+        /// Equivalent to <c><see cref="VectorSize"/> &gt; 0</c>.
+        /// </summary>
+        public static bool IsKnownSizeVector(this ColumnType columnType) => columnType.VectorSize() > 0;
+
+        /// <summary>
+        /// Equivalent to calling Equals(ColumnType) for non-vector types. For vector type,
+        /// returns true if current and other vector types have the same size and item type.
+        /// </summary>
+        public static bool SameSizeAndItemType(this ColumnType columnType, ColumnType other)
+        {
+            if (other == null)
+                return false;
+
+            if (columnType.Equals(other))
+                return true;
+
+            // For vector types, we don't care about the factoring of the dimensions.
+            if (!(columnType is VectorType vectorType) || !(other is VectorType otherVectorType))
+                return false;
+            if (!vectorType.ItemType.Equals(otherVectorType.ItemType))
+                return false;
+            return otherVectorType.Size == otherVectorType.Size;
+        }
     }
 }

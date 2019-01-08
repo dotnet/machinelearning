@@ -301,12 +301,12 @@ namespace Microsoft.ML.FactorizationMachine
                 var col = featureColumns[f];
                 Host.Assert(!col.IsHidden);
                 if (!(col.Type is VectorType vectorType) ||
-                    !vectorType.IsKnownSizeVector ||
+                    !vectorType.IsKnownSize ||
                     vectorType.ItemType != NumberType.Float)
                     throw ch.ExceptParam(nameof(data), "Training feature column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
-                Host.Assert(vectorType.VectorSize > 0);
+                Host.Assert(vectorType.Size > 0);
                 fieldColumnIndexes[f] = col.Index;
-                totalFeatureCount += vectorType.VectorSize;
+                totalFeatureCount += vectorType.Size;
             }
             ch.Check(checked(totalFeatureCount * fieldCount * _latentDimAligned) <= Utils.ArrayMaxSize, "Latent dimension or the number of fields too large");
             if (predictor != null)

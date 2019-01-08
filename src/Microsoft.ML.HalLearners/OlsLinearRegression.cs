@@ -149,15 +149,15 @@ namespace Microsoft.ML.Trainers.HalLearners
                     throw ch.Except("Incompatible labelColumn column type {0}, must be {1}", typeLab, NumberType.Float);
 
                 // The feature type must be a vector of Float.
-                var typeFeat = examples.Schema.Feature.Value.Type;
-                if (!typeFeat.IsKnownSizeVector)
+                var typeFeat = examples.Schema.Feature.Value.Type as VectorType;
+                if (typeFeat == null || !typeFeat.IsKnownSize)
                     throw ch.Except("Incompatible feature column type {0}, must be known sized vector of {1}", typeFeat, NumberType.Float);
                 if (typeFeat.ItemType != NumberType.Float)
                     throw ch.Except("Incompatible feature column type {0}, must be vector of {1}", typeFeat, NumberType.Float);
 
                 var cursorFactory = new FloatLabelCursor.Factory(examples, CursOpt.Label | CursOpt.Features);
 
-                return TrainCore(ch, cursorFactory, typeFeat.VectorSize);
+                return TrainCore(ch, cursorFactory, typeFeat.Size);
             }
         }
 

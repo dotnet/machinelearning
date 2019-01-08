@@ -240,9 +240,9 @@ namespace Microsoft.ML.StaticPipe.Runtime
             Type vecType = null;
             if (t is VectorType vt)
             {
-                vecType = vt.VectorSize > 0 ? typeof(Vector<>) : typeof(VarVector<>);
+                vecType = vt.Size > 0 ? typeof(Vector<>) : typeof(VarVector<>);
                 // Check normalized subtype of vectors.
-                if (vt.VectorSize > 0)
+                if (vt.Size > 0)
                 {
                     // Check to see if the column is normalized.
                     // Once we shift to metadata being a row globally we can also make this a bit more efficient:
@@ -259,10 +259,10 @@ namespace Microsoft.ML.StaticPipe.Runtime
                         }
                     }
                 }
-                t = t.ItemType;
+                t = vt.ItemType;
                 // Fall through to the non-vector case to handle subtypes.
             }
-            Contracts.Assert(!t.IsVector);
+            Contracts.Assert(!(t is VectorType));
 
             if (t is KeyType kt)
             {

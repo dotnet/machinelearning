@@ -666,18 +666,21 @@ namespace Microsoft.ML.Data
                         _creator[i] = cache.GetCreatorOne(keyType);
                         continue;
                     }
-                    else if (info.ColType is VectorType vectorType && vectorType.ItemType is KeyType vectorKeyType)
+
+                    VectorType vectorType = info.ColType as VectorType;
+                    if (vectorType?.ItemType is KeyType vectorKeyType)
                     {
                         _creator[i] = cache.GetCreatorVec(vectorKeyType);
                         continue;
                     }
 
-                    DataKind kind = info.ColType.ItemType.RawKind;
+                    ColumnType itemType = vectorType?.ItemType ?? info.ColType;
+                    DataKind kind = itemType.RawKind;
                     Contracts.Assert(kind != 0);
-                    var map = info.ColType.IsVector ? mapVec : mapOne;
+                    var map = vectorType != null ? mapVec : mapOne;
                     if (!map.TryGetValue(info.Kind, out _creator[i]))
                     {
-                        var fn = info.ColType.IsVector ?
+                        var fn = vectorType != null ?
                             cache.GetCreatorVec(info.Kind) :
                             cache.GetCreatorOne(info.Kind);
                         map.Add(info.Kind, fn);
@@ -750,7 +753,7 @@ namespace Microsoft.ML.Data
                 for (int iinfo = 0; iinfo < infos.Length; iinfo++)
                 {
                     var info = infos[iinfo];
-                    if (!info.ColType.IsKnownSizeVector)
+                    if (!info.ColType.IsKnownSizeVector())
                         continue;
                     bldr.Reset(info.SizeBase, false);
                     int ivDst = 0;
@@ -1282,7 +1285,7 @@ namespace Microsoft.ML.Data
                     var v = rows.Pipes[iinfo];
                     Contracts.Assert(v != null);
 
-                    if (!info.ColType.IsVector)
+                    if (!(info.ColType is VectorType))
                         ProcessOne(fields, info, v, irow, line);
                     else
                         ProcessVec(srcLim, fields, info, v, irow, line);
@@ -1292,7 +1295,7 @@ namespace Microsoft.ML.Data
             private void ProcessVec(int srcLim, FieldSet fields, ColInfo info, ColumnPipe v, int irow, long line)
             {
                 Contracts.Assert(srcLim >= 0);
-                Contracts.Assert(info.ColType.IsVector);
+                Contracts.Assert(info.ColType is VectorType);
                 Contracts.Assert(info.SizeBase > 0 || info.IsegVariable >= 0);
 
                 int sizeVar = 0;
@@ -1348,7 +1351,7 @@ namespace Microsoft.ML.Data
 
             private void ProcessOne(FieldSet vs, ColInfo info, ColumnPipe v, int irow, long line)
             {
-                Contracts.Assert(!info.ColType.IsVector);
+                Contracts.Assert(!(info.ColType is VectorType));
                 Contracts.Assert(Utils.Size(info.Segments) == 1);
                 Contracts.Assert(info.Segments[0].Lim == info.Segments[0].Min + 1);
 

@@ -671,7 +671,7 @@ namespace Microsoft.ML.Data.Conversion
         public InPredicate<T> GetIsDefaultPredicate<T>(ColumnType type)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(!type.IsVector, nameof(type));
+            Contracts.CheckParam(!(type is VectorType), nameof(type));
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
 
             var t = type;
@@ -710,7 +710,7 @@ namespace Microsoft.ML.Data.Conversion
         public bool TryGetIsNAPredicate(ColumnType type, out Delegate del)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(!type.IsVector, nameof(type));
+            Contracts.CheckParam(!(type is VectorType), nameof(type));
 
             var t = type;
             if (t is KeyType)

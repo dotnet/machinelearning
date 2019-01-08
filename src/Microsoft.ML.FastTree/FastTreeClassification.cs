@@ -168,7 +168,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 trainData.CheckBinaryLabel();
                 trainData.CheckFeatureFloatVector();
                 trainData.CheckOptFloatWeight();
-                FeatureCount = trainData.Schema.Feature.Value.Type.ValueCount;
+                FeatureCount = trainData.Schema.Feature.Value.Type.ValueCount();
                 ConvertData(trainData);
                 TrainCore(ch);
             }

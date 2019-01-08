@@ -300,7 +300,9 @@ namespace Microsoft.ML.Data
         ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length N
         /// </summary>
         public static bool HasSlotNames(this Schema.Column column)
-            => column.Type.IsKnownSizeVector && column.HasSlotNames(column.Type.VectorSize);
+            => column.Type is VectorType vectorType
+                && vectorType.Size > 0
+                && column.HasSlotNames(vectorType.Size);
 
         /// <summary>
         /// Returns <c>true</c> if the specified column:
@@ -316,9 +318,9 @@ namespace Microsoft.ML.Data
             var metaColumn = column.Metadata.Schema.GetColumnOrNull(Kinds.SlotNames);
             return
                 metaColumn != null
-                && metaColumn.Value.Type.IsVector
-                && metaColumn.Value.Type.VectorSize == vectorSize
-                && metaColumn.Value.Type.ItemType is TextType;
+                && metaColumn.Value.Type is VectorType vectorType
+                && vectorType.Size == vectorSize
+                && vectorType.ItemType is TextType;
         }
 
         public static void GetSlotNames(this Schema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
@@ -346,9 +348,9 @@ namespace Microsoft.ML.Data
             var metaColumn = column.Metadata.Schema.GetColumnOrNull(Kinds.KeyValues);
             return
                 metaColumn != null
-                && metaColumn.Value.Type.IsVector
-                && metaColumn.Value.Type.VectorSize == keyCount
-                && metaColumn.Value.Type.ItemType is TextType;
+                && metaColumn.Value.Type is VectorType vectorType
+                && vectorType.Size == keyCount
+                && vectorType.ItemType is TextType;
         }
 
         [BestFriend]
