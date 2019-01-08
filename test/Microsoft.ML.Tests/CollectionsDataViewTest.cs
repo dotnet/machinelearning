@@ -13,7 +13,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
-#pragma warning disable 612
     public class CollectionsDataViewTest : BaseTestClass
     {
         public CollectionsDataViewTest(ITestOutputHelper output)
@@ -492,5 +491,4 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
     }
-#pragma warning restore 612
 }

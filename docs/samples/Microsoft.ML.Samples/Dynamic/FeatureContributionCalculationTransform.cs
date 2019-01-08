@@ -59,12 +59,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a Feature Contribution Calculator
             // Calculate the feature contributions for all features given trained model parameters
             // And don't normalize the contribution scores
-            var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11, normalize: false);
+            var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, numPositiveContributions: 11, normalize: false);
             var outputData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
             // FeatureContributionCalculatingEstimator can be use as an intermediary step in a pipeline. 
             // The features retained by FeatureContributionCalculatingEstimator will be in the FeatureContribution column.
-            var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11)
+            var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, numPositiveContributions: 11)
                 .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(featureColumn: "FeatureContributions"));
             var outData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 

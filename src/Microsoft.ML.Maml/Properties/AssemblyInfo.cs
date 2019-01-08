@@ -7,6 +7,7 @@ using Microsoft.ML;
 
 [assembly: InternalsVisibleTo("Microsoft.ML.TestFramework" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Benchmarks" + PublicKey.TestValue)]
-
-[assembly: InternalsVisibleTo("Microsoft.ML.Legacy" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.ResultProcessor" + PublicKey.Value)]
+
+[assembly: InternalsVisibleTo("RunTests" + InternalPublicKey.Value)]
+[assembly: InternalsVisibleTo("TLC" + InternalPublicKey.Value)]

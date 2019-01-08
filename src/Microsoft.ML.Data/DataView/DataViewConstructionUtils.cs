@@ -644,11 +644,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// An in-memory data view based on the IEnumerable of data.
         /// Doesn't support shuffling.
-        ///
-        /// This class is public because prediction engine wants to call its <see cref="SetData"/>
-        /// for performance reasons.
         /// </summary>
-        public sealed class StreamingDataView<TRow> : DataViewBase<TRow>
+        internal sealed class StreamingDataView<TRow> : DataViewBase<TRow>
             where TRow : class
         {
             private IEnumerable<TRow> _data;
@@ -673,18 +670,6 @@ namespace Microsoft.ML.Data
             public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 return new WrappedCursor (new Cursor(Host, this, predicate));
-            }
-
-            /// <summary>
-            /// Since all the cursors only depend on an enumerator (rather than the data itself),
-            /// it's safe to 'swap' the data inside the streaming data view. This doesn't affect
-            /// the current 'live' cursors, only the ones that will be created later.
-            /// This is used for efficiency in <see cref="BatchPredictionEngine{TSrc,TDst}"/>.
-            /// </summary>
-            public void SetData(IEnumerable<TRow> data)
-            {
-                Contracts.CheckValue(data, nameof(data));
-                _data = data;
             }
 
             private sealed class Cursor : DataViewCursorBase

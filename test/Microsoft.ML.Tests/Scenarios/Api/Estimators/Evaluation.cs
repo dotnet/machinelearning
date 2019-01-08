@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Getting metrics out of this shoudl be as straightforward and unannoying as possible.
         /// </summary>
         [Fact]
-        public void New_Evaluation()
+        public void Evaluation()
         {
             var ml = new MLContext(seed: 1, conc: 1);
 

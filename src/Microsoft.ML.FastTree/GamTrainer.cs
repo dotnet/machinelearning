@@ -668,6 +668,11 @@ namespace Microsoft.ML.Trainers.FastTree
         ColumnType IValueMapper.InputType => _inputType;
         ColumnType IValueMapper.OutputType => _outputType;
 
+        /// <summary>
+        /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
+        /// For Generalized Additive Models (GAM), the contribution of a feature is equal to the shape function for the given feature evaluated at
+        /// the feature value.
+        /// </summary>
         public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
 
         private protected GamModelParametersBase(IHostEnvironment env, string name,

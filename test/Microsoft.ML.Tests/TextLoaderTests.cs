@@ -20,7 +20,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         public TextLoaderTestPipe(ITestOutputHelper output)
             : base(output)
         {
-
         }
 
         [Fact]
@@ -133,10 +132,11 @@ namespace Microsoft.ML.EntryPoints.Tests
 
     public class TextLoaderTests : BaseTestClass
     {
+        ConsoleEnvironment env;
         public TextLoaderTests(ITestOutputHelper output)
             : base(output)
         {
-
+            env = new ConsoleEnvironment(42).AddStandardComponents();
         }
 
         [Fact]
@@ -156,9 +156,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanSuccessfullyApplyATransform()
         {
-            var environment = new MLContext();
-            AssemblyRegistration.RegisterAssemblies(environment);
-
             string inputGraph = @"
             {
                 'Nodes':
@@ -216,8 +213,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(environment, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(environment, "fakeFile.txt", false, false);
+            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(env, "fakeFile.txt", false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -229,9 +226,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyRetrieveQuotedData()
         {
             string dataPath = GetDataPath("QuotingData.csv");
-            var mlContext = new MLContext();
-            AssemblyRegistration.RegisterAssemblies(mlContext);
-
             string inputGraph = @"
             {  
                'Nodes':[  
@@ -293,8 +287,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(mlContext, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(mlContext, dataPath, false, false);
+            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -342,10 +336,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanSuccessfullyRetrieveSparseData()
         {
-            var mlContext = new MLContext();
             string dataPath = GetDataPath("SparseData.txt");
-            AssemblyRegistration.RegisterAssemblies(mlContext);
-
             string inputGraph = @"
             {
                 'Nodes':
@@ -442,8 +433,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(mlContext, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(mlContext, dataPath, false, false);
+            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
@@ -500,9 +491,6 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyTrimSpaces()
         {
             string dataPath = GetDataPath("TrimData.csv");
-            var mlContext = new MLContext();
-            AssemblyRegistration.RegisterAssemblies(mlContext);
-
             string inputGraph = @"{
                 'Nodes':
                 [{
@@ -559,8 +547,8 @@ namespace Microsoft.ML.EntryPoints.Tests
             }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var runner = new GraphRunner(mlContext, graph[FieldNames.Nodes] as JArray);
-            var inputFile = new SimpleFileHandle(mlContext, dataPath, false, false);
+            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
             runner.SetInput("inputFile", inputFile);
             runner.RunAll();
 
