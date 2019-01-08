@@ -142,7 +142,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the legacy <see cref="Options"/> class.
+        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the <see cref="Options"/> class.
         /// </summary>
         public FastTreeBinaryClassificationTrainer(IHostEnvironment env, Options args)
             : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))

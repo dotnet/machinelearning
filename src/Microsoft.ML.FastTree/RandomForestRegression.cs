@@ -178,7 +178,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastForestRegression"/> by using the legacy <see cref="Options"/> class.
+        /// Initializes a new instance of <see cref="FastForestRegression"/> by using the <see cref="Options"/> class.
         /// </summary>
         public FastForestRegression(IHostEnvironment env, Options args)
             : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn), true)

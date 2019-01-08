@@ -27,9 +27,9 @@ namespace Microsoft.ML.Trainers.FastTree
         public sealed class Options : BoostedTreeArgs, IFastTreeTrainerFactory
         {
             /// <summary>
-            /// Should we use derivatives optimized for unbalanced sets?
+            /// Option for using derivatives optimized for unbalanced sets.
             /// </summary>
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Option for using derivatives optimized for unbalanced sets", ShortName = "us")]
             [TGUI(Label = "Optimize for unbalanced")]
             public bool UnbalancedSets = false;
 
@@ -448,9 +448,9 @@ namespace Microsoft.ML.Trainers.FastTree
         //Use the second derivative for split gains (not just outputs). Use MaxTreeOutput to "clip" cases where the second derivative is too close to zero.
         //Turning BSR on makes larger steps in initial stages and converges to better results with fewer trees (though in the end, it asymptotes to the same results).
         /// <summary>
-        /// Use best regression step trees?
+        /// Option for using best regression step trees.
         /// </summary>
-        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Use best regression step trees?", ShortName = "bsr")]
+        [Argument(ArgumentType.LastOccurenceWins, HelpText = "Option for using best regression step trees", ShortName = "bsr")]
         public bool BestStepRankingRegressionTrees = false;
 
         /// <summary>
