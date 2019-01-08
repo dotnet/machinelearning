@@ -112,7 +112,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.CheckValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
             var activeInputs = _bindings.GetActiveInput(predicate);
             Func<int, bool> inputPred = c => activeInputs[c];
 

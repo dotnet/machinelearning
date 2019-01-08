@@ -83,7 +83,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(col))
+            using (var cursor = data.GetRowCursor(data.Schema[col]))
             {
                 var getter = cursor.GetGetter<T>(col);
                 T curValue = default;
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(col))
+            using (var cursor = data.GetRowCursor(data.Schema[col]))
             {
                 var getter = cursor.GetGetter<TData>(col);
                 TData curValue = default;
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(col))
+            using (var cursor = data.GetRowCursor(data.Schema[col]))
             {
                 var getter = cursor.GetGetter<VBuffer<T>>(col);
                 VBuffer<T> curValue = default;
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(data);
             Contracts.Assert(0 <= col && col < data.Schema.Count);
 
-            using (var cursor = data.GetRowCursor(col))
+            using (var cursor = data.GetRowCursor(data.Schema[col]))
             {
                 var getter = cursor.GetGetter<VBuffer<TData>>(col);
                 VBuffer<TData> curValue = default;

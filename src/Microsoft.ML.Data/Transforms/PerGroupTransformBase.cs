@@ -161,7 +161,7 @@ namespace Microsoft.ML.Data
 
         public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
 
             Host.CheckValueOrNull(rand);
             // If we aren't selecting any of the output columns, don't construct our cursor.

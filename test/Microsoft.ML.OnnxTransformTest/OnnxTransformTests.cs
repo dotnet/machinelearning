@@ -160,7 +160,7 @@ namespace Microsoft.ML.Tests
 
                 loadedView.Schema.TryGetColumnIndex(outputNames[0], out int softMaxOut1);
 
-                using (var cursor = loadedView.GetRowCursor(softMaxOut1))
+                using (var cursor = loadedView.GetRowCursor(loadedView.Schema[softMaxOut1]))
                 {
                     VBuffer<float> softMaxValue = default;
                     var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Tests
             var result = pipe.Fit(data).Transform(data).AsDynamic;
             result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
 
-            using (var cursor = result.GetRowCursor("softmaxout_1"))
+            using (var cursor = result.GetRowCursor(result.Schema["softmaxout_1"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Tests
 
                 onnx.Schema.TryGetColumnIndex("softmaxout_1", out int score);
 
-                using (var curs = onnx.GetRowCursor("softmaxout_1"))
+                using (var curs = onnx.GetRowCursor(onnx.Schema["softmaxout_1"]))
                 {
                     var getScores = curs.GetGetter<VBuffer<float>>(score);
                     var buffer = default(VBuffer<float>);
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Tests
 
                 onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
                 onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
-                using (var curs = onnx.GetRowCursor("outa","outb"))
+                using (var curs = onnx.GetRowCursor(onnx.Schema["outa"], onnx.Schema["outb"]))
                 {
                     var getScoresa = curs.GetGetter<VBuffer<float>>(scoresa);
                     var getScoresb = curs.GetGetter<VBuffer<float>>(scoresb);

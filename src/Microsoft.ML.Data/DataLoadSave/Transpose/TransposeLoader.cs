@@ -617,7 +617,7 @@ namespace Microsoft.ML.Data.IO
 
         public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, _schemaEntry.GetView().Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, _schemaEntry.GetView().Schema);
 
             _host.CheckValueOrNull(rand);
             if (HasRowData)

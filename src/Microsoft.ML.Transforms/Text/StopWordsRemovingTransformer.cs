@@ -776,7 +776,7 @@ namespace Microsoft.ML.Transforms.Text
                 ch.CheckUserArg(typeSrc is TextType, nameof(Arguments.StopwordsColumn), "Must be a scalar text column");
 
                 // Accumulate the stopwords.
-                using (var cursor = loader.GetRowCursor(srcCol))
+                using (var cursor = loader.GetRowCursor(loader.Schema[srcCol]))
                 {
                     bool warnEmpty = true;
                     var getter = cursor.GetGetter<ReadOnlyMemory<char>>(colSrcIndex);

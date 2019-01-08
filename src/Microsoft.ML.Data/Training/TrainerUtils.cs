@@ -223,7 +223,7 @@ namespace Microsoft.ML.Training
             Contracts.AssertValue(data);
             Contracts.AssertValueOrNull(extraCols);
 
-            var columns = data.Data.Schema.GetColumns(extraCols.ToArray());
+            var columns = data.Data.Schema.Where(c => extraCols.Contains(c.Index));
 
             if ((opt & CursOpt.Label) != 0)
                 columns = columns.Append(data.Schema.Label.Value);

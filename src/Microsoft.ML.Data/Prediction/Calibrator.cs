@@ -823,7 +823,7 @@ namespace Microsoft.ML.Internal.Calibration
                     weightCol = weightIdx;
                 ch.Info("Training calibrator.");
 
-                int[] cols = weightCol > -1 ? new int[] { labelCol, scoreCol, weightCol } : new int[] { labelCol, scoreCol };
+                var cols = weightCol > -1 ? new Schema.Column[] { scored.Schema[labelCol], scored.Schema[scoreCol], scored.Schema[weightCol] } : new Schema.Column[] { scored.Schema[labelCol], scored.Schema[scoreCol] };
                 using (var cursor = scored.GetRowCursor(cols))
                 {
                     var labelGetter = RowCursorUtils.GetLabelGetter(cursor, labelCol);

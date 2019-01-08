@@ -300,7 +300,7 @@ namespace Microsoft.ML.Transforms
         protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.CheckValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
             var inputPred = _bindings.GetDependencies(predicate);
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
 

@@ -673,7 +673,7 @@ namespace Microsoft.ML.RunTests
             }
 
             var cursors = new RowCursor[predCount];
-            var cols = scored.Schema.GetColumns("Score", "Probability", "PredictedLabel");
+            var cols = scored.Schema.Where( c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
 
             for (int i = 0; i < predCount; i++)
                 cursors[i] = scoredArray[i].GetRowCursor(cols);

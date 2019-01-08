@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.AssertValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
             var inputPred = _bindings.GetDependencies(predicate);
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
             var input = Source.GetRowCursor(inputCols, rand);
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Transforms
         public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
             var inputPred = _bindings.GetDependencies(predicate);
 
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));

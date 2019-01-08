@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
@@ -40,7 +39,7 @@ namespace Microsoft.ML.Benchmarks
 
             var col = cacheDv.Schema.GetColumnOrNull("A").Value;
             // First do one pass through.
-            using (var cursor = cacheDv.GetRowCursor("A"))
+            using (var cursor = cacheDv.GetRowCursor(col))
             {
                 var getter = cursor.GetGetter<int>(col.Index);
                 int val = 0;

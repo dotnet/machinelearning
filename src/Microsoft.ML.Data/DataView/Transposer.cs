@@ -823,7 +823,7 @@ namespace Microsoft.ML.Data
 
             public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema.Count);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema);
 
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
@@ -836,7 +836,7 @@ namespace Microsoft.ML.Data
             {
                 _host.CheckValueOrNull(rand);
 
-                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema.Count);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema);
 
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);

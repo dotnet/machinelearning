@@ -210,7 +210,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.AssertValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
             Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));
 
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms
 
             Host.CheckValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
             Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
 
             var inputCols = Source.Schema.Where(x => inputPred(x.Index));

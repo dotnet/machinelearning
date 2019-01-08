@@ -245,7 +245,7 @@ namespace Microsoft.ML.Scenarios
             tf.Schema.TryGetColumnIndex("num_detections", out int num);
             tf.Schema.TryGetColumnIndex("detection_classes", out int classes);
 
-            using (var curs = tf.GetRowCursor("image_tensor", "detection_boxes", "detection_scores", "detection_classes", "num_detections"))
+            using (var curs = tf.GetRowCursor(tf.Schema["image_tensor"], tf.Schema["detection_boxes"], tf.Schema["detection_scores"], tf.Schema["detection_classes"], tf.Schema["num_detections"]))
             {
                 var getInput = curs.GetGetter<VBuffer<byte>>(input);
                 var getBoxes = curs.GetGetter<VBuffer<float>>(boxes);
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Scenarios
 
             tf.Schema.TryGetColumnIndex("input", out int input);
             tf.Schema.TryGetColumnIndex("softmax2_pre_activation", out int b);
-            using (var curs = tf.GetRowCursor("input","softmax2_pre_activation"))
+            using (var curs = tf.GetRowCursor(tf.Schema["input"], tf.Schema["softmax2_pre_activation"]))
             {
                 var get = curs.GetGetter<VBuffer<float>>(b);
                 var getInput = curs.GetGetter<VBuffer<float>>(input);

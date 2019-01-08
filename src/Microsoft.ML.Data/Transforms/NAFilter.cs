@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms
         protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
 
             Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
 
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms
         public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
 
             Func<int, bool> inputPred = GetActive(predicate, out bool[] active);
 

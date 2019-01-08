@@ -13,11 +13,7 @@ namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This class represents the <see cref="Schema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="Row"/>.
-    /// On the high level, the schema is a collection of 'columns'. Each column has the following properties:
-    /// - Column name.
-    /// - Column type.
-    /// - Metadata. The metadata itself is a 'single-row dataset' (namely, an instance of <see cref="Metadata"/>), that contains its own schema
-    /// and values.
+    /// On the high level, the schema is a collection of <see cref="Schema.Column"/>.
     /// </summary>
     [System.Diagnostics.DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
     public sealed class Schema : IReadOnlyList<Schema.Column>
@@ -67,18 +63,6 @@ namespace Microsoft.ML.Data
             if (_nameMap.TryGetValue(name, out int col))
                 return _columns[col];
             return null;
-        }
-
-        public IEnumerable<Column> GetColumns(params string[] names)
-        {
-            foreach (var name in names)
-                yield return this[name];
-        }
-
-        public IEnumerable<Column> GetColumns(params int[] indices)
-        {
-            foreach (var index in indices)
-                yield return this[index];
         }
 
         public IEnumerator<Column> GetEnumerator() => ((IEnumerable<Column>)_columns).GetEnumerator();

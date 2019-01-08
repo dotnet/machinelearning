@@ -477,17 +477,22 @@ namespace Microsoft.ML.Data
         /// the column with the given <see cref="Schema.Column.Index"/> is part of the <paramref name="colsNeeded"/>.
         /// </summary>
         /// <param name="colsNeeded">The subset of columns from the <see cref="Schema"/> that are needed from this <see cref="RowCursor"/>.</param>
-        /// <param name="schemaColsCardinality">The total number of <see cref="Schema.Column"/> in the <see cref="Schema"/>.</param>
+        /// <param name="sourceSchema">The <see cref="Schema"/> from where the colsNeeded originate.</param>
         [BestFriend]
-        internal static Func<int, bool> FromColumnsToPredicate(IEnumerable<Schema.Column> colsNeeded, int schemaColsCardinality)
+        internal static Func<int, bool> FromColumnsToPredicate(IEnumerable<Schema.Column> colsNeeded, Schema sourceSchema)
         {
-            if (colsNeeded == null)
-                return c => false;
+            Contracts.CheckValue(colsNeeded, nameof(colsNeeded));
+            Contracts.CheckValue(sourceSchema, nameof(sourceSchema));
 
-            if (colsNeeded.Count() == schemaColsCardinality)
-                return c => true;
+            bool[] indicesRequested = new bool[sourceSchema.Count];
 
-            return c => colsNeeded.Any(x => x.Index == c);
+            foreach (var col in colsNeeded)
+            {
+                Contracts.Assert(col.Index < indicesRequested.Length, $"The requested column: {col} is not part of the {nameof(sourceSchema)}");
+                indicesRequested[col.Index] = true;
+            }
+
+            return c => indicesRequested[c];
         }
 
         private sealed class OneRowDataView : IDataView

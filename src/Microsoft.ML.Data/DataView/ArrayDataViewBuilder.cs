@@ -234,7 +234,7 @@ namespace Microsoft.ML.Data
 
             public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema.Count);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema);
 
                 _host.CheckValueOrNull(rand);
                 return new Cursor(_host, this, predicate, rand);
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Data
 
             public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema.Count);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema);
 
                 _host.CheckValueOrNull(rand);
                 return new RowCursor[] { new Cursor(_host, this, predicate, rand) };

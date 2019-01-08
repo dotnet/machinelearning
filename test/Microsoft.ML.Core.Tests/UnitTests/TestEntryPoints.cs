@@ -106,7 +106,7 @@ namespace Microsoft.ML.RunTests
         private static int CountRows(IDataView dataView)
         {
             int totalRows = 0;
-            using (var cursor = dataView.GetRowCursor(null))
+            using (var cursor = dataView.GetRowCursor())
             {
                 while (cursor.MoveNext())
                     totalRows++;

@@ -82,7 +82,7 @@ namespace Microsoft.ML.Data
             if (countNullable != null)
                 return countNullable.Value;
             long count = 0;
-            using (var cursor = view.GetRowCursor(null))
+            using (var cursor = view.GetRowCursor())
             {
                 while (cursor.MoveNext())
                     count++;

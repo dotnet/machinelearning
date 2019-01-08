@@ -123,7 +123,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
 
             var bindings = GetBindings();
             Func<int, bool> inputPred;
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Source.Schema.Count);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
 
             var bindings = GetBindings();
             Func<int, bool> inputPred;

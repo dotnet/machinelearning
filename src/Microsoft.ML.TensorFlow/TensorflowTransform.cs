@@ -431,7 +431,7 @@ namespace Microsoft.ML.Transforms
             if (args.MetricOperation != null)
                 fetchList.Add(args.MetricOperation);
 
-            var cols = input.Schema.GetColumns(inputColIndices);
+            var cols = input.Schema.Where(c => inputColIndices.Contains(c.Index));
             for (int epoch = 0; epoch < args.Epoch; epoch++)
             {
                 using (var cursor = input.GetRowCursor(cols))

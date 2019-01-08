@@ -1703,7 +1703,7 @@ namespace Microsoft.ML.Data
                 int col;
                 if (warnings.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.WarningText, out col) && warnings.Schema[col].Type is TextType)
                 {
-                    using (var cursor = warnings.GetRowCursor(MetricKinds.ColumnNames.WarningText))
+                    using (var cursor = warnings.GetRowCursor(warnings.Schema[MetricKinds.ColumnNames.WarningText]))
                     {
                         var warning = default(ReadOnlyMemory<char>);
                         var getter = cursor.GetGetter<ReadOnlyMemory<char>>(col);
