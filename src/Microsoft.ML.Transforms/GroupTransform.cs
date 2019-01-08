@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms
             public string[] Column;
         }
 
-        private readonly GroupSchema _groupSchema;
+        private readonly GroupBinding _groupBinding;
 
         /// <summary>
         /// Initializes a new instance of <see cref="GroupTransform"/>.
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Transforms
             Host.CheckValue(args, nameof(args));
             Host.CheckUserArg(Utils.Size(args.GroupKey) > 0, nameof(args.GroupKey), "There must be at least one group key");
 
-            _groupSchema = new GroupSchema(Host, Source.Schema, args.GroupKey, args.Column ?? new string[0]);
+            _groupBinding = new GroupBinding(Host, Source.Schema, args.GroupKey, args.Column ?? new string[0]);
         }
 
         public static GroupTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -132,8 +132,8 @@ namespace Microsoft.ML.Transforms
             Host.AssertValue(ctx);
 
             // *** Binary format ***
-            // (schema)
-            _groupSchema = new GroupSchema(input.Schema, host, ctx);
+            // (GroupBinding)
+            _groupBinding = new GroupBinding(input.Schema, host, ctx);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -143,8 +143,8 @@ namespace Microsoft.ML.Transforms
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // (schema)
-            _groupSchema.Save(ctx);
+            // (GroupBinding)
+            _groupBinding.Save(ctx);
         }
 
         public override long? GetRowCount()
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema OutputSchema => _groupSchema.AsSchema;
+        public override Schema OutputSchema => _groupBinding.OutputSchema;
 
         protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
@@ -180,57 +180,62 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// For group columns, the schema information is intact.
+        /// This class describes the relation between <see cref="GroupTransform"/>'s input <see cref="Schema"/>,
+        /// <see cref="GroupBinding._inputSchema"/>, and output <see cref="Schema"/>, <see cref="GroupBinding.OutputSchema"/>.
         ///
-        /// For keep columns, the type is Vector of original type and variable length.
-        /// The only metadata preserved is the KeyNames and IsNormalized.
+        /// The <see cref="GroupBinding.OutputSchema"/> contains columns used to group columns and columns being aggregated from input data.
+        /// In <see cref="GroupBinding.OutputSchema"/>, group columns are followed by aggregated columns. For example, if column "Age" is used to group "UserId" column,
+        /// the first column and the second column in <see cref="GroupBinding.OutputSchema"/> produced by <see cref="GroupTransform"/> would be "Age" and "UserId," respectively.
+        /// Note that "Age" is a group column while "UserId" is an aggregated (also call keep) column.
         ///
-        /// All other columns are dropped.
+        /// For group columns, the schema information is intact. For aggregated columns, the type is Vector of original type and variable length.
+        /// The only metadata preserved is the KeyNames and IsNormalized. All other columns are dropped. Please see
+        /// <see cref="GroupBinding.BuildOutputSchema(Schema)"/> how this idea got implemented.
         /// </summary>
-        private sealed class GroupSchema : ISchema
+        private sealed class GroupBinding
         {
-            private static readonly string[] _preservedMetadata =
-                new[] { MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues };
-
             private readonly IExceptionContext _ectx;
-            private readonly Schema _input;
+            private readonly Schema _inputSchema;
 
+            // Column names in source schema used to group rows.
             private readonly string[] _groupColumns;
+            // Column names in source schema aggregated into row's vector-typed columns.
             private readonly string[] _keepColumns;
 
-            public readonly int[] GroupIds;
-            public readonly int[] KeepIds;
+            /// <summary>
+            /// <see cref="GroupColumnIndexes"/>[i] is the i-th group(-key) column's column index in the source schema.
+            /// </summary>
+            public readonly int[] GroupColumnIndexes;
+            /// <summary>
+            /// <see cref="KeepColumnIndexes"/>[i] is the i-th aggregated column's column index in the source schema.
+            /// </summary>
+            public readonly int[] KeepColumnIndexes;
 
-            private readonly int _groupCount;
-            private readonly ColumnType[] _columnTypes;
+            /// <summary>
+            /// Output <see cref="Schema"/> of <see cref="GroupTransform"/> when input schema is <see cref="_inputSchema"/>.
+            /// </summary>
+            public Schema OutputSchema { get; }
 
-            private readonly Dictionary<string, int> _columnNameMap;
-
-            public Schema AsSchema { get; }
-
-            public GroupSchema(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
+            public GroupBinding(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
             {
                 Contracts.AssertValue(ectx);
                 _ectx = ectx;
                 _ectx.AssertValue(inputSchema);
                 _ectx.AssertNonEmpty(groupColumns);
                 _ectx.AssertValue(keepColumns);
-                _input = inputSchema;
+                _inputSchema = inputSchema;
 
                 _groupColumns = groupColumns;
-                GroupIds = GetColumnIds(inputSchema, groupColumns, x => _ectx.ExceptUserArg(nameof(Arguments.GroupKey), x));
-                _groupCount = GroupIds.Length;
+                GroupColumnIndexes = GetColumnIds(inputSchema, groupColumns, x => _ectx.ExceptUserArg(nameof(Arguments.GroupKey), x));
 
                 _keepColumns = keepColumns;
-                KeepIds = GetColumnIds(inputSchema, keepColumns, x => _ectx.ExceptUserArg(nameof(Arguments.Column), x));
+                KeepColumnIndexes = GetColumnIds(inputSchema, keepColumns, x => _ectx.ExceptUserArg(nameof(Arguments.Column), x));
 
-                _columnTypes = BuildColumnTypes(_input, KeepIds);
-                _columnNameMap = BuildColumnNameMap();
-
-                AsSchema = Schema.Create(this);
+                // Compute output schema from the specified input schema.
+                OutputSchema = BuildOutputSchema(inputSchema);
             }
 
-            public GroupSchema(Schema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
+            public GroupBinding(Schema inputSchema, IHostEnvironment env, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(env);
                 _ectx = env.Register(LoaderSignature);
@@ -242,54 +247,63 @@ namespace Microsoft.ML.Transforms
                 // int[G]: ids of group column names
                 // int: K: number of keep columns
                 // int[K]: ids of keep column names
-                _input = inputSchema;
+                _inputSchema = inputSchema;
 
+                // Load group columns.
                 int g = ctx.Reader.ReadInt32();
                 _ectx.CheckDecode(g > 0);
                 _groupColumns = new string[g];
                 for (int i = 0; i < g; i++)
                     _groupColumns[i] = ctx.LoadNonEmptyString();
 
+                // Load keep columns (aka columns being aggregated).
                 int k = ctx.Reader.ReadInt32();
                 _ectx.CheckDecode(k >= 0);
                 _keepColumns = new string[k];
                 for (int i = 0; i < k; i++)
                     _keepColumns[i] = ctx.LoadNonEmptyString();
 
-                GroupIds = GetColumnIds(inputSchema, _groupColumns, _ectx.Except);
-                _groupCount = GroupIds.Length;
+                // Translate column names to column indexes in source schema.
+                GroupColumnIndexes = GetColumnIds(inputSchema, _groupColumns, _ectx.Except);
+                KeepColumnIndexes = GetColumnIds(inputSchema, _keepColumns, _ectx.Except);
 
-                KeepIds = GetColumnIds(inputSchema, _keepColumns, _ectx.Except);
-
-                _columnTypes = BuildColumnTypes(_input, KeepIds);
-                _columnNameMap = BuildColumnNameMap();
-
-                AsSchema = Schema.Create(this);
+                // Compute output schema from the specified input schema.
+                OutputSchema = BuildOutputSchema(inputSchema);
             }
 
-            private Dictionary<string, int> BuildColumnNameMap()
+            /// <summary>
+            /// Compute the output schema of a <see cref="GroupTransform"/> given a input schema.
+            /// </summary>
+            /// <param name="sourceSchema">Input schema.</param>
+            /// <returns>The associated output schema produced by <see cref="GroupTransform"/>.</returns>
+            private Schema BuildOutputSchema(Schema sourceSchema)
             {
-                var map = new Dictionary<string, int>();
-                for (int i = 0; i < _groupCount; i++)
-                    map[_groupColumns[i]] = i;
+                // Create schema build. We will sequentially add group columns and then aggregated columns.
+                var schemaBuilder = new SchemaBuilder();
 
-                for (int i = 0; i < _keepColumns.Length; i++)
-                    map[_keepColumns[i]] = i + _groupCount;
+                // Handle group(-key) columns. Those columns are used as keys to partition rows in the input data; specifically,
+                // rows with the same key value will be merged into one row in the output data.
+                foreach (var groupKeyColumnName in _groupColumns)
+                    schemaBuilder.AddColumn(groupKeyColumnName, sourceSchema[groupKeyColumnName].Type, sourceSchema[groupKeyColumnName].Metadata);
 
-                return map;
-            }
-
-            private static ColumnType[] BuildColumnTypes(Schema input, int[] ids)
-            {
-                var types = new ColumnType[ids.Length];
-                for (int i = 0; i < ids.Length; i++)
+                // Handle aggregated (aka keep) columns.
+                foreach (var groupValueColumnName in _keepColumns)
                 {
-                    var srcType = input[ids[i]].Type;
-                    var primitiveType = srcType as PrimitiveType;
-                    Contracts.Assert(primitiveType != null);
-                    types[i] = new VectorType(primitiveType, size: 0);
+                    // Prepare column's metadata.
+                    var metadataBuilder = new MetadataBuilder();
+                    metadataBuilder.Add(sourceSchema[groupValueColumnName].Metadata,
+                        s => s == MetadataUtils.Kinds.IsNormalized || s == MetadataUtils.Kinds.KeyValues);
+
+                    // Prepare column's type.
+                    var aggregatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveType;
+                    _ectx.CheckValue(aggregatedValueType, nameof(aggregatedValueType), "Columns being aggregated must be primitive types such as string, float, or integer");
+                    var aggregatedResultType = new VectorType(aggregatedValueType);
+
+                    // Add column into output schema.
+                    schemaBuilder.AddColumn(groupValueColumnName, aggregatedResultType, metadataBuilder.GetMetadata());
                 }
-                return types;
+
+                return schemaBuilder.GetSchema();
             }
 
             public void Save(ModelSaveContext ctx)
@@ -319,103 +333,47 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
+            /// <summary>
+            /// Given column names, extract and return column indexes from source schema.
+            /// </summary>
+            /// <param name="schema">Source schema</param>
+            /// <param name="names">Column names</param>
+            /// <param name="except">Marked exception function</param>
+            /// <returns>column indexes</returns>
             private int[] GetColumnIds(Schema schema, string[] names, Func<string, Exception> except)
             {
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(names);
 
                 var ids = new int[names.Length];
+
                 for (int i = 0; i < names.Length; i++)
                 {
-                    int col;
-                    if (!schema.TryGetColumnIndex(names[i], out col))
-                        throw except(string.Format("Could not find column '{0}'", names[i]));
+                    // Find column called names[i] from input schema.
+                    var retrievedColumn = schema.GetColumnOrNull(names[i]);
 
-                    var colType = schema[col].Type;
-                    if (!(colType is PrimitiveType))
-                        throw except(string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType));
+                    // Throw if no such a column in schema.
+                    var errorMessage = string.Format("Could not find column '{0}'", names[i]);
+                    _ectx.Check(retrievedColumn.HasValue, errorMessage);
 
-                    ids[i] = col;
+                    var colType = retrievedColumn.Value.Type;
+                    errorMessage = string.Format("Column '{0}' has type '{1}', but must have a primitive type", names[i], colType);
+                    _ectx.Check(colType is PrimitiveType, errorMessage);
+
+                    ids[i] = retrievedColumn.Value.Index;
                 }
 
                 return ids;
             }
 
-            public int ColumnCount { get { return _groupCount + KeepIds.Length; } }
-
+            /// <summary>
+            /// Determine if output column index is valid to <see cref="OutputSchema"/>. A valid output column index should be greater than or
+            /// equal 0 and smaller than # of output columns.
+            /// </summary>
+            /// <param name="col">Column index of <see cref="OutputSchema"/></param>
             public void CheckColumnInRange(int col)
             {
-                _ectx.Check(0 <= col && col < _groupCount + KeepIds.Length);
-            }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                return _columnNameMap.TryGetValue(name, out col);
-            }
-
-            public string GetColumnName(int col)
-            {
-                CheckColumnInRange(col);
-                if (col < _groupCount)
-                    return _groupColumns[col];
-                return _keepColumns[col - _groupCount];
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                CheckColumnInRange(col);
-                if (col < _groupCount)
-                    return _input[GroupIds[col]].Type;
-                return _columnTypes[col - _groupCount];
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                CheckColumnInRange(col);
-                if (col < _groupCount)
-                    return _input[GroupIds[col]].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
-
-                col -= _groupCount;
-                var result = new List<KeyValuePair<string, ColumnType>>();
-                foreach (var kind in _preservedMetadata)
-                {
-                    var colType = _input[KeepIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-                    if (colType != null)
-                        result.Add(colType.GetPair(kind));
-                }
-
-                return result;
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                CheckColumnInRange(col);
-                if (col < _groupCount)
-                    return _input[GroupIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-
-                col -= _groupCount;
-                if (_preservedMetadata.Contains(kind))
-                    return _input[KeepIds[col]].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-                return null;
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                CheckColumnInRange(col);
-                if (col < _groupCount)
-                {
-                    _input[GroupIds[col]].Metadata.GetValue(kind, ref value);
-                    return;
-                }
-
-                col -= _groupCount;
-                if (_preservedMetadata.Contains(kind))
-                {
-                    _input[KeepIds[col]].Metadata.GetValue(kind, ref value);
-                    return;
-                }
-
-                throw _ectx.ExceptGetMetadata();
+                _ectx.Check(0 <= col && col < GroupColumnIndexes.Length + KeepColumnIndexes.Length);
             }
         }
 
@@ -561,12 +519,12 @@ namespace Microsoft.ML.Transforms
                 Ch.AssertValue(predicate);
 
                 _parent = parent;
-                var schema = _parent._groupSchema;
-                _active = Utils.BuildArray(schema.ColumnCount, predicate);
-                _groupCount = schema.GroupIds.Length;
+                var binding = _parent._groupBinding;
+                _active = Utils.BuildArray(binding.OutputSchema.Count, predicate);
+                _groupCount = binding.GroupColumnIndexes.Length;
 
                 bool[] srcActiveLeading = new bool[_parent.Source.Schema.Count];
-                foreach (var col in schema.GroupIds)
+                foreach (var col in binding.GroupColumnIndexes)
                     srcActiveLeading[col] = true;
                 _leadingCursor = parent.Source.GetRowCursor(x => srcActiveLeading[x]);
 
@@ -574,24 +532,24 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _groupCount; i++)
                 {
                     if (_active[i])
-                        srcActiveTrailing[schema.GroupIds[i]] = true;
+                        srcActiveTrailing[binding.GroupColumnIndexes[i]] = true;
                 }
-                for (int i = 0; i < schema.KeepIds.Length; i++)
+                for (int i = 0; i < binding.KeepColumnIndexes.Length; i++)
                 {
                     if (_active[i + _groupCount])
-                        srcActiveTrailing[schema.KeepIds[i]] = true;
+                        srcActiveTrailing[binding.KeepColumnIndexes[i]] = true;
                 }
                 _trailingCursor = parent.Source.GetRowCursor(x => srcActiveTrailing[x]);
 
                 _groupCheckers = new GroupKeyColumnChecker[_groupCount];
                 for (int i = 0; i < _groupCount; i++)
-                    _groupCheckers[i] = new GroupKeyColumnChecker(_leadingCursor, _parent._groupSchema.GroupIds[i]);
+                    _groupCheckers[i] = new GroupKeyColumnChecker(_leadingCursor, _parent._groupBinding.GroupColumnIndexes[i]);
 
-                _aggregators = new KeepColumnAggregator[_parent._groupSchema.KeepIds.Length];
+                _aggregators = new KeepColumnAggregator[_parent._groupBinding.KeepColumnIndexes.Length];
                 for (int i = 0; i < _aggregators.Length; i++)
                 {
                     if (_active[i + _groupCount])
-                        _aggregators[i] = KeepColumnAggregator.Create(_trailingCursor, _parent._groupSchema.KeepIds[i]);
+                        _aggregators[i] = KeepColumnAggregator.Create(_trailingCursor, _parent._groupBinding.KeepColumnIndexes[i]);
                 }
             }
 
@@ -602,7 +560,7 @@ namespace Microsoft.ML.Transforms
 
             public override bool IsColumnActive(int col)
             {
-                _parent._groupSchema.CheckColumnInRange(col);
+                _parent._groupBinding.CheckColumnInRange(col);
                 return _active[col];
             }
 
@@ -678,12 +636,12 @@ namespace Microsoft.ML.Transforms
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                _parent._groupSchema.CheckColumnInRange(col);
+                _parent._groupBinding.CheckColumnInRange(col);
                 if (!_active[col])
                     throw Ch.ExceptParam(nameof(col), "Column #{0} is not active", col);
 
                 if (col < _groupCount)
-                    return _trailingCursor.GetGetter<TValue>(_parent._groupSchema.GroupIds[col]);
+                    return _trailingCursor.GetGetter<TValue>(_parent._groupBinding.GroupColumnIndexes[col]);
 
                 Ch.AssertValue(_aggregators[col - _groupCount]);
                 return _aggregators[col - _groupCount].GetGetter<TValue>(Ch);
