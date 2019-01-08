@@ -37,10 +37,10 @@ Below are a few of the highlights from this release. There are many other improv
     * GPU is currently supported on 64 bit Windows
     * Cross platform support is still being developed for this feature
 
-* `Permutation Feature Importance` now supports confidence intervals.
+* `Permutation Feature Importance` now supports confidence intervals
   ([#1844](https://github.com/dotnet/machinelearning/pull/1844))
 
-* Introducing `PredictionEngine` instead of `PredictionFunction`.
+* Introducing `PredictionEngine` instead of `PredictionFunction`
   ([#1920](https://github.com/dotnet/machinelearning/pull/1920))
   
 ### Acknowledgements
