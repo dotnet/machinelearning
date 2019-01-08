@@ -154,7 +154,7 @@ namespace Microsoft.ML.Data
                     ColumnType typeNames;
                     if ((typeNames = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null)
                         continue;
-                    if (typeNames.VectorSize != type.VectorSize || !typeNames.ItemType.IsText)
+                    if (typeNames.VectorSize != type.VectorSize || !(typeNames.ItemType is TextType))
                     {
                         Contracts.Assert(false, "Unexpected slot names type");
                         continue;
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(type);
             Contracts.Assert(!type.IsVector);
 
-            if (!type.IsStandardScalar && !type.IsKey)
+            if (!type.IsStandardScalar() && !type.IsKey)
             {
                 itw.Write(": Can't display value of this type");
                 return;
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(type);
             Contracts.Assert(type.IsVector);
 
-            if (!type.ItemType.IsStandardScalar && !type.ItemType.IsKey)
+            if (!type.ItemType.IsStandardScalar() && !type.ItemType.IsKey)
             {
                 itw.Write(": Can't display value of this type");
                 return;

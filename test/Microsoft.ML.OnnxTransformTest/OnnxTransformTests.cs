@@ -10,10 +10,10 @@ using System.Runtime.InteropServices;
 using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Model;
 using Microsoft.ML.OnnxTransform.StaticPipe;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -126,8 +126,10 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
-        void TestOldSavingAndLoading()
+        [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        [InlineData(null, false)]
+        [InlineData(null, true)]
+        void TestOldSavingAndLoading(int? gpuDeviceId, bool fallbackToCpu)
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
@@ -146,7 +148,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = new[] { "data_0" };
             var outputNames = new[] { "softmaxout_1" };
-            var est = new OnnxScoringEstimator(Env, modelFile, inputNames, outputNames);
+            var est = new OnnxScoringEstimator(Env, modelFile, inputNames, outputNames, gpuDeviceId, fallbackToCpu);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -198,7 +200,7 @@ namespace Microsoft.ML.Tests
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var data = TextLoader.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateReader(env, ctx => (
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);
@@ -236,7 +238,7 @@ namespace Microsoft.ML.Tests
                 return;
 
             var env = new MLContext();
-            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
+            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx} GpuDeviceId=0 FallbackToCpu=+}" });
             Assert.Equal(0, x);
         }
         

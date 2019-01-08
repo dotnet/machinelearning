@@ -120,7 +120,7 @@ namespace Microsoft.ML.EntryPoints
             if (!schema.TryGetColumnIndex(colName, out col))
                 return null;
             var type = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            if (type == null || !type.IsKnownSizeVector || !type.ItemType.IsText)
+            if (type == null || !type.IsKnownSizeVector || !(type.ItemType is TextType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
             schema[col].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
@@ -177,7 +177,7 @@ namespace Microsoft.ML.EntryPoints
                             continue;
                         }
                     }
-                    if (type.IsNumber || type.IsBool)
+                    if (type is NumberType || type is BoolType)
                     {
                         // Even if the column is R4 in training, we still want to add it to the conversion.
                         // The reason is that at scoring time, the column might have a slightly different type (R8 for example).
@@ -235,7 +235,7 @@ namespace Microsoft.ML.EntryPoints
             if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
             var labelType = input.Data.Schema[labelCol].Type;
-            if (labelType.IsKey || labelType.IsBool)
+            if (labelType.IsKey || labelType is BoolType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
@@ -270,7 +270,7 @@ namespace Microsoft.ML.EntryPoints
             if (!input.Data.Schema.TryGetColumnIndex(input.PredictedLabelColumn, out predictedLabelCol))
                 throw host.Except($"Column '{input.PredictedLabelColumn}' not found.");
             var predictedLabelType = input.Data.Schema[predictedLabelCol].Type;
-            if (predictedLabelType.IsNumber || predictedLabelType.IsBool)
+            if (predictedLabelType is NumberType || predictedLabelType is BoolType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
@@ -292,7 +292,7 @@ namespace Microsoft.ML.EntryPoints
             if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
             var labelType = input.Data.Schema[labelCol].Type;
-            if (labelType == NumberType.R4 || !labelType.IsNumber)
+            if (labelType == NumberType.R4 || !(labelType is NumberType))
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };

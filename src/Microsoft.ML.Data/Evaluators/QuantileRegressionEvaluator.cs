@@ -44,7 +44,7 @@ namespace Microsoft.ML.Data
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             int scoreSize = scoreInfo.Type.VectorSize;
             var type = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
-            Host.Check(type != null && type.IsKnownSizeVector && type.ItemType.IsText, "Quantile regression score column must have slot names");
+            Host.Check(type != null && type.IsKnownSizeVector && type.ItemType is TextType, "Quantile regression score column must have slot names");
             var quantiles = default(VBuffer<ReadOnlyMemory<char>>);
             schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref quantiles);
             Host.Assert(quantiles.IsDense && quantiles.Length == scoreSize);
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data
             Host.Assert(t.VectorSize > 0 && (t.ItemType == NumberType.R4 || t.ItemType == NumberType.R8));
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
             t = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
-            if (t != null && t.VectorSize == scoreInfo.Type.VectorSize && t.ItemType.IsText)
+            if (t != null && t.VectorSize == scoreInfo.Type.VectorSize && t.ItemType is TextType)
                 schema.Schema[scoreInfo.Index].GetSlotNames(ref slotNames);
             return new Aggregator(Host, LossFunction, schema.Weight != null, scoreInfo.Type.VectorSize, in slotNames, stratName);
         }

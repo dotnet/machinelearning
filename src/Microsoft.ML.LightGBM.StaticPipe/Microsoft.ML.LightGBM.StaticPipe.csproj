@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
     <ProjectReference Include="..\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.StaticPipe\Microsoft.ML.StaticPipe.csproj" />
   </ItemGroup>
 
 </Project>

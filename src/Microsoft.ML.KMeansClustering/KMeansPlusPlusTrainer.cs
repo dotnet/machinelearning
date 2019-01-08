@@ -44,10 +44,10 @@ namespace Microsoft.ML.Trainers.KMeans
             KMeansParallel = 2
         }
 
+        [BestFriend]
         internal static class Defaults{
-
             /// <value>The number of clusters.</value>
-            internal const int K = 5;
+            public const int K = 5;
         }
 
         public class Arguments : UnsupervisedLearnerInputBaseWithWeight

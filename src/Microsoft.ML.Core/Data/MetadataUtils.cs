@@ -283,7 +283,7 @@ namespace Microsoft.ML.Data
             for (int col = 0; col < schema.Count; col++)
             {
                 var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
-                if (columnType != null && columnType.IsText)
+                if (columnType != null && columnType is TextType)
                 {
                     ReadOnlyMemory<char> val = default;
                     schema[col].Metadata.GetValue(metadataKind, ref val);
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Data
                 metaColumn != null
                 && metaColumn.Value.Type.IsVector
                 && metaColumn.Value.Type.VectorSize == vectorSize
-                && metaColumn.Value.Type.ItemType.IsText;
+                && metaColumn.Value.Type.ItemType is TextType;
         }
 
         public static void GetSlotNames(this Schema.Column column, ref VBuffer<ReadOnlyMemory<char>> slotNames)
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Data
                 metaColumn != null
                 && metaColumn.Value.Type.IsVector
                 && metaColumn.Value.Type.VectorSize == keyCount
-                && metaColumn.Value.Type.ItemType.IsText;
+                && metaColumn.Value.Type.ItemType is TextType;
         }
 
         [BestFriend]
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Data
         {
             return col.Metadata.TryFindColumn(Kinds.KeyValues, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
-                && metaCol.ItemType.IsText;
+                && metaCol.ItemType is TextType;
         }
 
         /// <summary>
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Data
         public static bool IsNormalized(this Schema.Column column)
         {
             var metaColumn = column.Metadata.Schema.GetColumnOrNull((Kinds.IsNormalized));
-            if (metaColumn == null || !metaColumn.Value.Type.IsBool)
+            if (metaColumn == null || !(metaColumn.Value.Type is BoolType))
                 return false;
 
             bool value = default;

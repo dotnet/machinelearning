@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
 
         private readonly IHost _host;
         private readonly IDataView[] _sources;
-        private readonly CompositeSchema _compositeSchema;
+        private readonly ZipBinding _zipBinding;
 
         public static IDataView Create(IHostEnvironment env, IEnumerable<IDataView> sources)
         {
@@ -47,12 +47,12 @@ namespace Microsoft.ML.Data
 
             _host.Assert(Utils.Size(sources) > 1);
             _sources = sources;
-            _compositeSchema = new CompositeSchema(_sources.Select(x => x.Schema).ToArray());
+            _zipBinding = new ZipBinding(_sources.Select(x => x.Schema).ToArray());
         }
 
         public bool CanShuffle { get { return false; } }
 
-        public Schema Schema => _compositeSchema.AsSchema;
+        public Schema Schema => _zipBinding.OutputSchema;
 
         public long? GetRowCount()
         {
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
 
-            var srcPredicates = _compositeSchema.GetInputPredicates(predicate);
+            var srcPredicates = _zipBinding.GetInputPredicates(predicate);
 
             // REVIEW: if we know the row counts, we could only open cursor if it has needed columns, and have the
             // outer cursor handle the early stopping. If we don't know row counts, we need to open all the cursors because
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Data
         private sealed class Cursor : RootCursorBase
         {
             private readonly RowCursor[] _cursors;
-            private readonly CompositeSchema _compositeSchema;
+            private readonly ZipBinding _zipBinding;
             private readonly bool[] _isColumnActive;
             private bool _disposed;
 
@@ -119,8 +119,8 @@ namespace Microsoft.ML.Data
                 Ch.AssertValue(predicate);
 
                 _cursors = srcCursors;
-                _compositeSchema = parent._compositeSchema;
-                _isColumnActive = Utils.BuildArray(_compositeSchema.ColumnCount, predicate);
+                _zipBinding = parent._zipBinding;
+                _isColumnActive = Utils.BuildArray(_zipBinding.ColumnCount, predicate);
             }
 
             protected override void Dispose(bool disposing)
@@ -172,11 +172,11 @@ namespace Microsoft.ML.Data
                 return true;
             }
 
-            public override Schema Schema => _compositeSchema.AsSchema;
+            public override Schema Schema => _zipBinding.OutputSchema;
 
             public override bool IsColumnActive(int col)
             {
-                _compositeSchema.CheckColumnInRange(col);
+                _zipBinding.CheckColumnInRange(col);
                 return _isColumnActive[col];
             }
 
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Data
             {
                 int dv;
                 int srcCol;
-                _compositeSchema.GetColumnSource(col, out dv, out srcCol);
+                _zipBinding.GetColumnSource(col, out dv, out srcCol);
                 return _cursors[dv].GetGetter<TValue>(srcCol);
             }
         }

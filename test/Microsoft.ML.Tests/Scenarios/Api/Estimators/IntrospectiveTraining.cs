@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// </summary>
 
         [Fact]
-        public void New_IntrospectiveTraining()
+        public void IntrospectiveTraining()
         {
             var ml = new MLContext(seed: 1, conc: 1);
             var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);

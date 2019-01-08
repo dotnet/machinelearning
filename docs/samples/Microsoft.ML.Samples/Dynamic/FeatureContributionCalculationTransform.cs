@@ -8,7 +8,7 @@ namespace Microsoft.ML.Samples.Dynamic
         public static void FeatureContributionCalculationTransform_Regression()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
-            // This will create a sentiment.tsv file in the filesystem.
+            // This will create a housing.txt file in the filesystem.
             // You can open this file, if you want to see the data. 
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
@@ -59,12 +59,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a Feature Contribution Calculator
             // Calculate the feature contributions for all features given trained model parameters
             // And don't normalize the contribution scores
-            var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11, normalize: false);
+            var featureContributionCalculator = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, numPositiveContributions: 11, normalize: false);
             var outputData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
             // FeatureContributionCalculatingEstimator can be use as an intermediary step in a pipeline. 
             // The features retained by FeatureContributionCalculatingEstimator will be in the FeatureContribution column.
-            var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, top: 11)
+            var pipeline = mlContext.Model.Explainability.FeatureContributionCalculation(model.Model, model.FeatureColumn, numPositiveContributions: 11)
                 .Append(mlContext.Regression.Trainers.OrdinaryLeastSquares(featureColumn: "FeatureContributions"));
             var outData = featureContributionCalculator.Fit(scoredData).Transform(scoredData);
 
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var weights = new VBuffer<float>();
             model.Model.GetFeatureWeights(ref weights);
 
-            // Let's now walk through the first ten reconds and see which feature drove the values the most
+            // Let's now walk through the first ten records and see which feature drove the values the most
             // Get prediction scores and contributions
             var scoringEnumerator = outputData.AsEnumerable<HousingRegressionScoreAndContribution>(mlContext, true).GetEnumerator();
             int index = 0;

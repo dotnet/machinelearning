@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
@@ -54,7 +55,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        public void TestLogisticRegressionStats()
+        public void TestLogisticRegressionNoStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
@@ -70,7 +71,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
-        public void TestLogisticRegressionStats_MKL()
+        public void TestLogisticRegressionWithStats()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
@@ -80,14 +81,24 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 s.StdComputer = new ComputeLRTrainingStdThroughHal();
             }));
 
-            var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
+            var transformer = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
 
-            var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryModelParameters;
+            var linearModel = transformer.LastTransformer.Model.SubPredictor as LinearBinaryModelParameters;
             var stats = linearModel.Statistics;
             LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
 
             CompareNumbersWithTolerance(stdError, 0.250672936);
             CompareNumbersWithTolerance(zScore, 7.97852373);
+
+            var scoredData = transformer.Transform(dataView);
+
+            var coeffcients  = stats.GetCoefficientStatistics(linearModel, scoredData.Schema["Features"], 100);
+
+            Assert.Equal(19, coeffcients.Length);
+
+            foreach(var coefficient in coeffcients)
+                Assert.True(coefficient.StandardError < 1.0);
+
         }
     }
 }

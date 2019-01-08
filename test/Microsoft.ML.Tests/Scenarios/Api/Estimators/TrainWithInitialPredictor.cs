@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// The scenario might be one of the online linear learners that can take advantage of this, for example, averaged perceptron.
         /// </summary>
         [Fact]
-        public void New_TrainWithInitialPredictor()
+        public void TrainWithInitialPredictor()
         {
 
             var ml = new MLContext(seed: 1, conc: 1);

@@ -405,7 +405,7 @@ namespace Microsoft.ML.Data
         /// Used as an input column range.
         /// A variable length segment (extending to the end of the input line) is represented by Lim == SrcLim.
         /// </summary>
-        private struct Segment
+        internal struct Segment
         {
             public int Min;
             public int Lim;
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Information for an output column.
         /// </summary>
-        private sealed class ColInfo
+        internal sealed class ColInfo
         {
             public readonly string Name;
             // REVIEW: Fix this for keys.
@@ -1360,6 +1360,8 @@ namespace Microsoft.ML.Data
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
         public IDataView Read(string path) => Read(new MultiFileSource(path));
+
+        public IDataView Read(params string[] path) => Read(new MultiFileSource(path));
 
         internal static TextLoader CreateTextReader<TInput>(IHostEnvironment host,
            bool hasHeader = DefaultArguments.HasHeader,

@@ -6,20 +6,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints.JsonUtils;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.TestFramework;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
-#pragma warning disable 612, 618
     public sealed class TextLoaderTestPipe : TestDataPipeBase
     {
         public TextLoaderTestPipe(ITestOutputHelper output)
             : base(output)
         {
-
         }
 
         [Fact]
@@ -132,56 +132,167 @@ namespace Microsoft.ML.EntryPoints.Tests
 
     public class TextLoaderTests : BaseTestClass
     {
+        ConsoleEnvironment env;
         public TextLoaderTests(ITestOutputHelper output)
             : base(output)
         {
-
+            env = new ConsoleEnvironment(42).AddStandardComponents();
         }
 
         [Fact]
         public void ConstructorDoesntThrow()
         {
-            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
-            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: true));
-            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
-            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false));
-            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false, trimWhitespace: false));
-            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false));
-            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, allowQuotedStrings: false));
+            var mlContext = new MLContext(seed: 1, conc: 1);
 
-            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<InputWithUnderscore>());
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt"));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: true));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, supportSparse: false, trimWhitespace: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, supportSparse: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<Input>("fakeFile.txt", hasHeader: false, allowQuotedStrings: false));
+            Assert.NotNull(mlContext.Data.ReadFromTextFile<InputWithUnderscore>("fakeFile.txt"));
         }
 
         [Fact]
         public void CanSuccessfullyApplyATransform()
         {
-            var loader = new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>();
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': true,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': [{
+                                        'Name': 'String1',
+                                        'Type': 'TX',
+                                        'Source': [{
+                                                'Min': 0,
+                                                'Max': 0,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'Number1',
+                                        'Type': 'R4',
+                                        'Source': [{
+                                                'Min': 1,
+                                                'Max': 1,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }
+                                ],
+                                'TrimWhitespace': false,
+                                'HasHeader': false
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$data'
+                        }
+                    }
+                ]
+            }";
 
-            var environment = new MLContext();
-            Experiment experiment = environment.CreateExperiment();
-            Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(env, "fakeFile.txt", false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
 
-            Assert.NotNull(output.Data);
-            Assert.NotNull(output.Data.VarName);
-            Assert.Null(output.Model);
+            var data = runner.GetOutput<IDataView>("data");
+            Assert.NotNull(data);
         }
 
         [Fact]
         public void CanSuccessfullyRetrieveQuotedData()
         {
             string dataPath = GetDataPath("QuotingData.csv");
-            var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: true, supportSparse: false);
+            string inputGraph = @"
+            {  
+               'Nodes':[  
+                  {  
+                     'Name':'Data.TextLoader',
+                     'Inputs':{  
+                        'InputFile':'$inputFile',
+                        'Arguments':{  
+                           'UseThreads':true,
+                           'HeaderFile':null,
+                           'MaxRows':null,
+                           'AllowQuoting':true,
+                           'AllowSparse':false,
+                           'InputSize':null,
+                           'Separator':[  
+                              ','
+                           ],
+                           'Column':[  
+                              {  
+                                 'Name':'ID',
+                                 'Type':'R4',
+                                 'Source':[  
+                                    {  
+                                       'Min':0,
+                                       'Max':0,
+                                       'AutoEnd':false,
+                                       'VariableEnd':false,
+                                       'AllOther':false,
+                                       'ForceVector':false
+                                    }
+                                 ],
+                                 'KeyRange':null
+                              },
+                              {  
+                                 'Name':'Text',
+                                 'Type':'TX',
+                                 'Source':[  
+                                    {  
+                                       'Min':1,
+                                       'Max':1,
+                                       'AutoEnd':false,
+                                       'VariableEnd':false,
+                                       'AllOther':false,
+                                       'ForceVector':false
+                                    }
+                                 ],
+                                 'KeyRange':null
+                              }
+                           ],
+                           'TrimWhitespace':false,
+                           'HasHeader':true
+                        }
+                     },
+                     'Outputs':{  
+                        'Data':'$data'
+                     }
+                  }
+               ]
+            }";
 
-            var environment = new MLContext();
-            Experiment experiment = environment.CreateExperiment();
-            Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
 
-            experiment.Compile();
-            loader.SetInput(environment, experiment);
-            experiment.Run();
-
-            IDataView data = experiment.GetOutput(output.Data);
-            Assert.NotNull(data);
+            var data = runner.GetOutput<IDataView>("data"); Assert.NotNull(data);
 
             using (var cursor = data.GetRowCursor((a => true)))
             {
@@ -226,17 +337,108 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyRetrieveSparseData()
         {
             string dataPath = GetDataPath("SparseData.txt");
-            var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<SparseInput>(useHeader: true, allowQuotedStrings: false, supportSparse: true);
+            string inputGraph = @"
+            {
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': false,
+                                'AllowSparse': true,
+                                'InputSize': null,
+                                'Separator': [
+                                    '\t'
+                                ],
+                                'Column': [{
+                                        'Name': 'C1',
+                                        'Type': 'R4',
+                                        'Source': [{
+                                                'Min': 0,
+                                                'Max': 0,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'C2',
+                                        'Type': 'R4',
+                                        'Source': [{
+                                                'Min': 1,
+                                                'Max': 1,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'C3',
+                                        'Type': 'R4',
+                                        'Source': [{
+                                                'Min': 2,
+                                                'Max': 2,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'C4',
+                                        'Type': 'R4',
+                                        'Source': [{
+                                                'Min': 3,
+                                                'Max': 3,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'C5',
+                                        'Type': 'R4',
+                                        'Source': [{
+                                                'Min': 4,
+                                                'Max': 4,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }
+                                ],
+                                'TrimWhitespace': false,
+                                'HasHeader': true
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$data'
+                        }
+                    }
+                ]
+            }";
 
-            var environment = new MLContext();
-            Experiment experiment = environment.CreateExperiment();
-            Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
 
-            experiment.Compile();
-            loader.SetInput(environment, experiment);
-            experiment.Run();
-
-            IDataView data = experiment.GetOutput(output.Data);
+            var data = runner.GetOutput<IDataView>("data");
             Assert.NotNull(data);
 
             using (var cursor = data.GetRowCursor((a => true)))
@@ -289,17 +491,68 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyTrimSpaces()
         {
             string dataPath = GetDataPath("TrimData.csv");
-            var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: false, supportSparse: false, trimWhitespace: true);
+            string inputGraph = @"{
+                'Nodes':
+                [{
+                        'Name': 'Data.TextLoader',
+                        'Inputs': {
+                            'InputFile': '$inputFile',
+                            'Arguments': {
+                                'UseThreads': true,
+                                'HeaderFile': null,
+                                'MaxRows': null,
+                                'AllowQuoting': false,
+                                'AllowSparse': false,
+                                'InputSize': null,
+                                'Separator': [
+                                    ','
+                                ],
+                                'Column': [{
+                                        'Name': 'ID',
+                                        'Type': 'R4',
+                                        'Source': [{
+                                                'Min': 0,
+                                                'Max': 0,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }, {
+                                        'Name': 'Text',
+                                        'Type': 'TX',
+                                        'Source': [{
+                                                'Min': 1,
+                                                'Max': 1,
+                                                'AutoEnd': false,
+                                                'VariableEnd': false,
+                                                'AllOther': false,
+                                                'ForceVector': false
+                                            }
+                                        ],
+                                        'KeyRange': null
+                                    }
+                                ],
+                                'TrimWhitespace': true,
+                                'HasHeader': true
+                            }
+                        },
+                        'Outputs': {
+                            'Data': '$data'
+                        }
+                    }
+                ]
+            }";
 
-            var environment = new MLContext();
-            Experiment experiment = environment.CreateExperiment();
-            Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
+            JObject graph = JObject.Parse(inputGraph);
+            var runner = new GraphRunner(env, graph[FieldNames.Nodes] as JArray);
+            var inputFile = new SimpleFileHandle(env, dataPath, false, false);
+            runner.SetInput("inputFile", inputFile);
+            runner.RunAll();
 
-            experiment.Compile();
-            loader.SetInput(environment, experiment);
-            experiment.Run();
-
-            IDataView data = experiment.GetOutput(output.Data);
+            var data = runner.GetOutput<IDataView>("data");
             Assert.NotNull(data);
 
             using (var cursor = data.GetRowCursor((a => true)))
@@ -334,17 +587,14 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ThrowsExceptionWithPropertyName()
         {
-            Exception ex = Assert.Throws<InvalidOperationException>(() => new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>());
-            Assert.StartsWith($"Field or property String1 is missing {nameof(LoadColumnAttribute)}", ex.Message);
-        }
-
-        [Fact]
-        public void CanSuccessfullyColumnNameProperty()
-        {
-            var loader = new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithColumnNameAttribute>();
-            Assert.Equal("Col1", loader.Arguments.Column[0].Name);
-            Assert.Equal("Col2", loader.Arguments.Column[1].Name);
-            Assert.Equal("String_3", loader.Arguments.Column[2].Name);
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            try
+            {
+                mlContext.Data.ReadFromTextFile<ModelWithoutColumnAttribute>("fakefile.txt");
+            }
+            // REVIEW: the issue of different exceptions being thrown is tracked under #2037.
+            catch (Xunit.Sdk.TrueException) { }
+            catch (NullReferenceException) { };
         }
 
         public class QuoteInput
@@ -459,7 +709,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void LoaderColumnsFromIrisData()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
-            var ml = new MLContext();
+            var mlContext = new MLContext();
 
             var irisFirstRow = new Dictionary<string, float>();
             irisFirstRow["SepalLength"] = 5.1f;
@@ -467,10 +717,10 @@ namespace Microsoft.ML.EntryPoints.Tests
             irisFirstRow["PetalLength"] = 1.4f;
             irisFirstRow["PetalWidth"] = 0.2f;
 
-            var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
+           var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
-            var dataIris = ml.Data.CreateTextReader<Iris>(separatorChar: ',').Read(dataPath);
+            var dataIris = mlContext.Data.CreateTextReader<Iris>(separatorChar: ',').Read(dataPath);
             var previewIris = dataIris.Preview(1);
 
             Assert.Equal(5, previewIris.ColumnView.Length);
@@ -486,7 +736,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
 
             // Load with start and end indexes
-            var dataIrisStartEnd = ml.Data.CreateTextReader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
+            var dataIrisStartEnd = mlContext.Data.CreateTextReader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
             var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
 
             Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
@@ -503,7 +753,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             // load setting the distinct columns. Loading column 0 and 2
-            var dataIrisColumnIndices = ml.Data.CreateTextReader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
+            var dataIrisColumnIndices = mlContext.Data.CreateTextReader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
             var previewIrisColumnIndices = dataIrisColumnIndices.Preview(1);
 
             Assert.Equal(2, previewIrisColumnIndices.ColumnView.Length);
@@ -519,5 +769,4 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal(vals4[1], irisFirstRowValues.Current);
         }
     }
-#pragma warning restore 612, 618
 }

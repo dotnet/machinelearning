@@ -7,4 +7,6 @@ using Microsoft.ML;
 
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.HalLearners.StaticPipe" + PublicKey.Value)]
 
+[assembly: InternalsVisibleTo(assemblyName: "RunTests" + InternalPublicKey.Value)]
+
 [assembly: WantsToBeBestFriends]

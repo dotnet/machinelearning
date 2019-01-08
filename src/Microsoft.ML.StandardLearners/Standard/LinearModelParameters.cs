@@ -84,10 +84,7 @@ namespace Microsoft.ML.Learners
                 return _pred.Weight.Items(all: true).Select(iv => iv.Value).GetEnumerator();
             }
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         /// <summary> The predictor's feature weight coefficients.</summary>
@@ -102,6 +99,10 @@ namespace Microsoft.ML.Learners
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
+        /// <summary>
+        /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
+        /// For linear models, the contribution of a given feature is equal to the product of feature value times the corresponding weight.
+        /// </summary>
         public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
 
         /// <summary>
@@ -505,7 +506,7 @@ namespace Microsoft.ML.Learners
             writer.WriteLine(LinearPredictorUtils.LinearModelAsText("Linear Binary Classification Predictor", null, null,
                 in weights, Bias, schema));
 
-            _stats?.SaveText(writer, this, schema, 20);
+            _stats?.SaveText(writer, this, schema.Feature.Value, 20);
         }
 
         ///<inheritdoc/>
@@ -516,7 +517,7 @@ namespace Microsoft.ML.Learners
             var weights = Weight;
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
             LinearPredictorUtils.SaveLinearModelWeightsInKeyValuePairs(in weights, Bias, schema, results);
-            _stats?.SaveSummaryInKeyValuePairs(this, schema, int.MaxValue, results);
+            _stats?.SaveSummaryInKeyValuePairs(this, schema.Feature.Value, int.MaxValue, results);
             return results;
         }
 

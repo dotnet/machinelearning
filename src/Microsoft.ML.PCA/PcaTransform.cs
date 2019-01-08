@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -15,8 +14,6 @@ using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Projections;
 
 [assembly: LoadableClass(PcaTransform.Summary, typeof(IDataTransform), typeof(PcaTransform), typeof(PcaTransform.Arguments), typeof(SignatureDataTransform),
@@ -662,6 +659,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
     public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransform>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const string WeightColumn = null;
@@ -721,65 +719,5 @@ namespace Microsoft.ML.Transforms.Projections
 
             return new SchemaShape(result.Values);
         }
-    }
-
-    public static class PcaEstimatorExtensions
-    {
-        private sealed class OutPipelineColumn : Vector<float>
-        {
-            public readonly Vector<float> Input;
-
-            public OutPipelineColumn(Vector<float> input, string weightColumn, int rank,
-                                     int overSampling, bool center, int? seed = null)
-                : base(new Reconciler(weightColumn, rank, overSampling, center, seed), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly PcaTransform.ColumnInfo _colInfo;
-
-            public Reconciler(string weightColumn, int rank, int overSampling, bool center, int? seed = null)
-            {
-                _colInfo = new PcaTransform.ColumnInfo(
-                    null, null, weightColumn, rank, overSampling, center, seed);
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-                var outCol = (OutPipelineColumn)toOutput[0];
-                var inputColName = inputNames[outCol.Input];
-                var outputColName = outputNames[outCol];
-                return new PrincipalComponentAnalysisEstimator(env, inputColName, outputColName,
-                                         _colInfo.WeightColumn, _colInfo.Rank, _colInfo.Oversampling,
-                                         _colInfo.Center, _colInfo.Seed);
-            }
-        }
-
-        /// <summary>
-        /// Replaces the input vector with its projection to the principal component subspace,
-        /// which can significantly reduce size of vector.
-        /// </summary>
-        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
-        /// <param name="input">The column to apply PCA to.</param>
-        /// <param name="weightColumn">The name of the weight column.</param>
-        /// <param name="rank">The number of components in the PCA.</param>
-        /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
-        /// <param name="seed">The seed for random number generation</param>
-        /// <returns>Vector containing the principal components.</returns>
-        public static Vector<float> ToPrincipalComponents(this Vector<float> input,
-            string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
-            int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
-            int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
-            bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,
-            int? seed = null) => new OutPipelineColumn(input, weightColumn, rank, overSampling, center, seed);
     }
 }

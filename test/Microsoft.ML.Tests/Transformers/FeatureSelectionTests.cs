@@ -7,6 +7,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.FeatureSelection;
@@ -27,12 +28,12 @@ namespace Microsoft.ML.Tests.Transformers
         public void FeatureSelectionWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoader.CreateReader(ML, ctx => (
+            var data = TextLoaderStatic.CreateReader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var invalidData = TextLoader.CreateReader(ML, ctx => (
+            var invalidData = TextLoaderStatic.CreateReader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
@@ -61,7 +62,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void DropSlotsTransform()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -104,7 +105,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void CountFeatureSelectionWorkout()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(6),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDouble: ctx.LoadDouble(4, 8)
@@ -147,7 +148,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestCountSelectOldSavingAndLoading()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
                 Label: ctx.LoadKey(0, 0, 2),
                 VectorFloat: ctx.LoadFloat(1, 4)
             ));
@@ -171,7 +172,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void MutualInformationSelectionWorkout()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
                 Label: ctx.LoadKey(0, 0, 2),
                 ScalarFloat: ctx.LoadFloat(6),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -211,7 +212,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestMutualInformationOldSavingAndLoading()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(ML, ctx => (
+            var reader = TextLoaderStatic.CreateReader(ML, ctx => (
                 Label: ctx.LoadKey(0, 0, 2),
                 VectorFloat: ctx.LoadFloat(1, 4)
             ));

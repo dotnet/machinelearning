@@ -168,7 +168,7 @@ namespace Microsoft.ML.Data
                     // String[] -> ReadOnlyMemory<char>
                     if (outputType.GetElementType() == typeof(string))
                     {
-                        Host.Assert(colType.ItemType.IsText);
+                        Host.Assert(colType.ItemType is TextType);
                         return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(peek, x => x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
                     }
 
@@ -190,12 +190,12 @@ namespace Microsoft.ML.Data
                     del = CreateDirectVBufferGetterDelegate<int>;
                     genericType = colType.ItemType.RawType;
                 }
-                else if (colType.IsPrimitive)
+                else if (colType is PrimitiveType)
                 {
                     if (outputType == typeof(string))
                     {
                         // String -> ReadOnlyMemory<char>
-                        Host.Assert(colType.IsText);
+                        Host.Assert(colType is TextType);
                         return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(peek, x => x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
                     }
 
@@ -644,11 +644,8 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// An in-memory data view based on the IEnumerable of data.
         /// Doesn't support shuffling.
-        ///
-        /// This class is public because prediction engine wants to call its <see cref="SetData"/>
-        /// for performance reasons.
         /// </summary>
-        public sealed class StreamingDataView<TRow> : DataViewBase<TRow>
+        internal sealed class StreamingDataView<TRow> : DataViewBase<TRow>
             where TRow : class
         {
             private IEnumerable<TRow> _data;
@@ -673,18 +670,6 @@ namespace Microsoft.ML.Data
             public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 return new WrappedCursor (new Cursor(Host, this, predicate));
-            }
-
-            /// <summary>
-            /// Since all the cursors only depend on an enumerator (rather than the data itself),
-            /// it's safe to 'swap' the data inside the streaming data view. This doesn't affect
-            /// the current 'live' cursors, only the ones that will be created later.
-            /// This is used for efficiency in <see cref="BatchPredictionEngine{TSrc,TDst}"/>.
-            /// </summary>
-            public void SetData(IEnumerable<TRow> data)
-            {
-                Contracts.CheckValue(data, nameof(data));
-                _data = data;
             }
 
             private sealed class Cursor : DataViewCursorBase
@@ -932,12 +917,12 @@ namespace Microsoft.ML.Data
                     .MakeGenericMethod(MetadataType.ItemType.RawType)
                     .Invoke(this, new object[] { }) as ValueGetter<TDst>;
             }
-            if (MetadataType.IsPrimitive)
+            if (MetadataType is PrimitiveType)
             {
                 if (typeT == typeof(string))
                 {
                     // String -> ReadOnlyMemory<char>
-                    Contracts.Assert(MetadataType.IsText);
+                    Contracts.Assert(MetadataType is TextType);
                     ValueGetter<ReadOnlyMemory<char>> m = GetString;
                     return m as ValueGetter<TDst>;
                 }

@@ -335,7 +335,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         {
             // REVIEW: Consider supporting all integer and unsigned types.
             return
-                (0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize) || type.IsBool ||
+                (0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize) || type is BoolType ||
                 type == NumberType.R4 || type == NumberType.R8 || type == NumberType.I4;
         }
 
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     BinDoubles(in tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
-                else if (labelType.IsBool)
+                else if (labelType is BoolType)
                 {
                     var tmp = default(VBuffer<bool>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinDoubles(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (type.ItemType.IsBool)
+                if (type.ItemType is BoolType)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<bool> src, ref VBuffer<int> dst, out int min, out int lim) =>

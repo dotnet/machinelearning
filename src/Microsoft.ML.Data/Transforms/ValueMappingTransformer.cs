@@ -548,7 +548,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
-            env.Assert(!string.IsNullOrWhiteSpace(args.DataFile));
+            env.CheckUserArg(!string.IsNullOrWhiteSpace(args.DataFile), nameof(args.DataFile));
             env.CheckValueOrNull(args.KeyColumn);
             env.CheckValueOrNull(args.ValueColumn);
 

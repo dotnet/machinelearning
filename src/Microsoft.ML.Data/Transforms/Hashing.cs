@@ -1201,7 +1201,7 @@ namespace Microsoft.ML.Transforms.Conversions
         internal static bool IsColumnTypeValid(ColumnType type)
         {
             var itemType = type.ItemType;
-            return itemType.IsText || itemType.IsKey || itemType.IsNumber || itemType.IsBool;
+            return itemType is TextType || itemType.IsKey || itemType is NumberType || itemType is BoolType;
         }
 
         internal const string ExpectedColumnType = "Expected Text, Key, numeric or Boolean item type";

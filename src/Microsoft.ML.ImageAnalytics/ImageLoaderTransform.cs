@@ -16,8 +16,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(ImageLoaderTransform.Summary, typeof(IDataTransform), typeof(ImageLoaderTransform), typeof(ImageLoaderTransform.Arguments), typeof(SignatureDataTransform),
     ImageLoaderTransform.UserName, "ImageLoaderTransform", "ImageLoader")]
@@ -115,7 +113,7 @@ namespace Microsoft.ML.ImageAnalytics
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            if (!inputSchema[srcCol].Type.IsText)
+            if (!(inputSchema[srcCol].Type is TextType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextType.Instance.ToString(), inputSchema[srcCol].Type.ToString());
         }
 
@@ -234,70 +232,13 @@ namespace Microsoft.ML.ImageAnalytics
             {
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                if (!col.ItemType.IsText || col.Kind != SchemaShape.Column.VectorKind.Scalar)
+                if (!(col.ItemType is TextType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, TextType.Instance.ToString(), col.GetTypeString());
 
                 result[output] = new SchemaShape.Column(output, SchemaShape.Column.VectorKind.Scalar, _imageType, false);
             }
 
             return new SchemaShape(result.Values);
-        }
-
-        internal sealed class OutPipelineColumn : Custom<UnknownSizeBitmap>
-        {
-            private readonly Scalar<string> _input;
-
-            public OutPipelineColumn(Scalar<string> path, string relativeTo)
-                : base(new Reconciler(relativeTo), path)
-            {
-                Contracts.AssertValue(path);
-                _input = path;
-            }
-
-            /// <summary>
-            /// Reconciler to an <see cref="ImageLoadingEstimator"/> for the <see cref="PipelineColumn"/>.
-            /// </summary>
-            /// <remarks>
-            /// We must create a new reconciler per call, because the relative path of <see cref="ImageLoaderTransform.Arguments.ImageFolder"/>
-            /// is considered a transform-wide option, as it is not specified in <see cref="ImageLoaderTransform.Column"/>. However, we still
-            /// implement <see cref="IEquatable{T}"/> so the analyzer can still equate two of these things if they happen to share the same
-            /// path, so we can be a bit more efficient with respect to our estimator declarations.
-            /// </remarks>
-            /// <see cref="ImageStaticPipe.LoadAsImage(Scalar{string}, string)"/>
-            private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
-            {
-                private readonly string _relTo;
-
-                public Reconciler(string relativeTo)
-                {
-                    Contracts.AssertValueOrNull(relativeTo);
-                    _relTo = relativeTo;
-                }
-
-                public bool Equals(Reconciler other)
-                    => other != null && other._relTo == _relTo;
-
-                public override bool Equals(object obj)
-                    => obj is Reconciler other && Equals(other);
-
-                public override int GetHashCode()
-                    => _relTo?.GetHashCode() ?? 0;
-
-                public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                    PipelineColumn[] toOutput,
-                    IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                    IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                    IReadOnlyCollection<string> usedNames)
-                {
-                    var cols = new (string input, string output)[toOutput.Length];
-                    for (int i = 0; i < toOutput.Length; ++i)
-                    {
-                        var outCol = (OutPipelineColumn)toOutput[i];
-                        cols[i] = (inputNames[outCol._input], outputNames[outCol]);
-                    }
-                    return new ImageLoadingEstimator(env, _relTo, cols);
-                }
-            }
         }
     }
 }

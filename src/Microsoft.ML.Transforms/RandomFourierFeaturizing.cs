@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML;
@@ -14,8 +13,6 @@ using Microsoft.ML.Internal.CpuMath;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
 using Microsoft.ML.Numeric;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Projections;
 
 [assembly: LoadableClass(RandomFourierFeaturizingTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierFeaturizingTransformer), typeof(RandomFourierFeaturizingTransformer.Arguments), typeof(SignatureDataTransform),
@@ -643,6 +640,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// </summary>
     public sealed class RandomFourierFeaturizingEstimator : IEstimator<RandomFourierFeaturizingTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const int NewDim = 1000;
@@ -689,76 +687,6 @@ namespace Microsoft.ML.Transforms.Projections
             }
 
             return new SchemaShape(result.Values);
-        }
-    }
-
-    public static class RffExtenensions
-    {
-        private readonly struct Config
-        {
-            public readonly int NewDim;
-            public readonly bool UseSin;
-            public readonly int? Seed;
-            public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
-
-            public Config(int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator, int? seed = null)
-            {
-                NewDim = newDim;
-                UseSin = useSin;
-                Generator = generator;
-                Seed = seed;
-            }
-        }
-        private interface IColInput
-        {
-            PipelineColumn Input { get; }
-            Config Config { get; }
-        }
-
-        private sealed class ImplVector<T> : Vector<float>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-            public ImplVector(PipelineColumn input, Config config) : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            public static readonly Reconciler Inst = new Reconciler();
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
-            {
-                var infos = new RandomFourierFeaturizingTransformer.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RandomFourierFeaturizingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, tcol.Config.Generator, tcol.Config.Seed);
-                }
-                return new RandomFourierFeaturizingEstimator(env, infos);
-            }
-        }
-
-        /// <summary>
-        /// It maps input to a random low-dimensional feature space. It is useful when data has non-linear features, since the transform
-        /// is designed so that the inner products of the transformed data are approximately equal to those in the feature space of a user
-        /// speciﬁed shift-invariant kernel. With this transform, we are able to use linear methods (which are scalable) to approximate more complex kernel SVM models.
-        /// </summary>
-        /// <param name="input">The column to apply Random Fourier transfomration.</param>
-        /// <param name="newDim">Expected size of new vector.</param>
-        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin) </param>
-        /// <param name="generator">Which kernel to use. (<see cref="GaussianFourierSampler"/> by default)</param>
-        /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
-        public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
-            int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim, bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin,
-            IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new ImplVector<string>(input, new Config(newDim, useSin, generator, seed));
         }
     }
 }

@@ -264,7 +264,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 input.Schema.TryGetColumnIndex(_parent._columns[iinfo].Input, out int srcCol);
                 var srcType = input.Schema[srcCol].Type;
-                Host.Assert(srcType.ItemType.IsText);
+                Host.Assert(srcType.ItemType is TextType);
 
                 if (!srcType.IsVector)
                     return MakeGetterOne(input, iinfo);
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class WordTokenizingEstimator : TrivialEstimator<WordTokenizingTransformer>
     {
-        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType.IsText;
+        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType is TextType;
 
         internal const string ExpectedColumnType = "Text";
 
