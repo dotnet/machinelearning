@@ -584,7 +584,7 @@ namespace Microsoft.ML.Data
             else
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
-            var key = new KeyType(DataKind.U4, 0, _numClasses);
+            var key = new KeyType(DataKind.U4, _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberType.R8;
             _types[SortedScoresCol] = new VectorType(NumberType.R4, _numClasses);
@@ -613,7 +613,7 @@ namespace Microsoft.ML.Data
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             _types = new ColumnType[4];
-            var key = new KeyType(DataKind.U4, 0, _numClasses);
+            var key = new KeyType(DataKind.U4, _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberType.R8;
             _types[SortedScoresCol] = new VectorType(NumberType.R4, _numClasses);

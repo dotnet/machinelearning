@@ -62,18 +62,18 @@ namespace Microsoft.ML.Data
             Contracts.CheckUserArg(range.Min >= 0, nameof(range.Min), "min must be non-negative");
 
             if (range.Max == null)
-                keyType = new KeyType(kind, range.Min, 0, range.Contiguous);
+                keyType = new KeyType(kind, 0);
             else
             {
                 Contracts.CheckUserArg(range.Contiguous, nameof(range.Max), "max must be null when contiguous is false");
                 ulong max = range.Max.GetValueOrDefault();
                 Contracts.CheckUserArg(max >= range.Min, nameof(range.Max), "max must be >= min");
                 Contracts.CheckUserArg(max - range.Min < int.MaxValue, nameof(range.Max), "range is too large");
-                int count = (int)(max - range.Min + 1);
+                ulong count = max - range.Min + 1;
                 Contracts.Assert(count >= 1);
                 if ((ulong)count > kind.ToMaxInt())
                     throw Contracts.ExceptUserArg(nameof(range.Max), "range is too large for type {0}", kind);
-                keyType = new KeyType(kind, range.Min, count);
+                keyType = new KeyType(kind, count);
             }
             return keyType;
         }
@@ -86,9 +86,9 @@ namespace Microsoft.ML.Data
     {
         public KeyRange() { }
 
-        public KeyRange(ulong min, ulong? max = null, bool contiguous = true)
+        public KeyRange(ulong? max = null, bool contiguous = true)
         {
-            Min = min;
+            Min = 0;
             Max = max;
             Contiguous = contiguous;
         }

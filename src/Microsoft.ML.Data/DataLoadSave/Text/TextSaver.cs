@@ -492,14 +492,12 @@ namespace Microsoft.ML.Data.IO
             ColumnType itemType = vectorType?.ItemType ?? type;
             if (itemType is KeyType key)
             {
-                if (!key.Contiguous)
-                    keyRange = new KeyRange(key.Min, contiguous: false);
-                else if (key.Count == 0)
-                    keyRange = new KeyRange(key.Min);
+                if (key.Count == 0)
+                    keyRange = new KeyRange();
                 else
                 {
                     Contracts.Assert(key.Count >= 1);
-                    keyRange = new KeyRange(key.Min, key.Min + (ulong)(key.Count - 1));
+                    keyRange = new KeyRange(key.Count - 1);
                 }
             }
 

@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             var keyCount = column.HashBits < 31 ? 1 << column.HashBits : 0;
             inputSchema.TryGetColumnIndex(column.Input, out int srcCol);
-            var itemType = new KeyType(DataKind.U4, 0, keyCount, keyCount > 0);
+            var itemType = new KeyType(DataKind.U4, (ulong)keyCount);
             var srcType = inputSchema[srcCol].Type;
             if (srcType is VectorType vectorType)
                 return new VectorType(itemType, vectorType.Size);

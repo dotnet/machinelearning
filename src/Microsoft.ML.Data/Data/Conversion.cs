@@ -397,9 +397,6 @@ namespace Microsoft.ML.Data.Conversion
                         return false;
                     if (keySrc.Count == 0 && Marshal.SizeOf(keySrc.RawType) > Marshal.SizeOf(keyDst.RawType))
                         return false;
-                    // REVIEW: Should we allow contiguous to be changed when Count is zero?
-                    if (keySrc.Contiguous != keyDst.Contiguous)
-                        return false;
                 }
                 else
                 {
@@ -487,10 +484,7 @@ namespace Microsoft.ML.Data.Conversion
 
             // For key types, first convert to ulong, then do the range check,
             // then convert to StringBuilder.
-            U8 min = key.Min;
-            int count = key.Count;
-            Contracts.Assert(count >= 0 && (U8)count <= U8.MaxValue - min);
-
+            ulong count = key.Count;
             bool identity;
             var convSrc = GetStandardConversion<TSrc, U8>(key, NumberType.U8, out identity);
             var convU8 = GetStringConversion<U8>(NumberType.U8);
@@ -501,11 +495,11 @@ namespace Microsoft.ML.Data.Conversion
                     {
                         ulong tmp = 0;
                         convSrc(in src, ref tmp);
-                        if (tmp == 0 || tmp > (ulong)count)
+                        if (tmp == 0 || tmp > count)
                             ClearDst(ref dst);
                         else
                         {
-                            tmp = tmp + min - 1;
+                            tmp = tmp - 1;
                             convU8(in tmp, ref dst);
                         }
                     };
@@ -517,11 +511,11 @@ namespace Microsoft.ML.Data.Conversion
                     {
                         U8 tmp = 0;
                         convSrc(in src, ref tmp);
-                        if (tmp == 0 || min > 1 && tmp > U8.MaxValue - min + 1)
+                        if (tmp == 0 || tmp == U8.MaxValue)
                             ClearDst(ref dst);
                         else
                         {
-                            tmp = tmp + min - 1;
+                            tmp = tmp + 1;
                             convU8(in tmp, ref dst);
                         }
                     };
@@ -547,20 +541,13 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.Assert(key.RawType == typeof(TDst));
 
             // First parse as ulong, then convert to T.
-            ulong min = key.Min;
             ulong max;
 
             ulong count = key.RawType.ToMaxInt();
             if (key.Count > 0)
-                max = min - 1 + (ulong)key.Count;
-            else if (min == 0)
-                max = count - 1;
-            else if (key.RawType == typeof(ulong))
-                max = ulong.MaxValue;
-            else if (min - 1 > ulong.MaxValue - count)
-                max = ulong.MaxValue;
+                max = key.Count - 1;
             else
-                max = min - 1 + count;
+                max = count - 1;
 
             var fnConv = GetKeyStandardConversion<TDst>();
             return
@@ -568,7 +555,7 @@ namespace Microsoft.ML.Data.Conversion
                 {
                     ulong uu;
                     dst = default(TDst);
-                    if (!TryParseKey(in src, min, max, out uu))
+                    if (!TryParseKey(in src, max, out uu))
                         return false;
                     // REVIEW: This call to fnConv should never need range checks, so could be made faster.
                     // Also, it would be nice to be able to assert that it doesn't overflow....
@@ -589,20 +576,13 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.Assert(key.RawType == typeof(TDst));
 
             // First parse as ulong, then convert to T.
-            ulong min = key.Min;
             ulong max;
 
             ulong count = key.RawType.ToMaxInt();
             if (key.Count > 0)
-                max = min - 1 + (ulong)key.Count;
-            else if (min == 0)
-                max = count - 1;
-            else if (key.RawType == typeof(U8))
-                max = ulong.MaxValue;
-            else if (min - 1 > ulong.MaxValue - count)
-                max = ulong.MaxValue;
+                max = key.Count - 1;
             else
-                max = min - 1 + count;
+                max = count - 1;
 
             var fnConv = GetKeyStandardConversion<TDst>();
             return
@@ -610,7 +590,7 @@ namespace Microsoft.ML.Data.Conversion
                 {
                     ulong uu;
                     dst = default(TDst);
-                    if (!TryParseKey(in src, min, max, out uu))
+                    if (!TryParseKey(in src, max, out uu))
                     {
                         dst = default(TDst);
                         return;
@@ -1135,7 +1115,7 @@ namespace Microsoft.ML.Data.Conversion
         /// mapped to 1, max is mapped to 1 + (max - min).
         /// Unparsable or out of range values are mapped to zero with a false return.
         /// </summary>
-        public bool TryParseKey(in TX src, U8 min, U8 max, out U8 dst)
+        public bool TryParseKey(in TX src, U8 max, out U8 dst)
         {
             var span = src.Span;
             // Both empty and missing map to zero (NA for key values) and that mapping is valid,
@@ -1146,12 +1126,10 @@ namespace Microsoft.ML.Data.Conversion
                 return true;
             }
 
-            Contracts.Assert(min <= max);
-
             // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since
             // we map min to 1, which would cause max to overflow to zero. Specifically, it protects
             // against overflow in the expression uu - min + 1 below.
-            Contracts.Assert((max - min) < U8.MaxValue);
+            Contracts.Assert(max < U8.MaxValue);
 
             // Parse a ulong.
             ulong uu;
@@ -1162,13 +1140,13 @@ namespace Microsoft.ML.Data.Conversion
                 return false;
             }
 
-            if (min > uu || uu > max)
+            if (uu > max)
             {
                 dst = 0;
                 return false;
             }
 
-            dst = uu - min + 1;
+            dst = uu + 1;
             return true;
         }
 

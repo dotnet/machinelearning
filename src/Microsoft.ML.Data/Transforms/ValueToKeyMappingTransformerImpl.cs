@@ -501,7 +501,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(count >= 0);
                 ItemType = type;
                 Count = count;
-                OutputType = new KeyType(DataKind.U4, 0, Count == 0 ? 1 : Count);
+                OutputType = new KeyType(DataKind.U4, Count == 0 ? 1 : Count);
             }
 
             internal abstract void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory);

@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms.Conversions
             private static KeyType GetItemType(int hashBits)
             {
                 var keyCount = hashBits < 31 ? 1 << hashBits : 0;
-                return new KeyType(DataKind.U4, 0, keyCount, keyCount > 0);
+                return new KeyType(DataKind.U4, (ulong)keyCount);
             }
         }
 

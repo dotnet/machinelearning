@@ -45,7 +45,7 @@ namespace Microsoft.ML.Data.DataLoadSave
         {
             ColumnType curType = column.ItemType;
             if (column.IsKey)
-                curType = new KeyType(((PrimitiveType)curType).RawType, 0, AllKeySizes);
+                curType = new KeyType(((PrimitiveType)curType).RawType, AllKeySizes);
             if (column.Kind == SchemaShape.Column.VectorKind.VariableVector)
                 curType = new VectorType((PrimitiveType)curType, 0);
             else if (column.Kind == SchemaShape.Column.VectorKind.Vector)

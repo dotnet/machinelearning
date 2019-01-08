@@ -175,7 +175,7 @@ namespace Microsoft.ML.Data
             {
                 if (_scoreColumnSetIdType == null)
                 {
-                    var type = new KeyType(DataKind.U4, 0, 0);
+                    var type = new KeyType(DataKind.U4, 0);
                     Interlocked.CompareExchange(ref _scoreColumnSetIdType, type, null);
                 }
                 return _scoreColumnSetIdType;

@@ -128,8 +128,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Column = new[]
                 {
                     new TextLoader.Column(labelColumnName, DataKind.R4, new [] { new TextLoader.Range(0) }),
-                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyRange(0, 19)),
-                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyRange(0, 39)),
+                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyRange(19)),
+                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyRange(39)),
                 }
             };
         }
@@ -147,11 +147,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             // Matrix column index starts from 1 and is at most _synthesizedMatrixColumnCount.
             // Contieuous=true means that all values from 1 to _synthesizedMatrixColumnCount are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 1 and is at most _synthesizedMatrixRowCount.
             // Contieuous=true means that all values from 1 to _synthesizedMatrixRowCount are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -159,9 +159,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementForScore
         {
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -201,10 +201,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(model.MatrixColumnIndexColumnType is KeyType);
             Assert.True(model.MatrixRowIndexColumnType is KeyType);
             var matColKeyType = (KeyType)model.MatrixColumnIndexColumnType;
-            Assert.True(matColKeyType.Min == _synthesizedMatrixFirstColumnIndex);
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
             var matRowKeyType = (KeyType)model.MatrixRowIndexColumnType;
-            Assert.True(matRowKeyType.Min == _synthesizedMatrixFirstRowIndex);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
 
             // Apply the trained model to the training set
@@ -234,11 +232,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = 0)]
+            [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = 0)]
+            [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -248,11 +246,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = 0)]
+            [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
             // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = 0)]
+            [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -295,9 +293,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.NotNull(matColKeyType);
             var matRowKeyType = model.MatrixRowIndexColumnType as KeyType;
             Assert.NotNull(matRowKeyType);
-            Assert.True(matColKeyType.Min == 0);
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
-            Assert.True(matRowKeyType.Min == 0);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
 
             // Apply the trained model to the training set
@@ -354,18 +350,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private class OneClassMatrixElementZeroBased
         {
-            [KeyType(Contiguous = true, Count = _oneClassMatrixColumnCount, Min = 0)]
+            [KeyType(Count = _oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Contiguous = true, Count = _oneClassMatrixRowCount, Min = 0)]
+            [KeyType(Count = _oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
         }
 
         private class OneClassMatrixElementZeroBasedForScore
         {
-            [KeyType(Contiguous = true, Count = _oneClassMatrixColumnCount, Min = 0)]
+            [KeyType(Count = _oneClassMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Contiguous = true, Count = _oneClassMatrixRowCount, Min = 0)]
+            [KeyType(Count = _oneClassMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Value;
             public float Score;
