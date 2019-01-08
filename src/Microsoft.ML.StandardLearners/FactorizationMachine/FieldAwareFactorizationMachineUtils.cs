@@ -75,8 +75,8 @@ namespace Microsoft.ML.FactorizationMachine
             Contracts.AssertValue(env);
             Contracts.AssertValue(schema);
             Contracts.CheckParam(outputSchema.Count == 2, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema[0].Type.IsNumber, nameof(outputSchema));
-            Contracts.CheckParam(outputSchema[1].Type.IsNumber, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[0].Type is NumberType, nameof(outputSchema));
+            Contracts.CheckParam(outputSchema[1].Type is NumberType, nameof(outputSchema));
             Contracts.AssertValue(pred);
 
             _env = env;

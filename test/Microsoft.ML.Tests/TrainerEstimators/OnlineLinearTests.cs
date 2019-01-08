@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML;
-using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers.Online;
 using Xunit;
@@ -17,7 +16,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataPath = GetDataPath("breast-cancer.txt");
 
-            var regressionData = TextLoader.CreateReader(ML, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
+            var regressionData = TextLoaderStatic.CreateReader(ML, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
                 .Read(dataPath);
 
             var regressionPipe = regressionData.MakeNewEstimator()
@@ -30,7 +29,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var ogdModel = ogdTrainer.Fit(regressionTrainData);
             ogdTrainer.Train(regressionTrainData, ogdModel.Model);
 
-            var binaryData = TextLoader.CreateReader(ML, ctx => (Label: ctx.LoadBool(0), Features: ctx.LoadFloat(1, 10)))
+            var binaryData = TextLoaderStatic.CreateReader(ML, ctx => (Label: ctx.LoadBool(0), Features: ctx.LoadFloat(1, 10)))
                .Read(dataPath);
 
             var binaryPipe = binaryData.MakeNewEstimator()

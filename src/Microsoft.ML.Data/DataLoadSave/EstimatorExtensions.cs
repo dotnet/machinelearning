@@ -143,6 +143,7 @@ namespace Microsoft.ML
             return new DelegateEstimator<TTransformer>(estimator, onFit);
         }
 
+        [BestFriend]
         internal static T[] AppendElement<T>(this T[] array, T element)
         {
             T[] result = new T[Utils.Size(array) + 1];

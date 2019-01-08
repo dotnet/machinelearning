@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// "communication pipe" is just a serialized model of some form.
         /// </summary>
         [Fact]
-        public void New_TrainSaveModelAndPredict()
+        public void TrainSaveModelAndPredict()
         {
             var ml = new MLContext(seed: 1, conc: 1);
             var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);

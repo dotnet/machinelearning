@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// say, injecting a dummy label.
         /// </summary>
         [Fact]
-        void New_DecomposableTrainAndPredict()
+        void DecomposableTrainAndPredict()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             var ml = new MLContext();

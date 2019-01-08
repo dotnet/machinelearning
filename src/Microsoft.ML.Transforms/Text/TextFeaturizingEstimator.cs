@@ -15,8 +15,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 
@@ -476,7 +474,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(srcName, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
-                if (!col.ItemType.IsText)
+                if (!(col.ItemType is TextType))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, "scalar or vector of text", col.GetTypeString());
             }
 
@@ -619,41 +617,6 @@ namespace Microsoft.ML.Transforms.Text
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(Transformer).Assembly.FullName);
-            }
-        }
-
-        [BestFriend]
-        internal sealed class OutPipelineColumn : Vector<float>
-        {
-            public readonly Scalar<string>[] Inputs;
-
-            public OutPipelineColumn(IEnumerable<Scalar<string>> inputs, Action<Settings> advancedSettings)
-                : base(new Reconciler(advancedSettings), inputs.ToArray())
-            {
-                Inputs = inputs.ToArray();
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly Action<Settings> _settings;
-
-            public Reconciler(Action<Settings> advancedSettings)
-            {
-                _settings = advancedSettings;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-
-                var outCol = (OutPipelineColumn)toOutput[0];
-                var inputs = outCol.Inputs.Select(x => inputNames[x]);
-                return new TextFeaturizingEstimator(env, inputs, outputNames[outCol], _settings);
             }
         }
     }

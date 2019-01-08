@@ -19,7 +19,6 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
     <ProjectReference Include="..\..\test\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -45,8 +44,7 @@
       <Link>external\%(Identity)</Link>
     </BenchmarkFile>
 
-    <None Condition="Exists('@(BenchmarkFile->'..\data\external\%(Identity)')')"
-          Include="@(BenchmarkFile->'..\data\external\%(Identity)')">
+    <None Condition="Exists('@(BenchmarkFile->'..\data\external\%(Identity)')')" Include="@(BenchmarkFile->'..\data\external\%(Identity)')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

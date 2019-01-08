@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms
                     if (!type.IsKnownSizeVector ||
                         (typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null ||
                         typeNames.VectorSize != type.VectorSize ||
-                        !typeNames.ItemType.IsText)
+                        !(typeNames.ItemType is TextType))
                     {
                         continue;
                     }
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Transforms
 
                 // REVIEW: Do we need to verify that there is metadata or should we just call GetMetadata?
                 var typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
-                if (typeNames == null || typeNames.VectorSize != type.VectorSize || !typeNames.ItemType.IsText)
+                if (typeNames == null || typeNames.VectorSize != type.VectorSize || !(typeNames.ItemType is TextType))
                     throw MetadataUtils.ExceptGetMetadata();
 
                 var names = default(VBuffer<ReadOnlyMemory<char>>);

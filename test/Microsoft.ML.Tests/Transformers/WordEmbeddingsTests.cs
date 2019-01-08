@@ -22,10 +22,10 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestWordEmbeddings()
         {
-            var dataPath = GetDataPath(ScenariosTests.SentimentDataPath);
-            var testDataPath = GetDataPath(ScenariosTests.SentimentTestPath);
+            var dataPath = GetDataPath(TestDatasets.Sentiment.trainFilename);
+            var testDataPath = GetDataPath(TestDatasets.Sentiment.testFilename);
 
-            var data = TextLoader.CreateReader(Env, ctx => (
+            var data = TextLoaderStatic.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath);

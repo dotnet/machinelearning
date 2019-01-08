@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios
             
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var env = new MLContext();
-            var data = TextLoader.CreateReader(env, ctx => (
+            var data = TextLoaderStatic.CreateReader(env, ctx => (
                 floatScalar: ctx.LoadFloat(1),
                 floatVector: ctx.LoadFloat(2, 6),
                 stringScalar: ctx.LoadText(4),

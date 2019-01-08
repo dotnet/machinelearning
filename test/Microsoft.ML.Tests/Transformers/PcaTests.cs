@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Projections;
 using Xunit;
@@ -30,12 +31,12 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void PcaWorkout()
         {
-            var data = TextLoader.CreateReader(_env,
+            var data = TextLoaderStatic.CreateReader(_env,
                 c => (label: c.LoadFloat(11), weight: c.LoadFloat(0), features: c.LoadFloat(1, 10)),
                 separator: ';', hasHeader: true)
                 .Read(_dataSource);
 
-            var invalidData = TextLoader.CreateReader(_env,
+            var invalidData = TextLoaderStatic.CreateReader(_env,
                 c => (label: c.LoadFloat(11), weight: c.LoadFloat(0), features: c.LoadText(1, 10)),
                 separator: ';', hasHeader: true)
                 .Read(_dataSource);
@@ -52,7 +53,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestPcaEstimator()
         {
-            var data = TextLoader.CreateReader(_env,
+            var data = TextLoaderStatic.CreateReader(_env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(_dataSource);

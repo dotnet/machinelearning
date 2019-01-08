@@ -783,7 +783,7 @@ namespace Microsoft.ML.Learners
             }
 
             if (_stats != null)
-                _stats.SaveText(writer, null, schema, 20);
+                _stats.SaveText(writer, null, schema.Feature.Value, 20);
         }
 
         ///<inheritdoc/>

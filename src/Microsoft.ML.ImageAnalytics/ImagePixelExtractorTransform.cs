@@ -16,8 +16,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(ImagePixelExtractorTransform.Summary, typeof(IDataTransform), typeof(ImagePixelExtractorTransform), typeof(ImagePixelExtractorTransform.Arguments), typeof(SignatureDataTransform),
     ImagePixelExtractorTransform.UserName, "ImagePixelExtractorTransform", "ImagePixelExtractor")]
@@ -647,71 +645,6 @@ namespace Microsoft.ML.ImageAnalytics
             }
 
             return new SchemaShape(result.Values);
-        }
-
-        private interface IColInput
-        {
-            Custom<Bitmap> Input { get; }
-
-            ImagePixelExtractorTransform.ColumnInfo MakeColumnInfo(string input, string output);
-        }
-
-        internal sealed class OutPipelineColumn<T> : Vector<T>, IColInput
-        {
-            public Custom<Bitmap> Input { get; }
-            private static readonly ImagePixelExtractorTransform.Arguments _defaultArgs = new ImagePixelExtractorTransform.Arguments();
-            private readonly ImagePixelExtractorTransform.Column _colParam;
-
-            public OutPipelineColumn(Custom<Bitmap> input, ImagePixelExtractorTransform.Column col)
-                : base(Reconciler.Inst, input)
-            {
-                Contracts.AssertValue(input);
-                Contracts.Assert(typeof(T) == typeof(float) || typeof(T) == typeof(byte));
-                Input = input;
-                _colParam = col;
-            }
-
-            public ImagePixelExtractorTransform.ColumnInfo MakeColumnInfo(string input, string output)
-            {
-                // In principle, the analyzer should only call the the reconciler once for these columns.
-                Contracts.Assert(_colParam.Source == null);
-                Contracts.Assert(_colParam.Name == null);
-
-                _colParam.Name = output;
-                _colParam.Source = input;
-                return new ImagePixelExtractorTransform.ColumnInfo(_colParam, _defaultArgs);
-            }
-        }
-
-        /// <summary>
-        /// Reconciler to an <see cref="ImagePixelExtractingEstimator"/> for the <see cref="PipelineColumn"/>.
-        /// </summary>
-        /// <remarks>Because we want to use the same reconciler for </remarks>
-        /// <see cref="ImageStaticPipe.ExtractPixels(Custom{Bitmap}, bool, bool, bool, bool, bool, float, float)"/>
-        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Custom{Bitmap}, bool, bool, bool, bool, bool)"/>
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            /// <summary>
-            /// Because there are no global settings that cannot be overridden, we can always just use the same reconciler.
-            /// </summary>
-            public static Reconciler Inst = new Reconciler();
-
-            private Reconciler() { }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                var cols = new ImagePixelExtractorTransform.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var outCol = (IColInput)toOutput[i];
-                    cols[i] = outCol.MakeColumnInfo(inputNames[outCol.Input], outputNames[toOutput[i]]);
-                }
-                return new ImagePixelExtractingEstimator(env, cols);
-            }
         }
     }
 }

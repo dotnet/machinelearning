@@ -84,10 +84,7 @@ namespace Microsoft.ML.Learners
                 return _pred.Weight.Items(all: true).Select(iv => iv.Value).GetEnumerator();
             }
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         /// <summary> The predictor's feature weight coefficients.</summary>
@@ -505,7 +502,7 @@ namespace Microsoft.ML.Learners
             writer.WriteLine(LinearPredictorUtils.LinearModelAsText("Linear Binary Classification Predictor", null, null,
                 in weights, Bias, schema));
 
-            _stats?.SaveText(writer, this, schema, 20);
+            _stats?.SaveText(writer, this, schema.Feature.Value, 20);
         }
 
         ///<inheritdoc/>
@@ -516,7 +513,7 @@ namespace Microsoft.ML.Learners
             var weights = Weight;
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
             LinearPredictorUtils.SaveLinearModelWeightsInKeyValuePairs(in weights, Bias, schema, results);
-            _stats?.SaveSummaryInKeyValuePairs(this, schema, int.MaxValue, results);
+            _stats?.SaveSummaryInKeyValuePairs(this, schema.Feature.Value, int.MaxValue, results);
             return results;
         }
 

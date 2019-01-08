@@ -464,7 +464,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     // probably, which I am not prepared to do.
                     var defaultToken = PfaUtils.Type.DefaultTokenOrNull(TypeOutput);
                     JArray jsonValues;
-                    if (TypeOutput.IsText)
+                    if (TypeOutput is TextType)
                     {
                         jsonValues = new JArray();
                         var keyValues = _values.GetValues();

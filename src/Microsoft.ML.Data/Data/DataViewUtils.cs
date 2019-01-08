@@ -199,7 +199,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static bool IsCachable(this ColumnType type)
         {
-            return type != null && (type.IsPrimitive || type.IsVector);
+            return type != null && (type is PrimitiveType || type.IsVector);
         }
 
         /// <summary>
@@ -859,7 +859,7 @@ namespace Microsoft.ML.Data
                         pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
                     else
                     {
-                        Contracts.Assert(type.IsPrimitive);
+                        Contracts.Assert(type is PrimitiveType);
                         pipeType = typeof(ImplOne<>).MakeGenericType(type.RawType);
                     }
                     var constructor = pipeType.GetConstructor(new Type[] { typeof(object) });

@@ -21,9 +21,7 @@ namespace Microsoft.ML.Data
         // This private constructor sets all the IsXxx flags. It is invoked by other ctors.
         private ColumnType()
         {
-            IsPrimitive = this is PrimitiveType;
             IsVector = this is VectorType;
-            IsNumber = this is NumberType;
             IsKey = this is KeyType;
         }
 
@@ -72,58 +70,6 @@ namespace Microsoft.ML.Data
         /// </summary>
         [BestFriend]
         internal DataKind RawKind { get; }
-
-        /// <summary>
-        /// Whether this is a primitive type. External code should use <c>is <see cref="PrimitiveType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsPrimitive { get; }
-
-        /// <summary>
-        /// Whether this type is a standard numeric type. External code should use <c>is <see cref="NumberType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsNumber { get; }
-
-        /// <summary>
-        /// Whether this type is the standard text type. External code should use <c>is <see cref="TextType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsText
-        {
-            get
-            {
-                if (!(this is TextType))
-                    return false;
-                // TextType is a singleton.
-                Contracts.Assert(this == TextType.Instance);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Whether this type is the standard boolean type. External code should use <c>is <see cref="BoolType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsBool
-        {
-            get
-            {
-                if (!(this is BoolType))
-                    return false;
-                // BoolType is a singleton.
-                Contracts.Assert(this == BoolType.Instance);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Whether this type is a standard scalar type completely determined by its <see cref="RawType"/>
-        /// (not a <see cref="KeyType"/> or <see cref="StructuredType"/>, etc).
-        /// </summary>
-        [BestFriend]
-        internal bool IsStandardScalar => IsNumber || IsText || IsBool ||
-            (this is TimeSpanType) || (this is DateTimeType) || (this is DateTimeOffsetType);
 
         /// <summary>
         /// Whether this type is a key type, which implies that the order of values is not significant,
@@ -230,13 +176,11 @@ namespace Microsoft.ML.Data
         protected StructuredType(Type rawType)
             : base(rawType)
         {
-            Contracts.Assert(!IsPrimitive);
         }
 
         private protected StructuredType(Type rawType, DataKind rawKind)
             : base(rawType, rawKind)
         {
-            Contracts.Assert(!IsPrimitive);
         }
     }
 
@@ -249,7 +193,6 @@ namespace Microsoft.ML.Data
         protected PrimitiveType(Type rawType)
             : base(rawType)
         {
-            Contracts.Assert(IsPrimitive);
             Contracts.CheckParam(!typeof(IDisposable).IsAssignableFrom(RawType), nameof(rawType),
                 "A " + nameof(PrimitiveType) + " cannot have a disposable " + nameof(RawType));
         }
@@ -257,7 +200,6 @@ namespace Microsoft.ML.Data
         private protected PrimitiveType(Type rawType, DataKind rawKind)
             : base(rawType, rawKind)
         {
-            Contracts.Assert(IsPrimitive);
             Contracts.Assert(!typeof(IDisposable).IsAssignableFrom(RawType));
         }
 
@@ -322,7 +264,6 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertNonEmpty(name);
             _name = name;
-            Contracts.Assert(IsNumber);
         }
 
         private static volatile NumberType _instI1;
@@ -496,7 +437,7 @@ namespace Microsoft.ML.Data
         {
             if (other == this)
                 return true;
-            Contracts.Assert(other == null || !other.IsNumber || other.RawKind != RawKind);
+            Contracts.Assert(other == null || !(other is NumberType) || other.RawKind != RawKind);
             return false;
         }
 

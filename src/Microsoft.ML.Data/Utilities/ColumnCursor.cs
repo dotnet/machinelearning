@@ -43,7 +43,7 @@ namespace Microsoft.ML.Data
                 // Direct mapping is possible.
                 return GetColumnDirect<T>(data, col);
             }
-            else if (typeof(T) == typeof(string) && colType.IsText)
+            else if (typeof(T) == typeof(string) && colType is TextType)
             {
                 // Special case of ROM<char> to string conversion.
                 Delegate convert = (Func<ReadOnlyMemory<char>, string>)((ReadOnlyMemory<char> txt) => txt.ToString());
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Data
                     var meth = del.Method.GetGenericMethodDefinition().MakeGenericMethod(elementType);
                     return (IEnumerable<T>)meth.Invoke(null, new object[] { data, col });
                 }
-                else if (elementType == typeof(string) && colType.ItemType.IsText)
+                else if (elementType == typeof(string) && colType.ItemType is TextType)
                 {
                     // Conversion of DvText items to string items.
                     Delegate convert = (Func<ReadOnlyMemory<char>, string>)((ReadOnlyMemory<char> txt) => txt.ToString());

@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms
                     case ReplacementKind.Mean:
                     case ReplacementKind.Minimum:
                     case ReplacementKind.Maximum:
-                        if (!type.ItemType.IsNumber)
+                        if (!(type.ItemType is NumberType))
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.ItemType);
                         imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);

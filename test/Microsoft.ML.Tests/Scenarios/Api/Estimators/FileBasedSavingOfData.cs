@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// and don't necessarily want to transform it every single time.)
         /// </summary>
         [Fact]
-        void New_FileBasedSavingOfData()
+        void FileBasedSavingOfData()
         {
 
             var ml = new MLContext(seed: 1, conc: 1);

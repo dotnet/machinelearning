@@ -16,8 +16,6 @@ using Microsoft.ML.EntryPoints;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(ImageGrayscaleTransform.Summary, typeof(IDataTransform), typeof(ImageGrayscaleTransform), typeof(ImageGrayscaleTransform.Arguments), typeof(SignatureDataTransform),
     ImageGrayscaleTransform.UserName, "ImageGrayscaleTransform", "ImageGrayscale")]
@@ -238,52 +236,6 @@ namespace Microsoft.ML.ImageAnalytics
             }
 
             return new SchemaShape(result.Values);
-        }
-
-        private interface IColInput
-        {
-            PipelineColumn Input { get; }
-        }
-
-        internal sealed class OutPipelineColumn<T> : Custom<T>, IColInput
-        {
-            public PipelineColumn Input { get; }
-
-            public OutPipelineColumn(Custom<T> input)
-                : base(Reconciler.Inst, input)
-            {
-                Contracts.AssertValue(input);
-                Contracts.Assert(typeof(T) == typeof(Bitmap) || typeof(T) == typeof(UnknownSizeBitmap));
-                Input = input;
-            }
-        }
-
-        /// <summary>
-        /// Reconciler to an <see cref="ImageGrayscalingEstimator"/> for the <see cref="PipelineColumn"/>.
-        /// </summary>
-        /// <remarks>Because we want to use the same reconciler for </remarks>
-        /// <see cref="ImageStaticPipe.AsGrayscale(Custom{Bitmap})"/>
-        /// <see cref="ImageStaticPipe.AsGrayscale(Custom{UnknownSizeBitmap})"/>
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            public static Reconciler Inst = new Reconciler();
-
-            private Reconciler() { }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                var cols = new (string input, string output)[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; ++i)
-                {
-                    var outCol = (IColInput)toOutput[i];
-                    cols[i] = (inputNames[outCol.Input], outputNames[toOutput[i]]);
-                }
-                return new ImageGrayscalingEstimator(env, cols);
-            }
         }
     }
 }
