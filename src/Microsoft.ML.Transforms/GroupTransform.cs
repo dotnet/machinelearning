@@ -296,8 +296,7 @@ namespace Microsoft.ML.Transforms
 
                     // Prepare column's type.
                     var aggregatedValueType = sourceSchema[groupValueColumnName].Type as PrimitiveType;
-                    if (aggregatedValueType == null)
-                        _ectx.CheckValue(aggregatedValueType, nameof(aggregatedValueType), "Columns being aggregated must be primitive types such as string, float, or integer");
+                    _ectx.CheckValue(aggregatedValueType, nameof(aggregatedValueType), "Columns being aggregated must be primitive types such as string, float, or integer");
                     var aggregatedResultType = new VectorType(aggregatedValueType);
 
                     // Add column into output schema.
