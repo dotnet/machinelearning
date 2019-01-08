@@ -473,25 +473,20 @@ namespace Microsoft.ML.Data
             Contracts.AssertValue(type);
             Contracts.Assert(kind.ToType() == type);
 
-            Contracts.CheckParam(min >= 0, nameof(min));
             Contracts.CheckParam(count >= 0, nameof(count), "Must be non-negative.");
-            Contracts.CheckParam((ulong)count <= ulong.MaxValue - min, nameof(count));
-            Contracts.CheckParam((ulong)count <= kind.ToMaxInt(), nameof(count));
-            Contracts.CheckParam(contiguous || count == 0, nameof(count), "Must be 0 for non-contiguous");
+            Contracts.CheckParam(count <= kind.ToMaxInt(), nameof(count));
 
-            Contiguous = contiguous;
-            Min = min;
             Count = count;
         }
 
-        public KeyType(Type type, ulong min, int count, bool contiguous = true)
-            : this(type, CheckRefRawType(type), min, count, contiguous)
+        public KeyType(Type type, ulong count)
+            : this(type, CheckRefRawType(type), count)
         {
         }
 
         [BestFriend]
-        internal KeyType(DataKind kind, ulong min, int count, bool contiguous = true)
-            : this(ToRawType(kind), kind, min, count, contiguous)
+        internal KeyType(DataKind kind, ulong count)
+            : this(ToRawType(kind), kind, count)
         {
         }
 
@@ -541,12 +536,6 @@ namespace Microsoft.ML.Data
             return type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong);
         }
 
-        /// <summary>
-        /// This is the Min of the key type for display purposes and conversion to/from text. The values
-        /// actually stored always start at 1 (for the smallest legal value), with zero being reserved
-        /// for "not there"/"none". Typical Min values are 0 or 1, but can be any value >= 0.
-        /// </summary>
-        public ulong Min { get; }
 
         /// <summary>
         /// If this key type has contiguous values and a known cardinality, Count is that cardinality.
@@ -556,9 +545,7 @@ namespace Microsoft.ML.Data
         /// representation. Note that an id of 0 is used to represent the notion "none", which is
         /// typically mapped to a vector of all zeros (of length Count).
         /// </summary>
-        public int Count { get; }
-
-        public bool Contiguous { get; }
+        public ulong Count { get; }
 
         public override bool Equals(ColumnType other)
         {
@@ -568,10 +555,6 @@ namespace Microsoft.ML.Data
             if (!(other is KeyType tmp))
                 return false;
             if (RawType != tmp.RawType)
-                return false;
-            if (Contiguous != tmp.Contiguous)
-                return false;
-            if (Min != tmp.Min)
                 return false;
             if (Count != tmp.Count)
                 return false;
@@ -585,18 +568,13 @@ namespace Microsoft.ML.Data
 
         public override int GetHashCode()
         {
-            return Hashing.CombinedHash(RawType.GetHashCode(), Contiguous, Min, Count);
+            return Hashing.CombinedHash(RawType.GetHashCode(), Count);
         }
 
         public override string ToString()
         {
             DataKind rawKind = this.GetRawKind();
-            if (Count > 0)
-                return string.Format("Key<{0}, {1}-{2}>", rawKind.GetString(), Min, Min + (ulong)Count - 1);
-            if (Contiguous)
-                return string.Format("Key<{0}, {1}-*>", rawKind.GetString(), Min);
-            // This is the non-contiguous case - simply show the Min.
-            return string.Format("Key<{0}, Min:{1}>", rawKind.GetString(), Min);
+            return string.Format("Key<{0}, {1}-{2}>", RawKind.GetString(), 0, (ulong)Count - 1);
         }
     }
 

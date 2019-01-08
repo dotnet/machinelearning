@@ -77,4 +77,20 @@ namespace Microsoft.ML.Data
             return vectorType.Size == otherVectorType.Size;
         }
     }
+
+    /// <summary>
+    /// Extnesion methods related to the KeyType class.
+    /// </summary>
+    [BestFriend]
+    internal static class KeyTypExtensions
+    {
+        /// <summary>
+        /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
+        /// </summary>
+        public static int CheckMaxRangeAndReturn(this KeyType key, IExceptionContext ectx = null)
+        {
+            ectx.Assert(key.Count <= int.MaxValue, "KeyType range exceeds int.MaxValue.");
+            return (int)key.Count;
+        }
+    }
 }
