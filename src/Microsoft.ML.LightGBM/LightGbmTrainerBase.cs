@@ -285,8 +285,9 @@ namespace Microsoft.ML.LightGBM
                 ch.Info("Auto-tuning parameters: " + nameof(Args.UseCat) + " = " + useCat);
             if (useCat)
             {
-                trainData.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);
-                MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureIndex, out categoricalFeatures);
+                var featureCol = trainData.Schema.Schema.GetColumnOrNull(DefaultColumnNames.Features);
+                ch.Assert(featureCol.HasValue);
+                MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Value.Index, out categoricalFeatures);
             }
             var colType = trainData.Schema.Feature.Value.Type;
             int rawNumCol = colType.VectorSize;

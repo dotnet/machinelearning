@@ -1285,8 +1285,9 @@ namespace Microsoft.ML.Trainers.FastTree
                             new RoleMappedSchema.ColumnRole(MetadataUtils.Const.ScoreValueKind.Score).Bind(DefaultColumnNames.Score));
                     }
 
-                    _data.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);
-                    MetadataUtils.TryGetCategoricalFeatureIndices(_data.Schema.Schema, featureIndex, out _catsMap);
+                    var featureCol = _data.Schema.Schema.GetColumnOrNull(DefaultColumnNames.Features);
+                    ch.Assert(featureCol.HasValue);
+                    MetadataUtils.TryGetCategoricalFeatureIndices(_data.Schema.Schema, featureCol.Value.Index, out _catsMap);
                 }
 
                 public FeatureInfo GetInfoForIndex(int index) => FeatureInfo.GetInfoForIndex(this, index);

@@ -381,9 +381,12 @@ namespace Microsoft.ML.Transforms.Projections
 
             for (int i = 0; i < columns.Length; i++)
             {
-                if (!inputSchema.TryGetColumnIndex(columns[i].Input, out cols[i]))
+                var col = inputSchema.GetColumnOrNull(columns[i].Input);
+                if (!col.HasValue)
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input);
-                srcTypes[i] = inputSchema[cols[i]].Type;
+
+                cols[i] = col.Value.Index;
+                srcTypes[i] = col.Value.Type;
                 var reason = TestColumn(srcTypes[i]);
                 if (reason != null)
                     throw env.ExceptParam(nameof(inputData.Schema), reason);
