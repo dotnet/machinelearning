@@ -810,14 +810,14 @@ namespace Microsoft.ML.Data
                 {
                     var splitter = _splitters[c] = Splitter.Create(_input, toSlice[c]);
                     _host.Assert(splitter.ColumnCount >= 1);
-                    // One splitter can produce multiple columns because it split a input column into multiple output columns.
-                    // _incolToLim[c] stores (the last output column index of the c-th splitter) - 1.
+                    // One splitter can produce multiple columns because it splits a input column into multiple output columns.
+                    // _incolToLim[c] stores (the last output column index of the c-th splitter) + 1.
                     _incolToLim[c] = outputColumnCount += splitter.ColumnCount;
                     // toSlice[c] stores the input column index processed by the c-th splitter. In the output schema, we map a
                     // output column name to the last column produced by the associated splitter. For example, if input column
-                    // "Features" (index 5) gets splitted into three output columns "Features" (index 0), "Features" (index 1),
-                    // "Features" (index 2), nameToCol["Features"] should return 2. Note that output column names are identical
-                    // to their source column name.
+                    // "Features" (column index 5) gets splitted into three output columns "Features" (column index 0), "Features"
+                    // (column index 1), "Features" (column index 2), nameToCol["Features"] should return 2. Note that output column
+                    // names are identical to their source column name.
                     nameToCol[_input.Schema[toSlice[c]].Name] = outputColumnCount - 1;
                 }
                 // Here outputColumnCount denotes the total number of columns produced by all splitters.
