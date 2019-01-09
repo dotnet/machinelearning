@@ -46,7 +46,8 @@ namespace Microsoft.ML.Data
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema[col].HasKeyValues(keyType.Count))
+            Contracts.Assert(keyType.Count <= int.MaxValue);
+            if (schema[col].HasKeyValues((int)keyType.Count))
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.

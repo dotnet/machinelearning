@@ -19,6 +19,15 @@ namespace Microsoft.ML.Data
             (columnType is TimeSpanType) || (columnType is DateTimeType) || (columnType is DateTimeOffsetType);
 
         /// <summary>
+        /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
+        /// </summary>
+        public static int CheckRangeReturnCount(this ColumnType columnType, IExceptionContext ectx = null)
+        {
+            ectx.Assert(columnType.KeyCount <= int.MaxValue, "KeyType range exceeds int.MaxValue.");
+            return (int)columnType.KeyCount;
+        }
+
+        /// <summary>
         /// Zero return means either it's not a key type or the cardinality is unknown.
         /// </summary>
         public static int GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
@@ -87,7 +96,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
         /// </summary>
-        public static int CheckMaxRangeAndReturn(this KeyType key, IExceptionContext ectx = null)
+        public static int CheckRangeReturnCount(this KeyType key, IExceptionContext ectx = null)
         {
             ectx.Assert(key.Count <= int.MaxValue, "KeyType range exceeds int.MaxValue.");
             return (int)key.Count;

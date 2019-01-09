@@ -378,14 +378,14 @@ namespace Microsoft.ML.Transforms.Conversions
             else
             {
                 ectx.Assert(KeyType.IsValidDataType(key.RawType));
-                int count = key.Count;
+                ulong count = key.Count;
                 // Technically, it's an error for the counts not to match, but we'll let the Conversions
                 // code return false below. There's a possibility we'll change the standard conversions to
                 // map out of bounds values to zero, in which case, this is the right thing to do.
                 ulong max = kind.ToMaxInt();
-                if ((ulong)count > max)
-                    count = (int)max;
-                itemType = new KeyType(kind, key.Min, count, key.Contiguous);
+                if (count > max)
+                    count = max;
+                itemType = new KeyType(kind, count);
             }
             return true;
         }
@@ -512,9 +512,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (_parent._columns[iinfo].OutputKeyRange != null)
                 {
                     var key = (KeyType)_types[iinfo].GetItemType();
-                    node.AddAttribute("min", key.Min);
                     node.AddAttribute("max", key.Count);
-                    node.AddAttribute("contiguous", key.Contiguous);
                 }
                 return true;
             }

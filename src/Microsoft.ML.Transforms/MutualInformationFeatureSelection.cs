@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(labelType.RawType);
                     var parameters = new object[] { trans, labelCol, labelType };
                     _labels = (VBuffer<int>)methodInfo.Invoke(this, parameters);
-                    _numLabels = labelKeyCount + 1;
+                    _numLabels = labelType.CheckRangeReturnCount(_host) + 1;
 
                     // No need to densify or shift in this case.
                     return;
@@ -580,7 +580,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     (ref VBuffer<T> src, ref VBuffer<int> dst, out int min, out int lim) =>
                     {
                         min = 0;
-                        lim = keyCount + 1;
+                        lim = (int)type.KeyCount + 1;
                         mapper(in src, ref dst);
                     };
             }

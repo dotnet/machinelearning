@@ -503,8 +503,8 @@ namespace Microsoft.ML.Data
             ValueGetter<VBuffer<Float>> mapperScoreGetter = output.GetGetter<VBuffer<Float>>(Bindings.ScoreColumnIndex);
 
             long cachedPosition = -1;
-            VBuffer<Float> score = default(VBuffer<Float>);
-            int scoreLength = Bindings.PredColType.GetKeyCount();
+            VBuffer<Float> score = default;
+            int scoreLength = Bindings.PredColType.CheckRangeReturnCount(Host);
 
             ValueGetter<uint> predFn =
                 (ref uint dst) =>

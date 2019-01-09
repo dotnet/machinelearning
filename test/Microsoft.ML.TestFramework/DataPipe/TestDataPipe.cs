@@ -806,11 +806,11 @@ namespace Microsoft.ML.RunTests
                     "loader=Text{header=+",
                     "  col=Label:U1[0-1]:0",
                     "  col=Features:U2:1-*",
-                    "  col=A:U1[1-5]:1",
-                    "  col=B:U1[3-8]:2",
+                    "  col=A:U1[0-4]:1",
+                    "  col=B:U1[0-5]:2",
                     "  col=C:U4[0-5]:3",
-                    "  col=D:U1[1-*]:4",
-                    "  col=E:[3-*]:5",
+                    "  col=D:U1[0-*]:4",
+                    "  col=E:[0-*]:5",
                     "  col=F:U1[0-*]:6",
                     "}",
                     "xf=Convert{col=Label2:U2[0-1]:Label col=Features2:Features type=Num}",
@@ -837,13 +837,12 @@ namespace Microsoft.ML.RunTests
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label:U1[0-1]:Label" +
                         " col=Features:U2:Features" +
-                        " col=A:U1[1-5]:A" +
-                        " col=B:U1[3-8]:B" +
+                        " col=A:U1[0-4]:A" +
+                        " col=B:U1[0-5]:B" +
                         " col=C:[0-5]:C" +
-                        " col=D:U1[1-*]:D" +
-                        " col=E" +
-                        " col=F:U1[0-*]:F" +
-                        " key={min=3}",
+                        " col=D:U1[0-*]:D" +
+                        " col=E:[0-*]:E" +
+                        " col=F:U1[0-*]:F",
                         argsConv);
                     Check(tmp, "Parsing argsConv failed!");
                     view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
@@ -855,7 +854,7 @@ namespace Microsoft.ML.RunTests
                     Check(tmp, "Parsing argsConv(2) failed!");
                     view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
 
-                    var colsChoose = new[] { "Label", "Features", "Label2", "Features2", "A", "B", "C", "D", "E", "F" };
+                    var colsChoose = new[] { "Label", "Features", "A", "B", "C", "D", "E", "F", "Label2", "Features2"};
 
                     IDataView view1 = ColumnSelectingTransformer.CreateKeep(Env, pipe, colsChoose);
                     view2 = ColumnSelectingTransformer.CreateKeep(Env, view2, colsChoose);

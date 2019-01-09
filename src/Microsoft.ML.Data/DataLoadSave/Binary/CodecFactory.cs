@@ -68,7 +68,8 @@ namespace Microsoft.ML.Data.IO
             RegisterOtherCodec("DvTimeSpan", new UnsafeTypeCodec<TimeSpan>(this).GetCodec);
 
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
-            RegisterOtherCodec("Key", GetKeyCodec);
+            RegisterOtherCodec("KeyNew", GetKeyCodec);
+            RegisterOtherCodec("Key", GetKeyCodecOld);
         }
 
         private BinaryWriter OpenBinaryWriter(Stream stream)

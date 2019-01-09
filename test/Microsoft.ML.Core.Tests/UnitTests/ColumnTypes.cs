@@ -49,7 +49,7 @@ namespace Microsoft.ML.RunTests
                 {
                     for (var count = 0; count < 5; count++)
                     {
-                        tmp = new KeyType(rawType, min, count);
+                        tmp = new KeyType(rawType, count);
                         if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
                             Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                         dict[tmp] = tmp.ToString();
@@ -68,7 +68,7 @@ namespace Microsoft.ML.RunTests
                             }
                         }
                     }
-                    tmp = new KeyType(rawType, min, 0, false);
+                    tmp = new KeyType(rawType, 0);
                     if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
                         Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                     dict[tmp] = tmp.ToString();

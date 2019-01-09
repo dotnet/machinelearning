@@ -241,12 +241,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (valueType.RawType == typeof(uint))
                 {
                     uint[] indices = values.Select((x) => Convert.ToUInt32(x)).ToArray();
-                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), (ulong)metaKeys.Length, indices);
                 }
                 else if (valueType.RawType == typeof(ulong))
                 {
                     ulong[] indices = values.Select((x) => Convert.ToUInt64(x)).ToArray();
-                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), (ulong)metaKeys.Length, indices);
                 }
                 else
                 {
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         indices[i] = keyValue;
                     }
 
-                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Count(), indices);
+                    dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), (ulong)metaKeys.Count(), indices);
                 }
             }
             else
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
                         // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
                         // computing max and min.
-                        if (Microsoft.ML.Data.Conversion.Conversions.Instance.TryParseKey(in value, 1, ulong.MaxValue, out res))
+                        if (Data.Conversion.Conversions.Instance.TryParseKey(in value, ulong.MaxValue, out res))
                         {
                             if (res < keyMin && res != 0)
                                 keyMin = res;
@@ -507,7 +507,7 @@ namespace Microsoft.ML.Transforms.Conversions
             TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.U4, 1);
             if (keyMax - keyMin < (ulong)int.MaxValue)
             {
-                valueColumn.KeyRange = new KeyRange(keyMin, keyMax);
+                valueColumn.KeyRange = new KeyRange(keyMax);
             }
             else if (keyMax - keyMin < (ulong)uint.MaxValue)
             {

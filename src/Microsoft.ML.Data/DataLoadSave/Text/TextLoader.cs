@@ -776,19 +776,25 @@ namespace Microsoft.ML.Data
                     bool isKey = ctx.Reader.ReadBoolByte();
                     if (isKey)
                     {
+                        ulong count;
                         Contracts.CheckDecode(KeyType.IsValidDataKind(kind));
-
-                        bool isContig = ctx.Reader.ReadBoolByte();
-                        ulong min = ctx.Reader.ReadUInt64();
-                        Contracts.CheckDecode(min >= 0);
-                        int count = ctx.Reader.ReadInt32();
+                        if (ctx.Header.ModelVerWritten < 0x0001000C)
+                        {
+                            bool isContig = ctx.Reader.ReadBoolByte();
+                            ulong min = ctx.Reader.ReadUInt64();
+                            Contracts.CheckDecode(min >= 0);
+                            int cnt = ctx.Reader.ReadInt32();
+                            Contracts.CheckDecode(cnt >= 0);
+                            count = (ulong)cnt;
+                        }
+                        else
+                            count = ctx.Reader.ReadUInt64();
                         if (count == 0)
-                            itemType = new KeyType(kind, min, 0, isContig);
+                            itemType = new KeyType(kind, 0);
                         else
                         {
-                            Contracts.CheckDecode(isContig);
-                            Contracts.CheckDecode(2 <= count && (ulong)count <= kind.ToMaxInt());
-                            itemType = new KeyType(kind, min, count);
+                            Contracts.CheckDecode(2 <= count && count <= kind.ToMaxInt());
+                            itemType = new KeyType(kind, count);
                         }
                     }
                     else
@@ -836,9 +842,7 @@ namespace Microsoft.ML.Data
                 //   byte: DataKind
                 //   byte: bool of whether this is a key type
                 //   for a key type:
-                //     byte: contiguous key range
-                //     ulong: min for key range
-                //     int: count for key range
+                //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
                 //     int: min
@@ -855,11 +859,7 @@ namespace Microsoft.ML.Data
                     ctx.Writer.Write((byte)rawKind);
                     ctx.Writer.WriteBoolByte(type is KeyType);
                     if (type is KeyType key)
-                    {
-                        ctx.Writer.WriteBoolByte(key.Contiguous);
-                        ctx.Writer.Write(key.Min);
                         ctx.Writer.Write(key.Count);
-                    }
                     ctx.Writer.Write(info.Segments.Length);
                     foreach (var seg in info.Segments)
                     {
@@ -920,7 +920,8 @@ namespace Microsoft.ML.Data
                 //verWrittenCur: 0x00010008, // Added maxRows
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
-                verWrittenCur: 0x0001000B, // Header now retained if used and present
+                //verWrittenCur: 0x0001000B, // Header now retained if used and present
+                verWrittenCur: 0x0001000C, // Removed Min and Count from KeyType
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,

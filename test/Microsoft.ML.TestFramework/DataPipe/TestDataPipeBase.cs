@@ -584,7 +584,7 @@ namespace Microsoft.ML.RunTests
                 if (!keyNames)
                     continue;
 
-                size = type1.GetItemType() is KeyType keyType ? keyType.Count : -1;
+                size = type1.GetItemType() is KeyType keyType ? keyType.CheckRangeReturnCount(Env) : -1;
                 if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, size, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }

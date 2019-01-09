@@ -21,12 +21,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // Matrix column index starts from _synthesizedMatrixFirstColumnIndex and is at most
             // _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount - 1.
             // Contieuous=true means that all values between the min and max indexes are all allowed.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from _synthesizedMatrixFirstRowIndex and is at most
             // _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount - 1.
             // Contieuous=true means that all values between the min and max indexes are all allowed.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the column MatrixColumnIndex and row MatrixRowIndex.
             public float Value;
@@ -36,9 +36,9 @@ namespace Microsoft.ML.Samples.Dynamic
         // renamed to Score because Score is the default name of matrix factorization's output.
         internal class MatrixElementForScore
         {
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }

@@ -203,7 +203,7 @@ namespace Microsoft.ML.Data
                     var overallDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, stratCol.ToArray());
+                        overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, stratCol.ToArray());
                         overallDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, stratVal.ToArray());
                     }
                     if (hasWeight)
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Data
                     var groupDvBldr = new ArrayDataViewBuilder(Host);
                     if (hasStrats)
                     {
-                        groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, groupStratCol.ToArray());
+                        groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), (ulong)dictionaries.Length, groupStratCol.ToArray());
                         groupDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, groupStratVal.ToArray());
                     }
                     if (groupSummary)

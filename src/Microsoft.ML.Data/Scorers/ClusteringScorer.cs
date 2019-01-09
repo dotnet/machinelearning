@@ -101,7 +101,9 @@ namespace Microsoft.ML.Data
 
             long cachedPosition = -1;
             VBuffer<Float> score = default(VBuffer<Float>);
-            int scoreLength = Bindings.PredColType.GetKeyCount();
+            ulong keyCount = Bindings.PredColType is KeyType key ? key.Count : 0;
+            Contracts.Assert(keyCount <= int.MaxValue);
+            int scoreLength = (int)keyCount;
 
             ValueGetter<uint> predFn =
                 (ref uint dst) =>
