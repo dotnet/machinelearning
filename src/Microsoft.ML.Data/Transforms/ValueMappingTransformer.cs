@@ -100,13 +100,14 @@ namespace Microsoft.ML.Transforms.Conversions
             var isKey = Transformer.ValueColumnType.IsKey;
             var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
                                     Transformer.ValueColumnType;
+            var metadata = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
             foreach (var (Input, Output) in _columns)
             {
                 if (!inputSchema.TryFindColumn(Input, out var originalColumn))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Input);
 
                 // Get the type from TOutputType
-                var col = new SchemaShape.Column(Output, vectorKind, columnType, isKey, originalColumn.Metadata);
+                var col = new SchemaShape.Column(Output, vectorKind, columnType, isKey, metadata);
                 resultDic[Output] = col;
             }
             return new SchemaShape(resultDic.Values);
@@ -191,18 +192,15 @@ namespace Microsoft.ML.Transforms.Conversions
                 // set of values. This is used for generating the metadata of
                 // the column.
                 HashSet<TValue> valueSet = new HashSet<TValue>();
-                HashSet<TKey> keySet = new HashSet<TKey>();
                 for (int i = 0; i < values.Count(); ++i)
                 {
                     var v = values.ElementAt(i);
                     if (valueSet.Contains(v))
                         continue;
                     valueSet.Add(v);
-
-                    var k = keys.ElementAt(i);
-                    keySet.Add(k);
                 }
-                var metaKeys = keySet.ToArray();
+
+                var metaKeys = valueSet.ToArray();
 
                 // Key Values are treated in one of two ways:
                 // If the values are of type uint or ulong, these values are used directly as the keys types and no new keys are created.

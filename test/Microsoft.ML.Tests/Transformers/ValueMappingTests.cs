@@ -321,6 +321,31 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void ValueMappingValuesAsKeyTypesReverseLookup()
+        {
+            var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+
+            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+
+            // Generating the list of strings for the key type values, note that foo1 is duplicated as intended to test that the same index value is returned
+            IEnumerable<ReadOnlyMemory<char>> values = new List<ReadOnlyMemory<char>>() { "foo1".AsMemory(), "foo2".AsMemory(), "foo1".AsMemory(), "foo3".AsMemory() };
+
+            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") })
+                            .Append(new KeyToValueMappingEstimator(Env, ("D","DOutput")));
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            var cursor = result.GetRowCursor((col) => true);
+            var getterD = cursor.GetGetter<ReadOnlyMemory<char>>(6);
+            cursor.MoveNext();
+
+            // The expected values will contain the generated key type values starting from 1.
+            ReadOnlyMemory<char> dValue = default;
+            getterD(ref dValue);
+        }
+
+        [Fact]
         public void ValueMappingWorkout()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
