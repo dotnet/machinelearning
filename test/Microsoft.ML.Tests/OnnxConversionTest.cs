@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests
             public float[] Features;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // Tracked by https://github.com/dotnet/machinelearning/issues/2087
         public void KmeansOnnxConversionTest()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
