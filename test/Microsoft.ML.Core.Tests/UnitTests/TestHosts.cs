@@ -80,7 +80,7 @@ namespace Microsoft.ML.RunTests
             var messages = new List<string>();
 
             var env = new MLContext();
-            env.Log += (sender, message) => messages.Add(message);
+            env.Log += (sender, e) => messages.Add(e.Message);
 
             // create a dummy text reader to trigger log messages
             env.Data.CreateTextReader(

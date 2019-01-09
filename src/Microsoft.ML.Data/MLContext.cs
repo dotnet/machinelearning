@@ -61,7 +61,7 @@ namespace Microsoft.ML
         /// <summary>
         /// The handler for the log messages.
         /// </summary>
-        public event EventHandler<string> Log;
+        public event EventHandler<LoggingEventArgs> Log;
 
         /// <summary>
         /// This is a MEF composition container catalog to be used for model loading.
@@ -109,7 +109,7 @@ namespace Microsoft.ML
 
             var msg = $"[Source={source.FullName}, Kind={message.Kind}] {message.Message}";
 
-            log(this, msg);
+            log(this, new LoggingEventArgs { Message = msg });
         }
 
         int IHostEnvironment.ConcurrencyFactor => _env.ConcurrencyFactor;
