@@ -8,7 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
     <ProjectReference Include="../Microsoft.ML.ImageAnalytics/Microsoft.ML.ImageAnalytics.nupkgproj" />
-    <ProjectReference Include="../Microsoft.ML.MatrixFactorization/Microsoft.ML.MatrixFactorization.nupkgproj" />
+    <ProjectReference Include="../Microsoft.ML.Recommender/Microsoft.ML.Recommender.nupkgproj" />
   </ItemGroup>
 
 </Project>
