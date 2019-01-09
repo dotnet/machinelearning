@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.StaticPipe;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public sealed class TimeSeriesStaticTests
+    public sealed class TimeSeriesStaticTests : BaseTestBaseline
     {
 #pragma warning disable CS0649 // Ignore unintialized field warning
         private sealed class ChangePointPrediction
@@ -117,10 +119,10 @@ namespace Microsoft.ML.Tests
             {
                 row = enumerator.Current;
 
-                Assert.Equal(expectedValues[index++], row.Data[0], precision: 5);  // Alert
-                Assert.Equal(expectedValues[index++], row.Data[1], precision: 5);  // Raw score
-                Assert.Equal(expectedValues[index++], row.Data[2], precision: 5);  // P-Value score
-                Assert.Equal(expectedValues[index++], row.Data[3], precision: 5);  // Martingale score
+                CompareNumbersWithTolerance(expectedValues[index++], row.Data[0], digitsOfPrecision: 5);  // Alert
+                CompareNumbersWithTolerance(expectedValues[index++], row.Data[1], digitsOfPrecision: 5);  // Raw score
+                CompareNumbersWithTolerance(expectedValues[index++], row.Data[2], digitsOfPrecision: 5);  // P-Value score
+                CompareNumbersWithTolerance(expectedValues[index++], row.Data[3], digitsOfPrecision: 5);  // Martingale score
             }
         }
 
@@ -171,9 +173,9 @@ namespace Microsoft.ML.Tests
             {
                 row = enumerator.Current;
 
-                Assert.Equal(expectedValues[i][0], row.Data[0], precision: 7);
-                Assert.Equal(expectedValues[i][1], row.Data[1], precision: 7);
-                Assert.Equal(expectedValues[i][2], row.Data[2], precision: 7);
+                CompareNumbersWithTolerance(expectedValues[i][0], row.Data[0], digitsOfPrecision: 7);
+                CompareNumbersWithTolerance(expectedValues[i][1], row.Data[1], digitsOfPrecision: 7);
+                CompareNumbersWithTolerance(expectedValues[i][2], row.Data[2], digitsOfPrecision: 7);
             }
         }
 
@@ -232,9 +234,9 @@ namespace Microsoft.ML.Tests
             {
                 row = enumerator.Current;
 
-                Assert.Equal(expectedValues[i][0], row.Data[0], precision: 6);
-                Assert.Equal(expectedValues[i][1], row.Data[1], precision: 6);
-                Assert.Equal(expectedValues[i][2], row.Data[2], precision: 6);
+                CompareNumbersWithTolerance(expectedValues[i][0], row.Data[0], digitsOfPrecision: 6);
+                CompareNumbersWithTolerance(expectedValues[i][1], row.Data[1], digitsOfPrecision: 6);
+                CompareNumbersWithTolerance(expectedValues[i][2], row.Data[2], digitsOfPrecision: 6);
             }
         }
     }
