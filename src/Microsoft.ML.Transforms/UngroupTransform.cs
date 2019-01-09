@@ -232,6 +232,7 @@ namespace Microsoft.ML.Transforms
             }
 
             private readonly Schema _inputSchema;
+            public int InputColumnCount => _inputSchema.Count;
             private readonly IExceptionContext _ectx;
 
             public readonly UngroupMode Mode;
@@ -256,12 +257,12 @@ namespace Microsoft.ML.Transforms
                 _ectx.AssertValue(inputSchema);
                 _ectx.AssertNonEmpty(pivotColumns);
 
-                _inputSchema = inputSchema;
+                _inputSchema = inputSchema; // This also makes InputColumnCount valid.
                 Mode = mode;
 
                 Bind(_ectx, inputSchema, pivotColumns, out _infos);
 
-                _pivotIndex = Utils.CreateArray(_inputSchema.Count, -1);
+                _pivotIndex = Utils.CreateArray(InputColumnCount, -1);
                 for (int i = 0; i < _infos.Length; i++)
                 {
                     var info = _infos[i];
@@ -272,7 +273,7 @@ namespace Microsoft.ML.Transforms
                 var schemaBuilder = new SchemaBuilder();
                 // Iterate through input columns. Input columns which are not pivot columns will be copied to output schema with the same column index unchanged.
                 // Input columns which are pivot columns would also be copied but with different data types and different metadata.
-                for (int i = 0; i < _inputSchema.Count; ++i)
+                for (int i = 0; i < InputColumnCount; ++i)
                 {
                     if (_pivotIndex[i] < 0)
                     {
@@ -367,7 +368,7 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public bool[] GetActiveInput(Func<int, bool> predicate)
             {
-                var activeInput = Utils.BuildArray(OutputSchema.Count, predicate);
+                var activeInput = Utils.BuildArray(_inputSchema.Count, predicate);
                 for (int i = 0; i < _infos.Length; i++)
                 {
                     bool isNeededForSize = (_infos[i].Size == 0) && (i == 0 || Mode != UngroupMode.First);
@@ -389,7 +390,7 @@ namespace Microsoft.ML.Transforms
 
             public PivotColumnInfo GetPivotColumnInfoByCol(int col)
             {
-                _ectx.Assert(0 <= col && col < OutputSchema.Count);
+                _ectx.Assert(0 <= col && col < _inputSchema.Count);
                 _ectx.Assert(_pivotIndex[col] >= 0);
                 return _infos[_pivotIndex[col]];
             }
@@ -436,7 +437,11 @@ namespace Microsoft.ML.Transforms
             // The current position within the pivot columns. If the cursor is in good state, this is in [0, _pivotColSize).
             private int _pivotColPosition;
 
-            // Total count is ColumnCount.
+            /// <summary>
+            /// Total number of input columns is <see cref="UngroupBinding.InputColumnCount"/> of <see cref="_ungroupBinding"/>.
+            /// Note that the number of input columns equals to the number of output columns; that is, <see cref="UngroupBinding.InputColumnCount"/>
+            /// is identical to the number of columns in <see cref="UngroupBinding.OutputSchema"/>.
+            /// </summary>
             private readonly bool[] _active;
 
             // Getters for pivot columns. Cached on first creation. Parallel to columns, and always null for non-pivot columns.
@@ -456,9 +461,9 @@ namespace Microsoft.ML.Transforms
                 : base(provider, input)
             {
                 _ungroupBinding = schema;
-                _active = Utils.BuildArray(_ungroupBinding.OutputSchema.Count, predicate);
-                _cachedGetters = new Delegate[_ungroupBinding.OutputSchema.Count];
-                _colSizes = new int[_ungroupBinding.OutputSchema.Count];
+                _active = Utils.BuildArray(_ungroupBinding.InputColumnCount, predicate);
+                _cachedGetters = new Delegate[_ungroupBinding.InputColumnCount];
+                _colSizes = new int[_ungroupBinding.InputColumnCount];
 
                 int sizeColumnsLim = _ungroupBinding.Mode == UngroupMode.First ? 1 : _ungroupBinding.PivotColumnCount;
                 _fixedSize = 0;
@@ -551,9 +556,15 @@ namespace Microsoft.ML.Transforms
                 return size;
             }
 
+            /// <summary>
+            /// Create a getter which returns the length of a vector (aka a column's value) in the input data.
+            /// </summary>
+            /// <typeparam name="T">The type of the considered input vector</typeparam>
+            /// <param name="col">Column index, which should point to a vector-typed column in the input data.</param>
+            /// <returns>Getter of the length to the considered input vector.</returns>
             private Func<int> MakeSizeGetter<T>(int col)
             {
-                Contracts.Assert(0 <= col && col < _ungroupBinding.OutputSchema.Count);
+                Contracts.Assert(0 <= col && col < _ungroupBinding.InputColumnCount);
 
                 var srcGetter = GetGetter<T>(col);
                 var cur = default(T);
@@ -571,13 +582,21 @@ namespace Microsoft.ML.Transforms
 
             public override bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < _ungroupBinding.OutputSchema.Count);
+                Ch.Check(0 <= col && col < _ungroupBinding.InputColumnCount);
                 return _active[col];
             }
 
+            /// <summary>
+            /// Returns getter to an output column.
+            /// </summary>
+            /// <typeparam name="TValue">Output column's content type, for example, <see cref="VBuffer{T}"/>.</typeparam>
+            /// <param name="col">Index of a output column whose getter will be returned.</param>
+            /// <returns></returns>
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                Ch.CheckParam(0 <= col && col < _ungroupBinding.OutputSchema.Count, nameof(col));
+                // Although the input argument, col, is a output index, we check its range as if it's an input column index.
+                // It makes sense because the i-th output column is produced by either expanding or copying the i-th input column.
+                Ch.CheckParam(0 <= col && col < _ungroupBinding.InputColumnCount, nameof(col));
 
                 if (!_ungroupBinding.IsPivot(col))
                     return Input.GetGetter<TValue>(col);
