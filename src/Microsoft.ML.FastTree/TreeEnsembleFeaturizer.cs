@@ -779,10 +779,11 @@ namespace Microsoft.ML.Data
             ch.AssertValue(input);
             ch.AssertNonWhiteSpace(labelName);
 
-            int col;
-            if (!input.Schema.TryGetColumnIndex(labelName, out col))
-                throw ch.Except("Label column '{0}' not found.", labelName);
-            ColumnType labelType = input.Schema[col].Type;
+            var col = input.Schema.GetColumnOrNull(labelName);
+            if (!col.HasValue)
+                throw ch.ExceptSchemaMismatch(nameof(input), "Label", labelName);
+
+            ColumnType labelType = col.Value.Type;
             if (!labelType.IsKey)
             {
                 if (labelPermutationSeed != 0)

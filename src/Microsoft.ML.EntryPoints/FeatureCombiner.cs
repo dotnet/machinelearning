@@ -115,15 +115,15 @@ namespace Microsoft.ML.EntryPoints
         {
             Contracts.AssertValue(data);
             Contracts.AssertNonWhiteSpace(colName);
-            int col;
             var schema = data.Schema;
-            if (!schema.TryGetColumnIndex(colName, out col))
+            var col = schema.GetColumnOrNull(colName);
+            if (!col.HasValue)
                 return null;
-            var type = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var type = col.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
             if (type == null || !type.IsKnownSizeVector || !(type.ItemType is TextType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
-            schema[col].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
+            col.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
             if (!metadata.IsDense)
                 return null;
             var sb = new StringBuilder();
@@ -231,10 +231,11 @@ namespace Microsoft.ML.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            int labelCol;
-            if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
-                throw host.Except($"Column '{input.LabelColumn}' not found.");
-            var labelType = input.Data.Schema[labelCol].Type;
+            var labelCol = input.Data.Schema.GetColumnOrNull(input.LabelColumn);
+            if (!labelCol.HasValue)
+                throw host.ExceptSchemaMismatch(nameof(input), "Label", input.LabelColumn);
+
+            var labelType = labelCol.Value.Type;
             if (labelType.IsKey || labelType is BoolType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
@@ -266,10 +267,10 @@ namespace Microsoft.ML.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            int predictedLabelCol;
-            if (!input.Data.Schema.TryGetColumnIndex(input.PredictedLabelColumn, out predictedLabelCol))
-                throw host.Except($"Column '{input.PredictedLabelColumn}' not found.");
-            var predictedLabelType = input.Data.Schema[predictedLabelCol].Type;
+            var predictedLabelCol = input.Data.Schema.GetColumnOrNull(input.PredictedLabelColumn);
+            if (!predictedLabelCol.HasValue)
+                throw host.ExceptSchemaMismatch(nameof(input), "PredictedLabel",input.PredictedLabelColumn);
+            var predictedLabelType = predictedLabelCol.Value.Type;
             if (predictedLabelType is NumberType || predictedLabelType is BoolType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
@@ -288,10 +289,10 @@ namespace Microsoft.ML.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            int labelCol;
-            if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
+            var labelCol = input.Data.Schema.GetColumnOrNull(input.LabelColumn);
+            if (!labelCol.HasValue)
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
-            var labelType = input.Data.Schema[labelCol].Type;
+            var labelType = labelCol.Value.Type;
             if (labelType == NumberType.R4 || !(labelType is NumberType))
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);

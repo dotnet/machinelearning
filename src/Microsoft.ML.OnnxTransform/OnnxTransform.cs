@@ -348,8 +348,10 @@ namespace Microsoft.ML.Transforms
                     _inputTensorShapes[i] = inputShape.ToList();
                     _inputOnnxTypes[i] = inputNodeInfo.Type;
 
-                    if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
-                        throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
+                    var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
+                    if (!col.HasValue)
+                        throw Host.ExceptSchemaMismatch( nameof(inputSchema),"input", _parent.Inputs[i]);
+                    _inputColIndices[i] = col.Value.Index;
 
                     var type = inputSchema[_inputColIndices[i]].Type;
                     _isInputVector[i] = type.IsVector;
