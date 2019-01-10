@@ -220,7 +220,7 @@ namespace Microsoft.ML.FactorizationMachine
         }
 
         ISchemaBoundMapper ISchemaBindableMapper.Bind(IHostEnvironment env, RoleMappedSchema schema)
-            => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, Schema.Create(new BinaryClassifierSchema()), this);
+            => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, ScoreSchemaFactory.CreateBinaryClassificationSchema(), this);
 
         internal void CopyLinearWeightsTo(float[] linearWeights)
         {

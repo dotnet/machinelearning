@@ -4,327 +4,106 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// A base class for schemas for ISchemaBoundMappers. Takes care of all the metadata that has to do with
-    /// the score column. If the predictor schema has more than one output column, then the GetColumnType(),
-    /// TryGetColumnIndex() and GetColumnName() methods should be overridden. If additional metadata is
-    /// needed, the metadata methods can also be overridden.
+    /// This class contains method for creating commonly used <see cref="Schema"/>s.
     /// </summary>
-    public abstract class ScoreMapperSchemaBase : ISchema
+    [BestFriend]
+    internal static class ScoreSchemaFactory
     {
-        protected readonly ColumnType ScoreType;
-        protected readonly string ScoreColumnKind;
-        protected readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> ScoreValueKindGetter;
-        protected readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> ScoreColumnKindGetter;
-
-        public ScoreMapperSchemaBase(ColumnType scoreType, string scoreColumnKind)
+        /// <summary>
+        /// Return a <see cref="Schema"/> which contains a single score column.
+        /// </summary>
+        /// <param name="scoreType">The type of the score column.</param>
+        /// <param name="scoreColumnKind">The kind of the score column. It's the value of <see cref="MetadataUtils.Kinds.ScoreColumnKind"/> in the score column's metadata.</param>
+        /// <param name="scoreColumnName">The score column's name in the generated <see cref="Schema"/>.</param>
+        /// <returns><see cref="Schema"/> which contains only one column.</returns>
+        public static Schema Create(ColumnType scoreType, string scoreColumnKind, string scoreColumnName = MetadataUtils.Const.ScoreValueKind.Score)
         {
             Contracts.CheckValue(scoreType, nameof(scoreType));
             Contracts.CheckNonEmpty(scoreColumnKind, nameof(scoreColumnKind));
 
-            ScoreType = scoreType;
-            ScoreColumnKind = scoreColumnKind;
-            ScoreValueKindGetter = GetScoreValueKind;
-            ScoreColumnKindGetter = GetScoreColumnKind;
-        }
+            // Two metadata fields. One can set up by caller of this function while the other one is a constant.
+            var metadataBuilder = new MetadataBuilder();
+            metadataBuilder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance,
+                (ref ReadOnlyMemory<char> value) => { value = scoreColumnKind.AsMemory(); });
+            metadataBuilder.Add(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance,
+                (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreValueKind.Score.AsMemory(); });
 
-        public virtual int ColumnCount { get { return 1; } }
+            // Build a schema consisting of a single column.
+            var schemaBuilder = new SchemaBuilder();
+            schemaBuilder.AddColumn(scoreColumnName, scoreType, metadataBuilder.GetMetadata());
 
-        private void CheckColZero(int col, string methName)
-        {
-            Contracts.Assert(0 <= col && col < ColumnCount);
-            if (col == 0)
-                return;
-            throw Contracts.Except("Derived class should have overriden {0} to handle all columns except zero",
-                methName);
-        }
-
-        public virtual ColumnType GetColumnType(int col)
-        {
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            CheckColZero(col, "GetColumnType");
-            return ScoreType;
+            return schemaBuilder.GetSchema();
         }
 
         /// <summary>
-        /// This only knows about column zero, the Score column. Derived classes should handle all others.
+        /// Create a <see cref="Schema"/> with two columns for binary classifier. The first column, indexed by 0, is the score column.
+        /// The second column is the probability column. For example, for linear support vector machine, score column stands for the inner product
+        /// of linear coefficients and the input feature vector and we convert score column to probability column using a calibrator.
         /// </summary>
-        public virtual bool TryGetColumnIndex(string name, out int col)
+        /// <param name="scoreColumnName">Column name of score column</param>
+        /// <param name="probabilityColumnName">Column name of probability column</param>
+        /// <returns><see cref="Schema"/> of binary classifier's output.</returns>
+        public static Schema CreateBinaryClassificationSchema(string scoreColumnName = MetadataUtils.Const.ScoreValueKind.Score,
+            string probabilityColumnName = MetadataUtils.Const.ScoreValueKind.Probability)
         {
-            Contracts.CheckValueOrNull(name);
-            col = 0;
-            return name == MetadataUtils.Const.ScoreValueKind.Score;
+            // Schema of Score column. We are going to extend it by adding a Probability column.
+            var partialSchema = Create(NumberType.Float, MetadataUtils.Const.ScoreColumnKind.BinaryClassification, scoreColumnName);
+
+            var schemaBuilder = new SchemaBuilder();
+            // Copy Score column from partialSchema.
+            schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, partialSchema[0].Metadata);
+
+            // Create Probability column's metadata.
+            var probabilityMetadataBuilder = new MetadataBuilder();
+            probabilityMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ref bool value) => { value = true; });
+            probabilityMetadataBuilder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance,
+                (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreColumnKind.BinaryClassification.AsMemory(); });
+            probabilityMetadataBuilder.Add(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance,
+                (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreValueKind.Probability.AsMemory(); });
+
+            // Add probability column.
+            schemaBuilder.AddColumn(probabilityColumnName, NumberType.Float, probabilityMetadataBuilder.GetMetadata());
+
+            return schemaBuilder.GetSchema();
         }
 
         /// <summary>
-        /// This only knows about column zero, the Score column. Derived classes should handle all others.
+        /// This is very similar to <see cref="Create(ColumnType, string, string)"/> but adds one extra metadata field to the only score column.
         /// </summary>
-        public virtual string GetColumnName(int col)
+        /// <param name="scoreType">Output element's type of quantile regressor. Note that a quantile regressor can produce an array of <see cref="PrimitiveType"/>.</param>
+        /// <param name="quantiles">Quantiles used in quantile regressor.</param>
+        /// <returns><see cref="Schema"/> of quantile regressor's output.</returns>
+        public static Schema CreateQuantileRegressionSchema(ColumnType scoreType, double[] quantiles)
         {
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            CheckColZero(col, "GetColumnName");
-            return MetadataUtils.Const.ScoreValueKind.Score;
-        }
+            Contracts.CheckValue(scoreType, nameof(scoreType));
+            Contracts.CheckValue(scoreType as PrimitiveType, nameof(scoreType));
+            Contracts.AssertValue(quantiles);
 
-        /// <summary>
-        /// Assumes all columns have ScoreColumnKind and ScoreValueKind.
-        /// </summary>
-        public virtual IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-        {
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            return new[] {
-                TextType.Instance.GetPair(MetadataUtils.Kinds.ScoreColumnKind),
-                TextType.Instance.GetPair(MetadataUtils.Kinds.ScoreValueKind)
-            };
-        }
+            // Create a schema using standard function. The produced schema will be modified by adding one metadata column.
+            var partialSchema = Create(new VectorType(scoreType as PrimitiveType, quantiles.Length), MetadataUtils.Const.ScoreColumnKind.QuantileRegression);
 
-        /// <summary>
-        /// Assumes all columns have ScoreColumnKind and ScoreValueKind of type Text.
-        /// </summary>
-        public virtual ColumnType GetMetadataTypeOrNull(string kind, int col)
-        {
-            Contracts.CheckNonEmpty(kind, nameof(kind));
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            switch (kind)
-            {
-            case MetadataUtils.Kinds.ScoreColumnKind:
-            case MetadataUtils.Kinds.ScoreValueKind:
-                return TextType.Instance;
-            }
-            return null;
-        }
+            var metadataBuilder = new MetadataBuilder();
+            // Add the extra metadata.
+            metadataBuilder.AddSlotNames(quantiles.Length, (ref VBuffer<ReadOnlyMemory<char>> value) =>
+                {
+                    var bufferEditor = VBufferEditor.Create(ref value, quantiles.Length);
+                    for (int i = 0; i < quantiles.Length; ++i)
+                        bufferEditor.Values[i] = string.Format("Quantile-{0}", quantiles[i]).AsMemory();
+                    value = bufferEditor.Commit();
+                });
+            // Copy default metadata from the partial schema.
+            metadataBuilder.Add(partialSchema[0].Metadata, (string kind) => true);
 
-        /// <summary>
-        /// Assumes all columns have ScoreColumnKind and ScoreValueKind.
-        /// </summary>
-        public virtual void GetMetadata<TValue>(string kind, int col, ref TValue value)
-        {
-            Contracts.CheckNonEmpty(kind, nameof(kind));
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            switch (kind)
-            {
-            case MetadataUtils.Kinds.ScoreColumnKind:
-                ScoreColumnKindGetter.Marshal(col, ref value);
-                break;
-            case MetadataUtils.Kinds.ScoreValueKind:
-                ScoreValueKindGetter.Marshal(col, ref value);
-                break;
-            default:
-                throw MetadataUtils.ExceptGetMetadata();
-            }
-        }
+            // Build a schema consisting of a single column. Comparing with partial schema, the only difference is a metadata field.
+            var schemaBuilder = new SchemaBuilder();
+            schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, metadataBuilder.GetMetadata());
 
-        protected virtual void GetScoreValueKind(int col, ref ReadOnlyMemory<char> dst)
-        {
-            Contracts.Assert(0 <= col && col < ColumnCount);
-            CheckColZero(col, "GetScoreValueKind");
-            dst = MetadataUtils.Const.ScoreValueKind.Score.AsMemory();
-        }
-
-        private void GetScoreColumnKind(int col, ref ReadOnlyMemory<char> dst)
-        {
-            dst = ScoreColumnKind.AsMemory();
-        }
-    }
-
-    /// <summary>
-    /// Schema implementation for an ISchemaBoundMapper that produces a single column named Score.
-    /// </summary>
-    public sealed class ScoreMapperSchema : ScoreMapperSchemaBase
-    {
-        public ScoreMapperSchema(ColumnType scoreType, string scoreColumnKind)
-            : base(scoreType, scoreColumnKind)
-        {
-        }
-    }
-
-    /// <summary>
-    /// The base class handles the score column (index zero). This class handles the probability column (index one).
-    /// </summary>
-    public sealed class BinaryClassifierSchema : ScoreMapperSchemaBase
-    {
-        public override int ColumnCount { get { return base.ColumnCount + 1; } }
-
-        public BinaryClassifierSchema()
-            : base(NumberType.Float, MetadataUtils.Const.ScoreColumnKind.BinaryClassification)
-        {
-        }
-
-        public override ColumnType GetColumnType(int col)
-        {
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            if (col == base.ColumnCount)
-                return NumberType.Float;
-            return base.GetColumnType(col);
-        }
-
-        public override bool TryGetColumnIndex(string name, out int col)
-        {
-            Contracts.CheckValue(name, nameof(name));
-            if (name == MetadataUtils.Const.ScoreValueKind.Probability)
-            {
-                col = base.ColumnCount;
-                return true;
-            }
-            return base.TryGetColumnIndex(name, out col);
-        }
-
-        public override string GetColumnName(int col)
-        {
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            if (col == base.ColumnCount)
-                return MetadataUtils.Const.ScoreValueKind.Probability;
-            return base.GetColumnName(col);
-        }
-
-        public override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-        {
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            var items = base.GetMetadataTypes(col);
-            if (col == base.ColumnCount)
-                items = items.Prepend(BoolType.Instance.GetPair(MetadataUtils.Kinds.IsNormalized));
-            return items;
-        }
-
-        public override ColumnType GetMetadataTypeOrNull(string kind, int col)
-        {
-            Contracts.CheckNonEmpty(kind, nameof(kind));
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-            if (col == base.ColumnCount && kind == MetadataUtils.Kinds.IsNormalized)
-                return BoolType.Instance;
-            return base.GetMetadataTypeOrNull(kind, col);
-        }
-
-        public override void GetMetadata<TValue>(string kind, int col, ref TValue value)
-        {
-            Contracts.CheckNonEmpty(kind, nameof(kind));
-            Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-            if (col == base.ColumnCount && kind == MetadataUtils.Kinds.IsNormalized)
-                MetadataUtils.Marshal<bool, TValue>(IsNormalized, col, ref value);
-            else
-                base.GetMetadata<TValue>(kind, col, ref value);
-        }
-
-        private void IsNormalized(int col, ref bool dst)
-        {
-            dst = true;
-        }
-
-        protected override void GetScoreValueKind(int col, ref ReadOnlyMemory<char> dst)
-        {
-            Contracts.Assert(0 <= col && col < ColumnCount);
-            if (col == base.ColumnCount)
-                dst = MetadataUtils.Const.ScoreValueKind.Probability.AsMemory();
-            else
-                base.GetScoreValueKind(col, ref dst);
-        }
-    }
-
-    public sealed class SequencePredictorSchema : ScoreMapperSchemaBase
-    {
-        private readonly VectorType _keyNamesType;
-        private readonly VBuffer<ReadOnlyMemory<char>> _keyNames;
-        private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getKeyNames;
-
-        private bool HasKeyNames { get { return _keyNamesType != null; } }
-
-        // REVIEW: Future iterations may want slot names.
-
-        /// <summary>
-        /// Constructs an <see cref="ISchemaBoundMapper"/> with one column of a given type, called PredictedLabel.
-        /// If the input <paramref name="keyNames"/> has positive length, it is exposed as
-        /// <see cref="MetadataUtils.Kinds.KeyValues"/> metadata. Note that we do not copy
-        /// the input key names, but instead take a reference to it.
-        /// </summary>
-        public SequencePredictorSchema(ColumnType type, in VBuffer<ReadOnlyMemory<char>> keyNames, string scoreColumnKind)
-            : base(type, scoreColumnKind)
-        {
-            if (keyNames.Length > 0)
-            {
-                Contracts.CheckParam(type.ItemType.IsKey,
-                    nameof(keyNames), "keyNames valid only for key type");
-                Contracts.CheckParam(keyNames.Length == type.ItemType.KeyCount,
-                    nameof(keyNames), "keyNames length must match type's key count");
-                // REVIEW: Assuming the caller takes some care, it seems
-                // like we can get away with
-                _keyNames = keyNames;
-                _keyNamesType = new VectorType(TextType.Instance, keyNames.Length);
-                _getKeyNames = GetKeyNames;
-            }
-        }
-
-        public override int ColumnCount { get { return 1; } }
-
-        public override bool TryGetColumnIndex(string name, out int col)
-        {
-            Contracts.CheckValueOrNull(name);
-            col = 0;
-            return name == MetadataUtils.Const.ScoreValueKind.PredictedLabel;
-        }
-
-        public override string GetColumnName(int col)
-        {
-            Contracts.CheckParam(col == 0, nameof(col));
-            return MetadataUtils.Const.ScoreValueKind.PredictedLabel;
-        }
-
-        private void GetKeyNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
-        {
-            Contracts.Assert(col == 0);
-            Contracts.AssertValue(_keyNamesType);
-            _keyNames.CopyTo(ref dst);
-        }
-
-        public override void GetMetadata<TValue>(string kind, int col, ref TValue value)
-        {
-            Contracts.CheckNonEmpty(kind, nameof(kind));
-            Contracts.CheckParam(col == 0, nameof(col));
-            switch (kind)
-            {
-            case MetadataUtils.Kinds.KeyValues:
-                if (!HasKeyNames)
-                    throw MetadataUtils.ExceptGetMetadata();
-                _getKeyNames.Marshal(col, ref value);
-                break;
-            default:
-                base.GetMetadata(kind, col, ref value);
-                break;
-            }
-        }
-
-        public override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-        {
-            Contracts.CheckParam(col == 0, nameof(col));
-            var items = base.GetMetadataTypes(col);
-            if (HasKeyNames)
-                items = items.Prepend(new KeyValuePair<string, ColumnType>(MetadataUtils.Kinds.KeyValues, _keyNamesType));
-            return items;
-        }
-
-        public override ColumnType GetMetadataTypeOrNull(string kind, int col)
-        {
-            Contracts.CheckNonEmpty(kind, nameof(kind));
-            Contracts.CheckParam(col == 0, nameof(col));
-            switch (kind)
-            {
-            case MetadataUtils.Kinds.KeyValues:
-                if (!HasKeyNames)
-                    return null;
-                return _keyNamesType;
-            default:
-                return base.GetMetadataTypeOrNull(kind, col);
-            }
-        }
-
-        protected override void GetScoreValueKind(int col, ref ReadOnlyMemory<char> dst)
-        {
-            Contracts.Assert(col == 0);
-            dst = MetadataUtils.Const.ScoreValueKind.PredictedLabel.AsMemory();
+            return schemaBuilder.GetSchema();
         }
     }
 }
