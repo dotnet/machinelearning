@@ -270,12 +270,12 @@ namespace Microsoft.ML.Data
 
         // The schema class for this transform. This delegates to the parent transform whatever
         // it can't figure out.
-        private sealed class Bindings : ColumnBindingsBase, ITransposeSchema
+        private sealed class Bindings : ColumnBindingsBase, ITransposeSlotTypeHolder
         {
             // The parent transform.
             private readonly OneToOneTransformBase _parent;
             // The source input transform schema, or null if the input was not a transpose dataview.
-            private readonly ITransposeSchema _inputTransposed;
+            private readonly ITransposeSlotTypeHolder _transposeSlotTypeHolder;
 
             /// <summary>
             /// Information about each added column.
@@ -293,13 +293,13 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(Utils.Size(infos) == InfoCount);
 
                 _parent = parent;
-                _inputTransposed = _parent.InputTranspose == null ? null : _parent.InputTranspose.TransposeSchema;
-                Contracts.Assert((_inputTransposed == null) == (_parent.InputTranspose == null));
+                _transposeSlotTypeHolder = _parent.InputTranspose == null ? null : _parent.InputTranspose.TransposeSlotTypeHolder;
+                Contracts.Assert((_transposeSlotTypeHolder == null) == (_parent.InputTranspose == null));
                 Infos = infos;
             }
 
             public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, Schema input,
-                ITransposeSchema transInput, Func<ColumnType, string> testType)
+                ITransposeSlotTypeHolder transInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
                 var host = parent.Host;
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Data
             }
 
             public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, Schema input,
-                ITransposeSchema transInput, Func<ColumnType, string> testType)
+                ITransposeSlotTypeHolder transInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
                 var host = parent.Host;
@@ -436,8 +436,8 @@ namespace Microsoft.ML.Data
                 int index = MapColumnIndex(out isSrc, col);
                 if (isSrc)
                 {
-                    if (_inputTransposed != null)
-                        return _inputTransposed.GetSlotType(index);
+                    if (_transposeSlotTypeHolder != null)
+                        return _transposeSlotTypeHolder.GetSlotType(index);
                     return null;
                 }
                 return _parent.GetSlotTypeCore(index);
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Data
         // The _input as a transposed data view, non-null iff _input is a transposed data view.
         private protected readonly ITransposeDataView InputTranspose;
         // The InputTranspose transpose schema, null iff InputTranspose is null.
-        private protected ITransposeSchema InputTransposeSchema => InputTranspose?.TransposeSchema;
+        private protected ITransposeSlotTypeHolder InputTransposeSlotTypeHolder => InputTranspose?.TransposeSlotTypeHolder;
 
         bool ICanSavePfa.CanSavePfa => CanSavePfaCore;
 
@@ -490,7 +490,7 @@ namespace Microsoft.ML.Data
             Host.CheckValueOrNull(testType);
             InputTranspose = Source as ITransposeDataView;
 
-            _bindings = Bindings.Create(this, column, Source.Schema, InputTransposeSchema, testType);
+            _bindings = Bindings.Create(this, column, Source.Schema, InputTransposeSlotTypeHolder, testType);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Data
             Host.CheckValueOrNull(testType);
             InputTranspose = Source as ITransposeDataView;
 
-            _bindings = Bindings.Create(this, column, Source.Schema, InputTransposeSchema, testType);
+            _bindings = Bindings.Create(this, column, Source.Schema, InputTransposeSlotTypeHolder, testType);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Data
             Host.CheckValueOrNull(testType);
             InputTranspose = Source as ITransposeDataView;
 
-            _bindings = Bindings.Create(this, ctx, Source.Schema, InputTransposeSchema, testType);
+            _bindings = Bindings.Create(this, ctx, Source.Schema, InputTransposeSlotTypeHolder, testType);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -542,7 +542,7 @@ namespace Microsoft.ML.Data
                 })
                 .ToArray();
 
-            _bindings = Bindings.Create(this, map, newInput.Schema, InputTransposeSchema, checkType);
+            _bindings = Bindings.Create(this, map, newInput.Schema, InputTransposeSlotTypeHolder, checkType);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -639,7 +639,7 @@ namespace Microsoft.ML.Data
 
         public sealed override Schema OutputSchema => _bindings.AsSchema;
 
-        ITransposeSchema ITransposeDataView.TransposeSchema => _bindings;
+        ITransposeSlotTypeHolder ITransposeDataView.TransposeSlotTypeHolder => _bindings;
 
         /// <summary>
         /// Return the (destination) column index for the indicated added column.

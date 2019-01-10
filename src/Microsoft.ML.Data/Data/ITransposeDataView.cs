@@ -20,18 +20,17 @@ namespace Microsoft.ML.Data
     /// <see cref="IDataView"/>.
     ///
     /// The interface only advertises that columns may be accessible in slot-wise fashion. A column
-    /// is accessible in this fashion iff <see cref="TransposeSchema"/>'s
-    /// <see cref="ITransposeSchema.GetSlotType"/> returns a non-null value.
+    /// is accessible in this fashion iff <see cref="TransposeSlotTypeHolder"/>'s
+    /// <see cref="ITransposeSlotTypeHolder.GetSlotType"/> returns a non-null value.
     /// </summary>
     [BestFriend]
     internal interface ITransposeDataView : IDataView
     {
         /// <summary>
         /// An enhanced schema, containing information on the transposition properties, if any,
-        /// of each column. Note that there is no contract or suggestion that this property
-        /// should be equal to <see cref="IDataView.Schema"/>.
+        /// of each column.
         /// </summary>
-        ITransposeSchema TransposeSchema { get; }
+        ITransposeSlotTypeHolder TransposeSlotTypeHolder { get; }
 
         /// <summary>
         /// Presents a cursor over the slots of a transposable column, or throws if the column
@@ -44,15 +43,15 @@ namespace Microsoft.ML.Data
     /// The transpose schema returns the schema information of the view we have transposed.
     /// </summary>
     [BestFriend]
-    internal interface ITransposeSchema : ISchema
+    internal interface ITransposeSlotTypeHolder
     {
         /// <summary>
-        /// Analogous to <see cref="ISchema.GetColumnType"/>, except instead of returning the type of value
-        /// accessible through the <see cref="RowCursor"/>, returns the item type of value accessible
-        /// through the <see cref="SlotCursor"/>. This will return <c>null</c> iff this particular
-        /// column is not transposable, that is, it cannot be viewed in a slotwise fashion. Observe from
-        /// the return type that this will always be a vector type. This vector type should be of fixed
-        /// size and one dimension.
+        /// Analogous to <see cref="ColumnType"/> in <see cref="Schema"/>, except instead of returning
+        /// the type of value accessible through the <see cref="RowCursor"/>, returns the item type of
+        /// value accessible through the <see cref="SlotCursor"/>. This will return <c>null</c> iff
+        /// this particular column is not transposable, that is, it cannot be viewed in a slotwise fashion.
+        /// Observe from the return type that this will always be a vector type. This vector type should
+        /// be of fixed size and one dimension.
         /// </summary>
         VectorType GetSlotType(int col);
     }

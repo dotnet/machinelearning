@@ -36,10 +36,10 @@ namespace Microsoft.ML.Data
         private readonly int[] _inputToTransposed;
         private readonly Schema.Column[] _cols;
         private readonly int[] _splitLim;
-        private readonly SchemaImpl _tschema;
+        private readonly TransposeSlotTypeHolderImpl _transposeSlotTypeHolder;
         private bool _disposed;
 
-        public ITransposeSchema TransposeSchema { get { return _tschema; } }
+        public ITransposeSlotTypeHolder TransposeSlotTypeHolder  => _transposeSlotTypeHolder;
 
         /// <summary>
         /// Creates an instance given a list of column names.
@@ -97,9 +97,9 @@ namespace Microsoft.ML.Data
             IEnumerable<int> columnSet = columns.Distinct().OrderBy(c => c);
             if (_tview != null)
             {
-                var ttschema = _tview.TransposeSchema;
+                var transposeSlotTypeHolder = _tview.TransposeSlotTypeHolder;
                 // Keep only those columns for which we do not have a slot view already.
-                columnSet = columnSet.Where(c => ttschema.GetSlotType(c) == null);
+                columnSet = columnSet.Where(c => transposeSlotTypeHolder.GetSlotType(c) == null);
             }
             columns = columnSet.ToArray();
             _cols = new Schema.Column[columns.Length];
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Data
                 if (rowCount > Utils.ArrayMaxSize)
                     throw _host.ExceptParam(nameof(view), "View has {0} rows, we cannot transpose with more than {1}", rowCount, Utils.ArrayMaxSize);
                 RowCount = (int)rowCount;
-                _tschema = new SchemaImpl(this);
+                _transposeSlotTypeHolder = new TransposeSlotTypeHolderImpl(this);
             }
         }
 
@@ -230,16 +230,16 @@ namespace Microsoft.ML.Data
 
         public SlotCursor GetSlotCursor(int col)
         {
-            _host.CheckParam(0 <= col && col < _tschema.ColumnCount, nameof(col));
+            _host.CheckParam(0 <= col && col < _transposeSlotTypeHolder.ColumnCount, nameof(col));
             if (_inputToTransposed[col] == -1)
             {
                 // Check if the parent view has this slot transposed. If it doesn't, fail.
-                if (_tview != null && _tview.TransposeSchema.GetSlotType(col) != null)
+                if (_tview != null && _tview.TransposeSlotTypeHolder.GetSlotType(col) != null)
                     return _tview.GetSlotCursor(col);
                 throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
-                    _tschema.GetColumnName(col));
+                    _transposeSlotTypeHolder.GetColumnName(col));
             }
-            var type = _tschema.GetSlotType(col).ItemType.RawType;
+            var type = _transposeSlotTypeHolder.GetSlotType(col).ItemType.RawType;
 
             var tcol = _inputToTransposed[col];
             _host.Assert(0 <= tcol && tcol < _cols.Length);
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Data
 
         private SlotCursor GetSlotCursorCore<T>(int col)
         {
-            if (_tschema.GetColumnType(col) is VectorType)
+            if (_transposeSlotTypeHolder.GetColumnType(col) is VectorType)
                 return new SlotCursorVec<T>(this, col);
             return new SlotCursorOne<T>(this, col);
         }
@@ -281,19 +281,17 @@ namespace Microsoft.ML.Data
         }
         #endregion
 
-        private sealed class SchemaImpl : ITransposeSchema
+        private sealed class TransposeSlotTypeHolderImpl : ITransposeSlotTypeHolder
         {
             private readonly Transposer _parent;
             private readonly IExceptionContext _ectx;
             private readonly VectorType[] _slotTypes;
 
-            private Schema InputSchema { get { return _parent._view.Schema; } }
+            private Schema InputSchema => _parent._view.Schema;
 
-            public Schema AsSchema { get; }
+            public int ColumnCount => InputSchema.Count;
 
-            public int ColumnCount { get { return InputSchema.Count; } }
-
-            public SchemaImpl(Transposer parent)
+            public TransposeSlotTypeHolderImpl(Transposer parent)
             {
                 Contracts.AssertValue(parent, "parent");
                 Contracts.AssertValue(parent._host, "parent");
@@ -309,14 +307,6 @@ namespace Microsoft.ML.Data
                     _ectx.Assert(primitiveType != null);
                     _slotTypes[c] = new VectorType(primitiveType, _parent.RowCount);
                 }
-
-                AsSchema = Schema.Create(this);
-            }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                _ectx.CheckValueOrNull(name);
-                return InputSchema.TryGetColumnIndex(name, out col);
             }
 
             public string GetColumnName(int col)
@@ -329,28 +319,13 @@ namespace Microsoft.ML.Data
                 return InputSchema[col].Type;
             }
 
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                return InputSchema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                return InputSchema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                InputSchema[col].Metadata.GetValue(kind, ref value);
-            }
-
             public VectorType GetSlotType(int col)
             {
                 _ectx.Check(0 <= col && col < ColumnCount, "col");
                 if (_parent._inputToTransposed[col] == -1)
                 {
                     if (_parent._tview != null)
-                        return _parent._tview.TransposeSchema.GetSlotType(col);
+                        return _parent._tview.TransposeSlotTypeHolder.GetSlotType(col);
                     return null;
                 }
                 return _slotTypes[_parent._inputToTransposed[col]];
@@ -383,7 +358,7 @@ namespace Microsoft.ML.Data
 
             public override VectorType GetSlotType()
             {
-                return _parent.TransposeSchema.GetSlotType(_col);
+                return _parent.TransposeSlotTypeHolder.GetSlotType(_col);
             }
 
             protected abstract ValueGetter<VBuffer<T>> GetGetterCore();
@@ -1432,7 +1407,7 @@ namespace Microsoft.ML.Data
                 _host = env.Register("SlotDataView");
                 _host.CheckValue(data, nameof(data));
                 _host.CheckParam(0 <= col && col < data.Schema.Count, nameof(col));
-                _type = data.TransposeSchema.GetSlotType(col);
+                _type = data.TransposeSlotTypeHolder.GetSlotType(col);
                 _host.AssertValue(_type);
 
                 _data = data;
@@ -1561,16 +1536,14 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// This <see cref="ITransposeSchema"/> implementation wraps an <see cref="ISchema"/>,
+        /// This <see cref="ITransposeSlotTypeHolder"/> implementation wraps an <see cref="ISchema"/>,
         /// while indicating that no columns are actually transposed. This is useful for
         /// <see cref="ITransposeDataView"/> implementations that are wrapping a data view
         /// that might not implement that interface.
         /// </summary>
-        internal sealed class SimpleTransposeSchema : ITransposeSchema
+        internal sealed class SimpleTransposeSchema : ITransposeSlotTypeHolder
         {
             private readonly Schema _schema;
-
-            public int ColumnCount { get { return _schema.Count; } }
 
             public SimpleTransposeSchema(Schema schema)
             {
@@ -1578,40 +1551,10 @@ namespace Microsoft.ML.Data
                 _schema = schema;
             }
 
-            public string GetColumnName(int col)
-            {
-                return _schema[col].Name;
-            }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                return _schema.TryGetColumnIndex(name, out col);
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                return _schema[col].Type;
-            }
-
             public VectorType GetSlotType(int col)
             {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
+                Contracts.CheckParam(0 <= col && col < _schema.Count, nameof(col));
                 return null;
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                return _schema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                return _schema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                _schema[col].Metadata.GetValue(kind, ref value);
             }
         }
     }
