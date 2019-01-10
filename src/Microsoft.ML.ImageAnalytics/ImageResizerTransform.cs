@@ -130,9 +130,9 @@ namespace Microsoft.ML.ImageAnalytics
             /// </summary>
             /// <param name="input">Name of the input column.</param>
             /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>.</param>
-            /// <param name="width">Widht of resized image.</param>
+            /// <param name="width">Width of resized image.</param>
             /// <param name="height">Height of resized image.</param>
-            /// <param name="resizing">What resize method to use.</param>
+            /// <param name="resizing">What <see cref="ResizingKind"/> to use.</param>
             /// <param name="anchor">If <paramref name="resizing"/> set to <see cref="ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
             public ColumnInfo(string input, string output, int width, int height, ResizingKind resizing = Defaults.Resizing, Anchor anchor = Defaults.CropAnchor)
             {
@@ -183,9 +183,9 @@ namespace Microsoft.ML.ImageAnalytics
         /// <param name="env">The host environment.</param>
         /// <param name="input">Name of the input column.</param>
         /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>.</param>
-        /// <param name="imageWidth">Widht of resized image.</param>
+        /// <param name="imageWidth">Width of resized image.</param>
         /// <param name="imageHeight">Height of resized image.</param>
-        /// <param name="resizing">What resize method to use.</param>
+        /// <param name="resizing">What <see cref="ResizingKind"/> to use.</param>
         /// <param name="cropAnchor">If <paramref name="resizing"/> set to <see cref="ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
         public ImageResizerTransformer(IHostEnvironment env, string input, string output,
             int imageWidth, int imageHeight, ResizingKind resizing = ResizingKind.IsoCrop, Anchor cropAnchor = Anchor.Center)
@@ -453,19 +453,19 @@ namespace Microsoft.ML.ImageAnalytics
     }
 
     /// <summary>
-    /// Estimator which resize images.
+    /// Estimator which resizes images.
     /// </summary>
     public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizerTransformer>
     {
         /// <summary>
-        /// Estimator which resize images.
+        /// Estimator which resizes images.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="input">Name of the input column.</param>
         /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>.</param>
-        /// <param name="imageWidth">Widht of resized image.</param>
+        /// <param name="imageWidth">Width of resized image.</param>
         /// <param name="imageHeight">Height of resized image.</param>
-        /// <param name="resizing">What resize method to use.</param>
+        /// <param name="resizing">What <see cref="ImageResizerTransformer.ResizingKind"/> to use.</param>
         /// <param name="cropAnchor">If <paramref name="resizing"/> set to <see cref="ImageResizerTransformer.ResizingKind.IsoCrop"/> what anchor to use for cropping.</param>
         public ImageResizingEstimator(IHostEnvironment env, string input, string output,
             int imageWidth, int imageHeight, ImageResizerTransformer.ResizingKind resizing = ImageResizerTransformer.Defaults.Resizing,
@@ -475,7 +475,7 @@ namespace Microsoft.ML.ImageAnalytics
         }
 
         /// <summary>
-        /// Estimator which resize images.
+        /// Estimator which resizes images.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="columns">Describes the parameters of image resizing for each column pair.</param>
