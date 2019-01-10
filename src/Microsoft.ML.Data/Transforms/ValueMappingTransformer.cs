@@ -385,7 +385,7 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.CheckNonEmpty(valueColumn, nameof(valueColumn), "A value column must be specified when passing in an IDataView for the value mapping");
             _valueMap = CreateValueMapFromDataView(lookupMap, keyColumn, valueColumn);
             int valueColumnIdx = 0;
-            Host.Assert(lookupMap.Schema.TryGetColumnIndex(valueColumn, out valueColumnIdx));
+            Host.Check(lookupMap.Schema.TryGetColumnIndex(valueColumn, out valueColumnIdx));
             _valueMetadata = lookupMap.Schema[valueColumnIdx].Metadata;
 
             // Create the byte array of the original IDataView, this is used for saving out the data.
