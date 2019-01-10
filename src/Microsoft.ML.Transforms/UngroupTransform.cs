@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms
                         // To explain the output type of pivot columns, let's consider a row
                         //   Age UserID
                         //   18  {"Amy", "Willy"}
-                        // where "Age" and "UserID" are column names and 20/{"Amy", "Willy"} is "Age"/"UserID" column in this example row.
+                        // where "Age" and "UserID" are column names and 18/{"Amy", "Willy"} is "Age"/"UserID" column in this example row.
                         // If the only pivot column is "UserID", the ungroup may produce
                         //   Age UserID
                         //   18  "Amy"
