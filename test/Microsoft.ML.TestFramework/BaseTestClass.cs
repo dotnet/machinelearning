@@ -30,7 +30,13 @@ namespace Microsoft.ML.TestFramework
             //correct results that are on en-US locale.
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
+#if NET462
+            // Substring is  removing initial "file:///" from the codebase string.
+            var currentAssemblyLocation = new FileInfo(Directory.GetParent(typeof(BaseTestClass).Assembly.CodeBase.Substring(8)).FullName);
+#else
+            // There is an extra folder in the netfx path representing the runtime identifier.
             var currentAssemblyLocation = new FileInfo(typeof(BaseTestClass).Assembly.Location);
+#endif
             _rootDir = currentAssemblyLocation.Directory.Parent.Parent.Parent.Parent.FullName;
             _outDir = Path.Combine(currentAssemblyLocation.Directory.FullName, "TestOutput");
             Directory.CreateDirectory(_outDir);
