@@ -31,6 +31,7 @@
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
     <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version="2.4.0-prerelease-63213-02" />
+    <PackageReference Include="coverlet.msbuild" Version="2.5.0" />
   </ItemGroup>
 
 </Project>
