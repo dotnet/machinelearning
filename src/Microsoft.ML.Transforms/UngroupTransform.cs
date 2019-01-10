@@ -232,10 +232,8 @@ namespace Microsoft.ML.Transforms
             }
 
             private readonly Schema _inputSchema;
-            public int InputColumnCount => _inputSchema.Count;
             private readonly IExceptionContext _ectx;
 
-            public readonly UngroupMode Mode;
             /// <summary>
             /// Information of columns to be ungrouped in <see cref="_inputSchema"/>.
             /// </summary>
@@ -248,6 +246,19 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private readonly int[] _pivotIndex;
 
+            /// <summary>
+            /// Columns contained in <see cref="IDataView"/> passed in <see cref="UngroupTransform"/>.
+            /// Note that input data's schema is stored as <see cref="_inputSchema"/>.
+            /// </summary>
+            public int InputColumnCount => _inputSchema.Count;
+            /// <summary>
+            /// This attribute specifies how <see cref="UngroupTransform"/> expanding input columns stored in <see cref="_infos"/>.
+            /// </summary>
+            public readonly UngroupMode Mode;
+            /// <summary>
+            /// Output data's <see cref="Schema"/> produced by this <see cref="UngroupTransform"/>
+            /// when input data's schema is <see cref="_inputSchema"/>.
+            /// </summary>
             public Schema OutputSchema { get; }
 
             public UngroupBinding(IExceptionContext ectx, Schema inputSchema, UngroupMode mode, string[] pivotColumns)
