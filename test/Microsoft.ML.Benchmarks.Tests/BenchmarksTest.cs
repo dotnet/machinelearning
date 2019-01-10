@@ -8,6 +8,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
+using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
 using Microsoft.ML.Internal.CpuMath;
 using Xunit;
@@ -40,13 +41,24 @@ namespace Microsoft.ML.Benchmarks.Tests
         private ITestOutputHelper Output { get; }
 
 #if DEBUG
-        [Fact(Skip = SkipTheDebug)]
+        [ConditionalTheory(Skip = SkipTheDebug)]
 #else
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))]
 #endif
-        public void BenchmarksProjectIsNotBroken()
+        [InlineData(typeof(RankingTrain))]
+        [InlineData(typeof(RankingTest))]
+        [InlineData(typeof(MultiClassClassificationTrain))]
+        [InlineData(typeof(MultiClassClassificationTest))]
+        [InlineData(typeof(BenchmarkTouchingNativeDependency))]
+        [InlineData(typeof(CacheDataViewBench))]
+        [InlineData(typeof(HashBench))]
+        [InlineData(typeof(KMeansAndLogisticRegressionBench))]
+        [InlineData(typeof(PredictionEngineBench))]
+        [InlineData(typeof(RffTransformTrain))]
+        [InlineData(typeof(StochasticDualCoordinateAscentClassifierBench))]
+        public void BenchmarksProjectIsNotBroken(Type type)
         {
-            var summary = BenchmarkRunner.Run<BenchmarkTouchingNativeDependency>(new TestConfig().With(new OutputLogger(Output)));
+            var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(Output)));
 
             Assert.False(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
 
