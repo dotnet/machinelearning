@@ -7,7 +7,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
+    /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransformer"]/*' />
     public static class TensorflowCatalog
     {
         /// <summary>
@@ -44,23 +44,23 @@ namespace Microsoft.ML
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), tensorFlowModel, inputs, outputs);
 
         /// <summary>
-        /// Score or Retrain a tensorflow model (based on setting of the <see cref="TensorFlowTransform.Arguments.ReTrain"/>) setting.
-        /// The model is specified in the <see cref="TensorFlowTransform.Arguments.ModelLocation"/>.
+        /// Score or Retrain a tensorflow model (based on setting of the <see cref="TensorFlowTransformer.Arguments.ReTrain"/>) setting.
+        /// The model is specified in the <see cref="TensorFlowTransformer.Arguments.ModelLocation"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="args">The <see cref="TensorFlowTransform.Arguments"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
+        /// <param name="args">The <see cref="TensorFlowTransformer.Arguments"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
         public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
-            TensorFlowTransform.Arguments args)
+            TensorFlowTransformer.Arguments args)
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), args);
 
         /// <summary>
-        /// Scores or retrains (based on setting of the <see cref="TensorFlowTransform.Arguments.ReTrain"/>) a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
+        /// Scores or retrains (based on setting of the <see cref="TensorFlowTransformer.Arguments.ReTrain"/>) a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="args">The <see cref="TensorFlowTransform.Arguments"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
+        /// <param name="args">The <see cref="TensorFlowTransformer.Arguments"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
         /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>
         public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
-            TensorFlowTransform.Arguments args,
+            TensorFlowTransformer.Arguments args,
             TensorFlowModelInfo tensorFlowModel)
             => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), args, tensorFlowModel);
     }

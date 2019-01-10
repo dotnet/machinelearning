@@ -106,7 +106,7 @@ namespace Microsoft.ML.EntryPoints
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = KeyToVectorMappingTransformer.Create(host, viewTrain, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Output, c.Output)).ToArray());
+                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Output, c.Output)).ToArray()).Transform(viewTrain);
             }
             return viewTrain;
         }

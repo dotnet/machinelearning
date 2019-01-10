@@ -184,7 +184,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public ColumnInfo(ModelLoadContext ctx)
+            internal ColumnInfo(ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ctx);
                 // *** Binary format ***
@@ -266,9 +266,9 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Constructor for SignatureLoadModel.
+        /// Factory method for SignatureLoadModel.
         /// </summary>
-        public ColumnConcatenatingTransformer(IHostEnvironment env, ModelLoadContext ctx) :
+        private ColumnConcatenatingTransformer(IHostEnvironment env, ModelLoadContext ctx) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnConcatenatingTransformer)))
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -351,10 +351,10 @@ namespace Microsoft.ML.Data
             return result;
         }
 
-        /// <summary>
-        /// Factory method corresponding to SignatureDataTransform.
+        ///<summary>
+        /// Factory method for SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -370,11 +370,11 @@ namespace Microsoft.ML.Data
             var transformer = new ColumnConcatenatingTransformer(env, cols);
             return transformer.MakeDataTransform(input);
         }
-
         /// <summary>
         /// Factory method corresponding to SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, TaggedArguments args, IDataView input)
+        [BestFriend]
+        internal static IDataTransform Create(IHostEnvironment env, TaggedArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));

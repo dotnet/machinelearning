@@ -27,7 +27,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="transformer">The ONNX transformer.</param>
-        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog, OnnxTransform transformer)
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog, OnnxTransformer transformer)
             => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), transformer);
     }
 }

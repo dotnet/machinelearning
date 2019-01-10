@@ -346,8 +346,8 @@ namespace Microsoft.ML.RunTests
         private (IEnumerable<string> epListContents, JObject manifest) BuildManifests()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
@@ -457,19 +457,11 @@ namespace Microsoft.ML.RunTests
                     ScoreModel.Score(Env,
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
+                individualScores[i] = new ColumnCopyingTransformer(Env,(
+                    MetadataUtils.Const.ScoreValueKind.Score,
+                    (MetadataUtils.Const.ScoreValueKind.Score + i).ToString())
+                    ).Transform(individualScores[i]);
 
-                individualScores[i] = ColumnCopyingTransformer.Create(Env,
-                    new ColumnCopyingTransformer.Arguments()
-                    {
-                        Column = new[]
-                        {
-                            new ColumnCopyingTransformer.Column()
-                            {
-                                Name = MetadataUtils.Const.ScoreValueKind.Score + i,
-                                Source = MetadataUtils.Const.ScoreValueKind.Score
-                            },
-                        }
-                    }, individualScores[i]);
                 individualScores[i] = ColumnSelectingTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
@@ -755,23 +747,8 @@ namespace Microsoft.ML.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
 
-                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
-                {
-                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
-                }, data);
-
-                data = ValueToKeyMappingTransformer.Create(Env, new ValueToKeyMappingTransformer.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new ValueToKeyMappingTransformer.Column()
-                        {
-                            Name = "Label",
-                            Source = "Label",
-                            Sort = ValueToKeyMappingTransformer.SortOrder.Value
-                        }
-                    }
-                }, data);
+                data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
+                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", sort: ValueToKeyMappingTransformer.SortOrder.Value).Fit(data).Transform(data);
 
                 var lrInput = new LogisticRegression.Arguments
                 {
@@ -796,7 +773,7 @@ namespace Microsoft.ML.RunTests
             var binaryEnsembleModel = EnsembleCreator.CreateBinaryPipelineEnsemble(Env,
                 new EnsembleCreator.PipelineClassifierInput()
                 {
-                    ModelCombiner = EntryPoints.EnsembleCreator.ClassifierCombiner.Average,
+                    ModelCombiner = EnsembleCreator.ClassifierCombiner.Average,
                     Models = predictorModels
                 }).PredictorModel;
             var binaryEnsembleCalibrated = Calibrate.Platt(Env,
@@ -818,10 +795,10 @@ namespace Microsoft.ML.RunTests
                     PredictorModel = binaryEnsembleCalibrated
                 }).ScoredData;
 
-            var regressionEnsembleModel = EntryPoints.EnsembleCreator.CreateRegressionPipelineEnsemble(Env,
-                new EntryPoints.EnsembleCreator.PipelineRegressionInput()
+            var regressionEnsembleModel = EnsembleCreator.CreateRegressionPipelineEnsemble(Env,
+                new EnsembleCreator.PipelineRegressionInput()
                 {
-                    ModelCombiner = EntryPoints.EnsembleCreator.ScoreCombiner.Average,
+                    ModelCombiner = EnsembleCreator.ScoreCombiner.Average,
                     Models = predictorModels
                 }).PredictorModel;
             var regressionScored = ScoreModel.Score(Env,
@@ -831,8 +808,8 @@ namespace Microsoft.ML.RunTests
                     PredictorModel = regressionEnsembleModel
                 }).ScoredData;
 
-            var anomalyEnsembleModel = EntryPoints.EnsembleCreator.CreateAnomalyPipelineEnsemble(Env,
-                new EntryPoints.EnsembleCreator.PipelineAnomalyInput()
+            var anomalyEnsembleModel = EnsembleCreator.CreateAnomalyPipelineEnsemble(Env,
+                new EnsembleCreator.PipelineAnomalyInput()
                 {
                     ModelCombiner = EnsembleCreator.ScoreCombiner.Average,
                     Models = predictorModels
@@ -1019,12 +996,10 @@ namespace Microsoft.ML.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = TextFeaturizingEstimator.Create(Env,
-                        new TextFeaturizingEstimator.Arguments()
-                        {
-                            Column = new TextFeaturizingEstimator.Column() { Name = "Features", Source = new[] { "Text" } },
-                            UsePredefinedStopWordRemover = true
-                        }, data);
+                    data = new TextFeaturizingEstimator(Env, "Text", "Features", args =>
+                    {
+                        args.UseStopRemover = true;
+                    }).Fit(data).Transform(data);
                 }
                 else
                 {
@@ -1223,10 +1198,7 @@ namespace Microsoft.ML.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
-                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
-                {
-                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
-                }, data);
+                data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
                 var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
                 var rmd = new RoleMappedData(data, "Label", "Features");
@@ -3679,7 +3651,7 @@ namespace Microsoft.ML.RunTests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void EntryPointTensorFlowTransform()
         {
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
 
             TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
                 new[] { "Transforms.TensorFlowScorer" },
@@ -5568,7 +5540,7 @@ namespace Microsoft.ML.RunTests
         public void TestTensorFlowEntryPoint()
         {
             var dataPath = GetDataPath("Train-Tiny-28x28.txt");
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
             string inputGraph = @"
             {
                 'Nodes':
