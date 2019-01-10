@@ -36,10 +36,10 @@ namespace Microsoft.ML.Internal.Internallearn
                 _slotNamesType = new VectorType(TextType.Instance, collection.Count);
 
                 var metadataBuilder = new MetadataBuilder();
-                metadataBuiulder.Add(MetadataUtils.Kinds.SlotNames, _slotNamesType,
+                metadataBuilder.Add(MetadataUtils.Kinds.SlotNames, _slotNamesType,
                     (ref VBuffer<ReadOnlyMemory<char>> slotNames) => { GetSlotNames(0, ref slotNames); } );
                 var schemaBuilder = new SchemaBuilder();
-                schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuiulder.GetMetadata());
+                schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuilder.GetMetadata());
                 FeatureNameCollectionSchema = schemaBuilder.GetSchema();
             }
 
