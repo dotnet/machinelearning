@@ -28,20 +28,11 @@ namespace Microsoft.ML.Benchmarks.Tests
 
     public class BenchmarksTest
     {
-        private const string SkipTheDebugAndFullFramework =
-#if DEBUG
-            "BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG";
-#elif NET462
-            "We are currently not running Benchmarks for FullFramework";
-#else
-            "";
-#endif
-
         public BenchmarksTest(ITestOutputHelper output) => Output = output;
 
         private ITestOutputHelper Output { get; }
 
-        private bool CanExecute =>
+        public bool CanExecute =>
 #if DEBUG
             false; // BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG
 #elif NET462

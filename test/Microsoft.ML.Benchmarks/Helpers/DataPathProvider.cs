@@ -6,11 +6,11 @@ using System.IO;
 
 namespace Microsoft.ML.Benchmarks
 {
-    internal class DataPath
+    internal class DataPathProvider
     {
-        public static string RootPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.Parent.Parent.Parent.Parent.FullName;
+        private static string RootPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.Parent.Parent.Parent.Parent.FullName;
 
-        public static string TestDataPath =  Path.Combine(RootPath, @"test/data");
+        private static string TestDataPath =  Path.Combine(RootPath, @"test/data");
 
         internal static string GetDataPath(string fileName) => Path.Combine(TestDataPath, fileName);
     }
