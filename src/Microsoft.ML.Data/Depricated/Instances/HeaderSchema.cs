@@ -35,7 +35,7 @@ namespace Microsoft.ML.Internal.Internallearn
                 _colType = new VectorType(NumberType.R4, collection.Count);
                 _slotNamesType = new VectorType(TextType.Instance, collection.Count);
 
-                var metadataBuiulder = new MetadataBuilder();
+                var metadataBuilder = new MetadataBuilder();
                 metadataBuiulder.Add(MetadataUtils.Kinds.SlotNames, _slotNamesType,
                     (ref VBuffer<ReadOnlyMemory<char>> slotNames) => { GetSlotNames(0, ref slotNames); } );
                 var schemaBuilder = new SchemaBuilder();
