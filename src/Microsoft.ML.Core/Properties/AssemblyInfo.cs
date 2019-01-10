@@ -97,5 +97,6 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "RunTestsAzurePublish" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "SseTests" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "TLC" + InternalPublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "DotNetBridge" + InternalPublicKey.Value)]
 
 [assembly: WantsToBeBestFriends]
