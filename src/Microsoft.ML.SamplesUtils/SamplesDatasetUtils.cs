@@ -237,5 +237,68 @@ namespace Microsoft.ML.SamplesUtils
             });
             return data;
         }
+
+        /// <summary>
+        /// feature vector's length in <see cref="MulticlassClassificationExample"/>.
+        /// </summary>
+        private const int _featureVectorLength = 10;
+
+        public class MulticlassClassificationExample
+        {
+            [VectorType(_featureVectorLength)]
+            public float[] Features;
+            [ColumnName("Label")]
+            public string Label;
+            public uint LabelIndex;
+            public uint PredictedLabelIndex;
+            [VectorType(4)]
+            // The probabilities of being "AA", "BB", "CC", and "DD".
+            public float[] Scores;
+
+            public MulticlassClassificationExample()
+            {
+                Features = new float[_featureVectorLength];
+            }
+        }
+
+        /// <summary>
+        /// Helper function used to generate random <see cref="GenerateRandomMulticlassClassificationExamples"/>s.
+        /// </summary>
+        /// <param name="count">Number of generated examples.</param>
+        /// <returns>A list of random examples.</returns>
+        public static List<MulticlassClassificationExample> GenerateRandomMulticlassClassificationExamples(int count)
+        {
+            var examples = new List<MulticlassClassificationExample>();
+            var rnd = new Random(0);
+            for (int i = 0; i < count; ++i)
+            {
+                var example = new MulticlassClassificationExample();
+                var res = i % 4;
+                // Generate random float feature values.
+                for (int j = 0; j < _featureVectorLength; ++j)
+                {
+                    var value = (float)rnd.NextDouble() + res * 0.2f;
+                    example.Features[j] = value;
+                }
+
+                // Generate label based on feature sum.
+                if (res == 0)
+                    example.Label = "AA";
+                else if (res == 1)
+                    example.Label = "BB";
+                else if (res == 2)
+                    example.Label = "CC";
+                else
+                    example.Label = "DD";
+
+                // The following three attributes are just placeholder for storing prediction results.
+                example.LabelIndex = default;
+                example.PredictedLabelIndex = default;
+                example.Scores = new float[4];
+
+                examples.Add(example);
+            }
+            return examples;
+        }
     }
 }

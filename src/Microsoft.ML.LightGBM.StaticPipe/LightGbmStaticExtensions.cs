@@ -181,6 +181,13 @@ namespace Microsoft.ML.LightGBM.StaticPipe
         /// the linear model that was trained. Note that this action cannot change the
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/LightGBMMulticlassWithInMemoryData.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
             LightGbm<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
             Key<uint, TVal> label,
