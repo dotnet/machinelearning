@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,6 +13,9 @@ namespace Microsoft.ML.Tests
 {
     public sealed class TimeSeriesStaticTests : BaseTestBaseline
     {
+        public TimeSeriesStaticTests(ITestOutputHelper output) : base(output)
+        {
+        }
 #pragma warning disable CS0649 // Ignore unintialized field warning
         private sealed class ChangePointPrediction
         {

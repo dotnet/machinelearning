@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.StaticPipe.Runtime;
 using System.Collections.Generic;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.TimeSeriesProcessing;
 
 namespace Microsoft.ML.StaticPipe
 {
-    using IidBase = Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<float, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
-    using SsaBase = Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<float, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
+    using IidBase = Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<float, Microsoft.ML.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
+    using SsaBase = Microsoft.ML.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<float, Microsoft.ML.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
     /// <summary>
     /// Static API extension methods for <see cref="IidChangePointEstimator"/>.
