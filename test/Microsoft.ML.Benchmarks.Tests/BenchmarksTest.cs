@@ -29,9 +29,11 @@ namespace Microsoft.ML.Benchmarks.Tests
 
     public class BenchmarksTest
     {
-        private const string SkipTheDebug =
+        private const string SkipTheDebugAndFullFramework =
 #if DEBUG
             "BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG";
+#elif NET462
+            "We are currently not running Benchmarks for FullFramework";
 #else
             "";
 #endif
@@ -40,8 +42,8 @@ namespace Microsoft.ML.Benchmarks.Tests
 
         private ITestOutputHelper Output { get; }
 
-#if DEBUG
-        [ConditionalTheory(Skip = SkipTheDebug)]
+#if DEBUG || NET462
+        [ConditionalTheory(Skip = SkipTheDebugAndFullFramework)]
 #else
         [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))]
 #endif

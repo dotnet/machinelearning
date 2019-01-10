@@ -39,13 +39,5 @@
     <None Include="..\data\breast-cancer.txt" Link="Input\breast-cancer.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-
-    <BenchmarkFile Update="@(BenchmarkFile)">
-      <Link>external\%(Identity)</Link>
-    </BenchmarkFile>
-
-    <None Condition="Exists('@(BenchmarkFile->'..\data\external\%(Identity)')')" Include="@(BenchmarkFile->'..\data\external\%(Identity)')">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>
