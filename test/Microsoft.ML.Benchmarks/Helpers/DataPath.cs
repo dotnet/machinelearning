@@ -6,9 +6,12 @@ using System.IO;
 
 namespace Microsoft.ML.Benchmarks
 {
-    internal class BenchmarkHelpers
+    internal class DataPath
     {
         public static string RootPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.Parent.Parent.Parent.Parent.FullName;
+
         public static string TestDataPath =  Path.Combine(RootPath, @"test/data");
+
+        internal static string GetDataPath(string fileName) => Path.Combine(TestDataPath, fileName);
     }
 }

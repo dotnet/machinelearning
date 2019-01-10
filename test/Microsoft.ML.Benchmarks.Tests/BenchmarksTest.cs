@@ -8,7 +8,6 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
-using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
 using Microsoft.ML.Internal.CpuMath;
 using Xunit;
@@ -42,15 +41,16 @@ namespace Microsoft.ML.Benchmarks.Tests
 
         private ITestOutputHelper Output { get; }
 
-#if DEBUG || NET462
-        [ConditionalTheory(Skip = SkipTheDebugAndFullFramework)]
+        private bool CanExecute =>
+#if DEBUG
+            false; // BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG
+#elif NET462
+            false; // We are currently not running Benchmarks for FullFramework
 #else
-        [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))]
+            Environment.Is64BitProcess; // we don't support 32 bit yet
 #endif
-        // [InlineData(typeof(RankingTrain))]
-        // [InlineData(typeof(RankingTest))]
-        // [InlineData(typeof(MultiClassClassificationTrain))]
-        // [InlineData(typeof(MultiClassClassificationTest))]
+
+        [ConditionalTheory(typeof(BenchmarksTest), nameof(CanExecute))]
         [InlineData(typeof(BenchmarkTouchingNativeDependency))]
         [InlineData(typeof(CacheDataViewBench))]
         [InlineData(typeof(HashBench))]
