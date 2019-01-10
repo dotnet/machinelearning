@@ -76,11 +76,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// it contains metadata of kind <see cref="InputOps"/>, indicating the names of the input nodes.
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="modelFile">The name of the file containing the TensorFlow model. Currently only frozen model
-        /// format is supported.</param>
-        public static Schema GetModelSchema(IHostEnvironment env, string modelFile)
+        /// <param name="modelPath">Model to load.</param>
+        public static Schema GetModelSchema(IHostEnvironment env, string modelPath)
         {
-            var model = LoadTensorFlowModel(env, modelFile);
+            var model = LoadTensorFlowModel(env, modelPath);
             return GetModelSchema(env, model.Session.Graph);
         }
 
@@ -90,11 +89,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
         /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
         /// </summary>
-        /// <param name="modelFile"></param>
+        /// <param name="modelPath">Model to load.</param>
         /// <returns></returns>
-        public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(string modelFile)
+        public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(string modelPath)
         {
-            var schema = GetModelSchema(new MLContext(), modelFile);
+            var schema = GetModelSchema(new MLContext(), modelPath);
 
             for (int i = 0; i < schema.Count; i++)
             {
@@ -310,7 +309,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         /// <summary>
-        /// Load tensor flow model into memory.
+        /// Load TensorFlow model into memory.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">The model to load.</param>
