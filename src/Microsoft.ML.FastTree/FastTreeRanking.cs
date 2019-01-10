@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
-        public FastTreeRankingTrainer(IHostEnvironment env,
+        internal FastTreeRankingTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string groupIdColumn = DefaultColumnNames.GroupId,
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">Algorithm advanced settings.</param>
-        public FastTreeRankingTrainer(IHostEnvironment env, Options options)
+        internal FastTreeRankingTrainer(IHostEnvironment env, Options options)
         : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
         {
         }

@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new FastTreeBinaryClassificationTrainer(Env,
+            var trainer = ML.BinaryClassification.Trainers.FastTree(
                 new FastTreeBinaryClassificationTrainer.Options { 
                     NumThreads = 1,
                     NumTrees = 10,
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new FastForestClassification(Env, 
+            var trainer = ML.BinaryClassification.Trainers.FastForest( 
                 new FastForestClassification.Options { 
                     NumLeaves = 10,
                     NumTrees = 20,
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipe, dataView) = GetRankingPipeline();
 
-            var trainer = new FastTreeRankingTrainer(Env,
+            var trainer = ML.Ranking.Trainers.FastTree(
                 new FastTreeRankingTrainer.Options {
                     FeatureColumn = "NumericFeatures",
                     NumTrees = 10
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FastTreeRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new FastTreeRegressionTrainer(Env,
+            var trainer = ML.Regression.Trainers.FastTree(
                 new FastTreeRegressionTrainer.Options { NumTrees = 10, NumThreads = 1, NumLeaves = 5 });
 
             TestEstimatorCore(trainer, dataView);
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TweedieRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new FastTreeTweedieTrainer(Env, 
+            var trainer = ML.Regression.Trainers.FastTreeTweedie( 
                 new FastTreeTweedieTrainer.Options { 
                     EntropyCoefficient = 0.3,
                     OptimizationAlgorithm = BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent,
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FastForestRegressorEstimator()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new FastForestRegression(Env, 
+            var trainer = ML.Regression.Trainers.FastForest( 
                 new FastForestRegression.Options { 
                     BaggingSize = 2,
                     NumTrees = 10,

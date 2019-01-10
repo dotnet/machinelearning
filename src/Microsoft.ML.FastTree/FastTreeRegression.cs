@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        public FastTreeRegressionTrainer(IHostEnvironment env,
+        internal FastTreeRegressionTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="options">Algorithm advanced settings.</param>
-        public FastTreeRegressionTrainer(IHostEnvironment env, Options options)
+        internal FastTreeRegressionTrainer(IHostEnvironment env, Options options)
             : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
         {
         }
