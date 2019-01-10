@@ -47,10 +47,10 @@ namespace Microsoft.ML.Benchmarks.Tests
 #else
         [ConditionalTheory(typeof(Environment), nameof(Environment.Is64BitProcess))]
 #endif
-        [InlineData(typeof(RankingTrain))]
-        [InlineData(typeof(RankingTest))]
-        [InlineData(typeof(MultiClassClassificationTrain))]
-        [InlineData(typeof(MultiClassClassificationTest))]
+        // [InlineData(typeof(RankingTrain))]
+        // [InlineData(typeof(RankingTest))]
+        // [InlineData(typeof(MultiClassClassificationTrain))]
+        // [InlineData(typeof(MultiClassClassificationTest))]
         [InlineData(typeof(BenchmarkTouchingNativeDependency))]
         [InlineData(typeof(CacheDataViewBench))]
         [InlineData(typeof(HashBench))]
