@@ -18,18 +18,18 @@ namespace Microsoft.ML.Data
         /// Return a <see cref="Schema"/> which contains a single score column.
         /// </summary>
         /// <param name="scoreType">The type of the score column.</param>
-        /// <param name="scoreColumnKind">The kind of the score column. It's the value of <see cref="MetadataUtils.Kinds.ScoreColumnKind"/> in the score column's metadata.</param>
+        /// <param name="scoreColumnKindValue">The kind of the score column. It's the value of <see cref="MetadataUtils.Kinds.ScoreColumnKind"/> in the score column's metadata.</param>
         /// <param name="scoreColumnName">The score column's name in the generated <see cref="Schema"/>.</param>
         /// <returns><see cref="Schema"/> which contains only one column.</returns>
-        public static Schema Create(ColumnType scoreType, string scoreColumnKind, string scoreColumnName = MetadataUtils.Const.ScoreValueKind.Score)
+        public static Schema Create(ColumnType scoreType, string scoreColumnKindValue, string scoreColumnName = MetadataUtils.Const.ScoreValueKind.Score)
         {
             Contracts.CheckValue(scoreType, nameof(scoreType));
-            Contracts.CheckNonEmpty(scoreColumnKind, nameof(scoreColumnKind));
+            Contracts.CheckNonEmpty(scoreColumnKindValue, nameof(scoreColumnKindValue));
 
             // Two metadata fields. One can set up by caller of this function while the other one is a constant.
             var metadataBuilder = new MetadataBuilder();
             metadataBuilder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance,
-                (ref ReadOnlyMemory<char> value) => { value = scoreColumnKind.AsMemory(); });
+                (ref ReadOnlyMemory<char> value) => { value = scoreColumnKindValue.AsMemory(); });
             metadataBuilder.Add(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance,
                 (ref ReadOnlyMemory<char> value) => { value = MetadataUtils.Const.ScoreValueKind.Score.AsMemory(); });
 
@@ -102,6 +102,37 @@ namespace Microsoft.ML.Data
             // Build a schema consisting of a single column. Comparing with partial schema, the only difference is a metadata field.
             var schemaBuilder = new SchemaBuilder();
             schemaBuilder.AddColumn(partialSchema[0].Name, partialSchema[0].Type, metadataBuilder.GetMetadata());
+
+            return schemaBuilder.GetSchema();
+        }
+
+        /// <summary>
+        /// This function returns a schema for sequence predictor's output. Its output column is always called <see cref="MetadataUtils.Const.ScoreValueKind.PredictedLabel"/>.
+        /// </summary>
+        /// <param name="scoreType">Score column's type produced by sequence predictor.</param>
+        /// <param name="scoreColumnKindValue">A metadata value of score column. It's the value associated with key
+        /// <see cref="MetadataUtils.Kinds.ScoreColumnKind"/>.</param>
+        /// <param name="keyNames">Sequence predictor usually generates integer outputs. This field tells the tags of all possible output values.
+        /// For example, output integer 0 cound be mapped to "Sell" and 0 to "Buy" when predicting stock trend.</param>
+        /// <returns><see cref="Schema"/> of sequence predictor's output.</returns>
+        public static Schema CreateSequencePredictionSchema(ColumnType scoreType, string scoreColumnKindValue, VBuffer<ReadOnlyMemory<char>> keyNames=default)
+        {
+            Contracts.CheckValue(scoreType, nameof(scoreType));
+            Contracts.CheckValue(scoreColumnKindValue, nameof(scoreColumnKindValue));
+
+            var metadataBuilder = new MetadataBuilder();
+            // Add metadata columns including their getters. We starts with key names of predicted keys if they exist.
+            if (keyNames.Length > 0)
+                metadataBuilder.AddKeyValues(keyNames.Length, TextType.Instance,
+                    (ref VBuffer<ReadOnlyMemory<char>> value) => value = keyNames);
+            metadataBuilder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance,
+                (ref ReadOnlyMemory<char> value) => value = scoreColumnKindValue.AsMemory());
+            metadataBuilder.Add(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance,
+                (ref ReadOnlyMemory<char> value) => value = MetadataUtils.Const.ScoreValueKind.PredictedLabel.AsMemory());
+
+            // Build a schema consisting of a single column.
+            var schemaBuilder = new SchemaBuilder();
+            schemaBuilder.AddColumn(MetadataUtils.Const.ScoreValueKind.PredictedLabel, scoreType, metadataBuilder.GetMetadata());
 
             return schemaBuilder.GetSchema();
         }
