@@ -44,7 +44,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
             var analyzer = new BestFriendAnalyzer();
 
             MetadataReference peRef;
-            var refs = new[] {
+            var refs = new List<MetadataReference> {
                     RefFromType<object>(), RefFromType<Attribute>(),
                     MetadataReference.CreateFromFile(Assembly.Load("netstandard, Version=2.0.0.0").Location),
                     MetadataReference.CreateFromFile(Assembly.Load("System.Runtime, Version=0.0.0.0").Location)
@@ -66,8 +66,9 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 peRef = MetadataReference.CreateFromImage(peImage);
             }
 
+            refs.Add(peRef);
             var comp = projB.GetCompilationAsync().Result
-                .WithReferences(refs.Append(peRef).ToArray());
+                .WithReferences(refs.ToArray());
             var compilationWithAnalyzers = comp.WithAnalyzers(ImmutableArray.Create((DiagnosticAnalyzer)analyzer));
             var allDiags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
 
