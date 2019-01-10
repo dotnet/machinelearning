@@ -70,6 +70,62 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
+        private class TestDataInt
+        {
+            [VectorType(4)]
+            public long[] a;
+            [VectorType(4)]
+            public int[] b;
+        }
+
+        /// <summary>
+        /// Test to ensure the support for int and int64 types.
+        /// </summary>
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        public void TensorFlowTransformAdditionOfIntAndInt64Test()
+        {
+            var model_location = "model_matadd_int_int64";
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            // Pipeline
+            var loader = ComponentCreation.CreateDataView(mlContext,
+                    new List<TestDataInt>(new TestDataInt[] { new TestDataInt() { a = new[] { 1L, 2,
+                                                                                     3, 4 },
+                                                                         b = new[] { 1, 2,
+                                                                                     3, 4 } },
+                        new TestDataInt() { a = new[] { 2L, 2,
+                                                     2, 2 },
+                                         b = new[] { 3, 3,
+                                                     3, 3 } } }));
+
+            var trans = TensorFlowTransform.Create(mlContext, loader, model_location, new[] { "c" }, new[] { "a", "b" });
+
+            using (var cursor = trans.GetRowCursor(a => true))
+            {
+                var cgetter = cursor.GetGetter<VBuffer<long>>(2);
+                Assert.True(cursor.MoveNext());
+                VBuffer<long> c = default;
+                cgetter(ref c);
+
+                var cValues = c.GetValues();
+                Assert.Equal(1 + 1, cValues[0]);
+                Assert.Equal(2 + 2, cValues[1]);
+                Assert.Equal(3 + 3, cValues[2]);
+                Assert.Equal(4 + 4, cValues[3]);
+
+                Assert.True(cursor.MoveNext());
+                c = default;
+                cgetter(ref c);
+
+                cValues = c.GetValues();
+                Assert.Equal(2 + 3, cValues[0]);
+                Assert.Equal(2 + 3, cValues[1]);
+                Assert.Equal(2 + 3, cValues[2]);
+                Assert.Equal(2 + 3, cValues[3]);
+
+                Assert.False(cursor.MoveNext());
+            }
+        }
+
         [Fact(Skip = "Model files are not available yet")]
         public void TensorFlowTransformObjectDetectionTest()
         {
