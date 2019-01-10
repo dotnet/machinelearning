@@ -43,11 +43,11 @@ phases:
     buildScript: build.cmd
     customMatrixes:
       Build_Debug_netfx:
-        _configuration: Debug
-        _config_short: DF
+        _configuration: Debug-netfx
+        _config_short: DFX
       Build_Release_netfx:
-        _configuration: Release
-        _config_short: RF   
+        _configuration: Release-netfx
+        _config_short: RFX  
     queue:
       name: Hosted VS2017
 
