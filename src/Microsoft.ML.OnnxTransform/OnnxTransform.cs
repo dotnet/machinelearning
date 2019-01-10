@@ -350,7 +350,7 @@ namespace Microsoft.ML.Transforms
 
                     var col = inputSchema.GetColumnOrNull(_parent.Inputs[i]);
                     if (!col.HasValue)
-                        throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
+                        throw Host.ExceptSchemaMismatch( nameof(inputSchema),"input", _parent.Inputs[i]);
                     _inputColIndices[i] = col.Value.Index;
 
                     var type = inputSchema[_inputColIndices[i]].Type;

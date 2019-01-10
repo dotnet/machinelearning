@@ -781,7 +781,7 @@ namespace Microsoft.ML.Data
 
             var col = input.Schema.GetColumnOrNull(labelName);
             if (!col.HasValue)
-                throw ch.Except("Label column '{0}' not found.", labelName);
+                throw ch.ExceptSchemaMismatch(nameof(input), "Label", labelName);
 
             ColumnType labelType = col.Value.Type;
             if (!labelType.IsKey)

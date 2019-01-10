@@ -55,7 +55,7 @@ namespace Microsoft.ML.Ensemble
                     var name = Parent._inputCols[i];
                     var col = InputRoleMappedSchema.Schema.GetColumnOrNull(name);
                     if (!col.HasValue)
-                        throw Parent.Host.Except("Schema does not contain required input column '{0}'", name);
+                        throw Parent.Host.ExceptSchemaMismatch(nameof(InputRoleMappedSchema), "input", name);
                     _inputColIndices.Add(col.Value.Index);
                 }
 
