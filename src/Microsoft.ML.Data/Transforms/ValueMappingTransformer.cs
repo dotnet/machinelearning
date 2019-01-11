@@ -153,6 +153,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 };
         }
 
+        /// <summary>
+        /// Helper function to add a column to an ArrayDataViewBuilder. This handles the case if the type is a string.
+        /// </summary>
         internal static void AddColumnWrapper<T>(ArrayDataViewBuilder builder, string columnName, PrimitiveType primitiveType, T[] values)
         {
             if (typeof(T) == typeof(string))
@@ -161,11 +164,22 @@ namespace Microsoft.ML.Transforms.Conversions
                 builder.AddColumn(columnName, primitiveType, values);
         }
 
+        /// <summary>
+        /// Helper function to add a column to an ArrayDataViewBuilder. This handles the case if the type is an array of strings.
+        /// </summary>
         internal static void AddColumnWrapper<T>(ArrayDataViewBuilder builder, string columnName, PrimitiveType primitiveType, T[][] values)
         {
             if (typeof(T) == typeof(string))
+            {
+                var convertedValues = new List<ReadOnlyMemory<char>[]>();
+                foreach(var value in values)
+                {
+                    var converted = value.Select(x => x.ToString().AsMemory());
+                    convertedValues.Add(converted.ToArray());
+                }
 
-                builder.AddColumn(columnName, primitiveType, values.Select(x => x.Select( y => y.ToString().AsMemory() ).ToArray()).ToArray());
+                builder.AddColumn(columnName, primitiveType, convertedValues.ToArray());
+            }
             else
                 builder.AddColumn(columnName, primitiveType, values);
         }
@@ -184,7 +198,6 @@ namespace Microsoft.ML.Transforms.Conversions
             var dataViewBuilder = new ArrayDataViewBuilder(env);
             AddColumnWrapper(dataViewBuilder, keyColumnName, keyType, keys.ToArray());
             AddColumnWrapper(dataViewBuilder, valueColumnName, valueType, values.ToArray());
-            //dataViewBuilder.AddColumn(valueColumnName, valueType, values.ToArray());
             return dataViewBuilder.GetDataView();
         }
 
