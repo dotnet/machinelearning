@@ -50,23 +50,28 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     columnType = new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray());
 
                 // There can be at most two metadata fields.
-                //  1. The first field always presents. Its value is this operator's ID. For example,
-                //     if an output is produced by an operator named "A", the value of this field should be "A".
+                //  1. The first field always presents. Its value is this operator's type. For example,
+                //     if an output is produced by an "Softmax" operator, the value of this field should be "Softmax".
                 //  2. The second field stores operators whose outputs are consumed by this operator. In other words,
                 //     these values are names of some upstream operators which should be evaluated before executing
                 //     the current operator. It's possible that one operator doesn't need any input, so this field
                 //     can be missing.
                 var metadataBuilder = new MetadataBuilder();
+                // Create the first metadata field.
                 metadataBuilder.Add(TensorflowOperatorTypeKind, TextType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
                 if (op.NumInputs > 0)
+                {
+                    // Put upstream operators' names to an array (type: VBuffer) of string (type: ReadOnlyMemory<char>).
+                    VBuffer<ReadOnlyMemory<char>> upstreamOperatorNames = default;
+                    var bufferEditor = VBufferEditor.Create(ref upstreamOperatorNames, op.NumInputs);
+                    for (int i = 0; i < op.NumInputs; ++i)
+                        bufferEditor.Values[i] = op.GetInput(i).Operation.Name.AsMemory();
+                    upstreamOperatorNames = bufferEditor.Commit(); // Used in metadata's getter.
+
+                    // Create the second metadata field.
                     metadataBuilder.Add(TensorflowUpstreamOperatorsKind, new VectorType(TextType.Instance, op.NumInputs),
-                        (ref VBuffer<ReadOnlyMemory<char>> value) =>
-                            {
-                                var bufferEditor = VBufferEditor.Create(ref value, op.NumInputs);
-                                for (int i = 0; i < op.NumInputs; ++i)
-                                    bufferEditor.Values[i] = op.GetInput(i).Operation.Name.AsMemory();
-                                value = bufferEditor.Commit();
-                            });
+                        (ref VBuffer<ReadOnlyMemory<char>> value) => { value = upstreamOperatorNames; });
+                }
 
                 schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.GetMetadata());
             }
