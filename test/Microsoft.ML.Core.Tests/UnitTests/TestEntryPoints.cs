@@ -2975,19 +2975,14 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(model);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
-<<<<<<< HEAD
 
-            Action<IDataView> validateAuc = (metricsIdv) =>
-=======
-            Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursorForAllColumns())
->>>>>>> Addressing the PR review comments.
-            {
+            Action<IDataView> validateAuc = (metricsIdv) => 
+            { 
                 Assert.NotNull(metricsIdv);
-                using (var cursor = metricsIdv.GetRowCursor(metricsIdv.Schema))
+                using (var cursor = metricsIdv.GetRowCursorForAllColumns())
                 {
                     var aucCol = cursor.Schema.GetColumnOrNull("AUC");
-                    var aucGetter = cursor.GetGetter<double>(aucCol.Value);
+                    var aucGetter = cursor.GetGetter<double>(aucCol.Value.Index);
                     Assert.True(cursor.MoveNext());
                     double auc = 0;
                     aucGetter(ref auc);
@@ -2998,20 +2993,7 @@ namespace Microsoft.ML.RunTests
             validateAuc(metrics);
 
             metrics = runner.GetOutput<IDataView>("OverallMetrics2");
-<<<<<<< HEAD
             validateAuc(metrics);
-=======
-            Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursorForAllColumns())
-            {
-                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
-                var aucGetter = cursor.GetGetter<double>(aucCol);
-                Assert.True(cursor.MoveNext());
-                double auc = 0;
-                aucGetter(ref auc);
-                Assert.True(auc > 0.99);
-            }
->>>>>>> Addressing the PR review comments.
         }
 
         [Fact]
@@ -3184,16 +3166,11 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(model[0]);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
-<<<<<<< HEAD
 
-            Action<IDataView> aucValidate = (metricsIdv) =>
-=======
-            Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursorForAllColumns())
->>>>>>> Addressing the PR review comments.
-            {
+            Action<IDataView> aucValidate = (metricsIdv) => 
+            { 
                 Assert.NotNull(metricsIdv);
-                using (var cursor = metrics.GetRowCursor(metrics.Schema))
+                using (var cursor = metrics.GetRowCursorForAllColumns())
                 {
                     var aucColumn = cursor.Schema.GetColumnOrNull("AUC");
                     Assert.True(aucColumn.HasValue);
@@ -3208,20 +3185,7 @@ namespace Microsoft.ML.RunTests
             aucValidate(metrics);
 
             metrics = runner.GetOutput<IDataView>("OverallMetrics2");
-<<<<<<< HEAD
             aucValidate(metrics);
-=======
-            Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursorForAllColumns())
-            {
-                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
-                var aucGetter = cursor.GetGetter<double>(aucCol);
-                Assert.True(cursor.MoveNext());
-                double auc = 0;
-                aucGetter(ref auc);
-                Assert.True(auc > 0.99);
-            }
->>>>>>> Addressing the PR review comments.
         }
 
         [Fact]

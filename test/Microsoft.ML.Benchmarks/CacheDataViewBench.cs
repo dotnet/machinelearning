@@ -70,11 +70,9 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void CacheWithCursor()
         {
-            var cols = new List<Schema.Column>();
-            cols.Add(_col);
-            // This setup takes very less time to execute as compared to the actual _cursorGetter.
+           // This setup takes very less time to execute as compared to the actual _cursorGetter.
             // The most preferable position for this setup will be in GlobalSetup.
-            _cursor = _cacheDataView.GetRowCursor(cols);
+            _cursor = _cacheDataView.GetRowCursor(_col);
             _cursorGetter = _cursor.GetGetter<int>(_col.Index);
 
             int val = 0;

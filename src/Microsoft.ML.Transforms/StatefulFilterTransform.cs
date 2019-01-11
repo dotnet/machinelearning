@@ -117,7 +117,7 @@ namespace Microsoft.ML.Transforms
             Func<int, bool> inputPred = c => activeInputs[c];
 
             var input = _typedSource.GetCursor(inputPred, rand == null ? (int?)null : rand.Next());
-            return new Cursor(this, input, predicate);
+            return new Cursor(this, input, colsNeeded);
         }
 
         public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
@@ -155,11 +155,11 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch => _input.Batch;
 
-            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, Func<int, bool> predicate)
+            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, IEnumerable<Schema.Column> colsNeeded)
                 : base(parent.Host)
             {
                 Ch.AssertValue(input);
-                Ch.AssertValue(predicate);
+                Ch.AssertValue(colsNeeded);
 
                 _parent = parent;
                 _input = input;
@@ -172,20 +172,11 @@ namespace Microsoft.ML.Transforms
                 CursorChannelAttribute.TrySetCursorChannel(_parent.Host, _dst, Ch);
                 CursorChannelAttribute.TrySetCursorChannel(_parent.Host, _state, Ch);
 
-                if (parent._initStateAction != null)
-                    parent._initStateAction(_state);
+                parent._initStateAction?.Invoke(_state);
 
                 var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(parent.Host, _parent._addedSchema);
                 appendedDataView.SetCurrentRowObject(_dst);
-
-                Func<int, bool> appendedPredicate =
-                col =>
-                {
-                    col = _parent._bindings.AddedColumnIndices[col];
-                    return predicate(col);
-                };
-
-                _appendedRow = appendedDataView.GetRowCursorForAllColumns();
+                _appendedRow = appendedDataView.GetRowCursor(colsNeeded);
             }
 
             protected override void Dispose(bool disposing)

@@ -122,7 +122,7 @@ namespace Microsoft.ML.Data
 
             int cthd = GetThreadCount(host);
             host.Assert(cthd > 0);
-            if (cthd == 1 || !AllCacheable(view.Schema, colsNeeded))
+            if (cthd == 1 || !AllCacheable(colsNeeded))
             {
                 curs = null;
                 return false;
@@ -198,21 +198,16 @@ namespace Microsoft.ML.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCacheable(Schema schema, IEnumerable<Schema.Column> colsNeeded)
+        public static bool AllCacheable(IEnumerable<Schema.Column> colsNeeded)
         {
-            Contracts.CheckValue(schema, nameof(schema));
+            Contracts.CheckValue(colsNeeded, nameof(colsNeeded));
 
             if (colsNeeded == null)
                 return false;
 
-            for (int col = 0; col < schema.Count; col++)
-            {
-                if (!colsNeeded.Any(x => x.Index == col))
-                    continue;
-                var type = schema[col].Type;
-                if (!IsCacheable(type))
+            foreach (var col in colsNeeded)
+                if (!IsCacheable(col.Type))
                     return false;
-            }
 
             return true;
         }
@@ -221,9 +216,7 @@ namespace Microsoft.ML.Data
         /// Determine whether the given type is cachable - either a primitive type or a vector type.
         /// </summary>
         public static bool IsCacheable(this ColumnType type)
-        {
-            return type != null && (type is PrimitiveType || type is VectorType);
-        }
+            => type != null && (type is PrimitiveType || type is VectorType);
 
         /// <summary>
         /// Tests whether the cursors are mutually compatible for consolidation,

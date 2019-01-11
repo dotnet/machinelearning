@@ -794,8 +794,8 @@ namespace Microsoft.ML.Internal.Utilities
             foreach (var col in colsNeeded)
             {
                 Contracts.Check(col.Index < lim);
-                mapList.Add(col.Index);
                 invMap[col.Index] = mapList.Count;
+                mapList.Add(col.Index);
             }
 
             map = mapList.ToArray();

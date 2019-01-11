@@ -1232,11 +1232,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 throw _host.ExceptSchemaMismatch(nameof(data), "feature", featureCol.Name, "R4", featureCol.Type.ToString());
 
             Single[] dataArray = new Single[_trainSize];
-            var col = new List<Schema.Column>();
-            col.Add(featureCol);
 
             int count = 0;
-            using (var cursor = data.Data.GetRowCursor(col))
+            using (var cursor = data.Data.GetRowCursor(featureCol))
             {
                 var getVal = cursor.GetGetter<Single>(featureCol.Index);
                 Single val = default;
