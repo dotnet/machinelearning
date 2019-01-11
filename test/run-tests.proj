@@ -10,7 +10,7 @@
     <Message Importance="High" Text="Running tests ..." />
     <MSBuild Targets="VSTest"
              Projects="@(Project)"
-             Properties="VSTestNoBuild=true;Coverage=true;CopyLocalLockFileAssemblies=true" />
+             Properties="VSTestNoBuild=true;Coverage=true;CopyLocalLockFileAssemblies=true;CoverletOutputFormat=opencover;CoverletOutput=$(MSBuildThisFileDirectory)..\bin\coverage\$(AssemblyName).xml;Include=[Microsoft.ML.*]*" />
   </Target>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
