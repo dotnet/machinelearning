@@ -2,4 +2,12 @@
 
   <Import Project="..\Directory.Build.targets" />
   
+  <PropertyGroup Condition="'$(Coverage)' == 'true' and '$(Configuration)'=='Release' and '$(OS)' == 'Windows_NT' and '$(TargetArchitecture)' == 'x64'">
+      <CollectCoverage>true</CollectCoverage>
+      <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+      <CoverletOutputFormat>opencover</CoverletOutputFormat>
+      <CoverletOutput>$(MSBuildThisFileDirectory)..\bin\coverage\$(AssemblyName).xml</CoverletOutput>
+      <Include>[Microsoft.ML.*]*</Include>
+  </PropertyGroup>
+  
 </Project>
