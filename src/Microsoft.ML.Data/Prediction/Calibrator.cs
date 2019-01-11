@@ -538,7 +538,7 @@ namespace Microsoft.ML.Internal.Calibration
                     throw env.Except("Predictor does not output a score");
                 var scoreType = _predictor.OutputSchema[_scoreCol].Type;
                 env.Check(!scoreType.IsVector && scoreType is NumberType);
-                OutputSchema = Schema.Create(new BinaryClassifierSchema());
+                OutputSchema = ScoreSchemaFactory.CreateBinaryClassificationSchema();
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)

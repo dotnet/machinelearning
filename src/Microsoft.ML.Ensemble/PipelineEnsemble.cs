@@ -48,7 +48,7 @@ namespace Microsoft.ML.Ensemble
             {
                 Parent = parent;
                 InputRoleMappedSchema = schema;
-                OutputSchema = Schema.Create(new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind));
+                OutputSchema = ScoreSchemaFactory.Create(Parent.ScoreType, Parent._scoreColumnKind);
                 _inputColIndices = new HashSet<int>();
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {
