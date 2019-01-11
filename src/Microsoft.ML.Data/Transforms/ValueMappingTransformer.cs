@@ -192,9 +192,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 // set of values. This is used for generating the metadata of
                 // the column.
                 HashSet<TValue> valueSet = new HashSet<TValue>();
-                for (int i = 0; i < values.Count(); ++i)
+                foreach(var v in values)
                 {
-                    var v = values.ElementAt(i);
                     if (valueSet.Contains(v))
                         continue;
                     valueSet.Add(v);
