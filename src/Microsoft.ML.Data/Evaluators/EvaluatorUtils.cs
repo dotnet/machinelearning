@@ -827,7 +827,7 @@ namespace Microsoft.ML.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema[i].HasKeyValues(type.ItemType.KeyCount()))
+                            if (dv.Schema[i].HasKeyValues(type.ItemType.GetKeyCount()))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema[i].HasSlotNames(type.VectorSize))
@@ -856,11 +856,11 @@ namespace Microsoft.ML.Data
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
                         labelColKeyValuesType = dv.Schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     }
-                    else if (dvNumber == 0 && dv.Schema[i].HasKeyValues(type.KeyCount()))
+                    else if (dvNumber == 0 && dv.Schema[i].HasKeyValues(type.GetKeyCount()))
                         firstDvKeyWithNamesColumns.Add(name);
                     else
                     {
-                        int keyCount = type.KeyCount();
+                        int keyCount = type.GetKeyCount();
                         if (keyCount > 0 && name != labelColName && !dv.Schema[i].HasKeyValues(keyCount))
                         {
                             // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
@@ -1217,7 +1217,7 @@ namespace Microsoft.ML.Data
                 var name = schema[i].Name;
                 if (i == stratCol)
                 {
-                    int typeKeyCount = type.KeyCount();
+                    int typeKeyCount = type.GetKeyCount();
 
                     var keyValuesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     if (keyValuesType == null || !(keyValuesType.ItemType is TextType) ||
@@ -1732,7 +1732,7 @@ namespace Microsoft.ML.Data
             if (!data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out stratCol))
                 return data;
             var type = data.Schema[stratCol].Type;
-            env.Check(type.KeyCount() > 0, "Expected a known count key type stratification column");
+            env.Check(type.GetKeyCount() > 0, "Expected a known count key type stratification column");
             var filterArgs = new NAFilter.Arguments();
             filterArgs.Column = new[] { MetricKinds.ColumnNames.StratCol };
             filterArgs.Complement = true;

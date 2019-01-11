@@ -87,7 +87,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private string TestIsKey(ColumnType type)
         {
-            if (type.ItemType.KeyCount() > 0)
+            if (type.ItemType.GetKeyCount() > 0)
                 return null;
             return "key type of known cardinality";
         }
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     //Add an additional bit for all 1s to represent missing values.
-                    _bitsPerKey[i] = Utils.IbitHigh((uint)_infos[i].TypeSrc.ItemType.KeyCount()) + 2;
+                    _bitsPerKey[i] = Utils.IbitHigh((uint)_infos[i].TypeSrc.ItemType.GetKeyCount()) + 2;
                     Host.Assert(_bitsPerKey[i] > 0);
                     if (_infos[i].TypeSrc.ValueCount == 1)
                         // Output is a single vector computed as the sum of the output indicator vectors.
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
                     typeNames = inputMetadata.Schema[metaKeyValuesCol].Type;
                 if (typeNames == null || !typeNames.IsKnownSizeVector || !(typeNames.ItemType is TextType) ||
-                    typeNames.VectorSize != _infos[iinfo].TypeSrc.ItemType.KeyCount())
+                    typeNames.VectorSize != _infos[iinfo].TypeSrc.ItemType.GetKeyCount())
                 {
                     typeNames = null;
                 }

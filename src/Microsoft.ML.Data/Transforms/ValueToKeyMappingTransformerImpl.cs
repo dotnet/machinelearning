@@ -1087,8 +1087,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount() ||
-                        TypedMap.ItemType.KeyCount() == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
+                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.GetKeyCount() ||
+                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.AddMetadata(builder);
@@ -1167,8 +1167,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount() ||
-                        TypedMap.ItemType.KeyCount() == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
+                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.GetKeyCount() ||
+                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.WriteTextTerms(writer);

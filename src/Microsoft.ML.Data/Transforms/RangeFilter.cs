@@ -151,7 +151,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.Except("column", "Source column '{0}' not found", column);
 
             _type = schema[_index].Type;
-            if (_type != NumberType.R4 && _type != NumberType.R8 && _type.KeyCount() == 0)
+            if (_type != NumberType.R4 && _type != NumberType.R8 && _type.GetKeyCount() == 0)
                 throw Host.Except("column", "Column '{0}' does not have compatible type", column);
 
             _min = ctx.Reader.ReadDouble();
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms
         {
             ectx.CheckValue(type, nameof(type));
 
-            return type == NumberType.R4 || type == NumberType.R8 || type.KeyCount() > 0;
+            return type == NumberType.R4 || type == NumberType.R8 || type.GetKeyCount() > 0;
         }
 
         private abstract class RowCursorBase : LinkedRowFilterCursorBase
@@ -410,8 +410,8 @@ namespace Microsoft.ML.Transforms
             public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
-                Ch.Assert(Parent._type.KeyCount() > 0);
-                _count = Parent._type.KeyCount();
+                Ch.Assert(Parent._type.GetKeyCount() > 0);
+                _count = Parent._type.GetKeyCount();
                 _srcGetter = Input.GetGetter<T>(Parent._index);
                 _getter =
                     (ref T dst) =>

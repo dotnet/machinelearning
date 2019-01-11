@@ -428,7 +428,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(result.Schema.TryGetColumnIndex("GroupId", out int groupIdx));
                 
                 Assert.True(result.Schema[labelIdx].Type is KeyType);
-                Assert.Equal(5, result.Schema[labelIdx].Type.ItemType.KeyCount());
+                Assert.Equal(5, result.Schema[labelIdx].Type.ItemType.GetKeyCount());
 
                 var t = result.GetColumn<uint>(Env, "Label");
                 uint s = t.First();

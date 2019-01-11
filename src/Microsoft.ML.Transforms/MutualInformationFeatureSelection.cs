@@ -334,7 +334,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         internal static bool IsValidColumnType(ColumnType type)
         {
             // REVIEW: Consider supporting all integer and unsigned types.
-            int keyCount = type.KeyCount();
+            int keyCount = type.GetKeyCount();
             return
                 (0 < keyCount && keyCount < Utils.ArrayMaxSize) || type is BoolType ||
                 type == NumberType.R4 || type == NumberType.R8 || type == NumberType.I4;
@@ -480,7 +480,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 }
                 else
                 {
-                    int labelKeyCount = labelType.KeyCount();
+                    int labelKeyCount = labelType.GetKeyCount();
                     Contracts.Assert(0 < labelKeyCount && labelKeyCount < Utils.ArrayMaxSize);
                     KeyLabelGetter<int> del = GetKeyLabels<int>;
                     var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(labelType.RawType);
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinBools(in src, ref dst);
                         });
                 }
-                int keyCount = type.ItemType.KeyCount();
+                int keyCount = type.ItemType.GetKeyCount();
                 Contracts.Assert(0 < keyCount && keyCount < Utils.ArrayMaxSize);
                 Func<ColumnType, Mapper<int>> del = MakeKeyMapper<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             private static Mapper<T> MakeKeyMapper<T>(ColumnType type)
             {
-                int keyCount = type.KeyCount();
+                int keyCount = type.GetKeyCount();
                 Contracts.Assert(0 < keyCount && keyCount < Utils.ArrayMaxSize);
                 var mapper = BinKeys<T>(type);
                 return

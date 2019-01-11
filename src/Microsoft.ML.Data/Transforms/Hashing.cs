@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             int iinfo = invertIinfos[i];
-                            Host.Assert(types[iinfo].ItemType.KeyCount() > 0);
+                            Host.Assert(types[iinfo].ItemType.GetKeyCount() > 0);
                             var dstGetter = GetGetterCore(srcCursor, iinfo, out disposer);
                             Host.Assert(disposer == null);
                             var ex = _columns[iinfo];
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             _keyValues[invertIinfos[i]] = helpers[i].GetKeyValuesMetadata();
-                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].ItemType.KeyCount());
+                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].ItemType.GetKeyCount());
                             _kvTypes[invertIinfos[i]] = new VectorType(TextType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
                     }

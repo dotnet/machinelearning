@@ -21,6 +21,6 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Zero return means either it's not a key type or the cardinality is unknown.
         /// </summary>
-        public static int KeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
+        public static int GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
     }
 }
