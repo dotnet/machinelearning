@@ -75,8 +75,8 @@ namespace Microsoft.ML.Transforms.Text
         public sealed class Arguments : NgramHashExtractingTransformer.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:hashBits:srcs)",
-                ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
         private const string RegistrationName = "WordHashBagTransform";
 
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Transforms.Text
             var h = env.Register(RegistrationName);
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns), "Columns must be specified");
 
             // To each input column to the WordHashBagTransform, a tokenize transform is applied,
             // followed by applying WordHashVectorizeTransform.
@@ -99,21 +99,21 @@ namespace Microsoft.ML.Transforms.Text
             // The intermediate columns are dropped at the end of using a DropColumnsTransform.
             IDataView view = input;
 
-            var uniqueSourceNames = NgramExtractionUtils.GenerateUniqueSourceNames(h, args.Column, view.Schema);
-            Contracts.Assert(uniqueSourceNames.Length == args.Column.Length);
+            var uniqueSourceNames = NgramExtractionUtils.GenerateUniqueSourceNames(h, args.Columns, view.Schema);
+            Contracts.Assert(uniqueSourceNames.Length == args.Columns.Length);
 
             var tokenizeColumns = new List<WordTokenizingTransformer.ColumnInfo>();
-            var extractorCols = new NgramHashExtractingTransformer.Column[args.Column.Length];
-            var colCount = args.Column.Length;
+            var extractorCols = new NgramHashExtractingTransformer.Column[args.Columns.Length];
+            var colCount = args.Columns.Length;
             List<string> tmpColNames = new List<string>();
             for (int iinfo = 0; iinfo < colCount; iinfo++)
             {
-                var column = args.Column[iinfo];
+                var column = args.Columns[iinfo];
                 int srcCount = column.Source.Length;
                 var curTmpNames = new string[srcCount];
-                Contracts.Assert(uniqueSourceNames[iinfo].Length == args.Column[iinfo].Source.Length);
+                Contracts.Assert(uniqueSourceNames[iinfo].Length == args.Columns[iinfo].Source.Length);
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                    tokenizeColumns.Add(new WordTokenizingTransformer.ColumnInfo(args.Column[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc]));
+                    tokenizeColumns.Add(new WordTokenizingTransformer.ColumnInfo(args.Columns[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc]));
 
                 tmpColNames.AddRange(curTmpNames);
                 extractorCols[iinfo] =
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms.Text
                         SkipLength = column.SkipLength,
                         Ordered = column.Ordered,
                         InvertHash = column.InvertHash,
-                        FriendlyNames = args.Column[iinfo].Source,
+                        FriendlyNames = args.Columns[iinfo].Source,
                         AllLengths = column.AllLengths
                     };
             }
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Transforms.Text
                     SkipLength = args.SkipLength,
                     Ordered = args.Ordered,
                     Seed = args.Seed,
-                    Column = extractorCols.ToArray(),
+                    Columns = extractorCols.ToArray(),
                     InvertHash = args.InvertHash
                 };
 
@@ -305,8 +305,8 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Arguments : ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         internal const string Summary = "A transform that turns a collection of tokenized text (vector of ReadOnlyMemory) into numerical feature vectors using the hashing trick.";
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms.Text
             var h = env.Register(LoaderSignature);
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
-            h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
+            h.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns), "Columns must be specified");
 
             // To each input column to the NgramHashExtractorArguments, a HashTransform using 31
             // bits (to minimize collisions) is applied first, followed by an NgramHashTransform.
@@ -330,15 +330,15 @@ namespace Microsoft.ML.Transforms.Text
             if (termLoaderArgs != null)
                 termCols = new List<ValueToKeyMappingTransformer.Column>();
             var hashColumns = new List<HashingTransformer.ColumnInfo>();
-            var ngramHashColumns = new NgramHashingTransformer.ColumnInfo[args.Column.Length];
+            var ngramHashColumns = new NgramHashingTransformer.ColumnInfo[args.Columns.Length];
 
-            var colCount = args.Column.Length;
+            var colCount = args.Columns.Length;
             // The NGramHashExtractor has a ManyToOne column type. To avoid stepping over the source
             // column name when a 'name' destination column name was specified, we use temporary column names.
             string[][] tmpColNames = new string[colCount][];
             for (int iinfo = 0; iinfo < colCount; iinfo++)
             {
-                var column = args.Column[iinfo];
+                var column = args.Columns[iinfo];
                 h.CheckUserArg(!string.IsNullOrWhiteSpace(column.Name), nameof(column.Name));
                 h.CheckUserArg(Utils.Size(column.Source) > 0 &&
                     column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
@@ -382,13 +382,13 @@ namespace Microsoft.ML.Transforms.Text
                     new ValueToKeyMappingTransformer.Arguments()
                     {
                         MaxNumTerms = int.MaxValue,
+                        TermsList = termLoaderArgs.TermsList,
                         Terms = termLoaderArgs.Terms,
-                        Term = termLoaderArgs.Term,
                         DataFile = termLoaderArgs.DataFile,
                         Loader = termLoaderArgs.Loader,
                         TermsColumn = termLoaderArgs.TermsColumn,
                         Sort = termLoaderArgs.Sort,
-                        Column = termCols.ToArray()
+                        Columns = termCols.ToArray()
                     };
                 view = ValueToKeyMappingTransformer.Create(h, termArgs, view);
 
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Transforms.Text
             h.CheckValue(extractorArgs, nameof(extractorArgs));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(extractorArgs.SkipLength < extractorArgs.NgramLength, nameof(extractorArgs.SkipLength), "Should be less than " + nameof(extractorArgs.NgramLength));
-            h.CheckUserArg(Utils.Size(cols) > 0, nameof(Arguments.Column), "Must be specified");
+            h.CheckUserArg(Utils.Size(cols) > 0, nameof(Arguments.Columns), "Must be specified");
             h.AssertValueOrNull(termLoaderArgs);
 
             var extractorCols = new Column[cols.Length];
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Transforms.Text
 
             var args = new Arguments
             {
-                Column = extractorCols,
+                Columns = extractorCols,
                 NgramLength = extractorArgs.NgramLength,
                 SkipLength = extractorArgs.SkipLength,
                 HashBits = extractorArgs.HashBits,

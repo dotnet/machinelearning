@@ -23,7 +23,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1);
             var reader = new TextLoader(mlContext, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1);
             var reader = new TextLoader(mlContext, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1);
             var reader = new TextLoader(mlContext, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1);
             var reader = new TextLoader(mlContext, new TextLoader.Arguments()
             {
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),

@@ -102,8 +102,8 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Optional column to use for languages. This overrides language value.",
@@ -281,11 +281,11 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
                 cols[i] = new ColumnInfo(item.Source ?? item.Name,
                    item.Name,
                    item.Language ?? args.Language,
@@ -616,11 +616,11 @@ namespace Microsoft.ML.Transforms.Text
 
         public abstract class ArgumentsBase
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of stopwords", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Stopwords;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of stopwords", Name = "Stopwords", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string StopwordsList;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "List of stopwords", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Stopword;
+            public string[] Stopwords;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the stopwords", ShortName = "data", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string DataFile;
@@ -634,8 +634,8 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Arguments : ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         [TlcModule.Component(Name = "Custom", FriendlyName = "Custom Stopwords Remover", Alias = "CustomStopWordsRemover,CustomStopWords",
@@ -644,10 +644,10 @@ namespace Microsoft.ML.Transforms.Text
         {
             public IDataTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] column)
             {
-                if (Utils.Size(Stopword) > 0)
-                    return new CustomStopWordsRemovingTransform(env, Stopword, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
+                if (Utils.Size(Stopwords) > 0)
+                    return new CustomStopWordsRemovingTransform(env, Stopwords, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
                 else
-                    return new CustomStopWordsRemovingTransform(env, Stopwords, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
+                    return new CustomStopWordsRemovingTransform(env, StopwordsList, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
             }
         }
 
@@ -762,7 +762,7 @@ namespace Microsoft.ML.Transforms.Text
                         warnEmpty = false;
                     }
                 }
-                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Arguments.Stopwords), "stopwords is empty");
+                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Arguments.StopwordsList), "stopwords is empty");
             }
             else
             {
@@ -934,18 +934,18 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new (string input, string output)[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new (string input, string output)[args.Columns.Length];
             for (int i = 0; i < cols.Length; i++)
             {
-                var item = args.Column[i];
+                var item = args.Columns[i];
                 cols[i] = (item.Source ?? item.Name, item.Name);
             }
             CustomStopWordsRemovingTransform transfrom = null;
-            if (Utils.Size(args.Stopword) > 0)
-                transfrom = new CustomStopWordsRemovingTransform(env, args.Stopword, cols);
+            if (Utils.Size(args.Stopwords) > 0)
+                transfrom = new CustomStopWordsRemovingTransform(env, args.Stopwords, cols);
             else
-                transfrom = new CustomStopWordsRemovingTransform(env, args.Stopwords, args.DataFile, args.StopwordsColumn, args.Loader, cols);
+                transfrom = new CustomStopWordsRemovingTransform(env, args.StopwordsList, args.DataFile, args.StopwordsColumn, args.Loader, cols);
             return transfrom.MakeDataTransform(input);
         }
 

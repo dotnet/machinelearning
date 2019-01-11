@@ -69,8 +69,8 @@ namespace Microsoft.ML.Data
 
             // Stratification columns.
 
-            [Argument(ArgumentType.Multiple, HelpText = "Stratification column name.", ShortName = "strat")]
-            public string[] StratColumn;
+            [Argument(ArgumentType.Multiple, HelpText = "Stratification column name.", Name = "StratColumn", ShortName = "strat")]
+            public string[] StratColumns;
         }
 
         internal static RoleMappedSchema.ColumnRole Strat = "Strat";
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Data
             ScoreCol = args.ScoreColumn;
             LabelCol = args.LabelColumn;
             WeightCol = args.WeightColumn;
-            StratCols = args.StratColumn;
+            StratCols = args.StratColumns;
         }
 
         Dictionary<string, IDataView> IEvaluator.Evaluate(RoleMappedData data)
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Data
             else
             {
                 var args = new GenerateNumberTransform.Arguments();
-                args.Column = new[] { new GenerateNumberTransform.Column() { Name = "Instance" } };
+                args.Columns = new[] { new GenerateNumberTransform.Column() { Name = "Instance" } };
                 args.UseCounter = true;
                 idv = new GenerateNumberTransform(Host, args, idv);
                 colsToKeep.Add("Instance");

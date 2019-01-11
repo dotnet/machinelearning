@@ -33,8 +33,8 @@ namespace Microsoft.ML.Transforms.Conversions
         public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
-                ShortName = "col", SortOrder = 1)]
-            public KeyToVectorMappingTransformer.Column[] Column;
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public KeyToVectorMappingTransformer.Column[] Columns;
         }
 
         /// <summary>
@@ -149,13 +149,13 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
+                    var item = args.Columns[i];
                     cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name);
                 };
             }

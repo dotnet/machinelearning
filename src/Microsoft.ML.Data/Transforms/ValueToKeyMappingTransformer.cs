@@ -107,11 +107,11 @@ namespace Microsoft.ML.Transforms.Conversions
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
             public int MaxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Terms;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string TermsList;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", SortOrder = 106, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Term;
+            public string[] Terms;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 110, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string DataFile;
@@ -139,8 +139,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class Arguments : ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
         }
 
         internal sealed class ColInfo
@@ -317,11 +317,11 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            env.CheckValue(args.Columns, nameof(args.Columns));
+            var cols = new ColumnInfo[args.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
-                if ((args.Term != null || !string.IsNullOrEmpty(args.Terms)) &&
+                if ((args.Terms != null || !string.IsNullOrEmpty(args.TermsList)) &&
                   (!string.IsNullOrWhiteSpace(args.DataFile) || args.Loader != null ||
                       !string.IsNullOrWhiteSpace(args.TermsColumn)))
                 {
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 for (int i = 0; i < cols.Length; i++)
                 {
-                    var item = args.Column[i];
+                    var item = args.Columns[i];
                     var sortOrder = item.Sort ?? args.Sort;
                     if (!Enum.IsDefined(typeof(SortOrder), sortOrder))
                         throw env.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         sortOrder,
                         item.Term,
                         item.TextKeyValues ?? args.TextKeyValues);
-                    cols[i].Terms = item.Terms ?? args.Terms;
+                    cols[i].Terms = item.Terms ?? args.TermsList;
                 };
             }
             return new ValueToKeyMappingTransformer(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);

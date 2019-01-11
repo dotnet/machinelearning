@@ -56,8 +56,8 @@ namespace Microsoft.ML.ImageAnalytics
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
-                ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+                Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Folder where to search for images", ShortName = "folder")]
             public string ImageFolder;
@@ -86,7 +86,7 @@ namespace Microsoft.ML.ImageAnalytics
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
         {
-            return new ImageLoaderTransformer(env, args.ImageFolder, args.Column.Select(x => (x.Source ?? x.Name, x.Name)).ToArray())
+            return new ImageLoaderTransformer(env, args.ImageFolder, args.Columns.Select(x => (x.Source ?? x.Name, x.Name)).ToArray())
                 .MakeDataTransform(data);
         }
 

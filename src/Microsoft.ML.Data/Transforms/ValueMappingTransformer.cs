@@ -358,8 +358,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
-            public Column[] Column;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", Name = "Column", ShortName = "col", SortOrder = 1)]
+            public Column[] Columns;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The data file containing the terms", ShortName = "data", SortOrder = 2)]
             public string DataFile;
@@ -588,7 +588,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         valueColumn = new TextLoader.Column(valueColumnName, DataKind.TXT, 1);
                         var txtArgs = new TextLoader.Arguments()
                         {
-                            Column = new TextLoader.Column[]
+                            Columns = new TextLoader.Column[]
                             {
                                 keyColumn,
                                 valueColumn
@@ -615,7 +615,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         env,
                         new TextLoader.Arguments()
                         {
-                            Column = new TextLoader.Column[]
+                            Columns = new TextLoader.Column[]
                             {
                                 keyColumn,
                                 valueColumn
@@ -630,7 +630,7 @@ namespace Microsoft.ML.Transforms.Conversions
             env.Assert(loader.Schema.TryGetColumnIndex(valueColumnName, out int valueColumnIndex));
 
             ValueMappingTransformer transformer = null;
-            (string Source, string Name)[] columns = args.Column.Select(x => (x.Source, x.Name)).ToArray();
+            (string Source, string Name)[] columns = args.Columns.Select(x => (x.Source, x.Name)).ToArray();
             transformer = new ValueMappingTransformer(env, loader, keyColumnName, valueColumnName, columns);
             return transformer.MakeDataTransform(input);
         }

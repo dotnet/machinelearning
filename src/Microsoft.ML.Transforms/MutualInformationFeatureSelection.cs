@@ -41,9 +41,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection", ShortName = "col",
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Columns to use for feature selection",
+                Name = "Column",
+                ShortName = "col",
                 SortOrder = 1)]
-            public string[] Column;
+            public string[] Columns;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for labels", ShortName = "lab",
                 SortOrder = 4, Purpose = SpecialPurpose.ColumnName)]
@@ -194,12 +196,12 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             var host = env.Register(RegistrationName);
             host.CheckValue(args, nameof(args));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            host.CheckUserArg(Utils.Size(args.Columns) > 0, nameof(args.Columns));
             host.CheckUserArg(args.SlotsInOutput > 0, nameof(args.SlotsInOutput));
             host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
             host.Check(args.NumBins > 1, "numBins must be greater than 1.");
 
-            (string input, string output)[] cols = args.Column.Select(col => (col, col)).ToArray();
+            (string input, string output)[] cols = args.Columns.Select(col => (col, col)).ToArray();
             return new MutualInformationFeatureSelectingEstimator(env, args.LabelColumn, args.SlotsInOutput, args.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
         }
 
@@ -388,20 +390,20 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     var colName = columns[i];
                     if (!schema.TryGetColumnIndex(colName, out int colSrc))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Columns),
                             "Source column '{0}' not found", colName);
                     }
 
                     var colType = schema[colSrc].Type;
                     if (colType.IsVector && !colType.IsKnownSizeVector)
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Columns),
                             "Variable length column '{0}' is not allowed", colName);
                     }
 
                     if (!IsValidColumnType(colType.ItemType))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Columns),
                             "Column '{0}' of type '{1}' does not have compatible type.", colName, colType);
                     }
 

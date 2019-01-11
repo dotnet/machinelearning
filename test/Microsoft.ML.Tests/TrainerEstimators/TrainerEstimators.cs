@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 HasHeader = true,
                 Separator = "\t",
-                Column = new[]
+                Columns = new[]
                 {
                     new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) })
                 }
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 HasHeader = true,
                 Separator = "\t",
-                Column = new[]
+                Columns = new[]
                 {
                     new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) }),
                     new TextLoader.Column(weights, DataKind.R4, 0)
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     {
                         Separator = "\t",
                         HasHeader = true,
-                        Column = new[]
+                        Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("SentimentText", DataKind.Text, 1)
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 HasHeader = true,
                 Separator = "\t",
-                Column = new[]
+                Columns = new[]
                      {
                         new TextLoader.Column("Label", DataKind.R4, 0),
                         new TextLoader.Column("Workclass", DataKind.Text, 1),
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     {
                         Separator = ";",
                         HasHeader = true,
-                        Column = new[]
+                        Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 11),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 10) } )
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             {
                 Separator = "comma",
                 HasHeader = true,
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 3) }),
                             new TextLoader.Column("Label", DataKind.Text, 4)
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = new TextLoader(Env, new TextLoader.Arguments()
             {
                 Separator = "comma",
-                Column = new[]
+                Columns = new[]
                         {
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 3) }),
                             new TextLoader.Column("Label", DataKind.Text, 4)

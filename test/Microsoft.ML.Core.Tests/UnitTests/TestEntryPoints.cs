@@ -54,7 +54,7 @@ namespace Microsoft.ML.RunTests
             {
                 Arguments =
                 {
-                    Column = new[]
+                    Columns = new[]
                     {
                         new TextLoader.Column("Label", DataKind.R4, 0),
                         new TextLoader.Column("Features", DataKind.R4,
@@ -75,7 +75,7 @@ namespace Microsoft.ML.RunTests
                 Arguments =
                 {
                     HasHeader = true,
-                    Column = new[]
+                    Columns = new[]
                     {
                         new TextLoader.Column("Label", type: null, 0),
                         new TextLoader.Column("F1", DataKind.Text, 1),
@@ -966,7 +966,7 @@ namespace Microsoft.ML.RunTests
                 Arguments =
                 {
                     HasHeader = true,
-                    Column = new[]
+                    Columns = new[]
                     {
                         new TextLoader.Column("Label", DataKind.TX, 0),
                         new TextLoader.Column("Text", DataKind.TX, 3)
@@ -1006,7 +1006,7 @@ namespace Microsoft.ML.RunTests
                     data = WordHashBagProducingTransformer.Create(Env,
                         new WordHashBagProducingTransformer.Arguments()
                         {
-                            Column =
+                            Columns =
                                 new[] { new WordHashBagProducingTransformer.Column() { Name = "Features", Source = new[] { "Text" } }, }
                         },
                         data);
@@ -1177,7 +1177,7 @@ namespace Microsoft.ML.RunTests
             {
                 Arguments =
                 {
-                    Column = new[]
+                    Columns = new[]
                     {
                         new TextLoader.Column("Label", DataKind.R4, 0),
                         new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) })
@@ -1323,7 +1323,7 @@ namespace Microsoft.ML.RunTests
                         InputFile = inputFile,
                         Arguments =
                         {
-                            Column = new[]
+                            Columns = new[]
                             {
                                 new TextLoader.Column("Label", DataKind.R4, 0),
                                 new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(1, 8) }),
@@ -2433,7 +2433,7 @@ namespace Microsoft.ML.RunTests
 
             var args = new NormalizeTransform.MinMaxArguments()
             {
-                Column = new[]
+                Columns = new[]
                 {
                     NormalizeTransform.AffineColumn.Parse("A"),
                     new NormalizeTransform.AffineColumn() { Name = "B", Source = "B", FixZero = false },
@@ -3331,7 +3331,7 @@ namespace Microsoft.ML.RunTests
                 {
                     SeparatorChars = new []{'\t' },
                     HasHeader = true,
-                    Column = new[]
+                    Columns = new[]
                     {
                         new TextLoader.Column("Label", type: null, 0),
                         new TextLoader.Column("Features", DataKind.Num, new [] { new TextLoader.Range(1, 9) })
@@ -3405,7 +3405,7 @@ namespace Microsoft.ML.RunTests
                 {
                     SeparatorChars = new []{'\t' },
                     HasHeader = false,
-                    Column = new[]
+                    Columns = new[]
                     {
                         new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 784) })
                     }
@@ -3541,12 +3541,12 @@ namespace Microsoft.ML.RunTests
             var cat = Categorical.CatTransformDict(Env, new OneHotEncodingTransformer.Arguments()
             {
                 Data = dataView,
-                Column = new[] { new OneHotEncodingTransformer.Column { Name = "Categories", Source = "Categories" } }
+                Columns = new[] { new OneHotEncodingTransformer.Column { Name = "Categories", Source = "Categories" } }
             });
             var concat = SchemaManipulation.ConcatColumns(Env, new ColumnConcatenatingTransformer.Arguments()
             {
                 Data = cat.OutputData,
-                Column = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
+                Columns = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
             var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
@@ -3618,7 +3618,7 @@ namespace Microsoft.ML.RunTests
                 Arguments =
                 {
                     SeparatorChars = new []{' '},
-                    Column = new[]
+                    Columns = new[]
                     {
                         new TextLoader.Column("Text", DataKind.Text,
                             new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} })
@@ -3629,7 +3629,7 @@ namespace Microsoft.ML.RunTests
             var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Arguments()
             {
                 Data = dataView,
-                Column = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
+                Columns = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
                 ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe
             });
             var result = embedding.OutputData;

@@ -95,7 +95,7 @@ namespace Microsoft.ML.EntryPoints
         {
             [TlcModule.Output(Desc = "The final model including the trained predictor model and the model from the transforms, " +
                 "provided as the Input.TransformModel.", SortOrder = 1)]
-            public PredictorModel[] PredictorModel;
+            public PredictorModel[] PredictorModels;
 
             [TlcModule.Output(Desc = "Warning dataset", SortOrder = 3)]
             public IDataView Warnings;
@@ -289,7 +289,7 @@ namespace Microsoft.ML.EntryPoints
             }
 
             // Convert the predictor models to an array of predictor models.
-            MacroUtils.ConvertIPredictorModelsToArray(env, node.Context, subGraphNodes, predModelVars, node.GetOutputVariableName(nameof(Output.PredictorModel)));
+            MacroUtils.ConvertIPredictorModelsToArray(env, node.Context, subGraphNodes, predModelVars, node.GetOutputVariableName(nameof(Output.PredictorModels)));
 
             // Convert the warnings, overall, per instance and confusion matrix data views into an array.
             var warningsArrayVar = new ArrayVar<IDataView>();
@@ -398,7 +398,7 @@ namespace Microsoft.ML.EntryPoints
                             idv.Schema[col].Name.Equals(MetricKinds.ColumnNames.Count))
                         {
                             input.ConfusionMatrix[i] = new ChooseColumnsByIndexTransform(env,
-                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { col } }, idv);
+                                new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Indices = new[] { col } }, idv);
                             break;
                         }
                     }

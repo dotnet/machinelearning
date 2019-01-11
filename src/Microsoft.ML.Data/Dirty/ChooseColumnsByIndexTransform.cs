@@ -22,8 +22,8 @@ namespace Microsoft.ML.Data
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column index to select", ShortName = "ind")]
-            public int[] Index;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Column index to select", Name = "Index", ShortName = "ind")]
+            public int[] Indices;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "If true, selected columns are dropped instead of kept, with the order of kept columns being the same as the original", ShortName = "d")]
             public bool Drop;
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Data
         private sealed class Bindings
         {
             /// <summary>
-            /// A collection of source column indexes after removing those we want to drop. Specifically, j=_sources[i] means
+            /// A collection of source column indices after removing those we want to drop. Specifically, j=_sources[i] means
             /// that the i-th output column in the output schema is the j-th column in the input schema.
             /// </summary>
             private readonly int[] _sources;
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Data
                 // Store user-specified arguments as the major state of this transform. Only the major states will
                 // be saved and all other attributes can be reconstructed from them.
                 _drop = args.Drop;
-                _selectedColumnIndexes = args.Index;
+                _selectedColumnIndexes = args.Indices;
 
                 // Compute actually used attributes in runtime from those major states.
                 ComputeSources(_drop, _selectedColumnIndexes, _sourceSchema, out _sources);

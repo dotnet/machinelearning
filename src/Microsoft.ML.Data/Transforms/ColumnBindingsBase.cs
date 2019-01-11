@@ -330,8 +330,8 @@ namespace Microsoft.ML.Data
             // warning if we decide to rename this argument, and so know to change the below hard-coded
             // standard column name.
             const string standardColumnArgName = "Column";
-            Contracts.Assert(nameof(ValueToKeyMappingTransformer.Arguments.Column) == standardColumnArgName);
-            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Arguments.Column) == standardColumnArgName);
+            Contracts.Assert(nameof(ValueToKeyMappingTransformer.Arguments.Columns) == standardColumnArgName);
+            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Arguments.Columns) == standardColumnArgName);
 
             for (int iinfo = 0; iinfo < names.Length; iinfo++)
             {

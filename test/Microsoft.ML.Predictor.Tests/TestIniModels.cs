@@ -525,7 +525,7 @@ namespace Microsoft.ML.RunTests
                     new TextLoader.Arguments()
                     {
                         HasHeader = false,
-                        Column = new[]
+                        Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("Features", DataKind.R4, 1, 9)
@@ -564,7 +564,7 @@ namespace Microsoft.ML.RunTests
                     new TextLoader.Arguments()
                     {
                         HasHeader = false,
-                        Column = new[]
+                        Columns = new[]
                         {
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("Features", DataKind.R4, 1, 9)

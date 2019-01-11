@@ -367,7 +367,7 @@ namespace Microsoft.ML.Data
 
                 if (stratType.KeyCount == 0 && !(stratType is TextType))
                 {
-                    throw Contracts.ExceptUserArg(nameof(MamlEvaluatorBase.ArgumentsBase.StratColumn),
+                    throw Contracts.ExceptUserArg(nameof(MamlEvaluatorBase.ArgumentsBase.StratColumns),
                         "Stratification column '{0}' has type '{1}', but must be a known count key or text", stratCol, stratType);
                 }
                 return Utils.MarshalInvoke(CreateDictionary<int>, stratType.RawType, schema, stratCol, stratType, createAgg);
