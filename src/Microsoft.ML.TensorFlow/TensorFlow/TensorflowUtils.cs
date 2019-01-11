@@ -46,7 +46,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 // Construct the final ML.NET type of a Tensorflow variable.
                 var shapeArray = graph.GetTensorShape(op[0]).ToIntArray();
                 var columnType = new VectorType(mlType);
-                if (Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0))
+                if (!(Utils.Size(shapeArray) == 1 && shapeArray[0] <= 0) &&
+                    (Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0)))
                     columnType = new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray());
 
                 // There can be at most two metadata fields.
