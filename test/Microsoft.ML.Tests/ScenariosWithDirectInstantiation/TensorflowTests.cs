@@ -88,14 +88,17 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1, conc: 1);
             // Pipeline
             var loader = ComponentCreation.CreateDataView(mlContext,
-                    new List<TestDataInt>(new TestDataInt[] { new TestDataInt() { a = new[] { 1L, 2,
-                                                                                     3, 4 },
-                                                                         b = new[] { 1, 2,
-                                                                                     3, 4 } },
-                        new TestDataInt() { a = new[] { 2L, 2,
-                                                     2, 2 },
-                                         b = new[] { 3, 3,
-                                                     3, 3 } } }));
+                    new List<TestDataInt>(
+                        new TestDataInt[] {
+                            new TestDataInt() { a = new[] { 1L, 2,
+                                                            3, 4 },
+                                                b = new[] { 1, 2,
+                                                            3, 4 } },
+                            new TestDataInt() { a = new[] { 2L, 2,
+                                                            2, 2 },
+                                                b = new[] { 3, 3,
+                                                            3, 3 } }
+                                          }));
 
             var trans = TensorFlowTransform.Create(mlContext, loader, model_location, new[] { "c" }, new[] { "a", "b" });
 
@@ -107,16 +110,17 @@ namespace Microsoft.ML.Scenarios
                 cgetter(ref c);
 
                 var cValues = c.GetValues();
+                Assert.Equal(4, cValues.Length);
                 Assert.Equal(1 + 1, cValues[0]);
                 Assert.Equal(2 + 2, cValues[1]);
                 Assert.Equal(3 + 3, cValues[2]);
                 Assert.Equal(4 + 4, cValues[3]);
 
                 Assert.True(cursor.MoveNext());
-                c = default;
                 cgetter(ref c);
 
                 cValues = c.GetValues();
+                Assert.Equal(4, cValues.Length);
                 Assert.Equal(2 + 3, cValues[0]);
                 Assert.Equal(2 + 3, cValues[1]);
                 Assert.Equal(2 + 3, cValues[2]);
