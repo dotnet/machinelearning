@@ -160,7 +160,7 @@ namespace Microsoft.ML.Data
                 foreach (Dictionary<string, IDataView> mValue in metricValues)
                 {
                     var data = mValue.First().Value;
-                    using (var cursor = data.GetRowCursor(data.Schema))
+                    using (var cursor = data.GetRowCursorForAllColumns())
                     {
                         while (cursor.MoveNext())
                         {

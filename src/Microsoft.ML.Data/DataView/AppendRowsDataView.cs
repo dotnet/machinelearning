@@ -215,11 +215,9 @@ namespace Microsoft.ML.Data
                 _currentSourceIndex = 0;
                 _currentCursor = Sources[_currentSourceIndex].GetRowCursor(colsNeeded);
                 _currentIdGetter = _currentCursor.GetIdGetter();
-                for (int c = 0; c < Getters.Length; c++)
-                {
-                    if (colsNeeded.Any(x => x.Index == c))
-                        Getters[c] = CreateGetter(c);
-                }
+
+                foreach(var col in colsNeeded)
+                    Getters[col.Index] = CreateGetter(col.Index);
             }
 
             public override ValueGetter<RowId> GetIdGetter()
@@ -317,11 +315,9 @@ namespace Microsoft.ML.Data
                 }
                 _sampler = new MultinomialWithoutReplacementSampler(Ch, counts, rand);
                 _currentSourceIndex = -1;
-                for (int c = 0; c < Getters.Length; c++)
-                {
-                    if (colsNeeded.Any(x => x.Index == c))
-                        Getters[c] = CreateGetter(c);
-                }
+
+                foreach(var col in colsNeeded)
+                    Getters[col.Index] = CreateGetter(col.Index);
             }
 
             public override ValueGetter<RowId> GetIdGetter()

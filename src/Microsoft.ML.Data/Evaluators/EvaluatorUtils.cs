@@ -272,7 +272,7 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            using (var cursor = metricsView.GetRowCursor(metricsView.Schema))
+            using (var cursor = metricsView.GetRowCursorForAllColumns())
             {
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;
@@ -1094,7 +1094,7 @@ namespace Microsoft.ML.Data
             int numResults = 0;
             int numWeightedResults = 0;
             AggregatedMetric[] agg;
-            using (var cursor = data.GetRowCursor(data.Schema))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;

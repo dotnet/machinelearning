@@ -951,7 +951,7 @@ namespace Microsoft.ML.Transforms.Text
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats", srcColType.ToString());
 
                 srcCols[i] = srcCol;
-                activeColumns.Add(inputData.Schema[srcCol]); //sefilipi: is this correct, or do i filter by x.Index?
+                activeColumns.Add(inputData.Schema[srcCol]);
                 numVocabs[i] = 0;
 
                 VBuffer<ReadOnlyMemory<char>> dst = default;

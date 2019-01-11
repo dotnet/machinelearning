@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms
             for (int c = 0; c < schema.Count; ++c)
             {
                 var type = schema[c].Type;
-                if (!type.IsCachable())
+                if (!type.IsCacheable())
                     Utils.Add(ref columnsToDrop, c);
             }
             if (Utils.Size(columnsToDrop) == 0)
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Transforms
             for (int c = 0; c < schema.Count; ++c)
             {
                 var type = schema[c].Type;
-                if (!type.IsCachable())
+                if (!type.IsCacheable())
                     return false;
             }
             return true;

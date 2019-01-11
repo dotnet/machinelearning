@@ -713,8 +713,12 @@ namespace Microsoft.ML.Internal.Utilities
             Contracts.CheckParam(length >= 0, nameof(length));
 
             var result = new bool[length];
-            for (int i = 0; i < result.Length; i++)
-                result[i] = colsNeeded == null ? false : colsNeeded.Any(x => x.Index == i);
+            foreach (var col in colsNeeded)
+            {
+                if(col.Index < result.Length)
+                    result[col.Index] = true;
+            }
+
             return result;
         }
 
@@ -764,8 +768,8 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <summary>
-        /// Given a predicate, over a range of values defined by a limit calculate
-        /// first the values for which that predicate was true, and second an inverse
+        /// Given the columns needed, over a range of values defined by a limit calculate
+        /// first the values for which the column is present was true, and second an inverse
         /// map.
         /// </summary>
         /// <param name="lim">Indicates the exclusive upper bound on the tested values</param>
@@ -781,20 +785,19 @@ namespace Microsoft.ML.Internal.Utilities
         public static void BuildSubsetMaps(int lim, IEnumerable<Schema.Column> colsNeeded, out int[] map, out int[] invMap)
         {
             Contracts.CheckParam(lim >= 0, nameof(lim));
+            Contracts.CheckValue(colsNeeded, nameof(colsNeeded));
 
             // REVIEW: Better names?
             List<int> mapList = new List<int>();
-            invMap = new int[lim];
-            for (int c = 0; c < lim; ++c)
+            invMap = invMap = Enumerable.Repeat(-1, lim).ToArray<int>();
+
+            foreach (var col in colsNeeded)
             {
-                if (colsNeeded == null || !colsNeeded.Any(x => x.Index == c))
-                {
-                    invMap[c] = -1;
-                    continue;
-                }
-                invMap[c] = mapList.Count;
-                mapList.Add(c);
+                Contracts.Check(col.Index < lim);
+                mapList.Add(col.Index);
+                invMap[col.Index] = mapList.Count;
             }
+
             map = mapList.ToArray();
         }
 

@@ -18,8 +18,7 @@ namespace Microsoft.ML.Data
         /// <param name="colsNeeded">The columns requested by this <see cref="RowCursor"/>, or as otherwise called, the active columns.
         /// An empty collection indicates that no column is needed.</param>
         /// <param name="dv">The <see cref="IDataView"/> containing the <paramref name="colsNeeded"/>.</param>
-        [BestFriend]
-        internal static RowCursor GetRowCursor(this IDataView dv, params Schema.Column[] colsNeeded)
+        public static RowCursor GetRowCursor(this IDataView dv, params Schema.Column[] colsNeeded)
         {
             Contracts.AssertValue(colsNeeded, $"The {nameof(colsNeeded)} cannot be null. Pass an empty array, to indicate that no columns is needed.");
 
@@ -37,22 +36,22 @@ namespace Microsoft.ML.Data
         /// </summary>
         /// <param name="colNeeded">The column requested by this <see cref="RowCursor"/>, or as otherwise called, the active column.</param>
         /// <param name="dv">The <see cref="IDataView"/> containing the <paramref name="colNeeded"/>.</param>
-        [BestFriend]
-        internal static RowCursor GetRowCursor(this IDataView dv, Schema.Column colNeeded)
+        public static RowCursor GetRowCursor(this IDataView dv, Schema.Column colNeeded)
         {
             Contracts.Assert(dv.Schema[colNeeded.Index].Equals(colNeeded), $"The requested column named: {colNeeded.Name}, with index: {colNeeded.Index} and type: {colNeeded.Type}" +
                    $" is not present in the {nameof(IDataView)} where the {nameof(RowCursor)} is being requested.");
 
-            var list = new List<Schema.Column>();
-            list.Add(colNeeded);
-
-            return dv.GetRowCursor(list);
+            return dv.GetRowCursor(Enumerable.Repeat(colNeeded,1));
         }
 
         /// <summary>
         /// Get a row cursor. No colums are needed by this <see cref="RowCursor"/>.
         /// </summary>
-        [BestFriend]
-        internal static RowCursor GetRowCursor(this IDataView dv) =>  dv.GetRowCursor(new List<Schema.Column>());
+        public static RowCursor GetRowCursor(this IDataView dv) =>  dv.GetRowCursor(new HashSet<Schema.Column>());
+
+        /// <summary>
+        /// Get a row cursor including all the columns of the <see cref="IDataView"/> it is called upon..
+        /// </summary>
+        public static RowCursor GetRowCursorForAllColumns(this IDataView dv) => dv.GetRowCursor(dv.Schema);
     }
 }

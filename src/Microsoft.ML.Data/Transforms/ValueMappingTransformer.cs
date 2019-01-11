@@ -416,7 +416,7 @@ namespace Microsoft.ML.Transforms.Conversions
             ulong keyMax = ulong.MinValue;
 
             // scan the input to create convert the values as key types
-            using (var cursor = loader.GetRowCursor(loader.Schema))
+            using (var cursor = loader.GetRowCursorForAllColumns())
             {
                 using (var ch = env.Start($"Processing key values from file {fileName}"))
                 {
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             idv.Schema.TryGetColumnIndex(keyColumnName, out int keyIdx);
             idv.Schema.TryGetColumnIndex(valueColumnName, out int valueIdx);
-            using (var cursor = idv.GetRowCursor(idv.Schema))
+            using (var cursor = idv.GetRowCursorForAllColumns())
             {
                 using (var ch = env.Start("Processing key values"))
                 {

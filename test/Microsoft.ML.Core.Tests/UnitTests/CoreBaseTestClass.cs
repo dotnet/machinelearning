@@ -272,8 +272,8 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             bool all = true;
             bool tmp;
 
-            using (var curs1 = view1.GetRowCursor(view1.Schema))
-            using (var curs2 = view2.GetRowCursor(view2.Schema))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
+            using (var curs2 = view2.GetRowCursorForAllColumns())
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 Check(curs2.Schema == view2.Schema, "Schema of view 2 and its cursor differed");
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             all &= tmp;
 
             var view2EvenCols = view2.Schema.Where(col => (col.Index & 1) == 0);
-            using (var curs1 = view1.GetRowCursor(view1.Schema))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
             using (var curs2 = view2.GetRowCursor(view2EvenCols))
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             all &= tmp;
 
             var view2OddCols = view2.Schema.Where(col => (col.Index & 1) == 0);
-            using (var curs1 = view1.GetRowCursor(view1.Schema))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
             using (var curs2 = view2.GetRowCursor(view2OddCols))
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");

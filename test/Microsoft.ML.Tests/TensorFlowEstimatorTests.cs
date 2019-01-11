@@ -232,7 +232,7 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("a", out int ColA);
             result.Schema.TryGetColumnIndex("b", out int ColB);
             result.Schema.TryGetColumnIndex("c", out int ColC);
-            using (var cursor = result.GetRowCursor(result.Schema))
+            using (var cursor = result.GetRowCursorForAllColumns())
             {
                 VBuffer<float> avalue = default;
                 VBuffer<float> bvalue = default;

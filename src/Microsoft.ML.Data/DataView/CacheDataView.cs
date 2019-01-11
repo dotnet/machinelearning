@@ -133,7 +133,7 @@ namespace Microsoft.ML.Data
             {
                 var type = schema[c].Type;
                 env.Assert(ip == prefetch.Length || c <= prefetch[ip]);
-                if (!type.IsCachable())
+                if (!type.IsCacheable())
                 {
                     if (inputToSubset == null)
                     {

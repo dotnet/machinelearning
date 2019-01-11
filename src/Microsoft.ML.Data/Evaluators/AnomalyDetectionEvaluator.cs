@@ -626,7 +626,7 @@ namespace Microsoft.ML.Data
             if (!metrics.TryGetValue(AnomalyDetectionEvaluator.TopKResults, out top))
                 throw Host.Except("Did not find the top-k results data view");
             var sb = new StringBuilder();
-            using (var cursor = top.GetRowCursor(top.Schema))
+            using (var cursor = top.GetRowCursorForAllColumns())
             {
                 int index;
                 if (!top.Schema.TryGetColumnIndex(AnomalyDetectionEvaluator.TopKResultsColumns.Instance, out index))

@@ -185,7 +185,7 @@ namespace Microsoft.ML.Transforms
                     return predicate(col);
                 };
 
-                _appendedRow = appendedDataView.GetRowCursor(appendedDataView.Schema);
+                _appendedRow = appendedDataView.GetRowCursorForAllColumns();
             }
 
             protected override void Dispose(bool disposing)

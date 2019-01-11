@@ -44,7 +44,7 @@ namespace Microsoft.ML.Scenarios
                                                      3.0f, 3.0f } } }));
             var trans = new TensorFlowTransformer(mlContext, modelLocation, new[] { "a", "b" }, new[] { "c" }).Transform(loader);
 
-            using (var cursor = trans.GetRowCursor(trans.Schema))
+            using (var cursor = trans.GetRowCursorForAllColumns())
             {
                 var cgetter = cursor.GetGetter<VBuffer<float>>(2);
                 Assert.True(cursor.MoveNext());
@@ -462,7 +462,7 @@ namespace Microsoft.ML.Scenarios
 
 
                 var trainDataTransformed = trainedModel.Transform(trainData);
-                using (var cursor = trainDataTransformed.GetRowCursor(trainDataTransformed.Schema))
+                using (var cursor = trainDataTransformed.GetRowCursorForAllColumns())
                 {
                     trainDataTransformed.Schema.TryGetColumnIndex("b", out int bias);
                     var getter = cursor.GetGetter<VBuffer<float>>(bias);
@@ -743,7 +743,7 @@ namespace Microsoft.ML.Scenarios
             IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Input", "Output").Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = trans.GetRowCursor(trans.Schema))
+            using (var cursor = trans.GetRowCursorForAllColumns())
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -784,7 +784,7 @@ namespace Microsoft.ML.Scenarios
             IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Input", "Output").Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = trans.GetRowCursor(trans.Schema))
+            using (var cursor = trans.GetRowCursorForAllColumns())
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);

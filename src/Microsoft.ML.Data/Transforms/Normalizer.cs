@@ -402,7 +402,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 if (!success)
                     throw env.ExceptSchemaMismatch(nameof(data), "input", info.Input);
                 srcTypes[i] = data.Schema[srcCols[i]].Type;
-                activeCols.Add(data.Schema[srcCols[i]]); //sefilipi: check how does the Schema indexer deal with columns that have the same name. Is the index and the col.Index the same?
+                activeCols.Add(data.Schema[srcCols[i]]);
 
                 var supervisedBinColumn = info as NormalizingEstimator.SupervisedBinningColumn;
                 if(supervisedBinColumn != null)

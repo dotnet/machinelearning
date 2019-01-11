@@ -211,7 +211,7 @@ namespace Microsoft.ML.RunTests
                     // Set the concurrency to 1 for this; restore later.
                     int conc = _env.ConcurrencyFactor;
                     _env.ConcurrencyFactor = 1;
-                    using (var curs = pipe1.GetRowCursor(pipe1.Schema))
+                    using (var curs = pipe1.GetRowCursorForAllColumns())
                     {
                         while (curs.MoveNext())
                         {
@@ -256,7 +256,7 @@ namespace Microsoft.ML.RunTests
                 if (!newPipe.CanShuffle)
                 {
                     using (var c1 = newPipe.GetRowCursor(newPipe.Schema, new Random(123)))
-                    using (var c2 = newPipe.GetRowCursor(newPipe.Schema))
+                    using (var c2 = newPipe.GetRowCursorForAllColumns())
                     {
                         if (!CheckSameValues(c1, c2, true, true, true))
                             Failed();
@@ -800,8 +800,8 @@ namespace Microsoft.ML.RunTests
             bool all = true;
             bool tmp;
 
-            using (var curs1 = view1.GetRowCursor(view1.Schema))
-            using (var curs2 = view2.GetRowCursor(view2.Schema))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
+            using (var curs2 = view2.GetRowCursorForAllColumns())
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 Check(curs2.Schema == view2.Schema, "Schema of view 2 and its cursor differed");
@@ -811,7 +811,7 @@ namespace Microsoft.ML.RunTests
             all &= tmp;
 
             var view2EvenCols = view2.Schema.Where(col => (col.Index & 1) == 0); 
-            using (var curs1 = view1.GetRowCursor(view1.Schema))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
             using (var curs2 = view2.GetRowCursor(view2EvenCols))
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
@@ -822,7 +822,7 @@ namespace Microsoft.ML.RunTests
             all &= tmp;
 
             var view2OddCols = view2.Schema.Where(col => (col.Index & 1) != 0);
-            using (var curs1 = view1.GetRowCursor(view1.Schema))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
             using (var curs2 = view2.GetRowCursor(view2OddCols))
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
@@ -831,7 +831,7 @@ namespace Microsoft.ML.RunTests
             }
             Check(tmp, "Odd same failed");
 
-            using (var curs1 = view1.GetRowCursor(view1.Schema))
+            using (var curs1 = view1.GetRowCursorForAllColumns())
             {
                 Check(curs1.Schema == view1.Schema, "Schema of view 1 and its cursor differed");
                 tmp = CheckSameValues(curs1, view2, exactTypes, exactDoubles, checkId);
@@ -936,7 +936,7 @@ namespace Microsoft.ML.RunTests
                 {
                     // curs1 should have all columns active (for simplicity of the code here).
                     Contracts.Assert(curs1.IsColumnActive(col));
-                    cursors[col] = view2.GetRowCursor(view2.Schema);
+                    cursors[col] = view2.GetRowCursorForAllColumns();
                 }
 
                 // Get the comparison delegates for each column.

@@ -488,7 +488,9 @@ namespace Microsoft.ML.Data
 
             foreach (var col in colsNeeded)
             {
-                Contracts.Assert(col.Index < indicesRequested.Length, $"The requested column: {col} is not part of the {nameof(sourceSchema)}");
+                if(col.Index >= indicesRequested.Length)
+                    throw Contracts.Except($"The requested column: {col} is not part of the {nameof(sourceSchema)}");
+
                 indicesRequested[col.Index] = true;
             }
 

@@ -122,7 +122,7 @@ namespace Microsoft.ML.Data
 
             int cthd = GetThreadCount(host);
             host.Assert(cthd > 0);
-            if (cthd == 1 || !AllCachable(view.Schema, colsNeeded))
+            if (cthd == 1 || !AllCacheable(view.Schema, colsNeeded))
             {
                 curs = null;
                 return false;
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Data
                 return new RowCursor[1] { input };
 
             // If any active columns are not cachable, we can't split.
-            if (!AllCachable(input.Schema, input.IsColumnActive))
+            if (!AllCacheable(input.Schema, input.IsColumnActive))
                 return new RowCursor[1] { input };
 
             // REVIEW: Should we limit the cardinality to some reasonable size?
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCachable(Schema schema, Func<int, bool> predicate)
+        public static bool AllCacheable(Schema schema, Func<int, bool> predicate)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(predicate, nameof(predicate));
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Data
                 if (!predicate(col))
                     continue;
                 var type = schema[col].Type;
-                if (!IsCachable(type))
+                if (!IsCacheable(type))
                     return false;
             }
 
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCachable(Schema schema, IEnumerable<Schema.Column> colsNeeded)
+        public static bool AllCacheable(Schema schema, IEnumerable<Schema.Column> colsNeeded)
         {
             Contracts.CheckValue(schema, nameof(schema));
 
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Data
                 if (!colsNeeded.Any(x => x.Index == col))
                     continue;
                 var type = schema[col].Type;
-                if (!IsCachable(type))
+                if (!IsCacheable(type))
                     return false;
             }
 
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Determine whether the given type is cachable - either a primitive type or a vector type.
         /// </summary>
-        public static bool IsCachable(this ColumnType type)
+        public static bool IsCacheable(this ColumnType type)
         {
             return type != null && (type is PrimitiveType || type is VectorType);
         }
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Data
 
                 RowCursor cursor = inputs[0];
                 var schema = cursor.Schema;
-                ch.CheckParam(AllCachable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
+                ch.CheckParam(AllCacheable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
 
                 int[] activeToCol;
                 int[] colToActive;
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Data
                 ch.AssertValue(input);
                 ch.Assert(input.Schema == _schema);
                 ch.Assert(cthd >= 2);
-                ch.Assert(AllCachable(_schema, input.IsColumnActive));
+                ch.Assert(AllCacheable(_schema, input.IsColumnActive));
 
                 // REVIEW: Should the following be configurable?
                 // How would we even expose these sorts of parameters to a user?
@@ -547,7 +547,7 @@ namespace Microsoft.ML.Data
                     ch.Assert(c == 0 || activeToCol[c - 1] < activeToCol[c]);
                     ch.Assert(input.IsColumnActive(activeToCol[c]));
                     var type = input.Schema[activeToCol[c]].Type;
-                    ch.Assert(type.IsCachable());
+                    ch.Assert(type.IsCacheable());
                     arguments[1] = activeToCol[c];
                     var inPipe = inPipes[c] =
                         (InPipe)inGenMethod.MakeGenericMethod(type.RawType).Invoke(this, arguments);

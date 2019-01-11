@@ -135,7 +135,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 if (examples.Schema.Weight.HasValue)
                     cursorOpt |= CursOpt.Weight;
 
-                var cursorFactory = new FloatLabelCursor.Factory(examples, cursorOpt);//sefilipi: double-check on the change.
+                var cursorFactory = new FloatLabelCursor.Factory(examples, cursorOpt);
 
                 return TrainCore(ch, cursorFactory, typeFeat.Size);
             }

@@ -487,10 +487,10 @@ namespace Microsoft.ML.RunTests
 
             var avgComb = new Average(Env).GetCombiner();
             var medComb = new Median(Env).GetCombiner();
-            using (var curs1 = avgScored.GetRowCursor(avgScored.Schema))
-            using (var curs2 = medScored.GetRowCursor(medScored.Schema))
-            using (var curs3 = regScored.GetRowCursor(regScored.Schema))
-            using (var curs4 = zippedScores.GetRowCursor(zippedScores.Schema))
+            using (var curs1 = avgScored.GetRowCursorForAllColumns())
+            using (var curs2 = medScored.GetRowCursorForAllColumns())
+            using (var curs3 = regScored.GetRowCursorForAllColumns())
+            using (var curs4 = zippedScores.GetRowCursorForAllColumns())
             {
                 var scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
@@ -864,16 +864,16 @@ namespace Microsoft.ML.RunTests
                     PredictorModel = loadedFromSaved
                 }).ScoredData;
 
-            using (var cursReg = regressionScored.GetRowCursor(regressionScored.Schema))
-            using (var cursBin = binaryScored.GetRowCursor(binaryScored.Schema))
-            using (var cursBinCali = binaryScoredCalibrated.GetRowCursor(binaryScoredCalibrated.Schema))
-            using (var cursAnom = anomalyScored.GetRowCursor(anomalyScored.Schema))
-            using (var curs0 = individualScores[0].GetRowCursor(individualScores[0].Schema))
-            using (var curs1 = individualScores[1].GetRowCursor(individualScores[1].Schema))
-            using (var curs2 = individualScores[2].GetRowCursor(individualScores[2].Schema))
-            using (var curs3 = individualScores[3].GetRowCursor(individualScores[3].Schema))
-            using (var curs4 = individualScores[4].GetRowCursor(individualScores[4].Schema))
-            using (var cursSaved = scoredFromSaved.GetRowCursor(scoredFromSaved.Schema))
+            using (var cursReg = regressionScored.GetRowCursorForAllColumns())
+            using (var cursBin = binaryScored.GetRowCursorForAllColumns())
+            using (var cursBinCali = binaryScoredCalibrated.GetRowCursorForAllColumns())
+            using (var cursAnom = anomalyScored.GetRowCursorForAllColumns())
+            using (var curs0 = individualScores[0].GetRowCursorForAllColumns())
+            using (var curs1 = individualScores[1].GetRowCursorForAllColumns())
+            using (var curs2 = individualScores[2].GetRowCursorForAllColumns())
+            using (var curs3 = individualScores[3].GetRowCursorForAllColumns())
+            using (var curs4 = individualScores[4].GetRowCursorForAllColumns())
+            using (var cursSaved = scoredFromSaved.GetRowCursorForAllColumns())
             {
                 var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
@@ -1086,15 +1086,15 @@ namespace Microsoft.ML.RunTests
                     PredictorModel = loadedFromSaved
                 }).ScoredData;
 
-            using (var cursReg = regressionScored.GetRowCursor(regressionScored.Schema))
-            using (var cursBin = binaryScored.GetRowCursor(binaryScored.Schema))
-            using (var cursBinCali = binaryScoredCalibrated.GetRowCursor(binaryScoredCalibrated.Schema))
-            using (var curs0 = individualScores[0].GetRowCursor(individualScores[0].Schema))
-            using (var curs1 = individualScores[1].GetRowCursor(individualScores[1].Schema))
-            using (var curs2 = individualScores[2].GetRowCursor(individualScores[2].Schema))
-            using (var curs3 = individualScores[3].GetRowCursor(individualScores[3].Schema))
-            using (var curs4 = individualScores[4].GetRowCursor(individualScores[4].Schema))
-            using (var cursSaved = scoredFromSaved.GetRowCursor(scoredFromSaved.Schema))
+            using (var cursReg = regressionScored.GetRowCursorForAllColumns())
+            using (var cursBin = binaryScored.GetRowCursorForAllColumns())
+            using (var cursBinCali = binaryScoredCalibrated.GetRowCursorForAllColumns())
+            using (var curs0 = individualScores[0].GetRowCursorForAllColumns())
+            using (var curs1 = individualScores[1].GetRowCursorForAllColumns())
+            using (var curs2 = individualScores[2].GetRowCursorForAllColumns())
+            using (var curs3 = individualScores[3].GetRowCursorForAllColumns())
+            using (var curs4 = individualScores[4].GetRowCursorForAllColumns())
+            using (var cursSaved = scoredFromSaved.GetRowCursorForAllColumns())
             {
                 var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
@@ -1246,13 +1246,13 @@ namespace Microsoft.ML.RunTests
                     PredictorModel = loadedFromSaved
                 }).ScoredData;
 
-            using (var curs = mcScored.GetRowCursor(mcScored.Schema))
-            using (var cursSaved = scoredFromSaved.GetRowCursor(scoredFromSaved.Schema))
-            using (var curs0 = individualScores[0].GetRowCursor(individualScores[0].Schema))
-            using (var curs1 = individualScores[1].GetRowCursor(individualScores[1].Schema))
-            using (var curs2 = individualScores[2].GetRowCursor(individualScores[2].Schema))
-            using (var curs3 = individualScores[3].GetRowCursor(individualScores[3].Schema))
-            using (var curs4 = individualScores[4].GetRowCursor(individualScores[4].Schema))
+            using (var curs = mcScored.GetRowCursorForAllColumns())
+            using (var cursSaved = scoredFromSaved.GetRowCursorForAllColumns())
+            using (var curs0 = individualScores[0].GetRowCursorForAllColumns())
+            using (var curs1 = individualScores[1].GetRowCursorForAllColumns())
+            using (var curs2 = individualScores[2].GetRowCursorForAllColumns())
+            using (var curs3 = individualScores[3].GetRowCursorForAllColumns())
+            using (var curs4 = individualScores[4].GetRowCursorForAllColumns())
             {
                 var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
                 Assert.True(scoreColumn.HasValue);
@@ -1657,7 +1657,7 @@ namespace Microsoft.ML.RunTests
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), outputPath))
             {
-                using (var cursor = loader.GetRowCursor(loader.Schema))
+                using (var cursor = loader.GetRowCursorForAllColumns())
                 {
                     ReadOnlyMemory<char> cat = default;
                     ReadOnlyMemory<char> catValue = default;
@@ -2707,7 +2707,7 @@ namespace Microsoft.ML.RunTests
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
             Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursor(metrics.Schema))
+            using (var cursor = metrics.GetRowCursorForAllColumns())
             {
                 var aucCol = cursor.Schema.GetColumnOrNull("AUC");
                 Assert.True(aucCol.HasValue);
@@ -2812,7 +2812,7 @@ namespace Microsoft.ML.RunTests
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
             Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursor(metrics.Schema))
+            using (var cursor = metrics.GetRowCursorForAllColumns())
             {
                 var aucCol = cursor.Schema.GetColumnOrNull("AUC");
                 Assert.True(aucCol.HasValue);
@@ -2975,8 +2975,13 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(model);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
+<<<<<<< HEAD
 
             Action<IDataView> validateAuc = (metricsIdv) =>
+=======
+            Assert.NotNull(metrics);
+            using (var cursor = metrics.GetRowCursorForAllColumns())
+>>>>>>> Addressing the PR review comments.
             {
                 Assert.NotNull(metricsIdv);
                 using (var cursor = metricsIdv.GetRowCursor(metricsIdv.Schema))
@@ -2993,7 +2998,20 @@ namespace Microsoft.ML.RunTests
             validateAuc(metrics);
 
             metrics = runner.GetOutput<IDataView>("OverallMetrics2");
+<<<<<<< HEAD
             validateAuc(metrics);
+=======
+            Assert.NotNull(metrics);
+            using (var cursor = metrics.GetRowCursorForAllColumns())
+            {
+                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
+                var aucGetter = cursor.GetGetter<double>(aucCol);
+                Assert.True(cursor.MoveNext());
+                double auc = 0;
+                aucGetter(ref auc);
+                Assert.True(auc > 0.99);
+            }
+>>>>>>> Addressing the PR review comments.
         }
 
         [Fact]
@@ -3166,8 +3184,13 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(model[0]);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
+<<<<<<< HEAD
 
             Action<IDataView> aucValidate = (metricsIdv) =>
+=======
+            Assert.NotNull(metrics);
+            using (var cursor = metrics.GetRowCursorForAllColumns())
+>>>>>>> Addressing the PR review comments.
             {
                 Assert.NotNull(metricsIdv);
                 using (var cursor = metrics.GetRowCursor(metrics.Schema))
@@ -3185,7 +3208,20 @@ namespace Microsoft.ML.RunTests
             aucValidate(metrics);
 
             metrics = runner.GetOutput<IDataView>("OverallMetrics2");
+<<<<<<< HEAD
             aucValidate(metrics);
+=======
+            Assert.NotNull(metrics);
+            using (var cursor = metrics.GetRowCursorForAllColumns())
+            {
+                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
+                var aucGetter = cursor.GetGetter<double>(aucCol);
+                Assert.True(cursor.MoveNext());
+                double auc = 0;
+                aucGetter(ref auc);
+                Assert.True(auc > 0.99);
+            }
+>>>>>>> Addressing the PR review comments.
         }
 
         [Fact]
@@ -3511,7 +3547,7 @@ namespace Microsoft.ML.RunTests
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), outputPath))
             {
-                using (var cursor = loader.GetRowCursor(loader.Schema))
+                using (var cursor = loader.GetRowCursorForAllColumns())
                 {
                     ReadOnlyMemory<char> predictedLabel = default;
 
@@ -3633,7 +3669,7 @@ namespace Microsoft.ML.RunTests
                 ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe
             });
             var result = embedding.OutputData;
-            using (var cursor = result.GetRowCursor(result.Schema))
+            using (var cursor = result.GetRowCursorForAllColumns())
             {
                 var featColumn = result.Schema.GetColumnOrNull("Features");
                 Assert.True(featColumn.HasValue);
@@ -4475,7 +4511,7 @@ namespace Microsoft.ML.RunTests
             {
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr(i.ToString(), slotNameValues[i]));
             }
-            using (var curs = confusion.GetRowCursor(confusion.Schema))
+            using (var curs = confusion.GetRowCursorForAllColumns())
             {
                 var countGetter = curs.GetGetter<VBuffer<double>>(countCol.Value.Index);
                 var foldGetter = curs.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
@@ -4499,7 +4535,7 @@ namespace Microsoft.ML.RunTests
             }
 
             var warnings = runner.GetOutput<IDataView>("warnings");
-            using (var cursor = warnings.GetRowCursor(warnings.Schema))
+            using (var cursor = warnings.GetRowCursorForAllColumns())
                 Assert.False(cursor.MoveNext());
         }
 

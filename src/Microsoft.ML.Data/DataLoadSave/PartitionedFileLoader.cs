@@ -390,7 +390,6 @@ namespace Microsoft.ML.Data
                 _subActive = _active.Take(SubColumnCount).ToArray();
                 _colValues = new ReadOnlyMemory<char>[Schema.Count - SubColumnCount];
 
-                // sefilipi: Test this
                 _subActiveColsNeeded = Schema.Where(x => (_subActive?.Length > x.Index) && _subActive[x.Index]);
 
                 _subGetters = new Delegate[SubColumnCount];
