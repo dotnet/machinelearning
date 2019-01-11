@@ -53,9 +53,10 @@ namespace Microsoft.ML.Ensemble
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {
                     var name = Parent._inputCols[i];
-                    if (!InputRoleMappedSchema.Schema.TryGetColumnIndex(name, out int col))
-                        throw Parent.Host.Except("Schema does not contain required input column '{0}'", name);
-                    _inputColIndices.Add(col);
+                    var col = InputRoleMappedSchema.Schema.GetColumnOrNull(name);
+                    if (!col.HasValue)
+                        throw Parent.Host.ExceptSchemaMismatch(nameof(InputRoleMappedSchema), "input", name);
+                    _inputColIndices.Add(col.Value.Index);
                 }
 
                 Mappers = new ISchemaBoundRowMapper[Parent.PredictorModels.Length];
@@ -74,8 +75,10 @@ namespace Microsoft.ML.Ensemble
                         throw Parent.Host.Except("Predictor {0} is not a row to row mapper", i);
 
                     // Make sure there is a score column, and remember its index.
-                    if (!Mappers[i].OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out ScoreCols[i]))
+                    var scoreCol = Mappers[i].OutputSchema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                    if (!scoreCol.HasValue)
                         throw Parent.Host.Except("Predictor {0} does not contain a score column", i);
+                    ScoreCols[i] = scoreCol.Value.Index;
 
                     // Get the pipeline.
                     var dv = new EmptyDataView(Parent.Host, schema.Schema);

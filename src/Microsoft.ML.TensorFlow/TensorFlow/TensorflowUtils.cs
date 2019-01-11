@@ -70,7 +70,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <summary>
         /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="ISchema"/>.
         /// For every node in the graph that has an output type that is compatible with the types supported by
-        /// <see cref="TensorFlowTransform"/>, the output schema contains a column with the name of that node, and the
+        /// <see cref="TensorFlowTransformer"/>, the output schema contains a column with the name of that node, and the
         /// type of its output (including the item type and the shape, if it is known). Every column also contains metadata
         /// of kind <see cref="OpType"/>, indicating the operation type of the node, and if that node has inputs in the graph,
         /// it contains metadata of kind <see cref="InputOps"/>, indicating the names of the input nodes.

@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.OnnxTransform.StaticPipe
+namespace Microsoft.ML.Transforms.StaticPipe
 {
     public static class OnnxStaticExtensions
     {

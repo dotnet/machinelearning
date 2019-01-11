@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         /// call <see cref="OnnxScoringEstimator"/> to evaluate that file. The outputs of <see cref="OnnxScoringEstimator"/> are checked against the original
         /// ML.NET model's outputs.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotFullFramework))] // Tracked by https://github.com/dotnet/machinelearning/issues/2106
         public void SimpleEndToEndOnnxConversionTest()
         {
             // Step 1: Create and train a ML.NET pipeline.
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests
             public float[] Features;
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // Tracked by https://github.com/dotnet/machinelearning/issues/2087
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30AndNotFullFramework))] // Tracked by https://github.com/dotnet/machinelearning/issues/2087
         public void KmeansOnnxConversionTest()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
