@@ -15,8 +15,16 @@ namespace Microsoft.ML.Transforms.TensorFlow
 {
     public static class TensorFlowUtils
     {
-        public const string OpType = "OpType";
-        public const string InputOps = "InputOps";
+        /// <summary>
+        /// Key to access operator's type (a string) in <see cref="Schema.Column.Metadata"/>.
+        /// Its value describes the Tensorflow operator that produces this <see cref="Schema.Column"/>.
+        /// </summary>
+        public const string TensorflowOperatorTypeKind = "TensorflowOperatorType";
+        /// <summary>
+        /// Key to access upstream operators' names (a string array) in <see cref="Schema.Column.Metadata"/>.
+        /// Its value states operators that the associated <see cref="Schema.Column"/>'s generator depends on.
+        /// </summary>
+        public const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
         internal static Schema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
@@ -30,7 +38,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 // Determine element type in Tensorflow tensor. For example, a vector of floats may get NumberType.R4 here.
                 var mlType = Tf2MlNetTypeOrNull(tfType);
 
-                // If the type is not supported in ML.NET then we cannot represent it as a column in an ISchema.
+                // If the type is not supported in ML.NET then we cannot represent it as a column in an Schema.
                 // We also cannot output it with a TensorFlowTransform, so we skip it.
                 if (mlType == null)
                     continue;
@@ -49,9 +57,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 //     the current operator. It's possible that one operator doesn't need any input, so this field
                 //     can be missing.
                 var metadataBuilder = new MetadataBuilder();
-                metadataBuilder.Add(OpType, TextType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
+                metadataBuilder.Add(TensorflowOperatorTypeKind, TextType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
                 if (op.NumInputs > 0)
-                    metadataBuilder.Add(InputOps, new VectorType(TextType.Instance, op.NumInputs),
+                    metadataBuilder.Add(TensorflowUpstreamOperatorsKind, new VectorType(TextType.Instance, op.NumInputs),
                         (ref VBuffer<ReadOnlyMemory<char>> value) =>
                             {
                                 var bufferEditor = VBufferEditor.Create(ref value, op.NumInputs);
@@ -66,12 +74,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         /// <summary>
-        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="ISchema"/>.
+        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="Schema"/>.
         /// For every node in the graph that has an output type that is compatible with the types supported by
         /// <see cref="TensorFlowTransformer"/>, the output schema contains a column with the name of that node, and the
         /// type of its output (including the item type and the shape, if it is known). Every column also contains metadata
-        /// of kind <see cref="OpType"/>, indicating the operation type of the node, and if that node has inputs in the graph,
-        /// it contains metadata of kind <see cref="InputOps"/>, indicating the names of the input nodes.
+        /// of kind <see cref="TensorflowOperatorTypeKind"/>, indicating the operation type of the node, and if that node has inputs in the graph,
+        /// it contains metadata of kind <see cref="TensorflowUpstreamOperatorsKind"/>, indicating the names of the input nodes.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">Model to load.</param>
@@ -83,7 +91,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         /// <summary>
         /// This is a convenience method for iterating over the nodes of a TensorFlow model graph. It
-        /// iterates over the columns of the <see cref="ISchema"/> returned by <see cref="GetModelSchema(IHostEnvironment, string)"/>,
+        /// iterates over the columns of the <see cref="Schema"/> returned by <see cref="GetModelSchema(IHostEnvironment, string)"/>,
         /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
         /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
         /// </summary>
@@ -98,16 +106,16 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 var name = schema[i].Name;
                 var type = schema[i].Type;
 
-                var metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.OpType)?.Type;
+                var metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowOperatorTypeKind)?.Type;
                 Contracts.Assert(metadataType != null && metadataType is TextType);
                 ReadOnlyMemory<char> opType = default;
-                schema[i].Metadata.GetValue(TensorFlowUtils.OpType, ref opType);
-                metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.InputOps)?.Type;
+                schema[i].Metadata.GetValue(TensorflowOperatorTypeKind, ref opType);
+                metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowUpstreamOperatorsKind)?.Type;
                 VBuffer<ReadOnlyMemory<char>> inputOps = default;
                 if (metadataType != null)
                 {
                     Contracts.Assert(metadataType.IsKnownSizeVector && metadataType.ItemType is TextType);
-                    schema[i].Metadata.GetValue(TensorFlowUtils.InputOps, ref inputOps);
+                    schema[i].Metadata.GetValue(TensorflowUpstreamOperatorsKind, ref inputOps);
                 }
 
                 string[] inputOpsResult = inputOps.DenseValues()
