@@ -2,7 +2,7 @@
 
   <Import Project="..\Directory.Build.targets" />
   
-  <PropertyGroup Condition="'$(Coverage)' == 'true'">
+  <PropertyGroup Condition="'$(Coverage)' == 'true'" and Condition="'$(FlavorToBuild)'=='Release'" and Condition="'$(OS)' == 'Windows_NT'">
       <CollectCoverage>true</CollectCoverage>
       <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
       <CoverletOutputFormat>opencover</CoverletOutputFormat>
