@@ -34,7 +34,7 @@ namespace Microsoft.ML.Scenarios
             // Create Estimator
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(mlContext.Transforms.Normalize("Features"))
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("IrisPlantType", "Label"), TransformerScope.TrainTest)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label","IrisPlantType"), TransformerScope.TrainTest)
                 .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Plant")));

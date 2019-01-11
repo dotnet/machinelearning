@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
+                .Append(new ValueToKeyMappingEstimator(ml, "Label", "Label"), TransformerScope.TrainTest)
                 .Append(new Ova(ml, sdcaTrainer))
                 .Append(new KeyToValueMappingEstimator(ml, "PredictedLabel"));
 

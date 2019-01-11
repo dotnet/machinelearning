@@ -21,13 +21,13 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputColumn">Name of the column to be transformed.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, string inputColumn, string outputColumn = null,
+        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, string outputColumn, string inputColumn,
             int hashBits = HashDefaults.HashBits, int invertHash = HashDefaults.InvertHash)
             => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, hashBits, invertHash);
 
@@ -44,11 +44,11 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputColumn">Name of the column to be transformed.</param>
         /// <param name="outputKind">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
-        public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, string inputColumn, string outputColumn = null,
+        public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, string outputColumn, string inputColumn,
             DataKind outputKind = ConvertDefaults.DefaultOutputKind)
-            => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, outputKind);
+            => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumn, inputColumn, outputKind);
 
         /// <summary>
         /// Changes column type of the input column.
@@ -92,24 +92,24 @@ namespace Microsoft.ML
         /// <param name="outputColumn">The name of the output column.</param>
         /// <param name="bag">Whether bagging is used for the conversion. </param>
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
-            string inputColumn, string outputColumn = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
-            => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, bag);
+            string outputColumn, string inputColumn, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
+            => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumn, inputColumn, bag);
 
         /// <summary>
         /// Converts value types into <see cref="KeyType"/>.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="inputColumn">Name of the column to be transformed.</param>
-        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputColumn">Name of the output column.</param>
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.ConversionTransforms catalog,
+            string outputColumn,
             string inputColumn,
-            string outputColumn = null,
             int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms,
             ValueToKeyMappingTransformer.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort)
-           => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, maxNumTerms, sort);
+           => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumn, inputColumn, maxNumTerms, sort);
 
         /// <summary>
         /// Converts value types into <see cref="KeyType"/> loading the keys to use from <paramref name="file"/>.

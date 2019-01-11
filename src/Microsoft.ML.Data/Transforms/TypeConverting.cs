@@ -538,17 +538,17 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the output column.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
-        public TypeConvertingEstimator(IHostEnvironment env,
-            string inputColumn, string outputColumn = null,
+        internal TypeConvertingEstimator(IHostEnvironment env,
+            string outputColumn, string inputColumn,
             DataKind outputKind = Defaults.DefaultOutputKind)
-            : this(env, new TypeConvertingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind))
+            : this(env, new TypeConvertingTransformer.ColumnInfo(inputColumn, outputColumn, outputKind))
         {
         }
 
         /// <summary>
         /// Create a <see cref="TypeConvertingEstimator"/> that takes multiple pairs of columns.
         /// </summary>
-        public TypeConvertingEstimator(IHostEnvironment env, params TypeConvertingTransformer.ColumnInfo[] columns) :
+        internal TypeConvertingEstimator(IHostEnvironment env, params TypeConvertingTransformer.ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TypeConvertingEstimator)), new TypeConvertingTransformer(env, columns))
         {
         }

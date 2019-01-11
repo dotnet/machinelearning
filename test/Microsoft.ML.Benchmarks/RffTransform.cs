@@ -46,7 +46,7 @@ namespace Microsoft.ML.Benchmarks
             var pipeline = mlContext.Transforms.Projection.CreateRandomFourierFeatures("Features", "FeaturesRFF")
             .AppendCacheCheckpoint(mlContext)
             .Append(mlContext.Transforms.Concatenate("Features", "FeaturesRFF"))
-            .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
+            .Append(new ValueToKeyMappingEstimator(mlContext, "Label", "Label"))
             .Append(mlContext.MulticlassClassification.Trainers.OneVersusAll(mlContext.BinaryClassification.Trainers.AveragedPerceptron(numIterations: 10)));
 
             var cvResults = mlContext.MulticlassClassification.CrossValidate(data, pipeline, numFolds: 5);

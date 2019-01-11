@@ -193,7 +193,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         }
             }).Read(GetDataPath(IrisDataPath));
 
-            var pipeline = new ValueToKeyMappingEstimator(Env, "Label");
+            var pipeline = new ValueToKeyMappingEstimator(Env, "Label", "Label");
 
             return (pipeline, data);
         }

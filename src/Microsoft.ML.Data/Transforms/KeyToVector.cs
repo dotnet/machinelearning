@@ -744,13 +744,13 @@ namespace Microsoft.ML.Transforms.Conversions
             public const bool Bag = false;
         }
 
-        public KeyToVectorMappingEstimator(IHostEnvironment env, params KeyToVectorMappingTransformer.ColumnInfo[] columns)
+        internal KeyToVectorMappingEstimator(IHostEnvironment env, params KeyToVectorMappingTransformer.ColumnInfo[] columns)
             : this(env, new KeyToVectorMappingTransformer(env, columns))
         {
         }
 
-        public KeyToVectorMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, bool bag = Defaults.Bag)
-            : this(env, new KeyToVectorMappingTransformer(env, new KeyToVectorMappingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, bag)))
+        internal KeyToVectorMappingEstimator(IHostEnvironment env, string outputColumn, string inputColumn, bool bag = Defaults.Bag)
+            : this(env, new KeyToVectorMappingTransformer(env, new KeyToVectorMappingTransformer.ColumnInfo(inputColumn, outputColumn, bag)))
         {
         }
 

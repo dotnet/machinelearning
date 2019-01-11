@@ -160,7 +160,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Concatenate all the features together into one column 'Features'.
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label", "Label"), TransformerScope.TrainTest)
                 // Cache data in memory for steps after the cache check point stage.
                 .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Concatenate all the features together into one column 'Features'.
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
-                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label", "Label"), TransformerScope.TrainTest)
                 // Cache data in memory so that SDCA trainer will be able to randomly access training examples without
                 // reading data from disk multiple times. Data will be cached at its first use in any downstream step.
                 // Notice that unused part in the data may not be cached.

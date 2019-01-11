@@ -371,7 +371,7 @@ namespace Microsoft.ML.Tests
                 separatorChar: '\t');
 
             var pipeline = mlContext.Transforms.Normalize("Features").
-                Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
+                Append(mlContext.Transforms.Conversion.MapValueToKey("Label", "Label")).
                 Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(labelColumn: "Label", featureColumn: "Features",
                 advancedSettings: settings =>
                 {

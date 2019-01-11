@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Vars", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
+                .Append(new ValueToKeyMappingEstimator(Env, "Label", "Label"), TransformerScope.TrainTest)
                 .Append(new Ova(Env, sdcaTrainer))
                 .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
