@@ -32,7 +32,7 @@ namespace Microsoft.ML.Benchmarks.Tests
 
         private ITestOutputHelper Output { get; }
 
-        public bool CanExecute =>
+        public static bool CanExecute =>
 #if DEBUG
             false; // BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG
 #elif NET462
