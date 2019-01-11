@@ -8,7 +8,6 @@
       <CoverletOutputFormat>opencover</CoverletOutputFormat>
       <CoverletOutput>$(MSBuildThisFileDirectory)..\bin\coverage\$(AssemblyName).xml</CoverletOutput>
       <Include>[Microsoft.ML.*]*</Include>
-      <ExcludeByFile>$(MSBuildThisFileDirectory)**\*.*</ExcludeByFile>
   </PropertyGroup>
   
 </Project>
