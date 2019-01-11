@@ -183,7 +183,7 @@ namespace Microsoft.ML.Data
 
             // Get the score column set id from colScore.
             var type = schema[colScore].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnSetId)?.Type;
-            if (type == null || !type.IsKey || type.RawKind != DataKind.U4)
+            if (type == null || !(type is KeyType) || type.RawKind != DataKind.U4)
             {
                 // scoreCol is not part of a score column set, so can't determine an aux column.
                 return null;
@@ -566,12 +566,12 @@ namespace Microsoft.ML.Data
                     throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type");
                 if (keyValueType == null || keyValueType.ItemType.RawType != typeof(T))
                     throw Contracts.Except($"Column '{columnName}' in schema number {i} does not have the correct type of key values");
-                if (!type.ItemType.IsKey || type.ItemType.RawKind != DataKind.U4)
+                if (!(type.ItemType is KeyType itemKeyType) || type.ItemType.RawKind != DataKind.U4)
                     throw Contracts.Except($"Column '{columnName}' must be a U4 key type, but is '{type.ItemType}'");
 
                 schema[indices[i]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyNamesCur);
 
-                keyValueMappers[i] = new int[type.ItemType.KeyCount];
+                keyValueMappers[i] = new int[itemKeyType.Count];
                 foreach (var kvp in keyNamesCur.Items(true))
                 {
                     var key = kvp.Key;
@@ -827,7 +827,7 @@ namespace Microsoft.ML.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema[i].HasKeyValues(type.ItemType.KeyCount))
+                            if (dv.Schema[i].HasKeyValues(type.ItemType.GetKeyCount()))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema[i].HasSlotNames(type.VectorSize))
@@ -856,15 +856,19 @@ namespace Microsoft.ML.Data
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
                         labelColKeyValuesType = dv.Schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     }
-                    else if (dvNumber == 0 && dv.Schema[i].HasKeyValues(type.KeyCount))
+                    else if (dvNumber == 0 && dv.Schema[i].HasKeyValues(type.GetKeyCount()))
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema[i].HasKeyValues(type.KeyCount))
+                    else
                     {
-                        // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
-                        if (!firstDvKeyNoNamesColumns.ContainsKey(name))
-                            firstDvKeyNoNamesColumns[name] = type.KeyCount;
-                        if (firstDvKeyNoNamesColumns[name] < type.KeyCount)
-                            firstDvKeyNoNamesColumns[name] = type.KeyCount;
+                        int keyCount = type.GetKeyCount();
+                        if (keyCount > 0 && name != labelColName && !dv.Schema[i].HasKeyValues(keyCount))
+                        {
+                            // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
+                            if (!firstDvKeyNoNamesColumns.ContainsKey(name))
+                                firstDvKeyNoNamesColumns[name] = keyCount;
+                            if (firstDvKeyNoNamesColumns[name] < keyCount)
+                                firstDvKeyNoNamesColumns[name] = keyCount;
+                        }
                     }
                 }
                 var idv = dv;
@@ -1213,9 +1217,11 @@ namespace Microsoft.ML.Data
                 var name = schema[i].Name;
                 if (i == stratCol)
                 {
+                    int typeKeyCount = type.GetKeyCount();
+
                     var keyValuesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     if (keyValuesType == null || !(keyValuesType.ItemType is TextType) ||
-                        keyValuesType.VectorSize != type.KeyCount)
+                        keyValuesType.VectorSize != typeKeyCount)
                     {
                         throw env.Except("Column '{0}' must have key values metadata",
                             MetricKinds.ColumnNames.StratCol);
@@ -1229,8 +1235,8 @@ namespace Microsoft.ML.Data
                         };
 
                     var keys = foldCol >= 0 ? new uint[] { 0, 0 } : new uint[] { 0 };
-                    dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, 0, type.KeyCount, keys);
-                    weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, 0, type.KeyCount, keys);
+                    dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, 0, typeKeyCount, keys);
+                    weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, 0, typeKeyCount, keys);
                 }
                 else if (i == stratVal)
                 {
@@ -1726,7 +1732,7 @@ namespace Microsoft.ML.Data
             if (!data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out stratCol))
                 return data;
             var type = data.Schema[stratCol].Type;
-            env.Check(type.KeyCount > 0, "Expected a known count key type stratification column");
+            env.Check(type.GetKeyCount() > 0, "Expected a known count key type stratification column");
             var filterArgs = new NAFilter.Arguments();
             filterArgs.Column = new[] { MetricKinds.ColumnNames.StratCol };
             filterArgs.Complement = true;

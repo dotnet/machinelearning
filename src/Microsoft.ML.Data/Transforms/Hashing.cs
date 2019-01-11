@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             int iinfo = invertIinfos[i];
-                            Host.Assert(types[iinfo].ItemType.KeyCount > 0);
+                            Host.Assert(types[iinfo].ItemType.GetKeyCount() > 0);
                             var dstGetter = GetGetterCore(srcCursor, iinfo, out disposer);
                             Host.Assert(disposer == null);
                             var ex = _columns[iinfo];
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             _keyValues[invertIinfos[i]] = helpers[i].GetKeyValuesMetadata();
-                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].ItemType.KeyCount);
+                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].ItemType.GetKeyCount());
                             _kvTypes[invertIinfos[i]] = new VectorType(TextType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
                     }
@@ -407,7 +407,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (_columns[iinfo].Ordered)
                 seed = Hashing.MurmurRound(seed, 0);
 
-            if (srcType.IsKey)
+            if (srcType is KeyType)
             {
                 switch (srcType.RawKind)
                 {
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.Assert(srcType.IsVector);
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
 
-            if (srcType.ItemType.IsKey)
+            if (srcType.ItemType is KeyType)
             {
                 switch (srcType.ItemType.RawKind)
                 {
@@ -1202,7 +1202,7 @@ namespace Microsoft.ML.Transforms.Conversions
         internal static bool IsColumnTypeValid(ColumnType type)
         {
             var itemType = type.ItemType;
-            return itemType is TextType || itemType.IsKey || itemType is NumberType || itemType is BoolType;
+            return itemType is TextType || itemType is KeyType || itemType is NumberType || itemType is BoolType;
         }
 
         internal const string ExpectedColumnType = "Expected Text, Key, numeric or Boolean item type";

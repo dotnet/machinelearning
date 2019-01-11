@@ -17,5 +17,10 @@ namespace Microsoft.ML.Data
         public static bool IsStandardScalar(this ColumnType columnType) =>
             (columnType is NumberType) || (columnType is TextType) || (columnType is BoolType) ||
             (columnType is TimeSpanType) || (columnType is DateTimeType) || (columnType is DateTimeOffsetType);
+
+        /// <summary>
+        /// Zero return means either it's not a key type or the cardinality is unknown.
+        /// </summary>
+        public static int GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
     }
 }

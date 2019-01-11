@@ -85,15 +85,16 @@ namespace Microsoft.ML.Training
             Contracts.Assert(!col.IsHidden);
             if (col.Type != BoolType.Instance && col.Type != NumberType.R4 && col.Type != NumberType.R8 && !(col.Type is KeyType keyType && keyType.Count == 2))
             {
-                if (col.Type.IsKey)
+                KeyType colKeyType = col.Type as KeyType;
+                if (colKeyType != null)
                 {
-                    if (col.Type.KeyCount == 1)
+                    if (colKeyType.Count == 1)
                     {
                         throw Contracts.ExceptParam(nameof(data),
                             "The label column '{0}' of the training data has only one class. Two classes are required for binary classification.",
                             col.Name);
                     }
-                    else if (col.Type.KeyCount > 2)
+                    else if (colKeyType.Count > 2)
                     {
                         throw Contracts.ExceptParam(nameof(data),
                             "The label column '{0}' of the training data has more than two classes. Only two classes are allowed for binary classification.",

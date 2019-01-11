@@ -86,7 +86,7 @@ namespace Microsoft.ML.Data.IO
             protected ValueWriterBase(PrimitiveType type, int source, char sep)
                 : base(source)
             {
-                Contracts.Assert(type.IsStandardScalar() || type.IsKey);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(type.RawType == typeof(T));
 
                 Sep = sep;
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Data.IO
         public bool IsColumnSavable(ColumnType type)
         {
             var item = type.ItemType;
-            return item.IsStandardScalar() || item.IsKey;
+            return item.IsStandardScalar() || item is KeyType;
         }
 
         public void SaveData(Stream stream, IDataView data, params int[] cols)

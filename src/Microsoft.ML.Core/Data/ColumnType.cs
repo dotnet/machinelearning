@@ -22,7 +22,6 @@ namespace Microsoft.ML.Data
         private ColumnType()
         {
             IsVector = this is VectorType;
-            IsKey = this is KeyType;
         }
 
         /// <summary>
@@ -70,27 +69,6 @@ namespace Microsoft.ML.Data
         /// </summary>
         [BestFriend]
         internal DataKind RawKind { get; }
-
-        /// <summary>
-        /// Whether this type is a key type, which implies that the order of values is not significant,
-        /// and arithmetic is non-sensical. A key type can define a cardinality.
-        /// External code should use <c>is <see cref="KeyType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsKey { get; }
-
-        /// <summary>
-        /// Zero return means either it's not a key type or the cardinality is unknown. External code should first
-        /// test whether this is of type <see cref="KeyType"/>, then if so get the <see cref="KeyType.Count"/> property
-        /// from that.
-        /// </summary>
-        [BestFriend]
-        internal int KeyCount => KeyCountCore;
-
-        /// <summary>
-        /// The only sub-class that should override this is <see cref="KeyType"/>.
-        /// </summary>
-        private protected virtual int KeyCountCore => 0;
 
         /// <summary>
         /// Whether this is a vector type. External code should just check directly against whether this type
@@ -602,7 +580,6 @@ namespace Microsoft.ML.Data
             Contiguous = contiguous;
             Min = min;
             Count = count;
-            Contracts.Assert(IsKey);
         }
 
         public KeyType(Type type, ulong min, int count, bool contiguous = true)
@@ -661,8 +638,6 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(type, nameof(type));
             return type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong);
         }
-
-        private protected override int KeyCountCore => Count;
 
         /// <summary>
         /// This is the Min of the key type for display purposes and conversion to/from text. The values

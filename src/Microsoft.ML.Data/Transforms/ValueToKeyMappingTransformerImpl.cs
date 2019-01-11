@@ -843,7 +843,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public static BoundTermMap CreateCore<T>(IHostEnvironment env, Schema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
                 TermMap<T> mapT = (TermMap<T>)map;
-                if (mapT.ItemType.IsKey)
+                if (mapT.ItemType is KeyType)
                     return new KeyImpl<T>(env, schema, mapT, infos, textMetadata, iinfo);
                 return new Impl<T>(env, schema, mapT, infos, textMetadata, iinfo);
             }
@@ -1054,7 +1054,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                 TypedMap.GetTerms(ref dstT);
                                 GetTextTerms(in dstT, stringMapper, ref dst);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, getter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, TextType.Instance, getter);
                     }
                     else
                     {
@@ -1063,7 +1063,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             {
                                 TypedMap.GetTerms(ref dst);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, TypedMap.ItemType, getter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, TypedMap.ItemType, getter);
                     }
                 }
             }
@@ -1077,7 +1077,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 public KeyImpl(IHostEnvironment env, Schema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
                     : base(env, schema, map, infos, textMetadata, iinfo)
                 {
-                    _host.Assert(TypedMap.ItemType.IsKey);
+                    _host.Assert(TypedMap.ItemType is KeyType);
                 }
 
                 public override void AddMetadata(MetadataBuilder builder)
@@ -1087,8 +1087,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
-                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
+                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.GetKeyCount() ||
+                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.AddMetadata(builder);
@@ -1120,7 +1120,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                             VBuffer<T> keyVals = default(VBuffer<T>);
                             TypedMap.GetTerms(ref keyVals);
-                            var editor = VBufferEditor.Create(ref dst, TypedMap.OutputType.KeyCount);
+                            var editor = VBufferEditor.Create(ref dst, TypedMap.OutputType.Count);
                             uint convKeyVal = 0;
                             foreach (var pair in keyVals.Items(all: true))
                             {
@@ -1143,9 +1143,9 @@ namespace Microsoft.ML.Transforms.Conversions
                                 getter(ref tempMeta);
                                 Contracts.Assert(tempMeta.IsDense);
                                 GetTextTerms(in tempMeta, stringMapper, ref dst);
-                                _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
+                                _host.Assert(dst.Length == TypedMap.OutputType.Count);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, mgetter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, TextType.Instance, mgetter);
                     }
                     else
                     {
@@ -1153,9 +1153,9 @@ namespace Microsoft.ML.Transforms.Conversions
                             (ref VBuffer<TMeta> dst) =>
                             {
                                 getter(ref dst);
-                                _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
+                                _host.Assert(dst.Length == TypedMap.OutputType.Count);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, (PrimitiveType)srcMetaType.ItemType, mgetter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, (PrimitiveType)srcMetaType.ItemType, mgetter);
                     }
                     return true;
                 }
@@ -1167,8 +1167,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
-                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
+                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.GetKeyCount() ||
+                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.WriteTextTerms(writer);

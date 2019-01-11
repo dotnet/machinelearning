@@ -97,7 +97,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             var resultDic = inputSchema.ToDictionary(x => x.Name);
             var vectorKind = Transformer.ValueColumnType.IsVector ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
-            var isKey = Transformer.ValueColumnType.IsKey;
+            var isKey = Transformer.ValueColumnType is KeyType;
             var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
                                     Transformer.ValueColumnType;
             foreach (var (Input, Output) in _columns)
@@ -862,7 +862,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                                  _mapping.Values,
                                                  ValueMappingTransformer.KeyColumnName,
                                                  ValueMappingTransformer.ValueColumnName,
-                                                 ValueType.IsKey);
+                                                 ValueType is KeyType);
 
             private static TValue GetVector<T>(TValue value)
             {
