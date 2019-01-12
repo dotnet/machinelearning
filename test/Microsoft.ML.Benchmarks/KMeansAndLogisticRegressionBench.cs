@@ -10,7 +10,7 @@ namespace Microsoft.ML.Benchmarks
 {
     public class KMeansAndLogisticRegressionBench
     {
-        private readonly string _dataPath = Program.GetInvariantCultureDataPath("adult.tiny.with-schema.txt");
+        private readonly string _dataPath = DataPathProvider.GetDataPath("adult.tiny.with-schema.txt");
 
         [Benchmark]
         public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
