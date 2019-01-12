@@ -56,9 +56,23 @@ namespace Microsoft.ML.LightGBM
             /// </summary>
             public virtual void UpdateParameters(Dictionary<string, object> res)
             {
-                FieldInfo[] fields = Args.GetType().GetFields();
+                FieldInfo[] fields = Args.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (var field in fields)
+                {
+                    var attribute = GetAttribute(field);
+
+                    if (attribute == null)
+                    {
+                        continue;
+                    }
+
                     res[GetArgName(field.Name)] = field.GetValue(Args);
+                }
+            }
+
+            private ArgumentAttribute GetAttribute(FieldInfo field)
+            {
+                return field.GetCustomAttribute<ArgumentAttribute>(false);
             }
         }
 
