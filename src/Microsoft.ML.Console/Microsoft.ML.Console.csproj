@@ -34,5 +34,4 @@
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
   </ItemGroup>
-  
 </Project>
