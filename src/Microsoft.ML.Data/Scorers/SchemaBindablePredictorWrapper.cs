@@ -314,11 +314,8 @@ namespace Microsoft.ML.Data
             return mapper.SaveAsOnnx(ctx, outputNames, ctx.GetVariableName(featName));
         }
 
-        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
-        {
-            var outputSchema = Schema.Create(new ScoreMapperSchema(ScoreType, _scoreColumnKind));
-            return new SingleValueRowMapper(schema, this, outputSchema);
-        }
+        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema) =>
+            new SingleValueRowMapper(schema, this, ScoreSchemaFactory.Create(ScoreType, _scoreColumnKind));
 
         private static string GetScoreColumnKind(IPredictor predictor)
         {
@@ -480,7 +477,7 @@ namespace Microsoft.ML.Data
 
                 _parent = parent;
                 InputRoleMappedSchema = schema;
-                OutputSchema = Schema.Create(new BinaryClassifierSchema());
+                OutputSchema = ScoreSchemaFactory.CreateBinaryClassificationSchema();
 
                 if (schema.Feature?.Type is ColumnType typeSrc)
                 {
@@ -591,9 +588,9 @@ namespace Microsoft.ML.Data
         }
 
         private readonly IQuantileValueMapper _qpred;
-        private readonly Double[] _quantiles;
+        private readonly double[] _quantiles;
 
-        public SchemaBindableQuantileRegressionPredictor(IPredictor predictor, Double[] quantiles)
+        public SchemaBindableQuantileRegressionPredictor(IPredictor predictor, double[] quantiles)
             : base(predictor)
         {
             var qpred = Predictor as IQuantileValueMapper;
@@ -613,7 +610,7 @@ namespace Microsoft.ML.Data
             // *** Binary format ***
             // <base info>
             // int: the number of quantiles
-            // Double[]: the quantiles
+            // double[]: the quantiles
 
             var qpred = Predictor as IQuantileValueMapper;
             Contracts.CheckDecode(qpred != null);
@@ -633,7 +630,7 @@ namespace Microsoft.ML.Data
             // *** Binary format ***
             // <base info>
             // int: the number of quantiles
-            // Double[]: the quantiles
+            // double[]: the quantiles
 
             base.Save(ctx);
             ctx.Writer.WriteDoubleArray(_quantiles);
@@ -646,10 +643,8 @@ namespace Microsoft.ML.Data
             return new SchemaBindableQuantileRegressionPredictor(env, ctx);
         }
 
-        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
-        {
-            return new SingleValueRowMapper(schema, this, Schema.Create(new SchemaImpl(ScoreType, _quantiles)));
-        }
+        private protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema) =>
+            new SingleValueRowMapper(schema, this, ScoreSchemaFactory.CreateQuantileRegressionSchema(ScoreType, _quantiles));
 
         protected override Delegate GetPredictionGetter(Row input, int colSrc)
         {
@@ -679,81 +674,6 @@ namespace Microsoft.ML.Data
                     map(in features, ref value);
                 };
             return del;
-        }
-
-        private sealed class SchemaImpl : ScoreMapperSchemaBase
-        {
-            private readonly string[] _slotNames;
-            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
-
-            public SchemaImpl(ColumnType scoreType, Double[] quantiles)
-                : base(scoreType, MetadataUtils.Const.ScoreColumnKind.QuantileRegression)
-            {
-                Contracts.Assert(Utils.Size(quantiles) > 0);
-                _slotNames = new string[quantiles.Length];
-                for (int i = 0; i < _slotNames.Length; i++)
-                    _slotNames[i] = string.Format("Quantile-{0}", quantiles[i]);
-                _getSlotNames = GetSlotNames;
-            }
-
-            public override int ColumnCount { get { return 1; } }
-
-            public override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                Contracts.Assert(Utils.Size(_slotNames) > 0);
-                Contracts.Assert(col == 0);
-
-                var items = base.GetMetadataTypes(col);
-                items = items.Prepend(MetadataUtils.GetSlotNamesPair(_slotNames.Length));
-                return items;
-            }
-
-            public override ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.Assert(Utils.Size(_slotNames) > 0);
-                Contracts.Assert(col == 0);
-
-                if (kind == MetadataUtils.Kinds.SlotNames)
-                    return MetadataUtils.GetNamesType(_slotNames.Length);
-                return base.GetMetadataTypeOrNull(kind, col);
-            }
-
-            public override void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.Assert(Utils.Size(_slotNames) > 0);
-                Contracts.Assert(col == 0);
-                Contracts.Assert(_getSlotNames != null);
-
-                if (kind == MetadataUtils.Kinds.SlotNames)
-                    _getSlotNames.Marshal(col, ref value);
-                else
-                    base.GetMetadata(kind, col, ref value);
-            }
-
-            public override ColumnType GetColumnType(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                Contracts.Assert(col == 0);
-                Contracts.Assert(Utils.Size(_slotNames) > 0);
-                return new VectorType(NumberType.Float, _slotNames.Length);
-            }
-
-            private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
-            {
-                Contracts.Assert(iinfo == 0);
-                Contracts.Assert(Utils.Size(_slotNames) > 0);
-
-                int size = Utils.Size(_slotNames);
-                var editor = VBufferEditor.Create(ref dst, size);
-                for (int i = 0; i < _slotNames.Length; i++)
-                    editor.Values[i] = _slotNames[i].AsMemory();
-                dst = editor.Commit();
-            }
         }
     }
 }

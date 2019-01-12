@@ -223,7 +223,7 @@ namespace Microsoft.ML.Data
                         meta.AddSlotNames(_columns[i].Type.VectorSize, slotNamesGetter);
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
-                        meta.AddKeyValues(_columns[i].Type.KeyCount, TextType.Instance, keyValueGetter);
+                        meta.AddKeyValues(_columns[i].Type.GetKeyCount(), TextType.Instance, keyValueGetter);
                     schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.GetMetadata());
                 }
 

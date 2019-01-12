@@ -146,9 +146,9 @@ namespace Microsoft.ML.Trainers
         {
             var lab = data.Schema.Label.Value;
             Host.Assert(!lab.IsHidden);
-            Host.Assert(lab.Type.KeyCount > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
+            Host.Assert(lab.Type.GetKeyCount() > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
 
-            if (lab.Type.KeyCount > 0)
+            if (lab.Type.GetKeyCount() > 0)
             {
                 // Key values are 1-based.
                 uint key1 = (uint)(cls1 + 1);

@@ -606,8 +606,9 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformCifarSavedModel()
         {
             var modelLocation = "cifar_saved_model";
-
             var mlContext = new MLContext(seed: 1, conc: 1);
+            var loadModelSchema = TensorFlowUtils.GetModelSchema(mlContext, modelLocation);
+            Assert.Equal(335, loadModelSchema.Count);
             var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));

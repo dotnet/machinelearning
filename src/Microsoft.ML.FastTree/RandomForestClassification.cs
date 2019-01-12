@@ -17,7 +17,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(FastForestClassification.Summary, typeof(FastForestClassification), typeof(FastForestClassification.Arguments),
+[assembly: LoadableClass(FastForestClassification.Summary, typeof(FastForestClassification), typeof(FastForestClassification.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
     FastForestClassification.UserNameValue,
     FastForestClassification.LoadNameValue,
@@ -110,9 +110,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestClassification :
-        RandomForestTrainerBase<FastForestClassification.Arguments, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
+        RandomForestTrainerBase<FastForestClassification.Options, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
     {
-        public sealed class Arguments : FastForestArgumentsBase
+        public sealed class Options : FastForestArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single tree output", ShortName = "mo")]
             public Double MaxTreeOutput = 100;
@@ -145,27 +145,27 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public FastForestClassification(IHostEnvironment env,
+        internal FastForestClassification(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
-            Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings)
+            double learningRate = Defaults.LearningRates)
+            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastForestClassification"/> by using the legacy <see cref="Arguments"/> class.
+        /// Initializes a new instance of <see cref="FastForestClassification"/> by using the <see cref="Options"/> class.
         /// </summary>
-        public FastForestClassification(IHostEnvironment env, Arguments args)
-            : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
+        internal FastForestClassification(IHostEnvironment env, Options options)
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
         }
 
@@ -231,8 +231,8 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             private readonly bool[] _labels;
 
-            public ObjectiveFunctionImpl(Dataset trainSet, bool[] trainSetLabels, Arguments args)
-                : base(trainSet, args, args.MaxTreeOutput)
+            public ObjectiveFunctionImpl(Dataset trainSet, bool[] trainSetLabels, Options options)
+                : base(trainSet, options, options.MaxTreeOutput)
             {
                 _labels = trainSetLabels;
             }
@@ -255,14 +255,14 @@ namespace Microsoft.ML.Trainers.FastTree
             ShortName = FastForestClassification.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
                                  @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestBinaryClassifier""]/*' />"})]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, FastForestClassification.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainFastForest");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<FastForestClassification.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<FastForestClassification.Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new FastForestClassification(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),

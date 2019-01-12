@@ -167,9 +167,9 @@ namespace Microsoft.ML.EntryPoints
                 if (!col.Type.IsVector || col.Type.VectorSize > 0)
                 {
                     var type = col.Type.ItemType;
-                    if (type.IsKey)
+                    if (type is KeyType keyType)
                     {
-                        if (type.KeyCount > 0)
+                        if (keyType.Count > 0)
                         {
                             var colName = GetUniqueName();
                             concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
@@ -236,7 +236,7 @@ namespace Microsoft.ML.EntryPoints
                 throw host.ExceptSchemaMismatch(nameof(input), "Label", input.LabelColumn);
 
             var labelType = labelCol.Value.Type;
-            if (labelType.IsKey || labelType is BoolType)
+            if (labelType is KeyType || labelType is BoolType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };

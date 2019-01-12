@@ -85,7 +85,7 @@ namespace Microsoft.ML
             Environment.CheckParam(lowerBound <= upperBound, nameof(upperBound), "Must be no less than lowerBound");
 
             var type = input.Schema[columnName].Type;
-            if (type.KeyCount == 0)
+            if (type.GetKeyCount() == 0)
                 throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "a known cardinality key", type.ToString());
             return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
         }
