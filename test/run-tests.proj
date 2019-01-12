@@ -10,7 +10,8 @@
     <Message Importance="High" Text="Running tests ..." />
     <MSBuild Targets="VSTest"
              Projects="@(Project)"
-             Properties="VSTestNoBuild=true;Coverage=true;" />
+             Properties="VSTestNoBuild=true;Coverage=true;"
+             ContinueOnError="WarnAndContinue"/>
   </Target>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
