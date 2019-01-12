@@ -31,17 +31,16 @@
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
     <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version="2.4.0-prerelease-63213-02" />
-    <PackageReference Include="coverlet.msbuild" Version="2.5.0" />
+    <PackageReference Include="coverlet.msbuild" Version="2.0.0" />
     <PackageReference Include="Codecov" Version="1.1.0" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Coverage)' == 'true' and !$(Configuration.EndsWith('-netfx'))">
       <CollectCoverage>true</CollectCoverage>
       <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
       <CoverletOutputFormat>opencover</CoverletOutputFormat>
-      <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).xml</CoverletOutput>
-      <MergeWith>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).xml</MergeWith>
+      <CoverletOutputDirectory>$(BaseOutputPath)$(PlatformConfig)\coverage\</CoverletOutputDirectory>
+      <CoverletOutputName>$(MSBuildProjectName).xml</CoverletOutputName>
       <Include>[Microsoft.ML.*]*</Include>
-      <Threshold>0</Threshold>
   </PropertyGroup>
   
 </Project>
