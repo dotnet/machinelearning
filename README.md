@@ -42,11 +42,13 @@ Daily NuGet builds of the project are also available in our [MyGet](https://dotn
 
 To build ML.NET from source please visit our [developers guide](docs/project-docs/developer-guide.md).
 
-|    | x64 Debug | x64 Release |
+|    | Debug | Release |
 |:---|----------------:|------------------:|
 |**Linux**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Linux&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Linux&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
 |**macOS**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=macOS&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=macOS&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
-|**Windows**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**Windows x64**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**Windows x86**|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86&configuration=Build_Debug)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86&configuration=Build_Release)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|
+|**Core 3.0**|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=core30&configuration=Build_Debug_Intrinsics)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=core30&configuration=Build_Release_Intrinsics)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|
 
 ## Contributing
 
@@ -61,8 +63,7 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 
 ## Examples
 
-Here's an example of code to train a model to predict sentiment from text samples. 
-(You can find a sample of the legacy API [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
+Here's an example of code to train a model to predict sentiment from text samples.
 
 ```C#
 var mlContext = new MLContext();
