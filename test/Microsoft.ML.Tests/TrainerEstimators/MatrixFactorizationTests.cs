@@ -442,5 +442,47 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).
             CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
         }
+
+        /// <summary>
+        /// This test aims at making sure the training pipeline can always be run in a doc site example at
+        /// https://github.com/dotnet/machinelearning-samples/blob/16acc2f55880808bd34f3465e3eec4571565cb89/samples/csharp/getting-started/MatrixFactorization_MovieRecommendation/MovieRecommendation/Program.cs#L46
+        /// </summary>
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        void MatrixFactorizationDocSiteExampleTest()
+        {
+            
+            var mlContext = new MLContext(seed: 1, conc : 1);
+
+            var reader = mlContext.Data.CreateTextReader(new TextLoader.Arguments()
+            {
+                Separator = ",",
+                HasHeader = true,
+                Column = new[]
+                {
+                    new TextLoader.Column("userId", DataKind.R4, 0),
+                    new TextLoader.Column("movieId", DataKind.R4, 1),
+                    new TextLoader.Column("Label", DataKind.R4, 2)
+                }
+            });
+
+            var dataView = reader.Read(new MultiFileSource(GetDataPath("matrix-factorization-doc-site-example.csv")));
+
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey("userId", "userIdEncoded")
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("movieId", "movieIdEncoded")
+                .Append(new MatrixFactorizationTrainer(mlContext, "userIdEncoded", "movieIdEncoded", "Label",
+                    advancedSettings: s =>
+                    {
+                        s.NumIterations = 100;
+                        s.NumThreads = 1;
+                    })));
+
+            var model = pipeline.Fit(dataView);
+
+            var prediction = model.Transform(dataView);
+
+            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Label", score: "Score");
+
+            Assert.Equal(0.18630993782964125, metrics.L2, 3);
+        }
     }
 }
