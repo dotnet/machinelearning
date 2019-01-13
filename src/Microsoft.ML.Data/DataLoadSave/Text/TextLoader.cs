@@ -751,9 +751,7 @@ namespace Microsoft.ML.Data
                 //   byte: DataKind
                 //   byte: bool of whether this is a key type
                 //   for a key type:
-                //     byte: contiguous key range
-                //     ulong: min for key range
-                //     int: count for key range
+                //     ulong: count for key range
                 //   int: number of segments
                 //   foreach segment:
                 //     int: min

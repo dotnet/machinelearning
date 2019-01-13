@@ -409,7 +409,7 @@ namespace Microsoft.ML.Data.Conversion
                     {
                         if (keySrc.Count == 0)
                             return false;
-                        if ((ulong)keySrc.Count > typeDst.RawType.ToMaxInt())
+                        if (keySrc.Count > typeDst.RawType.ToMaxInt())
                             return false;
                     }
                 }
@@ -1129,7 +1129,7 @@ namespace Microsoft.ML.Data.Conversion
             // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since
             // we map min to 1, which would cause max to overflow to zero. Specifically, it protects
             // against overflow in the expression uu - min + 1 below.
-            Contracts.Assert(max < U8.MaxValue);
+            Contracts.Assert(max <= U8.MaxValue);
 
             // Parse a ulong.
             ulong uu;

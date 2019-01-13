@@ -2,125 +2,125 @@
 #@   header+
 #@   sep=tab
 #@   col=RawLabel:TX:0
-#@   col=FileLabel:U4[100-*]:1
+#@   col=FileLabel:U4[0-*]:1
 #@ }
 RawLabel	FileLabel
-Wirtschaft	100
-Wirtschaft	100
-Wirtschaft	100
-Wirtschaft	100
-Wirtschaft	100
-Wirtschaft	100
-Wirtschaft	100
-Gesundheit	100
-Gesundheit	100
-Gesundheit	100
-Gesundheit	100
-Gesundheit	100
-Gesundheit	100
-Gesundheit	100
-Gesundheit	100
-Deutschland	100
-Deutschland	100
-Ausland	100
-Ausland	100
-Unterhaltung	100
-Unterhaltung	100
-Unterhaltung	100
-Unterhaltung	100
-Unterhaltung	100
-Sport	2147483758
-Sport	2147483758
-Sport	2147483758
-Sport	2147483758
-Sport	2147483758
-Sport	2147483758
-Sport	2147483758
-Sport	2147483758
-Sport	2147483758
-Sport	2147483758
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Gesundheit	100
-Gesundheit	100
-Ausland	100
-Ausland	100
-Ausland	100
-Ausland	100
-Ausland	100
-Ausland	100
-Ausland	100
-Ausland	100
-Unterhaltung	100
-Unterhaltung	100
-Unterhaltung	100
-Sport	2147483758
-Sport	2147483758
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Technik & Wissen	100
-Wirtschaft	100
-Gesundheit	100
-Wirtschaft	100
-Deutschland	100
-Wirtschaft	100
-Wirtschaft	100
-Wirtschaft	100
-Wirtschaft	100
-Wirtschaft	100
-Unterhaltung	100
-Deutschland	100
-Gesundheit	100
-Gesundheit	100
-Deutschland	100
-Wirtschaft	100
-Unterhaltung	100
-Wirtschaft	100
-Wirtschaft	100
-Gesundheit	100
-Deutschland	100
-Gesundheit	100
-Wirtschaft	100
-Wirtschaft	100
-Deutschland	100
-Wirtschaft	100
-Wirtschaft	100
-Gesundheit	100
-Unterhaltung	100
-Wirtschaft	100
-Deutschland	100
-Wirtschaft	100
-Unterhaltung	100
-Gesundheit	100
-Deutschland	100
-Wirtschaft	100
-Unterhaltung	100
-Deutschland	100
-Wirtschaft	100
-Deutschland	100
-Wirtschaft	100
-Wirtschaft	100
-Deutschland	100
+Wirtschaft	102
+Wirtschaft	102
+Wirtschaft	102
+Wirtschaft	102
+Wirtschaft	102
+Wirtschaft	102
+Wirtschaft	102
+Gesundheit	102
+Gesundheit	102
+Gesundheit	102
+Gesundheit	102
+Gesundheit	102
+Gesundheit	102
+Gesundheit	102
+Gesundheit	102
+Deutschland	102
+Deutschland	102
+Ausland	102
+Ausland	102
+Unterhaltung	102
+Unterhaltung	102
+Unterhaltung	102
+Unterhaltung	102
+Unterhaltung	102
+Sport	2147483760
+Sport	2147483760
+Sport	2147483760
+Sport	2147483760
+Sport	2147483760
+Sport	2147483760
+Sport	2147483760
+Sport	2147483760
+Sport	2147483760
+Sport	2147483760
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Gesundheit	102
+Gesundheit	102
+Ausland	102
+Ausland	102
+Ausland	102
+Ausland	102
+Ausland	102
+Ausland	102
+Ausland	102
+Ausland	102
+Unterhaltung	102
+Unterhaltung	102
+Unterhaltung	102
+Sport	2147483760
+Sport	2147483760
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Technik & Wissen	102
+Wirtschaft	102
+Gesundheit	102
+Wirtschaft	102
+Deutschland	102
+Wirtschaft	102
+Wirtschaft	102
+Wirtschaft	102
+Wirtschaft	102
+Wirtschaft	102
+Unterhaltung	102
+Deutschland	102
+Gesundheit	102
+Gesundheit	102
+Deutschland	102
+Wirtschaft	102
+Unterhaltung	102
+Wirtschaft	102
+Wirtschaft	102
+Gesundheit	102
+Deutschland	102
+Gesundheit	102
+Wirtschaft	102
+Wirtschaft	102
+Deutschland	102
+Wirtschaft	102
+Wirtschaft	102
+Gesundheit	102
+Unterhaltung	102
+Wirtschaft	102
+Deutschland	102
+Wirtschaft	102
+Unterhaltung	102
+Gesundheit	102
+Deutschland	102
+Wirtschaft	102
+Unterhaltung	102
+Deutschland	102
+Wirtschaft	102
+Deutschland	102
+Wirtschaft	102
+Wirtschaft	102
+Deutschland	102

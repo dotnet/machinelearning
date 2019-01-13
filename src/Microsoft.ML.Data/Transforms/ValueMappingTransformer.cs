@@ -505,18 +505,18 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.U4, 1);
-            if (keyMax - keyMin < (ulong)int.MaxValue)
+            if (keyMax - keyMin < int.MaxValue)
             {
                 valueColumn.KeyRange = new KeyRange(keyMax);
             }
-            else if (keyMax - keyMin < (ulong)uint.MaxValue)
+            else if (keyMax - keyMin < uint.MaxValue)
             {
-                valueColumn.KeyRange = new KeyRange(keyMin);
+                valueColumn.KeyRange = new KeyRange();
             }
             else
             {
                 valueColumn.Type = DataKind.U8;
-                valueColumn.KeyRange = new KeyRange(keyMin);
+                valueColumn.KeyRange = new KeyRange();
             }
 
             return valueColumn;

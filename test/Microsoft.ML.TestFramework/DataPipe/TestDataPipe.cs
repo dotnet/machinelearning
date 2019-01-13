@@ -38,16 +38,16 @@ namespace Microsoft.ML.RunTests
             string pathData = GetDataPath(@"lm.sample.txt");
             string mappingPathData = GetDataPath(@"lm.labels.txt");
 
-            TestCore(pathData, true,
-                new[] {
-                    "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
-                    "xf=AutoLabel{col=AutoLabel:RawLabel}",
-                    "xf=Term{col=StringLabel:RawLabel terms={Wirtschaft,Gesundheit,Deutschland,Ausland,Unterhaltung,Sport,Technik & Wissen}}",
-                    string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=SelectColumns{keepcol=RawLabel keepcol=AutoLabel keepcol=StringLabel keepcol=FileLabel hidden=-}"
-                });
+            //TestCore(pathData, true,
+            //    new[] {
+            //        "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
+            //        "xf=AutoLabel{col=AutoLabel:RawLabel}",
+            //        "xf=Term{col=StringLabel:RawLabel terms={Wirtschaft,Gesundheit,Deutschland,Ausland,Unterhaltung,Sport,Technik & Wissen}}",
+            //        string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
+            //        "xf=SelectColumns{keepcol=RawLabel keepcol=AutoLabel keepcol=StringLabel keepcol=FileLabel hidden=-}"
+            //    });
 
-            mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
+            //mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
             File.WriteAllLines(mappingPathData,
                 new[] {
                     "Wirtschaft\t0",
@@ -68,94 +68,94 @@ namespace Microsoft.ML.RunTests
                 }, suffix: "1");
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
-            File.WriteAllLines(mappingPathData,
-                new[] {
-                    "Wirtschaft\t100",
-                    "Gesundheit\t100",
-                    "Deutschland\t100",
-                    "Ausland\t100",
-                    "Unterhaltung\t100",
-                    "Sport\t2147483758",
-                    "Technik & Wissen\t100"
-                });
+            //File.WriteAllLines(mappingPathData,
+            //    new[] {
+            //        "Wirtschaft\t100",
+            //        "Gesundheit\t100",
+            //        "Deutschland\t100",
+            //        "Ausland\t100",
+            //        "Unterhaltung\t100",
+            //        "Sport\t2147483758",
+            //        "Technik & Wissen\t100"
+            //    });
 
-            // test unbounded U4 key range
-            TestCore(pathData, true,
-                new[] {
-                    "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
-                    string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
-                }, suffix: "2");
+            //// test unbounded U4 key range
+            //TestCore(pathData, true,
+            //    new[] {
+            //        "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
+            //        string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
+            //        "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
+            //    }, suffix: "2");
 
-            mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
-            File.WriteAllLines(mappingPathData,
-                new[] {
-                    "Wirtschaft\t1",
-                    "Gesundheit\t0",
-                    "Deutschland\t1.5",
-                    "Ausland\t0.5",
-                    "Unterhaltung\t1",
-                    "Sport\t1",
-                    "Technik & Wissen\t1"
-                });
+            //mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
+            //File.WriteAllLines(mappingPathData,
+            //    new[] {
+            //        "Wirtschaft\t1",
+            //        "Gesundheit\t0",
+            //        "Deutschland\t1.5",
+            //        "Ausland\t0.5",
+            //        "Unterhaltung\t1",
+            //        "Sport\t1",
+            //        "Technik & Wissen\t1"
+            //    });
 
-            // test numeric type
-            TestCore(pathData, true,
-                new[] {
-                    "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
-                    string.Format("xf=TermLookup{{key=- col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
-                }, suffix: "3");
+            //// test numeric type
+            //TestCore(pathData, true,
+            //    new[] {
+            //        "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
+            //        string.Format("xf=TermLookup{{key=- col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
+            //        "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
+            //    }, suffix: "3");
 
-            mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
-            File.WriteAllLines(mappingPathData,
-                new[] {
-                    "Wirtschaft\t3.14",
-                    "Gesundheit\t0.1",
-                    "Deutschland\t1.5",
-                    "Ausland\t0.5",
-                    "Unterhaltung\t1a",
-                    "Sport\t2.71",
-                    "Technik & Wissen\t0.01"
-                });
+            //mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
+            //File.WriteAllLines(mappingPathData,
+            //    new[] {
+            //        "Wirtschaft\t3.14",
+            //        "Gesundheit\t0.1",
+            //        "Deutschland\t1.5",
+            //        "Ausland\t0.5",
+            //        "Unterhaltung\t1a",
+            //        "Sport\t2.71",
+            //        "Technik & Wissen\t0.01"
+            //    });
 
-            // test key type with all invalid entries, and numeric type (should have missing value for every non-numeric label)
-            string name = TestName + "4-out.txt";
-            string pathOut = DeleteOutputPath("SavePipe", name);
-            using (var writer = OpenWriter(pathOut))
-            using (_env.RedirectChannelOutput(writer, writer))
-            {
-                TestCore(pathData, true,
-                    new[] {
-                            "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
-                            string.Format("xf=TermLookup{{key=- col=FileLabelNum:RawLabel data={{{0}}}}}", mappingPathData),
-                            string.Format("xf=TermLookup{{col=FileLabelKey:RawLabel data={{{0}}}}}", mappingPathData),
-                            "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey hidden=-}"
-                    }, suffix: "4");
-                writer.WriteLine(ProgressLogLine);
-                _env.PrintProgress();
-            }
-            CheckEqualityNormalized("SavePipe", name);
+            //// test key type with all invalid entries, and numeric type (should have missing value for every non-numeric label)
+            //string name = TestName + "4-out.txt";
+            //string pathOut = DeleteOutputPath("SavePipe", name);
+            //using (var writer = OpenWriter(pathOut))
+            //using (_env.RedirectChannelOutput(writer, writer))
+            //{
+            //    TestCore(pathData, true,
+            //        new[] {
+            //                "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
+            //                string.Format("xf=TermLookup{{key=- col=FileLabelNum:RawLabel data={{{0}}}}}", mappingPathData),
+            //                string.Format("xf=TermLookup{{col=FileLabelKey:RawLabel data={{{0}}}}}", mappingPathData),
+            //                "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey hidden=-}"
+            //        }, suffix: "4");
+            //    writer.WriteLine(ProgressLogLine);
+            //    _env.PrintProgress();
+            //}
+            //CheckEqualityNormalized("SavePipe", name);
 
-            mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
-            File.WriteAllLines(mappingPathData,
-                new[] {
-                    "Wirtschaft\t10000000000",
-                    "Gesundheit\t10000000001",
-                    "Deutschland\t10000000002",
-                    "Ausland\t10000000003",
-                    "Unterhaltung\t10000000004",
-                    "Sport\t10000000005",
-                    "Technik & Wissen\t10000000006"
-                });
+            //mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
+            //File.WriteAllLines(mappingPathData,
+            //    new[] {
+            //        "Wirtschaft\t10000000000",
+            //        "Gesundheit\t10000000001",
+            //        "Deutschland\t10000000002",
+            //        "Ausland\t10000000003",
+            //        "Unterhaltung\t10000000004",
+            //        "Sport\t10000000005",
+            //        "Technik & Wissen\t10000000006"
+            //    });
 
-            // test key type with all invalid entries, and numeric type (should have missing value for every non-numeric label)
-            TestCore(pathData, true,
-                new[] {
-                    "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
-                    string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
-                }, suffix: "5");
+            //// test key type with all invalid entries, and numeric type (should have missing value for every non-numeric label)
+            //TestCore(pathData, true,
+            //    new[] {
+            //        "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
+            //        string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
+            //        "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
+            //    }, suffix: "5");
 
             Done();
         }

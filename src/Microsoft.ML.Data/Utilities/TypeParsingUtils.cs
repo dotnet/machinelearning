@@ -57,21 +57,19 @@ namespace Microsoft.ML.Data
 
             DataKind kind;
             KeyType keyType;
-            kind = type ?? DataKind.U4;
+            kind = type ?? DataKind.U8;
             Contracts.CheckUserArg(KeyType.IsValidDataKind(kind), nameof(TextLoader.Column.Type), "Bad item type for Key");
-            Contracts.CheckUserArg(range.Min >= 0, nameof(range.Min), "min must be non-negative");
 
             if (range.Max == null)
                 keyType = new KeyType(kind, 0);
             else
             {
-                Contracts.CheckUserArg(range.Contiguous, nameof(range.Max), "max must be null when contiguous is false");
                 ulong max = range.Max.GetValueOrDefault();
-                Contracts.CheckUserArg(max >= range.Min, nameof(range.Max), "max must be >= min");
-                Contracts.CheckUserArg(max - range.Min < int.MaxValue, nameof(range.Max), "range is too large");
-                ulong count = max - range.Min + 1;
+                Contracts.CheckUserArg(max >= 0, nameof(range.Max), "max must be >= 0");
+                Contracts.CheckUserArg(max < ulong.MaxValue, nameof(range.Max), "range is too large");
+                ulong count = max;
                 Contracts.Assert(count >= 1);
-                if ((ulong)count > kind.ToMaxInt())
+                if (count > kind.ToMaxInt())
                     throw Contracts.ExceptUserArg(nameof(range.Max), "range is too large for type {0}", kind);
                 keyType = new KeyType(kind, count);
             }
@@ -86,21 +84,13 @@ namespace Microsoft.ML.Data
     {
         public KeyRange() { }
 
-        public KeyRange(ulong? max = null, bool contiguous = true)
+        public KeyRange(ulong? max = null)
         {
-            Min = 0;
             Max = max;
-            Contiguous = contiguous;
         }
-
-        [Argument(ArgumentType.AtMostOnce, HelpText = "First index in the range")]
-        public ulong Min;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
         public ulong? Max;
-
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the key is contiguous")]
-        public bool Contiguous = true;
 
         public static KeyRange Parse(string str)
         {
@@ -116,19 +106,20 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(str);
 
+            ulong min;
             int ich = str.IndexOf('-');
             if (ich < 0)
             {
-                if (!ulong.TryParse(str, out Min))
+                if (!ulong.TryParse(str, out min))
                     return false;
-                Contiguous = false;
+                Contracts.Assert(min == 0);
                 return true;
             }
 
-            if (!ulong.TryParse(str.Substring(0, ich), out Min))
+            if (!ulong.TryParse(str.Substring(0, ich), out min))
                 return false;
+            Contracts.Assert(min == 0);
 
-            Contracts.Assert(Contiguous);
             string rest = str.Substring(ich + 1);
             if (string.IsNullOrEmpty(rest) || rest == "*")
                 return true;
@@ -144,15 +135,10 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(sb);
 
-            if (!Contiguous && Max != null)
-                return false;
-
-            sb.Append(Min);
-            if (!Contiguous)
-                return true;
+            sb.Append((ulong)0);
             if (Max != null)
                 sb.Append('-').Append(Max);
-            else if (Contiguous)
+            else
                 sb.Append("-*");
             return true;
         }

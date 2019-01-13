@@ -156,7 +156,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 modelSignature: "CONVERTF",
                 // verWrittenCur: 0x00010001, // Initial
                 // verWrittenCur: 0x00010002, // Added support for keyRange
-                verWrittenCur: 0x00010003, // Change to transformer leads to change of saving objects.
+                //verWrittenCur: 0x00010003, // Change to transformer leads to change of saving objects.
+                verWrittenCur: 0x00010004, // Removed Min and Contiguous from KeyRange.
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
                 loaderSignature: LoaderSignature,
@@ -235,9 +236,7 @@ namespace Microsoft.ML.Transforms.Conversions
             // for each added column
             //   byte: data kind, with high bit set if there is a key range
             //   if there is a key range
-            //     ulong: min
             //     ulong: max (0 for unspecified)
-            //     byte: contiguous
             SaveColumns(ctx);
 
             for (int i = 0; i < _columns.Length; i++)
@@ -248,9 +247,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     byte b = (byte)_columns[i].OutputKind;
                     b |= 0x80;
                     ctx.Writer.Write(b);
-                    ctx.Writer.Write(_columns[i].OutputKeyRange.Min);
                     ctx.Writer.Write(_columns[i].OutputKeyRange.Max ?? 0);
-                    ctx.Writer.WriteBoolByte(_columns[i].OutputKeyRange.Contiguous);
                 }
                 else
                     ctx.Writer.Write((byte)_columns[i].OutputKind);
@@ -276,9 +273,7 @@ namespace Microsoft.ML.Transforms.Conversions
             // for each added column
             //   byte: data kind, with high bit set if there is a key range
             //   if there is a key range
-            //     ulong: min
             //     ulong: max (0 for unspecified)
-            //     byte: contiguous
 
             _columns = new ColumnInfo[columnsLength];
             for (int i = 0; i < columnsLength; i++)
@@ -290,11 +285,13 @@ namespace Microsoft.ML.Transforms.Conversions
                 if ((b & 0x80) != 0)
                 {
                     range = new KeyRange();
-                    range.Min = ctx.Reader.ReadUInt64();
+                    if (ctx.Header.ModelVerWritten < 0x00010004)
+                        ctx.Reader.ReadUInt64();
                     ulong count = ctx.Reader.ReadUInt64();
                     if (count != 0)
                         range.Max = count;
-                    range.Contiguous = ctx.Reader.ReadBoolByte();
+                    if (ctx.Header.ModelVerWritten < 0x00010004)
+                        ctx.Reader.ReadBoolByte();
                 }
                 _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, kind, range);
             }

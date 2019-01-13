@@ -4,7 +4,7 @@
 #@   col=RawLabel:TX:0
 #@   col=AutoLabel:U4[0-6]:1
 #@   col=StringLabel:U4[0-6]:2
-#@   col=FileLabel:U4[0-1]:3
+#@   col=FileLabel:U4[0-2]:3
 #@ }
 RawLabel	AutoLabel	StringLabel	FileLabel
 Wirtschaft	0	0	0
