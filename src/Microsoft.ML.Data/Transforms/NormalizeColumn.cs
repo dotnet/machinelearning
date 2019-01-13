@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        public static IDataTransform CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string name, string source = null)
+        public static IDataView CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string name, string source = null)
         {
             Contracts.CheckValue(env, nameof(env));
 
@@ -264,9 +264,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Public create method corresponding to SignatureDataTransform.
+        /// Factory method corresponding to SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, MinMaxArguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, MinMaxArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -283,10 +283,8 @@ namespace Microsoft.ML.Transforms.Normalizers
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
-        /// <summary>
-        /// Public create method corresponding to SignatureDataTransform.
-        /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, MeanVarArguments args, IDataView input)
+        // Factory method corresponding to SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, MeanVarArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -304,9 +302,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Public create method corresponding to SignatureDataTransform.
+        /// Factory method corresponding to SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, LogMeanVarArguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, LogMeanVarArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -324,9 +322,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Public create method corresponding to SignatureDataTransform.
+        /// Factory method corresponding to SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, BinArguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, BinArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -746,14 +744,14 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
                 // The label column type is checked as part of args validation.
                 var type = row.Schema[col].Type;
-                Host.Assert(type.IsKey || type is NumberType);
+                Host.Assert(type is KeyType || type is NumberType);
 
-                if (type.IsKey)
+                if (type is KeyType keyType)
                 {
-                    Host.Assert(type.KeyCount > 0);
-                    labelCardinality = type.KeyCount;
+                    Host.Assert(keyType.Count > 0);
+                    labelCardinality = keyType.Count;
 
-                    int size = type.KeyCount;
+                    int size = keyType.Count;
                     ulong src = 0;
                     var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col);
                     return
@@ -1062,8 +1060,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 host.CheckUserArg(!string.IsNullOrWhiteSpace(args.LabelColumn), nameof(args.LabelColumn), "Must specify the label column name");
                 int labelColumnId = GetLabelColumnId(host, cursor.Schema, args.LabelColumn);
                 var labelColumnType = cursor.Schema[labelColumnId].Type;
-                if (labelColumnType.IsKey)
-                    host.CheckUserArg(labelColumnType.KeyCount > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
+                if (labelColumnType is KeyType labelKeyType)
+                    host.CheckUserArg(labelKeyType.Count > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
                 else
                     host.CheckUserArg(labelColumnType is NumberType, nameof(args.LabelColumn), "Label column must be a number or a key type");
 

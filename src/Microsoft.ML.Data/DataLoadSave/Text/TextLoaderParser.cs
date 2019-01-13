@@ -70,7 +70,7 @@ namespace Microsoft.ML.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorOneCore<T>(PrimitiveType type)
             {
-                Contracts.Assert(type.IsStandardScalar() || type.IsKey);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(typeof(T) == type.RawType);
                 var fn = _conv.GetTryParseConversion<T>(type);
                 return rows => new PrimitivePipe<T>(rows, type, fn);
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Data
 
             private Func<RowSet, ColumnPipe> GetCreatorVecCore<T>(PrimitiveType type)
             {
-                Contracts.Assert(type.IsStandardScalar() || type.IsKey);
+                Contracts.Assert(type.IsStandardScalar() || type is KeyType);
                 Contracts.Assert(typeof(T) == type.RawType);
                 var fn = _conv.GetTryParseConversion<T>(type);
                 return rows => new VectorPipe<T>(rows, type, fn);

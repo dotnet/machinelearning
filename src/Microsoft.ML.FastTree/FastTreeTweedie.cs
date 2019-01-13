@@ -16,7 +16,7 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(FastTreeTweedieTrainer.Summary, typeof(FastTreeTweedieTrainer), typeof(FastTreeTweedieTrainer.Arguments),
+[assembly: LoadableClass(FastTreeTweedieTrainer.Summary, typeof(FastTreeTweedieTrainer), typeof(FastTreeTweedieTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
     FastTreeTweedieTrainer.UserNameValue,
     FastTreeTweedieTrainer.LoadNameValue,
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Trainers.FastTree
     // https://arxiv.org/pdf/1508.06378.pdf
     /// <include file='doc.xml' path='doc/members/member[@name="FastTreeTweedieRegression"]/*' />
     public sealed partial class FastTreeTweedieTrainer
-         : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Arguments, RegressionPredictionTransformer<FastTreeTweedieModelParameters>, FastTreeTweedieModelParameters>
+         : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Options, RegressionPredictionTransformer<FastTreeTweedieModelParameters>, FastTreeTweedieModelParameters>
     {
         internal const string LoadNameValue = "FastTreeTweedieRegression";
         internal const string UserNameValue = "FastTree (Boosted Trees) Tweedie Regression";
@@ -59,17 +59,15 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public FastTreeTweedieTrainer(IHostEnvironment env,
+        internal FastTreeTweedieTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
             int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
-            Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings)
+            double learningRate = Defaults.LearningRates)
+            : base(env, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -78,10 +76,12 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeTweedieTrainer"/> by using the legacy <see cref="Arguments"/> class.
+        /// Initializes a new instance of <see cref="FastTreeTweedieTrainer"/> by using the <see cref="Options"/> class.
         /// </summary>
-        internal FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn))
+        /// <param name="env">The instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="options">Algorithm advanced settings.</param>
+        internal FastTreeTweedieTrainer(IHostEnvironment env, Options options)
+            : base(env, options, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn))
         {
             Initialize();
         }
@@ -336,17 +336,17 @@ namespace Microsoft.ML.Trainers.FastTree
             private readonly Double _index2; // 2 minus the index parameter.
             private readonly Double _maxClamp;
 
-            public ObjectiveImpl(Dataset trainData, Arguments args)
+            public ObjectiveImpl(Dataset trainData, Options options)
                 : base(
                     trainData,
-                    args.LearningRates,
-                    args.Shrinkage,
-                    args.MaxTreeOutput,
-                    args.GetDerivativesSampleRate,
-                    args.BestStepRankingRegressionTrees,
-                    args.RngSeed)
+                    options.LearningRates,
+                    options.Shrinkage,
+                    options.MaxTreeOutput,
+                    options.GetDerivativesSampleRate,
+                    options.BestStepRankingRegressionTrees,
+                    options.RngSeed)
             {
-                if (args.DropoutRate > 0 && LearningRate > 0) // Don't do shrinkage if dropouts are used.
+                if (options.DropoutRate > 0 && LearningRate > 0) // Don't do shrinkage if dropouts are used.
                     Shrinkage = 1.0 / LearningRate;
 
                 _labels = GetDatasetRegressionLabels(trainData);
@@ -357,9 +357,9 @@ namespace Microsoft.ML.Trainers.FastTree
                         _labels[i] = 0;
                 }
 
-                _index1 = 1 - args.Index;
-                _index2 = 2 - args.Index;
-                _maxClamp = Math.Abs(args.MaxTreeOutput);
+                _index1 = 1 - options.Index;
+                _index2 = 2 - options.Index;
+                _maxClamp = Math.Abs(options.MaxTreeOutput);
             }
 
             public void AdjustTreeOutputs(IChannel ch, RegressionTree tree, DocumentPartitioning partitioning, ScoreTracker trainingScores)
@@ -516,14 +516,14 @@ namespace Microsoft.ML.Trainers.FastTree
             UserName = FastTreeTweedieTrainer.UserNameValue,
             ShortName = FastTreeTweedieTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTreeTweedieRegression""]/*' />" })]
-        public static CommonOutputs.RegressionOutput TrainTweedieRegression(IHostEnvironment env, FastTreeTweedieTrainer.Arguments input)
+        public static CommonOutputs.RegressionOutput TrainTweedieRegression(IHostEnvironment env, FastTreeTweedieTrainer.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainTweeedie");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<FastTreeTweedieTrainer.Arguments, CommonOutputs.RegressionOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<FastTreeTweedieTrainer.Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new FastTreeTweedieTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),

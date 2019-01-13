@@ -97,37 +97,17 @@ namespace Microsoft.ML.Benchmarks
                 AllowSparse = false
             };
             var loader = _env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
-
-            var text = TextFeaturizingEstimator.Create(_env,
-                new TextFeaturizingEstimator.Arguments()
-                {
-                    Column = new TextFeaturizingEstimator.Column
-                    {
-                            Name = "WordEmbeddings",
-                            Source = new[] { "SentimentText" }
-                        },
-                        OutputTokens = true,
-                        KeepPunctuations=false,
-                        UsePredefinedStopWordRemover = true,
-                        VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
-                        CharFeatureExtractor = null,
-                        WordFeatureExtractor = null,
-                    }, loader);
-
-                var trans = WordEmbeddingsExtractingTransformer.Create(_env,
-                    new WordEmbeddingsExtractingTransformer.Arguments()
-                    {
-                        Column = new WordEmbeddingsExtractingTransformer.Column[1]
-                        {
-                            new WordEmbeddingsExtractingTransformer.Column
-                            {
-                                Name = "Features",
-                                Source = "WordEmbeddings_TransformedText"
-                            }
-                        },
-                        ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
-                    }, text);
-
+            var text = new TextFeaturizingEstimator(_env, "SentimentText", "WordEmbeddings", args =>
+            {
+                args.OutputTokens = true;
+                args.KeepPunctuations = false;
+                args.UseStopRemover = true;
+                args.VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None;
+                args.UseCharExtractor = false;
+                args.UseWordExtractor = false;
+            }).Fit(loader).Transform(loader);
+            var trans = new WordEmbeddingsExtractingEstimator(_env, "WordEmbeddings_TransformedText", "Features",
+                WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe).Fit(text).Transform(text);
             // Train
             var trainer = new SdcaMultiClassTrainer(_env, "Label", "Features", maxIterations: 20);
             var predicted = trainer.Fit(trans);

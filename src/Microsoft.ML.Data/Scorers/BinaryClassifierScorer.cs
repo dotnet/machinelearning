@@ -236,7 +236,7 @@ namespace Microsoft.ML.Data
                 };
             scoreGetter = scoreFn;
 
-            if (Bindings.PredColType.IsKey)
+            if (Bindings.PredColType is KeyType)
             {
                 ValueGetter<uint> predFnAsKey =
                     (ref uint dst) =>
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Data
             JToken falseVal = 0;
             JToken nullVal = -1;
 
-            if (!Bindings.PredColType.IsKey)
+            if (!(Bindings.PredColType is KeyType))
             {
                 trueVal = true;
                 falseVal = nullVal = false; // Let's pretend those pesky nulls are not there.

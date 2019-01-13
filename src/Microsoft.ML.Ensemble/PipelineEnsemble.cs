@@ -48,14 +48,15 @@ namespace Microsoft.ML.Ensemble
             {
                 Parent = parent;
                 InputRoleMappedSchema = schema;
-                OutputSchema = Schema.Create(new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind));
+                OutputSchema = ScoreSchemaFactory.Create(Parent.ScoreType, Parent._scoreColumnKind);
                 _inputColIndices = new HashSet<int>();
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {
                     var name = Parent._inputCols[i];
-                    if (!InputRoleMappedSchema.Schema.TryGetColumnIndex(name, out int col))
-                        throw Parent.Host.Except("Schema does not contain required input column '{0}'", name);
-                    _inputColIndices.Add(col);
+                    var col = InputRoleMappedSchema.Schema.GetColumnOrNull(name);
+                    if (!col.HasValue)
+                        throw Parent.Host.ExceptSchemaMismatch(nameof(InputRoleMappedSchema), "input", name);
+                    _inputColIndices.Add(col.Value.Index);
                 }
 
                 Mappers = new ISchemaBoundRowMapper[Parent.PredictorModels.Length];
@@ -74,8 +75,10 @@ namespace Microsoft.ML.Ensemble
                         throw Parent.Host.Except("Predictor {0} is not a row to row mapper", i);
 
                     // Make sure there is a score column, and remember its index.
-                    if (!Mappers[i].OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out ScoreCols[i]))
+                    var scoreCol = Mappers[i].OutputSchema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                    if (!scoreCol.HasValue)
                         throw Parent.Host.Except("Predictor {0} does not contain a score column", i);
+                    ScoreCols[i] = scoreCol.Value.Index;
 
                     // Get the pipeline.
                     var dv = new EmptyDataView(Parent.Host, schema.Schema);
@@ -596,10 +599,10 @@ namespace Microsoft.ML.Ensemble
             var labelCol = rmd.Schema.Label.Value;
 
             var labelType = labelCol.Type;
-            if (!labelType.IsKey)
+            if (!(labelType is KeyType labelKeyType))
                 return CheckNonKeyLabelColumnCore(env, pred, models, isBinary, labelType);
 
-            if (isBinary && labelType.KeyCount != 2)
+            if (isBinary && labelKeyType.Count != 2)
                 throw env.Except("Label is not binary");
             var schema = rmd.Schema.Schema;
             var mdType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
@@ -614,7 +617,7 @@ namespace Microsoft.ML.Ensemble
         // If any of the predictors do not implement IValueMapper we throw an exception. Returns the class count.
         private static int CheckNonKeyLabelColumnCore(IHostEnvironment env, IPredictor pred, PredictorModel[] models, bool isBinary, ColumnType labelType)
         {
-            env.Assert(!labelType.IsKey);
+            env.Assert(!(labelType is KeyType));
             env.AssertNonEmpty(models);
 
             if (isBinary)

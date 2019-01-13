@@ -1288,7 +1288,7 @@ namespace Microsoft.ML.Data.IO
 
         private bool GetKeyCodec(ColumnType type, out IValueCodec codec)
         {
-            if (!type.IsKey)
+            if (!(type is KeyType))
                 throw Contracts.ExceptParam(nameof(type), "type must be a key type");
             // Create the internal codec the key codec will use to do the actual reading/writing.
             IValueCodec innerCodec;

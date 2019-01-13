@@ -11,11 +11,11 @@ using Microsoft.ML;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
-using Microsoft.ML.OnnxTransform.StaticPipe;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests
         public OnnxTransformTests(ITestOutputHelper output) : base(output)
         {
         }
-        
+
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
         void TestSimpleCase()
         {
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Tests
             var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx} GpuDeviceId=0 FallbackToCpu=+}" });
             Assert.Equal(0, x);
         }
-        
+
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         public void OnnxModelScenario()
         {
@@ -261,9 +261,7 @@ namespace Microsoft.ML.Tests
                     }
                     });
 
-                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
-                    new[] { "data_0" },
-                    new[] { "softmaxout_1" });
+                var onnx = new OnnxTransformer(env, modelFile, "data_0", "softmaxout_1").Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("softmaxout_1", out int scores);
                 using (var curs = onnx.GetRowCursor(col => col == scores))
@@ -298,10 +296,7 @@ namespace Microsoft.ML.Tests
                         inb = new float[] {1,2,3,4,5}
                     }
                     });
-
-                var onnx = Transforms.OnnxTransform.Create(env, dataView, modelFile,
-                    new[] { "ina", "inb" },
-                    new[] { "outa", "outb" });
+                var onnx = new OnnxTransformer(env, modelFile, new[] { "ina", "inb" }, new[] { "outa", "outb" }).Transform(dataView);
 
                 onnx.Schema.TryGetColumnIndex("outa", out int scoresa);
                 onnx.Schema.TryGetColumnIndex("outb", out int scoresb);
@@ -335,14 +330,14 @@ namespace Microsoft.ML.Tests
             // model: input dims = [-1, 3], output argmax dims = [-1]
             var modelFile = @"unknowndimensions/test_unknowndimensions_float.onnx";
             var mlContext = new MLContext();
-            var data = new TestDataUnknownDimensions[] 
+            var data = new TestDataUnknownDimensions[]
                 {
                     new TestDataUnknownDimensions(){input = new float[] {1.1f, 1.3f, 1.2f }},
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, -1.2f }},
                     new TestDataUnknownDimensions(){input = new float[] {-1.1f, -1.3f, 1.2f }},
                 };
             var idv = mlContext.CreateStreamingDataView(data);
-            var pipeline = new OnnxScoringEstimator(mlContext, modelFile);   
+            var pipeline = new OnnxScoringEstimator(mlContext, modelFile);
             var transformedValues = pipeline.Fit(idv).Transform(idv);
             var predictions = transformedValues.AsEnumerable<PredictionUnknownDimensions>(mlContext, reuseRowObject: false).ToArray();
 

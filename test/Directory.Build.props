@@ -3,9 +3,10 @@
 
   <PropertyGroup>
     <DefaultTestTargetFramework>netcoreapp2.1</DefaultTestTargetFramework>
+    <DefaultTestTargetFramework Condition="$(Configuration.EndsWith('-netfx'))">net462</DefaultTestTargetFramework>
     <DefaultTestTargetFramework Condition="'$(UseIntrinsics)' == 'true'">netcoreapp3.0</DefaultTestTargetFramework>
-    
     <TargetFramework>$(DefaultTestTargetFramework)</TargetFramework>
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net462'">win-x64</RuntimeIdentifier>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 

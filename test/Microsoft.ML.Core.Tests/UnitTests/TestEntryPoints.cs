@@ -346,8 +346,8 @@ namespace Microsoft.ML.RunTests
         private (IEnumerable<string> epListContents, JObject manifest) BuildManifests()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransformer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessingEntryPoints).Assembly);
@@ -457,19 +457,11 @@ namespace Microsoft.ML.RunTests
                     ScoreModel.Score(Env,
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
+                individualScores[i] = new ColumnCopyingTransformer(Env,(
+                    MetadataUtils.Const.ScoreValueKind.Score,
+                    (MetadataUtils.Const.ScoreValueKind.Score + i).ToString())
+                    ).Transform(individualScores[i]);
 
-                individualScores[i] = ColumnCopyingTransformer.Create(Env,
-                    new ColumnCopyingTransformer.Arguments()
-                    {
-                        Column = new[]
-                        {
-                            new ColumnCopyingTransformer.Column()
-                            {
-                                Name = MetadataUtils.Const.ScoreValueKind.Score + i,
-                                Source = MetadataUtils.Const.ScoreValueKind.Score
-                            },
-                        }
-                    }, individualScores[i]);
                 individualScores[i] = ColumnSelectingTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
@@ -500,23 +492,23 @@ namespace Microsoft.ML.RunTests
             using (var curs3 = regScored.GetRowCursor(col => true))
             using (var curs4 = zippedScores.GetRowCursor(col => true))
             {
-                var found = curs1.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out int scoreCol);
-                Assert.True(found);
-                var avgScoreGetter = curs1.GetGetter<Single>(scoreCol);
+                var scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var avgScoreGetter = curs1.GetGetter<Single>(scoreColumn.Value.Index);
 
-                found = curs2.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreCol);
-                Assert.True(found);
-                var medScoreGetter = curs2.GetGetter<Single>(scoreCol);
+                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var medScoreGetter = curs2.GetGetter<Single>(scoreColumn.Value.Index);
 
-                found = curs3.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreCol);
-                Assert.True(found);
-                var regScoreGetter = curs3.GetGetter<Single>(scoreCol);
+                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var regScoreGetter = curs3.GetGetter<Single>(scoreColumn.Value.Index);
 
                 var individualScoreGetters = new ValueGetter<Single>[nModels];
                 for (int i = 0; i < nModels; i++)
                 {
-                    curs4.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score + i, out scoreCol);
-                    individualScoreGetters[i] = curs4.GetGetter<Single>(scoreCol);
+                    scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score + i);
+                    individualScoreGetters[i] = curs4.GetGetter<Single>(scoreColumn.Value.Index);
                 }
 
                 var scoreBuffer = new Single[nModels];
@@ -755,23 +747,8 @@ namespace Microsoft.ML.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
 
-                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
-                {
-                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
-                }, data);
-
-                data = ValueToKeyMappingTransformer.Create(Env, new ValueToKeyMappingTransformer.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new ValueToKeyMappingTransformer.Column()
-                        {
-                            Name = "Label",
-                            Source = "Label",
-                            Sort = ValueToKeyMappingTransformer.SortOrder.Value
-                        }
-                    }
-                }, data);
+                data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
+                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", sort: ValueToKeyMappingTransformer.SortOrder.Value).Fit(data).Transform(data);
 
                 var lrInput = new LogisticRegression.Arguments
                 {
@@ -796,7 +773,7 @@ namespace Microsoft.ML.RunTests
             var binaryEnsembleModel = EnsembleCreator.CreateBinaryPipelineEnsemble(Env,
                 new EnsembleCreator.PipelineClassifierInput()
                 {
-                    ModelCombiner = EntryPoints.EnsembleCreator.ClassifierCombiner.Average,
+                    ModelCombiner = EnsembleCreator.ClassifierCombiner.Average,
                     Models = predictorModels
                 }).PredictorModel;
             var binaryEnsembleCalibrated = Calibrate.Platt(Env,
@@ -818,10 +795,10 @@ namespace Microsoft.ML.RunTests
                     PredictorModel = binaryEnsembleCalibrated
                 }).ScoredData;
 
-            var regressionEnsembleModel = EntryPoints.EnsembleCreator.CreateRegressionPipelineEnsemble(Env,
-                new EntryPoints.EnsembleCreator.PipelineRegressionInput()
+            var regressionEnsembleModel = EnsembleCreator.CreateRegressionPipelineEnsemble(Env,
+                new EnsembleCreator.PipelineRegressionInput()
                 {
-                    ModelCombiner = EntryPoints.EnsembleCreator.ScoreCombiner.Average,
+                    ModelCombiner = EnsembleCreator.ScoreCombiner.Average,
                     Models = predictorModels
                 }).PredictorModel;
             var regressionScored = ScoreModel.Score(Env,
@@ -831,8 +808,8 @@ namespace Microsoft.ML.RunTests
                     PredictorModel = regressionEnsembleModel
                 }).ScoredData;
 
-            var anomalyEnsembleModel = EntryPoints.EnsembleCreator.CreateAnomalyPipelineEnsemble(Env,
-                new EntryPoints.EnsembleCreator.PipelineAnomalyInput()
+            var anomalyEnsembleModel = EnsembleCreator.CreateAnomalyPipelineEnsemble(Env,
+                new EnsembleCreator.PipelineAnomalyInput()
                 {
                     ModelCombiner = EnsembleCreator.ScoreCombiner.Average,
                     Models = predictorModels
@@ -845,28 +822,28 @@ namespace Microsoft.ML.RunTests
                 }).ScoredData;
 
             // Make sure the scorers have the correct types.
-            var hasScoreCol = binaryScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out int scoreIndex);
-            Assert.True(hasScoreCol, "Data scored with binary ensemble does not have a score column");
-            var type = binaryScored.Schema[scoreIndex].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnKind)?.Type;
+            var scoreCol = binaryScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+            Assert.True(scoreCol.HasValue, "Data scored with binary ensemble does not have a score column");
+            var type = binaryScored.Schema[scoreCol.Value.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnKind)?.Type;
             Assert.True(type is TextType, "Binary ensemble scored data does not have correct type of metadata.");
             var kind = default(ReadOnlyMemory<char>);
-            binaryScored.Schema[scoreIndex].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
+            binaryScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
                 $"Binary ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.BinaryClassification}', but is instead '{kind}'");
 
-            hasScoreCol = regressionScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
-            Assert.True(hasScoreCol, "Data scored with regression ensemble does not have a score column");
-            type = regressionScored.Schema[scoreIndex].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
+            scoreCol = regressionScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+            Assert.True(scoreCol.HasValue, "Data scored with regression ensemble does not have a score column");
+            type = regressionScored.Schema[scoreCol.Value.Index].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
             Assert.True(type is TextType, "Regression ensemble scored data does not have correct type of metadata.");
-            regressionScored.Schema[scoreIndex].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
+            regressionScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
                 $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
 
-            hasScoreCol = anomalyScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
-            Assert.True(hasScoreCol, "Data scored with anomaly detection ensemble does not have a score column");
-            type = anomalyScored.Schema[scoreIndex].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
+            scoreCol = anomalyScored.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+            Assert.True(scoreCol.HasValue, "Data scored with anomaly detection ensemble does not have a score column");
+            type = anomalyScored.Schema[scoreCol.Value.Index].Metadata.Schema[MetadataUtils.Kinds.ScoreColumnKind].Type;
             Assert.True(type is TextType, "Anomaly detection ensemble scored data does not have correct type of metadata.");
-            anomalyScored.Schema[scoreIndex].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
+            anomalyScored.Schema[scoreCol.Value.Index].Metadata.GetValue(MetadataUtils.Kinds.ScoreColumnKind, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
                 $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
 
@@ -898,36 +875,36 @@ namespace Microsoft.ML.RunTests
             using (var curs4 = individualScores[4].GetRowCursor(col => true))
             using (var cursSaved = scoredFromSaved.GetRowCursor(col => true))
             {
-                var good = curs0.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out int col);
-                Assert.True(good);
-                var getter0 = curs0.GetGetter<Single>(col);
-                good = curs1.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter1 = curs1.GetGetter<Single>(col);
-                good = curs2.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter2 = curs2.GetGetter<Single>(col);
-                good = curs3.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter3 = curs3.GetGetter<Single>(col);
-                good = curs4.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter4 = curs4.GetGetter<Single>(col);
-                good = cursReg.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterReg = cursReg.GetGetter<Single>(col);
-                good = cursBin.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterBin = cursBin.GetGetter<Single>(col);
-                good = cursBinCali.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterBinCali = cursBinCali.GetGetter<Single>(col);
-                good = cursSaved.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterSaved = cursSaved.GetGetter<Single>(col);
-                good = cursAnom.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterAnom = cursAnom.GetGetter<Single>(col);
+                var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter0 = curs0.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter1 = curs1.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter2 = curs2.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter3 = curs3.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter4 = curs4.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = cursReg.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = cursBin.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = cursBinCali.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = cursSaved.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = cursAnom.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterAnom = cursAnom.GetGetter<Single>(scoreColumn.Value.Index);
 
                 var c = new Average(Env).GetCombiner();
                 while (cursReg.MoveNext())
@@ -1019,12 +996,10 @@ namespace Microsoft.ML.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = TextFeaturizingEstimator.Create(Env,
-                        new TextFeaturizingEstimator.Arguments()
-                        {
-                            Column = new TextFeaturizingEstimator.Column() { Name = "Features", Source = new[] { "Text" } },
-                            UsePredefinedStopWordRemover = true
-                        }, data);
+                    data = new TextFeaturizingEstimator(Env, "Text", "Features", args =>
+                    {
+                        args.UseStopRemover = true;
+                    }).Fit(data).Transform(data);
                 }
                 else
                 {
@@ -1121,33 +1096,33 @@ namespace Microsoft.ML.RunTests
             using (var curs4 = individualScores[4].GetRowCursor(col => true))
             using (var cursSaved = scoredFromSaved.GetRowCursor(col => true))
             {
-                var good = curs0.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out int col);
-                Assert.True(good);
-                var getter0 = curs0.GetGetter<Single>(col);
-                good = curs1.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter1 = curs1.GetGetter<Single>(col);
-                good = curs2.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter2 = curs2.GetGetter<Single>(col);
-                good = curs3.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter3 = curs3.GetGetter<Single>(col);
-                good = curs4.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter4 = curs4.GetGetter<Single>(col);
-                good = cursReg.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterReg = cursReg.GetGetter<Single>(col);
-                good = cursBin.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterBin = cursBin.GetGetter<Single>(col);
-                good = cursBinCali.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterBinCali = cursBinCali.GetGetter<Single>(col);
-                good = cursSaved.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterSaved = cursSaved.GetGetter<Single>(col);
+                var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter0 = curs0.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter1 = curs1.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter2 = curs2.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter3 = curs3.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter4 = curs4.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = cursReg.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterReg = cursReg.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = cursBin.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterBin = cursBin.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = cursBinCali.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterBinCali = cursBinCali.GetGetter<Single>(scoreColumn.Value.Index);
+                scoreColumn = cursSaved.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterSaved = cursSaved.GetGetter<Single>(scoreColumn.Value.Index);
 
                 var c = new Average(Env).GetCombiner();
                 while (cursReg.MoveNext())
@@ -1223,10 +1198,7 @@ namespace Microsoft.ML.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
-                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
-                {
-                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
-                }, data);
+                data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
                 var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
                 var rmd = new RoleMappedData(data, "Label", "Features");
@@ -1282,27 +1254,27 @@ namespace Microsoft.ML.RunTests
             using (var curs3 = individualScores[3].GetRowCursor(col => true))
             using (var curs4 = individualScores[4].GetRowCursor(col => true))
             {
-                var good = curs0.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out int col);
-                Assert.True(good);
-                var getter0 = curs0.GetGetter<VBuffer<Single>>(col);
-                good = curs1.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter1 = curs1.GetGetter<VBuffer<Single>>(col);
-                good = curs2.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter2 = curs2.GetGetter<VBuffer<Single>>(col);
-                good = curs3.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter3 = curs3.GetGetter<VBuffer<Single>>(col);
-                good = curs4.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter4 = curs4.GetGetter<VBuffer<Single>>(col);
-                good = curs.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getter = curs.GetGetter<VBuffer<Single>>(col);
-                good = cursSaved.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out col);
-                Assert.True(good);
-                var getterSaved = cursSaved.GetGetter<VBuffer<Single>>(col);
+                var scoreColumn = curs0.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter0 = curs0.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                scoreColumn = curs1.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter1 = curs1.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                scoreColumn = curs2.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter2 = curs2.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                scoreColumn = curs3.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter3 = curs3.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                scoreColumn = curs4.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter4 = curs4.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                scoreColumn = curs.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getter = curs.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
+                scoreColumn = cursSaved.Schema.GetColumnOrNull(MetadataUtils.Const.ScoreValueKind.Score);
+                Assert.True(scoreColumn.HasValue);
+                var getterSaved = cursSaved.GetGetter<VBuffer<Single>>(scoreColumn.Value.Index);
 
                 var c = new MultiAverage(Env, new MultiAverage.Arguments()).GetCombiner();
                 VBuffer<Single> score = default(VBuffer<Single>);
@@ -1368,7 +1340,7 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new OneHotEncodingEstimator(Env,"Cat").Fit(data).Transform(data);
+                data = new OneHotEncodingEstimator(Env, "Cat").Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
@@ -1377,9 +1349,9 @@ namespace Microsoft.ML.RunTests
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
                         NumThreads = 1,
-                        ShowTrainingStats = true, 
+                        ShowTrainingStats = true,
                         StdComputer = new ComputeLRTrainingStdThroughHal()
-                };
+                    };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModelImpl(Env, data, splitOutput.TrainData[i]);
 
@@ -1691,15 +1663,15 @@ namespace Microsoft.ML.RunTests
                     ReadOnlyMemory<char> catValue = default;
                     uint catKey = 0;
 
-                    bool success = loader.Schema.TryGetColumnIndex("Cat", out int catCol);
-                    Assert.True(success);
-                    var catGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catCol);
-                    success = loader.Schema.TryGetColumnIndex("CatValue", out int catValueCol);
-                    Assert.True(success);
-                    var catValueGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catValueCol);
-                    success = loader.Schema.TryGetColumnIndex("Key", out int keyCol);
-                    Assert.True(success);
-                    var keyGetter = cursor.GetGetter<uint>(keyCol);
+                    var catColumn = loader.Schema.GetColumnOrNull("Cat");
+                    Assert.True(catColumn.HasValue);
+                    var catGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catColumn.Value.Index);
+                    var catValueCol = loader.Schema.GetColumnOrNull("CatValue");
+                    Assert.True(catValueCol.HasValue);
+                    var catValueGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catValueCol.Value.Index);
+                    var keyColumn = loader.Schema.GetColumnOrNull("Key");
+                    Assert.True(keyColumn.HasValue);
+                    var keyGetter = cursor.GetGetter<uint>(keyColumn.Value.Index);
 
                     while (cursor.MoveNext())
                     {
@@ -1938,8 +1910,8 @@ namespace Microsoft.ML.RunTests
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), instanceMetricsPath))
             {
                 Assert.Equal(103, CountRows(loader));
-                Assert.True(loader.Schema.TryGetColumnIndex("GroupId", out var groupCol));
-                Assert.True(loader.Schema.TryGetColumnIndex("Label", out var labelCol));
+                Assert.NotNull(loader.Schema.GetColumnOrNull("GroupId"));
+                Assert.NotNull(loader.Schema.GetColumnOrNull("Label"));
             }
         }
 
@@ -2737,8 +2709,9 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(metrics);
             using (var cursor = metrics.GetRowCursor(col => true))
             {
-                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
-                var aucGetter = cursor.GetGetter<double>(aucCol);
+                var aucCol = cursor.Schema.GetColumnOrNull("AUC");
+                Assert.True(aucCol.HasValue);
+                var aucGetter = cursor.GetGetter<double>(aucCol.Value.Index);
                 Assert.True(cursor.MoveNext());
                 double auc = 0;
                 aucGetter(ref auc);
@@ -2841,8 +2814,9 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(metrics);
             using (var cursor = metrics.GetRowCursor(col => true))
             {
-                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
-                var aucGetter = cursor.GetGetter<double>(aucCol);
+                var aucCol = cursor.Schema.GetColumnOrNull("AUC");
+                Assert.True(aucCol.HasValue);
+                var aucGetter = cursor.GetGetter<double>(aucCol.Value.Index);
                 Assert.True(cursor.MoveNext());
                 double auc = 0;
                 aucGetter(ref auc);
@@ -3001,28 +2975,25 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(model);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
-            Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursor(col => true))
+
+            Action<IDataView> validateAuc = (metricsIdv) =>
             {
-                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
-                var aucGetter = cursor.GetGetter<double>(aucCol);
-                Assert.True(cursor.MoveNext());
-                double auc = 0;
-                aucGetter(ref auc);
-                Assert.True(auc > 0.99);
-            }
+                Assert.NotNull(metricsIdv);
+                using (var cursor = metricsIdv.GetRowCursor(col => true))
+                {
+                    var aucCol = cursor.Schema.GetColumnOrNull("AUC");
+                    var aucGetter = cursor.GetGetter<double>(aucCol.Value.Index);
+                    Assert.True(cursor.MoveNext());
+                    double auc = 0;
+                    aucGetter(ref auc);
+                    Assert.True(auc > 0.99);
+                }
+            };
+
+            validateAuc(metrics);
 
             metrics = runner.GetOutput<IDataView>("OverallMetrics2");
-            Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursor(col => true))
-            {
-                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
-                var aucGetter = cursor.GetGetter<double>(aucCol);
-                Assert.True(cursor.MoveNext());
-                double auc = 0;
-                aucGetter(ref auc);
-                Assert.True(auc > 0.99);
-            }
+            validateAuc(metrics);
         }
 
         [Fact]
@@ -3195,28 +3166,26 @@ namespace Microsoft.ML.RunTests
             Assert.NotNull(model[0]);
 
             var metrics = runner.GetOutput<IDataView>("OverallMetrics");
-            Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursor(col => true))
+
+            Action<IDataView> aucValidate = (metricsIdv) =>
             {
-                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
-                var aucGetter = cursor.GetGetter<double>(aucCol);
-                Assert.True(cursor.MoveNext());
-                double auc = 0;
-                aucGetter(ref auc);
-                Assert.True(auc > 0.99);
-            }
+                Assert.NotNull(metricsIdv);
+                using (var cursor = metrics.GetRowCursor(col => true))
+                {
+                    var aucColumn = cursor.Schema.GetColumnOrNull("AUC");
+                    Assert.True(aucColumn.HasValue);
+                    var aucGetter = cursor.GetGetter<double>(aucColumn.Value.Index);
+                    Assert.True(cursor.MoveNext());
+                    double auc = 0;
+                    aucGetter(ref auc);
+                    Assert.True(auc > 0.99);
+                }
+            };
+
+            aucValidate(metrics);
 
             metrics = runner.GetOutput<IDataView>("OverallMetrics2");
-            Assert.NotNull(metrics);
-            using (var cursor = metrics.GetRowCursor(col => true))
-            {
-                Assert.True(cursor.Schema.TryGetColumnIndex("AUC", out int aucCol));
-                var aucGetter = cursor.GetGetter<double>(aucCol);
-                Assert.True(cursor.MoveNext());
-                double auc = 0;
-                aucGetter(ref auc);
-                Assert.True(auc > 0.99);
-            }
+            aucValidate(metrics);
         }
 
         [Fact]
@@ -3378,8 +3347,8 @@ namespace Microsoft.ML.RunTests
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumThreads = 1,
                 ShowTrainingStats = true,
-                StdComputer= new ComputeLRTrainingStdThroughHal()
-        };
+                StdComputer = new ComputeLRTrainingStdThroughHal()
+            };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 
             var mcLrInput = new MulticlassLogisticRegression.Arguments
@@ -3546,9 +3515,9 @@ namespace Microsoft.ML.RunTests
                 {
                     ReadOnlyMemory<char> predictedLabel = default;
 
-                    var success = loader.Schema.TryGetColumnIndex("PredictedLabel", out int predictedLabelCol);
-                    Assert.True(success);
-                    var predictedLabelGetter = cursor.GetGetter<ReadOnlyMemory<char>>(predictedLabelCol);
+                    var predictedLabelCol = loader.Schema.GetColumnOrNull("PredictedLabel");
+                    Assert.True(predictedLabelCol.HasValue);
+                    var predictedLabelGetter = cursor.GetGetter<ReadOnlyMemory<char>>(predictedLabelCol.Value.Index);
 
                     while (cursor.MoveNext())
                     {
@@ -3580,7 +3549,7 @@ namespace Microsoft.ML.RunTests
                 Column = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
-            var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+            var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Options
             {
                 FeatureColumn = "Features",
                 NumTrees = 5,
@@ -3602,17 +3571,24 @@ namespace Microsoft.ML.RunTests
             });
 
             var view = treeLeaf.OutputData;
-            Assert.True(view.Schema.TryGetColumnIndex("Trees", out int treesCol));
-            Assert.True(view.Schema.TryGetColumnIndex("Leaves", out int leavesCol));
-            Assert.True(view.Schema.TryGetColumnIndex("Paths", out int pathsCol));
+            var treesCol = view.Schema.GetColumnOrNull("Trees");
+            Assert.True(treesCol.HasValue);
+
+            var leavesCol = view.Schema.GetColumnOrNull("Leaves");
+            Assert.True(leavesCol.HasValue);
+
+            var pathsCol = view.Schema.GetColumnOrNull("Paths");
+            Assert.True(pathsCol.HasValue);
+
+
             VBuffer<float> treeValues = default(VBuffer<float>);
             VBuffer<float> leafIndicators = default(VBuffer<float>);
             VBuffer<float> pathIndicators = default(VBuffer<float>);
-            using (var curs = view.GetRowCursor(c => c == treesCol || c == leavesCol || c == pathsCol))
+            using (var curs = view.GetRowCursor(c => c == treesCol.Value.Index || c == leavesCol.Value.Index || c == pathsCol.Value.Index))
             {
-                var treesGetter = curs.GetGetter<VBuffer<float>>(treesCol);
-                var leavesGetter = curs.GetGetter<VBuffer<float>>(leavesCol);
-                var pathsGetter = curs.GetGetter<VBuffer<float>>(pathsCol);
+                var treesGetter = curs.GetGetter<VBuffer<float>>(treesCol.Value.Index);
+                var leavesGetter = curs.GetGetter<VBuffer<float>>(leavesCol.Value.Index);
+                var pathsGetter = curs.GetGetter<VBuffer<float>>(pathsCol.Value.Index);
                 while (curs.MoveNext())
                 {
                     treesGetter(ref treeValues);
@@ -3659,8 +3635,9 @@ namespace Microsoft.ML.RunTests
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursor((x => true)))
             {
-                Assert.True(result.Schema.TryGetColumnIndex("Features", out int featColumn));
-                var featGetter = cursor.GetGetter<VBuffer<float>>(featColumn);
+                var featColumn = result.Schema.GetColumnOrNull("Features");
+                Assert.True(featColumn.HasValue);
+                var featGetter = cursor.GetGetter<VBuffer<float>>(featColumn.Value.Index);
                 VBuffer<float> feat = default;
                 while (cursor.MoveNext())
                 {
@@ -3674,7 +3651,7 @@ namespace Microsoft.ML.RunTests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void EntryPointTensorFlowTransform()
         {
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
 
             TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
                 new[] { "Transforms.TensorFlowScorer" },
@@ -4076,12 +4053,12 @@ namespace Microsoft.ML.RunTests
             var data = runner.GetOutput<IDataView>("Var_2130b277d4e0485f9cc5162c176767fa");
 
             var schema = data.Schema;
-            var b = schema.TryGetColumnIndex("AUC", out int aucCol);
-            Assert.True(b);
-            using (var cursor = data.GetRowCursor(col => col == aucCol))
+            var aucCol = schema.GetColumnOrNull("AUC");
+            Assert.True(aucCol.HasValue);
+            using (var cursor = data.GetRowCursor(col => col == aucCol.Value.Index))
             {
-                var getter = cursor.GetGetter<double>(aucCol);
-                b = cursor.MoveNext();
+                var getter = cursor.GetGetter<double>(aucCol.Value.Index);
+                var b = cursor.MoveNext();
                 Assert.True(b);
                 double auc = 0;
                 getter(ref auc);
@@ -4256,20 +4233,22 @@ namespace Microsoft.ML.RunTests
             var data = runner.GetOutput<IDataView>("overallMetrics");
 
             var schema = data.Schema;
-            var b = schema.TryGetColumnIndex("L1(avg)", out int metricCol);
-            Assert.True(b);
-            b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
-            Assert.True(b);
-            b = schema.TryGetColumnIndex("IsWeighted", out int isWeightedCol);
-            using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol || col == isWeightedCol))
+            var metricCol = schema.GetColumnOrNull("L1(avg)");
+            Assert.True(metricCol.HasValue);
+            var foldCol = schema.GetColumnOrNull("Fold Index");
+            Assert.True(foldCol.HasValue);
+            var isWeightedCol = schema.GetColumnOrNull("IsWeighted");
+            Assert.True(isWeightedCol.HasValue);
+            using (var cursor = data.GetRowCursor(col => col == metricCol.Value.Index || col == foldCol.Value.Index || col == isWeightedCol.Value.Index))
             {
-                var getter = cursor.GetGetter<double>(metricCol);
-                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                var getter = cursor.GetGetter<double>(metricCol.Value.Index);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
                 ReadOnlyMemory<char> fold = default;
-                var isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol);
+                var isWeightedGetter = cursor.GetGetter<bool>(isWeightedCol.Value.Index);
                 bool isWeighted = default;
                 double avg = 0;
                 double weightedAvg = 0;
+                bool b;
                 for (int w = 0; w < 2; w++)
                 {
                     // Get the average.
@@ -4438,18 +4417,18 @@ namespace Microsoft.ML.RunTests
             var data = runner.GetOutput<IDataView>("overallMetrics");
 
             var schema = data.Schema;
-            var b = schema.TryGetColumnIndex("Accuracy(micro-avg)", out int metricCol);
-            Assert.True(b);
-            b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
-            Assert.True(b);
-            using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+            var metricCol = schema.GetColumnOrNull("Accuracy(micro-avg)");
+            Assert.True(metricCol.HasValue);
+            var foldCol = schema.GetColumnOrNull("Fold Index");
+            Assert.True(foldCol.HasValue);
+            using (var cursor = data.GetRowCursor(col => col == metricCol.Value.Index || col == foldCol.Value.Index))
             {
-                var getter = cursor.GetGetter<double>(metricCol);
-                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                var getter = cursor.GetGetter<double>(metricCol.Value.Index);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
                 ReadOnlyMemory<char> fold = default;
 
                 // Get the average.
-                b = cursor.MoveNext();
+                var b = cursor.MoveNext();
                 Assert.True(b);
                 double avg = 0;
                 getter(ref avg);
@@ -4483,14 +4462,14 @@ namespace Microsoft.ML.RunTests
 
             var confusion = runner.GetOutput<IDataView>("confusionMatrix");
             schema = confusion.Schema;
-            b = schema.TryGetColumnIndex("Count", out int countCol);
-            Assert.True(b);
-            b = schema.TryGetColumnIndex("Fold Index", out foldCol);
-            Assert.True(b);
-            var type = schema[countCol].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
+            var countCol = schema.GetColumnOrNull("Count");
+            Assert.True(countCol.HasValue);
+            foldCol = schema.GetColumnOrNull("Fold Index");
+            Assert.True(foldCol.HasValue);
+            var type = schema["Count"].Metadata.Schema[MetadataUtils.Kinds.SlotNames].Type;
             Assert.True(type is VectorType vecType && vecType.ItemType is TextType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
-            schema[countCol].GetSlotNames(ref slotNames);
+            schema["Count"].GetSlotNames(ref slotNames);
             var slotNameValues = slotNames.GetValues();
             for (int i = 0; i < slotNameValues.Length; i++)
             {
@@ -4498,8 +4477,8 @@ namespace Microsoft.ML.RunTests
             }
             using (var curs = confusion.GetRowCursor(col => true))
             {
-                var countGetter = curs.GetGetter<VBuffer<double>>(countCol);
-                var foldGetter = curs.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                var countGetter = curs.GetGetter<VBuffer<double>>(countCol.Value.Index);
+                var foldGetter = curs.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
                 var confCount = default(VBuffer<double>);
                 var foldIndex = default(ReadOnlyMemory<char>);
                 int rowCount = 0;
@@ -4666,13 +4645,13 @@ namespace Microsoft.ML.RunTests
             var warnings = runner.GetOutput<IDataView>("warning");
 
             var schema = warnings.Schema;
-            var b = schema.TryGetColumnIndex("WarningText", out int warningCol);
-            Assert.True(b);
-            using (var cursor = warnings.GetRowCursor(col => col == warningCol))
+            var warningCol = schema.GetColumnOrNull("WarningText");
+            Assert.True(warningCol.HasValue);
+            using (var cursor = warnings.GetRowCursor(col => col == warningCol.Value.Index))
             {
-                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(warningCol);
+                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(warningCol.Value.Index);
 
-                b = cursor.MoveNext();
+                var b = cursor.MoveNext();
                 Assert.True(b);
                 var warning = default(ReadOnlyMemory<char>);
                 getter(ref warning);
@@ -4846,14 +4825,15 @@ namespace Microsoft.ML.RunTests
             var data = runner.GetOutput<IDataView>("overallmetrics");
 
             var schema = data.Schema;
-            var b = schema.TryGetColumnIndex("AUC", out int metricCol);
-            Assert.True(b);
-            b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
-            Assert.True(b);
-            using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+            var metricCol = schema.GetColumnOrNull("AUC");
+            Assert.True(metricCol.HasValue);
+            var foldCol = schema.GetColumnOrNull("Fold Index");
+            Assert.True(foldCol.HasValue);
+            bool b;
+            using (var cursor = data.GetRowCursor(col => col == metricCol.Value.Index || col == foldCol.Value.Index))
             {
-                var getter = cursor.GetGetter<double>(metricCol);
-                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                var getter = cursor.GetGetter<double>(metricCol.Value.Index);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
                 ReadOnlyMemory<char> fold = default;
 
                 // Get the verage.
@@ -5149,14 +5129,15 @@ namespace Microsoft.ML.RunTests
             var data = runner.GetOutput<IDataView>("overallMetrics");
 
             var schema = data.Schema;
-            var b = schema.TryGetColumnIndex("NDCG", out int metricCol);
-            Assert.True(b);
-            b = schema.TryGetColumnIndex("Fold Index", out int foldCol);
-            Assert.True(b);
-            using (var cursor = data.GetRowCursor(col => col == metricCol || col == foldCol))
+            var metricCol = schema.GetColumnOrNull("NDCG");
+            Assert.True(metricCol.HasValue);
+            var foldCol = schema.GetColumnOrNull("Fold Index");
+            Assert.True(foldCol.HasValue);
+            bool b;
+            using (var cursor = data.GetRowCursor(col => col == metricCol.Value.Index || col == foldCol.Value.Index))
             {
-                var getter = cursor.GetGetter<VBuffer<double>>(metricCol);
-                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol);
+                var getter = cursor.GetGetter<VBuffer<double>>(metricCol.Value.Index);
+                var foldGetter = cursor.GetGetter<ReadOnlyMemory<char>>(foldCol.Value.Index);
                 ReadOnlyMemory<char> fold = default;
 
                 // Get the verage.
@@ -5203,10 +5184,11 @@ namespace Microsoft.ML.RunTests
             }
 
             data = runner.GetOutput<IDataView>("perInstanceMetric");
-            Assert.True(data.Schema.TryGetColumnIndex("Instance", out int nameCol));
-            using (var cursor = data.GetRowCursor(col => col == nameCol))
+            var nameCol = data.Schema.GetColumnOrNull("Instance");
+            Assert.True(nameCol.HasValue);
+            using (var cursor = data.GetRowCursor(col => col == nameCol.Value.Index))
             {
-                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(nameCol);
+                var getter = cursor.GetGetter<ReadOnlyMemory<char>>(nameCol.Value.Index);
                 while (cursor.MoveNext())
                 {
                     ReadOnlyMemory<char> name = default;
@@ -5366,11 +5348,12 @@ namespace Microsoft.ML.RunTests
 
             var data = runner.GetOutput<IDataView>("overallMetrics");
             var schema = data.Schema;
-            var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int accCol);
-            Assert.True(b);
-            using (var cursor = data.GetRowCursor(col => col == accCol))
+            var accCol = schema.GetColumnOrNull(MultiClassClassifierEvaluator.AccuracyMacro);
+            Assert.True(accCol.HasValue);
+            bool b;
+            using (var cursor = data.GetRowCursor(col => col == accCol.Value.Index))
             {
-                var getter = cursor.GetGetter<double>(accCol);
+                var getter = cursor.GetGetter<double>(accCol.Value.Index);
                 b = cursor.MoveNext();
                 Assert.True(b);
                 double acc = 0;
@@ -5537,11 +5520,12 @@ namespace Microsoft.ML.RunTests
 
             var data = runner.GetOutput<IDataView>("overallMetrics");
             var schema = data.Schema;
-            var b = schema.TryGetColumnIndex(MultiClassClassifierEvaluator.AccuracyMacro, out int accCol);
-            Assert.True(b);
-            using (var cursor = data.GetRowCursor(col => col == accCol))
+            var accCol = schema.GetColumnOrNull(MultiClassClassifierEvaluator.AccuracyMacro);
+            Assert.True(accCol.HasValue);
+            bool b;
+            using (var cursor = data.GetRowCursor(col => col == accCol.Value.Index))
             {
-                var getter = cursor.GetGetter<double>(accCol);
+                var getter = cursor.GetGetter<double>(accCol.Value.Index);
                 b = cursor.MoveNext();
                 Assert.True(b);
                 double acc = 0;
@@ -5556,7 +5540,7 @@ namespace Microsoft.ML.RunTests
         public void TestTensorFlowEntryPoint()
         {
             var dataPath = GetDataPath("Train-Tiny-28x28.txt");
-            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransformer).Assembly);
             string inputGraph = @"
             {
                 'Nodes':

@@ -9,5 +9,6 @@
 
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="MklImports" />
   </ItemGroup>
 </Project>

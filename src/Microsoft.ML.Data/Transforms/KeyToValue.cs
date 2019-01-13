@@ -98,7 +98,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Factory method for SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        [BestFriend]
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -228,7 +229,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     var typeSrc = schema[ColMapNewToOld[iinfo]].Type;
                     var typeVals = schema[ColMapNewToOld[iinfo]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
-                    Host.Check(typeVals.VectorSize == typeSrc.ItemType.KeyCount, "KeyValues metadata size does not match column type key count");
+                    Host.Check(typeVals.VectorSize == typeSrc.ItemType.GetKeyCount(), "KeyValues metadata size does not match column type key count");
                     if (!(typeSrc is VectorType vectorType))
                         types[iinfo] = typeVals.ItemType;
                     else
@@ -252,7 +253,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 var keyMetadata = default(VBuffer<TValue>);
                 InputSchema[ColMapNewToOld[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyMetadata);
-                Host.Check(keyMetadata.Length == typeKey.ItemType.KeyCount);
+                Host.Check(keyMetadata.Length == typeKey.ItemType.GetKeyCount());
 
                 VBufferUtils.Densify(ref keyMetadata);
                 return new KeyToValueMap<TKey, TValue>(this, (KeyType)typeKey.ItemType, (PrimitiveType)typeVal.ItemType, keyMetadata, iinfo);

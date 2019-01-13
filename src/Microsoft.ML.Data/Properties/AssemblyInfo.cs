@@ -75,5 +75,6 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo(assemblyName: "Microsoft.ML.Runtime.Scope" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "TLC" + InternalPublicKey.Value)]
 [assembly: InternalsVisibleTo(assemblyName: "RunTestsMore" + InternalPublicKey.Value)]
+[assembly: InternalsVisibleTo(assemblyName: "DotNetBridge" + InternalPublicKey.Value)]
 
 [assembly: WantsToBeBestFriends]

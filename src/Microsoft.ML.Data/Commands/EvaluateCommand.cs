@@ -139,7 +139,8 @@ namespace Microsoft.ML.Data
 
         internal const string Summary = "Runs a previously trained predictor on the data.";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
 
