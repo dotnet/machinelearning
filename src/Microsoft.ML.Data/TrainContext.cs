@@ -151,7 +151,7 @@ namespace Microsoft.ML
                     // Generate a new column with the hashed stratification column.
                     while (data.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
                         stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    data = new HashingEstimator(Host, origStratCol, stratificationColumn, 30).Fit(data).Transform(data);
+                    data = new HashingEstimator(Host, stratificationColumn, origStratCol, 30).Fit(data).Transform(data);
                 }
             }
         }

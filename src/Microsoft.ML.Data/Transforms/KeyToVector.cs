@@ -100,11 +100,11 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="input">Name of input column.</param>
             /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="bag">Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input column is a vector.</param>
-            public ColumnInfo(string input, string output = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
+            public ColumnInfo(string output, string input = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
             {
-                Contracts.CheckNonWhiteSpace(input, nameof(input));
-                Input = input;
-                Output = output ?? input;
+                Contracts.CheckNonWhiteSpace(output, nameof(output));
+                Input = input ?? output;
+                Output = output;
                 Bag = bag;
             }
         }
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             _columns = new ColumnInfo[columnsLength];
             for (int i = 0; i < columnsLength; i++)
-                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, bags[i]);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].output, ColumnPairs[i].input, bags[i]);
         }
 
         // Factory method for SignatureDataTransform.
@@ -218,8 +218,9 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 var item = args.Column[i];
 
-                cols[i] = new ColumnInfo(item.Source ?? item.Name,
+                cols[i] = new ColumnInfo(
                     item.Name,
+                    item.Source ?? item.Name,
                     item.Bag ?? args.Bag);
             };
             return new KeyToVectorMappingTransformer(env, cols).MakeDataTransform(input);
@@ -749,8 +750,8 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        internal KeyToVectorMappingEstimator(IHostEnvironment env, string outputColumn, string inputColumn, bool bag = Defaults.Bag)
-            : this(env, new KeyToVectorMappingTransformer(env, new KeyToVectorMappingTransformer.ColumnInfo(inputColumn, outputColumn, bag)))
+        internal KeyToVectorMappingEstimator(IHostEnvironment env, string outputColumn, string inputColumn = null, bool bag = Defaults.Bag)
+            : this(env, new KeyToVectorMappingTransformer(env, new KeyToVectorMappingTransformer.ColumnInfo(outputColumn, inputColumn ?? outputColumn, bag)))
         {
         }
 

@@ -32,8 +32,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumn, string inputColumn, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
-           this(env, new [] { new ValueToKeyMappingTransformer.ColumnInfo(inputColumn, outputColumn, maxNumTerms, sort) })
+        internal ValueToKeyMappingEstimator(IHostEnvironment env, string outputColumn, string inputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = Defaults.Sort) :
+           this(env, new [] { new ValueToKeyMappingTransformer.ColumnInfo(inputColumn ?? outputColumn, outputColumn, maxNumTerms, sort) })
         {
         }
 

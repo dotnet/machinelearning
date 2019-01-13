@@ -185,8 +185,10 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="output">Name of output column.</param>
             /// <param name="outputKind">The expected kind of the converted column.</param>
             /// <param name="outputKeyRange">New key range, if we work with key type.</param>
-            public ColumnInfo(string input, string output, DataKind outputKind, KeyRange outputKeyRange = null)
+            public ColumnInfo(string output, string input, DataKind outputKind, KeyRange outputKeyRange = null)
             {
+                Contracts.CheckNonWhiteSpace(output, nameof(output));
+
                 Input = input;
                 Output = output;
                 OutputKind = outputKind;
@@ -211,7 +213,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="outputKind">The expected type of the converted column.</param>
         /// <param name="outputKeyRange">New key range if we work with key type.</param>
         public TypeConvertingTransformer(IHostEnvironment env, string inputColumn, string outputColumn, DataKind outputKind, KeyRange outputKeyRange = null)
-            : this(env, new ColumnInfo(inputColumn, outputColumn, outputKind, outputKeyRange))
+            : this(env, new ColumnInfo(outputColumn, inputColumn, outputKind, outputKeyRange))
         {
         }
 
@@ -296,7 +298,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         range.Max = count;
                     range.Contiguous = ctx.Reader.ReadBoolByte();
                 }
-                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, kind, range);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].output, ColumnPairs[i].input, kind, range);
             }
         }
 
@@ -344,7 +346,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     kind = tempResultType.Value;
                 }
-                cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name, kind, range);
+                cols[i] = new ColumnInfo(item.Name, item.Source ?? item.Name, kind, range);
             };
             return new TypeConvertingTransformer(env, cols).MakeDataTransform(input);
         }
@@ -535,13 +537,14 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Convinence constructor for simple one column case.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="inputColumn">Name of the input column. If set to <see langword="null"/>, the value of the <paramref name="outputColumn"/>
+        /// will be used as input.</param>
         /// <param name="outputColumn">Name of the output column.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
         internal TypeConvertingEstimator(IHostEnvironment env,
-            string outputColumn, string inputColumn,
+            string outputColumn, string inputColumn = null,
             DataKind outputKind = Defaults.DefaultOutputKind)
-            : this(env, new TypeConvertingTransformer.ColumnInfo(inputColumn, outputColumn, outputKind))
+            : this(env, new TypeConvertingTransformer.ColumnInfo(outputColumn, inputColumn ?? outputColumn, outputKind))
         {
         }
 

@@ -135,8 +135,8 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
             /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
             /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-            public ColumnInfo(string input,
-                string output = null,
+            public ColumnInfo(string output,
+                string input = null,
                 int hashBits = HashingEstimator.Defaults.HashBits,
                 uint seed = HashingEstimator.Defaults.Seed,
                 bool ordered = HashingEstimator.Defaults.Ordered,
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
                 if (invertHash != 0 && hashBits >= 31)
                     throw Contracts.ExceptParam(nameof(hashBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", hashBits);
-                Contracts.CheckNonWhiteSpace(input, nameof(input));
+                Contracts.CheckNonWhiteSpace(output, nameof(output));
                 Input = input;
                 Output = output ?? input;
                 HashBits = hashBits;
@@ -157,6 +157,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
             internal ColumnInfo(string input, string output, ModelLoadContext ctx)
             {
+                Contracts.CheckNonWhiteSpace(output, nameof(output));
+
                 Input = input;
                 Output = output;
                 // *** Binary format ***
@@ -386,8 +388,8 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 var item = args.Column[i];
                 var kind = item.InvertHash ?? args.InvertHash;
-                cols[i] = new ColumnInfo(item.Source ?? item.Name,
-                    item.Name,
+                cols[i] = new ColumnInfo(item.Name,
+                    item.Source ?? item.Name,
                     item.HashBits ?? args.HashBits,
                     item.Seed ?? args.Seed,
                     item.Ordered ?? args.Ordered,
@@ -1215,16 +1217,17 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Initializes a new instance of <see cref="HashingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the column to be transformed.</param>
+        /// <param name="inputColumn">Name of the column to be transformed.
+        /// If set to <see langword="null"/> the value specified for the <paramref name="outputColumn"/> will be used.</param>
         /// <param name="outputColumn">Name of the output column. </param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        internal HashingEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+        internal HashingEstimator(IHostEnvironment env, string outputColumn, string inputColumn = null,
             int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash)
-            : this(env, new HashingTransformer.ColumnInfo(inputColumn, outputColumn, hashBits: hashBits, invertHash: invertHash))
+            : this(env, new HashingTransformer.ColumnInfo(outputColumn, inputColumn ?? outputColumn, hashBits: hashBits, invertHash: invertHash))
         {
         }
 

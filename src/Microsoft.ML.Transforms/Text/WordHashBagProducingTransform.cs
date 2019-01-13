@@ -359,8 +359,8 @@ namespace Microsoft.ML.Transforms.Text
                             });
                     }
 
-                    hashColumns.Add(new HashingTransformer.ColumnInfo(termLoaderArgs == null ? column.Source[isrc] : tmpName,
-                        tmpName, 30, column.Seed ?? args.Seed, false, column.InvertHash ?? args.InvertHash));
+                    hashColumns.Add(new HashingTransformer.ColumnInfo(tmpName, termLoaderArgs == null ? column.Source[isrc] : tmpName,
+                        30, column.Seed ?? args.Seed, false, column.InvertHash ?? args.InvertHash));
                 }
 
                 ngramHashColumns[iinfo] =
