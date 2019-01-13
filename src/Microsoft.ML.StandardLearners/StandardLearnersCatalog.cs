@@ -13,7 +13,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML
 {
     using LRArguments = LogisticRegression.Arguments;
-    using SgdArguments = StochasticGradientDescentClassificationTrainer.Arguments;
+    using SgdOptions = StochasticGradientDescentClassificationTrainer.Options;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -31,20 +31,32 @@ namespace Microsoft.ML
         /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularization constant.</param>
         /// <param name="loss">The loss function to use.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            int maxIterations = SgdArguments.Defaults.MaxIterations,
-            double initLearningRate = SgdArguments.Defaults.InitLearningRate,
-            float l2Weight = SgdArguments.Defaults.L2Weight,
-            ISupportClassificationLossFactory loss = null,
-            Action<SgdArguments> advancedSettings = null)
+            int maxIterations = SgdOptions.Defaults.MaxIterations,
+            double initLearningRate = SgdOptions.Defaults.InitLearningRate,
+            float l2Weight = SgdOptions.Defaults.L2Weight,
+            ISupportClassificationLossFactory loss = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new StochasticGradientDescentClassificationTrainer(env, labelColumn, featureColumn, weights, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
+            return new StochasticGradientDescentClassificationTrainer(env, labelColumn, featureColumn, weights, maxIterations, initLearningRate, l2Weight, loss);
+        }
+
+        /// <summary>
+        ///  Predict a target using a linear binary classification model trained with the <see cref="StochasticGradientDescentClassificationTrainer"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The binary classificaiton context trainer object.</param>
+        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            SgdOptions advancedSettings)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            var env = CatalogUtils.GetEnvironment(ctx);
+
+            return new StochasticGradientDescentClassificationTrainer(env, advancedSettings);
         }
 
         /// <summary>

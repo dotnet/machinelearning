@@ -9,6 +9,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -152,7 +153,9 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSGDBinary()
         {
-            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(advancedSettings: args => { args.NumThreads = 1; }), GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
+            TestFeatureContribution(ML.BinaryClassification.Trainers.StochasticGradientDescent(
+                new StochasticGradientDescentClassificationTrainer.Options { NumThreads = 1}), 
+                GetSparseDataset(TaskType.BinaryClassification, 100), "SGDBinary");
         }
 
         [Fact]

@@ -31,7 +31,7 @@ using Microsoft.ML.Transforms;
     "lc",
     "sasdca")]
 
-[assembly: LoadableClass(typeof(StochasticGradientDescentClassificationTrainer), typeof(StochasticGradientDescentClassificationTrainer.Arguments),
+[assembly: LoadableClass(typeof(StochasticGradientDescentClassificationTrainer), typeof(StochasticGradientDescentClassificationTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     StochasticGradientDescentClassificationTrainer.UserNameValue,
     StochasticGradientDescentClassificationTrainer.LoadNameValue,
@@ -66,6 +66,13 @@ namespace Microsoft.ML.Trainers
             string weightColumn = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn),
                           labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        {
+        }
+
+        private protected LinearTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
+            SchemaShape.Column weightColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn),
+                  labelColumn, weightColumn)
         {
         }
 
@@ -1595,7 +1602,7 @@ namespace Microsoft.ML.Trainers
         internal const string UserNameValue = "Hogwild SGD (binary)";
         internal const string ShortName = "HogwildSGD";
 
-        public sealed class Arguments : LearnerInputBaseWithWeight
+        public sealed class Options : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new LogLossFactory();
@@ -1670,7 +1677,7 @@ namespace Microsoft.ML.Trainers
         }
 
         private readonly IClassificationLoss _loss;
-        private readonly Arguments _args;
+        private readonly Options _args;
 
         protected override bool ShuffleData => _args.Shuffle;
 
@@ -1689,28 +1696,23 @@ namespace Microsoft.ML.Trainers
         /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularizer constant.</param>
         /// <param name="loss">The loss function to use.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public StochasticGradientDescentClassificationTrainer(IHostEnvironment env,
+        internal StochasticGradientDescentClassificationTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int maxIterations = Arguments.Defaults.MaxIterations,
-            double initLearningRate = Arguments.Defaults.InitLearningRate,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            ISupportClassificationLossFactory loss = null,
-            Action<Arguments> advancedSettings = null)
+            int maxIterations = Options.Defaults.MaxIterations,
+            double initLearningRate = Options.Defaults.InitLearningRate,
+            float l2Weight = Options.Defaults.L2Weight,
+            ISupportClassificationLossFactory loss = null)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            _args = new Arguments();
+            _args = new Options();
             _args.MaxIterations = maxIterations;
             _args.InitLearningRate = initLearningRate;
             _args.L2Weight = l2Weight;
-
-            // Apply the advanced args, if the user supplied any.
-            advancedSettings?.Invoke(_args);
 
             _args.FeatureColumn = featureColumn;
             _args.LabelColumn = labelColumn;
@@ -1728,8 +1730,10 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Initializes a new instance of <see cref="StochasticGradientDescentClassificationTrainer"/>
         /// </summary>
-        internal StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn), args.WeightColumn)
+        /// <param name="env">The environment to use.</param>
+        /// <param name="args">Advanced arguments to the algorithm.</param>
+        internal StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Options args)
+            : base(env, args.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
         {
             args.Check(env);
             _loss = args.LossFunction.CreateComponent(env);
@@ -1948,14 +1952,14 @@ namespace Microsoft.ML.Trainers
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.StochasticGradientDescentBinaryClassifier", Desc = "Train an Hogwild SGD binary model.", UserName = UserNameValue, ShortName = ShortName)]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainHogwildSGD");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new StochasticGradientDescentClassificationTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),

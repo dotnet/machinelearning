@@ -940,8 +940,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features,
                     l2Weight: 0,
-                    onFit: (p) => { pred = p; },
-                    advancedSettings: s => s.NumThreads = 1)));
+                    onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
