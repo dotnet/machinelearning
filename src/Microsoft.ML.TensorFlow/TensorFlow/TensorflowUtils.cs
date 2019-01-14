@@ -79,8 +79,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <param name="modelPath">Model to load.</param>
         public static Schema GetModelSchema(IHostEnvironment env, string modelPath)
         {
-            var model = LoadTensorFlowModel(env, modelPath);
-            return GetModelSchema(env, model.Session.Graph);
+            using (var model = LoadTensorFlowModel(env, modelPath))
+            {
+                return GetModelSchema(env, model.Session.Graph);
+            }
         }
 
         /// <summary>
@@ -89,11 +91,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
         /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
         /// </summary>
+        /// <param name="env">The environment to use.</param>
         /// <param name="modelPath">Model to load.</param>
         /// <returns></returns>
-        public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(string modelPath)
+        public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(IHostEnvironment env, string modelPath)
         {
-            var schema = GetModelSchema(new MLContext(), modelPath);
+            var schema = GetModelSchema(env, modelPath);
 
             for (int i = 0; i < schema.Count; i++)
             {
