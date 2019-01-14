@@ -848,7 +848,7 @@ namespace Microsoft.ML.Data
                     var type = info.ColType.ItemType;
                     Contracts.Assert((DataKind)(byte)type.RawKind == type.RawKind);
                     ctx.Writer.Write((byte)type.RawKind);
-                    ctx.Writer.WriteBoolByte(type.IsKey);
+                    ctx.Writer.WriteBoolByte(type is KeyType);
                     if (type is KeyType key)
                     {
                         ctx.Writer.WriteBoolByte(key.Contiguous);

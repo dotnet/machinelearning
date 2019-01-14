@@ -743,7 +743,7 @@ namespace Microsoft.ML.Transforms.Text
                 var bldr = new NgramBufferBuilder(_parent._columns[iinfo].NgramLength, _parent._columns[iinfo].SkipLength,
                     _types[iinfo].ValueCount, ngramIdFinder);
                 var keyCounts = _srcTypes[iinfo].Select(
-                    t => t.ItemType.KeyCount > 0 ? (uint)t.ItemType.KeyCount : uint.MaxValue).ToArray();
+                    t => (t.ItemType is KeyType keyType && keyType.Count > 0) ? (uint)keyType.Count : uint.MaxValue).ToArray();
 
                 // REVIEW: Special casing the srcCount==1 case could potentially improve perf.
                 ValueGetter<VBuffer<float>> del =
@@ -1174,10 +1174,10 @@ namespace Microsoft.ML.Transforms.Text
         {
             if (!type.IsVector)
                 return false;
-            if (!type.ItemType.IsKey)
+            if (!(type.ItemType is KeyType itemKeyType))
                 return false;
             // Can only accept key types that can be converted to U4.
-            if (type.ItemType.KeyCount == 0 && type.ItemType.RawKind > DataKind.U4)
+            if (itemKeyType.Count == 0 && type.ItemType.RawKind > DataKind.U4)
                 return false;
             return true;
         }

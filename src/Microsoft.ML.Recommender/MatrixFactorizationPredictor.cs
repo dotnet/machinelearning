@@ -264,7 +264,7 @@ namespace Microsoft.ML.Trainers.Recommender
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
-            return new RowMapper(env, this, schema, Schema.Create(new ScoreMapperSchema(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression)));
+            return new RowMapper(env, this, schema, ScoreSchemaFactory.Create(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression));
         }
 
         private sealed class RowMapper : ISchemaBoundRowMapper

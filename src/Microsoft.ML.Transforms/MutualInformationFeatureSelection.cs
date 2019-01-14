@@ -334,8 +334,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         internal static bool IsValidColumnType(ColumnType type)
         {
             // REVIEW: Consider supporting all integer and unsigned types.
+            int keyCount = type.GetKeyCount();
             return
-                (0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize) || type is BoolType ||
+                (0 < keyCount && keyCount < Utils.ArrayMaxSize) || type is BoolType ||
                 type == NumberType.R4 || type == NumberType.R8 || type == NumberType.I4;
         }
 
@@ -479,12 +480,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 }
                 else
                 {
-                    Contracts.Assert(0 < labelType.KeyCount && labelType.KeyCount < Utils.ArrayMaxSize);
+                    int labelKeyCount = labelType.GetKeyCount();
+                    Contracts.Assert(0 < labelKeyCount && labelKeyCount < Utils.ArrayMaxSize);
                     KeyLabelGetter<int> del = GetKeyLabels<int>;
                     var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(labelType.RawType);
                     var parameters = new object[] { trans, labelCol, labelType };
                     _labels = (VBuffer<int>)methodInfo.Invoke(this, parameters);
-                    _numLabels = labelType.KeyCount + 1;
+                    _numLabels = labelKeyCount + 1;
 
                     // No need to densify or shift in this case.
                     return;
@@ -555,7 +557,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinBools(in src, ref dst);
                         });
                 }
-                Contracts.Assert(0 < type.ItemType.KeyCount && type.ItemType.KeyCount < Utils.ArrayMaxSize);
+                int keyCount = type.ItemType.GetKeyCount();
+                Contracts.Assert(0 < keyCount && keyCount < Utils.ArrayMaxSize);
                 Func<ColumnType, Mapper<int>> del = MakeKeyMapper<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
                 ComputeMutualInformationDelegate<int> cmiDel = ComputeMutualInformation;
@@ -569,13 +572,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             private static Mapper<T> MakeKeyMapper<T>(ColumnType type)
             {
-                Contracts.Assert(0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize);
+                int keyCount = type.GetKeyCount();
+                Contracts.Assert(0 < keyCount && keyCount < Utils.ArrayMaxSize);
                 var mapper = BinKeys<T>(type);
                 return
                     (ref VBuffer<T> src, ref VBuffer<int> dst, out int min, out int lim) =>
                     {
                         min = 0;
-                        lim = type.KeyCount + 1;
+                        lim = keyCount + 1;
                         mapper(in src, ref dst);
                     };
             }

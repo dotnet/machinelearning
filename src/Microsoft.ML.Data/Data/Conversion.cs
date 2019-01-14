@@ -567,7 +567,7 @@ namespace Microsoft.ML.Data.Conversion
         public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsStandardScalar() || typeDst.IsKey, nameof(typeDst),
+            Contracts.CheckParam(typeDst.IsStandardScalar() || typeDst is KeyType, nameof(typeDst),
                 "Parse conversion only supported for standard types");
             Contracts.Check(typeDst.RawType == typeof(TDst), "Wrong TDst type parameter");
 
@@ -676,7 +676,7 @@ namespace Microsoft.ML.Data.Conversion
 
             var t = type;
             Delegate del;
-            if (!t.IsStandardScalar() && !t.IsKey || !_isDefaultDelegates.TryGetValue(t.RawKind, out del))
+            if (!t.IsStandardScalar() && !(t is KeyType) || !_isDefaultDelegates.TryGetValue(t.RawKind, out del))
                 throw Contracts.Except("No IsDefault predicate for '{0}'", type);
 
             return (InPredicate<T>)del;
@@ -713,7 +713,7 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.CheckParam(!type.IsVector, nameof(type));
 
             var t = type;
-            if (t.IsKey)
+            if (t is KeyType)
             {
                 // REVIEW: Should we test for out of range when KeyCount > 0?
                 Contracts.Assert(_isDefaultDelegates.ContainsKey(t.RawKind));
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Data.Conversion
 
             var t = type.ItemType;
             Delegate del;
-            if (t.IsKey)
+            if (t is KeyType)
             {
                 // REVIEW: Should we test for out of range when KeyCount > 0?
                 Contracts.Assert(_hasZeroDelegates.ContainsKey(t.RawKind));
