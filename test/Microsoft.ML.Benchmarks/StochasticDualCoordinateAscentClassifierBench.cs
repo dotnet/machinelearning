@@ -16,8 +16,8 @@ namespace Microsoft.ML.Benchmarks
 {
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
-        private readonly string _dataPath = DataPathProvider.GetDataPath("iris.txt");
-        private readonly string _sentimentDataPath = DataPathProvider.GetDataPath("wikipedia-detox-250-line-data.tsv");
+        private readonly string _dataPath = TestFramework.BaseTestClass.GetDataPath("iris.txt");
+        private readonly string _sentimentDataPath = TestFramework.BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
         private readonly MLContext _env = new MLContext(seed: 1);

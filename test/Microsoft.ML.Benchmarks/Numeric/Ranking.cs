@@ -21,8 +21,8 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _mslrWeb10k_Validate = DataPathProvider.GetDataPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10k_Train = DataPathProvider.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10k_Validate = TestFramework.BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10k_Train = TestFramework.BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
 
             if (!File.Exists(_mslrWeb10k_Validate))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Validate));
@@ -71,9 +71,9 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _mslrWeb10k_Test = DataPathProvider.GetDataPath(TestDatasets.MSLRWeb.testFilename);
-            _mslrWeb10k_Validate = DataPathProvider.GetDataPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10k_Train = DataPathProvider.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10k_Test = TestFramework.BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.testFilename);
+            _mslrWeb10k_Validate = TestFramework.BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10k_Train = TestFramework.BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
 
             if (!File.Exists(_mslrWeb10k_Test))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Test));
