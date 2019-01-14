@@ -48,7 +48,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2,
-                onFit: p => pred = p, advancedSettings: s => s.NumThreads = 1)));
+                onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
@@ -88,7 +88,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 separator: ';', hasHeader: true);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, r.Score, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2, advancedSettings: s => s.NumThreads = 1)));
+                .Append(r => (r.label, r.Score, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2)));
 
             var pipe = reader.Append(est);
 
@@ -121,8 +121,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
                     maxIterations: 2,
-                    onFit: (p, c) => { pred = p; cali = c; },
-                    advancedSettings: s => s.NumThreads = 1)));
+                    onFit: (p, c) => { pred = p; cali = c; })));
 
             var pipe = reader.Append(est);
 
@@ -169,8 +168,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
                 maxIterations: 2,
-                loss: loss, onFit: p => pred = p,
-                advancedSettings: s => s.NumThreads = 1)));
+                loss: loss, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 

@@ -64,7 +64,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -75,13 +75,13 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights,
-            Options advancedSettings,
+            Options options,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new StochasticGradientDescentClassificationTrainer(env, advancedSettings);
+                    var trainer = new StochasticGradientDescentClassificationTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
