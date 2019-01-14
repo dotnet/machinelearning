@@ -176,7 +176,10 @@ namespace Microsoft.ML.Transforms
 
                 var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(parent.Host, _parent._addedSchema);
                 appendedDataView.SetCurrentRowObject(_dst);
-                _appendedRow = appendedDataView.GetRowCursor(colsNeeded);
+                var appendedIndices = _parent._bindings.AddedColumnIndices;
+
+                var cols = colsNeeded.Select(c => c.Name);
+                _appendedRow = appendedDataView.GetRowCursor(appendedDataView.Schema.Where(c => cols.Contains(c.Name)));
             }
 
             protected override void Dispose(bool disposing)

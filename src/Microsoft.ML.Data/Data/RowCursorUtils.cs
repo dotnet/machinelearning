@@ -484,17 +484,20 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(colsNeeded, nameof(colsNeeded));
             Contracts.CheckValue(sourceSchema, nameof(sourceSchema));
 
-            bool[] indicesRequested = new bool[sourceSchema.Count];
+            if (colsNeeded.Count() == 0)
+                return c => false;
+
+            var indicesRequested = new HashSet<int>();
 
             foreach (var col in colsNeeded)
             {
-                if(col.Index >= indicesRequested.Length)
+                if(sourceSchema.GetColumnOrNull(col.Name) == null)
                     throw Contracts.Except($"The requested column: {col} is not part of the {nameof(sourceSchema)}");
 
-                indicesRequested[col.Index] = true;
+                indicesRequested.Add(col.Index);
             }
 
-            return c => indicesRequested[c];
+            return c => indicesRequested.Contains(c);
         }
 
         private sealed class OneRowDataView : IDataView
