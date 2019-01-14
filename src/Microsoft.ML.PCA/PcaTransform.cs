@@ -254,7 +254,7 @@ namespace Microsoft.ML.Transforms.Projections
                 var colInfo = columns[i];
                 var sInfo = _schemaInfos[i] = new Mapper.ColumnSchemaInfo(ColumnPairs[i], input.Schema, colInfo.WeightColumn);
                 ValidatePcaInput(Host, colInfo.Input, sInfo.InputType);
-                _transformInfos[i] = new TransformInfo(colInfo.Rank, sInfo.InputType.ValueCount());
+                _transformInfos[i] = new TransformInfo(colInfo.Rank, sInfo.InputType.GetValueCount());
             }
 
             Train(columns, _transformInfos, input);
@@ -589,7 +589,7 @@ namespace Microsoft.ML.Transforms.Projections
                     var colPair = _parent.ColumnPairs[i];
                     var colSchemaInfo = new ColumnSchemaInfo(colPair, inputSchema);
                     ValidatePcaInput(Host, colPair.input, colSchemaInfo.InputType);
-                    if (colSchemaInfo.InputType.VectorSize() != _parent._transformInfos[i].Dimension)
+                    if (colSchemaInfo.InputType.GetVectorSize() != _parent._transformInfos[i].Dimension)
                     {
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input,
                             new VectorType(NumberType.R4, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());

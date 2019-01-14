@@ -42,7 +42,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            int scoreSize = scoreInfo.Type.VectorSize();
+            int scoreSize = scoreInfo.Type.GetVectorSize();
             var type = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
             Host.Check(type != null && type.IsKnownSize && type.ItemType is TextType, "Quantile regression score column must have slot names");
             var quantiles = default(VBuffer<ReadOnlyMemory<char>>);

@@ -69,7 +69,7 @@ namespace Microsoft.ML.Data.IO
             // Since we'll be presumably saving vectors of these, attempt to construct
             // an artificial vector type out of this. Obviously if you can't make a vector
             // out of the items, then you could not save each slot's values.
-            var itemType = type.ItemType();
+            var itemType = type.GetItemType();
             var primitiveType = itemType as PrimitiveType;
             if (primitiveType == null)
                 return false;

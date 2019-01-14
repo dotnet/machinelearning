@@ -23,7 +23,7 @@ namespace Microsoft.ML.Ensemble
             var featCol = data.Schema.Feature.Value;
 
             var type = featCol.Type;
-            var typeVectorSize = type.VectorSize();
+            var typeVectorSize = type.GetVectorSize();
             Contracts.Assert(features.Length == typeVectorSize);
             int card = Utils.GetCardinality(features);
             if (card == typeVectorSize)

@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             int iinfo = invertIinfos[i];
-                            Host.Assert(types[iinfo].ItemType().GetKeyCount() > 0);
+                            Host.Assert(types[iinfo].GetItemType().GetKeyCount() > 0);
                             var dstGetter = GetGetterCore(srcCursor, iinfo, out disposer);
                             Host.Assert(disposer == null);
                             var ex = _columns[iinfo];
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             _keyValues[invertIinfos[i]] = helpers[i].GetKeyValuesMetadata();
-                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].ItemType().GetKeyCount());
+                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].GetItemType().GetKeyCount());
                             _kvTypes[invertIinfos[i]] = new VectorType(TextType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
                     }
@@ -1014,7 +1014,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             private IEqualityComparer<T> GetSimpleComparer<T>()
             {
-                Contracts.Assert(_srcType.ItemType().RawType == typeof(T));
+                Contracts.Assert(_srcType.GetItemType().RawType == typeof(T));
                 if (typeof(T) == typeof(ReadOnlyMemory<char>))
                 {
                     // We are hashing twice, once to assign to the slot, and then again,
@@ -1205,7 +1205,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         internal static bool IsColumnTypeValid(ColumnType type)
         {
-            var itemType = type.ItemType();
+            var itemType = type.GetItemType();
             return itemType is TextType || itemType is KeyType || itemType is NumberType || itemType is BoolType;
         }
 

@@ -552,7 +552,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
                         termsFromFile = CreateFileTermMap(env, ch, file, termsColumn, loaderFactory, bldr);
                     }
-                    if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.ItemType()))
+                    if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.GetItemType()))
                     {
                         // We have no current plans to support re-interpretation based on different column
                         // type, not only because it's unclear what realistic customer use-cases for such
@@ -560,7 +560,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // can logically reconcile "reinterpretation" for different types with the resulting
                         // data view having an actual type.
                         throw ch.ExceptUserArg(nameof(file), "Data file terms loaded as type '{0}' but mismatches column '{1}' item type '{2}'",
-                            termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.ItemType());
+                            termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.GetItemType());
                     }
                     termMap[iinfo] = termsFromFile;
                 }
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     trainer[itrainer] = null;
                 }
                 ch.Assert(termMap.All(tm => tm != null));
-                ch.Assert(termMap.Zip(infos, (tm, info) => tm.ItemType.Equals(info.TypeSrc.ItemType())).All(x => x));
+                ch.Assert(termMap.Zip(infos, (tm, info) => tm.ItemType.Equals(info.TypeSrc.GetItemType())).All(x => x));
             }
 
             return termMap;
@@ -761,7 +761,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                if (!(info.TypeSrc.ItemType() is TextType))
+                if (!(info.TypeSrc.GetItemType() is TextType))
                     return false;
 
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);

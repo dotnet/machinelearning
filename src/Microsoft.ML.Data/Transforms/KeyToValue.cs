@@ -229,9 +229,9 @@ namespace Microsoft.ML.Transforms.Conversions
                     var typeSrc = schema[ColMapNewToOld[iinfo]].Type;
                     var typeVals = schema[ColMapNewToOld[iinfo]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
-                    ColumnType valsItemType = typeVals.ItemType();
-                    ColumnType srcItemType = typeSrc.ItemType();
-                    Host.Check(typeVals.VectorSize() == srcItemType.GetKeyCount(), "KeyValues metadata size does not match column type key count");
+                    ColumnType valsItemType = typeVals.GetItemType();
+                    ColumnType srcItemType = typeSrc.GetItemType();
+                    Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCount(), "KeyValues metadata size does not match column type key count");
                     if (!(typeSrc is VectorType vectorType))
                         types[iinfo] = valsItemType;
                     else
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     // MarshalInvoke with two generic params.
                     Func<int, ColumnType, ColumnType, KeyToValueMap> func = GetKeyMetadata<int, int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(
-                        new Type[] { srcItemType.RawType, types[iinfo].ItemType().RawType });
+                        new Type[] { srcItemType.RawType, types[iinfo].GetItemType().RawType });
                     kvMaps[iinfo] = (KeyToValueMap)meth.Invoke(this, new object[] { iinfo, typeSrc, typeVals });
                 }
             }
@@ -250,8 +250,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 Host.AssertValue(typeKey);
                 Host.AssertValue(typeVal);
-                ColumnType keyItemType = typeKey.ItemType();
-                ColumnType valItemType = typeVal.ItemType();
+                ColumnType keyItemType = typeKey.GetItemType();
+                ColumnType valItemType = typeVal.GetItemType();
                 Host.Assert(keyItemType.RawType == typeof(TKey));
                 Host.Assert(valItemType.RawType == typeof(TValue));
 
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _values = values;
 
                     // REVIEW: May want to include more specific information about what the specific value is for the default.
-                    ColumnType outputItemType = TypeOutput.ItemType();
+                    ColumnType outputItemType = TypeOutput.GetItemType();
                     _na = Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(outputItemType, out _naMapsToDefault);
 
                     if (_naMapsToDefault)

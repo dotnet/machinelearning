@@ -144,7 +144,7 @@ namespace Microsoft.ML.Data
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            int numClusters = scoreInfo.Type.VectorSize();
+            int numClusters = scoreInfo.Type.GetVectorSize();
             return new ClusteringPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, numClusters);
         }
 
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Data
                         Contracts.Assert(features.HasValue);
                         _clusterCentroids = new VBuffer<Single>[_numClusters];
                         for (int i = 0; i < _numClusters; i++)
-                            _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.VectorSize());
+                            _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.GetVectorSize());
                         _distancesToCentroids = new Double[_numClusters];
                     }
                 }
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Data
                     Host.Assert(features.HasValue);
                     _clusterCentroids = new VBuffer<Single>[scoreVectorSize];
                     for (int i = 0; i < scoreVectorSize; i++)
-                        _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.VectorSize());
+                        _clusterCentroids[i] = VBufferUtils.CreateEmpty<Single>(features.Value.Type.GetVectorSize());
                 }
             }
 
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Data
                     _featGetter = row.GetGetter<VBuffer<Single>>(schema.Feature.Value.Index);
                 }
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-                Host.Assert(score.Type.VectorSize() == _scoresArr.Length);
+                Host.Assert(score.Type.GetVectorSize() == _scoresArr.Length);
                 _scoreGetter = row.GetGetter<VBuffer<Single>>(score.Index);
 
                 if (PassNum == 0)
@@ -723,7 +723,7 @@ namespace Microsoft.ML.Data
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
             var sortedClusters = new MetadataBuilder();
-            int vectorSize = slotNamesType.VectorSize();
+            int vectorSize = slotNamesType.GetVectorSize();
             sortedClusters.AddSlotNames(vectorSize, CreateSlotNamesGetter(_numClusters, "Cluster"));
 
             var builder = new MetadataBuilder();
@@ -836,14 +836,14 @@ namespace Microsoft.ML.Data
             if (perInst.Schema.TryGetColumnIndex(ClusteringPerInstanceEvaluator.SortedClusters, out int index))
             {
                 var type = perInst.Schema[index].Type;
-                if (_numTopClusters < type.VectorSize())
+                if (_numTopClusters < type.GetVectorSize())
                     perInst = new SlotsDroppingTransformer(Host, ClusteringPerInstanceEvaluator.SortedClusters, min: _numTopClusters).Transform(perInst);
             }
 
             if (perInst.Schema.TryGetColumnIndex(ClusteringPerInstanceEvaluator.SortedClusterScores, out index))
             {
                 var type = perInst.Schema[index].Type;
-                if (_numTopClusters < type.VectorSize())
+                if (_numTopClusters < type.GetVectorSize())
                     perInst = new SlotsDroppingTransformer(Host, ClusteringPerInstanceEvaluator.SortedClusterScores, min: _numTopClusters).Transform(perInst);
             }
             return perInst;

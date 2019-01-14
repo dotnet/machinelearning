@@ -154,13 +154,13 @@ namespace Microsoft.ML.Data
                     ColumnType typeNames;
                     if ((typeNames = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null)
                         continue;
-                    if (typeNames.VectorSize() != type.VectorSize() || !(typeNames.ItemType() is TextType))
+                    if (typeNames.GetVectorSize() != type.GetVectorSize() || !(typeNames.GetItemType() is TextType))
                     {
                         Contracts.Assert(false, "Unexpected slot names type");
                         continue;
                     }
                     schema[col].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
-                    if (names.Length != type.VectorSize())
+                    if (names.Length != type.GetVectorSize())
                     {
                         Contracts.Assert(false, "Unexpected length of slot names vector");
                         continue;

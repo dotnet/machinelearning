@@ -69,7 +69,7 @@ namespace Microsoft.ML.Data
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            int vectorSize = score.Type.VectorSize();
+            int vectorSize = score.Type.GetVectorSize();
             Host.Assert(vectorSize > 0);
             return new Aggregator(Host, LossFunction, vectorSize, schema.Weight != null, stratName);
         }

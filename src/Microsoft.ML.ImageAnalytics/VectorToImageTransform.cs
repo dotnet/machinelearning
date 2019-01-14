@@ -341,7 +341,7 @@ namespace Microsoft.ML.ImageAnalytics
             bool needScale = ex.Offset != 0 || ex.Scale != 1;
             disposer = null;
             var sourceType = InputSchema[Infos[iinfo].Source].Type;
-            var sourceItemType = sourceType.ItemType();
+            var sourceItemType = sourceType.GetItemType();
             if (sourceItemType == NumberType.R4 || sourceItemType == NumberType.R8)
                 return GetterFromType<float>(input, iinfo, ex, needScale);
             else

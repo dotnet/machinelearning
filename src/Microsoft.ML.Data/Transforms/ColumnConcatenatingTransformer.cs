@@ -578,10 +578,10 @@ namespace Microsoft.ML.Data
                     for (int i = 0; i < SrcIndices.Length; i++)
                     {
 
-                        Contracts.Assert(_srcTypes[i].ValueCount() > 0);
+                        Contracts.Assert(_srcTypes[i].GetValueCount() > 0);
 
                         if (i > 0)
-                            slotCount += _srcTypes[i - 1].ValueCount();
+                            slotCount += _srcTypes[i - 1].GetValueCount();
 
                         if (MetadataUtils.TryGetCategoricalFeatureIndices(_inputSchema, SrcIndices[i], out int[] values))
                         {
@@ -907,7 +907,7 @@ namespace Microsoft.ML.Data
 
                         var srcIndex = boundCol.SrcIndices[i];
                         inputList.Add(new KeyValuePair<string, long>(ctx.GetVariableName(srcName),
-                            InputSchema[srcIndex].Type.ValueCount()));
+                            InputSchema[srcIndex].Type.GetValueCount()));
                     }
 
                     var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),

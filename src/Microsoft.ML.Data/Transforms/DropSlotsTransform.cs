@@ -780,7 +780,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
                 var typeDst = _dstTypes[iinfo];
-                int srcValueCount = _srcTypes[iinfo].ValueCount();
+                int srcValueCount = _srcTypes[iinfo].GetValueCount();
                 if (typeDst is VectorType dstVector && dstVector.IsKnownSize && dstVector.Size == srcValueCount)
                     return srcGetter;
 

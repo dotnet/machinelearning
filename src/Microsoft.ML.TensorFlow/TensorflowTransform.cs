@@ -394,7 +394,7 @@ namespace Microsoft.ML.Transforms
             }
 
             var expectedType = TensorFlowUtils.Tf2MlNetType(tfInputType);
-            if (type.ItemType() != expectedType)
+            if (type.GetItemType() != expectedType)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", columnName, expectedType.ToString(), type.ToString());
 
             return (inputColIndex, isInputVector, tfInputType, tfInputShape);
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Transforms
                         throw Host.Except("Non-vector columns not supported");
                     vecType = (VectorType)type;
                     var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
-                    if (type.ItemType() != expectedType)
+                    if (type.GetItemType() != expectedType)
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
                     var originalShape = _parent.TFInputShapes[i];
                     var shape = originalShape.ToIntArray();
@@ -842,7 +842,7 @@ namespace Microsoft.ML.Transforms
                         // Compute the total size of the known dimensions of the shape.
                         int valCount = shape.Where(x => x > 0).Aggregate((x, y) => x * y);
                         // The column length should be divisible by this, so that the other dimensions can be integral.
-                        int typeValueCount = type.ValueCount();
+                        int typeValueCount = type.GetValueCount();
                         if (typeValueCount % valCount != 0)
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
@@ -895,7 +895,7 @@ namespace Microsoft.ML.Transforms
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
                 var type = TFTensor.TypeFromTensorType(_parent.TFOutputTypes[iinfo]);
-                Host.Assert(type == _parent.OutputTypes[iinfo].ItemType().RawType);
+                Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
                 var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
             }
@@ -1143,7 +1143,7 @@ namespace Microsoft.ML.Transforms
             {
                 resultDic[_args.OutputColumns[i]] = new SchemaShape.Column(_args.OutputColumns[i],
                     _outputTypes[i].IsKnownSizeVector() ? SchemaShape.Column.VectorKind.Vector
-                    : SchemaShape.Column.VectorKind.VariableVector, _outputTypes[i].ItemType(), false);
+                    : SchemaShape.Column.VectorKind.VariableVector, _outputTypes[i].GetItemType(), false);
             }
             return new SchemaShape(resultDic.Values);
         }

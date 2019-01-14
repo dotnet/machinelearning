@@ -286,7 +286,7 @@ namespace Microsoft.ML.Transforms.Text
                 disposer = null;
 
                 var srcType = input.Schema[_parent.ColumnPairs[iinfo].input].Type;
-                Host.Assert(srcType.ItemType() is TextType);
+                Host.Assert(srcType.GetItemType() is TextType);
 
                 if (srcType is VectorType vectorType)
                 {
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        public static bool IsColumnTypeValid(ColumnType type) => (type.ItemType() is TextType);
+        public static bool IsColumnTypeValid(ColumnType type) => (type.GetItemType() is TextType);
 
         internal const string ExpectedColumnType = "Text or vector of text.";
 

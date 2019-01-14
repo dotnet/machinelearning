@@ -571,7 +571,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 var colType = input.Schema[ColMapNewToOld[iinfo]].Type;
                 Host.Assert(colType is VectorType);
-                Host.Assert(colType.ItemType() is TextType);
+                Host.Assert(colType.GetItemType() is TextType);
 
                 var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);

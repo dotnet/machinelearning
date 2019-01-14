@@ -313,7 +313,7 @@ namespace Microsoft.ML.Data.IO
 
         public bool IsColumnSavable(ColumnType type)
         {
-            var item = type.ItemType();
+            var item = type.GetItemType();
             return item.IsStandardScalar() || item is KeyType;
         }
 
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Data.IO
             for (int i = 0; i < cols.Length; i++)
             {
                 ch.Check(0 <= cols[i] && cols[i] < active.Length);
-                ch.Check(data.Schema[cols[i]].Type.ItemType().RawKind != 0);
+                ch.Check(data.Schema[cols[i]].Type.GetItemType().RawKind != 0);
                 active[cols[i]] = true;
             }
 
@@ -477,7 +477,7 @@ namespace Microsoft.ML.Data.IO
                     index = null;
                 }
 
-                index += type.ValueCount();
+                index += type.GetValueCount();
             }
 
             return sb.ToString();

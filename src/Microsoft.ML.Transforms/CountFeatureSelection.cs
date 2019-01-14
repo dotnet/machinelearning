@@ -252,7 +252,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 activeInput[colSrc] = true;
                 colSrcs[i] = colSrc;
                 colTypes[i] = colType;
-                colSizes[i] = colType.ValueCount();
+                colSizes[i] = colType.GetValueCount();
             }
 
             var aggregators = new CountAggregator[size];

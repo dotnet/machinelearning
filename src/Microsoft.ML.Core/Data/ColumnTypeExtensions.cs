@@ -23,24 +23,28 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static int GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
 
-        public static ColumnType ItemType(this ColumnType columnType) => (columnType as VectorType)?.ItemType ?? columnType;
+        /// <summary>
+        /// For non-vector types, this returns the column type itself (i.e., return <paramref name="columnType"/>).
+        /// For vector types, this returns the type of the items stored as values in vector.
+        /// </summary>
+        public static ColumnType GetItemType(this ColumnType columnType) => (columnType as VectorType)?.ItemType ?? columnType;
 
         /// <summary>
         /// Zero return means either it's not a vector or the size is unknown.
         /// </summary>
-        public static int VectorSize(this ColumnType columnType) => (columnType as VectorType)?.Size ?? 0;
+        public static int GetVectorSize(this ColumnType columnType) => (columnType as VectorType)?.Size ?? 0;
 
         /// <summary>
         /// For non-vectors, this returns one. For unknown size vectors, it returns zero.
         /// For known sized vectors, it returns size.
         /// </summary>
-        public static int ValueCount(this ColumnType columnType) => (columnType as VectorType)?.Size ?? 1;
+        public static int GetValueCount(this ColumnType columnType) => (columnType as VectorType)?.Size ?? 1;
 
         /// <summary>
         /// Whether this is a vector type with known size. Returns false for non-vector types.
-        /// Equivalent to <c><see cref="VectorSize"/> &gt; 0</c>.
+        /// Equivalent to <c><see cref="GetVectorSize"/> &gt; 0</c>.
         /// </summary>
-        public static bool IsKnownSizeVector(this ColumnType columnType) => columnType.VectorSize() > 0;
+        public static bool IsKnownSizeVector(this ColumnType columnType) => columnType.GetVectorSize() > 0;
 
         /// <summary>
         /// Equivalent to calling Equals(ColumnType) for non-vector types. For vector type,

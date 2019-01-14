@@ -87,7 +87,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private string TestIsKey(ColumnType type)
         {
-            if (type.ItemType().GetKeyCount() > 0)
+            if (type.GetItemType().GetKeyCount() > 0)
                 return null;
             return "key type of known cardinality";
         }
@@ -203,9 +203,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     //Add an additional bit for all 1s to represent missing values.
-                    _bitsPerKey[i] = Utils.IbitHigh((uint)_infos[i].TypeSrc.ItemType().GetKeyCount()) + 2;
+                    _bitsPerKey[i] = Utils.IbitHigh((uint)_infos[i].TypeSrc.GetItemType().GetKeyCount()) + 2;
                     Host.Assert(_bitsPerKey[i] > 0);
-                    int srcValueCount = _infos[i].TypeSrc.ValueCount();
+                    int srcValueCount = _infos[i].TypeSrc.GetValueCount();
                     if (srcValueCount == 1)
                         // Output is a single vector computed as the sum of the output indicator vectors.
                         _types[i] = new VectorType(NumberType.Float, _bitsPerKey[i]);
@@ -256,12 +256,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
                     typeNames = inputMetadata.Schema[metaKeyValuesCol].Type as VectorType;
                 if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextType) ||
-                    typeNames.Size != _infos[iinfo].TypeSrc.ItemType().GetKeyCount())
+                    typeNames.Size != _infos[iinfo].TypeSrc.GetItemType().GetKeyCount())
                 {
                     typeNames = null;
                 }
 
-                if (_infos[iinfo].TypeSrc.ValueCount() == 1)
+                if (_infos[iinfo].TypeSrc.GetValueCount() == 1)
                 {
                     if (typeNames != null)
                     {
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 // Variable size should have thrown (by the caller).
                 var typeSrc = _infos[iinfo].TypeSrc;
-                var srcVectorSize = typeSrc.VectorSize();
+                var srcVectorSize = typeSrc.GetVectorSize();
                 Host.Assert(srcVectorSize > 1);
 
                 // Get the source slot names, defaulting to empty text.
@@ -480,7 +480,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if ((col.ItemType.ItemType().RawKind == default) || !(col.ItemType is VectorType || col.ItemType is PrimitiveType))
+                if ((col.ItemType.GetItemType().RawKind == default) || !(col.ItemType is VectorType || col.ItemType is PrimitiveType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 var metadata = new List<SchemaShape.Column>();

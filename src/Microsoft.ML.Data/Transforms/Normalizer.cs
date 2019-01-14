@@ -686,7 +686,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.Assert(_parent.Columns[iinfo] == info);
                 Contracts.Assert(CanSaveOnnx(ctx));
 
-                int valueCount = info.InputType.ValueCount();
+                int valueCount = info.InputType.GetValueCount();
                 if (valueCount == 0)
                     return false;
 

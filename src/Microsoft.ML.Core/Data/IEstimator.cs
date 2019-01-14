@@ -148,7 +148,7 @@ namespace Microsoft.ML.Core.Data
         {
             if (type is VectorType vectorType)
             {
-                if (vectorType.Size > 0)
+                if (vectorType.IsKnownSize)
                 {
                     vecKind = Column.VectorKind.Vector;
                 }

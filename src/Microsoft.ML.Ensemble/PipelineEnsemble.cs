@@ -626,7 +626,7 @@ namespace Microsoft.ML.Ensemble
             // The label is numeric, we just have to check that the number of classes is the same.
             if (!(pred is IValueMapper vm))
                 throw env.Except("Cannot determine the number of classes the predictor outputs");
-            var classCount = vm.OutputType.VectorSize();
+            var classCount = vm.OutputType.GetVectorSize();
 
             for (int i = 1; i < models.Length; i++)
             {
@@ -634,7 +634,7 @@ namespace Microsoft.ML.Ensemble
                 var edv = new EmptyDataView(env, model.TransformModel.InputSchema);
                 model.PrepareData(env, edv, out RoleMappedData rmd, out pred);
                 vm = pred as IValueMapper;
-                if (vm.OutputType.VectorSize() != classCount)
+                if (vm.OutputType.GetVectorSize() != classCount)
                     throw env.Except("Label of model {0} has different number of classes than model 0", i);
             }
             return classCount;

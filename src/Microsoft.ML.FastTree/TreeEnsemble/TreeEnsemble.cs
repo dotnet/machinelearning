@@ -413,7 +413,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Contracts.AssertValue(schema);
             Contracts.Assert(schema.Feature.HasValue);
             var feat = schema.Feature.Value;
-            int featValueCount = feat.Type.ValueCount();
+            int featValueCount = feat.Type.GetValueCount();
             Contracts.Assert(featValueCount > 0);
 
             var sch = schema.Schema;

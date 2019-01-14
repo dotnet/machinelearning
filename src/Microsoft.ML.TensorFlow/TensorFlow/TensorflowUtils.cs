@@ -120,7 +120,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 VBuffer<ReadOnlyMemory<char>> inputOps = default;
                 if (metadataType != null)
                 {
-                    Contracts.Assert(metadataType.IsKnownSizeVector() && metadataType.ItemType() is TextType);
+                    Contracts.Assert(metadataType.IsKnownSizeVector() && metadataType.GetItemType() is TextType);
                     schema[i].Metadata.GetValue(TensorflowUpstreamOperatorsKind, ref inputOps);
                 }
 

@@ -584,7 +584,7 @@ namespace Microsoft.ML.RunTests
                 if (!keyNames)
                     continue;
 
-                size = type1.ItemType() is KeyType keyType ? keyType.Count : -1;
+                size = type1.GetItemType() is KeyType keyType ? keyType.Count : -1;
                 if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, size, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
@@ -617,7 +617,7 @@ namespace Microsoft.ML.RunTests
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
                 return Failed();
             }
-            if (!(t1.ItemType() is TextType))
+            if (!(t1.GetItemType() is TextType))
             {
                 if (!mustBeText)
                 {
@@ -628,9 +628,9 @@ namespace Microsoft.ML.RunTests
                 return Failed();
             }
 
-            if (size != t1.VectorSize())
+            if (size != t1.GetVectorSize())
             {
-                Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.VectorSize(), size);
+                Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.GetVectorSize(), size);
                 return Failed();
             }
 

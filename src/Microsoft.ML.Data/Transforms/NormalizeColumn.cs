@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             public string TestType(ColumnType type)
             {
-                ColumnType itemType = type.ItemType();
+                ColumnType itemType = type.GetItemType();
                 if (itemType != NumberType.R4 && itemType != NumberType.R8)
                     return "Expected R4 or R8 item type";
 
@@ -434,8 +434,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
-                    Host.Check(typeSrc.VectorSize() == Scale.Length);
-                    Host.Check(typeSrc.ItemType().RawType == typeof(TFloat));
+                    Host.Check(typeSrc.GetVectorSize() == Scale.Length);
+                    Host.Check(typeSrc.GetItemType().RawType == typeof(TFloat));
                     bldr.AddGetter<VBuffer<TFloat>>("AffineScale", typeSrc, ScaleMetadataGetter);
                     if (Offset != null)
                         bldr.AddGetter<VBuffer<TFloat>>("AffineOffset", typeSrc, OffsetMetadataGetter);
@@ -552,8 +552,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
-                    Host.Check(typeSrc.VectorSize() == Mean.Length);
-                    Host.Check(typeSrc.ItemType().RawType == typeof(TFloat));
+                    Host.Check(typeSrc.GetVectorSize() == Mean.Length);
+                    Host.Check(typeSrc.GetItemType().RawType == typeof(TFloat));
                     bldr.AddGetter<VBuffer<TFloat>>("CdfMean", typeSrc, MeanMetadataGetter);
                     bldr.AddGetter<VBuffer<TFloat>>("CdfStdDev", typeSrc, StddevMetadataGetter);
                     bldr.AddPrimitive("CdfUseLog", BoolType.Instance, UseLog);
@@ -849,7 +849,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 _colValueGetter = dataRow.GetGetter<VBuffer<TFloat>>(valueColId);
                 var valueColType = dataRow.Schema[valueColId].Type;
                 Host.Assert(valueColType.IsKnownSizeVector());
-                ColumnSlotCount = valueColType.ValueCount();
+                ColumnSlotCount = valueColType.GetValueCount();
 
                 ColValues = new List<TFloat>[ColumnSlotCount];
                 for (int i = 0; i < ColumnSlotCount; i++)

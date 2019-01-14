@@ -122,7 +122,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private string TestIsKey(ColumnType type)
         {
-            if (type.ItemType().GetKeyCount() > 0)
+            if (type.GetItemType().GetKeyCount() > 0)
                 return null;
             return "key type of known cardinality";
         }
@@ -263,11 +263,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 _types = new VectorType[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    int valueCount = _infos[i].TypeSrc.ValueCount();
+                    int valueCount = _infos[i].TypeSrc.GetValueCount();
                     if (_parent._columns[i].Bag || valueCount == 1)
-                        _types[i] = new VectorType(NumberType.Float, _infos[i].TypeSrc.ItemType().GetKeyCount());
+                        _types[i] = new VectorType(NumberType.Float, _infos[i].TypeSrc.GetItemType().GetKeyCount());
                     else
-                        _types[i] = new VectorType(NumberType.Float, valueCount, _infos[i].TypeSrc.ItemType().GetKeyCount());
+                        _types[i] = new VectorType(NumberType.Float, valueCount, _infos[i].TypeSrc.GetItemType().GetKeyCount());
                 }
             }
 
@@ -306,14 +306,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 var inputMetadata = InputSchema[srcCol].Metadata;
 
                 var srcType = _infos[iinfo].TypeSrc;
-                int srcValueCount = srcType.ValueCount();
+                int srcValueCount = srcType.GetValueCount();
 
                 VectorType typeNames = null;
                 int metaKeyValuesCol = 0;
                 if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
                     typeNames = inputMetadata.Schema[metaKeyValuesCol].Type as VectorType;
                 if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextType) ||
-                    typeNames.Size != srcType.ItemType().GetKeyCount())
+                    typeNames.Size != srcType.GetItemType().GetKeyCount())
                 {
                     typeNames = null;
                 }
@@ -427,12 +427,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
 
                 var info = _infos[iinfo];
-                int valueCount = info.TypeSrc.ValueCount();
+                int valueCount = info.TypeSrc.GetValueCount();
 
                 Host.Assert(valueCount > 0);
 
                 int[] ranges = new int[valueCount * 2];
-                int size = info.TypeSrc.ItemType().GetKeyCount();
+                int size = info.TypeSrc.GetItemType().GetKeyCount();
 
                 ranges[0] = 0;
                 ranges[1] = size - 1;
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(CanSavePfa);
 
                 ColumnType srcType = info.TypeSrc;
-                ColumnType srcItemType = srcType.ItemType();
+                ColumnType srcItemType = srcType.GetItemType();
                 int keyCount = srcItemType.GetKeyCount();
                 Host.Assert(keyCount > 0);
                 // If the input type is scalar, we can just use the fanout function.
@@ -720,7 +720,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 string opType = "OneHotEncoder";
                 var node = ctx.CreateNode(opType, srcVariableName, encodedVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.ItemType().GetKeyCount()).Select(x => (long)x));
+                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.GetItemType().GetKeyCount()).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
                 if (_parent._columns[iinfo].Bag)
                 {
@@ -767,7 +767,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if ((col.ItemType.ItemType().RawKind == default) || !(col.ItemType is VectorType || col.ItemType is PrimitiveType))
+                if ((col.ItemType.GetItemType().RawKind == default) || !(col.ItemType is VectorType || col.ItemType is PrimitiveType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 var metadata = new List<SchemaShape.Column>();

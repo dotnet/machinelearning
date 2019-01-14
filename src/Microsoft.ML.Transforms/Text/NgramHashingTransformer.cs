@@ -743,7 +743,7 @@ namespace Microsoft.ML.Transforms.Text
                 var bldr = new NgramBufferBuilder(_parent._columns[iinfo].NgramLength, _parent._columns[iinfo].SkipLength,
                     _types[iinfo].Size, ngramIdFinder);
                 var keyCounts = _srcTypes[iinfo].Select(
-                    t => (t.ItemType() is KeyType keyType && keyType.Count > 0) ? (uint)keyType.Count : uint.MaxValue).ToArray();
+                    t => (t.GetItemType() is KeyType keyType && keyType.Count > 0) ? (uint)keyType.Count : uint.MaxValue).ToArray();
 
                 // REVIEW: Special casing the srcCount==1 case could potentially improve perf.
                 ValueGetter<VBuffer<float>> del =

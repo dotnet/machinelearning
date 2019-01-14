@@ -347,7 +347,7 @@ namespace Microsoft.ML.Data
                             // For R8 vector valued columns the names of the metrics are the column name,
                             // followed by the slot name if it exists, or "Label_i" if it doesn't.
                             VBuffer<ReadOnlyMemory<char>> names = default;
-                            var size = schema[i].Type.VectorSize();
+                            var size = schema[i].Type.GetVectorSize();
                             var slotNamesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
                             if (slotNamesType != null && slotNamesType.Size == size && slotNamesType.ItemType is TextType)
                                 schema[i].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
@@ -474,7 +474,7 @@ namespace Microsoft.ML.Data
                     throw env.Except("Data view number {0} does not contain column '{1}'", i, columnName);
 
                 var type = typeSrc[i] = idv.Schema[col].Type;
-                if (!idv.Schema[col].HasSlotNames(type.VectorSize()))
+                if (!idv.Schema[col].HasSlotNames(type.GetVectorSize()))
                     throw env.Except("Column '{0}' in data view number {1} did not contain slot names metadata", columnName, i);
                 idv.Schema[col].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNamesCur);
 
@@ -721,7 +721,7 @@ namespace Microsoft.ML.Data
 
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null;
                 var type = views[i].Schema[columnIndices[i]].Type;
-                if (views[i].Schema[columnIndices[i]].HasSlotNames(type.VectorSize()))
+                if (views[i].Schema[columnIndices[i]].HasSlotNames(type.GetVectorSize()))
                 {
                     var schema = views[i].Schema;
                     int index = columnIndices[i];
@@ -834,7 +834,7 @@ namespace Microsoft.ML.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema[i].HasKeyValues(type.ItemType().GetKeyCount()))
+                            if (dv.Schema[i].HasKeyValues(type.GetItemType().GetKeyCount()))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema[i].HasSlotNames(vectorType.Size))
@@ -895,7 +895,7 @@ namespace Microsoft.ML.Data
             foreach (var keyCol in firstDvKeyWithNamesColumns)
                 ReconcileKeyValues(env, views, keyCol, TextType.Instance);
             if (labelColKeyValuesType != null)
-                ReconcileKeyValues(env, views, labelColName, labelColKeyValuesType.ItemType());
+                ReconcileKeyValues(env, views, labelColName, labelColKeyValuesType.GetItemType());
             foreach (var keyCol in firstDvKeyNoNamesColumns)
                 ReconcileKeyValuesWithNoNames(env, views, keyCol.Key, keyCol.Value);
             foreach (var vectorKeyCol in firstDvVectorKeyColumns)

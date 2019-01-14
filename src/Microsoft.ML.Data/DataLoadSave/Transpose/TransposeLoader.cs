@@ -309,9 +309,9 @@ namespace Microsoft.ML.Data.IO
                     // There must be one "row" per "slot" on the column this is a transpose of.
                     // Check that.
                     var type = _parent.Schema[_col].Type;
-                    Host.CheckDecode(type.ValueCount() == rowCount);
+                    Host.CheckDecode(type.GetValueCount() == rowCount);
                     // The item types should be the same.
-                    Host.CheckDecode(type.ItemType().Equals(vectorType.ItemType));
+                    Host.CheckDecode(type.GetItemType().Equals(vectorType.ItemType));
                 }
             }
         }
@@ -784,7 +784,7 @@ namespace Microsoft.ML.Data.IO
                         _host.Assert(view.Schema.Count == 1);
                         var trans = _colTransposers[col] = Transposer.Create(_host, view, false, new int[] { 0 });
                         _host.Assert(((ITransposeDataView)trans).TransposeSchema.ColumnCount == 1);
-                        _host.Assert(((ITransposeDataView)trans).TransposeSchema.GetSlotType(0).ValueCount() == Schema[col].Type.ValueCount());
+                        _host.Assert(((ITransposeDataView)trans).TransposeSchema.GetSlotType(0).GetValueCount() == Schema[col].Type.GetValueCount());
                     }
                 }
             }
@@ -845,7 +845,7 @@ namespace Microsoft.ML.Data.IO
                 Ch.Assert(0 <= col && col < Schema.Count);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
                 var type = Schema[col].Type;
-                Ch.Assert(((ITransposeDataView)_parent).TransposeSchema.GetSlotType(col).ValueCount() == _parent._header.RowCount);
+                Ch.Assert(((ITransposeDataView)_parent).TransposeSchema.GetSlotType(col).GetValueCount() == _parent._header.RowCount);
                 Action<int> func = InitOne<int>;
                 ColumnType itemType = type;
                 if (type is VectorType vectorType)
@@ -881,7 +881,7 @@ namespace Microsoft.ML.Data.IO
             {
                 var type = Schema[col].Type;
                 Ch.Assert(type is VectorType);
-                Ch.Assert(typeof(T) == type.ItemType().RawType);
+                Ch.Assert(typeof(T) == type.GetItemType().RawType);
                 var trans = _parent.EnsureAndGetTransposer(col);
                 SlotCursor cursor = trans.GetSlotCursor(0);
                 ValueGetter<VBuffer<T>> getter = cursor.GetGetter<T>();

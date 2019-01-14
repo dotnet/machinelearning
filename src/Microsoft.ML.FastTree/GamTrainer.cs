@@ -227,7 +227,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 DefineScoreTrackers();
                 if (HasValidSet)
                     DefinePruningTest();
-                InputLength = context.TrainingSet.Schema.Feature.Value.Type.ValueCount();
+                InputLength = context.TrainingSet.Schema.Feature.Value.Type.GetValueCount();
 
                 TrainCore(ch);
             }
@@ -1233,7 +1233,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     _data = data;
                     var schema = _data.Schema;
                     var featCol = schema.Feature.Value;
-                    int len = featCol.Type.ValueCount();
+                    int len = featCol.Type.GetValueCount();
                     ch.Check(len == _pred._inputLength);
 
                     if (featCol.HasSlotNames(len))

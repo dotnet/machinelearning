@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
-                    _types[i] = new VectorType((PrimitiveType)srcCol.Type.ItemType());
+                    _types[i] = new VectorType((PrimitiveType)srcCol.Type.GetItemType());
                     _isNAs[i] = GetIsNADelegate(srcCol.Type);
                 }
             }
@@ -174,10 +174,10 @@ namespace Microsoft.ML.Transforms
             private Delegate GetIsNADelegate(ColumnType type)
             {
                 Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
-                return Utils.MarshalInvoke(func, type.ItemType().RawType, type);
+                return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
             }
 
-            private Delegate GetIsNADelegate<T>(ColumnType type) => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType());
+            private Delegate GetIsNADelegate<T>(ColumnType type) => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
 
                 Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType().RawType);
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].GetItemType().RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
             }
 

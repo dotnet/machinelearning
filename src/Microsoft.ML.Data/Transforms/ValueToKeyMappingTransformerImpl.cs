@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(sortOrder == SortOrder.Occurrence || sortOrder == SortOrder.Value);
                 bool sorted = sortOrder == SortOrder.Value;
 
-                PrimitiveType itemType = type.ItemType() as PrimitiveType;
+                PrimitiveType itemType = type.GetItemType() as PrimitiveType;
                 Contracts.AssertValue(itemType);
                 if (itemType is TextType)
                     return new TextImpl(sorted);
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.AssertValue(bldr);
 
                 var type = schema[col].Type;
-                Contracts.Assert(autoConvert || bldr.ItemType == type.ItemType());
+                Contracts.Assert(autoConvert || bldr.ItemType == type.GetItemType());
                 // Auto conversion should only be possible when the type is text.
                 Contracts.Assert(type is TextType || !autoConvert);
                 if (type is VectorType)
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms.Conversions
             env.Assert(0 <= iinfo && iinfo < infos.Length);
 
             var info = infos[iinfo];
-            var inType = info.TypeSrc.ItemType();
+            var inType = info.TypeSrc.GetItemType();
             if (!inType.Equals(unbound.ItemType))
             {
                 throw env.Except("Could not apply a map over type '{0}' to column '{1}' since it has type '{2}'",
@@ -823,7 +823,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 _host.AssertValue(map);
                 _host.Assert(0 <= iinfo && iinfo < infos.Length);
                 var info = infos[iinfo];
-                _host.Assert(info.TypeSrc.ItemType().Equals(map.ItemType));
+                _host.Assert(info.TypeSrc.GetItemType().Equals(map.ItemType));
 
                 Map = map;
                 _iinfo = iinfo;
@@ -835,7 +835,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 host.AssertValue(map);
                 host.Assert(0 <= iinfo && iinfo < infos.Length);
                 var info = infos[iinfo];
-                host.Assert(info.TypeSrc.ItemType().Equals(map.ItemType));
+                host.Assert(info.TypeSrc.GetItemType().Equals(map.ItemType));
 
                 return Utils.MarshalInvoke(CreateCore<int>, map.ItemType.RawType, host, schema, map, infos, textMetadata, iinfo);
             }
@@ -933,7 +933,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         ValueGetter<VBuffer<uint>> retVal;
                         // REVIEW: Consider whether possible or reasonable to not use a builder here.
                         var bldr = new BufferBuilder<uint>(U4Adder.Instance);
-                        int cv = info.TypeSrc.VectorSize();
+                        int cv = info.TypeSrc.GetVectorSize();
                         uint defaultMapValue = MapDefault(map);
                         uint dstItem = default(uint);
 
@@ -1155,7 +1155,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                 getter(ref dst);
                                 _host.Assert(dst.Length == TypedMap.OutputType.Count);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.Count, (PrimitiveType)srcMetaType.ItemType(), mgetter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, (PrimitiveType)srcMetaType.GetItemType(), mgetter);
                     }
                     return true;
                 }

@@ -274,15 +274,15 @@ namespace Microsoft.ML.Data
                     // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
-                        Ch.Assert(colType.ItemType() is TextType);
+                        Ch.Assert(colType.GetItemType() is TextType);
                         return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
 
                     // VBuffer<T> -> T[]
                     if (fieldType.GetElementType().IsGenericType && fieldType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
-                        Ch.Assert(colType.ItemType().RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
+                        Ch.Assert(colType.GetItemType().RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
                     else
-                        Ch.Assert(colType.ItemType().RawType == fieldType.GetElementType());
+                        Ch.Assert(colType.GetItemType().RawType == fieldType.GetElementType());
                     del = CreateDirectVBufferSetter<int>;
                     genericType = fieldType.GetElementType();
                 }

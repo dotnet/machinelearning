@@ -400,14 +400,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             "Variable length column '{0}' is not allowed", colName);
                     }
 
-                    if (!IsValidColumnType(colType.ItemType()))
+                    if (!IsValidColumnType(colType.GetItemType()))
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
                             "Column '{0}' of type '{1}' does not have compatible type.", colName, colType);
                     }
 
                     colSrcs[i] = colSrc;
-                    colSizes[i] = colType.ValueCount();
+                    colSizes[i] = colType.GetValueCount();
                 }
 
                 var scores = new float[size][];
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 // Note: NAs have their own separate bin.
                 var type = trans.Schema[col].Type;
-                var itemType = type.ItemType();
+                var itemType = type.GetItemType();
                 if (itemType == NumberType.I4)
                 {
                     return ComputeMutualInformation(trans, col,
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// </summary>
             private float[] ComputeMutualInformation<T>(Transposer trans, int col, Mapper<T> mapper)
             {
-                var slotCount = trans.Schema[col].Type.ValueCount();
+                var slotCount = trans.Schema[col].Type.GetValueCount();
                 var scores = new float[slotCount];
                 int iScore = 0;
                 VBuffer<int> slotValues = default(VBuffer<int>);

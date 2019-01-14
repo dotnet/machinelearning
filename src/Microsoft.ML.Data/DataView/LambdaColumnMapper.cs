@@ -29,7 +29,7 @@ namespace Microsoft.ML.Data
             env.CheckValue(typeSrc, nameof(typeSrc));
             env.CheckValue(typeDst, nameof(typeDst));
             env.CheckValue(mapper, nameof(mapper));
-            env.Check(keyValueGetter == null || typeDst.ItemType() is KeyType);
+            env.Check(keyValueGetter == null || typeDst.GetItemType() is KeyType);
             env.Check(slotNamesGetter == null || typeDst.IsKnownSizeVector());
 
             if (typeSrc.RawType != typeof(TSrc))
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Data
                     {
                         if (keyValueGetter != null)
                         {
-                            int keyCount = _typeDst.ItemType().GetKeyCount();
+                            int keyCount = _typeDst.GetItemType().GetKeyCount();
                             Host.Assert(keyCount > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Data
                         }
                         if (slotNamesGetter != null)
                         {
-                            int vectorSize = _typeDst.VectorSize();
+                            int vectorSize = _typeDst.GetVectorSize();
                             Host.Assert(vectorSize > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => slotNamesGetter(ref dst);

@@ -368,7 +368,7 @@ namespace Microsoft.ML.Transforms
                     else
                     {
                         Func<Row, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
-                        var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].ItemType().RawType);
+                        var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].GetItemType().RawType);
                         getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
                     }
                 }

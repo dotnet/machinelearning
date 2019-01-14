@@ -166,7 +166,7 @@ namespace Microsoft.ML.EntryPoints
 
                 if (!(col.Type is VectorType vectorType) || vectorType.Size > 0)
                 {
-                    var type = col.Type.ItemType();
+                    var type = col.Type.GetItemType();
                     if (type is KeyType keyType)
                     {
                         if (keyType.Count > 0)

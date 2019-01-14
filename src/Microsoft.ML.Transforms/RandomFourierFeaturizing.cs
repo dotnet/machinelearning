@@ -272,7 +272,7 @@ namespace Microsoft.ML.Transforms.Projections
             string reason = TestColumnType(type);
             if (reason != null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
-            if (_transformInfos[col].SrcDim != type.VectorSize())
+            if (_transformInfos[col].SrcDim != type.GetVectorSize())
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input,
                     new VectorType(NumberType.Float, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Transforms.Projections
                 input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
                 var typeSrc = input.Schema[srcCol].Type;
                 _transformInfos[i] = new TransformInfo(Host.Register(string.Format("column{0}", i)), columns[i],
-                    typeSrc.ValueCount(), avgDistances[i]);
+                    typeSrc.GetValueCount(), avgDistances[i]);
             }
         }
 
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Transforms.Projections
                 var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
                 var src = default(VBuffer<float>);
 
-                var featuresAligned = new AlignedArray(RoundUp(_srcTypes[iinfo].ValueCount(), _cfltAlign), CpuMathUtils.GetVectorAlignment());
+                var featuresAligned = new AlignedArray(RoundUp(_srcTypes[iinfo].GetValueCount(), _cfltAlign), CpuMathUtils.GetVectorAlignment());
                 var productAligned = new AlignedArray(RoundUp(_parent._transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
 
                 return

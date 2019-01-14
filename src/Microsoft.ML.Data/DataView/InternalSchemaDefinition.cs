@@ -121,7 +121,7 @@ namespace Microsoft.ML.Data
                 // Checks that the return type of the generator is compatible with ColumnType.
                 GetVectorAndKind(ComputedReturnType, "return type", out bool isVector, out DataKind datakind);
                 Contracts.Assert(isVector == ColumnType is VectorType);
-                Contracts.Assert(datakind == ColumnType.ItemType().RawKind);
+                Contracts.Assert(datakind == ColumnType.GetItemType().RawKind);
             }
 
         }

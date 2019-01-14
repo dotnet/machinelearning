@@ -1428,7 +1428,7 @@ namespace Microsoft.ML.Data
                 {
                     var type = input.Schema[srcCol].Type;
                     Ctx.Assert(type is VectorType);
-                    _uniformLength = type.VectorSize();
+                    _uniformLength = type.GetVectorSize();
                     _indices = new BigArray<int>();
                     _values = new BigArray<T>();
                     _getter = input.GetGetter<VBuffer<T>>(srcCol);

@@ -86,7 +86,7 @@ namespace Microsoft.ML.Data
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            int numClasses = score.Type.VectorSize();
+            int numClasses = score.Type.GetVectorSize();
             Host.Assert(numClasses > 0);
             var classNames = GetClassNames(schema);
             return new Aggregator(Host, classNames, numClasses, schema.Weight != null, _outputTopKAcc, stratName);
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Data
             {
                 var score = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Score);
                 Host.Assert(Utils.Size(score) == 1);
-                int numClasses = score[0].Type.VectorSize();
+                int numClasses = score[0].Type.GetVectorSize();
                 Host.Assert(numClasses > 0);
                 names = Enumerable.Range(0, numClasses).Select(i => i.ToString().AsMemory()).ToArray();
             }
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            int numClasses = scoreInfo.Type.VectorSize();
+            int numClasses = scoreInfo.Type.GetVectorSize();
             return new MultiClassPerInstanceEvaluator(Host, schema.Schema, scoreInfo, schema.Label.Value.Name);
         }
 
@@ -392,7 +392,7 @@ namespace Microsoft.ML.Data
                 Host.Assert(schema.Label.HasValue);
 
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-                Host.Assert(score.Type.VectorSize() == _scoresArr.Length);
+                Host.Assert(score.Type.GetVectorSize() == _scoresArr.Length);
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
                 Host.AssertValue(_labelGetter);
@@ -571,7 +571,7 @@ namespace Microsoft.ML.Data
         {
             CheckInputColumnTypes(schema);
 
-            _numClasses = scoreColumn.Type.VectorSize();
+            _numClasses = scoreColumn.Type.GetVectorSize();
             _types = new ColumnType[4];
 
             if (schema[ScoreIndex].HasSlotNames(_numClasses))
@@ -1013,7 +1013,7 @@ namespace Microsoft.ML.Data
             {
                 var type = perInstSchema[sortedClassesIndex].Type;
                 // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
-                if (_numTopClasses < type.VectorSize())
+                if (_numTopClasses < type.GetVectorSize())
                     perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
             }
 
@@ -1021,7 +1021,7 @@ namespace Microsoft.ML.Data
             if (perInst.Schema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedScores, out int sortedScoresIndex))
             {
                 var type = perInst.Schema[sortedScoresIndex].Type;
-                if (_numTopClasses < type.VectorSize())
+                if (_numTopClasses < type.GetVectorSize())
                     perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
             }
             return perInst;

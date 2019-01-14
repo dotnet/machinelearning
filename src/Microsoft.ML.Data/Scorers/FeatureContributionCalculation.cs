@@ -318,7 +318,7 @@ namespace Microsoft.ML.Data
                 InputRoleMappedSchema = schema;
                 var genericMapper = parent.GenericMapper.Bind(_env, schema);
                 _genericRowMapper = genericMapper as ISchemaBoundRowMapper;
-                var featureSize = FeatureColumn.Type.VectorSize();
+                var featureSize = FeatureColumn.Type.GetVectorSize();
 
                 if (parent.Stringify)
                 {

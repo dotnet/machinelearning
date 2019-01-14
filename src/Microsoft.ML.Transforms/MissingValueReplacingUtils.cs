@@ -15,7 +15,7 @@ namespace Microsoft.ML.Transforms
     {
         private static StatAggregator CreateStatAggregator(IChannel ch, ColumnType type, ReplacementKind? kind, bool bySlot, RowCursor cursor, int col)
         {
-            ch.Assert(type.ItemType() is NumberType);
+            ch.Assert(type.GetItemType() is NumberType);
             if (!(type is VectorType vectorType))
             {
                 // The type is a scalar.

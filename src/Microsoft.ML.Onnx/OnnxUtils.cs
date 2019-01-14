@@ -358,7 +358,7 @@ namespace Microsoft.ML.Model.Onnx
             else
             {
                 dimsLocal = new List<long>();
-                int valueCount = type.ValueCount();
+                int valueCount = type.GetValueCount();
                 if (valueCount == 0) //Unknown size.
                 {
                     dimsLocal.Add(1);

@@ -137,7 +137,7 @@ namespace Microsoft.ML.Transforms
                 var type = Infos[iinfo].TypeSrc;
 
                 // This ensures that our feature count doesn't overflow.
-                Host.Check(type.ValueCount() < int.MaxValue / 2);
+                Host.Check(type.GetValueCount() < int.MaxValue / 2);
 
                 if (!(type is VectorType vectorType))
                     types[iinfo] = new VectorType(NumberType.Float, 2);

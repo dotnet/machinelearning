@@ -118,7 +118,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             public int OutputValueCount
             {
-                get { return OutputColumnType.ValueCount(); }
+                get { return OutputColumnType.GetValueCount(); }
             }
 
             public ColumnInfoEx(int[][] slotMap, int hashBits, uint hashSeed, bool ordered)
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // the slots should be distinct and between 0 and vector size
                         Host.CheckDecode(slotMap[j].Distinct().Count() == slotMap[j].Length);
                         Host.CheckDecode(
-                            slotMap[j].All(slot => 0 <= slot && slot < Infos[i].TypeSrc.ValueCount()));
+                            slotMap[j].All(slot => 0 <= slot && slot < Infos[i].TypeSrc.GetValueCount()));
                     }
                 }
 
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < ex.SlotMap.Length; i++)
                 {
                     Host.Assert(ex.SlotMap[i].Distinct().Count() == ex.SlotMap[i].Length);
-                    Host.Assert(ex.SlotMap[i].All(slot => 0 <= slot && slot < Infos[iColumn].TypeSrc.ValueCount()));
+                    Host.Assert(ex.SlotMap[i].All(slot => 0 <= slot && slot < Infos[iColumn].TypeSrc.GetValueCount()));
                     ctx.Writer.WriteIntArray(ex.SlotMap[i]);
                 }
             }
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private static string TestColumnType(ColumnType type)
         {
             // REVIEW: list all types that can be hashed.
-            if (type.ValueCount() > 0)
+            if (type.GetValueCount() > 0)
                 return null;
             return "Unknown vector size";
         }
@@ -413,14 +413,14 @@ namespace Microsoft.ML.Transforms.Conversions
             var dstEditor = VBufferEditor.Create(ref dst, n);
 
             var srcColumnName = Source.Schema[Infos[iinfo].Source].Name;
-            bool useDefaultSlotNames = !Source.Schema[Infos[iinfo].Source].HasSlotNames(Infos[iinfo].TypeSrc.VectorSize());
+            bool useDefaultSlotNames = !Source.Schema[Infos[iinfo].Source].HasSlotNames(Infos[iinfo].TypeSrc.GetVectorSize());
             VBuffer<ReadOnlyMemory<char>> srcSlotNames = default;
             if (!useDefaultSlotNames)
             {
                 Source.Schema[Infos[iinfo].Source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref srcSlotNames);
                 useDefaultSlotNames =
                     !srcSlotNames.IsDense
-                    || srcSlotNames.Length != Infos[iinfo].TypeSrc.ValueCount();
+                    || srcSlotNames.Length != Infos[iinfo].TypeSrc.GetValueCount();
             }
 
             var outputSlotName = new StringBuilder();

@@ -2933,7 +2933,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected virtual void Map(in VBuffer<Float> src, ref Float dst)
         {
-            int inputVectorSize = InputType.VectorSize();
+            int inputVectorSize = InputType.GetVectorSize();
             if (inputVectorSize > 0)
                 Host.Check(src.Length == inputVectorSize);
             else
@@ -2961,7 +2961,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void FeatureContributionMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
         {
-            int inputVectorSize = InputType.VectorSize();
+            int inputVectorSize = InputType.GetVectorSize();
             if (inputVectorSize > 0)
                 Host.Check(src.Length == inputVectorSize);
             else

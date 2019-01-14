@@ -664,11 +664,11 @@ namespace Microsoft.ML.Data
             var typeSrc = input.Schema[colSrc].Type as VectorType;
             Contracts.Assert(typeSrc != null && typeSrc.ItemType == NumberType.Float);
             Contracts.Assert(ValueMapper == null ||
-                typeSrc.Size == ValueMapper.InputType.VectorSize() || ValueMapper.InputType.VectorSize() == 0);
+                typeSrc.Size == ValueMapper.InputType.GetVectorSize() || ValueMapper.InputType.GetVectorSize() == 0);
             Contracts.Assert(Utils.Size(_quantiles) > 0);
 
             var featureGetter = input.GetGetter<VBuffer<Float>>(colSrc);
-            var featureCount = ValueMapper != null ? ValueMapper.InputType.VectorSize() : 0;
+            var featureCount = ValueMapper != null ? ValueMapper.InputType.GetVectorSize() : 0;
 
             var quantiles = new Float[_quantiles.Length];
             for (int i = 0; i < quantiles.Length; i++)

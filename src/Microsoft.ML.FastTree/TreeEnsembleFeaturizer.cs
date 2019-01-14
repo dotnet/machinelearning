@@ -586,11 +586,11 @@ namespace Microsoft.ML.Data
                     // be non-null.
                     var vm = predictor as IValueMapper;
                     ch.CheckUserArg(vm != null, nameof(args.TrainedModelFile), "Predictor in model file does not have compatible type");
-                    if (vm.InputType.VectorSize() != data.Schema.Feature.Value.Type.VectorSize())
+                    if (vm.InputType.GetVectorSize() != data.Schema.Feature.Value.Type.GetVectorSize())
                     {
                         throw ch.ExceptUserArg(nameof(args.TrainedModelFile),
                             "Predictor in model file expects {0} features, but data has {1} features",
-                            vm.InputType.VectorSize(), data.Schema.Feature.Value.Type.VectorSize());
+                            vm.InputType.GetVectorSize(), data.Schema.Feature.Value.Type.GetVectorSize());
                     }
 
                     ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
@@ -651,11 +651,11 @@ namespace Microsoft.ML.Data
                 // be non-null.
                 var vm = predictor as IValueMapper;
                 ch.CheckUserArg(vm != null, nameof(args.PredictorModel), "Predictor does not have compatible type");
-                if (data != null && vm.InputType.VectorSize() != data.Schema.Feature.Value.Type.VectorSize())
+                if (data != null && vm.InputType.GetVectorSize() != data.Schema.Feature.Value.Type.GetVectorSize())
                 {
                     throw ch.ExceptUserArg(nameof(args.PredictorModel),
                         "Predictor expects {0} features, but data has {1} features",
-                        vm.InputType.VectorSize(), data.Schema.Feature.Value.Type.VectorSize());
+                        vm.InputType.GetVectorSize(), data.Schema.Feature.Value.Type.GetVectorSize());
                 }
 
                 ISchemaBindableMapper bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);

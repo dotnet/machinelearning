@@ -259,7 +259,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(colSrc >= 0);
                 Contracts.AssertValue(typeSrc);
                 Contracts.AssertValueOrNull(slotTypeSrc);
-                Contracts.Assert(slotTypeSrc == null || typeSrc.ItemType().Equals(slotTypeSrc.ItemType));
+                Contracts.Assert(slotTypeSrc == null || typeSrc.GetItemType().Equals(slotTypeSrc.ItemType));
 
                 Name = name;
                 Source = colSrc;
@@ -906,7 +906,7 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsTextItem(ColumnType type)
         {
-            if (type.ItemType() is TextType)
+            if (type.GetItemType() is TextType)
                 return null;
             return "Expected Text type";
         }
@@ -920,7 +920,7 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsFloatItem(ColumnType type)
         {
-            if (type.ItemType() == NumberType.Float)
+            if (type.GetItemType() == NumberType.Float)
                 return null;
             return "Expected R4 or a vector of R4";
         }
@@ -945,7 +945,7 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsKey(ColumnType type)
         {
-            if (type.ItemType().GetKeyCount() > 0)
+            if (type.GetItemType().GetKeyCount() > 0)
                 return null;
             return "Expected Key type of known cardinality";
         }

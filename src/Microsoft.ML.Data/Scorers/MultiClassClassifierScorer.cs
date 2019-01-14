@@ -418,7 +418,7 @@ namespace Microsoft.ML.Data
             var scoreType = outSchema[scoreIdx].Type;
 
             // Check that the type is vector, and is of compatible size with the score output.
-            return labelNameType is VectorType vectorType && vectorType.Size == scoreType.VectorSize();
+            return labelNameType is VectorType vectorType && vectorType.Size == scoreType.GetVectorSize();
         }
 
         internal static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
@@ -535,7 +535,7 @@ namespace Microsoft.ML.Data
             return PfaUtils.Call("a.argmax", mapperOutputs[0]);
         }
 
-        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(DataKind.U4, 0, scoreType.VectorSize());
+        private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper) => new KeyType(DataKind.U4, 0, scoreType.GetVectorSize());
 
         private static bool OutputTypeMatches(ColumnType scoreType) =>
             scoreType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberType.Float;

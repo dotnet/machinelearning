@@ -501,7 +501,7 @@ namespace Microsoft.ML.Trainers
                 return
                     (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
-                        int inputSize = InputType.VectorSize();
+                        int inputSize = InputType.GetVectorSize();
                         if (inputSize > 0)
                             Contracts.Check(src.Length == inputSize);
 
@@ -575,7 +575,7 @@ namespace Microsoft.ML.Trainers
                 return
                     (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
-                        int inputSize = InputType.VectorSize();
+                        int inputSize = InputType.GetVectorSize();
                         if (inputSize > 0)
                             Contracts.Check(src.Length == inputSize);
 
@@ -674,7 +674,7 @@ namespace Microsoft.ML.Trainers
                 return
                     (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
-                        int inputSize = InputType.VectorSize();
+                        int inputSize = InputType.GetVectorSize();
                         if (inputSize > 0)
                             Contracts.Check(src.Length == inputSize);
 

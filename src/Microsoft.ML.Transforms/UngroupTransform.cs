@@ -305,7 +305,7 @@ namespace Microsoft.ML.Transforms
                         //   18  "Amy"
                         //   18  "Willy"
                         // One can see that "UserID" column (in output data) has a type identical to the element's type of the "UserID" column in input data.
-                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.ItemType(), metadataBuilder.GetMetadata());
+                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.GetMetadata());
                     }
                 }
                 OutputSchema = schemaBuilder.GetSchema();

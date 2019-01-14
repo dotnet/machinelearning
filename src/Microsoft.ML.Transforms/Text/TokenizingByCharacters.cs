@@ -440,7 +440,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Host.AssertValue(input);
 
-                int cv = input.Schema[ColMapNewToOld[iinfo]].Type.VectorSize();
+                int cv = input.Schema[ColMapNewToOld[iinfo]].Type.GetVectorSize();
                 Contracts.Assert(cv >= 0);
 
                 var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public const bool UseMarkerCharacters = true;
         }
-        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType() is TextType;
+        public static bool IsColumnTypeValid(ColumnType type) => type.GetItemType() is TextType;
 
         internal const string ExpectedColumnType = "Text";
 

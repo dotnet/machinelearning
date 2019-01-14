@@ -123,7 +123,7 @@ namespace Microsoft.ML.Ensemble
             {
                 // IsValid method ensures we go this else path only if the OutputType.VectorSize of
                 // all _mappers is greater than zero
-                Host.Assert(_mappers[i].OutputType.VectorSize() > 0);
+                Host.Assert(_mappers[i].OutputType.GetVectorSize() > 0);
                 maps[i] = _mappers[i].GetMapper<VBuffer<Single>, VBuffer<Single>>();
             }
 
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Ensemble
                             maps[i](in tmp, ref predictions[i]);
 
                         // individual maps delegates will return always the same VBuffer length
-                        Host.Check(predictions[i].Length == _mappers[i].OutputType.VectorSize());
+                        Host.Check(predictions[i].Length == _mappers[i].OutputType.GetVectorSize());
                     });
 
                     combine(ref dst, predictions, Weights);

@@ -327,7 +327,7 @@ namespace Microsoft.ML.Transforms.Projections
                 || itemType != NumberType.R4)
                 return "Expected float or float vector of known size";
 
-            long valueCount = type.ValueCount();
+            long valueCount = type.GetValueCount();
             if (valueCount * valueCount > Utils.ArrayMaxSize)
                 return "Vector size exceeds maximum size for one dimensional array (2 146 435 071 elements)";
 
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         private static void ValidateModel(IExceptionContext ectx, float[] model, ColumnType col)
         {
-            long valueCount = col.ValueCount();
+            long valueCount = col.GetValueCount();
             ectx.CheckDecode(Utils.Size(model) == valueCount * valueCount, "Invalid model size.");
             for (int i = 0; i < model.Length; i++)
                 ectx.CheckDecode(FloatUtils.IsFinite(model[i]), "Found NaN or infinity in the model.");
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms.Projections
 
                         getters[i](ref val);
                         val.CopyTo(columnData[i], idxDst[i]);
-                        idxDst[i] += srcTypes[i].ValueCount();
+                        idxDst[i] += srcTypes[i].GetValueCount();
                     }
                     irow++;
                 }
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Transforms.Projections
                 var ex = columns[iinfo];
                 var data = columnData[iinfo];
                 int crow = rowCounts[iinfo];
-                int ccol = srcTypes[iinfo].ValueCount();
+                int ccol = srcTypes[iinfo].GetValueCount();
 
                 // If there is no training data, simply initialize the model matrices to identity matrices.
                 if (crow == 0)
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Transforms.Projections
                 Host.Assert(ex.Kind == WhiteningKind.Pca || ex.Kind == WhiteningKind.Zca);
                 var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
                 var src = default(VBuffer<float>);
-                int cslotSrc = _srcTypes[iinfo].ValueCount();
+                int cslotSrc = _srcTypes[iinfo].GetValueCount();
                 // Notice that here that the learned matrices in _models will have the same size for both PCA and ZCA,
                 // so we perform a truncation of the matrix in FillValues, that only keeps PcaNum columns.
                 int cslotDst = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? ex.PcaNum : cslotSrc;

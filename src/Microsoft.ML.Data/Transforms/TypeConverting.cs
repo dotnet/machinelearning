@@ -364,11 +364,11 @@ namespace Microsoft.ML.Transforms.Conversions
             if (range != null)
             {
                 itemType = TypeParsingUtils.ConstructKeyType(kind, range);
-                ColumnType srcItemType = srcType.ItemType();
+                ColumnType srcItemType = srcType.GetItemType();
                 if (!(srcItemType is KeyType) && !(srcItemType is TextType))
                     return false;
             }
-            else if (!(srcType.ItemType() is KeyType key))
+            else if (!(srcType.GetItemType() is KeyType key))
                 itemType = PrimitiveType.FromKind(kind);
             else if (!KeyType.IsValidDataKind(kind))
             {
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 // Ensure that the conversion is legal. We don't actually cache the delegate here. It will get
                 // re-fetched by the utils code when needed.
-                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(srcType.ItemType(), itemType, out Delegate del, out bool identity))
+                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(srcType.GetItemType(), itemType, out Delegate del, out bool identity))
                     return false;
 
                 typeDst = itemType;
@@ -449,8 +449,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (_types[i].IsKnownSizeVector())
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
 
-                    ColumnType srcItemType = srcType.ItemType();
-                    ColumnType currentItemType = _types[i].ItemType();
+                    ColumnType srcItemType = srcType.GetItemType();
+                    ColumnType currentItemType = _types[i].GetItemType();
 
                     KeyType srcItemKeyType = srcItemType as KeyType;
                     KeyType currentItemKeyType = currentItemType as KeyType;
@@ -511,7 +511,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputKind);
                 if (_parent._columns[iinfo].OutputKeyRange != null)
                 {
-                    var key = (KeyType)_types[iinfo].ItemType();
+                    var key = (KeyType)_types[iinfo].GetItemType();
                     node.AddAttribute("min", key.Min);
                     node.AddAttribute("max", key.Count);
                     node.AddAttribute("contiguous", key.Contiguous);
