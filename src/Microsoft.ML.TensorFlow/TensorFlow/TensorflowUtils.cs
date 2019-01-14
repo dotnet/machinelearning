@@ -311,6 +311,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
+        private static object _lockObject = new object();
+
         /// <summary>
         /// Load TensorFlow model into memory.
         /// </summary>
@@ -319,8 +321,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <returns></returns>
         public static TensorFlowModelInfo LoadTensorFlowModel(IHostEnvironment env, string modelPath)
         {
-            var session = GetSession(env, modelPath);
-            return new TensorFlowModelInfo(env, session, modelPath);
+            lock (_lockObject)
+            {
+                var session = GetSession(env, modelPath);
+                return new TensorFlowModelInfo(env, session, modelPath);
+            }
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)
