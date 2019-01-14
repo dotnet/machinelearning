@@ -523,15 +523,16 @@ namespace Microsoft.ML.Data
         private sealed class Bindings
         {
             /// <summary>
-            /// <see cref="Infos"/>[i] stores the i-th column's name type loaded from the input text file.
+            /// <see cref="Infos"/>[i] stores the i-th column's name and type. Columns are loaded from the input text file.
             /// </summary>
             public readonly ColInfo[] Infos;
             /// <summary>
-            /// <see cref="Infos"/>[i] stores the i-th column's metadata, slot names.
+            /// <see cref="Infos"/>[i] stores the i-th column's metadata, named <see cref="MetadataUtils.Kinds.SlotNames"/>
+            /// in <see cref="Schema.Metadata"/>.
             /// </summary>
             private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
             /// <summary>
-            /// Empty iff either header+ not set in args, or if no header present, or upon load
+            /// Empty if <see cref="ArgumentsCore.HasHeader"/> is false, no header presents, or upon load
             /// there was no header stored in the model.
             /// </summary>
             private readonly ReadOnlyMemory<char> _header;
@@ -884,7 +885,7 @@ namespace Microsoft.ML.Data
                     var names = _slotNames[i];
                     if (names.Length > 0)
                     {
-                        // Slot names presents! Let's add them.
+                        // Slot names present! Let's add them.
                         var metadataBuilder = new MetadataBuilder();
                         metadataBuilder.AddSlotNames(names.Length, (ref VBuffer<ReadOnlyMemory<char>> value) => names.CopyTo(ref value));
                         schemaBuilder.AddColumn(info.Name, info.ColType, metadataBuilder.GetMetadata());
