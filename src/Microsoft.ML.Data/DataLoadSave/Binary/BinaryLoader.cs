@@ -730,13 +730,13 @@ namespace Microsoft.ML.Data.IO
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 
-        public Schema Schema { get { return _outputSchema; } }
+        public Schema Schema => _outputSchema;
 
-        private long RowCount { get { return _header.RowCount; } }
+        private long RowCount => _header.RowCount;
 
-        public long? GetRowCount() { return RowCount; }
+        public long? GetRowCount() => RowCount;
 
-        public bool CanShuffle { get { return true; } }
+        public bool CanShuffle => true;
 
         internal const string Summary = "Loads native Binary IDV data file.";
         internal const string LoadName = "BinaryLoader";
