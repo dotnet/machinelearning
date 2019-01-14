@@ -44,11 +44,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     continue;
 
                 // Construct the final ML.NET type of a Tensorflow variable.
-                var shapeArray = graph.GetTensorShape(op[0]).ToIntArray();
+                var tensorShape = graph.GetTensorShape(op[0]).ToIntArray();
                 var columnType = new VectorType(mlType);
-                if (!(Utils.Size(shapeArray) == 1 && shapeArray[0] <= 0) &&
-                    (Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0)))
-                    columnType = new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray());
+                if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
+                    (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
+                    columnType = new VectorType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
 
                 // There can be at most two metadata fields.
                 //  1. The first field always presents. Its value is this operator's type. For example,
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
                     // Create the second metadata field.
                     metadataBuilder.Add(TensorflowUpstreamOperatorsKind, new VectorType(TextType.Instance, op.NumInputs),
-                        (ref VBuffer<ReadOnlyMemory<char>> value) => { value = upstreamOperatorNames; });
+                        (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
 
                 schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.GetMetadata());
