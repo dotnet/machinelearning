@@ -173,7 +173,7 @@ namespace Microsoft.ML.EntryPoints
                         {
                             var colName = GetUniqueName();
                             concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                            Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(col.Name, colName));
+                            Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(colName, col.Name));
                             continue;
                         }
                     }
@@ -184,7 +184,7 @@ namespace Microsoft.ML.EntryPoints
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
                         concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                        Utils.Add(ref cvt, new TypeConvertingTransformer.ColumnInfo(col.Name, colName, DataKind.R4));
+                        Utils.Add(ref cvt, new TypeConvertingTransformer.ColumnInfo(colName, col.Name, DataKind.R4));
                         continue;
                     }
                 }
