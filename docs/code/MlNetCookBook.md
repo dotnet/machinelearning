@@ -285,11 +285,11 @@ Or by creating a data model for it:
 ```csharp
 private class AdultData
 {
-    [LoadColumn("0", "10"), ColumnName("Features")]
-    public float FeatureVector { get; }
+    [LoadColumn(0, 10), ColumnName("Features")]
+    public float FeatureVector { get; set;}
 
     [LoadColumn(11)]
-    public float Target { get; }
+    public float Target { get; set;}
 }
 
 // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
@@ -960,13 +960,12 @@ var meanVarValues = normalizedData.GetColumn(r => r.MeanVarNormalized).ToArray()
 You can achieve the same results using the dynamic API.
 ```csharp
 //data model for the Iris class
-private class IrisInputAllFeatures
+ private class IrisInputAllFeatures
 {
-    // Unfortunately, we still need the dummy 'Label' column to be present.
     [ColumnName("Label"), LoadColumn(4)]
     public string IgnoredLabel { get; set; }
 
-    [LoadColumn(4, loadAllOthers:true)]
+    [LoadColumn(0, 3)]
     public float Features { get; set; }
 }
 
