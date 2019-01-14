@@ -75,6 +75,8 @@ namespace Microsoft.ML.Data
             private readonly IHost _host;
             private readonly Func<ISchemaBoundMapper, ColumnType, bool> _canWrap;
 
+            internal ISchemaBindableMapper Bindable => _bindable;
+
             public VectorType Type => _type;
             bool ICanSavePfa.CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
             bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
@@ -190,6 +192,11 @@ namespace Microsoft.ML.Data
                 int bytesWritten;
                 if (!saver.TryWriteTypeAndValue<VBuffer<T>>(ctx.Writer.BaseStream, _type, ref val, out bytesWritten))
                     throw _host.Except("We do not know how to serialize label names of type '{0}'", _type.ItemType);
+            }
+
+            internal ISchemaBindableMapper Clone(ISchemaBindableMapper inner)
+            {
+                return new LabelNameBindableMapper(_host, inner, _type, _getter, _metadataKind, _canWrap);
             }
 
             void IBindableCanSavePfa.SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
@@ -392,7 +399,7 @@ namespace Microsoft.ML.Data
         /// from the model of a bindable mapper)</param>
         /// <returns>Whether we can call <see cref="LabelNameBindableMapper.CreateBound{T}"/> with
         /// this mapper and expect it to succeed</returns>
-        private static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
+        internal static bool CanWrap(ISchemaBoundMapper mapper, ColumnType labelNameType)
         {
             Contracts.AssertValue(mapper);
             Contracts.AssertValue(labelNameType);
@@ -414,7 +421,7 @@ namespace Microsoft.ML.Data
             return labelNameType.IsVector && labelNameType.VectorSize == scoreType.VectorSize;
         }
 
-        private static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        internal static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(mapper);
@@ -497,7 +504,7 @@ namespace Microsoft.ML.Data
 
             long cachedPosition = -1;
             VBuffer<Float> score = default(VBuffer<Float>);
-            int scoreLength = Bindings.PredColType.KeyCount;
+            int scoreLength = Bindings.PredColType.GetKeyCount();
 
             ValueGetter<uint> predFn =
                 (ref uint dst) =>

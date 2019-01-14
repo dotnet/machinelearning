@@ -173,14 +173,14 @@ namespace Microsoft.ML.Model.Pfa
             {
                 Contracts.AssertValue(itemType);
 
-                if (!itemType.IsPrimitive)
+                if (!(itemType is PrimitiveType))
                     return null;
 
-                if (itemType.IsKey)
+                if (itemType is KeyType keyType)
                 {
                     // Keys will retain the property that they are just numbers,
                     // with 0 representing missing.
-                    if (itemType.KeyCount > 0 || itemType.RawKind != DataKind.U8)
+                    if (keyType.Count > 0 || itemType.RawKind != DataKind.U8)
                         return Int;
                     return Long;
                 }
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Model.Pfa
             {
                 Contracts.CheckValue(itemType, nameof(itemType));
 
-                if (itemType.IsKey)
+                if (itemType is KeyType)
                     return 0;
 
                 switch (itemType.RawKind)

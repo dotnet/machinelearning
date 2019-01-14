@@ -2,9 +2,9 @@
 <doc>
   <members>
 
-    <member name="TensorflowTransform">
+    <member name="TensorflowTransformer">
       <summary>
-        The <see cref="TensorFlowTransform"/> is used in following two scenarios.
+        The <see cref="TensorFlowTransformer"/> is used in following two scenarios.
         <list type="number">
         <item>
           <description>

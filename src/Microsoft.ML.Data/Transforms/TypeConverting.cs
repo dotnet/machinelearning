@@ -337,7 +337,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     else
                     {
                         var srcType = input.Schema[item.Source ?? item.Name].Type;
-                        kind = srcType.IsKey ? srcType.RawKind : DataKind.U4;
+                        kind = srcType is KeyType ? srcType.RawKind : DataKind.U4;
                     }
                 }
                 else
@@ -364,7 +364,7 @@ namespace Microsoft.ML.Transforms.Conversions
             if (range != null)
             {
                 itemType = TypeParsingUtils.ConstructKeyType(kind, range);
-                if (!srcType.ItemType.IsKey && !srcType.ItemType.IsText)
+                if (!(srcType.ItemType is KeyType) && !(srcType.ItemType is TextType))
                     return false;
             }
             else if (!(srcType.ItemType is KeyType key))
@@ -447,14 +447,18 @@ namespace Microsoft.ML.Transforms.Conversions
                     var srcType = InputSchema[_srcCols[i]].Type;
                     if (_types[i].IsKnownSizeVector)
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    if (srcType.ItemType.IsKey && _types[i].ItemType.IsKey &&
-                        srcType.ItemType.KeyCount > 0 && srcType.ItemType.KeyCount == _types[i].ItemType.KeyCount)
+
+                    KeyType srcItemKeyType = srcType.ItemType as KeyType;
+                    KeyType currentItemKeyType = _types[i].ItemType as KeyType;
+                    if (srcItemKeyType != null && currentItemKeyType != null &&
+                        srcItemKeyType.Count > 0 && srcItemKeyType.Count == currentItemKeyType.Count)
                     {
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.KeyValues);
                     }
-                    if (srcType.ItemType.IsNumber && _types[i].ItemType.IsNumber)
+
+                    if (srcType.ItemType is NumberType && _types[i].ItemType is NumberType)
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.IsNormalized);
-                    if (srcType.IsBool && _types[i].ItemType.IsNumber)
+                    if (srcType is BoolType && _types[i].ItemType is NumberType)
                     {
                         ValueGetter<bool> getter = (ref bool dst) => dst = true;
                         builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
@@ -558,16 +562,16 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.Input} into {newType.ToString()}");
                 var metadata = new List<SchemaShape.Column>();
-                if (col.ItemType.IsBool && newType.ItemType.IsNumber)
+                if (col.ItemType is BoolType && newType.ItemType is NumberType)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     if (col.Kind == SchemaShape.Column.VectorKind.Vector)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
-                    if (col.ItemType.IsKey)
+                    if (col.ItemType is KeyType)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
-                    if (col.ItemType.IsNumber && newType.ItemType.IsNumber)
+                    if (col.ItemType is NumberType && newType.ItemType is NumberType)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, normMeta.ItemType, false));
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, newType, false, col.Metadata);
             }

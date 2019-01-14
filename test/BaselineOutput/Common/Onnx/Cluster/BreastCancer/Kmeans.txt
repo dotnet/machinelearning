@@ -1,0 +1,338 @@
+{
+  "irVersion": "3",
+  "producerName": "ML.NET",
+  "producerVersion": "##VERSION##",
+  "domain": "machinelearning.dotnet",
+  "graph": {
+    "node": [
+      {
+        "input": [
+          "Features"
+        ],
+        "output": [
+          "Features0"
+        ],
+        "name": "Scaler",
+        "opType": "Scaler",
+        "attribute": [
+          {
+            "name": "offset",
+            "floats": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "type": "FLOATS"
+          },
+          {
+            "name": "scale",
+            "floats": [
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1,
+              0.1
+            ],
+            "type": "FLOATS"
+          }
+        ],
+        "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "Features0"
+        ],
+        "output": [
+          "X2"
+        ],
+        "name": "ReduceSumSquare",
+        "opType": "ReduceSumSquare"
+      },
+      {
+        "input": [
+          "Features0",
+          "C",
+          "zero"
+        ],
+        "output": [
+          "XC2"
+        ],
+        "name": "Gemm",
+        "opType": "Gemm",
+        "attribute": [
+          {
+            "name": "alpha",
+            "f": -2,
+            "type": "FLOAT"
+          },
+          {
+            "name": "transB",
+            "i": "1",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "X2",
+          "XC2"
+        ],
+        "output": [
+          "Z"
+        ],
+        "name": "Add",
+        "opType": "Add"
+      },
+      {
+        "input": [
+          "Z",
+          "C2"
+        ],
+        "output": [
+          "Score"
+        ],
+        "name": "Add0",
+        "opType": "Add"
+      },
+      {
+        "input": [
+          "Score"
+        ],
+        "output": [
+          "PredictedLabel"
+        ],
+        "name": "ArgMin",
+        "opType": "ArgMin",
+        "attribute": [
+          {
+            "name": "axis",
+            "i": "1",
+            "type": "INT"
+          },
+          {
+            "name": "keepdims",
+            "i": "1",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "Features0"
+        ],
+        "output": [
+          "Features1"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "PredictedLabel"
+        ],
+        "output": [
+          "PredictedLabel0"
+        ],
+        "name": "Identity0",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Score"
+        ],
+        "output": [
+          "Score0"
+        ],
+        "name": "Identity1",
+        "opType": "Identity"
+      }
+    ],
+    "name": "model",
+    "initializer": [
+      {
+        "dims": [
+          "4",
+          "9"
+        ],
+        "dataType": "FLOAT",
+        "floatData": [
+          0.625973761,
+          0.424676031,
+          0.4348058,
+          0.378701448,
+          0.395843625,
+          0.489611953,
+          0.414545476,
+          0.407013685,
+          0.193505809,
+          0.403125,
+          0.684375,
+          0.6375,
+          0.50625,
+          0.478124976,
+          0.665625036,
+          0.784374952,
+          0.349999964,
+          0.196874976,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.184905529,
+          0.112075679,
+          0.119622864,
+          0.117736049,
+          0.200000286,
+          0.1215097,
+          0.189811155,
+          0.10566061,
+          0.107924782
+        ],
+        "name": "C"
+      },
+      {
+        "dims": [
+          "4"
+        ],
+        "dataType": "FLOAT",
+        "floatData": [
+          1.67602837,
+          2.74173832,
+          0,
+          0.188527346
+        ],
+        "name": "C2"
+      },
+      {
+        "dims": [
+          "1"
+        ],
+        "dataType": "FLOAT",
+        "floatData": [
+          0
+        ],
+        "name": "zero"
+      }
+    ],
+    "input": [
+      {
+        "name": "Features",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "output": [
+      {
+        "name": "Features1",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "PredictedLabel0",
+        "type": {
+          "tensorType": {
+            "elemType": "INT64",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "1"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "Score0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "4"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "valueInfo": [
+      {
+        "name": "Features0",
+        "type": {
+          "tensorType": {
+            "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "opsetImport": [
+    {
+      "domain": "ai.onnx.ml",
+      "version": "1"
+    },
+    {
+      "version": "7"
+    }
+  ]
+}

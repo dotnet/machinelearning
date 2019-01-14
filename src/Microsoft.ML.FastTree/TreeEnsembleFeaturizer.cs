@@ -590,13 +590,15 @@ namespace Microsoft.ML.Data
 
         internal const string UserName = "Tree Ensemble Featurization Transform";
 
-        public static IDataScorerTransform Create(IHostEnvironment env,
+        // Factory method for SignatureDataScorer.
+        private static IDataScorerTransform Create(IHostEnvironment env,
             TreeEnsembleFeaturizerBindableMapper.Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
         {
             return new GenericScorer(env, args, data, mapper, trainSchema);
         }
 
-        public static ISchemaBindableMapper Create(IHostEnvironment env,
+        // Factory method for SignatureBindableMapper.
+        private static ISchemaBindableMapper Create(IHostEnvironment env,
             TreeEnsembleFeaturizerBindableMapper.Arguments args, IPredictor predictor)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -606,12 +608,14 @@ namespace Microsoft.ML.Data
             return new TreeEnsembleFeaturizerBindableMapper(env, args, predictor);
         }
 
-        public static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
+        // Factory method for SignatureLoadModel.
+        private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             return new TreeEnsembleFeaturizerBindableMapper(env, ctx);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("Tree Featurizer Transform");
@@ -779,11 +783,12 @@ namespace Microsoft.ML.Data
             ch.AssertValue(input);
             ch.AssertNonWhiteSpace(labelName);
 
-            int col;
-            if (!input.Schema.TryGetColumnIndex(labelName, out col))
-                throw ch.Except("Label column '{0}' not found.", labelName);
-            ColumnType labelType = input.Schema[col].Type;
-            if (!labelType.IsKey)
+            var col = input.Schema.GetColumnOrNull(labelName);
+            if (!col.HasValue)
+                throw ch.ExceptSchemaMismatch(nameof(input), "Label", labelName);
+
+            ColumnType labelType = col.Value.Type;
+            if (!(labelType is KeyType))
             {
                 if (labelPermutationSeed != 0)
                     ch.Warning(

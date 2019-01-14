@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// with some threshold derived from that.
         /// </summary>
         [Fact]
-        public void New_ReconfigurablePrediction()
+        public void ReconfigurablePrediction()
         {
             var ml = new MLContext(seed: 1, conc: 1);
             var dataReader = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);

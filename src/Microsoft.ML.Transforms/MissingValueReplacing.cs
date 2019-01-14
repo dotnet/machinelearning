@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms
                     case ReplacementKind.Mean:
                     case ReplacementKind.Minimum:
                     case ReplacementKind.Maximum:
-                        if (!type.ItemType.IsNumber)
+                        if (!(type.ItemType is NumberType))
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.ItemType);
                         imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -488,7 +488,7 @@ namespace Microsoft.ML.Transforms
             return new MissingValueReplacingTransformer(env, input, cols).MakeDataTransform(input);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
+        internal static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
         {
             return new MissingValueReplacingTransformer(env, input, columns).MakeDataTransform(input);
         }

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// If they specify a regression or multi-class classifier ideally that should be a compile error.
         /// </summary>
         [Fact]
-        public void New_Metacomponents()
+        public void Metacomponents()
         {
             var ml = new MLContext();
             var data = ml.Data.ReadFromTextFile<IrisData>(GetDataPath(TestDatasets.irisData.trainFilename), separatorChar: ',');

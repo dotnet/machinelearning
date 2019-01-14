@@ -25,10 +25,17 @@ using Microsoft.ML.Model;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// The FeatureContributionCalculationTransformer computes model-specific contribution scores for each feature.
+    /// The FeatureContributionCalculationTransformer computes model-specific per-feature contributions to the score of each example.
     /// See the list of currently supported models below.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Scoring a dataset with a trained model produces a score, or prediction, for each example. To understand and explain these predictions
+    /// it can be useful to inspect which features influenced them most significantly. FeatureContributionCalculationTransformer computes a model-specific
+    /// list of per-feature contributions to the score for each example. These contributions can be positive (they make the score higher) or negative
+    /// (they make the score lower).
+    /// </para>
+    /// <para>
     /// Feature Contribution Calculation is currently supported for the following models:
     ///     Regression:
     ///         OrdinaryLeastSquares, StochasticDualCoordinateAscent (SDCA), OnlineGradientDescent, PoissonRegression,
@@ -39,8 +46,25 @@ namespace Microsoft.ML.Data
     ///         FastForest, FastTree, LightGbm
     ///     Ranking:
     ///         FastTree, LightGbm
-    ///
+    /// </para>
+    /// <para>
+    /// For linear models, the contribution of a given feature is equal to the product of feature value times the corresponding weight. Similarly,
+    /// for Generalized Additive Models (GAM), the contribution of a feature is equal to the shape function for the given feature evaluated at
+    /// the feature value.
+    /// </para>
+    /// <para>
+    /// For tree-based models, the calculation of feature contribution essentially consists in determining which splits in the tree have the most impact
+    /// on the final score and assigning the value of the impact to the features determining the split. More precisely, the contribution of a feature
+    /// is equal to the change in score produced by exploring the opposite sub-tree every time a decision node for the given feature is encountered.
+    /// Consider a simple case with a single decision tree that has a decision node for the binary feature F1. Given an example that has feature F1
+    /// equal to true, we can calculate the score it would have obtained if we chose the subtree corresponding to the feature F1 being equal to false
+    /// while keeping the other features constant. The contribution of feature F1 for the given example is the difference between the original score
+    /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
+    /// many decision trees.
+    /// </para>
+    /// <para>
     /// See the sample below for an example of how to compute feature importance using the FeatureContributionCalculatingTransformer.
+    /// </para>
     /// </remarks>
     /// <example>
     /// <format type="text/markdown">
@@ -60,10 +84,10 @@ namespace Microsoft.ML.Data
             public string FeatureColumn = DefaultColumnNames.Features;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of top contributions", SortOrder = 3)]
-            public int Top = FeatureContributionCalculatingEstimator.Defaults.Top;
+            public int Top = FeatureContributionCalculatingEstimator.Defaults.NumPositiveContributions;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bottom contributions", SortOrder = 4)]
-            public int Bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom;
+            public int Bottom = FeatureContributionCalculatingEstimator.Defaults.NumNegativeContributions;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution should be normalized", ShortName = "norm", SortOrder = 5)]
             public bool Normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize;
@@ -98,23 +122,23 @@ namespace Microsoft.ML.Data
         /// <param name="env">The environment to use.</param>
         /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
         /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
-        /// <param name="top">The number of features with highest positive contributions for each data sample that will be retained in the FeatureContribution column.
-        /// Note that if there are fewer features with positive contributions than <paramref name="top"/>, the rest will be returned as zeros.</param>
-        /// <param name="bottom">The number of features with least negative contributions for each data sample that will be retained in the FeatureContribution column.
-        /// Note that if there are fewer features with negative contributions than <paramref name="bottom"/>, the rest will be returned as zeros.</param>
+        /// <param name="numPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with positive contributions than <paramref name="numPositiveContributions"/>, the rest will be returned as zeros.</param>
+        /// <param name="numNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with negative contributions than <paramref name="numNegativeContributions"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         public FeatureContributionCalculatingTransformer(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
             string featureColumn = DefaultColumnNames.Features,
-            int top = FeatureContributionCalculatingEstimator.Defaults.Top,
-            int bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom,
+            int numPositiveContributions = FeatureContributionCalculatingEstimator.Defaults.NumPositiveContributions,
+            int numNegativeContributions = FeatureContributionCalculatingEstimator.Defaults.NumNegativeContributions,
             bool normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)), new[] { (input: featureColumn, output: DefaultColumnNames.FeatureContributions) })
         {
             Host.CheckValue(modelParameters, nameof(modelParameters));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            if (top < 0)
+            if (numPositiveContributions < 0)
                 throw Host.Except($"Number of top contribution must be non negative");
-            if (bottom < 0)
+            if (numNegativeContributions < 0)
                 throw Host.Except($"Number of bottom contribution must be non negative");
 
             // If a predictor implements ICalculateFeatureContribution, it also implements the internal interface IFeatureContributionMapper.
@@ -122,8 +146,8 @@ namespace Microsoft.ML.Data
             _predictor = modelParameters as IFeatureContributionMapper;
             Host.AssertValue(_predictor);
 
-            Top = top;
-            Bottom = bottom;
+            Top = numPositiveContributions;
+            Bottom = numNegativeContributions;
             Normalize = normalize;
         }
 
@@ -258,8 +282,8 @@ namespace Microsoft.ML.Data
 
         public static class Defaults
         {
-            public const int Top = 10;
-            public const int Bottom = 10;
+            public const int NumPositiveContributions = 10;
+            public const int NumNegativeContributions = 10;
             public const bool Normalize = true;
         }
 
@@ -270,18 +294,18 @@ namespace Microsoft.ML.Data
         /// <param name="env">The environment to use.</param>
         /// <param name="modelParameters">Trained model parameters that support Feature Contribution Calculation and which will be used for scoring.</param>
         /// <param name="featureColumn">The name of the feature column that will be used as input.</param>
-        /// <param name="top">The number of features with highest positive contributions for each data sample that will be retained in the FeatureContribution column.
-        /// Note that if there are fewer features with positive contributions than <paramref name="top"/>, the rest will be returned as zeros.</param>
-        /// <param name="bottom">The number of features with least negative contributions for each data sample that will be retained in the FeatureContribution column.
-        /// Note that if there are fewer features with negative contributions than <paramref name="bottom"/>, the rest will be returned as zeros.</param>
+        /// <param name="numPositiveContributions">The number of positive contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with positive contributions than <paramref name="numPositiveContributions"/>, the rest will be returned as zeros.</param>
+        /// <param name="numNegativeContributions">The number of negative contributions to report, sorted from highest magnitude to lowest magnitude.
+        /// Note that if there are fewer features with negative contributions than <paramref name="numNegativeContributions"/>, the rest will be returned as zeros.</param>
         /// <param name="normalize">Whether the feature contributions should be normalized to the [-1, 1] interval.</param>
         public FeatureContributionCalculatingEstimator(IHostEnvironment env, ICalculateFeatureContribution modelParameters,
             string featureColumn = DefaultColumnNames.Features,
-            int top = Defaults.Top,
-            int bottom = Defaults.Bottom,
+            int numPositiveContributions = Defaults.NumPositiveContributions,
+            int numNegativeContributions = Defaults.NumNegativeContributions,
             bool normalize = Defaults.Normalize)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)),
-                  new FeatureContributionCalculatingTransformer(env, modelParameters, featureColumn, top, bottom, normalize))
+                  new FeatureContributionCalculatingTransformer(env, modelParameters, featureColumn, numPositiveContributions, numNegativeContributions, normalize))
         {
             _featureColumn = featureColumn;
             _predictor = modelParameters;

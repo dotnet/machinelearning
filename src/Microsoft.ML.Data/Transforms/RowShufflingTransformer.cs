@@ -382,7 +382,7 @@ namespace Microsoft.ML.Transforms
                         pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
                     else
                     {
-                        Contracts.Assert(type.IsPrimitive);
+                        Contracts.Assert(type is PrimitiveType);
                         pipeType = typeof(ImplOne<>).MakeGenericType(type.RawType);
                     }
                     if (_pipeConstructorTypes == null)

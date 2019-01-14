@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// usage of already established components), but should still be possible.
         /// </summary>
         [Fact]
-        void New_Extensibility()
+        void Extensibility()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
 

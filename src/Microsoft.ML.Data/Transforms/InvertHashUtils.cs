@@ -46,7 +46,7 @@ namespace Microsoft.ML.Data
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema[col].HasKeyValues(keyType.KeyCount))
+            if (schema[col].HasKeyValues(keyType.Count))
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Data
                 throw ch.ExceptDecode();
             ch.AssertValue(codec);
             ch.CheckDecode(codec.Type.IsVector);
-            ch.CheckDecode(codec.Type.ItemType.IsText);
+            ch.CheckDecode(codec.Type.ItemType is TextType);
             var textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             var bufferLen = ctx.Reader.ReadInt32();

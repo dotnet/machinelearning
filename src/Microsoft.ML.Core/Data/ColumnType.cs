@@ -21,10 +21,7 @@ namespace Microsoft.ML.Data
         // This private constructor sets all the IsXxx flags. It is invoked by other ctors.
         private ColumnType()
         {
-            IsPrimitive = this is PrimitiveType;
             IsVector = this is VectorType;
-            IsNumber = this is NumberType;
-            IsKey = this is KeyType;
         }
 
         /// <summary>
@@ -72,79 +69,6 @@ namespace Microsoft.ML.Data
         /// </summary>
         [BestFriend]
         internal DataKind RawKind { get; }
-
-        /// <summary>
-        /// Whether this is a primitive type. External code should use <c>is <see cref="PrimitiveType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsPrimitive { get; }
-
-        /// <summary>
-        /// Whether this type is a standard numeric type. External code should use <c>is <see cref="NumberType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsNumber { get; }
-
-        /// <summary>
-        /// Whether this type is the standard text type. External code should use <c>is <see cref="TextType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsText
-        {
-            get
-            {
-                if (!(this is TextType))
-                    return false;
-                // TextType is a singleton.
-                Contracts.Assert(this == TextType.Instance);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Whether this type is the standard boolean type. External code should use <c>is <see cref="BoolType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsBool
-        {
-            get
-            {
-                if (!(this is BoolType))
-                    return false;
-                // BoolType is a singleton.
-                Contracts.Assert(this == BoolType.Instance);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Whether this type is a standard scalar type completely determined by its <see cref="RawType"/>
-        /// (not a <see cref="KeyType"/> or <see cref="StructuredType"/>, etc).
-        /// </summary>
-        [BestFriend]
-        internal bool IsStandardScalar => IsNumber || IsText || IsBool ||
-            (this is TimeSpanType) || (this is DateTimeType) || (this is DateTimeOffsetType);
-
-        /// <summary>
-        /// Whether this type is a key type, which implies that the order of values is not significant,
-        /// and arithmetic is non-sensical. A key type can define a cardinality.
-        /// External code should use <c>is <see cref="KeyType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsKey { get; }
-
-        /// <summary>
-        /// Zero return means either it's not a key type or the cardinality is unknown. External code should first
-        /// test whether this is of type <see cref="KeyType"/>, then if so get the <see cref="KeyType.Count"/> property
-        /// from that.
-        /// </summary>
-        [BestFriend]
-        internal int KeyCount => KeyCountCore;
-
-        /// <summary>
-        /// The only sub-class that should override this is <see cref="KeyType"/>.
-        /// </summary>
-        private protected virtual int KeyCountCore => 0;
 
         /// <summary>
         /// Whether this is a vector type. External code should just check directly against whether this type
@@ -230,13 +154,11 @@ namespace Microsoft.ML.Data
         protected StructuredType(Type rawType)
             : base(rawType)
         {
-            Contracts.Assert(!IsPrimitive);
         }
 
         private protected StructuredType(Type rawType, DataKind rawKind)
             : base(rawType, rawKind)
         {
-            Contracts.Assert(!IsPrimitive);
         }
     }
 
@@ -249,7 +171,6 @@ namespace Microsoft.ML.Data
         protected PrimitiveType(Type rawType)
             : base(rawType)
         {
-            Contracts.Assert(IsPrimitive);
             Contracts.CheckParam(!typeof(IDisposable).IsAssignableFrom(RawType), nameof(rawType),
                 "A " + nameof(PrimitiveType) + " cannot have a disposable " + nameof(RawType));
         }
@@ -257,7 +178,6 @@ namespace Microsoft.ML.Data
         private protected PrimitiveType(Type rawType, DataKind rawKind)
             : base(rawType, rawKind)
         {
-            Contracts.Assert(IsPrimitive);
             Contracts.Assert(!typeof(IDisposable).IsAssignableFrom(RawType));
         }
 
@@ -322,7 +242,6 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertNonEmpty(name);
             _name = name;
-            Contracts.Assert(IsNumber);
         }
 
         private static volatile NumberType _instI1;
@@ -496,7 +415,7 @@ namespace Microsoft.ML.Data
         {
             if (other == this)
                 return true;
-            Contracts.Assert(other == null || !other.IsNumber || other.RawKind != RawKind);
+            Contracts.Assert(other == null || !(other is NumberType) || other.RawKind != RawKind);
             return false;
         }
 
@@ -661,7 +580,6 @@ namespace Microsoft.ML.Data
             Contiguous = contiguous;
             Min = min;
             Count = count;
-            Contracts.Assert(IsKey);
         }
 
         public KeyType(Type type, ulong min, int count, bool contiguous = true)
@@ -720,8 +638,6 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(type, nameof(type));
             return type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong);
         }
-
-        private protected override int KeyCountCore => Count;
 
         /// <summary>
         /// This is the Min of the key type for display purposes and conversion to/from text. The values

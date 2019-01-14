@@ -105,7 +105,7 @@ namespace Microsoft.ML.Transforms
                 _type = schema[_index].Type;
                 if (!IsValidRangeFilterColumnType(ch, _type))
                     throw ch.ExceptUserArg(nameof(args.Column), "Column '{0}' does not have compatible type", args.Column);
-                if (_type.IsKey)
+                if (_type is KeyType)
                 {
                     if (args.Min < 0)
                     {
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Transforms
                     throw ch.ExceptUserArg(nameof(args.Min), "min must be less than or equal to max");
                 _complement = args.Complement;
                 _includeMin = args.IncludeMin;
-                _includeMax = args.IncludeMax ?? (args.Max == null || (_type.IsKey && _max >= 1));
+                _includeMax = args.IncludeMax ?? (args.Max == null || (_type is KeyType && _max >= 1));
             }
         }
 
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.Except("column", "Source column '{0}' not found", column);
 
             _type = schema[_index].Type;
-            if (_type != NumberType.R4 && _type != NumberType.R8 && _type.KeyCount == 0)
+            if (_type != NumberType.R4 && _type != NumberType.R8 && _type.GetKeyCount() == 0)
                 throw Host.Except("column", "Column '{0}' does not have compatible type", column);
 
             _min = ctx.Reader.ReadDouble();
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms
                 return new SingleRowCursor(this, input, active);
             if (_type == NumberType.R8)
                 return new DoubleRowCursor(this, input, active);
-            Host.Assert(_type.IsKey);
+            Host.Assert(_type is KeyType);
             return RowCursorBase.CreateKeyRowCursor(this, input, active);
         }
 
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms
         {
             ectx.CheckValue(type, nameof(type));
 
-            return type == NumberType.R4 || type == NumberType.R8 || type.KeyCount > 0;
+            return type == NumberType.R4 || type == NumberType.R8 || type.GetKeyCount() > 0;
         }
 
         private abstract class RowCursorBase : LinkedRowFilterCursorBase
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms
 
             public static RowCursor CreateKeyRowCursor(RangeFilter filter, RowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type.IsKey);
+                Contracts.Assert(filter._type is KeyType);
                 Func<RangeFilter, RowCursor, bool[], RowCursor> del = CreateKeyRowCursor<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(filter._type.RawType);
                 return (RowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Transforms
 
             private static RowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, RowCursor input, bool[] active)
             {
-                Contracts.Assert(filter._type.IsKey);
+                Contracts.Assert(filter._type is KeyType);
                 return new KeyRowCursor<TSrc>(filter, input, active);
             }
         }
@@ -410,8 +410,8 @@ namespace Microsoft.ML.Transforms
             public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
-                Ch.Assert(Parent._type.KeyCount > 0);
-                _count = Parent._type.KeyCount;
+                Ch.Assert(Parent._type.GetKeyCount() > 0);
+                _count = Parent._type.GetKeyCount();
                 _srcGetter = Input.GetGetter<T>(Parent._index);
                 _getter =
                     (ref T dst) =>
@@ -425,13 +425,13 @@ namespace Microsoft.ML.Transforms
 
             protected override Delegate GetGetter()
             {
-                Ch.Assert(Parent._type.IsKey);
+                Ch.Assert(Parent._type is KeyType);
                 return _getter;
             }
 
             protected override bool Accept()
             {
-                Ch.Assert(Parent._type.IsKey);
+                Ch.Assert(Parent._type is KeyType);
                 _srcGetter(ref _value);
                 ulong value = 0;
                 _conv(in _value, ref value);

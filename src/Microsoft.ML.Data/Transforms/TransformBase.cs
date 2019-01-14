@@ -899,21 +899,21 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsText(ColumnType type)
         {
-            if (type.IsText)
+            if (type is TextType)
                 return null;
             return "Expected Text type";
         }
 
         protected static string TestIsTextItem(ColumnType type)
         {
-            if (type.ItemType.IsText)
+            if (type.ItemType is TextType)
                 return null;
             return "Expected Text type";
         }
 
         protected static string TestIsTextVector(ColumnType type)
         {
-            if (type.ItemType.IsText && type.IsVector)
+            if (type.ItemType is TextType && type.IsVector)
                 return null;
             return "Expected vector of Text type";
         }
@@ -943,7 +943,7 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsKey(ColumnType type)
         {
-            if (type.ItemType.KeyCount > 0)
+            if (type.ItemType.GetKeyCount() > 0)
                 return null;
             return "Expected Key type of known cardinality";
         }

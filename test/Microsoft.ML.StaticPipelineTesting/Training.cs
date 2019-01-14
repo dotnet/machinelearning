@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
@@ -13,6 +14,7 @@ using Microsoft.ML.Learners;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.LightGBM.StaticPipe;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.SamplesUtils;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
@@ -1008,6 +1010,90 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // Naive test. Just make sure the pipeline runs.
             Assert.InRange(metrics.L2, 0, 0.5);
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        public void MultiClassLightGbmStaticPipelineWithInMemoryData()
+        {
+            // Create a general context for ML.NET operations. It can be used for exception tracking and logging,
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext(seed: 1, conc: 1);
+
+            // Create in-memory examples as C# native class.
+            var examples = DatasetUtils.GenerateRandomMulticlassClassificationExamples(1000);
+
+            // Convert native C# class to IDataView, a consumble format to ML.NET functions.
+            var dataView = ComponentCreation.CreateDataView(mlContext, examples);
+
+            // IDataView is the data format used in dynamic-typed pipeline. To use static-typed pipeline, we need to convert
+            // IDataView to DataView by calling AssertStatic(...). The basic idea is to specify the static type for each column
+            // in IDataView in a lambda function.
+            var staticDataView = dataView.AssertStatic(mlContext, c => (
+                         Features: c.R4.Vector,
+                         Label: c.Text.Scalar));
+
+            // Create static pipeline. First, we make an estimator out of static DataView as the starting of a pipeline.
+            // Then, we append necessary transforms and a classifier to the starting estimator.
+            var pipe = staticDataView.MakeNewEstimator()
+                    .Append(mapper: r => (
+                        r.Label,
+                        // Train multi-class LightGBM. The trained model maps Features to Label and probability of each class.
+                        // The call of ToKey() is needed to convert string labels to integer indexes.
+                        Predictions: mlContext.MulticlassClassification.Trainers.LightGbm(r.Label.ToKey(), r.Features)
+                    ))
+                    .Append(r => (
+                        // Actual label.
+                        r.Label,
+                        // Labels are converted to keys when training LightGBM so we convert it here again for calling evaluation function.
+                        LabelIndex: r.Label.ToKey(),
+                        // Used to compute metrics such as accuracy.
+                        r.Predictions,
+                        // Assign a new name to predicted class index.
+                        PredictedLabelIndex: r.Predictions.predictedLabel,
+                        // Assign a new name to class probabilities.
+                        Scores: r.Predictions.score
+                    ));
+
+            // Split the static-typed data into training and test sets. Only training set is used in fitting
+            // the created pipeline. Metrics are computed on the test.
+            var (trainingData, testingData) = mlContext.MulticlassClassification.TrainTestSplit(staticDataView, testFraction: 0.5);
+
+            // Train the model.
+            var model = pipe.Fit(trainingData);
+
+            // Do prediction on the test set.
+            var prediction = model.Transform(testingData);
+
+            // Evaluate the trained model is the test set.
+            var metrics = mlContext.MulticlassClassification.Evaluate(prediction, r => r.LabelIndex, r => r.Predictions);
+
+            // Check if metrics are resonable.
+            Assert.Equal(0.863482146891263, metrics.AccuracyMacro, 6);
+            Assert.Equal(0.86309523809523814, metrics.AccuracyMicro, 6);
+
+            // Convert prediction in ML.NET format to native C# class.
+            var nativePredictions = new List<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic.AsEnumerable<DatasetUtils.MulticlassClassificationExample>(mlContext, false));
+
+            // Get schema object of the prediction. It contains metadata such as the mapping from predicted label index
+            // (e.g., 1) to its actual label (e.g., "AA").
+            var schema = prediction.AsDynamic.Schema;
+
+            // Retrieve the mapping from labels to label indexes.
+            var labelBuffer = new VBuffer<ReadOnlyMemory<char>>();
+            schema[nameof(DatasetUtils.MulticlassClassificationExample.PredictedLabelIndex)].Metadata.GetValue("KeyValues", ref labelBuffer);
+            var nativeLabels = labelBuffer.DenseValues().ToList(); // nativeLabels[nativePrediction.PredictedLabelIndex-1] is the original label indexed by nativePrediction.PredictedLabelIndex.
+
+            // Show prediction result for the 3rd example.
+            var nativePrediction = nativePredictions[2];
+            var expectedProbabilities = new float[] { 0.922597349f, 0.07508608f, 0.00221699756f, 9.95488E-05f };
+            // Scores and nativeLabels are two parallel attributes; that is, Scores[i] is the probability of being nativeLabels[i].
+            for (int i = 0; i < labelBuffer.Length; ++i)
+                Assert.Equal(expectedProbabilities[i], nativePrediction.Scores[i], 6);
+
+            // The predicted label below should be  with probability 0.922597349.
+            Console.WriteLine("Our predicted label to this example is {0} with probability {1}",
+                nativeLabels[(int)nativePrediction.PredictedLabelIndex-1],
+                nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex-1]);
         }
     }
 }

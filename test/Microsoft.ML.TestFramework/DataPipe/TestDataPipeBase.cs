@@ -584,7 +584,7 @@ namespace Microsoft.ML.RunTests
                 if (!keyNames)
                     continue;
 
-                size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
+                size = type1.ItemType is KeyType keyType ? keyType.Count : -1;
                 if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, size, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
@@ -617,7 +617,7 @@ namespace Microsoft.ML.RunTests
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
                 return Failed();
             }
-            if (!t1.ItemType.IsText)
+            if (!(t1.ItemType is TextType))
             {
                 if (!mustBeText)
                 {

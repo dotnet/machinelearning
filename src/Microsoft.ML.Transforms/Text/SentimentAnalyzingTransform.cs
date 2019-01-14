@@ -48,7 +48,8 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string ModelScoreColumnName = "EnsembleScore";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoaderSignature);
@@ -130,10 +131,7 @@ namespace Microsoft.ML.Transforms.Text
 
             hiddenNames = toHide.Select(colName =>
                 new KeyValuePair<string, string>(colName, input.Schema.GetTempColumnName(colName))).ToArray();
-            return ColumnCopyingTransformer.Create(env, new ColumnCopyingTransformer.Arguments()
-            {
-                Column = hiddenNames.Select(pair => new ColumnCopyingTransformer.Column() { Name = pair.Value, Source = pair.Key }).ToArray()
-            }, input);
+            return new ColumnCopyingTransformer(env, hiddenNames.Select(x => (Input: x.Key, Output: x.Value)).ToArray()).Transform(input);
         }
 
         private static IDataView UnaliasIfNeeded(IHostEnvironment env, IDataView input, KeyValuePair<string, string>[] hiddenNames)
@@ -141,11 +139,7 @@ namespace Microsoft.ML.Transforms.Text
             if (Utils.Size(hiddenNames) == 0)
                 return input;
 
-            input = ColumnCopyingTransformer.Create(env, new ColumnCopyingTransformer.Arguments()
-            {
-                Column = hiddenNames.Select(pair => new ColumnCopyingTransformer.Column() { Name = pair.Key, Source = pair.Value }).ToArray()
-            }, input);
-
+            input = new ColumnCopyingTransformer(env, hiddenNames.Select(x => (Input: x.Key, Output: x.Value)).ToArray()).Transform(input);
             return ColumnSelectingTransformer.CreateDrop(env, input, hiddenNames.Select(pair => pair.Value).ToArray());
         }
 

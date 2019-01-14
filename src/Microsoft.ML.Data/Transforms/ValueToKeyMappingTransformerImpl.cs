@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public static Builder Create(ColumnType type, SortOrder sortOrder)
             {
                 Contracts.AssertValue(type);
-                Contracts.Assert(type.IsVector || type.IsPrimitive);
+                Contracts.Assert(type.IsVector || type is PrimitiveType);
                 // Right now we have only two. This "public" interface externally looks like it might
                 // accept any value, but currently the internal implementations of Builder are split
                 // along this being a purely binary option, for now (though this can easily change
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 PrimitiveType itemType = type.ItemType as PrimitiveType;
                 Contracts.AssertValue(itemType);
-                if (itemType.IsText)
+                if (itemType is TextType)
                     return new TextImpl(sorted);
                 return Utils.MarshalInvoke(CreateCore<int>, itemType.RawType, itemType, sorted);
             }
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 var type = schema[col].Type;
                 Contracts.Assert(autoConvert || bldr.ItemType == type.ItemType);
                 // Auto conversion should only be possible when the type is text.
-                Contracts.Assert(type.IsText || !autoConvert);
+                Contracts.Assert(type is TextType || !autoConvert);
                 if (type.IsVector)
                     return Utils.MarshalInvoke(CreateVec<int>, bldr.ItemType.RawType, row, col, count, bldr);
                 return Utils.MarshalInvoke(CreateOne<int>, bldr.ItemType.RawType, row, col, autoConvert, count, bldr);
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         IValueCodec codec;
                         if (!codecFactory.TryReadCodec(ctx.Reader.BaseStream, out codec))
                             throw ectx.Except("Unrecognized codec read");
-                        ectx.CheckDecode(codec.Type.IsPrimitive);
+                        ectx.CheckDecode(codec.Type is PrimitiveType);
                         int count = ctx.Reader.ReadInt32();
                         ectx.CheckDecode(count >= 0);
                         return Utils.MarshalInvoke(LoadCodecCore<int>, codec.Type.RawType, ctx, ectx, codec, count);
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 ectx.AssertValue(ctx);
                 ectx.AssertValue(codec);
                 ectx.Assert(codec is IValueCodec<T>);
-                ectx.Assert(codec.Type.IsPrimitive);
+                ectx.Assert(codec.Type is PrimitiveType);
                 ectx.Assert(count >= 0);
 
                 IValueCodec<T> codecT = (IValueCodec<T>)codec;
@@ -699,7 +699,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         throw host.Except("We do not know how to serialize terms of type '{0}'", ItemType);
                     ctx.Writer.Write((byte)MapType.Codec);
                     host.Assert(codec.Type.Equals(ItemType));
-                    host.Assert(codec.Type.IsPrimitive);
+                    host.Assert(codec.Type is PrimitiveType);
                     codecFactory.WriteCodec(ctx.Writer.BaseStream, codec);
                     IValueCodec<T> codecT = (IValueCodec<T>)codec;
                     ctx.Writer.Write(_values.Count);
@@ -843,7 +843,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public static BoundTermMap CreateCore<T>(IHostEnvironment env, Schema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
                 TermMap<T> mapT = (TermMap<T>)map;
-                if (mapT.ItemType.IsKey)
+                if (mapT.ItemType is KeyType)
                     return new KeyImpl<T>(env, schema, mapT, infos, textMetadata, iinfo);
                 return new Impl<T>(env, schema, mapT, infos, textMetadata, iinfo);
             }
@@ -1041,7 +1041,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     if (TypedMap.Count == 0)
                         return;
-                    if (IsTextMetadata && !TypedMap.ItemType.IsText)
+                    if (IsTextMetadata && !(TypedMap.ItemType is TextType))
                     {
                         var conv = Data.Conversion.Conversions.Instance;
                         var stringMapper = conv.GetStringConversion<T>(TypedMap.ItemType);
@@ -1054,7 +1054,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                 TypedMap.GetTerms(ref dstT);
                                 GetTextTerms(in dstT, stringMapper, ref dst);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, getter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, TextType.Instance, getter);
                     }
                     else
                     {
@@ -1063,7 +1063,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             {
                                 TypedMap.GetTerms(ref dst);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, TypedMap.ItemType, getter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, TypedMap.ItemType, getter);
                     }
                 }
             }
@@ -1077,7 +1077,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 public KeyImpl(IHostEnvironment env, Schema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
                     : base(env, schema, map, infos, textMetadata, iinfo)
                 {
-                    _host.Assert(TypedMap.ItemType.IsKey);
+                    _host.Assert(TypedMap.ItemType is KeyType);
                 }
 
                 public override void AddMetadata(MetadataBuilder builder)
@@ -1087,8 +1087,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
-                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
+                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.GetKeyCount() ||
+                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.AddMetadata(builder);
@@ -1120,7 +1120,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                             VBuffer<T> keyVals = default(VBuffer<T>);
                             TypedMap.GetTerms(ref keyVals);
-                            var editor = VBufferEditor.Create(ref dst, TypedMap.OutputType.KeyCount);
+                            var editor = VBufferEditor.Create(ref dst, TypedMap.OutputType.Count);
                             uint convKeyVal = 0;
                             foreach (var pair in keyVals.Items(all: true))
                             {
@@ -1133,7 +1133,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             dst = editor.Commit();
                         };
 
-                    if (IsTextMetadata && !srcMetaType.IsText)
+                    if (IsTextMetadata && !(srcMetaType is TextType))
                     {
                         var stringMapper = convInst.GetStringConversion<TMeta>(srcMetaType);
                         ValueGetter<VBuffer<ReadOnlyMemory<char>>> mgetter =
@@ -1143,9 +1143,9 @@ namespace Microsoft.ML.Transforms.Conversions
                                 getter(ref tempMeta);
                                 Contracts.Assert(tempMeta.IsDense);
                                 GetTextTerms(in tempMeta, stringMapper, ref dst);
-                                _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
+                                _host.Assert(dst.Length == TypedMap.OutputType.Count);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, mgetter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, TextType.Instance, mgetter);
                     }
                     else
                     {
@@ -1153,9 +1153,9 @@ namespace Microsoft.ML.Transforms.Conversions
                             (ref VBuffer<TMeta> dst) =>
                             {
                                 getter(ref dst);
-                                _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
+                                _host.Assert(dst.Length == TypedMap.OutputType.Count);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, (PrimitiveType)srcMetaType.ItemType, mgetter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, (PrimitiveType)srcMetaType.ItemType, mgetter);
                     }
                     return true;
                 }
@@ -1167,8 +1167,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
-                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
+                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.GetKeyCount() ||
+                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.WriteTextTerms(writer);

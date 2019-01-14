@@ -24,12 +24,20 @@ namespace Microsoft.ML.RunTests
     {
         public const int DigitsOfPrecision = 7;
 
+        public static bool NotFullFramework { get; set;} = true;
+
         public static bool LessThanNetCore30OrNotNetCore { get; } = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? true : false;
+
+        public static bool LessThanNetCore30AndNotFullFramework { get; set; } = LessThanNetCore30OrNotNetCore;
 
         public static bool LessThanNetCore30OrNotNetCoreAnd64BitProcess { get; } = LessThanNetCore30OrNotNetCore && Environment.Is64BitProcess;
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
+#if NET462
+            NotFullFramework = false;
+            LessThanNetCore30AndNotFullFramework = false;
+#endif
         }
 
         internal const string RawSuffix = ".raw";

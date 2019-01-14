@@ -10,21 +10,6 @@ resources:
 phases:
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Linux
-    buildScript: ./build.sh
-    queue:
-      name: Hosted Ubuntu 1604
-      container: LinuxContainer
-
-- template: /build/ci/phase-template.yml
-  parameters:
-    name: Windows_x64
-    buildScript: build.cmd
-    queue:
-      name: Hosted VS2017
-
-- template: /build/ci/phase-template.yml
-  parameters:
     name: core30
     buildScript: build.cmd
     customMatrixes:
@@ -39,11 +24,11 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_x86
-    architecture: x86
-    buildScript: build.cmd
+    name: Linux
+    buildScript: ./build.sh
     queue:
-      name: Hosted VS2017
+      name: Hosted Ubuntu 1604
+      container: LinuxContainer
 
 - template: /build/ci/phase-template.yml
   parameters:
@@ -51,3 +36,32 @@ phases:
     buildScript: ./build.sh
     queue:
       name: Hosted macOS
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Windows_NetFx
+    buildScript: build.cmd
+    customMatrixes:
+      Build_Debug_netfx:
+        _configuration: Debug-netfx
+        _config_short: DFX
+      Build_Release_netfx:
+        _configuration: Release-netfx
+        _config_short: RFX  
+    queue:
+      name: Hosted VS2017
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Windows_x64
+    buildScript: build.cmd
+    queue:
+      name: Hosted VS2017
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Windows_x86
+    architecture: x86
+    buildScript: build.cmd
+    queue:
+      name: Hosted VS2017
