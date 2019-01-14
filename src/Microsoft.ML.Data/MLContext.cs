@@ -109,7 +109,7 @@ namespace Microsoft.ML
 
             var msg = $"[Source={source.FullName}, Kind={message.Kind}] {message.Message}";
 
-            log(this, new LoggingEventArgs { Message = msg });
+            log(this, new LoggingEventArgs(msg));
         }
 
         int IHostEnvironment.ConcurrencyFactor => _env.ConcurrencyFactor;
