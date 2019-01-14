@@ -473,7 +473,9 @@ namespace Microsoft.ML.Data.IO
             protected readonly BinaryLoader Parent;
 
             /// <summary>
-            /// Retuen the getter to the stored entry value as <see cref="Delegate"/>.
+            /// Return <see cref="ValueGetter{TValue}"/> to the stored entry value as <see cref="Delegate"/>. An example of stored value is
+            /// <see cref="MetadataTableOfContentsEntry{T}.Value"/>. For implementations of <see cref="GetGetter"/>, see <see cref="ImplDead"/>,
+            /// <see cref="ImplOne{T}"/>, and <see cref="ImplVec{T}"/>.
             /// </summary>
             public abstract Delegate GetGetter();
 
