@@ -445,7 +445,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         /// <summary>
         /// This test aims at making sure the training pipeline can always be run in a doc site example at
-        /// https://github.com/dotnet/machinelearning-samples/blob/16acc2f55880808bd34f3465e3eec4571565cb89/samples/csharp/getting-started/MatrixFactorization_MovieRecommendation/MovieRecommendation/Program.cs#L46
+        /// https://github.com/dotnet/machinelearning-samples/tree/master/samples/csharp/getting-started/MatrixFactorization_MovieRecommendation/MovieRecommendation.
+        /// If this test gets changed, that example needs to be changed accordingly.
         /// </summary>
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         void MatrixFactorizationDocSiteExampleTest()
@@ -467,6 +468,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var dataView = reader.Read(new MultiFileSource(GetDataPath("matrix-factorization-doc-site-example.csv")));
 
+            // This pipeline should simulate the line at https://github.com/dotnet/machinelearning-samples/blob/master/samples/csharp/getting-started/MatrixFactorization_MovieRecommendation/MovieRecommendation/Program.cs#L46.
             var pipeline = mlContext.Transforms.Conversion.MapValueToKey("userId", "userIdEncoded")
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("movieId", "movieIdEncoded")
                 .Append(new MatrixFactorizationTrainer(mlContext, "userIdEncoded", "movieIdEncoded", "Label",
@@ -482,7 +484,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Label", score: "Score");
 
-            Assert.Equal(0.18630993782964125, metrics.L2, 3);
+            // Easy criterion. Just make sure pipeline is not doing something horrible.
+            // Note that the range of score is from 0 to 5.
+            Assert.InRange(metrics.L2, 0, 0.2);
         }
     }
 }
