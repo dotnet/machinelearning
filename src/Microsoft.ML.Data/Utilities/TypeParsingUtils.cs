@@ -67,7 +67,7 @@ namespace Microsoft.ML.Data
                 ulong max = range.Max.GetValueOrDefault();
                 Contracts.CheckUserArg(max >= 0, nameof(range.Max), "max must be >= 0");
                 Contracts.CheckUserArg(max < ulong.MaxValue, nameof(range.Max), "range is too large");
-                ulong count = max;
+                ulong count = max + 1;
                 Contracts.Assert(count >= 1);
                 if (count > kind.ToMaxInt())
                     throw Contracts.ExceptUserArg(nameof(range.Max), "range is too large for type {0}", kind);

@@ -511,11 +511,11 @@ namespace Microsoft.ML.Data.Conversion
                     {
                         U8 tmp = 0;
                         convSrc(in src, ref tmp);
-                        if (tmp == 0 || tmp == U8.MaxValue)
+                        if (tmp == 0)
                             ClearDst(ref dst);
                         else
                         {
-                            tmp = tmp + 1;
+                            tmp = tmp - 1;
                             convU8(in tmp, ref dst);
                         }
                     };
