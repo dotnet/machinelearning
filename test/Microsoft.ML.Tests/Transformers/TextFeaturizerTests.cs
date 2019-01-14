@@ -249,7 +249,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordTokenizingEstimator(Env, "text", "text")
-                .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
+                .Append(new ValueToKeyMappingEstimator(Env, "terms", "text"))
                 .Append(new NgramExtractingEstimator(Env, "terms", "ngrams"))
                 .Append(new NgramHashingEstimator(Env, "terms", "ngramshash"));
 
