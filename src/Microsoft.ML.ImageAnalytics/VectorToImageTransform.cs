@@ -377,8 +377,8 @@ namespace Microsoft.ML.ImageAnalytics
                     int cpix = height * width;
                     int position = 0;
 
-                    for (int x = 0; x < width; x++)
-                        for (int y = 0; y < height; ++y)
+                    for (int y = 0; y < height; ++y)
+                        for (int x = 0; x < width; x++)
                         {
                             float red = 0;
                             float green = 0;
