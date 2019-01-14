@@ -285,15 +285,6 @@
                           "Kind": "Struct",
                           "Fields": [
                             {
-                              "Name": "Min",
-                              "Type": "UInt",
-                              "Desc": "First index in the range",
-                              "Required": false,
-                              "SortOrder": 150.0,
-                              "IsNullable": false,
-                              "Default": 0
-                            },
-                            {
                               "Name": "Max",
                               "Type": "UInt",
                               "Desc": "Last index in the range",
@@ -301,15 +292,6 @@
                               "SortOrder": 150.0,
                               "IsNullable": true,
                               "Default": null
-                            },
-                            {
-                              "Name": "Contiguous",
-                              "Type": "Bool",
-                              "Desc": "Whether the key is contiguous",
-                              "Required": false,
-                              "SortOrder": 150.0,
-                              "IsNullable": false,
-                              "Default": true
                             }
                           ]
                         },
