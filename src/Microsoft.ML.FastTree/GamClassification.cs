@@ -108,8 +108,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override IPredictorProducing<float> TrainModelCore(TrainContext context)
         {
             TrainBase(context);
-            var predictor = new BinaryClassificationGamModelParameters(Host, InputLength, TrainSet,
-                MeanEffect, BinEffects, FeatureMap);
+            var predictor = new BinaryClassificationGamModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, FeatureMap);
             var calibrator = new PlattCalibrator(Host, -1.0 * _sigmoidParameter, 0);
             return new CalibratedPredictor(Host, predictor, calibrator);
         }
@@ -162,9 +161,9 @@ namespace Microsoft.ML.Trainers.FastTree
         internal const string LoaderSignature = "BinaryClassGamPredictor";
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        internal BinaryClassificationGamModelParameters(IHostEnvironment env, int inputLength, Dataset trainset,
-            double meanEffect, double[][] binEffects, int[] featureMap)
-            : base(env, LoaderSignature, inputLength, trainset, meanEffect, binEffects, featureMap) { }
+        internal BinaryClassificationGamModelParameters(IHostEnvironment env,
+            double[][] binUpperBounds, double[][] binEffects, double intercept, int[] featureToInputMap)
+            : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, featureToInputMap) { }
 
         private BinaryClassificationGamModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx) { }

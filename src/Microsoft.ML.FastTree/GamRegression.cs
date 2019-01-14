@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override RegressionGamModelParameters TrainModelCore(TrainContext context)
         {
             TrainBase(context);
-            return new RegressionGamModelParameters(Host, InputLength, TrainSet, MeanEffect, BinEffects, FeatureMap);
+            return new RegressionGamModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, FeatureMap);
         }
 
         protected override ObjectiveFunctionBase CreateObjectiveFunction()
@@ -111,9 +111,9 @@ namespace Microsoft.ML.Trainers.FastTree
         internal const string LoaderSignature = "RegressionGamPredictor";
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        internal RegressionGamModelParameters(IHostEnvironment env, int inputLength, Dataset trainset,
-            double meanEffect, double[][] binEffects, int[] featureMap)
-            : base(env, LoaderSignature, inputLength, trainset, meanEffect, binEffects, featureMap) { }
+        internal RegressionGamModelParameters(IHostEnvironment env,
+            double[][] binUpperBounds, double[][] binEffects, double intercept, int[] featureToInputMap)
+            : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, featureToInputMap) { }
 
         private RegressionGamModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx) { }
