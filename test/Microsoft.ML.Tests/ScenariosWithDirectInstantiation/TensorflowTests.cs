@@ -140,7 +140,7 @@ namespace Microsoft.ML.Scenarios
 
             var inputs = new string[]{"f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8","b"};
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
-            var trans = TensorFlowTransform.Create(mlContext, loader, model_location, outputs, inputs);
+            var trans = new TensorFlowTransformer(mlContext, model_location, inputs, outputs).Transform(loader); ;
 
             using (var cursor = trans.GetRowCursor(a => true))
             {
