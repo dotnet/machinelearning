@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Xunit;
 using Microsoft.ML.SamplesUtils;
-using System.Linq;
 using Microsoft.ML.Trainers.FastTree;
+using System;
+using System.Linq;
+using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -24,7 +22,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Define a tree model whose trees will be extracted to construct a tree featurizer.
             var trainer = ML.BinaryClassification.Trainers.FastTree(
-                new FastTreeBinaryClassificationTrainer.Options { 
+                new FastTreeBinaryClassificationTrainer.Options
+                {
                     NumThreads = 1,
                     NumTrees = 10,
                     NumLeaves = 5,
