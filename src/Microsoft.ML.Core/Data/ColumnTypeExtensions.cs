@@ -23,8 +23,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static int CheckRangeReturnCount(this ColumnType columnType, IExceptionContext ectx = null)
         {
-            ectx.Assert(columnType.KeyCount <= int.MaxValue, "KeyType range exceeds int.MaxValue.");
-            return (int)columnType.KeyCount;
+            ectx.Assert(columnType.GetKeyCount() <= int.MaxValue, "KeyType range exceeds int.MaxValue.");
+            return (int)columnType.GetKeyCount();
         }
 
         /// <summary>

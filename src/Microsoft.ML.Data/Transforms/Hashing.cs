@@ -303,7 +303,8 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             _keyValues[invertIinfos[i]] = helpers[i].GetKeyValuesMetadata();
-                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].GetItemType().GetKeyCount());
+                            ulong count = types[invertIinfos[i]].GetItemType().GetKeyCount();
+                            Host.Assert(count <= int.MaxValue && _keyValues[invertIinfos[i]].Length == (int)count);
                             _kvTypes[invertIinfos[i]] = new VectorType(TextType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
                     }

@@ -554,8 +554,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(keyTypeSrc != null);
                 Host.Assert(!_parent._columns[iinfo].Bag);
 
-                var info = _infos[iinfo];
-                int size = info.TypeSrc.ItemType.CheckRangeReturnCount(Host);
+                int size = keyTypeSrc.CheckRangeReturnCount(Host);
                 Host.Assert(size > 0);
 
                 int cv = srcVectorType.Size;

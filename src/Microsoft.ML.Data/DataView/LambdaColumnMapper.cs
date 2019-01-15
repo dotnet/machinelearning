@@ -122,7 +122,7 @@ namespace Microsoft.ML.Data
                     {
                         if (keyValueGetter != null)
                         {
-                            int keyCount = _typeDst.GetItemType().GetKeyCount();
+                            int keyCount = _typeDst.GetItemType().CheckRangeReturnCount(Host);
                             Host.Assert(keyCount > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);

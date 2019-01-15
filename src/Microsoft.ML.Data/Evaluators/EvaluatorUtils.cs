@@ -1223,7 +1223,7 @@ namespace Microsoft.ML.Data
                 int count = type.CheckRangeReturnCount(env);
                 if (i == stratCol)
                 {
-                    int typeKeyCount = type.GetKeyCount();
+                    int typeKeyCount = type.CheckRangeReturnCount(env);
 
                     var keyValuesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (keyValuesType == null || !(keyValuesType.ItemType is TextType) ||

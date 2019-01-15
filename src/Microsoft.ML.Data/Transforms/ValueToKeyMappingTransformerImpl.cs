@@ -1088,7 +1088,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.CheckRangeReturnCount(_host) ||
-                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
+                        TypedMap.ItemType.CheckRangeReturnCount(_host) == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.AddMetadata(builder);
@@ -1169,7 +1169,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.CheckRangeReturnCount(_host) ||
-                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
+                        TypedMap.ItemType.CheckRangeReturnCount(_host) == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.WriteTextTerms(writer);

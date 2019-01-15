@@ -754,7 +754,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                 if (type is KeyType keyType)
                 {
-                    Host.Assert(type.KeyCount > 0);
+                    Host.Assert(type.CheckRangeReturnCount(Host) > 0);
                     labelCardinality = type.CheckRangeReturnCount(Host);
 
                     int size = type.CheckRangeReturnCount(Host);

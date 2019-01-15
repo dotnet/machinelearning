@@ -488,7 +488,7 @@ namespace Microsoft.ML.Data
         internal KeyType(Type type, int count)
             : this(type, CheckRefRawType(type), (ulong)count)
         {
-            Contracts.Assert(count >= 0);
+            Contracts.Assert(0 <= count);
         }
 
         [BestFriend]
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Data
         internal KeyType(DataKind kind, int count)
             : this(ToRawType(kind), kind, (ulong)count)
         {
-            Contracts.Assert(count >= 0);
+            Contracts.Assert(0 <= count);
         }
 
         private static DataKind CheckRefRawType(Type type)
@@ -549,7 +549,6 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(type, nameof(type));
             return type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong);
         }
-
 
         /// <summary>
         /// If this key type has contiguous values and a known cardinality, Count is that cardinality.
