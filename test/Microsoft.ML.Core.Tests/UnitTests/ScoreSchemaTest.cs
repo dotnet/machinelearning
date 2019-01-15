@@ -47,7 +47,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(scoreColumn.Type is KeyType);
             Assert.Equal((scoreColumnType as KeyType).Min, (scoreColumn.Type as KeyType).Min);
             Assert.Equal((scoreColumnType as KeyType).Count, (scoreColumn.Type as KeyType).Count);
-            Assert.Equal((scoreColumnType as KeyType).RawKind, (scoreColumn.Type as KeyType).RawKind);
+            Assert.Equal((scoreColumnType as KeyType).RawType, (scoreColumn.Type as KeyType).RawType);
             Assert.Equal((scoreColumnType as KeyType).Contiguous, (scoreColumn.Type as KeyType).Contiguous);
 
             // Check metadata. Because keyNames is not empty, there should be three metadata fields.
@@ -105,7 +105,7 @@ namespace Microsoft.ML.RunTests
             Assert.True(scoreColumn.Type is KeyType);
             Assert.Equal((scoreColumnType as KeyType).Min, (scoreColumn.Type as KeyType).Min);
             Assert.Equal((scoreColumnType as KeyType).Count, (scoreColumn.Type as KeyType).Count);
-            Assert.Equal((scoreColumnType as KeyType).RawKind, (scoreColumn.Type as KeyType).RawKind);
+            Assert.Equal((scoreColumnType as KeyType).RawType, (scoreColumn.Type as KeyType).RawType);
             Assert.Equal((scoreColumnType as KeyType).Contiguous, (scoreColumn.Type as KeyType).Contiguous);
 
             // Check metadata. Because keyNames is not empty, there should be three metadata fields.
