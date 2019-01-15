@@ -10,20 +10,6 @@ resources:
 phases:
 - template: /build/ci/phase-template.yml
   parameters:
-    name: core30
-    buildScript: build.cmd
-    customMatrixes:
-      Build_Debug_Intrinsics:
-        _configuration: Debug-Intrinsics
-        _config_short: DI
-      Build_Release_Intrinsics:
-        _configuration: Release-Intrinsics
-        _config_short: RI
-    queue:
-      name: Hosted VS2017
-
-- template: /build/ci/phase-template.yml
-  parameters:
     name: Windows_x64
     buildScript: build.cmd
     queue:
