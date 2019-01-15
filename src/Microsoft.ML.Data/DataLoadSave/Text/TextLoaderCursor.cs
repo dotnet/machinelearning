@@ -45,7 +45,7 @@ namespace Microsoft.ML.Data
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
-                Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
                 var bindings = parent._bindings;
 
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Data
             private Cursor(TextLoader parent, ParseStats stats, bool[] active, LineReader reader, int srcNeeded, int cthd)
                 : base(parent._host)
             {
-                Ch.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Ch.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
                 Ch.AssertValue(reader);
                 Ch.AssertValue(stats);
                 Ch.Assert(srcNeeded >= 0);
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Data
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(files);
-                Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
                 int srcNeeded;
                 int cthd;
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Data
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(files);
-                Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
                 int srcNeeded;
                 int cthd;
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Data
                 return sb.ToString();
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.OutputSchema;
 
             protected override void Dispose(bool disposing)
             {
