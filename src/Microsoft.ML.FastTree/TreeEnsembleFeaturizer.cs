@@ -118,8 +118,9 @@ namespace Microsoft.ML.Data
 
                 // Metadata of leaf IDs.
                 var leafIdMetadataBuilder = new MetadataBuilder();
-                treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.VectorSize),
+                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.VectorSize),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetLeafSlotNames);
+                leafIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ref bool value) => value = true);
                 // Add the column of leaves' IDs where the input example reaches.
                 schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.GetMetadata());
 
@@ -127,6 +128,7 @@ namespace Microsoft.ML.Data
                 var pathIdMetadataBuilder = new MetadataBuilder();
                 pathIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(pathIdType.VectorSize),
                     (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetPathSlotNames);
+                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ref bool value) => value = true);
                 // Add the column of encoded paths which the input example passes.
                 schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.GetMetadata());
 
