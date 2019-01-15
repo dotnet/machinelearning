@@ -1663,9 +1663,9 @@ namespace Microsoft.ML.Trainers
         }
 
         private readonly IClassificationLoss _loss;
-        private readonly Options _args;
+        private readonly Options _options;
 
-        protected override bool ShuffleData => _args.Shuffle;
+        protected override bool ShuffleData => _options.Shuffle;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
@@ -1695,22 +1695,22 @@ namespace Microsoft.ML.Trainers
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            _args = new Options();
-            _args.MaxIterations = maxIterations;
-            _args.InitLearningRate = initLearningRate;
-            _args.L2Weight = l2Weight;
+            _options = new Options();
+            _options.MaxIterations = maxIterations;
+            _options.InitLearningRate = initLearningRate;
+            _options.L2Weight = l2Weight;
 
-            _args.FeatureColumn = featureColumn;
-            _args.LabelColumn = labelColumn;
-            _args.WeightColumn = weightColumn;
+            _options.FeatureColumn = featureColumn;
+            _options.LabelColumn = labelColumn;
+            _options.WeightColumn = weightColumn;
 
             if (loss != null)
-                _args.LossFunction = loss;
-            _args.Check(env);
+                _options.LossFunction = loss;
+            _options.Check(env);
 
-            _loss = _args.LossFunction.CreateComponent(env);
+            _loss = _options.LossFunction.CreateComponent(env);
             Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
-            NeedShuffle = _args.Shuffle;
+            NeedShuffle = _options.Shuffle;
         }
 
         /// <summary>
@@ -1725,7 +1725,7 @@ namespace Microsoft.ML.Trainers
             _loss = options.LossFunction.CreateComponent(env);
             Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
             NeedShuffle = options.Shuffle;
-            _args = options;
+            _options = options;
         }
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -1758,22 +1758,22 @@ namespace Microsoft.ML.Trainers
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
 
             int numThreads;
-            if (_args.NumThreads.HasValue)
+            if (_options.NumThreads.HasValue)
             {
-                numThreads = _args.NumThreads.Value;
-                ch.CheckUserArg(numThreads > 0, nameof(_args.NumThreads), "The number of threads must be either null or a positive integer.");
+                numThreads = _options.NumThreads.Value;
+                ch.CheckUserArg(numThreads > 0, nameof(_options.NumThreads), "The number of threads must be either null or a positive integer.");
             }
             else
                 numThreads = ComputeNumThreads(cursorFactory);
 
             ch.Assert(numThreads > 0);
-            int checkFrequency = _args.CheckFrequency ?? numThreads;
+            int checkFrequency = _options.CheckFrequency ?? numThreads;
             if (checkFrequency <= 0)
                 checkFrequency = int.MaxValue;
-            var l2Weight = _args.L2Weight;
+            var l2Weight = _options.L2Weight;
             var lossFunc = _loss;
             var pOptions = new ParallelOptions { MaxDegreeOfParallelism = numThreads };
-            var positiveInstanceWeight = _args.PositiveInstanceWeight;
+            var positiveInstanceWeight = _options.PositiveInstanceWeight;
             var weights = default(VBuffer<float>);
             float bias = 0.0f;
             if (predictor != null)
@@ -1795,7 +1795,7 @@ namespace Microsoft.ML.Trainers
             // REVIEW: Investigate using parallel row cursor set instead of getting cursor independently. The convergence of SDCA need to be verified.
             Action<int, IProgressChannel> checkConvergence = (e, pch) =>
             {
-                if (e % checkFrequency == 0 && e != _args.MaxIterations)
+                if (e % checkFrequency == 0 && e != _options.MaxIterations)
                 {
                     Double trainTime = watch.Elapsed.TotalSeconds;
                     var lossSum = new CompensatedSum();
@@ -1821,8 +1821,8 @@ namespace Microsoft.ML.Trainers
                     improvement = improvement == 0 ? loss - newLoss : 0.5 * (loss - newLoss + improvement);
                     loss = newLoss;
 
-                    pch.Checkpoint(loss, improvement, e, _args.MaxIterations);
-                    converged = improvement < _args.ConvergenceTolerance;
+                    pch.Checkpoint(loss, improvement, e, _options.MaxIterations);
+                    converged = improvement < _options.ConvergenceTolerance;
                 }
             };
 
@@ -1831,17 +1831,17 @@ namespace Microsoft.ML.Trainers
             //Reference: Leon Bottou. Stochastic Gradient Descent Tricks.
             //https://research.microsoft.com/pubs/192769/tricks-2012.pdf
 
-            var trainingTasks = new Action<Random, IProgressChannel>[_args.MaxIterations];
-            var rands = new Random[_args.MaxIterations];
-            var ilr = _args.InitLearningRate;
+            var trainingTasks = new Action<Random, IProgressChannel>[_options.MaxIterations];
+            var rands = new Random[_options.MaxIterations];
+            var ilr = _options.InitLearningRate;
             long t = 0;
-            for (int epoch = 1; epoch <= _args.MaxIterations; epoch++)
+            for (int epoch = 1; epoch <= _options.MaxIterations; epoch++)
             {
                 int e = epoch; //localize the modified closure
                 rands[e - 1] = RandomUtils.Create(Host.Rand.Next());
                 trainingTasks[e - 1] = (rand, pch) =>
                 {
-                    using (var cursor = _args.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
+                    using (var cursor = _options.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
                     {
                         var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights);
                         while (cursor.MoveNext())
@@ -1896,9 +1896,9 @@ namespace Microsoft.ML.Trainers
                 {
                     int iter = 0;
                     pch.SetHeader(new ProgressHeader(new[] { "Loss", "Improvement" }, new[] { "iterations" }),
-                        entry => entry.SetProgress(0, iter, _args.MaxIterations));
+                        entry => entry.SetProgress(0, iter, _options.MaxIterations));
                     // Synchorized SGD.
-                    for (int i = 0; i < _args.MaxIterations; i++)
+                    for (int i = 0; i < _options.MaxIterations; i++)
                     {
                         iter = i;
                         trainingTasks[i](rands[i], pch);
@@ -1916,7 +1916,7 @@ namespace Microsoft.ML.Trainers
                             // REVIEW: technically, we could keep track of how many iterations have started,
                             // but this needs more synchronization than Parallel.For allows.
                         });
-                    Parallel.For(0, _args.MaxIterations, pOptions, i => trainingTasks[i](rands[i], pch));
+                    Parallel.For(0, _options.MaxIterations, pOptions, i => trainingTasks[i](rands[i], pch));
                     //note that P.Invoke will wait until all tasks finish
                 }
             }

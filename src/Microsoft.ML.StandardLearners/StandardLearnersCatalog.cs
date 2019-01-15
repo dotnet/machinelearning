@@ -55,7 +55,6 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-
             return new StochasticGradientDescentClassificationTrainer(env, options);
         }
 
