@@ -111,32 +111,33 @@ namespace Microsoft.ML.Data
 
                 // Metadata of tree values.
                 var treeIdMetadataBuilder = new MetadataBuilder();
-                ValueGetter<VBuffer<ReadOnlyMemory<char>>> treeIdMetadataGetter = (ref VBuffer<ReadOnlyMemory<char>> value) => owner.GetTreeSlotNames(ref value);
-                treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(treeValueType.VectorSize), treeIdMetadataGetter);
-
-                // Tree values must be the first output column.
-                Contracts.Assert(TreeValuesColumnId == 0);
+                treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(treeValueType.VectorSize),
+                    (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetTreeSlotNames);
+                // Add the column of trees' output values
                 schemaBuilder.AddColumn(OutputColumnNames.Trees, treeValueType, treeIdMetadataBuilder.GetMetadata());
 
                 // Metadata of leaf IDs.
                 var leafIdMetadataBuilder = new MetadataBuilder();
-                ValueGetter<VBuffer<ReadOnlyMemory<char>>> leafIdMetadataGetter = (ref VBuffer<ReadOnlyMemory<char>> value) => owner.GetLeafSlotNames(ref value);
-                treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.VectorSize), treeIdMetadataGetter);
-
-                // leaf IDs must be the second output column.
-                Contracts.Assert(LeafIdsColumnId == 1);
+                treeIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(leafIdType.VectorSize),
+                    (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetLeafSlotNames);
+                // Add the column of leaves' IDs where the input example reaches.
                 schemaBuilder.AddColumn(OutputColumnNames.Leaves, leafIdType, leafIdMetadataBuilder.GetMetadata());
 
                 // Metadata of path IDs.
                 var pathIdMetadataBuilder = new MetadataBuilder();
-                ValueGetter<VBuffer<ReadOnlyMemory<char>>> pathIdMetadataGetter = (ref VBuffer<ReadOnlyMemory<char>> value) => owner.GetPathSlotNames(ref value);
-                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(pathIdType.VectorSize), pathIdMetadataGetter);
-
-                // Path IDs must be the third output column.
-                Contracts.Assert(PathIdsColumnId == 2);
+                pathIdMetadataBuilder.Add(MetadataUtils.Kinds.SlotNames, MetadataUtils.GetNamesType(pathIdType.VectorSize),
+                    (ValueGetter<VBuffer<ReadOnlyMemory<char>>>)owner.GetPathSlotNames);
+                // Add the column of encoded paths which the input example passes.
                 schemaBuilder.AddColumn(OutputColumnNames.Paths, pathIdType, pathIdMetadataBuilder.GetMetadata());
 
                 OutputSchema = schemaBuilder.GetSchema();
+
+                // Tree values must be the first output column.
+                Contracts.Assert(OutputSchema[OutputColumnNames.Trees].Index == TreeValuesColumnId);
+                // leaf IDs must be the second output column.
+                Contracts.Assert(OutputSchema[OutputColumnNames.Leaves].Index == LeafIdsColumnId);
+                // Path IDs must be the third output column.
+                Contracts.Assert(OutputSchema[OutputColumnNames.Paths].Index == PathIdsColumnId);
             }
 
             public Row GetRow(Row input, Func<int, bool> predicate)
