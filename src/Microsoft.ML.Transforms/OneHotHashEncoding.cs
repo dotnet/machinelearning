@@ -285,13 +285,13 @@ namespace Microsoft.ML.Transforms.Categorical
                         case OneHotEncodingTransformer.OutputKind.Bin:
                             if ((column.HashInfo.InvertHash) != 0)
                                 ch.Warning("Invert hashing is being used with binary encoding.");
-                            binaryCols.Add((column.HashInfo.Output, column.HashInfo.Output));
+                            binaryCols.Add((column.HashInfo.Name, column.HashInfo.Name));
                             break;
                         case OneHotEncodingTransformer.OutputKind.Ind:
-                            cols.Add((column.HashInfo.Output, column.HashInfo.Output, false));
+                            cols.Add((column.HashInfo.Name, column.HashInfo.Name, false));
                             break;
                         case OneHotEncodingTransformer.OutputKind.Bag:
-                            cols.Add((column.HashInfo.Output, column.HashInfo.Output, true));
+                            cols.Add((column.HashInfo.Name, column.HashInfo.Name, true));
                             break;
                     }
                 }

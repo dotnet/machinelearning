@@ -420,7 +420,7 @@ namespace Microsoft.ML.Tests
 
             // Create a keytype for Ranking
             if (task == TaskType.Ranking)
-                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId", "GroupId"))
+                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 
             return pipeline.Fit(srcDV).Transform(srcDV);
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Tests
 
             // Create a keytype for Ranking
             if (task == TaskType.Ranking)
-                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId", "GroupId"))
+                return pipeline.Append(ML.Transforms.Conversion.MapValueToKey("GroupId"))
                     .Fit(srcDV).Transform(srcDV);
 
             return pipeline.Fit(srcDV).Transform(srcDV);

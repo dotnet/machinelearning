@@ -173,24 +173,24 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         public sealed class ColumnInfo
         {
-            public readonly string Input;
-            public readonly string Output;
+            public readonly string Source;
+            public readonly string Name;
             public readonly DataKind OutputKind;
             public readonly KeyRange OutputKeyRange;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of output column.</param>
+            /// <param name="source">Name of input column.</param>
+            /// <param name="name">Name of output column.</param>
             /// <param name="outputKind">The expected kind of the converted column.</param>
             /// <param name="outputKeyRange">New key range, if we work with key type.</param>
-            public ColumnInfo(string output, string input, DataKind outputKind, KeyRange outputKeyRange = null)
+            public ColumnInfo(string name, string source, DataKind outputKind, KeyRange outputKeyRange = null)
             {
-                Contracts.CheckNonWhiteSpace(output, nameof(output));
+                Contracts.CheckNonWhiteSpace(name, nameof(name));
 
-                Input = input;
-                Output = output;
+                Source = source;
+                Name = name;
                 OutputKind = outputKind;
                 OutputKeyRange = outputKeyRange;
             }
@@ -198,22 +198,22 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private readonly ColumnInfo[] _columns;
 
-        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        private static (string source, string name)[] GetColumnPairs(ColumnInfo[] columns)
         {
             Contracts.CheckNonEmpty(columns, nameof(columns));
-            return columns.Select(x => (x.Input, x.Output)).ToArray();
+            return columns.Select(x => (x.Source, x.Name)).ToArray();
         }
 
         /// <summary>
         /// Convinence constructor for simple one column case.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the output column.</param>
-        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="source">Name of the column produced.</param>
+        /// <param name="name">Name of the column to be transformed. If this is null '<paramref name="source"/>' will be used.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
         /// <param name="outputKeyRange">New key range if we work with key type.</param>
-        public TypeConvertingTransformer(IHostEnvironment env, string inputColumn, string outputColumn, DataKind outputKind, KeyRange outputKeyRange = null)
-            : this(env, new ColumnInfo(outputColumn, inputColumn, outputKind, outputKeyRange))
+        public TypeConvertingTransformer(IHostEnvironment env, string source, string name, DataKind outputKind, KeyRange outputKeyRange = null)
+            : this(env, new ColumnInfo(name, source, outputKind, outputKeyRange))
         {
         }
 
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         throw Host.ExceptParam(nameof(inputSchema),
                         "source column '{0}' with item type '{1}' is not compatible with destination type '{2}'",
-                        _parent._columns[i].Input, srcCol.Type, itemType);
+                        _parent._columns[i].Source, srcCol.Type, itemType);
                     }
                 }
             }
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         ValueGetter<bool> getter = (ref bool dst) => dst = true;
                         builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
                     }
-                    result[i] = new Schema.DetachedColumn(_parent._columns[i].Output, _types[i], builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent._columns[i].Name, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
@@ -490,17 +490,17 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {
-                    string sourceColumnName = _parent._columns[iinfo].Input;
+                    string sourceColumnName = _parent._columns[iinfo].Source;
                     if (!ctx.ContainsColumn(sourceColumnName))
                     {
-                        ctx.RemoveColumn(_parent._columns[iinfo].Output, false);
+                        ctx.RemoveColumn(_parent._columns[iinfo].Name, false);
                         continue;
                     }
 
                     if (!SaveAsOnnxCore(ctx, iinfo, ctx.GetVariableName(sourceColumnName),
-                        ctx.AddIntermediateVariable(_types[iinfo], _parent._columns[iinfo].Output)))
+                        ctx.AddIntermediateVariable(_types[iinfo], _parent._columns[iinfo].Name)))
                     {
-                        ctx.RemoveColumn(_parent._columns[iinfo].Output, true);
+                        ctx.RemoveColumn(_parent._columns[iinfo].Name, true);
                     }
                 }
             }
@@ -562,12 +562,12 @@ namespace Microsoft.ML.Transforms.Conversions
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!inputSchema.TryFindColumn(colInfo.Source, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Source);
                 if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind, colInfo.OutputKeyRange, out PrimitiveType newType))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.Input} into {newType.ToString()}");
+                    throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.Source} into {newType.ToString()}");
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
-                    throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.Input} into {newType.ToString()}");
+                    throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.Source} into {newType.ToString()}");
                 var metadata = new List<SchemaShape.Column>();
                 if (col.ItemType is BoolType && newType is NumberType)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
@@ -580,7 +580,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
                     if (col.ItemType is NumberType && newType is NumberType)
                         metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, normMeta.ItemType, false));
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, newType, false, col.Metadata);
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.Kind, newType, false, col.Metadata);
             }
             return new SchemaShape(result.Values);
         }
