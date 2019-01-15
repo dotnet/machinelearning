@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.TensorFlow;
 
@@ -20,7 +19,7 @@ namespace Microsoft.ML.Transforms
     ///    </item>
     /// </list>
     /// </summary>
-    public class TensorFlowModelInfo: IDisposable
+    public class TensorFlowModelInfo
     {
         internal TFSession Session { get; }
         public string ModelPath { get; }
@@ -55,11 +54,6 @@ namespace Microsoft.ML.Transforms
         public Schema GetInputSchema()
         {
             return TensorFlowUtils.GetModelSchema(_env, Session.Graph, "Placeholder");
-        }
-
-        public void Dispose()
-        {
-            Session.Dispose();
         }
     }
 }

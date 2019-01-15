@@ -79,10 +79,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <param name="modelPath">Model to load.</param>
         public static Schema GetModelSchema(IHostEnvironment env, string modelPath)
         {
-            using (var model = LoadTensorFlowModel(env, modelPath))
-            {
-                return GetModelSchema(env, model.Session.Graph);
-            }
+            var model = LoadTensorFlowModel(env, modelPath);
+            return GetModelSchema(env, model.Session.Graph);
         }
 
         /// <summary>
@@ -311,8 +309,6 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
-        private static object _lockObject = new object();
-
         /// <summary>
         /// Load TensorFlow model into memory.
         /// </summary>
@@ -321,11 +317,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <returns></returns>
         public static TensorFlowModelInfo LoadTensorFlowModel(IHostEnvironment env, string modelPath)
         {
-            lock (_lockObject)
-            {
-                var session = GetSession(env, modelPath);
-                return new TensorFlowModelInfo(env, session, modelPath);
-            }
+            var session = GetSession(env, modelPath);
+            return new TensorFlowModelInfo(env, session, modelPath);
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)

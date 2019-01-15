@@ -684,15 +684,6 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern string TF_GraphDebugString(TF_Graph graph, out IntPtr len);
-
-        public override string ToString()
-        {
-            IntPtr len;
-            return TF_GraphDebugString(Handle, out len);
-        }
-
-        [DllImport(NativeBinding.TensorFlowLibrary)]
         private static unsafe extern TF_Operation TF_GraphNextOperation(TF_Graph graph, ref IntPtr pos);
 
         /// <summary>
