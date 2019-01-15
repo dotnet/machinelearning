@@ -1,0 +1,30 @@
+################################################################################
+# ML.NET's PR validation build
+################################################################################
+
+resources:
+  containers:
+  - container: LinuxContainer
+    image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
+
+phases:
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: core30
+    buildScript: build.cmd
+    customMatrixes:
+      Build_Debug_Intrinsics:
+        _configuration: Debug-Intrinsics
+        _config_short: DI
+      Build_Release_Intrinsics:
+        _configuration: Release-Intrinsics
+        _config_short: RI
+    queue:
+      name: Hosted VS2017
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: Windows_x64
+    buildScript: build.cmd
+    queue:
+      name: Hosted VS2017
