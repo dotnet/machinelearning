@@ -391,10 +391,9 @@ namespace Microsoft.ML.Data
             IValueCodec codec;
             var result = factory.TryGetCodec(new VectorType(TextType.Instance), out codec);
             ch.Assert(result);
-            VectorType vectorType = codec.Type as VectorType;
-            ch.Assert(vectorType != null);
+            VectorType vectorType = (VectorType)codec.Type;
             ch.Assert(vectorType.Size == 0);
-            ch.Assert(vectorType.ItemType.RawType == typeof(ReadOnlyMemory<char>));
+            ch.Assert(vectorType.ItemType == TextType.Instance);
             IValueCodec<VBuffer<ReadOnlyMemory<char>>> textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             factory.WriteCodec(ctx.Writer.BaseStream, codec);

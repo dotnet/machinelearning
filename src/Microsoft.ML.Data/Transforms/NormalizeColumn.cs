@@ -180,13 +180,18 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             public string TestType(ColumnType type)
             {
-                ColumnType itemType = type.GetItemType();
+                ColumnType itemType = type;
+                if (type is VectorType vectorType)
+                {
+                    // We require vectors to be of known size.
+                    if (!vectorType.IsKnownSize)
+                        return "Expected known size vector";
+
+                    itemType = vectorType.ItemType;
+                }
+
                 if (itemType != NumberType.R4 && itemType != NumberType.R8)
                     return "Expected R4 or R8 item type";
-
-                // We require vectors to be of known size.
-                if (type is VectorType vectorType && !vectorType.IsKnownSize)
-                    return "Expected known size vector";
 
                 return null;
             }

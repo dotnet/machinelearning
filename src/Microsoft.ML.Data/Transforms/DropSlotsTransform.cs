@@ -743,8 +743,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                VectorType vectorType = _srcTypes[iinfo] as VectorType;
-                Host.Assert(vectorType != null);
+                VectorType vectorType = (VectorType)_srcTypes[iinfo];
                 Host.Assert(_suppressed[iinfo]);
 
                 Func<ValueGetter<VBuffer<int>>> del = MakeVecTrivialGetter<int>;
@@ -767,8 +766,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                VectorType vectorType = _srcTypes[iinfo] as VectorType;
-                Host.Assert(vectorType != null);
+                VectorType vectorType = (VectorType)_srcTypes[iinfo];
                 Host.Assert(!_suppressed[iinfo]);
 
                 Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;

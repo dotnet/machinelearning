@@ -857,15 +857,15 @@ namespace Microsoft.ML.Data
             else
             {
                 // Make sure that the types are compatible with the declared type, including whether it is a vector type.
-                VectorType metdataVectorType = metadataType as VectorType;
-                bool metdataIsVector = metdataVectorType != null;
-                if (isVector != metdataIsVector)
+                VectorType metadataVectorType = metadataType as VectorType;
+                bool metadataIsVector = metadataVectorType != null;
+                if (isVector != metadataIsVector)
                 {
                     throw Contracts.Except("Value inputted is supposed to be {0}, but type of Metadatainfo is {1}",
-                        isVector ? "vector" : "scalar", metdataIsVector ? "vector" : "scalar");
+                        isVector ? "vector" : "scalar", metadataIsVector ? "vector" : "scalar");
                 }
 
-                ColumnType metadataItemType = metdataVectorType?.ItemType ?? metadataType;
+                ColumnType metadataItemType = metadataVectorType?.ItemType ?? metadataType;
                 if (dataKind != metadataItemType.RawKind)
                 {
                     throw Contracts.Except(

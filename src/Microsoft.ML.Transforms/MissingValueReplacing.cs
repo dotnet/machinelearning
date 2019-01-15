@@ -271,10 +271,10 @@ namespace Microsoft.ML.Transforms
                 if (savedType is VectorType savedVectorType)
                 {
                     // REVIEW: The current implementation takes the serialized VBuffer, densifies it, and stores the values array.
-                    // It might be of value to consider storing the VBUffer in order to possibly benefit from sparsity. However, this would
+                    // It might be of value to consider storing the VBuffer in order to possibly benefit from sparsity. However, this would
                     // necessitate a reimplementation of the FillValues code to accomodate sparse VBuffers.
-                    object[] args = new object[] { repValue, _replaceTypes[i], i };
-                    Func<VBuffer<int>, ColumnType, int, int[]> func = GetValuesArray<int>;
+                    object[] args = new object[] { repValue, savedVectorType, i };
+                    Func<VBuffer<int>, VectorType, int, int[]> func = GetValuesArray<int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedVectorType.ItemType.RawType);
                     _repValues[i] = meth.Invoke(this, args);
                 }
@@ -285,14 +285,13 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private T[] GetValuesArray<T>(VBuffer<T> src, ColumnType srcType, int iinfo)
+        private T[] GetValuesArray<T>(VBuffer<T> src, VectorType srcType, int iinfo)
         {
-            VectorType srcVectorType = srcType as VectorType;
-            Host.Assert(srcVectorType != null);
-            Host.Assert(srcVectorType.Size == src.Length);
+            Host.Assert(srcType != null);
+            Host.Assert(srcType.Size == src.Length);
             VBufferUtils.Densify<T>(ref src);
-            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(srcVectorType.ItemType);
-            _repIsDefault[iinfo] = new BitArray(srcVectorType.Size);
+            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
+            _repIsDefault[iinfo] = new BitArray(srcType.Size);
             var srcValues = src.GetValues();
             for (int slot = 0; slot < srcValues.Length; slot++)
             {
@@ -596,8 +595,12 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var type = _infos[i].TypeSrc;
-                    if (type is VectorType vectorType)
-                        type = new VectorType(vectorType.ItemType, vectorType);
+                    VectorType vectorType = type as VectorType;
+                    if (vectorType != null)
+                    {
+                        vectorType = new VectorType(vectorType.ItemType, vectorType);
+                        type = vectorType;
+                    }
                     var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].GetItemType();
                     if (!type.GetItemType().Equals(repType.GetItemType()))
                         throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
@@ -605,12 +608,12 @@ namespace Microsoft.ML.Transforms
                     // If type is a vector and the value is not either a scalar or a vector of the same size, throw an error.
                     if (repType is VectorType repVectorType)
                     {
-                        if (!(type is VectorType vectorType2))
+                        if (vectorType == null)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' cannot be a vector when Columntype is a scalar of type '{2}'",
                                 _infos[i].Source, repType, type);
-                        if (!vectorType2.IsKnownSize)
+                        if (!vectorType.IsKnownSize)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' is unknown size vector '{1}' must be a scalar instead of type '{2}'", _infos[i].Source, type, parent._replaceTypes[i]);
-                        if (vectorType2.Size != repVectorType.Size)
+                        if (vectorType.Size != repVectorType.Size)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' must be a scalar or a vector of the same size as Columntype '{2}'",
                                  _infos[i].Source, repType, type);
                     }
