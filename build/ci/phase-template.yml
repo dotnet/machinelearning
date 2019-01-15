@@ -19,15 +19,19 @@ phases:
           Build_Debug:
             _configuration: Debug
             _config_short: D
+            _includeBenchmarkData: false
           Build_Release:
             _configuration: Release
             _config_short: R
+            _includeBenchmarkData: true
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
       ${{ insert }}: ${{ parameters.queue }}
     steps:
     - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
       displayName: Build
+    - script: $(_buildScript) -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=$(_includeBenchmarkData)
+      displayName: Download Benchmark Data
     - ${{ if eq(parameters.name, 'MacOS') }}:
       - script: brew update && brew install libomp mono-libgdiplus gettext && brew link gettext --force
         displayName: Install runtime dependencies
