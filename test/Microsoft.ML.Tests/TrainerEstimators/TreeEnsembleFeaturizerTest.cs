@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TreeEnsembleFeaturizerOutputSchemaTest()
         {
             // Create data set
-            var data = DatasetUtils.GenerateFloatBinaryLabelFloatFeatureVectorSamples(1000).ToList();
+            var data = DatasetUtils.GenerateBinaryLabelFloatFeatureVectorSamples(1000).ToList();
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
             // Define a tree model whose trees will be extracted to construct a tree featurizer.

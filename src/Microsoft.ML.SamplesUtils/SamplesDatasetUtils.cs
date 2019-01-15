@@ -248,7 +248,7 @@ namespace Microsoft.ML.SamplesUtils
             public float[] Features;
         }
 
-        public static  IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateFloatBinaryLabelFloatFeatureVectorSamples(int exampleCount)
+        public static  IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateBinaryLabelFloatFeatureVectorSamples(int exampleCount)
         {
             var rnd = new Random(0);
             var data = new List<BinaryLabelFloatFeatureVectorSample>();
