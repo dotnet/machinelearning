@@ -472,10 +472,6 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(type);
             Contracts.Assert(kind.ToType() == type);
-
-            Contracts.CheckParam(count >= 0, nameof(count), "Must be non-negative.");
-            Contracts.CheckParam(count <= kind.ToMaxInt(), nameof(count));
-
             Count = count;
         }
 
