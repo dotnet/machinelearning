@@ -544,8 +544,8 @@ namespace Microsoft.ML.ImageAnalytics
                         if (ex.Interleave)
                         {
                             int idst = 0;
-                            for (int x = 0; x < w; x++)
-                                for (int y = 0; y < h; ++y)
+                            for (int y = 0; y < h; ++y)
+                                for (int x = 0; x < w; x++)
                                 {
                                     var pb = src.GetPixel(x, y);
                                     if (!vb.IsEmpty)
