@@ -156,12 +156,15 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public class BinaryClassificationGamModelParameters : GamModelParametersBase, IPredictorProducing<float>
+    /// <summary>
+    /// The model parameters class for Binary Classification GAMs
+    /// </summary>
+    public sealed class BinaryClassificationGamModelParameters : GamModelParametersBase, IPredictorProducing<float>
     {
         internal const string LoaderSignature = "BinaryClassGamPredictor";
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        internal BinaryClassificationGamModelParameters(IHostEnvironment env,
+        public BinaryClassificationGamModelParameters(IHostEnvironment env,
             double[][] binUpperBounds, double[][] binEffects, double intercept, int[] featureToInputMap)
             : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, featureToInputMap) { }
 
@@ -172,8 +175,10 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             return new VersionInfo(
                 modelSignature: "GAM BINP",
-                verWrittenCur: 0x00010001,
-                verReadableCur: 0x00010001,
+                // verWrittenCur: 0x00010001, // Initial
+                // verWrittenCur: 0x00010001, // Added Intercept but collided from release 0.6-0.9
+                verWrittenCur: 0x00020001,    // Added Intercept (version revved to address collisions)
+                verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(BinaryClassificationGamModelParameters).Assembly.FullName);

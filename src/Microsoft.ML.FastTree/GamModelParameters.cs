@@ -21,6 +21,9 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
+    /// <summary>
+    /// The base class for GAM Model Parameters.
+    /// </summary>
     public abstract class GamModelParametersBase : ModelParametersBase<float>, IValueMapper, ICalculateFeatureContribution,
         IFeatureContributionMapper, ICanSaveInTextFormat, ICanSaveSummary, ICanSaveInIniFormat
     {
@@ -62,7 +65,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _numFeatures = binEffects.Length;
 
             // For sparse inputs we have a fast lookup
-            _binsAtAllZero = new int[_numFeatures]; // All 0s at 0 -- bug?
+            _binsAtAllZero = new int[_numFeatures];
             _valueAtAllZero = 0;
 
             // Walk through each feature and perform checks / updates
@@ -73,7 +76,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 Host.CheckParam(binUpperBounds[i].Length == binEffects[i].Length, nameof(binEffects), "Array contained wrong number of effect values");
 
                 // Update the value at zero
-                _valueAtAllZero += _binEffects[i][_binsAtAllZero[i]];
+                _valueAtAllZero += GetBinEffect(i, 0, out _binsAtAllZero[i]);
             }
 
             _featureMap = featureToInputMap;
@@ -104,6 +107,9 @@ namespace Microsoft.ML.Trainers.FastTree
             _inputLength = reader.ReadInt32();
             Host.CheckDecode(_inputLength >= 0);
             Intercept = reader.ReadDouble();
+            if (ctx.Header.ModelVerWritten == 0x00010001)
+                using (var ch = env.Start("GamWarningChannel"))
+                    ch.Warning("GAMs models written prior to ML.NET 0.6 are loaded with an incorrect Intercept. For these models, subtract the value of the intercept from the prediction.");
 
             _binEffects = new double[_numFeatures][];
             _binUpperBounds = new double[_numFeatures][];
@@ -116,10 +122,6 @@ namespace Microsoft.ML.Trainers.FastTree
             for (int i = 0; i < _numFeatures; i++)
             {
                 _binUpperBounds[i] = reader.ReadDoubleArray(_binEffects[i].Length);
-                // Ideally should verify that the sum of these matches _baseOutput,
-                // but due to differences in JIT over time and other considerations,
-                // it's possible that the sum may change even in the absence of
-                // model corruption.
                 _valueAtAllZero += GetBinEffect(i, 0, out _binsAtAllZero[i]);
             }
             int len = reader.ReadInt32();

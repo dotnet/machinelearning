@@ -106,13 +106,26 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public class RegressionGamModelParameters : GamModelParametersBase
+    /// <summary>
+    /// The model parameters class for Binary Classification GAMs
+    /// </summary>
+    public sealed class RegressionGamModelParameters : GamModelParametersBase
     {
         internal const string LoaderSignature = "RegressionGamPredictor";
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        internal RegressionGamModelParameters(IHostEnvironment env,
-            double[][] binUpperBounds, double[][] binEffects, double intercept, int[] featureToInputMap)
+        /// <summary>
+        /// Construct a new Regression GAM with the defined properties.
+        /// </summary>
+        /// <param name="env">The Host Environment</param>
+        /// <param name="binUpperBounds">An array of arrays of bin-upper-bounds for each feature.</param>
+        /// <param name="binEffects">Anay array of arrays of effect sizes for each bin for each feature.</param>
+        /// <param name="intercept">The intercept term for the model. Also referred to as the bias or the mean effect.</param>
+        /// <param name="featureToInputMap">A map from the feature shape functions (as described by the binUpperBounds and BinEffects)
+        /// to the input feature. Used when multiple input features map to the same shape function. Leave null if all features have
+        /// a shape function.</param>
+        public RegressionGamModelParameters(IHostEnvironment env,
+            double[][] binUpperBounds, double[][] binEffects, double intercept, int[] featureToInputMap = null)
             : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, featureToInputMap) { }
 
         private RegressionGamModelParameters(IHostEnvironment env, ModelLoadContext ctx)
@@ -122,8 +135,10 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             return new VersionInfo(
                 modelSignature: "GAM REGP",
-                verWrittenCur: 0x00010001,
-                verReadableCur: 0x00010001,
+                // verWrittenCur: 0x00010001, // Initial
+                // verWrittenCur: 0x00010001, // Added Intercept but collided from release 0.6-0.9
+                verWrittenCur: 0x00020001,    // Added Intercept (version revved to address collisions)
+                verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(RegressionGamModelParameters).Assembly.FullName);
