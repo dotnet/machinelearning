@@ -332,6 +332,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             switch (columnType)
             {
                 case NumberType numberType:
+                case KeyType keyType:
                 case TimeSpanType timeSpanType:
                 case DateTimeType dateTimeType:
                 case DateTimeOffsetType dateTimeOffsetType:
