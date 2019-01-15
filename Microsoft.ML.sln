@@ -67,7 +67,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{487213C9
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "netstandard2.0", "netstandard2.0", "{9252A8EB-ABFB-440C-AB4D-1D562753CE0F}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.props = pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.props
 		pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.targets = pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.targets
 	EndProjectSection
 EndProject
