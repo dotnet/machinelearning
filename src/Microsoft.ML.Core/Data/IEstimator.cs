@@ -62,7 +62,7 @@ namespace Microsoft.ML.Core.Data
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValueOrNull(metadata);
-                Contracts.CheckParam(!itemType.IsKey, nameof(itemType), "Item type cannot be a key");
+                Contracts.CheckParam(!(itemType is KeyType), nameof(itemType), "Item type cannot be a key");
                 Contracts.CheckParam(!itemType.IsVector, nameof(itemType), "Item type cannot be a vector");
                 Contracts.CheckParam(!isKey || KeyType.IsValidDataKind(itemType.RawKind), nameof(itemType), "The item type must be valid for a key");
 
@@ -154,9 +154,9 @@ namespace Microsoft.ML.Core.Data
                 vecKind = Column.VectorKind.Scalar;
 
             itemType = type.ItemType;
-            if (type.ItemType.IsKey)
+            isKey = type.ItemType is KeyType;
+            if (isKey)
                 itemType = PrimitiveType.FromKind(type.ItemType.RawKind);
-            isKey = type.ItemType.IsKey;
         }
 
         /// <summary>

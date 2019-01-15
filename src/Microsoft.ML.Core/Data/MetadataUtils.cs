@@ -238,7 +238,7 @@ namespace Microsoft.ML.Data
             for (int col = 0; col < schema.Count; col++)
             {
                 var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
-                if (columnType == null || !columnType.IsKey || columnType.RawKind != DataKind.U4)
+                if (columnType == null || !(columnType is KeyType) || columnType.RawKind != DataKind.U4)
                     continue;
                 if (filterFunc != null && !filterFunc(schema, col))
                     continue;
@@ -263,7 +263,7 @@ namespace Microsoft.ML.Data
             for (int col = 0; col < schema.Count; col++)
             {
                 var columnType = schema[col].Metadata.Schema.GetColumnOrNull(metadataKind)?.Type;
-                if (columnType != null && columnType.IsKey && columnType.RawKind == DataKind.U4)
+                if (columnType != null && columnType is KeyType && columnType.RawKind == DataKind.U4)
                 {
                     uint val = 0;
                     schema[col].Metadata.GetValue(metadataKind, ref val);

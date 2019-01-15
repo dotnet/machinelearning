@@ -107,7 +107,7 @@ namespace Microsoft.ML.Transforms
 
         private static string TestIsMulticlassLabel(ColumnType type)
         {
-            if (type.KeyCount > 0 || type == NumberType.R4 || type == NumberType.R8)
+            if (type.GetKeyCount() > 0 || type == NumberType.R4 || type == NumberType.R8)
                 return null;
             return $"Label column type is not supported for binary remapping: {type}. Supported types: key, float, double.";
         }
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Transforms
             var info = Infos[iinfo];
             ch.Assert(TestIsMulticlassLabel(info.TypeSrc) == null);
 
-            if (info.TypeSrc.KeyCount > 0)
+            if (info.TypeSrc.GetKeyCount() > 0)
             {
                 var srcGetter = input.GetGetter<uint>(info.Source);
                 var src = default(uint);

@@ -298,7 +298,7 @@ namespace Microsoft.ML.Data
                 {
                     // Check if group column key type with known cardinality.
                     var type = schema[index].Type;
-                    if (type.KeyCount > 0)
+                    if (type.GetKeyCount() > 0)
                         stratificationColumn = group;
                 }
             }

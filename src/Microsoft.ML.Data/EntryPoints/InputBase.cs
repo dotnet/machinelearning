@@ -35,15 +35,27 @@ namespace Microsoft.ML.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInput))]
     public abstract class LearnerInputBase
     {
+        /// <summary>
+        /// The data to be used for training.
+        /// </summary>
         [Argument(ArgumentType.Required, ShortName = "data", HelpText = "The data to be used for training", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public IDataView TrainingData;
 
+        /// <summary>
+        /// Column to use for features.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for features", ShortName = "feat", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string FeatureColumn = DefaultColumnNames.Features;
 
+        /// <summary>
+        /// Normalize option for the feature column.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize option for the feature column", ShortName = "norm", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
+        /// <summary>
+        /// Whether learner should cache input training data.
+        /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether learner should cache input training data", ShortName = "cache", SortOrder = 6, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public CachingOptions Caching = CachingOptions.Auto;
     }
@@ -54,6 +66,9 @@ namespace Microsoft.ML.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithLabel))]
     public abstract class LearnerInputBaseWithLabel : LearnerInputBase
     {
+        /// <summary>
+        /// Column to use for labels.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string LabelColumn = DefaultColumnNames.Label;
     }
@@ -65,6 +80,9 @@ namespace Microsoft.ML.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithWeight))]
     public abstract class LearnerInputBaseWithWeight : LearnerInputBaseWithLabel
     {
+        /// <summary>
+        /// Column to use for example weight.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
     }
@@ -95,6 +113,9 @@ namespace Microsoft.ML.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithGroupId))]
     public abstract class LearnerInputBaseWithGroupId : LearnerInputBaseWithWeight
     {
+        /// <summary>
+        /// Column to use for example groupId.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public Optional<string> GroupIdColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
     }

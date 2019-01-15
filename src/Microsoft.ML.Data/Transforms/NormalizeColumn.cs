@@ -744,14 +744,14 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
                 // The label column type is checked as part of args validation.
                 var type = row.Schema[col].Type;
-                Host.Assert(type.IsKey || type is NumberType);
+                Host.Assert(type is KeyType || type is NumberType);
 
-                if (type.IsKey)
+                if (type is KeyType keyType)
                 {
-                    Host.Assert(type.KeyCount > 0);
-                    labelCardinality = type.KeyCount;
+                    Host.Assert(keyType.Count > 0);
+                    labelCardinality = keyType.Count;
 
-                    int size = type.KeyCount;
+                    int size = keyType.Count;
                     ulong src = 0;
                     var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col);
                     return
@@ -1060,8 +1060,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 host.CheckUserArg(!string.IsNullOrWhiteSpace(args.LabelColumn), nameof(args.LabelColumn), "Must specify the label column name");
                 int labelColumnId = GetLabelColumnId(host, cursor.Schema, args.LabelColumn);
                 var labelColumnType = cursor.Schema[labelColumnId].Type;
-                if (labelColumnType.IsKey)
-                    host.CheckUserArg(labelColumnType.KeyCount > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
+                if (labelColumnType is KeyType labelKeyType)
+                    host.CheckUserArg(labelKeyType.Count > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
                 else
                     host.CheckUserArg(labelColumnType is NumberType, nameof(args.LabelColumn), "Label column must be a number or a key type");
 

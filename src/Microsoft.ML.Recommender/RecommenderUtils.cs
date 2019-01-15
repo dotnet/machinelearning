@@ -32,8 +32,7 @@ namespace Microsoft.ML.Recommender
         private static bool TryMarshalGoodRowColumnType(ColumnType type, out KeyType keyType)
         {
             keyType = type as KeyType;
-            return type.KeyCount > 0 && type.RawKind == DataKind.U4 &&
-                   keyType != null;
+            return keyType?.Count > 0 && type.RawKind == DataKind.U4;
         }
 
         /// <summary>

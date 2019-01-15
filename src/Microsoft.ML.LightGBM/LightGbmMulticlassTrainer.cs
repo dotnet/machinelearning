@@ -113,7 +113,7 @@ namespace Microsoft.ML.LightGBM
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
             var labelType = data.Schema.Label.Value.Type;
-            if (!(labelType is BoolType || labelType.IsKey || labelType == NumberType.R4))
+            if (!(labelType is BoolType || labelType is KeyType || labelType == NumberType.R4))
             {
                 throw ch.ExceptParam(nameof(data),
                     $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType}', but must be key, boolean or R4.");

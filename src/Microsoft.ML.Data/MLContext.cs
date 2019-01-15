@@ -61,7 +61,7 @@ namespace Microsoft.ML
         /// <summary>
         /// The handler for the log messages.
         /// </summary>
-        public Action<string> Log { get; set; }
+        public event EventHandler<LoggingEventArgs> Log;
 
         /// <summary>
         /// This is a MEF composition container catalog to be used for model loading.
@@ -102,13 +102,14 @@ namespace Microsoft.ML
 
         private void ProcessMessage(IMessageSource source, ChannelMessage message)
         {
-            if (Log == null)
+            var log = Log;
+
+            if (log == null)
                 return;
 
             var msg = $"[Source={source.FullName}, Kind={message.Kind}] {message.Message}";
-            // Log may have been reset from another thread.
-            // We don't care which logger we send the message to, just making sure we don't crash.
-            Log?.Invoke(msg);
+
+            log(this, new LoggingEventArgs(msg));
         }
 
         int IHostEnvironment.ConcurrencyFactor => _env.ConcurrencyFactor;

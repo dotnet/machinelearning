@@ -55,7 +55,9 @@ phases:
       condition: not(succeeded())
       inputs:
         sourceFolder: $(Build.SourcesDirectory)/bin
-        contents: '**/TestOutput/**/*'
+        contents: |
+          **/TestOutput/**/*
+          **/*.trx
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
       displayName: Publish build and test logs

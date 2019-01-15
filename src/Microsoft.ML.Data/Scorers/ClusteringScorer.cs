@@ -101,7 +101,7 @@ namespace Microsoft.ML.Data
 
             long cachedPosition = -1;
             VBuffer<Float> score = default(VBuffer<Float>);
-            int scoreLength = Bindings.PredColType.KeyCount;
+            int scoreLength = Bindings.PredColType.GetKeyCount();
 
             ValueGetter<uint> predFn =
                 (ref uint dst) =>

@@ -331,9 +331,15 @@ namespace Microsoft.ML.Data
                 }
                 else
                 {
-                    _outputSchema = Schema.Create(new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
-                        new VectorType(NumberType.R4, FeatureColumn.Type as VectorType),
-                        InputSchema, FeatureColumn.Index));
+                    var metadataBuilder = new MetadataBuilder();
+                    if (InputSchema[FeatureColumn.Index].HasSlotNames(FeatureColumn.Type.VectorSize))
+                        metadataBuilder.AddSlotNames(FeatureColumn.Type.VectorSize, (ref VBuffer<ReadOnlyMemory<char>> value) =>
+                            FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref value));
+
+                    var schemaBuilder = new SchemaBuilder();
+                    var featureContributionType = new VectorType(NumberType.R4, FeatureColumn.Type as VectorType);
+                    schemaBuilder.AddColumn(DefaultColumnNames.FeatureContributions, featureContributionType, metadataBuilder.GetMetadata());
+                    _outputSchema = schemaBuilder.GetSchema();
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
@@ -385,78 +391,6 @@ namespace Microsoft.ML.Data
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(FeatureColumn.Name);
-            }
-        }
-
-        private sealed class FeatureContributionSchema : ISchema
-        {
-            private readonly Schema _parentSchema;
-            private readonly IExceptionContext _ectx;
-            private readonly string[] _names;
-            private readonly ColumnType[] _types;
-            private readonly Dictionary<string, int> _columnNameMap;
-            private readonly int _featureCol;
-            private readonly int _featureVectorSize;
-            private readonly bool _hasSlotNames;
-
-            public int ColumnCount => _types.Length;
-
-            public FeatureContributionSchema(IExceptionContext ectx, string columnName, ColumnType columnType, Schema parentSchema, int featureCol)
-            {
-                Contracts.CheckValueOrNull(ectx);
-                Contracts.CheckValue(parentSchema, nameof(parentSchema));
-                _ectx = ectx;
-                _ectx.CheckNonEmpty(columnName, nameof(columnName));
-                _parentSchema = parentSchema;
-                _featureCol = featureCol;
-                _featureVectorSize = _parentSchema[_featureCol].Type.VectorSize;
-                _hasSlotNames = _parentSchema[_featureCol].HasSlotNames(_featureVectorSize);
-
-                _names = new string[] { columnName };
-                _types = new ColumnType[] { columnType };
-                _columnNameMap = new Dictionary<string, int>() { { columnName, 0 } };
-            }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                return _columnNameMap.TryGetValue(name, out col);
-            }
-
-            public string GetColumnName(int col)
-            {
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _names[col];
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _types[col];
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                _ectx.CheckParam(col == 0, nameof(col));
-                if (_hasSlotNames)
-                    yield return MetadataUtils.GetSlotNamesPair(_featureVectorSize);
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                _ectx.CheckNonEmpty(kind, nameof(kind));
-                _ectx.CheckParam(col == 0, nameof(col));
-                if (_hasSlotNames)
-                    return MetadataUtils.GetNamesType(_featureVectorSize);
-                return null;
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                _ectx.CheckParam(col == 0, nameof(col));
-                if (kind == MetadataUtils.Kinds.SlotNames && _hasSlotNames)
-                    _parentSchema[_featureCol].Metadata.GetValue(kind, ref value);
-                else
-                    throw MetadataUtils.ExceptGetMetadata();
             }
         }
     }

@@ -365,7 +365,7 @@ namespace Microsoft.ML.Data
                 Contracts.AssertNonWhiteSpace(stratCol);
                 Contracts.AssertValue(createAgg);
 
-                if (stratType.KeyCount == 0 && !(stratType is TextType))
+                if (stratType.GetKeyCount() == 0 && !(stratType is TextType))
                 {
                     throw Contracts.ExceptUserArg(nameof(MamlEvaluatorBase.ArgumentsBase.StratColumn),
                         "Stratification column '{0}' has type '{1}', but must be a known count key or text", stratCol, stratType);
