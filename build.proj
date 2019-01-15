@@ -35,7 +35,7 @@
       <!-- BuildRedist>; -->
       <!-- BuildNative; -->
       $(TraversalBuildDependsOn);
-      DownloadExternalTestFiles;
+      <!-- DownloadExternalTestFiles; -->
     </TraversalBuildDependsOn>
   </PropertyGroup>
 
@@ -82,10 +82,10 @@
       <DestinationFile>$(MSBuildThisFileDirectory)/test/data/external/%(Identity)</DestinationFile>
     </BenchmarkFile>
 
-    <TestFile Include="@(BenchmarkFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" />
+    <!-- <TestFile Include="@(BenchmarkFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" /> -->
   </ItemGroup>
 
-  <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
+  <!-- <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external test files... %(TestFile.DestinationFile)" />
     <DownloadFilesFromUrl Items="@(TestFile)"
                          DestinationDir="test/data/external"
@@ -95,7 +95,7 @@
   <Target Name="RunTests">
     <MSBuild Projects="test\run-tests.proj"
              Targets="RunTests" />
-  </Target>
+  </Target> -->
 
   <!-- Override CleanAllProjects from dir.traversal.targets and just remove the full BinDir -->
   <Target Name="CleanAllProjects">
