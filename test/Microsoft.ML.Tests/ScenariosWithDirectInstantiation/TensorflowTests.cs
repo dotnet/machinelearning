@@ -643,15 +643,6 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
-        public void TensorFlowModelSchema()
-        {
-              var modelLocation = "cifar_saved_model";
-            var mlContext = new MLContext(seed: 1, conc: 1);
-            var loadModelSchema = TensorFlowUtils.GetModelSchema(mlContext, modelLocation);
-            Assert.Equal(335, loadModelSchema.Count);
-        }
-
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TensorFlowTransformCifarInvalidShape()
         {
