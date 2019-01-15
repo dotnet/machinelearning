@@ -114,12 +114,6 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs)]
         /// ]]></format>
         /// </example>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs)]
-        /// ]]></format>
-        /// </example>
         public static SdcaBinaryTrainer StochasticDualCoordinateAscent(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 string labelColumn = DefaultColumnNames.Label,
@@ -140,18 +134,6 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="ctx">The binary classification context trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs)]
-        /// ]]></format>
-        /// </example>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs)]
-        /// ]]></format>
-        /// </example>
         public static SdcaBinaryTrainer StochasticDualCoordinateAscent(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 SdcaBinaryTrainer.Options options)

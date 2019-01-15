@@ -1496,9 +1496,8 @@ namespace Microsoft.ML.Trainers
             _outputColumns = outCols.ToArray();
         }
 
-        internal SdcaBinaryTrainer(IHostEnvironment env, Options options,
-            string featureColumn, string labelColumn, string weightColumn = null)
-            : base(env, options, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        internal SdcaBinaryTrainer(IHostEnvironment env, Options options)
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _loss = options.LossFunction.CreateComponent(env);
             Loss = _loss;
@@ -1534,12 +1533,6 @@ namespace Microsoft.ML.Trainers
             };
 
             _outputColumns = outCols.ToArray();
-
-        }
-
-        internal SdcaBinaryTrainer(IHostEnvironment env, Options options)
-            : this(env, options, options.FeatureColumn, options.LabelColumn)
-        {
         }
 
         protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
