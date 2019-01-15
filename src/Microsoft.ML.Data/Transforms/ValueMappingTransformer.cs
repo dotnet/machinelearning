@@ -100,14 +100,14 @@ namespace Microsoft.ML.Transforms.Conversions
             var isKey = Transformer.ValueColumnType is KeyType;
             var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
                                     Transformer.ValueColumnType;
-            var metadata = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
+            var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
             foreach (var (Input, Output) in _columns)
             {
                 if (!inputSchema.TryFindColumn(Input, out var originalColumn))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Input);
 
-                // Get the type from TOutputType
-                var col = new SchemaShape.Column(Output, vectorKind, columnType, isKey, metadata);
+                // Create the Value column
+                var col = new SchemaShape.Column(Output, vectorKind, columnType, isKey, metadataShape);
                 resultDic[Output] = col;
             }
             return new SchemaShape(resultDic.Values);
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 // set of values. This is used for generating the metadata of
                 // the column.
                 HashSet<TValue> valueSet = new HashSet<TValue>();
-                foreach(var v in values)
+                foreach (var v in values)
                 {
                     if (valueSet.Contains(v))
                         continue;
