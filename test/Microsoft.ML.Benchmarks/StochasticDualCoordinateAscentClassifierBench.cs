@@ -9,6 +9,7 @@ using BenchmarkDotNet.Engines;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Learners;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -18,8 +19,8 @@ namespace Microsoft.ML.Benchmarks
     [CIBenchmark]
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
-        private readonly string _dataPath = TestFramework.BaseTestClass.GetDataPath("iris.txt");
-        private readonly string _sentimentDataPath = TestFramework.BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
+        private readonly string _dataPath = BaseTestClass.GetDataPath("iris.txt");
+        private readonly string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
         private readonly MLContext _env = new MLContext(seed: 1);

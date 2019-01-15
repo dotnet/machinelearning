@@ -6,6 +6,10 @@ using System;
 
 namespace Microsoft.ML.Benchmarks.Harness
 {
+    /// <summary>
+    /// This attribute is used to identify the benchmarks 
+    /// which we want to run on the CI.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class CIBenchmark : Attribute
     {

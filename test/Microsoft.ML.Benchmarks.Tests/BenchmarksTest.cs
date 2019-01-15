@@ -41,7 +41,7 @@ namespace Microsoft.ML.Benchmarks.Tests
         public static TheoryData<Type> GetBenchmarks()
         {
             TheoryData<Type> benchmarks = new TheoryData<Type>();
-            Assembly asm = Assembly.LoadFrom("Microsoft.ML.Benchmarks.dll");
+            Assembly asm = typeof(StochasticDualCoordinateAscentClassifierBench).Assembly;
 
             var types = from type in asm.GetTypes()
                         where Attribute.IsDefined(type, typeof(CIBenchmark))

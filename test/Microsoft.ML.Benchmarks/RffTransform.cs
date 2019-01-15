@@ -7,6 +7,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Benchmarks
@@ -19,7 +20,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPath_Digits = TestFramework.BaseTestClass.GetDataPath(TestDatasets.Digits.trainFilename);
+            _dataPath_Digits = BaseTestClass.GetDataPath(TestDatasets.Digits.trainFilename);
 
             if (!File.Exists(_dataPath_Digits))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Digits));

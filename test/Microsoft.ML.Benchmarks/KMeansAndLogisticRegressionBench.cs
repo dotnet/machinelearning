@@ -6,13 +6,14 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.TestFramework;
 
 namespace Microsoft.ML.Benchmarks
 {
     [CIBenchmark]
     public class KMeansAndLogisticRegressionBench
     {
-        private readonly string _dataPath = TestFramework.BaseTestClass.GetDataPath("adult.tiny.with-schema.txt");
+        private readonly string _dataPath = BaseTestClass.GetDataPath("adult.tiny.with-schema.txt");
 
         [Benchmark]
         public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
