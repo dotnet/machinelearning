@@ -562,6 +562,7 @@ namespace Microsoft.ML.Data.IO
 
                 public override Delegate GetGetter()
                 {
+                    EnsureValue();
                     ValueGetter<T> getter = (ref T value) => value = Value;
                     return getter;
                 }
@@ -577,6 +578,7 @@ namespace Microsoft.ML.Data.IO
 
                 public override Delegate GetGetter()
                 {
+                    EnsureValue();
                     ValueGetter<VBuffer<T>> getter = (ref VBuffer<T> value) => Value.CopyTo(ref value);
                     return getter;
                 }
@@ -601,6 +603,10 @@ namespace Microsoft.ML.Data.IO
                 _codec = codec;
             }
 
+            /// <summary>
+            /// By calling <see cref="EnsureValue"/>, we make sure <see cref="Value"/>'s content get loaded definitely.
+            /// Without calling <see cref="EnsureValue"/>, <see cref="Value"/> could be default value of its type.
+            /// </summary>
             protected void EnsureValue()
             {
                 if (!_fetched)
