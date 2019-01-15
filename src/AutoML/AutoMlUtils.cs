@@ -24,7 +24,7 @@ namespace Microsoft.ML.Auto
 
         public static IDataView Take(this IDataView data, int count)
         {
-            // REVIEW: This should take an env as a parameter, not create one.
+            // REVIEW: This should take an env as a parameter, not create one
             var env = new MLContext();
             var take = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeArguments { Count = count }, data);
             return new CacheDataView(env, data, Enumerable.Range(0, data.Schema.Count).ToArray());

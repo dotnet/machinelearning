@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.3</LangVersion>
@@ -20,5 +19,4 @@
     <PackageReference Include="Microsoft.ML.HalLearners" Version="0.9.0" />
     <PackageReference Include="Microsoft.ML.LightGBM" Version="0.9.0" />
   </ItemGroup>
-
 </Project>
