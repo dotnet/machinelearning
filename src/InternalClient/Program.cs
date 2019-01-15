@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace Test
+namespace InternalClient
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            GetNextPipeline.Run();
         }
     }
 }

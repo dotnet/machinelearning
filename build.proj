@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Project Include="Test.sln" />
+    <Project Include="AutoML.sln" />
   </ItemGroup>
 
   <Import Project="dir.traversal.targets" />
