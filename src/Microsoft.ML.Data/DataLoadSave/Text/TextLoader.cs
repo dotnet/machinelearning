@@ -532,7 +532,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
             /// <summary>
-            /// Empty if <see cref="ArgumentsCore.HasHeader"/> is false, no header presents, or upon load
+            /// Empty if <see cref="ArgumentsCore.HasHeader"/> is <see langword="false"/>, no header presents, or upon load
             /// there was no header stored in the model.
             /// </summary>
             private readonly ReadOnlyMemory<char> _header;
