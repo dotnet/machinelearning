@@ -24,7 +24,7 @@ namespace Microsoft.ML.TestFramework
             DataDir = Path.Combine(RootDir, "test", "data");
         }
 
-        public static string GetRepoRoot()
+        private static string GetRepoRoot()
         {
 #if NET462
             string directory = AppDomain.CurrentDomain.BaseDirectory;

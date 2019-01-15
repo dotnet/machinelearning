@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class KMeansAndLogisticRegressionBench
     {
         private readonly string _dataPath = TestFramework.BaseTestClass.GetDataPath("adult.tiny.with-schema.txt");

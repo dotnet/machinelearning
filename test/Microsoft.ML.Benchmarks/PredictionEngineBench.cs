@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
@@ -10,6 +11,7 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class PredictionEngineBench
     {
         private IrisData _irisExample;

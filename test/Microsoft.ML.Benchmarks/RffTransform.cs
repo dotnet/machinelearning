@@ -4,12 +4,14 @@
 
 using System.IO;
 using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class RffTransformTrain
     {
         private string _dataPath_Digits;

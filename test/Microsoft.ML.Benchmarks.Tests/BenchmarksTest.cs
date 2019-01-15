@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Internal.CpuMath;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,12 +21,6 @@ namespace Microsoft.ML.Benchmarks.Tests
     public class TestConfig : RecommendedConfig
     {
         protected override Job GetJobDefinition() => Job.Dry; // Job.Dry runs the benchmark just once
-    }
-
-    public class BenchmarkTouchingNativeDependency
-    {
-        [Benchmark]
-        public float Simple() => CpuMathUtils.Sum(Enumerable.Range(0, 1024).Select(Convert.ToSingle).ToArray());
     }
 
     public class BenchmarksTest
@@ -41,14 +38,24 @@ namespace Microsoft.ML.Benchmarks.Tests
             Environment.Is64BitProcess; // we don't support 32 bit yet
 #endif
 
+        public static TheoryData<Type> GetBenchmarks()
+        {
+            TheoryData<Type> benchmarks = new TheoryData<Type>();
+            Assembly asm = Assembly.LoadFrom("Microsoft.ML.Benchmarks.dll");
+
+            var types = from type in asm.GetTypes()
+                        where Attribute.IsDefined(type, typeof(CIBenchmark))
+                        select type;
+
+            foreach (Type type in types)
+            {
+                benchmarks.Add(type);
+            }
+            return benchmarks;
+        }
+
         [ConditionalTheory(typeof(BenchmarksTest), nameof(CanExecute))]
-        [InlineData(typeof(BenchmarkTouchingNativeDependency))]
-        [InlineData(typeof(CacheDataViewBench))]
-        [InlineData(typeof(HashBench))]
-        [InlineData(typeof(KMeansAndLogisticRegressionBench))]
-        [InlineData(typeof(PredictionEngineBench))]
-        [InlineData(typeof(RffTransformTrain))]
-        [InlineData(typeof(StochasticDualCoordinateAscentClassifierBench))]
+        [MemberData(nameof(GetBenchmarks))]
         public void BenchmarksProjectIsNotBroken(Type type)
         {
             var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(Output)));

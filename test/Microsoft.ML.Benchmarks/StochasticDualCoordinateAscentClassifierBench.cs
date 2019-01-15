@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Learners;
 using Microsoft.ML.Trainers;
@@ -14,6 +15,7 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
         private readonly string _dataPath = TestFramework.BaseTestClass.GetDataPath("iris.txt");
