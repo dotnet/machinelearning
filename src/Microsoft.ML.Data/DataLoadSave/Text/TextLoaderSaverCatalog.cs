@@ -14,10 +14,10 @@ namespace Microsoft.ML
         /// Create a text loader <see cref="TextLoader"/>.
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
-        /// <param name="columns">The columns of the schema.</param>
+        /// <param name="columns">Array of columns <see cref="TextLoader.Column"/> defining the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="dataSample">The optional location of a data sample.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         public static TextLoader CreateTextLoader(this DataOperations catalog,
             TextLoader.Column[] columns,
             bool hasHeader = TextLoader.DefaultArguments.HasHeader,
@@ -30,7 +30,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
-        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
         public static TextLoader CreateTextLoader(this DataOperations catalog,
             TextLoader.Arguments args,
             IMultiStreamSource dataSample = null)
