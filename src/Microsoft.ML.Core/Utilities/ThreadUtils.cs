@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,36 +11,152 @@ namespace Microsoft.ML.Internal.Utilities
 {
     internal static partial class Utils
     {
-        public static Thread CreateBackgroundThread(ParameterizedThreadStart start)
-        {
-            return new Thread(start)
-            {
-                IsBackground = true
-            };
-        }
+        public static Task StartBackgroundThread(Action start) =>
+            ImmediateBackgroundThreadPool.Queue(start);
 
-        public static Thread CreateBackgroundThread(ThreadStart start)
-        {
-            return new Thread(start)
-            {
-                IsBackground = true
-            };
-        }
+        public static Task StartBackgroundThread(Action<object> start, object obj) =>
+            ImmediateBackgroundThreadPool.Queue(start, obj);
 
-        public static Thread CreateForegroundThread(ParameterizedThreadStart start)
-        {
-            return new Thread(start)
-            {
-                IsBackground = false
-            };
-        }
+        public static Thread CreateForegroundThread(ParameterizedThreadStart start) =>
+            new Thread(start) { IsBackground = false };
 
-        public static Thread CreateForegroundThread(ThreadStart start)
+        /// <summary>
+        /// Naive thread pool focused on reducing the latency to execution of chunky work items as much as possible.
+        /// If a thread is ready to process a work item the moment a work item is queued, it's used, otherwise
+        /// a new thread is created.  This is meant as a stop-gap measure for workloads that would otherwise be
+        /// creating a new thread for every work item.
+        /// </summary>
+        private static class ImmediateBackgroundThreadPool
         {
-            return new Thread(start)
+            /// <summary>How long should threads wait around for additional work items before retiring themselves.</summary>
+            private const int IdleMilliseconds = 1_000;
+            /// <summary>The queue of work items.  Also used as a lock to protect all relevant state.</summary>
+            private static readonly Queue<(Delegate, object, TaskCompletionSource<bool>)> _queue = new Queue<(Delegate, object, TaskCompletionSource<bool>)>();
+            /// <summary>The number of threads currently waiting for work to arrive.</summary>
+            private static int _availableThreads = 0;
+
+            /// <summary>
+            /// Queues an <see cref="Action"/> delegate to be executed immediately on another thread,
+            /// and returns a <see cref="Task"/> that represents its eventual completion.  The task will
+            /// always end in the <see cref="TaskStatus.RanToCompletion"/> state; if the delegate throws
+            /// an exception, it'll be allowed to propagate on the thread, crashing the process.
+            /// </summary>
+            public static Task Queue(Action threadStart) => Queue((Delegate)threadStart, null);
+
+            /// <summary>
+            /// Queues an <see cref="Action{Object}"/> delegate and associated state to be executed immediately on another thread,
+            /// and returns a <see cref="Task"/> that represents its eventual completion.  The task will
+            /// always end in the <see cref="TaskStatus.RanToCompletion"/> state; if the delegate throws
+            /// an exception, it'll be allowed to propagate on the thread, crashing the process.
+            /// </summary>
+            public static Task Queue(Action<object> threadStart, object state) => Queue((Delegate)threadStart, state);
+
+            private static Task Queue(Delegate threadStart, object state)
             {
-                IsBackground = false
-            };
+                // Create the TaskCompletionSource used to represent this work.
+                // Call sites only care about completion, not about the distinction between
+                // success and failure and do not expect exceptions to be propagated in this manner,
+                // so only SetResult is used.
+                var tcs = new TaskCompletionSource<bool>(TaskContinuationOptions.RunContinuationsAsynchronously);
+
+                // Queue the work for a thread to pick up.  If no thread is immediately available, create one.
+                if (!Enqueue((threadStart, state, tcs)))
+                {
+                    CreateThread();
+                }
+
+                // Return the task.
+                return tcs.Task;
+
+                void CreateThread()
+                {
+                    // Create a new background thread to run the work.
+                    var t = new Thread(() =>
+                    {
+                        // Repeatedly get the next item and invoke it, setting its TCS when we're done.
+                        // This will wait for up to the idle time before giving up and exiting.
+                        while (TryDequeue(out (Delegate, object, TaskCompletionSource<bool>) item))
+                        {
+                            try
+                            {
+                                if (item.Item1 is Action<object> pts)
+                                {
+                                    pts(item.Item2);
+                                }
+                                else
+                                {
+                                    ((Action)item.Item1)();
+                                }
+                            }
+                            finally
+                            {
+                                item.Item3.SetResult(true);
+                            }
+                        }
+                    });
+                    t.IsBackground = true;
+                    t.Start();
+                }
+
+                bool Enqueue((Delegate, object, TaskCompletionSource<bool>) item)
+                {
+                    // Enqueue the work.  If there are currently fewer threads waiting
+                    // for work than there are work items in the queue, create another
+                    // thread.  This is a heuristic, in that we might end up creating
+                    // more threads than are truly needed, but this whole type is being
+                    // used to replace a previous solution where every work item created
+                    // its own thread, so this is an improvement regardless of any
+                    // such inefficiencies.
+                    lock (_queue)
+                    {
+                        _queue.Enqueue(item);
+
+                        if (_queue.Count <= _availableThreads)
+                        {
+                            Monitor.Pulse(_queue);
+                            return true;
+                        }
+
+                        return false;
+                    }
+                }
+
+                bool TryDequeue(out (Delegate, object, TaskCompletionSource<bool>) item)
+                {
+                    // Dequeues the next item if one is available.  Before checking,
+                    // the available thread count is increased, so that enqueuers can
+                    // see how many threads are currently waiting, with the count
+                    // decreased after.  Each time it waits, it'll wait for at most
+                    // the idle timeout before giving up.
+                    lock (_queue)
+                    {
+                        _availableThreads++;
+                        try
+                        {
+                            while (_queue.Count == 0)
+                            {
+                                if (!Monitor.Wait(_queue, IdleMilliseconds))
+                                {
+                                    if (_queue.Count > 0)
+                                    {
+                                        break;
+                                    }
+
+                                    item = default;
+                                    return false;
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            _availableThreads--;
+                        }
+
+                        item = _queue.Dequeue();
+                        return true;
+                    }
+                }
+            }
         }
     }
 
