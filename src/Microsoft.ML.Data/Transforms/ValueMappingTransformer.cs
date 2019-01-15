@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
                         // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
                         // computing max and min.
-                        if (Data.Conversion.Conversions.Instance.TryParseKey(in value, ulong.MaxValue, out res))
+                        if (Data.Conversion.Conversions.Instance.TryParseKey(in value, ulong.MaxValue - 1, out res))
                         {
                             if (res < keyMin && res != 0)
                                 keyMin = res;

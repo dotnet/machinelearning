@@ -390,7 +390,7 @@ namespace Microsoft.ML.Data.Conversion
                 // types that are large enough.
                 if (typeDst is KeyType keyDst)
                 {
-                    // We allow the Min value to shift. We currently don't allow the counts to vary.
+                    // We currently don't allow the counts to vary.
                     // REVIEW: Should we allow the counts to vary? Allowing the dst to be bigger is trivial.
                     // Smaller dst means mapping values to NA.
                     if (keySrc.Count != keyDst.Count)
@@ -1110,9 +1110,9 @@ namespace Microsoft.ML.Data.Conversion
         }
 
         /// <summary>
-        /// Utility to assist in parsing key-type values. The min and max values define
-        /// the legal input value bounds. The output dst value is "normalized" so min is
-        /// mapped to 1, max is mapped to 1 + (max - min).
+        /// Utility to assist in parsing key-type values. The max value defines
+        /// the legal input value bound. The output dst value is "normalized" by adding 1
+        /// so max is mapped to 1 + max.
         /// Unparsable or out of range values are mapped to zero with a false return.
         /// </summary>
         public bool TryParseKey(in TX src, U8 max, out U8 dst)
@@ -1126,10 +1126,10 @@ namespace Microsoft.ML.Data.Conversion
                 return true;
             }
 
-            // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since
-            // we map min to 1, which would cause max to overflow to zero. Specifically, it protects
-            // against overflow in the expression uu - min + 1 below.
-            Contracts.Assert(max <= U8.MaxValue);
+            // This simply ensures we don't have max == U8.MaxValue. This is illegal since
+            // it would cause max to overflow to zero. Specifically, it protects
+            // against overflow in the expression uu + 1 below.
+            Contracts.Assert(max < U8.MaxValue);
 
             // Parse a ulong.
             ulong uu;

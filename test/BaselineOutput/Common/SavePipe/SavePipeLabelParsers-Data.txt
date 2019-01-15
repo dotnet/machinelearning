@@ -4,7 +4,7 @@
 #@   col=RawLabel:TX:0
 #@   col=AutoLabel:U4[0-6]:1
 #@   col=StringLabel:U4[0-6]:2
-#@   col=FileLabel:U8[0-*]:3
+#@   col=FileLabel:U4[0-2]:3
 #@ }
 RawLabel	AutoLabel	StringLabel	FileLabel
 Wirtschaft	0	0	0
@@ -31,16 +31,16 @@ Unterhaltung	4	4	0
 Unterhaltung	4	4	0
 Unterhaltung	4	4	0
 Unterhaltung	4	4	0
-Sport	5	5	4294967299
-Sport	5	5	4294967299
-Sport	5	5	4294967299
-Sport	5	5	4294967299
-Sport	5	5	4294967299
-Sport	5	5	4294967299
-Sport	5	5	4294967299
-Sport	5	5	4294967299
-Sport	5	5	4294967299
-Sport	5	5	4294967299
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
 Technik & Wissen	6	6	0
 Technik & Wissen	6	6	0
 Technik & Wissen	6	6	0
@@ -77,8 +77,8 @@ Ausland	3	3	0
 Unterhaltung	4	4	0
 Unterhaltung	4	4	0
 Unterhaltung	4	4	0
-Sport	5	5	4294967299
-Sport	5	5	4294967299
+Sport	5	5	1
+Sport	5	5	1
 Technik & Wissen	6	6	0
 Technik & Wissen	6	6	0
 Technik & Wissen	6	6	0

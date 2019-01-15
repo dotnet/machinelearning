@@ -456,14 +456,13 @@ namespace Microsoft.ML.Data
     /// class numbers, etc. For example, in multi-class classification, the label is typically
     /// a class number which is naturally a KeyType.
     ///
-    /// KeyTypes can be contiguous (the class number example), in which case they can have
-    /// a cardinality/Count. For non-contiguous KeyTypes the Count property returns zero.
-    /// Any KeyType (contiguous or not) can have a Min value. The Min value is always >= 0.
+    /// KeyTypes with a known range of values have a cardinality/Count. If the range is
+    /// unknown the Count property returns zero.
     ///
     /// Note that the representation value does not necessarily match the logical value.
-    /// For example, if a KeyType has range 1000-5000, then it has a Min of 1000, Count
-    /// of 4001, but the representational values are 1-4001. The representation value zero
-    /// is reserved to mean none/invalid.
+    /// For example, if a KeyType has range 0-5000, then it has a Count of 5001, but
+    /// the representational values are 1-5001. The representation value zero is reserved
+    /// to mean none/invalid.
     /// </summary>
     public sealed class KeyType : PrimitiveType
     {
@@ -547,12 +546,12 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// If this key type has contiguous values and a known cardinality, Count is that cardinality.
-        /// Otherwise, this returns zero. Note that such a key type can be converted to a bit vector
-        /// representation by mapping to a vector of length Count, with "id" mapped to a vector with
-        /// 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
-        /// representation. Note that an id of 0 is used to represent the notion "none", which is
-        /// typically mapped to a vector of all zeros (of length Count).
+        /// If this key type has a known cardinality, Count is that cardinality. Otherwise, this returns
+        /// zero. Note that such a key type can be converted to a bit vector representation by mapping
+        /// to a vector of length Count, with "id" mapped to a vector with 1 in slot (id - 1) and 0 in
+        /// all other slots. This is the standard "indicator" representation. Note that an id of 0 is
+        /// used to represent the notion "none", which is typically mapped to a vector of all zeros
+        /// (of length Count).
         /// </summary>
         public ulong Count { get; }
 

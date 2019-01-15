@@ -1204,7 +1204,7 @@ namespace Microsoft.ML.Data.IO
             }
 
             // REVIEW: There is something a little bit troubling here. If someone, say,
-            // produces a column on KeyType(I4, 0, 4, true) and then returns 10 as a value in
+            // produces a column on KeyType(I4, 4, true) and then returns 10 as a value in
             // that column, that's obviously a violation of the type, and lots of things
             // downstream may complain, but it is a "valid" cursor in that it produces values
             // and does not throw. So from that perspective of the codecs and their users being
@@ -1314,7 +1314,7 @@ namespace Microsoft.ML.Data.IO
             }
 
             // REVIEW: There is something a little bit troubling here. If someone, say,
-            // produces a column on KeyType(I4, 0, 4, true) and then returns 10 as a value in
+            // produces a column on KeyType(I4, 4, true) and then returns 10 as a value in
             // that column, that's obviously a violation of the type, and lots of things
             // downstream may complain, but it is a "valid" cursor in that it produces values
             // and does not throw. So from that perspective of the codecs and their users being

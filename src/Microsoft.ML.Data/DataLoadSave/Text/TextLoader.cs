@@ -919,7 +919,7 @@ namespace Microsoft.ML.Data
                 // verWrittenCur: 0x00010009, // Introduced _flags
                 //verWrittenCur: 0x0001000A, // Added ForceVector in Range
                 //verWrittenCur: 0x0001000B, // Header now retained if used and present
-                verWrittenCur: 0x0001000C, // Removed Min and Count from KeyType
+                verWrittenCur: 0x0001000C, // Removed Min and Contiguous from KeyType
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
                 loaderSignature: LoaderSignature,
