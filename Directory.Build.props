@@ -1,0 +1,126 @@
+<Project>
+  <!-- Directory.Build.props contains the common build settings for all projects in the repo. -->
+
+  <Import Project="build/BranchInfo.props" />
+  <Import Project="build/Dependencies.props" />
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <Configurations>Debug;Release;Debug-Intrinsics;Release-Intrinsics;Debug-netfx;Release-netfx</Configurations>
+    <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
+    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
+    <NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">$(TargetArchitecture)</NativeTargetArchitecture>
+    <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RestoreSources>
+      https://api.nuget.org/v3/index.json;
+      https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
+      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
+    </RestoreSources>
+  </PropertyGroup>
+
+  <!-- Common repo directories -->
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <SourceDir>$(RepoRoot)src/</SourceDir>
+    <PkgDir>$(RepoRoot)pkg/</PkgDir>
+
+    <!-- Output directories -->
+    <BinDir Condition="'$(BinDir)'==''">$(RepoRoot)bin/</BinDir>
+    <BaseOutputPath Condition="'$(BaseOutputPath)'==''">$(BinDir)</BaseOutputPath>
+    <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
+    <RootIntermediateOutputPath Condition="'$(RootIntermediateOutputPath)'==''">$(ObjDir)</RootIntermediateOutputPath>
+
+    <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(RootIntermediateOutputPath)$(PlatformConfig)\</IntermediateOutputRootPath>
+    <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(IntermediateOutputRootPath)$(MSBuildProjectName)\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(IntermediateOutputPath)</BaseIntermediateOutputPath>
+
+    <OutputPath Condition="'$(OutputPath)'==''">$(BaseOutputPath)$(PlatformConfig)\$(MSBuildProjectName)\</OutputPath>
+
+    <PackageAssetsPath>$(ObjDir)/packages/</PackageAssetsPath>
+    
+    <PackageOutputPath Condition="'$(PackageOutputPath)'=='' and '$(NonShippingPackage)' == 'true'">$(BinDir)packages_noship/</PackageOutputPath>
+    <PackageOutputPath Condition="'$(PackageOutputPath)'==''">$(BinDir)packages/</PackageOutputPath>
+
+    <NativeOutputPath>$(BaseOutputPath)$(NativeTargetArchitecture).$(Configuration)\Native\</NativeOutputPath>
+
+    <!-- Input Directories -->
+    <PackagesDir>$(DotNetRestorePackagesPath)</PackagesDir>
+    <PackagesDir Condition="'$(PackagesDir)'==''">$(RepoRoot)packages/</PackagesDir>
+    <RestorePackagesPath>$(PackagesDir)</RestorePackagesPath>
+    <ToolsDir Condition="'$(ToolsDir)'==''">$(RepoRoot)Tools/</ToolsDir>
+  </PropertyGroup>
+
+  <Import Project="$(ToolsDir)BuildVersion.targets" 
+          Condition="Exists('$(ToolsDir)BuildVersion.targets')" />
+
+  <!-- Version properties -->
+  <PropertyGroup>
+    <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
+    <AssemblyFileVersion Condition="'$(AssemblyFileVersion)'==''">$(MajorVersion).$(MinorVersion).$(BuildNumberMajor).$(BuildNumberMinor)</AssemblyFileVersion>
+
+    <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
+    <IncludeBuildNumberInPackageVersion Condition="'$(StabilizePackageVersion)' != 'true'">true</IncludeBuildNumberInPackageVersion>
+
+    <VersionSuffix></VersionSuffix>
+    <VersionSuffix Condition="'$(StabilizePackageVersion)' != 'true'">$(PreReleaseLabel)</VersionSuffix>
+    <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)-$(BuildNumberMinor)</VersionSuffix>
+  </PropertyGroup>
+
+  <!-- SourceLink properties used by dotnet/buildtools - need to be set before importing $(ToolsDir)versioning.props -->
+  <PropertyGroup>
+    <UseSourceLink>true</UseSourceLink>
+    <GitHubRepositoryName>machinelearning</GitHubRepositoryName>
+  </PropertyGroup>
+
+  <!--
+  Source code control properties used by the .NET Core SDK to inject SCC info into the NuGet package.
+  In future versions, these will be used for SourceLink and to generate AssemblyInfo.
+  -->
+  <PropertyGroup>
+    <PrivateRepositoryUrl>https://github.com/dotnet/$(GitHubRepositoryName)</PrivateRepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <SourceRevisionId>$(LatestCommit)</SourceRevisionId>
+  </PropertyGroup>
+
+  <Import Project="$(ToolsDir)versioning.props" 
+          Condition="Exists('$(ToolsDir)versioning.props') and '$(DisableImportVersioningProps)' != 'true'" />
+ 
+  <!-- Language configuration -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion> <!-- default to allowing all language features -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <RunningOnUnix Condition="'$(OS)'!='Windows_NT'">true</RunningOnUnix>
+  </PropertyGroup>
+
+  <!-- Signing properties -->
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile Condition="'$(AssemblyOriginatorKeyFile)' == ''">$(ToolsDir)Open.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <UseIntrinsics Condition="'$(UseIntrinsics)' == ''">$(Configuration.EndsWith('-Intrinsics'))</UseIntrinsics>
+  </PropertyGroup>
+
+  <!-- Need to explicitly set these properties for the -Intrinsics configurations becuase they are typically based off 'Debug' or 'Release' configs -->
+  <!-- Taken from https://github.com/dotnet/sdk/blob/073c98b92c81066c6c2e17c3674adbb6e833409a/src/Tasks/Microsoft.NET.Build.Tasks/targets/Microsoft.NET.Sdk.props#L41-L47 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug-Intrinsics'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>$(DefineContants);DEBUG</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release-Intrinsics'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CustomAfterMicrosoftCommonTargets>$(RepoRoot)build\AfterCommonTargets.targets</CustomAfterMicrosoftCommonTargets>
+  </PropertyGroup>
+</Project>

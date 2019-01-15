@@ -1,0 +1,5 @@
+root = true
+
+[*.cs]
+# Sort using directives with System.* appearing first
+dotnet_sort_system_directives_first = true
