@@ -334,7 +334,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     else
                     {
                         var srcType = input.Schema[item.Source ?? item.Name].Type;
-                        kind = srcType is KeyType ? srcType.GetRawKind() : DataKind.U4;
+                        kind = srcType is KeyType ? srcType.GetRawKind() : DataKind.U8;
                     }
                 }
                 else

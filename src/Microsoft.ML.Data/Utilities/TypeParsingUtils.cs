@@ -112,13 +112,11 @@ namespace Microsoft.ML.Data
             {
                 if (!ulong.TryParse(str, out min))
                     return false;
-                Contracts.Assert(min == 0);
                 return true;
             }
 
             if (!ulong.TryParse(str.Substring(0, ich), out min))
                 return false;
-            Contracts.Assert(min == 0);
 
             string rest = str.Substring(ich + 1);
             if (string.IsNullOrEmpty(rest) || rest == "*")
@@ -128,6 +126,8 @@ namespace Microsoft.ML.Data
             if (!ulong.TryParse(rest, out tmp))
                 return false;
             Max = tmp;
+
+            Contracts.Assert(min <= Max);
             return true;
         }
 

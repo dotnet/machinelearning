@@ -2,7 +2,7 @@
 14 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 0-2>, 3>
+  CatU2: Vec<Key<U2, 0-4>, 3>
   CatU8: Vec<Key<U8, 0-*>, 3>
   OneU1: Key<U1, 0-*>
   OneU2: Key<U2, 0-*>
@@ -18,7 +18,7 @@
 16 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 0-2>, 3>
+  CatU2: Vec<Key<U2, 0-4>, 3>
   CatU8: Vec<Key<U8, 0-*>, 3>
   OneU1: Key<U1, 0-*>
   OneU2: Key<U2, 0-*>
@@ -40,7 +40,7 @@
 20 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 0-2>, 3>
+  CatU2: Vec<Key<U2, 0-4>, 3>
   CatU8: Vec<Key<U8, 0-*>, 3>
   OneU1: Key<U1, 0-*>
   OneU2: Key<U2, 0-*>
@@ -66,7 +66,7 @@
 25 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 0-2>, 3>
+  CatU2: Vec<Key<U2, 0-4>, 3>
   CatU8: Vec<Key<U8, 0-*>, 3>
   OneU1: Key<U1, 0-*>
   OneU2: Key<U2, 0-*>
@@ -97,7 +97,7 @@
 29 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 0-2>, 3>
+  CatU2: Vec<Key<U2, 0-4>, 3>
   CatU8: Vec<Key<U8, 0-*>, 3>
   OneU1: Key<U1, 0-*>
   OneU2: Key<U2, 0-*>
@@ -132,7 +132,7 @@
 31 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 0-2>, 3>
+  CatU2: Vec<Key<U2, 0-4>, 3>
   CatU8: Vec<Key<U8, 0-*>, 3>
   OneU1: Key<U1, 0-*>
   OneU2: Key<U2, 0-*>
@@ -169,7 +169,7 @@
 35 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 0-2>, 3>
+  CatU2: Vec<Key<U2, 0-4>, 3>
   CatU8: Vec<Key<U8, 0-*>, 3>
   OneU1: Key<U1, 0-*>
   OneU2: Key<U2, 0-*>
@@ -210,7 +210,7 @@
 36 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 0-2>, 3>
+  CatU2: Vec<Key<U2, 0-4>, 3>
   CatU8: Vec<Key<U8, 0-*>, 3>
   OneU1: Key<U1, 0-*>
   OneU2: Key<U2, 0-*>
@@ -252,7 +252,7 @@
 37 columns:
   Text: Vec<Text, 3>
   CatU1: Vec<Key<U1, 0-2>, 3>
-  CatU2: Vec<Key<U2, 0-2>, 3>
+  CatU2: Vec<Key<U2, 0-4>, 3>
   CatU8: Vec<Key<U8, 0-*>, 3>
   OneU1: Key<U1, 0-*>
   OneU2: Key<U2, 0-*>
