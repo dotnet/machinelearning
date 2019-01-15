@@ -1,0 +1,9 @@
+<Project>
+  <ItemGroup>
+    <BenchmarkFile Include="digits.csv" />
+    <BenchmarkFile Include="MSLRWeb10KTest240kRows.tsv" />
+    <BenchmarkFile Include="MSLRWeb10KTrain720kRows.tsv" />
+    <BenchmarkFile Include="MSLRWeb10KValidate240kRows.tsv" />
+    <BenchmarkFile Include="WikiDetoxAnnotated160kRows.tsv" />
+  </ItemGroup>
+</Project>
