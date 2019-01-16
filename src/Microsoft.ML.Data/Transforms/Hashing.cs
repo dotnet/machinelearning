@@ -116,8 +116,8 @@ namespace Microsoft.ML.Transforms.Conversions
 
         public sealed class ColumnInfo
         {
-            public readonly string Source;
             public readonly string Name;
+            public readonly string Source;
             public readonly int HashBits;
             public readonly uint Seed;
             public readonly bool Ordered;
@@ -126,8 +126,8 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="source">Name of column to work on.</param>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>. Null means <paramref name="source"/> is replaced.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+            /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
             /// <param name="seed">Hashing seed.</param>
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
@@ -1216,17 +1216,16 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Initializes a new instance of <see cref="HashingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the column to be transformed.
-        /// If set to <see langword="null"/> the value specified for the <paramref name="outputColumn"/> will be used.</param>
-        /// <param name="outputColumn">Name of the output column. </param>
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
         /// <paramref name="invertHash"/> specifies the upper bound of the number of distinct input values mapping to a hash that should be retained.
         /// <value>0</value> does not retain any input values. <value>-1</value> retains all input values mapping to each hash.</param>
-        internal HashingEstimator(IHostEnvironment env, string outputColumn, string inputColumn = null,
+        internal HashingEstimator(IHostEnvironment env, string name, string source = null,
             int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash)
-            : this(env, new HashingTransformer.ColumnInfo(outputColumn, inputColumn ?? outputColumn, hashBits: hashBits, invertHash: invertHash))
+            : this(env, new HashingTransformer.ColumnInfo(name, source ?? name, hashBits: hashBits, invertHash: invertHash))
         {
         }
 
@@ -1259,7 +1258,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     metadata.Add(slotMeta);
                 if (colInfo.InvertHash != 0)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(metadata));
+                result[colInfo.Name] = new SchemaShape.Column(colInfo.Name, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

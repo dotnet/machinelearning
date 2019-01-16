@@ -748,7 +748,7 @@ namespace Microsoft.ML.RunTests
                 }).Fit(data).Transform(data);
 
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
-                data = new ValueToKeyMappingEstimator(Env, "Label", "Label", sort: ValueToKeyMappingTransformer.SortOrder.Value).Fit(data).Transform(data);
+                data = new ValueToKeyMappingEstimator(Env, "Label", sort: ValueToKeyMappingTransformer.SortOrder.Value).Fit(data).Transform(data);
 
                 var lrInput = new LogisticRegression.Arguments
                 {

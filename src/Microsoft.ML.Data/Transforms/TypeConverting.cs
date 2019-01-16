@@ -173,16 +173,16 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         public sealed class ColumnInfo
         {
-            public readonly string Source;
             public readonly string Name;
+            public readonly string Source;
             public readonly DataKind OutputKind;
             public readonly KeyRange OutputKeyRange;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="source">Name of input column.</param>
-            /// <param name="name">Name of output column.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+            /// <param name="source">Name of column to transform.</param>
             /// <param name="outputKind">The expected kind of the converted column.</param>
             /// <param name="outputKeyRange">New key range, if we work with key type.</param>
             public ColumnInfo(string name, string source, DataKind outputKind, KeyRange outputKeyRange = null)
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="source">Name of the column produced.</param>
-        /// <param name="name">Name of the column to be transformed. If this is null '<paramref name="source"/>' will be used.</param>
+        /// <param name="name">Name of the column to transform. If this is null '<paramref name="source"/>' will be used.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
         /// <param name="outputKeyRange">New key range if we work with key type.</param>
         public TypeConvertingTransformer(IHostEnvironment env, string source, string name, DataKind outputKind, KeyRange outputKeyRange = null)
@@ -537,14 +537,13 @@ namespace Microsoft.ML.Transforms.Conversions
         /// Convinence constructor for simple one column case.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the input column. If set to <see langword="null"/>, the value of the <paramref name="outputColumn"/>
-        /// will be used as input.</param>
-        /// <param name="outputColumn">Name of the output column.</param>
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
         internal TypeConvertingEstimator(IHostEnvironment env,
-            string outputColumn, string inputColumn = null,
+            string name, string source = null,
             DataKind outputKind = Defaults.DefaultOutputKind)
-            : this(env, new TypeConvertingTransformer.ColumnInfo(outputColumn, inputColumn ?? outputColumn, outputKind))
+            : this(env, new TypeConvertingTransformer.ColumnInfo(name, source ?? name, outputKind))
         {
         }
 

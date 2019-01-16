@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var data = ml.Data.ReadFromTextFile<IrisData>(dataPath, separatorChar: ',');
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(new ValueToKeyMappingEstimator(ml, "Label", "Label"), TransformerScope.TrainTest)
+                .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
                 .Append(ml.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features",advancedSettings: s => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; }))
                 .Append(new KeyToValueMappingEstimator(ml, "PredictedLabel"));
 

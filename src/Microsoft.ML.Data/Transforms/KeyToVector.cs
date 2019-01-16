@@ -90,15 +90,15 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         public sealed class ColumnInfo
         {
-            public readonly string Source;
             public readonly string Name;
+            public readonly string Source;
             public readonly bool Bag;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="source">Name of columnto use.</param>
-            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>. Null means <paramref name="source"/> is replaced.</param>
+            /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+            /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
             /// <param name="bag">Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input column is a vector.</param>
             public ColumnInfo(string name, string source = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
             {
@@ -750,8 +750,15 @@ namespace Microsoft.ML.Transforms.Conversions
         {
         }
 
-        internal KeyToVectorMappingEstimator(IHostEnvironment env, string outputColumn, string inputColumn = null, bool bag = Defaults.Bag)
-            : this(env, new KeyToVectorMappingTransformer(env, new KeyToVectorMappingTransformer.ColumnInfo(outputColumn, inputColumn ?? outputColumn, bag)))
+        /// <summary>
+        /// Convert the key types back to their original vectors.
+        /// </summary>
+        /// <param name="env">The environmnet to use.</param>
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
+        /// <param name="bag">Whether bagging is used for the conversion. </param>
+        internal KeyToVectorMappingEstimator(IHostEnvironment env, string name, string source = null, bool bag = Defaults.Bag)
+            : this(env, new KeyToVectorMappingTransformer(env, new KeyToVectorMappingTransformer.ColumnInfo(name, source ?? name, bag)))
         {
         }
 

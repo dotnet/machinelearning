@@ -20,9 +20,8 @@ namespace Microsoft.ML
         /// Hashes the values in the input column.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="name">Name of the column to be transformed.</param>
-        /// <param name="source">Name of the input column. If set to <see langword="null"/>, the value of the <paramref name="name"/>
-        /// will be used as input.</param>
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         /// <param name="invertHash">During hashing we constuct mappings between original values and the produced hash values.
         /// Text representation of original values are stored in the slot names of the  metadata for the new column.Hashing, as such, can map many initial values to one.
@@ -44,9 +43,8 @@ namespace Microsoft.ML
         /// Changes column type of the input column.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="source">Name of the column to be transformed. If set to <see langword="null"/>, the value of the <paramref name="name"/>
-        /// will be used as input.</param>
-        /// <param name="name">Name of the new column produced.</param>
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
         /// <param name="outputKind">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, string name, string source = null,
             DataKind outputKind = ConvertDefaults.DefaultOutputKind)
@@ -90,9 +88,8 @@ namespace Microsoft.ML
         /// Convert the key types back to their original vectors.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
-        /// <param name="source">Name of the column to be transformed. If set to <see langword="null"/>, the value of the <paramref name="name"/>
-        /// will be used as input.</param>
-        /// <param name="name">Name of the new column produced.</param>
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
         /// <param name="bag">Whether bagging is used for the conversion. </param>
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
             string name, string source = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
@@ -102,9 +99,8 @@ namespace Microsoft.ML
         /// Converts value types into <see cref="KeyType"/>.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
-        /// <param name="source">Name of the column to be transformed. If set to <see langword="null"/>, the value of the <paramref name="name"/>
-        /// will be used as input.</param>
-        /// <param name="name">Name of the new column produced.</param>
+        /// <param name="name">Name of the column resulting from the transformation of <paramref name="source"/>.</param>
+        /// <param name="source">Name of column to transform. If set to <see langword="null"/>, the value of the <paramref name="name"/> will be used as source.</param>
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
         /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
