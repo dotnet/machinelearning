@@ -34,11 +34,6 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Zero return means either it's not a key type or the cardinality is unknown.
-        /// </summary>
-        public static int GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
-
-        /// <summary>
         /// For non-vector types, this returns the column type itself (i.e., return <paramref name="columnType"/>).
         /// For vector types, this returns the type of the items stored as values in vector.
         /// </summary>

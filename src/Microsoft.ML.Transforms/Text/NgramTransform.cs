@@ -581,7 +581,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
-                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].ItemType.AssertRangeReturnCount(Host)))
+                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].GetItemType().AssertRangeReturnCount(Host)))
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {

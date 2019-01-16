@@ -122,7 +122,6 @@ namespace Microsoft.ML.Data
                     {
                         if (keyValueGetter != null)
                         {
-                            Host.Assert(_typeDst.ItemType.GetKeyCount() > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
                             bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, _typeDst.GetItemType().AssertRangeReturnCount(Host)), mdGetter);

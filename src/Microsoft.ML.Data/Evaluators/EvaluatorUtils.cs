@@ -835,7 +835,7 @@ namespace Microsoft.ML.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema[i].HasKeyValues(type.ItemType.AssertRangeReturnCount(env)))
+                            if (dv.Schema[i].HasKeyValues(type.GetItemType().AssertRangeReturnCount(env)))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema[i].HasSlotNames(vectorType.Size))
