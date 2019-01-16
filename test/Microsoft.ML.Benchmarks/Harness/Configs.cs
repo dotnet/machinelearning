@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Configs;
+﻿using System.Collections.Generic;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
@@ -9,6 +10,8 @@ namespace Microsoft.ML.Benchmarks
 {
     public class RecommendedConfig : ManualConfig
     {
+        protected static List<MsBuildArgument> msbuildArguments = new List<MsBuildArgument>() { new MsBuildArgument($"/p:Configuration={GetBuildConfigurationName()}") };
+
         public RecommendedConfig()
         {
             Add(DefaultConfig.Instance); // this config contains all of the basic settings (exporters, columns etc)
@@ -22,6 +25,7 @@ namespace Microsoft.ML.Benchmarks
 
         protected virtual Job GetJobDefinition()
             => Job.Default
+                .With(msbuildArguments)
                 .WithWarmupCount(1) // ML.NET benchmarks are typically CPU-heavy benchmarks, 1 warmup is usually enough
                 .WithMaxIterationCount(20)
                 .AsDefault(); // this way we tell BDN that it's a default config which can be overwritten
@@ -31,9 +35,13 @@ namespace Microsoft.ML.Benchmarks
         /// </summary>
         private IToolchain CreateToolchain()
         {
+#if NET462
+            var tfm = "net462";
+            var csProj = CsProjClassicNetToolchain.Net462;
+#else
             var tfm = NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
             var csProj = CsProjCoreToolchain.Current.Value;
-
+#endif
             return new Toolchain(
                 tfm,
                 new ProjectGenerator(tfm), // custom generator that copies native dependencies
@@ -45,6 +53,8 @@ namespace Microsoft.ML.Benchmarks
         {
 #if NETCOREAPP3_0
             return "Release-Intrinsics";
+#elif NET462
+            return "Release-netfx";
 #else
             return "Release";
 #endif
@@ -55,6 +65,7 @@ namespace Microsoft.ML.Benchmarks
     {
         protected override Job GetJobDefinition()
             => Job.Dry // the "Dry" job runs the benchmark exactly once, without any warmup to mimic real-world scenario
+                  .With(msbuildArguments)
                   .WithLaunchCount(3); // BDN will run 3 dedicated processes, sequentially
     }
 }

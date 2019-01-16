@@ -25,8 +25,15 @@ namespace Microsoft.ML.Benchmarks.Harness
     /// </summary>
     public class ProjectGenerator : CsProjGenerator
     {
+        private string rid = string.Empty;
+        private string ridValue = string.Empty;
+
         public ProjectGenerator(string targetFrameworkMoniker) : base(targetFrameworkMoniker, null, null, null)
         {
+#if NET462
+            rid = "\n<RuntimeIdentifier>win-x64</RuntimeIdentifier>\n";
+            ridValue = "win-x64";
+#endif
         }
 
         protected override void GenerateProject(BuildPartition buildPartition, ArtifactsPaths artifactsPaths, ILogger logger)
@@ -35,7 +42,7 @@ namespace Microsoft.ML.Benchmarks.Harness
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <OutputPath>bin\{buildPartition.BuildConfiguration}</OutputPath>
-    <TargetFramework>{TargetFrameworkMoniker}</TargetFramework>
+    <TargetFramework>{TargetFrameworkMoniker}</TargetFramework>{rid}
     <AssemblyName>{artifactsPaths.ProgramName}</AssemblyName>
     <AssemblyTitle>{artifactsPaths.ProgramName}</AssemblyTitle>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -52,6 +59,9 @@ namespace Microsoft.ML.Benchmarks.Harness
     {GenerateNativeReferences(buildPartition, logger)}
   </ItemGroup>
 </Project>");
+
+        protected override string GetBinariesDirectoryPath(string buildArtifactsDirectoryPath, string configuration) 
+            => Path.Combine(buildArtifactsDirectoryPath, "bin", configuration, TargetFrameworkMoniker, ridValue);
 
         private string GenerateNativeReferences(BuildPartition buildPartition, ILogger logger)
         {
