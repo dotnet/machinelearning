@@ -81,6 +81,10 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
+                    options.FeatureColumn = featuresName;
+                    options.LabelColumn = labelName;
+                    options.WeightColumn = weightsName;
+
                     var trainer = new StochasticGradientDescentClassificationTrainer(env, options);
 
                     if (onFit != null)

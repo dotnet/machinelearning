@@ -47,7 +47,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             LinearRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2,
+                .Append(r => (r.label, score: ctx.Trainers.Sdca(r.label, r.features, null,
+                new SdcaRegressionTrainer.Options() { MaxIterations = 2, NumThreads = 1 },
                 onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -88,7 +89,8 @@ namespace Microsoft.ML.StaticPipelineTesting
                 separator: ';', hasHeader: true);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, r.Score, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2)));
+                .Append(r => (r.label, r.Score, score: ctx.Trainers.Sdca(r.label, r.features, null,
+                new SdcaRegressionTrainer.Options() { MaxIterations = 2, NumThreads = 1 })));
 
             var pipe = reader.Append(est);
 
@@ -119,8 +121,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             ParameterMixingCalibratedPredictor cali = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
-                    maxIterations: 2,
+                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features, null,
+                    new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
                     onFit: (p, c) => { pred = p; cali = c; })));
 
             var pipe = reader.Append(est);
@@ -166,9 +168,9 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
-                maxIterations: 2,
-                loss: loss, onFit: p => pred = p)));
+                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features, null, loss,
+                new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
+                onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
@@ -936,8 +938,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             IPredictorWithFeatureWeights<float> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features,
-                    l2Weight: 0,
+                .Append(r => (r.label, preds: ctx.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features, null,
+                    new StochasticGradientDescentClassificationTrainer.Options { L2Weight = 0, NumThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -1089,8 +1091,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // The predicted label below should be  with probability 0.922597349.
             Console.WriteLine("Our predicted label to this example is {0} with probability {1}",
-                nativeLabels[(int)nativePrediction.PredictedLabelIndex-1],
-                nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex-1]);
+                nativeLabels[(int)nativePrediction.PredictedLabelIndex - 1],
+                nativePrediction.Scores[(int)nativePrediction.PredictedLabelIndex - 1]);
         }
     }
 }
