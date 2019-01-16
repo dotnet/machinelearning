@@ -396,7 +396,7 @@ namespace Microsoft.ML.Training
         /// <param name="weightColumn">name of the weight column</param>
         public static SchemaShape.Column MakeR4ScalarWeightColumn(Optional<string> weightColumn)
         {
-            if (weightColumn == null || !weightColumn.IsExplicit)
+            if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }

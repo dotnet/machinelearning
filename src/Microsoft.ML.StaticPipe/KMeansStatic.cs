@@ -18,7 +18,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// KMeans <see cref="ClusteringContext"/> extension method.
         /// </summary>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="ctx">The clustering context trainer object.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="clustersCount">The number of clusters to use for KMeans.</param>
@@ -30,7 +30,7 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The predicted output.</returns>
         public static (Vector<float> score, Key<uint> predictedLabel) KMeans(this ClusteringContext.ClusteringTrainers ctx,
            Vector<float> features, Scalar<float> weights = null,
-           int clustersCount = KMeansPlusPlusTrainer.Defaults.K,
+           int clustersCount = KMeansPlusPlusTrainer.Defaults.ClustersCount,
            Action<KMeansModelParameters> onFit = null)
         {
             Contracts.CheckValue(features, nameof(features));
@@ -44,7 +44,7 @@ namespace Microsoft.ML.StaticPipe
                 var options = new KMeansPlusPlusTrainer.Options
                 {
                     FeatureColumn = featuresName,
-                    K = clustersCount,
+                    ClustersCount = clustersCount,
                     WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight)
                 };
 
@@ -73,12 +73,12 @@ namespace Microsoft.ML.StaticPipe
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
         public static (Vector<float> score, Key<uint> predictedLabel) KMeans(this ClusteringContext.ClusteringTrainers ctx,
-           Vector<float> features, Scalar<float> weights = null,
-           KMeansPlusPlusTrainer.Options options = null,
+           Vector<float> features, Scalar<float> weights,
+           KMeansPlusPlusTrainer.Options options,
            Action<KMeansModelParameters> onFit = null)
         {
             Contracts.CheckValueOrNull(onFit);
-            Contracts.CheckValueOrNull(options);
+            Contracts.CheckValue(options, nameof(options));
 
             var rec = new TrainerEstimatorReconciler.Clustering(
             (env, featuresName, weightsName) =>

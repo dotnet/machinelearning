@@ -727,7 +727,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                                     r.features, 
                                     options : new KMeansPlusPlusTrainer.Options
                                     {
-                                        K = 3,
+                                        ClustersCount = 3,
                                         NumThreads = 1
                                     },
                                     onFit: p => pred = p

@@ -17,28 +17,29 @@ namespace Microsoft.ML
         /// <summary>
         /// Train a KMeans++ clustering algorithm.
         /// </summary>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="ctx">The clustering context trainer object.</param>
         /// <param name="featureColumn">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="clustersCount">The number of clusters to use for KMeans.</param>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KMeans_example.cs)]
+        ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KMeans.cs)]
         /// ]]></format>
         /// </example>
         public static KMeansPlusPlusTrainer KMeans(this ClusteringContext.ClusteringTrainers ctx,
            string featureColumn = DefaultColumnNames.Features,
            string weights = null,
-           int clustersCount = KMeansPlusPlusTrainer.Defaults.K)
+           int clustersCount = KMeansPlusPlusTrainer.Defaults.ClustersCount)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
+
             var options = new KMeansPlusPlusTrainer.Options
             {
                 FeatureColumn = featureColumn,
                 WeightColumn = weights != null ? Optional<string>.Explicit(weights) : Optional<string>.Implicit(DefaultColumnNames.Weight),
-                K = clustersCount
+                ClustersCount = clustersCount
             };
             return new KMeansPlusPlusTrainer(env, options);
         }
@@ -46,11 +47,13 @@ namespace Microsoft.ML
         /// <summary>
         /// Train a KMeans++ clustering algorithm.
         /// </summary>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="ctx">The clustering context trainer object.</param>
         /// <param name="options">Algorithm advanced settings.</param>
-        public static KMeansPlusPlusTrainer KMeans(this ClusteringContext.ClusteringTrainers ctx, KMeansPlusPlusTrainer.Options options = null)
+        public static KMeansPlusPlusTrainer KMeans(this ClusteringContext.ClusteringTrainers ctx, KMeansPlusPlusTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new KMeansPlusPlusTrainer(env, options);
         }
