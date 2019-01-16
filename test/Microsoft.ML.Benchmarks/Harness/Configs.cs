@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains;
@@ -17,7 +21,7 @@ namespace Microsoft.ML.Benchmarks
             Add(DefaultConfig.Instance); // this config contains all of the basic settings (exporters, columns etc)
 
             Add(GetJobDefinition() // job defines how many times given benchmark should be executed
-                .WithCustomBuildConfiguration(GetBuildConfigurationName())
+                .With(msbuildArguments)
                 .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
 
             Add(new ExtraMetricColumn()); // an extra colum that can display additional metric reported by the benchmarks
@@ -25,7 +29,6 @@ namespace Microsoft.ML.Benchmarks
 
         protected virtual Job GetJobDefinition()
             => Job.Default
-                .With(msbuildArguments)
                 .WithWarmupCount(1) // ML.NET benchmarks are typically CPU-heavy benchmarks, 1 warmup is usually enough
                 .WithMaxIterationCount(20)
                 .AsDefault(); // this way we tell BDN that it's a default config which can be overwritten

@@ -104,7 +104,11 @@ namespace Microsoft.ML.Benchmarks
             if (!File.Exists(_dataPath_Wiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
 
+#if NET462
+            _modelPath_Wiki = Path.Combine(Directory.GetParent(typeof(MultiClassClassificationTest).Assembly.CodeBase.Substring(8)).FullName, @"WikiModel.zip");
+#else
             _modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
+#endif
 
             string cmd = @"CV k=5 data=" + _dataPath_Wiki +
                 " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4}" +

@@ -85,8 +85,11 @@ namespace Microsoft.ML.Benchmarks
             if (!File.Exists(_mslrWeb10k_Train))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Train));
 
+#if !NET462
+            _modelPath_MSLR = Path.Combine(Directory.GetParent(typeof(RankingTest).Assembly.CodeBase.Substring(8)).FullName, @"FastTreeRankingModel.zip");
+#else
             _modelPath_MSLR = Path.Combine(Directory.GetCurrentDirectory(), @"FastTreeRankingModel.zip");
-
+#endif
             string cmd = @"TrainTest test=" + _mslrWeb10k_Validate +
                 " eval=RankingEvaluator{t=10}" +
                 " data=" + _mslrWeb10k_Train +
