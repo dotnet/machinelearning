@@ -26,8 +26,7 @@ namespace Microsoft.ML.Scenarios
             public float[] b;
         }
 
-        [Fact(Skip = "TF Tests fail")]
-        // [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var modelLocation = "model_matmul/frozen_saved_model.pb";
@@ -293,8 +292,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact(Skip = "TF Tests fail")]
-        // [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowInputsOutputsSchemaTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
@@ -371,8 +369,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact(Skip = "TF Tests fail")]
-        // [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
@@ -410,8 +407,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
         }
 
-        [Fact(Skip = "TF Tests fail")]
-        // [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTLRTrainingTest()
         {
             const double expectedMicroAccuracy = 0.72173913043478266;
@@ -496,8 +492,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact(Skip = "TF Tests fail")]
-        // [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvTrainingTest()
         {
             ExecuteTFTransformMNISTConvTrainingTest(false, null, 0.74782608695652175, 0.608843537414966);
@@ -592,8 +587,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact(Skip = "TF Tests fail")]
-        // [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvSavedModelTest()
         {
             // This test trains a multi-class classifier pipeline where a pre-trained Tenroflow model is used for featurization.
@@ -716,8 +710,7 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-        [Fact(Skip = "TF Tests fail")]
-        // [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifar()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
@@ -763,8 +756,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact(Skip = "TF Tests fail")]
-        // [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifarSavedModel()
         {
             var modelLocation = "cifar_saved_model";
@@ -805,8 +797,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact(Skip = "TF Tests fail")]
-        // [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TensorFlowTransformCifarInvalidShape()
         {
             var modelLocation = "cifar_model/frozen_model.pb";

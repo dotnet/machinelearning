@@ -54,6 +54,8 @@ namespace Microsoft.ML
             SgdOptions options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new StochasticGradientDescentClassificationTrainer(env, options);
         }
@@ -92,6 +94,8 @@ namespace Microsoft.ML
             SdcaRegressionTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new SdcaRegressionTrainer(env, options);
         }
@@ -138,6 +142,8 @@ namespace Microsoft.ML
                 SdcaBinaryTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new SdcaBinaryTrainer(env, options);
         }
@@ -176,6 +182,8 @@ namespace Microsoft.ML
                     SdcaMultiClassTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new SdcaMultiClassTrainer(env, options);
         }
@@ -206,6 +214,7 @@ namespace Microsoft.ML
             Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new AveragedPerceptronTrainer(env, labelColumn, featureColumn, weights, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
         }
