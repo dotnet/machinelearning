@@ -7,44 +7,47 @@ namespace Microsoft.ML.Auto
     internal static class ColumnInferenceApi
     {
         public static ColumnInferenceResult InferColumns(MLContext context, string path, string label, 
-            bool hasHeader, string separator, bool? isQuoted, bool? isSparse)
+            bool hasHeader, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse, bool trimWhitespace)
         {
             var sample = TextFileSample.CreateFromFullFile(path);
-            Func<TextLoader, IDataView> createDataView = (textLoader) => 
+            var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
+            var typeInference = InferColumnTypes(context, sample, splitInference);
+            var typedLoaderArgs = new TextLoader.Arguments
             {
-                return textLoader.Read(path); 
+                Column = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns),
+                Separator = splitInference.Separator,
+                AllowSparse = splitInference.AllowSparse,
+                AllowQuoting = splitInference.AllowQuote,
+                HasHeader = hasHeader,
+                TrimWhitespace = trimWhitespace
             };
-            return InferColumns(context, sample, createDataView, label, hasHeader, separator, isQuoted, isSparse);
+            var textLoader = context.Data.CreateTextReader(typedLoaderArgs);
+            var dataView = textLoader.Read(path);
+
+            var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, label);
+
+            // infer column grouping and generate column names
+            var groupingResult = ColumnGroupingInference.InferGroupingAndNames(context, hasHeader,
+                typeInference.Columns, purposeInferenceResult);
+
+            // build result objects & return
+            var inferredColumns = groupingResult.Select(c => (c.GenerateTextLoaderColumn(), c.Purpose)).ToArray();
+            return new ColumnInferenceResult(inferredColumns, splitInference.AllowQuote, splitInference.AllowSparse, splitInference.Separator, hasHeader, trimWhitespace);
         }
 
-        public static ColumnInferenceResult InferColumns(MLContext context, IMultiStreamSource multiStreamSource, 
-            string label, bool hasHeader, string separator, bool? isQuoted, bool? isSparse)
+        private static TextFileContents.ColumnSplitResult InferSplit(TextFileSample sample, char? separatorChar, bool? allowQuotedStrings, bool? supportSparse)
         {
-            // heuristic: use first stream in multi-stream source to infer column types & split
-            var stream = multiStreamSource.Open(0);
-            var sample = TextFileSample.CreateFromFullStream(stream);
-
-            Func<TextLoader, IDataView> createDataView = (textLoader) =>
-            {
-                return textLoader.Read(multiStreamSource);
-            };
-
-            return InferColumns(context, sample, createDataView, label, hasHeader, separator, isQuoted, isSparse);
-        }
-
-        private static TextFileContents.ColumnSplitResult InferSplit(TextFileSample sample, string separator, bool? isQuoted, bool? isSparse)
-        {
-            var separatorCandidates = separator == null ? TextFileContents.DefaultSeparators : new string[] { separator };
+            var separatorCandidates = separatorChar == null ? TextFileContents.DefaultSeparators : new char[] { separatorChar.Value };
             var splitInference = TextFileContents.TrySplitColumns(sample, separatorCandidates);
 
             // respect passed-in overrides
-            if(isQuoted != null)
+            if(allowQuotedStrings != null)
             {
-                splitInference.AllowQuote = isQuoted.Value;
+                splitInference.AllowQuote = allowQuotedStrings.Value;
             }
-            if(isSparse != null)
+            if(supportSparse != null)
             {
-                splitInference.AllowSparse = isSparse.Value;
+                splitInference.AllowSparse = supportSparse.Value;
             }
             
             if (!splitInference.IsSuccess)
@@ -74,34 +77,6 @@ namespace Microsoft.ML.Auto
             }
 
             return typeInferenceResult;
-        }
-
-        private static ColumnInferenceResult InferColumns(MLContext context,
-            TextFileSample sample, Func<TextLoader, IDataView> createDataView, string label, 
-            bool hasHeader, string separator, bool? isQuoted, bool? isSparse)
-        {
-            var splitInference = InferSplit(sample, separator, isQuoted, isSparse);
-            var typeInference = InferColumnTypes(context, sample, splitInference);
-            var typedLoaderArgs = new TextLoader.Arguments
-            {
-                Column = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns),
-                Separator = splitInference.Separator,
-                AllowSparse = splitInference.AllowSparse,
-                AllowQuoting = splitInference.AllowQuote,
-                HasHeader = hasHeader
-            };
-            var textLoader = context.Data.CreateTextReader(typedLoaderArgs);
-            var dataView = createDataView(textLoader);
-
-            var purposeInferenceResult = PurposeInference.InferPurposes(context, dataView, label);
-
-            // infer column grouping and generate column names
-            var groupingResult = ColumnGroupingInference.InferGroupingAndNames(context, hasHeader,
-                typeInference.Columns, purposeInferenceResult);
-
-            // build result objects & return
-            var inferredColumns = groupingResult.Select(c => (c.GenerateTextLoaderColumn(), c.Purpose)).ToArray();
-            return new ColumnInferenceResult(inferredColumns, splitInference.AllowQuote, splitInference.AllowSparse, splitInference.Separator, hasHeader);
         }
     }
 }

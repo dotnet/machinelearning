@@ -27,7 +27,7 @@ namespace Samples
                 {
                     StoppingCriteria = new ExperimentStoppingCriteria()
                     {
-                        MaxIterations = 200,
+                        MaxIterations = 5,
                         TimeOutInMinutes = 1000000000
                     }
                 });

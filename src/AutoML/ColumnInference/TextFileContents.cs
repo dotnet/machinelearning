@@ -37,7 +37,7 @@ namespace Microsoft.ML.Auto
         // If the fraction of lines having the same number of columns exceeds this, we consider the column count to be known.
         private const Double UniformColumnCountThreshold = 0.98;
 
-        public static string[] DefaultSeparators = new[] { "tab", ",", ";", " " };
+        public static char[] DefaultSeparators = new[] { '\t', ',', ';', ' ' };
 
         /// <summary>
         /// Attempt to detect text loader arguments.
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Auto
         /// and this number of columns is more than 1.
         /// We sweep on separator, allow sparse and allow quote parameter.
         /// </summary>
-        public static ColumnSplitResult TrySplitColumns(IMultiStreamSource source, string[] separatorCandidates)
+        public static ColumnSplitResult TrySplitColumns(IMultiStreamSource source, char[] separatorCandidates)
         {
             var sparse = new[] { true, false };
             var quote = new[] { true, false };
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Auto
                 var args = new TextLoader.Arguments
                 {
                     Column = new[] { TextLoader.Column.Parse("C:TX:0-**") },
-                    Separator = perm._sep,
+                    Separator = perm._sep.ToString(),
                     AllowQuoting = perm._allowQuote,
                     AllowSparse = perm._allowSparse
                 };
