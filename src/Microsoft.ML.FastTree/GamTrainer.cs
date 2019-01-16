@@ -673,7 +673,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// For Generalized Additive Models (GAM), the contribution of a feature is equal to the shape function for the given feature evaluated at
         /// the feature value.
         /// </summary>
-        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
+        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         private protected GamModelParametersBase(IHostEnvironment env, string name,
             int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap)
