@@ -122,11 +122,10 @@ namespace Microsoft.ML.Data
                     {
                         if (keyValueGetter != null)
                         {
-                            int keyCount = _typeDst.GetItemType().CheckRangeReturnCount(Host);
-                            Host.Assert(keyCount > 0);
+                            Host.Assert(_typeDst.ItemType.GetKeyCount() > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, keyCount), mdGetter);
+                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, _typeDst.GetItemType().AssertRangeReturnCount(Host)), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {

@@ -504,7 +504,7 @@ namespace Microsoft.ML.Data
 
             long cachedPosition = -1;
             VBuffer<Float> score = default;
-            int scoreLength = Bindings.PredColType.CheckRangeReturnCount(Host);
+            int scoreLength = Bindings.PredColType.AssertRangeReturnCount(Host);
 
             ValueGetter<uint> predFn =
                 (ref uint dst) =>

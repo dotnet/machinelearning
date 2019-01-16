@@ -264,7 +264,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     int valueCount = _infos[i].TypeSrc.GetValueCount();
-                    int keyCount = _infos[i].TypeSrc.GetItemType().CheckRangeReturnCount(Host);
+                    int keyCount = _infos[i].TypeSrc.GetItemType().AssertRangeReturnCount(Host);
                     if (_parent._columns[i].Bag || valueCount == 1)
                         _types[i] = new VectorType(NumberType.Float, keyCount);
                     else
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
                     typeNames = inputMetadata.Schema[metaKeyValuesCol].Type as VectorType;
                 if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextType) ||
-                    typeNames.Size != srcType.GetItemType().CheckRangeReturnCount(Host))
+                    typeNames.Size != srcType.GetItemType().AssertRangeReturnCount(Host))
                 {
                     typeNames = null;
                 }
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 else
                     namesSlotSrc = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(typeSrc.Size);
 
-                int keyCount = typeSrc.ItemType.CheckRangeReturnCount(Host);
+                int keyCount = typeSrc.ItemType.AssertRangeReturnCount(Host);
                 int slotLim = _types[iinfo].Size;
                 Host.Assert(slotLim == (long)typeSrc.Size * keyCount);
 
@@ -433,7 +433,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(valueCount > 0);
 
                 int[] ranges = new int[valueCount * 2];
-                int size = info.TypeSrc.GetItemType().CheckRangeReturnCount(Host);
+                int size = info.TypeSrc.GetItemType().AssertRangeReturnCount(Host);
 
                 ranges[0] = 0;
                 ranges[1] = size - 1;
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.AssertValue(input);
                 KeyType keyTypeSrc = _infos[iinfo].TypeSrc as KeyType;
                 Host.Assert(keyTypeSrc != null);
-                int size = keyTypeSrc.CheckRangeReturnCount(Host);
+                int size = keyTypeSrc.AssertRangeReturnCount(Host);
                 Host.Assert(size == _types[iinfo].Size);
                 Host.Assert(size > 0);
                 input.Schema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
@@ -507,7 +507,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 KeyType keyTypeSrc = srcVectorType.ItemType as KeyType;
                 Host.Assert(keyTypeSrc != null);
                 Host.Assert(_parent._columns[iinfo].Bag);
-                int size = keyTypeSrc.CheckRangeReturnCount(Host);
+                int size = keyTypeSrc.AssertRangeReturnCount(Host);
                 Host.Assert(size == _types[iinfo].Size);
                 Host.Assert(size > 0);
 
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(keyTypeSrc != null);
                 Host.Assert(!_parent._columns[iinfo].Bag);
 
-                int size = keyTypeSrc.CheckRangeReturnCount(Host);
+                int size = keyTypeSrc.AssertRangeReturnCount(Host);
                 Host.Assert(size > 0);
 
                 int cv = srcVectorType.Size;
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 ColumnType srcType = info.TypeSrc;
                 ColumnType srcItemType = srcType.GetItemType();
-                int keyCount = srcItemType.CheckRangeReturnCount(Host);
+                int keyCount = srcItemType.AssertRangeReturnCount(Host);
                 Host.Assert(keyCount > 0);
                 // If the input type is scalar, we can just use the fanout function.
                 if (!(srcType is VectorType srcVectorType))
@@ -719,7 +719,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 string opType = "OneHotEncoder";
                 var node = ctx.CreateNode(opType, srcVariableName, encodedVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.GetItemType().CheckRangeReturnCount(Host)).Select(x => (long)x));
+                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.GetItemType().AssertRangeReturnCount(Host)).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
                 if (_parent._columns[iinfo].Bag)
                 {

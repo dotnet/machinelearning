@@ -101,7 +101,7 @@ namespace Microsoft.ML.Trainers
             data.CheckFeatureFloatVector(out featureCount);
             int labelCount = 0;
             if (labelCol.Type is KeyType labelKeyType)
-                labelCount = labelKeyType.CheckRangeReturnCount(Host);
+                labelCount = labelKeyType.AssertRangeReturnCount(Host);
 
             int[] labelHistogram = new int[labelCount];
             int[][] featureHistogram = new int[labelCount][];

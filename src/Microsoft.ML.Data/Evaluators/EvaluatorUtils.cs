@@ -830,12 +830,12 @@ namespace Microsoft.ML.Data
 
                     var type = dv.Schema[i].Type;
                     var name = dv.Schema[i].Name;
-                    int count = type.CheckRangeReturnCount(env);
+                    int typeKeyCount = type.AssertRangeReturnCount(env);
                     if (type is VectorType vectorType)
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema[i].HasKeyValues(type.ItemType.CheckRangeReturnCount(env)))
+                            if (dv.Schema[i].HasKeyValues(type.ItemType.AssertRangeReturnCount(env)))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema[i].HasSlotNames(vectorType.Size))
@@ -1220,10 +1220,10 @@ namespace Microsoft.ML.Data
 
                 var type = schema[i].Type;
                 var name = schema[i].Name;
-                int count = type.CheckRangeReturnCount(env);
+                int count = type.AssertRangeReturnCount(env);
                 if (i == stratCol)
                 {
-                    int typeKeyCount = type.CheckRangeReturnCount(env);
+                    int typeKeyCount = type.AssertRangeReturnCount(env);
 
                     var keyValuesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (keyValuesType == null || !(keyValuesType.ItemType is TextType) ||

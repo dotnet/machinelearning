@@ -693,7 +693,7 @@ namespace Microsoft.ML.Data
             else
             {
                 ch.Check(type.Count > 0, "Label must be of known cardinality.");
-                int[] permutation = Utils.GetRandomPermutation(RandomUtils.Create(seed), type.CheckRangeReturnCount(env));
+                int[] permutation = Utils.GetRandomPermutation(RandomUtils.Create(seed), type.AssertRangeReturnCount(env));
                 mapper =
                     (in TInput src, ref Single dst) =>
                     {

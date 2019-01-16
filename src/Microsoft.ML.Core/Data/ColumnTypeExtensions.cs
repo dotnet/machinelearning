@@ -26,10 +26,10 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
         /// </summary>
-        public static int CheckRangeReturnCount(this ColumnType columnType, IExceptionContext ectx = null)
+        public static int AssertRangeReturnCount(this ColumnType columnType, IExceptionContext ectx = null)
         {
             ulong count = columnType.GetKeyCount();
-            ectx.Assert(count <= int.MaxValue, "KeyType range exceeds int.MaxValue.");
+            ectx.Assert(count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
             return (int)count;
         }
 
@@ -94,17 +94,17 @@ namespace Microsoft.ML.Data
     }
 
     /// <summary>
-    /// Extnesion methods related to the KeyType class.
+    /// Extension methods related to the KeyType class.
     /// </summary>
     [BestFriend]
-    internal static class KeyTypExtensions
+    internal static class KeyTypeExtensions
     {
         /// <summary>
         /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
         /// </summary>
-        public static int CheckRangeReturnCount(this KeyType key, IExceptionContext ectx = null)
+        public static int AssertRangeReturnCount(this KeyType key, IExceptionContext ectx = null)
         {
-            ectx.Assert(key.Count <= int.MaxValue, "KeyType range exceeds int.MaxValue.");
+            ectx.Assert(key.Count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
             return (int)key.Count;
         }
     }

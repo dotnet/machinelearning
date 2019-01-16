@@ -78,8 +78,8 @@ namespace Microsoft.ML.Trainers.Recommender
             _host.CheckValue(matrixRowIndexType, nameof(matrixRowIndexType));
 
             buffer.Get(out _numberOfRows, out _numberofColumns, out _approximationRank, out _leftFactorMatrix, out _rightFactorMatrix);
-            _host.Assert(_numberofColumns == matrixColumnIndexType.CheckRangeReturnCount(_host));
-            _host.Assert(_numberOfRows == matrixRowIndexType.CheckRangeReturnCount(_host));
+            _host.Assert(_numberofColumns == matrixColumnIndexType.AssertRangeReturnCount(_host));
+            _host.Assert(_numberOfRows == matrixRowIndexType.AssertRangeReturnCount(_host));
             _host.Assert(_leftFactorMatrix.Length == _numberOfRows * _approximationRank);
             _host.Assert(_rightFactorMatrix.Length == _numberofColumns * _approximationRank);
 

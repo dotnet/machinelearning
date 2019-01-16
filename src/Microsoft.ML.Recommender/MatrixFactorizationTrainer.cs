@@ -325,8 +325,8 @@ namespace Microsoft.ML.Trainers
                 }
             }
 
-            int colCount = matrixColumnIndexColInfo.Type.CheckRangeReturnCount(Host);
-            int rowCount = matrixRowIndexColInfo.Type.CheckRangeReturnCount(Host);
+            int colCount = matrixColumnIndexColInfo.Type.AssertRangeReturnCount(Host);
+            int rowCount = matrixRowIndexColInfo.Type.AssertRangeReturnCount(Host);
             ch.Assert(rowCount > 0);
             ch.Assert(colCount > 0);
 

@@ -479,11 +479,10 @@ namespace Microsoft.ML.Data
         {
         }
 
-        [BestFriend]
-        internal KeyType(Type type, int count)
+        public KeyType(Type type, int count)
             : this(type, CheckRefRawType(type), (ulong)count)
         {
-            Contracts.Assert(0 <= count);
+            Contracts.CheckParam(0 <= count, nameof(count));
         }
 
         [BestFriend]
@@ -496,7 +495,7 @@ namespace Microsoft.ML.Data
         internal KeyType(DataKind kind, int count)
             : this(ToRawType(kind), kind, (ulong)count)
         {
-            Contracts.Assert(0 <= count);
+            Contracts.CheckParam(0 <= count, nameof(count));
         }
 
         private static DataKind CheckRefRawType(Type type)
