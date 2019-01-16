@@ -75,7 +75,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override RegressionGamModelParameters TrainModelCore(TrainContext context)
         {
             TrainBase(context);
-            return new RegressionGamModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, FeatureMap);
+            return new RegressionGamModelParameters(Host, BinUpperBounds, BinEffects, MeanEffect, InputLength, FeatureMap);
         }
 
         protected override ObjectiveFunctionBase CreateObjectiveFunction()
@@ -121,12 +121,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="binUpperBounds">An array of arrays of bin-upper-bounds for each feature.</param>
         /// <param name="binEffects">Anay array of arrays of effect sizes for each bin for each feature.</param>
         /// <param name="intercept">The intercept term for the model. Also referred to as the bias or the mean effect.</param>
+        /// <param name="inputLength">The number of features passed from the dataset. Used when the number of input features is
+        /// different than the number of shape functions. Use default if all features have a shape function.</param>
         /// <param name="featureToInputMap">A map from the feature shape functions (as described by the binUpperBounds and BinEffects)
-        /// to the input feature. Used when multiple input features map to the same shape function. Leave null if all features have
+        /// to the input feature. Used when the number of input features is different than the number of shape functions. Use default if all features have
         /// a shape function.</param>
         public RegressionGamModelParameters(IHostEnvironment env,
-            double[][] binUpperBounds, double[][] binEffects, double intercept, int[] featureToInputMap = null)
-            : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, featureToInputMap) { }
+            double[][] binUpperBounds, double[][] binEffects, double intercept, int inputLength = -1, int[] featureToInputMap = null)
+            : base(env, LoaderSignature, binUpperBounds, binEffects, intercept, inputLength, featureToInputMap) { }
 
         private RegressionGamModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx) { }
@@ -137,8 +139,8 @@ namespace Microsoft.ML.Trainers.FastTree
                 modelSignature: "GAM REGP",
                 // verWrittenCur: 0x00010001, // Initial
                 // verWrittenCur: 0x00010001, // Added Intercept but collided from release 0.6-0.9
-                verWrittenCur: 0x00020001,    // Added Intercept (version revved to address collisions)
-                verReadableCur: 0x00020001,
+                verWrittenCur: 0x00010002,    // Added Intercept (version revved to address collisions)
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(RegressionGamModelParameters).Assembly.FullName);

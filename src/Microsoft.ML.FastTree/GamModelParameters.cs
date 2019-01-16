@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,8 +33,14 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
+        /// <summary>
+        /// The model intercept. Also known as bias or mean effect.
+        /// </summary>
         public readonly double Intercept;
-        private readonly int _numFeatures;
+        /// <summary>
+        /// The number of shape functions used in the model.
+        /// </summary>
+        public readonly int NumShapeFunctions;
         private readonly ColumnType _inputType;
         private readonly ColumnType _outputType;
         // These would be the bins for a totally sparse input.
@@ -38,9 +48,9 @@ namespace Microsoft.ML.Trainers.FastTree
         // The output value for all zeros
         private readonly double _valueAtAllZero;
 
-        private readonly int[] _featureMap;
-        private readonly int _inputLength;
-        private readonly Dictionary<int, int> _inputFeatureToDatasetFeatureMap;
+        private readonly int[] _shapeToInputMap;
+        private readonly int _numInputFeatures;
+        private readonly Dictionary<int, int> _inputFeatureToShapeFunctionMap;
 
         ColumnType IValueMapper.InputType => _inputType;
         ColumnType IValueMapper.OutputType => _outputType;
@@ -53,23 +63,28 @@ namespace Microsoft.ML.Trainers.FastTree
         public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
 
         private protected GamModelParametersBase(IHostEnvironment env, string name,
-            double[][] binUpperBounds, double[][] binEffects, double intercept, int[] featureToInputMap)
+            double[][] binUpperBounds, double[][] binEffects, double intercept, int numInputFeatures = -1, int[] shapeToInputMap = null)
             : base(env, name)
         {
+            Host.CheckValue(binEffects, nameof(binEffects), "May not be null.");
+            Host.CheckValue(binUpperBounds, nameof(binUpperBounds), "May not be null.");
             Host.CheckParam(binUpperBounds.Length == binEffects.Length, nameof(binUpperBounds), "Must have same number of features as binEffects");
+            Host.CheckParam(binEffects.Length > 0, nameof(binEffects), "Must have at least one entry");
+            Host.CheckParam(numInputFeatures == -1 || numInputFeatures > 0, nameof(numInputFeatures), "Must be greater than zero");
+            Host.CheckParam(shapeToInputMap == null || shapeToInputMap.Length == binEffects.Length, nameof(shapeToInputMap), "Must have same number of features as binEffects");
 
             // Define the model basics
             Intercept = intercept;
             _binUpperBounds = binUpperBounds;
             _binEffects = binEffects;
-            _numFeatures = binEffects.Length;
+            NumShapeFunctions = binEffects.Length;
 
             // For sparse inputs we have a fast lookup
-            _binsAtAllZero = new int[_numFeatures];
+            _binsAtAllZero = new int[NumShapeFunctions];
             _valueAtAllZero = 0;
 
             // Walk through each feature and perform checks / updates
-            for (int i = 0; i < _numFeatures; i++)
+            for (int i = 0; i < NumShapeFunctions; i++)
             {
                 // Check data validity
                 Host.CheckValue(binEffects[i], nameof(binEffects), "Array contained null entries");
@@ -79,19 +94,23 @@ namespace Microsoft.ML.Trainers.FastTree
                 _valueAtAllZero += GetBinEffect(i, 0, out _binsAtAllZero[i]);
             }
 
-            _featureMap = featureToInputMap;
-            if (_featureMap == null)
-                _featureMap = Utils.GetIdentityPermutation(_numFeatures);
+            // Define the sparse mappings from/to input to/from shape functions
+            _shapeToInputMap = shapeToInputMap;
+            if (_shapeToInputMap == null)
+                _shapeToInputMap = Utils.GetIdentityPermutation(NumShapeFunctions);
 
-            _inputFeatureToDatasetFeatureMap = new Dictionary<int, int>(_featureMap.Length);
-            for (int i = 0; i < _featureMap.Length; i++)
+            _numInputFeatures = numInputFeatures;
+            if (_numInputFeatures == -1)
+                _numInputFeatures = NumShapeFunctions;
+            _inputFeatureToShapeFunctionMap = new Dictionary<int, int>(_shapeToInputMap.Length);
+            for (int i = 0; i < _shapeToInputMap.Length; i++)
             {
-                Host.CheckParam(!_inputFeatureToDatasetFeatureMap.ContainsValue(_featureMap[i]), nameof(_featureMap), "Contains duplicate mappings");
-                _inputFeatureToDatasetFeatureMap[_featureMap[i]] = i;
+                Host.CheckParam(0 <= _shapeToInputMap[i] && _shapeToInputMap[i] < _numInputFeatures, nameof(_shapeToInputMap), "Contains out of range feature value");
+                Host.CheckParam(!_inputFeatureToShapeFunctionMap.ContainsValue(_shapeToInputMap[i]), nameof(_shapeToInputMap), "Contains duplicate mappings");
+                _inputFeatureToShapeFunctionMap[_shapeToInputMap[i]] = i;
             }
-            _inputLength = _inputFeatureToDatasetFeatureMap.Count;
 
-            _inputType = new VectorType(NumberType.Float, _inputLength);
+            _inputType = new VectorType(NumberType.Float, _numInputFeatures);
             _outputType = NumberType.Float;
         }
 
@@ -102,24 +121,24 @@ namespace Microsoft.ML.Trainers.FastTree
 
             BinaryReader reader = ctx.Reader;
 
-            _numFeatures = reader.ReadInt32();
-            Host.CheckDecode(_numFeatures >= 0);
-            _inputLength = reader.ReadInt32();
-            Host.CheckDecode(_inputLength >= 0);
+            NumShapeFunctions = reader.ReadInt32();
+            Host.CheckDecode(NumShapeFunctions >= 0);
+            _numInputFeatures = reader.ReadInt32();
+            Host.CheckDecode(_numInputFeatures >= 0);
             Intercept = reader.ReadDouble();
             if (ctx.Header.ModelVerWritten == 0x00010001)
                 using (var ch = env.Start("GamWarningChannel"))
                     ch.Warning("GAMs models written prior to ML.NET 0.6 are loaded with an incorrect Intercept. For these models, subtract the value of the intercept from the prediction.");
 
-            _binEffects = new double[_numFeatures][];
-            _binUpperBounds = new double[_numFeatures][];
-            _binsAtAllZero = new int[_numFeatures];
-            for (int i = 0; i < _numFeatures; i++)
+            _binEffects = new double[NumShapeFunctions][];
+            _binUpperBounds = new double[NumShapeFunctions][];
+            _binsAtAllZero = new int[NumShapeFunctions];
+            for (int i = 0; i < NumShapeFunctions; i++)
             {
                 _binEffects[i] = reader.ReadDoubleArray();
                 Host.CheckDecode(Utils.Size(_binEffects[i]) >= 1);
             }
-            for (int i = 0; i < _numFeatures; i++)
+            for (int i = 0; i < NumShapeFunctions; i++)
             {
                 _binUpperBounds[i] = reader.ReadDoubleArray(_binEffects[i].Length);
                 _valueAtAllZero += GetBinEffect(i, 0, out _binsAtAllZero[i]);
@@ -127,21 +146,21 @@ namespace Microsoft.ML.Trainers.FastTree
             int len = reader.ReadInt32();
             Host.CheckDecode(len >= 0);
 
-            _inputFeatureToDatasetFeatureMap = new Dictionary<int, int>(len);
-            _featureMap = Utils.CreateArray(_numFeatures, -1);
+            _inputFeatureToShapeFunctionMap = new Dictionary<int, int>(len);
+            _shapeToInputMap = Utils.CreateArray(NumShapeFunctions, -1);
             for (int i = 0; i < len; i++)
             {
                 int key = reader.ReadInt32();
-                Host.CheckDecode(0 <= key && key < _inputLength);
+                Host.CheckDecode(0 <= key && key < _numInputFeatures);
                 int val = reader.ReadInt32();
-                Host.CheckDecode(0 <= val && val < _numFeatures);
-                Host.CheckDecode(!_inputFeatureToDatasetFeatureMap.ContainsKey(key));
-                Host.CheckDecode(_featureMap[val] == -1);
-                _inputFeatureToDatasetFeatureMap[key] = val;
-                _featureMap[val] = key;
+                Host.CheckDecode(0 <= val && val < NumShapeFunctions);
+                Host.CheckDecode(!_inputFeatureToShapeFunctionMap.ContainsKey(key));
+                Host.CheckDecode(_shapeToInputMap[val] == -1);
+                _inputFeatureToShapeFunctionMap[key] = val;
+                _shapeToInputMap[val] = key;
             }
 
-            _inputType = new VectorType(NumberType.Float, _inputLength);
+            _inputType = new VectorType(NumberType.Float, _numInputFeatures);
             _outputType = NumberType.Float;
         }
 
@@ -149,23 +168,23 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Host.CheckValue(ctx, nameof(ctx));
 
-            ctx.Writer.Write(_numFeatures);
-            Host.Assert(_numFeatures >= 0);
-            ctx.Writer.Write(_inputLength);
-            Host.Assert(_inputLength >= 0);
+            ctx.Writer.Write(NumShapeFunctions);
+            Host.Assert(NumShapeFunctions >= 0);
+            ctx.Writer.Write(_numInputFeatures);
+            Host.Assert(_numInputFeatures >= 0);
             ctx.Writer.Write(Intercept);
-            for (int i = 0; i < _numFeatures; i++)
+            for (int i = 0; i < NumShapeFunctions; i++)
                 ctx.Writer.WriteDoubleArray(_binEffects[i]);
             int diff = _binEffects.Sum(e => e.Take(e.Length - 1).Select((ef, i) => ef != e[i + 1] ? 1 : 0).Sum());
             int bound = _binEffects.Sum(e => e.Length - 1);
 
-            for (int i = 0; i < _numFeatures; i++)
+            for (int i = 0; i < NumShapeFunctions; i++)
             {
                 ctx.Writer.WriteDoublesNoCount(_binUpperBounds[i]);
                 Host.Assert(_binUpperBounds[i].Length == _binEffects[i].Length);
             }
-            ctx.Writer.Write(_inputFeatureToDatasetFeatureMap.Count);
-            foreach (KeyValuePair<int, int> kvp in _inputFeatureToDatasetFeatureMap)
+            ctx.Writer.Write(_inputFeatureToShapeFunctionMap.Count);
+            foreach (KeyValuePair<int, int> kvp in _inputFeatureToShapeFunctionMap)
             {
                 ctx.Writer.Write(kvp.Key);
                 ctx.Writer.Write(kvp.Value);
@@ -174,8 +193,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
-            Host.Check(typeof(TIn) == typeof(VBuffer<float>));
-            Host.Check(typeof(TOut) == typeof(float));
+            Host.Check(typeof(TIn) == typeof(VBuffer<float>), "Input type does not match.");
+            Host.Check(typeof(TOut) == typeof(float), "Output type does not match.");
 
             ValueMapper<VBuffer<float>, float> del = Map;
             return (ValueMapper<TIn, TOut>)(Delegate)del;
@@ -183,7 +202,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void Map(in VBuffer<float> features, ref float response)
         {
-            Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
+            Host.CheckParam(features.Length == _numInputFeatures, nameof(features), "Bad length of input");
 
             double value = Intercept;
             var featuresValues = features.GetValues();
@@ -192,7 +211,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
+                    if (_inputFeatureToShapeFunctionMap.TryGetValue(i, out int j))
                         value += GetBinEffect(j, featuresValues[i]);
                 }
             }
@@ -203,7 +222,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 value += _valueAtAllZero;
                 for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(featuresIndices[i], out int j))
+                    if (_inputFeatureToShapeFunctionMap.TryGetValue(featuresIndices[i], out int j))
                         // Add the value and subtract the value at zero that was previously accounted for
                         value += GetBinEffect(j, featuresValues[i]) - GetBinEffect(j, 0);
                 }
@@ -214,8 +233,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         internal double GetFeatureBinsAndScore(in VBuffer<float> features, int[] bins)
         {
-            Host.CheckParam(features.Length == _inputLength, nameof(features));
-            Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
+            Host.CheckParam(features.Length == _numInputFeatures, nameof(features));
+            Host.CheckParam(Utils.Size(bins) == NumShapeFunctions, nameof(bins));
 
             double value = Intercept;
             var featuresValues = features.GetValues();
@@ -223,7 +242,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
+                    if (_inputFeatureToShapeFunctionMap.TryGetValue(i, out int j))
                         value += GetBinEffect(j, featuresValues[i], out bins[j]);
                 }
             }
@@ -232,12 +251,12 @@ namespace Microsoft.ML.Trainers.FastTree
                 var featuresIndices = features.GetIndices();
                 // Add in the precomputed results for all features
                 value += _valueAtAllZero;
-                Array.Copy(_binsAtAllZero, bins, _numFeatures);
+                Array.Copy(_binsAtAllZero, bins, NumShapeFunctions);
 
                 // Update the results for features we have
                 for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(featuresIndices[i], out int j))
+                    if (_inputFeatureToShapeFunctionMap.TryGetValue(featuresIndices[i], out int j))
                         // Add the value and subtract the value at zero that was previously accounted for
                         value += GetBinEffect(j, featuresValues[i], out bins[j]) - GetBinEffect(j, 0);
                 }
@@ -247,14 +266,14 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private double GetBinEffect(int featureIndex, double featureValue)
         {
-            Contracts.Assert(0 <= featureIndex && featureIndex < _numFeatures);
+            Host.Assert(0 <= featureIndex && featureIndex < NumShapeFunctions, "Index out of range.");
             int index = Algorithms.FindFirstGE(_binUpperBounds[featureIndex], featureValue);
             return _binEffects[featureIndex][index];
         }
 
         private double GetBinEffect(int featureIndex, double featureValue, out int binIndex)
         {
-            Contracts.Assert(0 <= featureIndex && featureIndex < _numFeatures);
+            Host.Check(0 <= featureIndex && featureIndex < NumShapeFunctions, "Index out of range.");
             binIndex = Algorithms.FindFirstGE(_binUpperBounds[featureIndex], featureValue);
             return _binEffects[featureIndex][binIndex];
         }
@@ -266,9 +285,9 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <returns>The bin upper bounds. May be null if this feature has no bins.</returns>
         public double[] GetFeatureBinUpperBounds(int featureIndex)
         {
-            Contracts.Assert(0 <= featureIndex && featureIndex < _numFeatures);
+            Host.Check(0 <= featureIndex && featureIndex < NumShapeFunctions, "Index out of range.");
             double[] featureBins;
-            if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+            if (_inputFeatureToShapeFunctionMap.TryGetValue(featureIndex, out int j))
             {
                 featureBins = new double[_binUpperBounds[j].Length];
                 _binUpperBounds[j].CopyTo(featureBins, 0);
@@ -288,11 +307,11 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <returns>The binned weights for each feature.</returns>
         public double[] GetFeatureWeights(int featureIndex)
         {
-            Contracts.Assert(0 <= featureIndex && featureIndex < _numFeatures);
+            Host.Check(0 <= featureIndex && featureIndex < NumShapeFunctions, "Index out of range.");
             double[] featureWeights;
-            if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+            if (_inputFeatureToShapeFunctionMap.TryGetValue(featureIndex, out int j))
             {
-                featureWeights = new double[_binUpperBounds[j].Length];
+                featureWeights = new double[_binEffects[j].Length];
                 _binEffects[j].CopyTo(featureWeights, 0);
             }
             else
@@ -305,11 +324,11 @@ namespace Microsoft.ML.Trainers.FastTree
 
         void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
-            Host.CheckValue(writer, nameof(writer));
+            Host.CheckValue(writer, nameof(writer), "writer must not be null.");
             Host.CheckValueOrNull(schema);
 
             writer.WriteLine("\xfeffFeature index table"); // add BOM to tell excel this is UTF-8
-            writer.WriteLine($"Number of features:\t{_numFeatures + 1:D}");
+            writer.WriteLine($"Number of features:\t{NumShapeFunctions + 1:D}");
             writer.WriteLine("Feature Index\tFeature Name");
 
             // REVIEW: We really need some unit tests around text exporting (for this, and other learners).
@@ -320,11 +339,11 @@ namespace Microsoft.ML.Trainers.FastTree
             writer.WriteLine("-1\tIntercept");
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _inputLength, ref names);
+            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _numInputFeatures, ref names);
 
-            for (int internalIndex = 0; internalIndex < _numFeatures; internalIndex++)
+            for (int internalIndex = 0; internalIndex < NumShapeFunctions; internalIndex++)
             {
-                int featureIndex = _featureMap[internalIndex];
+                int featureIndex = _shapeToInputMap[internalIndex];
                 var name = names.GetItemOrDefault(featureIndex);
                 writer.WriteLine(!name.IsEmpty ? "{0}\t{1}" : "{0}\tFeature {0}", featureIndex, name);
             }
@@ -333,9 +352,9 @@ namespace Microsoft.ML.Trainers.FastTree
             writer.WriteLine("Per feature binned effects:");
             writer.WriteLine("Feature Index\tFeature Value Bin Upper Bound\tOutput (effect on label)");
             writer.WriteLine($"{-1:D}\t{float.MaxValue:R}\t{Intercept:R}");
-            for (int internalIndex = 0; internalIndex < _numFeatures; internalIndex++)
+            for (int internalIndex = 0; internalIndex < NumShapeFunctions; internalIndex++)
             {
-                int featureIndex = _featureMap[internalIndex];
+                int featureIndex = _shapeToInputMap[internalIndex];
 
                 double[] effects = _binEffects[internalIndex];
                 double[] boundaries = _binUpperBounds[internalIndex];
@@ -352,8 +371,8 @@ namespace Microsoft.ML.Trainers.FastTree
         ValueMapper<TSrc, VBuffer<float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDstContributions>
             (int top, int bottom, bool normalize)
         {
-            Contracts.Check(typeof(TSrc) == typeof(VBuffer<float>));
-            Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<float>));
+            Host.Check(typeof(TSrc) == typeof(VBuffer<float>), "Source type does not match.");
+            Host.Check(typeof(TDstContributions) == typeof(VBuffer<float>), "Destination type does not match.");
 
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
                 (in VBuffer<float> srcFeatures, ref VBuffer<float> dstContributions) =>
@@ -374,7 +393,7 @@ namespace Microsoft.ML.Trainers.FastTree
             foreach (var featureValue in features.DenseValues())
             {
                 float contribution = 0;
-                if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+                if (_inputFeatureToShapeFunctionMap.TryGetValue(featureIndex, out int j))
                     contribution = (float)GetBinEffect(j, featureValue);
                 editor.Values[featureIndex] = contribution;
                 featureIndex++;
@@ -385,15 +404,15 @@ namespace Microsoft.ML.Trainers.FastTree
 
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
-            Host.CheckValue(writer, nameof(writer));
+            Host.CheckValue(writer, nameof(writer), "writer must not be null");
             var ensemble = new TreeEnsemble();
 
-            for (int featureIndex = 0; featureIndex < _numFeatures; featureIndex++)
+            for (int featureIndex = 0; featureIndex < NumShapeFunctions; featureIndex++)
             {
                 var effects = _binEffects[featureIndex];
                 var binThresholds = _binUpperBounds[featureIndex];
 
-                Host.Assert(effects.Length == binThresholds.Length);
+                Host.Check(effects.Length == binThresholds.Length, "Effects array must be same length as binUpperBounds array.");
                 var numLeaves = effects.Length;
                 var numInternalNodes = numLeaves - 1;
 
@@ -473,6 +492,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return --internalNodeId;
             }
         }
+
         private static RegressionTree CreateRegressionTree(
             int numLeaves, int[] splitFeatures, float[] rawThresholds, int[] lteChild, int[] gtChild, double[] leafValues)
         {
@@ -581,7 +601,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     _data = data;
                     var schema = _data.Schema;
                     var featCol = schema.Feature.Value;
-                    ch.Check(featCol.Type.ValueCount == _pred._inputLength);
+                    ch.Check(featCol.Type.ValueCount == _pred._numInputFeatures);
 
                     int len = featCol.Type.ValueCount;
                     if (featCol.HasSlotNames(len))
@@ -644,7 +664,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 {
                     // Another version with multiple effects, perhaps?
                     int internalIndex;
-                    if (!_pred._inputFeatureToDatasetFeatureMap.TryGetValue(feat, out internalIndex))
+                    if (!_pred._inputFeatureToShapeFunctionMap.TryGetValue(feat, out internalIndex))
                         return -1;
                     var effects = _pred._binEffects[internalIndex];
                     if (bin < 0 || bin > effects.Length)
@@ -760,8 +780,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     private FeatureInfo(Context context, int index, int internalIndex, int[] catsMap)
                     {
                         Contracts.AssertValue(context);
-                        Contracts.Assert(context._pred._inputFeatureToDatasetFeatureMap.ContainsKey(index)
-                            && context._pred._inputFeatureToDatasetFeatureMap[index] == internalIndex);
+                        Contracts.Assert(context._pred._inputFeatureToShapeFunctionMap.ContainsKey(index)
+                            && context._pred._inputFeatureToShapeFunctionMap[index] == internalIndex);
                         Index = index;
                         var name = context._featNames.GetItemOrDefault(index).ToString();
                         Name = string.IsNullOrEmpty(name) ? $"f{index}" : name;
@@ -792,7 +812,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         lock (context._pred)
                         {
                             int internalIndex;
-                            if (!context._pred._inputFeatureToDatasetFeatureMap.TryGetValue(index, out internalIndex))
+                            if (!context._pred._inputFeatureToShapeFunctionMap.TryGetValue(index, out internalIndex))
                                 return null;
                             return new FeatureInfo(context, index, internalIndex, context._catsMap);
                         }
@@ -802,8 +822,8 @@ namespace Microsoft.ML.Trainers.FastTree
                     {
                         lock (context._pred)
                         {
-                            return Utils.BuildArray(context._pred._numFeatures,
-                                i => new FeatureInfo(context, context._pred._featureMap[i], i, context._catsMap));
+                            return Utils.BuildArray(context._pred.NumShapeFunctions,
+                                i => new FeatureInfo(context, context._pred._shapeToInputMap[i], i, context._catsMap));
                         }
                     }
                 }
