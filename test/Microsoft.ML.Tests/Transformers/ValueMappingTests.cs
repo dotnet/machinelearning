@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
         public class TestTermLookup
         {
             public string Label;
-            public int GroupId; 
+            public int GroupId;
 
             [VectorType(2107)]
             public float[] Features;
@@ -52,17 +52,17 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
-            IEnumerable<int> values = new List<int>() { 1, 2, 3, 4 };
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<int>() { 1, 2, 3, 4 };
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursor((col) => true);
-            var getterD = cursor.GetGetter<int>(3);
-            var getterE = cursor.GetGetter<int>(4);
-            var getterF = cursor.GetGetter<int>(5);
+            var getterD = cursor.GetGetter<int>(result.Schema["D"].Index);
+            var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
             cursor.MoveNext();
 
             int dValue = 0;
@@ -93,9 +93,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursor((col) => true);
-            var getterD = cursor.GetGetter<VBuffer<int>>(3);
-            var getterE = cursor.GetGetter<VBuffer<int>>(4);
-            var getterF = cursor.GetGetter<VBuffer<int>>(5);
+            var getterD = cursor.GetGetter<VBuffer<int>>(result.Schema["D"].Index);
+            var getterE = cursor.GetGetter<VBuffer<int>>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<VBuffer<int>>(result.Schema["F"].Index);
             cursor.MoveNext();
 
             var valuesArray = values.ToArray();
@@ -116,17 +116,17 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
-            IEnumerable<int> values = new List<int>() { 1, 2, 3, 4 };
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<int>() { 1, 2, 3, 4 };
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursor((col) => true);
-            var getterD = cursor.GetGetter<int>(3);
-            var getterE = cursor.GetGetter<int>(4);
-            var getterF = cursor.GetGetter<int>(5);
+            var getterD = cursor.GetGetter<int>(result.Schema["D"].Index);
+            var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
             cursor.MoveNext();
 
             int dValue = 1;
@@ -146,8 +146,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "foo".AsMemory() };
-            IEnumerable<int> values = new List<int>() { 1, 2 };
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "foo".AsMemory() };
+            var values = new List<int>() { 1, 2 };
 
             Assert.Throws<InvalidOperationException>(() => new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") }));
         }
@@ -158,11 +158,11 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
-            IEnumerable<int> values = new List<int>() { 1, 2, 3, 4 };
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<int>() { 1, 2, 3, 4 };
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
-            var outputSchema  = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            var outputSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
             Assert.Equal(6, outputSchema.Count());
             Assert.True(outputSchema.TryFindColumn("D", out SchemaShape.Column dColumn));
             Assert.True(outputSchema.TryFindColumn("E", out SchemaShape.Column eColumn));
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             Assert.Equal(typeof(int), eColumn.ItemType.RawType);
             Assert.False(eColumn.IsKey);
-            
+
             Assert.Equal(typeof(int), fColumn.ItemType.RawType);
             Assert.False(fColumn.IsKey);
         }
@@ -184,11 +184,11 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
-            IEnumerable<ReadOnlyMemory<char>> values = new List<ReadOnlyMemory<char>>() { "t".AsMemory(), "s".AsMemory(), "u".AsMemory(), "v".AsMemory() };
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<ReadOnlyMemory<char>>() { "t".AsMemory(), "s".AsMemory(), "u".AsMemory(), "v".AsMemory() };
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
-            var outputSchema  = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
+            var outputSchema = estimator.GetOutputSchema(SchemaShape.Create(dataView.Schema));
             Assert.Equal(6, outputSchema.Count());
             Assert.True(outputSchema.TryFindColumn("D", out SchemaShape.Column dColumn));
             Assert.True(outputSchema.TryFindColumn("E", out SchemaShape.Column eColumn));
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             Assert.Equal(typeof(uint), eColumn.ItemType.RawType);
             Assert.True(eColumn.IsKey);
-            
+
             Assert.Equal(typeof(uint), fColumn.ItemType.RawType);
             Assert.True(fColumn.IsKey);
 
@@ -212,10 +212,10 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
 
             // These are the expected key type values
-            IEnumerable<uint> values = new List<uint>() { 51, 25, 42, 61 };
+            var values = new List<uint>() { 51, 25, 42, 61 };
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, uint>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
 
@@ -223,11 +223,11 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursor((col) => true);
-            var getterD = cursor.GetGetter<uint>(3);
-            var getterE = cursor.GetGetter<uint>(4);
-            var getterF = cursor.GetGetter<uint>(5);
+            var getterD = cursor.GetGetter<uint>(result.Schema["D"].Index);
+            var getterE = cursor.GetGetter<uint>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<uint>(result.Schema["F"].Index);
             cursor.MoveNext();
-            
+
             // The expected values will contain the actual uints and are not generated.
             uint dValue = 1;
             getterD(ref dValue);
@@ -251,10 +251,10 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
 
             // These are the expected key type values
-            IEnumerable<ulong> values = new List<ulong>() { 51, Int32.MaxValue, 42, 61 };
+            var values = new List<ulong>() { 51, Int32.MaxValue, 42, 61 };
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ulong>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
 
@@ -262,11 +262,11 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursor((col) => true);
-            var getterD = cursor.GetGetter<ulong>(3);
-            var getterE = cursor.GetGetter<ulong>(4);
-            var getterF = cursor.GetGetter<ulong>(5);
+            var getterD = cursor.GetGetter<ulong>(result.Schema["D"].Index);
+            var getterE = cursor.GetGetter<ulong>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<ulong>(result.Schema["F"].Index);
             cursor.MoveNext();
-            
+
             // The expected values will contain the actual uints and are not generated.
             ulong dValue = 1;
             getterD(ref dValue);
@@ -289,19 +289,19 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
 
             // Generating the list of strings for the key type values, note that foo1 is duplicated as intended to test that the same index value is returned
-            IEnumerable<ReadOnlyMemory<char>> values = new List<ReadOnlyMemory<char>>() { "foo1".AsMemory(), "foo2".AsMemory(), "foo1".AsMemory(), "foo3".AsMemory() };
+            var values = new List<ReadOnlyMemory<char>>() { "foo1".AsMemory(), "foo2".AsMemory(), "foo1".AsMemory(), "foo3".AsMemory() };
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
             var cursor = result.GetRowCursor((col) => true);
-            var getterD = cursor.GetGetter<uint>(3);
-            var getterE = cursor.GetGetter<uint>(4);
-            var getterF = cursor.GetGetter<uint>(5);
+            var getterD = cursor.GetGetter<uint>(result.Schema["D"].Index);
+            var getterE = cursor.GetGetter<uint>(result.Schema["E"].Index);
+            var getterF = cursor.GetGetter<uint>(result.Schema["F"].Index);
             cursor.MoveNext();
 
             // The expected values will contain the generated key type values starting from 1.
@@ -321,6 +321,32 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void ValueMappingValuesAsKeyTypesReverseLookup()
+        {
+            var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+
+            // Generating the list of strings for the key type values, note that foo1 is duplicated as intended to test that the same index value is returned
+            var values = new List<ReadOnlyMemory<char>>() { "foo1".AsMemory(), "foo2".AsMemory(), "foo1".AsMemory(), "foo3".AsMemory() };
+
+            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("A", "D") })
+                            .Append(new KeyToValueMappingEstimator(Env, ("D", "DOutput")));
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            var cursor = result.GetRowCursor((col) => true);
+            var getterD = cursor.GetGetter<ReadOnlyMemory<char>>(result.Schema["DOutput"].Index);
+            cursor.MoveNext();
+
+            // The expected values will contain the generated key type values starting from 1.
+            ReadOnlyMemory<char> dValue = default;
+            getterD(ref dValue);
+            Assert.Equal("foo2".AsMemory(), dValue);
+        }
+
+        [Fact]
         public void ValueMappingWorkout()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
@@ -328,8 +354,8 @@ namespace Microsoft.ML.Tests.Transformers
             var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
             var badDataView = ComponentCreation.CreateDataView(Env, badData);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
-            IEnumerable<int> values = new List<int>() { 1, 2, 3, 4 };
+            var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            var values = new List<int>() { 1, 2, 3, 4 };
 
             // Workout on value mapping
             var est = ML.Transforms.Conversion.ValueMap(keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
@@ -362,7 +388,7 @@ namespace Microsoft.ML.Tests.Transformers
                                     + dataFile
                                     + @" col=A:B keyCol=foo valueCol=bar} in=f:\1.txt" }), (int)0);
         }
-        
+
         [Fact]
         void TestCommandLineNoLoaderWithoutTreatValuesAsKeys()
         {
@@ -377,10 +403,10 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "bar", B = "foo", C = "test", } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, 
-                                                new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory() }, 
-                                                new List<int>() { 2, 43, 56 }, 
-                                                new [] {("A","D"), ("B", "E")});
+            var est = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env,
+                                                new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory() },
+                                                new List<int>() { 2, 43, 56 },
+                                                new[] { ("A", "D"), ("B", "E") });
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
@@ -400,7 +426,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             // Model generated with: xf=drop{col=A} 
             // Expected output: Features Label B C
-            var data = new[] { new TestTermLookup() { Label = "good", GroupId=1 } };
+            var data = new[] { new TestTermLookup() { Label = "good", GroupId = 1 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             string termLookupModelPath = GetDataPath("backcompat/termlookup.zip");
             using (FileStream fs = File.OpenRead(termLookupModelPath))
@@ -417,7 +443,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             // Model generated with: xf=drop{col=A} 
             // Expected output: Features Label B C
-            var data = new[] { new TestTermLookup() { Label = "Good", GroupId=1 } };
+            var data = new[] { new TestTermLookup() { Label = "Good", GroupId = 1 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             string termLookupModelPath = GetDataPath("backcompat/termlookup_with_key.zip");
             using (FileStream fs = File.OpenRead(termLookupModelPath))
@@ -426,7 +452,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(result.Schema.TryGetColumnIndex("Features", out int featureIdx));
                 Assert.True(result.Schema.TryGetColumnIndex("Label", out int labelIdx));
                 Assert.True(result.Schema.TryGetColumnIndex("GroupId", out int groupIdx));
-                
+
                 Assert.True(result.Schema[labelIdx].Type is KeyType);
                 Assert.Equal(5, result.Schema[labelIdx].Type.ItemType.GetKeyCount());
 

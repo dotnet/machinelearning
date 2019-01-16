@@ -4,12 +4,15 @@
 
 using System.IO;
 using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class RffTransformTrain
     {
         private string _dataPath_Digits;
@@ -17,7 +20,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPath_Digits = Path.GetFullPath(TestDatasets.Digits.trainFilename);
+            _dataPath_Digits = BaseTestClass.GetDataPath(TestDatasets.Digits.trainFilename);
 
             if (!File.Exists(_dataPath_Digits))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Digits));
