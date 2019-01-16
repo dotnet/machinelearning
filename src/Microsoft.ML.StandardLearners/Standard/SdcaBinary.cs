@@ -69,13 +69,6 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        private protected LinearTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
-            SchemaShape.Column weightColumn)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn),
-                  labelColumn, weightColumn)
-        {
-        }
-
         private protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
@@ -1702,7 +1695,7 @@ namespace Microsoft.ML.Trainers
 
             _options.FeatureColumn = featureColumn;
             _options.LabelColumn = labelColumn;
-            _options.WeightColumn = weightColumn;
+            _options.WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight);
 
             if (loss != null)
                 _options.LossFunction = loss;
@@ -1719,7 +1712,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
         internal StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Options options)
-            : base(env, options.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
+            : base(env, options.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn), options.WeightColumn.IsExplicit ? options.WeightColumn.Value : null)
         {
             options.Check(env);
             _loss = options.LossFunction.CreateComponent(env);
