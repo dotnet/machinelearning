@@ -2845,7 +2845,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
         /// many decision trees.
         /// </summary>
-        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
+        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         public TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
