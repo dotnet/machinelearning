@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers.KMeans
         /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> to use.</param>
-        /// <param name="options">The advanced arguments of the algorithm.</param>
+        /// <param name="options">The advanced options of the algorithm.</param>
         internal KMeansPlusPlusTrainer(IHostEnvironment env, Options options)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
         {

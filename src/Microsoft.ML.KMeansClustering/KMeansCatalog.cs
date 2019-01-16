@@ -48,7 +48,7 @@ namespace Microsoft.ML
         /// Train a KMeans++ clustering algorithm.
         /// </summary>
         /// <param name="ctx">The clustering context trainer object.</param>
-        /// <param name="options">Algorithm advanced settings.</param>
+        /// <param name="options">Algorithm advanced options.</param>
         public static KMeansPlusPlusTrainer KMeans(this ClusteringContext.ClusteringTrainers ctx, KMeansPlusPlusTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
