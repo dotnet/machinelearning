@@ -6,7 +6,7 @@ parameters:
   customMatrixes: ''
 
 phases:
-- ${{ if ne(variables['codeCoverageBuild'], 'true') }}:
+${{ if ne(variables['codeCoverageBuild'], 'true') }}:
     - phase: ${{ parameters.name }}
     variables:
       _buildScript: ${{ parameters.buildScript }}
@@ -74,7 +74,7 @@ phases:
     - script: $(_buildScript) -buildPackages
       displayName: Build Packages
 
-- ${{ if eq(variables['codeCoverageBuild'], 'true') }}:
+${{ if eq(variables['codeCoverageBuild'], 'true') }}:
     - phase: ${{ parameters.name }}
     variables:
       _buildScript: ${{ parameters.buildScript }}
