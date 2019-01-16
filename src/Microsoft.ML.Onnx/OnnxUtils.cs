@@ -327,7 +327,7 @@ namespace Microsoft.ML.Model.Onnx
                 dataType = TensorProto.Types.DataType.Double;
             else
             {
-                string msg = "Unsupported type: " + rawType.ToString();
+                string msg = "Unsupported type: " + type.ToString();
                 Contracts.Check(false, msg);
             }
 
