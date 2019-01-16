@@ -805,11 +805,11 @@ namespace Microsoft.ML.Scenarios
             var modelLocation = "cifar_saved_model";
             var mlContext = new MLContext(seed: 1, conc: 1);
             var model = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
-            var t1 = new Thread(new ThreadStart(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation)));
-            var t2 = new Thread(new ThreadStart(() => TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation)));
-            var t3 = new Thread(new ThreadStart(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation)));
-            var t4 = new Thread(new ThreadStart(() => TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation)));
-            var t5 = new Thread(new ThreadStart(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation)));
+            var t1 = new Thread(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation));
+            var t2 = new Thread(() => TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation));
+            var t3 = new Thread(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation));
+            var t4 = new Thread(() => TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation));
+            var t5 = new Thread(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation));
             t1.Start();
             t2.Start();
             t3.Start();
