@@ -98,7 +98,7 @@ namespace Microsoft.ML.EntryPoints.JsonUtils
             _ectx.AssertNonEmpty(name);
             for (int i = 0; i < _attrs.Length; i++)
             {
-                if (name == (_attrs[i].Input.Name ?? _fields[i].Name) || AnyMatch(name, _attrs[i].Input.Aliases))
+                if (name == _attrs[i].Input.Name || name == _fields[i].Name || AnyMatch(name, _attrs[i].Input.Aliases))
                     return i;
             }
             return -1;

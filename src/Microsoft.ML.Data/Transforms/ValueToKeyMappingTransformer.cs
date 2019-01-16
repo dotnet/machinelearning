@@ -49,11 +49,11 @@ namespace Microsoft.ML.Transforms.Conversions
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep when auto-training", ShortName = "max")]
             public int? MaxNumTerms;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string Terms;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public string Term;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public string[] Term;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Name = "Term", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public string[] Terms;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').")]
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 // REVIEW: This pattern isn't robust enough. If a new field is added, this code needs
                 // to be updated accordingly, or it will break. The only protection we have against this
                 // is unit tests....
-                if (MaxNumTerms != null || !string.IsNullOrEmpty(Terms) || Sort != null || TextKeyValues != null)
+                if (MaxNumTerms != null || !string.IsNullOrEmpty(Term) || Sort != null || TextKeyValues != null)
                     return false;
                 return base.TryUnparseCore(sb);
             }
@@ -108,9 +108,9 @@ namespace Microsoft.ML.Transforms.Conversions
             public int MaxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string TermsList;
+            public string Term;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", SortOrder = 106, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Name = "Term", SortOrder = 106, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public string[] Terms;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 110, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var cols = new ColumnInfo[args.Columns.Length];
             using (var ch = env.Start("ValidateArgs"))
             {
-                if ((args.Terms != null || !string.IsNullOrEmpty(args.TermsList)) &&
+                if ((args.Terms != null || !string.IsNullOrEmpty(args.Term)) &&
                   (!string.IsNullOrWhiteSpace(args.DataFile) || args.Loader != null ||
                       !string.IsNullOrWhiteSpace(args.TermsColumn)))
                 {
@@ -341,9 +341,9 @@ namespace Microsoft.ML.Transforms.Conversions
                         item.Name,
                         item.MaxNumTerms ?? args.MaxNumTerms,
                         sortOrder,
-                        item.Term,
+                        item.Terms,
                         item.TextKeyValues ?? args.TextKeyValues);
-                    cols[i].Terms = item.Terms ?? args.TermsList;
+                    cols[i].Terms = item.Term ?? args.Term;
                 };
             }
             return new ValueToKeyMappingTransformer(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);

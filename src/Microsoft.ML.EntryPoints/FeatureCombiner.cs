@@ -101,7 +101,7 @@ namespace Microsoft.ML.EntryPoints
                     new ValueToKeyMappingTransformer.Arguments()
                     {
                         Columns = ktv
-                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
+                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Output, Source = c.Output, Term = GetTerms(viewTrain, c.Input) })
                             .ToArray(),
                         TextKeyValues = true
                     },

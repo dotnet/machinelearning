@@ -307,7 +307,7 @@ namespace Microsoft.ML.Transforms.Text
                         new ValueToKeyMappingTransformer.Arguments()
                         {
                             MaxNumTerms = int.MaxValue,
-                            TermsList = termLoaderArgs.TermsList,
+                            Term = termLoaderArgs.Term,
                             Terms = termLoaderArgs.Terms,
                             DataFile = termLoaderArgs.DataFile,
                             Loader = termLoaderArgs.Loader,
@@ -414,9 +414,9 @@ namespace Microsoft.ML.Transforms.Text
     public sealed class TermLoaderArguments
     {
         [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", Name = "Terms", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-        public string TermsList;
+        public string Term;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "List of terms", Name = "Term", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string[] Terms;
 
         [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]

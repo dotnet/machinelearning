@@ -382,7 +382,7 @@ namespace Microsoft.ML.Transforms.Text
                     new ValueToKeyMappingTransformer.Arguments()
                     {
                         MaxNumTerms = int.MaxValue,
-                        TermsList = termLoaderArgs.TermsList,
+                        Term = termLoaderArgs.Term,
                         Terms = termLoaderArgs.Terms,
                         DataFile = termLoaderArgs.DataFile,
                         Loader = termLoaderArgs.Loader,

@@ -617,9 +617,9 @@ namespace Microsoft.ML.Transforms.Text
         public abstract class ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of stopwords", Name = "Stopwords", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public string StopwordsList;
+            public string Stopword;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "List of stopwords", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "List of stopwords", Name = "Stopword", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public string[] Stopwords;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the stopwords", ShortName = "data", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (Utils.Size(Stopwords) > 0)
                     return new CustomStopWordsRemovingTransform(env, Stopwords, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
                 else
-                    return new CustomStopWordsRemovingTransform(env, StopwordsList, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
+                    return new CustomStopWordsRemovingTransform(env, Stopword, DataFile, StopwordsColumn, Loader, column.Select(x => (x.Source, x.Name)).ToArray()).Transform(input) as IDataTransform;
             }
         }
 
@@ -762,7 +762,7 @@ namespace Microsoft.ML.Transforms.Text
                         warnEmpty = false;
                     }
                 }
-                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Arguments.StopwordsList), "stopwords is empty");
+                ch.CheckUserArg(stopWordsMap.Count > 0, nameof(Arguments.Stopword), "stopwords is empty");
             }
             else
             {
@@ -945,7 +945,7 @@ namespace Microsoft.ML.Transforms.Text
             if (Utils.Size(args.Stopwords) > 0)
                 transfrom = new CustomStopWordsRemovingTransform(env, args.Stopwords, cols);
             else
-                transfrom = new CustomStopWordsRemovingTransform(env, args.StopwordsList, args.DataFile, args.StopwordsColumn, args.Loader, cols);
+                transfrom = new CustomStopWordsRemovingTransform(env, args.Stopword, args.DataFile, args.StopwordsColumn, args.Loader, cols);
             return transfrom.MakeDataTransform(input);
         }
 

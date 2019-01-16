@@ -135,8 +135,8 @@ namespace Microsoft.ML.Transforms.Categorical
                     column.OutputKind ?? args.OutputKind,
                     column.MaxNumTerms ?? args.MaxNumTerms,
                     column.Sort ?? args.Sort,
-                    column.Term ?? args.Terms);
-                col.SetTerms(column.Terms ?? args.TermsList);
+                    column.Terms ?? args.Terms);
+                col.SetTerms(column.Term ?? args.Term);
                 columns.Add(col);
             }
             return new OneHotEncodingEstimator(env, columns.ToArray(), args.DataFile, args.TermsColumn, args.Loader).Fit(input).Transform(input) as IDataTransform;

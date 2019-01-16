@@ -477,6 +477,11 @@ namespace Microsoft.ML.CommandLine
                         throw Contracts.Except("Duplicate default argument '{0}' vs '{1}'", def.LongName, field.Name);
 
                     string name = ArgCase(field.Name);
+
+                    string attrName = null;
+                    if (attr.Name != null && attr.Name.ToLowerInvariant() != name.ToLowerInvariant())
+                        attrName = attr.Name;
+
                     string[] nicks;
                     // Semantics of ShortName:
                     //    The string provided represents an array of names separated by commas and spaces, once empty entries are removed.
@@ -495,6 +500,11 @@ namespace Microsoft.ML.CommandLine
 
                     if (map.ContainsKey(name.ToLowerInvariant()))
                         throw Contracts.Except("Duplicate name '{0}' in argument type '{1}'", name, type.Name);
+                    if (attrName != null)
+                    {
+                        if (map.ContainsKey(attrName.ToLowerInvariant()))
+                            throw Contracts.Except("Duplicate name '{0}' in argument type '{1}'", attrName, type.Name);
+                    }
                     if (nicks != null)
                     {
                         foreach (var nick in nicks)
@@ -508,6 +518,8 @@ namespace Microsoft.ML.CommandLine
 
                     // Note that we put the default arg in the map to ensure that no other args use the same name.
                     map.Add(name.ToLowerInvariant(), arg);
+                    if (attrName != null)
+                        map.Add(attrName.ToLowerInvariant(), arg);
                     if (nicks != null)
                     {
                         foreach (var nick in nicks)
