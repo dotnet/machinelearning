@@ -67,7 +67,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{487213C9
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "netstandard2.0", "netstandard2.0", "{9252A8EB-ABFB-440C-AB4D-1D562753CE0F}"
 	ProjectSection(SolutionItems) = preProject
-		pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.props = pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.props
 		pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.targets = pkg\Microsoft.ML\build\netstandard2.0\Microsoft.ML.targets
 	EndProjectSection
 EndProject
@@ -148,6 +147,106 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.LightGBM.StaticPipe", "src\Microsoft.ML.LightGBM.StaticPipe\Microsoft.ML.LightGBM.StaticPipe.csproj", "{22C51B08-ACAE-47B2-A312-462DC239A23B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.TimeSeries.StaticPipe", "src\Microsoft.ML.TimeSeries.StaticPipe\Microsoft.ML.TimeSeries.StaticPipe.csproj", "{06A147ED-15EA-4106-9105-9B745125B470}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.HalLearners", "Microsoft.ML.HalLearners", "{63006A14-B924-48C5-83C9-CFE9DA22B01F}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.nupkgproj = pkg\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.nupkgproj
+		pkg\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.symbols.nupkgproj = pkg\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.ImageAnalytics", "Microsoft.ML.ImageAnalytics", "{1229F799-37F0-4282-B9F0-74BFA97CC362}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.nupkgproj = pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.nupkgproj
+		pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.symbols.nupkgproj = pkg\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.LightGBM", "Microsoft.ML.LightGBM", "{DE95FE65-9FF7-4233-93DF-7A8F2805624A}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.nupkgproj = pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.nupkgproj
+		pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.symbols.nupkgproj = pkg\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Mkl.Redist", "Microsoft.ML.Mkl.Redist", "{4CF8095E-B4A3-4326-A550-43098E447288}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.nupkgproj = pkg\Microsoft.ML.Mkl.Redist\Microsoft.ML.Mkl.Redist.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Onnx", "Microsoft.ML.Onnx", "{19AC192B-75FE-45D5-B219-898E401D5904}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.nupkgproj = pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.nupkgproj
+		pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.symbols.nupkgproj = pkg\Microsoft.ML.Onnx\Microsoft.ML.Onnx.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.OnnxTransform", "Microsoft.ML.OnnxTransform", "{93FF16AA-635E-421D-96C1-008818C143A2}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.nupkgproj = pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.nupkgproj
+		pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.symbols.nupkgproj = pkg\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.StaticPipe", "Microsoft.ML.StaticPipe", "{EC9844CE-070A-4313-B3A3-44701AC5F1E1}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.StaticPipe\Microsoft.ML.StaticPipe.nupkgproj = pkg\Microsoft.ML.StaticPipe\Microsoft.ML.StaticPipe.nupkgproj
+		pkg\Microsoft.ML.StaticPipe\Microsoft.ML.StaticPipe.symbols.nupkgproj = pkg\Microsoft.ML.StaticPipe\Microsoft.ML.StaticPipe.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Recommender", "Microsoft.ML.Recommender", "{320AF46A-4809-486E-8F9E-A00C8AE47751}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.nupkgproj = pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.nupkgproj
+		pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.symbols.nupkgproj = pkg\Microsoft.ML.Recommender\Microsoft.ML.Recommender.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TensorFlow", "Microsoft.ML.TensorFlow", "{11894B4A-78B4-4523-A6DD-4495722E244F}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.nupkgproj = pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.nupkgproj
+		pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.symbols.nupkgproj = pkg\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TensorFlow.Redist", "Microsoft.ML.TensorFlow.Redist", "{7F3D89CF-EAAD-4F21-AE83-F2EF9C97EC32}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.TensorFlow.Redist\Microsoft.ML.TensorFlow.Redist.nupkgproj = pkg\Microsoft.ML.TensorFlow.Redist\Microsoft.ML.TensorFlow.Redist.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.TimeSeries", "Microsoft.ML.TimeSeries", "{B836F712-7FB6-4B75-A3EB-FB05F8E0D15E}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.nupkgproj = pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.nupkgproj
+		pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.symbols.nupkgproj = pkg\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DnnImageFeaturizer.AlexNet", "Microsoft.ML.DnnImageFeaturizer.AlexNet", "{B00098E4-771E-41DF-A3AA-A606AAB334B7}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.nupkgproj
+		pkg\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.symbols.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.AlexNet\Microsoft.ML.DnnImageFeaturizer.AlexNet.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DnnImageFeaturizer.ResNet18", "Microsoft.ML.DnnImageFeaturizer.ResNet18", "{BD93C0F3-3CED-4BE8-9389-4234250FBFB1}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.nupkgproj
+		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.symbols.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DnnImageFeaturizer.ResNet50", "Microsoft.ML.DnnImageFeaturizer.ResNet50", "{8EDFB7E5-7E7E-411D-99C5-7A4895D0F9CB}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.nupkgproj
+		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.symbols.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet50\Microsoft.ML.DnnImageFeaturizer.ResNet50.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.DnnImageFeaturizer.ResNet101", "Microsoft.ML.DnnImageFeaturizer.ResNet101", "{9E689AD4-F908-493C-B882-B1B33E8F7696}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.nupkgproj
+		pkg\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.symbols.nupkgproj = pkg\Microsoft.ML.DnnImageFeaturizer.ResNet101\Microsoft.ML.DnnImageFeaturizer.ResNet101.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.EntryPoints", "Microsoft.ML.EntryPoints", "{8D8CC016-0020-40EC-BD8E-73F1CE0F9662}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.nupkgproj = pkg\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.nupkgproj
+		pkg\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.symbols.nupkgproj = pkg\Microsoft.ML.EntryPoints\Microsoft.ML.EntryPoints.symbols.nupkgproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{A84717CB-F11A-41C5-A74D-C0F1D47B7431}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\common\CommonPackage.props = pkg\common\CommonPackage.props
+		pkg\common\DnnImageFeaturizer.props = pkg\common\DnnImageFeaturizer.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -858,6 +957,23 @@ Global
 		{D1324668-9568-40F4-AA55-30A9A516C230} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{22C51B08-ACAE-47B2-A312-462DC239A23B} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{06A147ED-15EA-4106-9105-9B745125B470} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{63006A14-B924-48C5-83C9-CFE9DA22B01F} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{1229F799-37F0-4282-B9F0-74BFA97CC362} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{DE95FE65-9FF7-4233-93DF-7A8F2805624A} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{4CF8095E-B4A3-4326-A550-43098E447288} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{19AC192B-75FE-45D5-B219-898E401D5904} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{93FF16AA-635E-421D-96C1-008818C143A2} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{EC9844CE-070A-4313-B3A3-44701AC5F1E1} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{320AF46A-4809-486E-8F9E-A00C8AE47751} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{11894B4A-78B4-4523-A6DD-4495722E244F} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{7F3D89CF-EAAD-4F21-AE83-F2EF9C97EC32} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{B836F712-7FB6-4B75-A3EB-FB05F8E0D15E} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{B00098E4-771E-41DF-A3AA-A606AAB334B7} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{BD93C0F3-3CED-4BE8-9389-4234250FBFB1} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{8EDFB7E5-7E7E-411D-99C5-7A4895D0F9CB} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{9E689AD4-F908-493C-B882-B1B33E8F7696} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{8D8CC016-0020-40EC-BD8E-73F1CE0F9662} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
+		{A84717CB-F11A-41C5-A74D-C0F1D47B7431} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
