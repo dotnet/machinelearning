@@ -64,18 +64,24 @@ namespace Microsoft.ML.Samples.Dynamic
             var pipeline = ml.Transforms.Concatenate("Text", "workclass", "education", "marital-status",
                     "relationship", "ethnicity", "sex", "native-country-region")
                 .Append(ml.Transforms.Text.FeaturizeText("Text", "TextFeatures"))
-                .Append(ml.Transforms.Concatenate("Features", "TextFeatures", "age", "fnlwgt", 
-                    "education-num", "capital-gain", "capital-loss", "hours-per-week"));
+                .Append(ml.Transforms.Concatenate("Features", "TextFeatures", "age", "fnlwgt",
+                    "education-num", "capital-gain", "capital-loss", "hours-per-week"))
+                .Append(ml.BinaryClassification.Trainers.LogisticRegression("Label", "Features"));
 
             var model = pipeline.Fit(trainData);
 
             var dataWithPredictions = model.Transform(testData);
 
-            var crossValidation = ml.BinaryClassification.CrossValidate(dataWithPredictions, pipeline);
+            var metrics = ml.BinaryClassification.Evaluate(dataWithPredictions);
 
-            var averageAuc = crossValidation.Average(i => i.metrics.Auc);
+            Console.WriteLine($"Accuracy: {metrics.Accuracy}"); // 0.84
+            Console.WriteLine($"AUC: {metrics.Auc}"); // 0.89
+            Console.WriteLine($"F1 Score: {metrics.F1Score}"); // 0.64
 
-            Console.WriteLine($"Average cross validation AUC - {averageAuc}");
+            Console.WriteLine($"Negative Precision: {metrics.NegativePrecision}"); // 0.88
+            Console.WriteLine($"Negative Recall: {metrics.NegativeRecall}"); // 0.91
+            Console.WriteLine($"Positive Precision: {metrics.PositivePrecision}"); // 0.68
+            Console.WriteLine($"Positive Recall: {metrics.PositiveRecall}"); // 0.60       
         }
     }
 }
