@@ -103,6 +103,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
+
                     var trainer = new SdcaRegressionTrainer(env, options);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -210,6 +211,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
+
                     var trainer = new SdcaBinaryTrainer(env, options);
                     if (onFit != null)
                     {
@@ -331,6 +333,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.FeatureColumn = featuresName;
                     options.LabelColumn = labelName;
+
                     var trainer = new SdcaBinaryTrainer(env, options);
                     if (onFit != null)
                     {
@@ -431,6 +434,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
+
                     var trainer = new SdcaMultiClassTrainer(env, options);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

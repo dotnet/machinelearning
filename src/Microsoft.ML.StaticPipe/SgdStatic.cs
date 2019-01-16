@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers;
@@ -83,7 +85,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.FeatureColumn = featuresName;
                     options.LabelColumn = labelName;
-                    options.WeightColumn = weightsName;
+                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
 
                     var trainer = new StochasticGradientDescentClassificationTrainer(env, options);
 
