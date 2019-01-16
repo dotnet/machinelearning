@@ -86,7 +86,7 @@ namespace Microsoft.ML.Auto
                 throw new ArgumentException(nameof(label), $"Provided label column '{label}' not found in training data.");
             }
 
-            if (validationData != null && validationData.Schema.GetColumnOrNull(label) == null)
+            if (validationData.Schema.GetColumnOrNull(label) == null)
             {
                 throw new ArgumentException(nameof(label), $"Provided label column '{label}' not found in validation data.");
             }
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Auto
         {
             if(validationData == null)
             {
-                return;
+                throw new ArgumentNullException(nameof(validationData), "Validation data cannot be null");
             }
 
             const string schemaMismatchError = "Training data and validation data schemas do not match.";
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Auto
                     throw new ArgumentException(nameof(purposeOverride), $"Purpose override column name '{colName}' not found in training data.");
                 }
 
-                if(validationData != null && validationData.Schema.GetColumnOrNull(colName) == null)
+                if(validationData.Schema.GetColumnOrNull(colName) == null)
                 {
                     throw new ArgumentException(nameof(purposeOverride), $"Purpose override column name '{colName}' not found in validation data.");
                 }
