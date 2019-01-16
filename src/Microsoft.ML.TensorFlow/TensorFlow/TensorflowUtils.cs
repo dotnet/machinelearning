@@ -151,20 +151,24 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return NumberType.R4;
                 case TFDataType.Double:
                     return NumberType.R8;
-                case TFDataType.UInt16:
-                    return NumberType.U2;
                 case TFDataType.UInt8:
                     return NumberType.U1;
+                case TFDataType.UInt16:
+                    return NumberType.U2;
                 case TFDataType.UInt32:
                     return NumberType.U4;
                 case TFDataType.UInt64:
                     return NumberType.U8;
+                case TFDataType.Int8:
+                    return NumberType.I1;
                 case TFDataType.Int16:
                     return NumberType.I2;
                 case TFDataType.Int32:
                     return NumberType.I4;
                 case TFDataType.Int64:
                     return NumberType.I8;
+                case TFDataType.Bool:
+                    return BoolType.Instance;
                 default:
                     return null;
             }
@@ -363,9 +367,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.UInt16:
                 case TFDataType.UInt32:
                 case TFDataType.UInt64:
+                case TFDataType.Int8:
                 case TFDataType.Int16:
                 case TFDataType.Int32:
                 case TFDataType.Int64:
+                case TFDataType.Bool:
                     return true;
                 default:
                     return false;
