@@ -635,7 +635,7 @@ namespace Microsoft.ML.Trainers.SymSgd
 
         private TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
-            int numFeatures = data.Schema.Feature.Value.Type.VectorSize;
+            int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
             int numThreads = 1;
             ch.CheckUserArg(numThreads > 0, nameof(_args.NumberOfThreads),

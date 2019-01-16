@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
-                if ((col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType is PrimitiveType))
+                if ((col.ItemType.GetItemType().RawKind == default) || !(col.ItemType is VectorType || col.ItemType is PrimitiveType))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 SchemaShape metadata;
 

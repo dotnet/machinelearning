@@ -227,10 +227,10 @@ namespace Microsoft.ML.Learners
         protected override VBuffer<float> InitializeWeightsFromPredictor(MulticlassLogisticRegressionModelParameters srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
-            Contracts.Assert(srcPredictor.InputType.VectorSize > 0);
+            Contracts.Assert(srcPredictor.InputType.GetVectorSize() > 0);
 
             // REVIEW: Support initializing the weights of a superset of features.
-            if (srcPredictor.InputType.VectorSize != NumFeatures)
+            if (srcPredictor.InputType.GetVectorSize() != NumFeatures)
                 throw Contracts.Except("The input training data must have the same features used to train the input predictor.");
 
             return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.GetBiases());

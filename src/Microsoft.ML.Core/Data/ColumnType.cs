@@ -18,17 +18,10 @@ namespace Microsoft.ML.Data
     /// </summary>
     public abstract class ColumnType : IEquatable<ColumnType>
     {
-        // This private constructor sets all the IsXxx flags. It is invoked by other ctors.
-        private ColumnType()
-        {
-            IsVector = this is VectorType;
-        }
-
         /// <summary>
         /// Constructor for extension types, which must be either <see cref="PrimitiveType"/> or <see cref="StructuredType"/>.
         /// </summary>
         private protected ColumnType(Type rawType)
-            : this()
         {
             Contracts.CheckValue(rawType, nameof(rawType));
             RawType = rawType;
@@ -41,7 +34,6 @@ namespace Microsoft.ML.Data
         /// This asserts that they are consistent.
         /// </summary>
         private protected ColumnType(Type rawType, DataKind rawKind)
-            : this()
         {
             Contracts.AssertValue(rawType);
 #if DEBUG
@@ -70,80 +62,12 @@ namespace Microsoft.ML.Data
         [BestFriend]
         internal DataKind RawKind { get; }
 
-        /// <summary>
-        /// Whether this is a vector type. External code should just check directly against whether this type
-        /// is <see cref="VectorType"/>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsVector { get; }
-
-        /// <summary>
-        /// For non-vector types, this returns the column type itself (i.e., return <c>this</c>).
-        /// </summary>
-        [BestFriend]
-        internal ColumnType ItemType => ItemTypeCore;
-
-        /// <summary>
-        /// Whether this is a vector type with known size. Returns false for non-vector types.
-        /// Equivalent to <c><see cref="VectorSize"/> &gt; 0</c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsKnownSizeVector => VectorSize > 0;
-
-        /// <summary>
-        /// Zero return means either it's not a vector or the size is unknown.
-        /// </summary>
-        [BestFriend]
-        internal int VectorSize => VectorSizeCore;
-
-        /// <summary>
-        /// For non-vectors, this returns one. For unknown size vectors, it returns zero.
-        /// Equivalent to IsVector ? VectorSize : 1.
-        /// </summary>
-        [BestFriend]
-        internal int ValueCount => ValueCountCore;
-
-        /// <summary>
-        /// The only sub-class that should override this is VectorType!
-        /// </summary>
-        private protected virtual ColumnType ItemTypeCore => this;
-
-        /// <summary>
-        /// The only sub-class that should override this is <see cref="VectorType"/>!
-        /// </summary>
-        private protected virtual int VectorSizeCore => 0;
-
-        /// <summary>
-        /// The only sub-class that should override this is VectorType!
-        /// </summary>
-        private protected virtual int ValueCountCore => 1;
-
         // IEquatable<T> interface recommends also to override base class implementations of
         // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
         // is effectively a referencial comparison, there is no need to override base class implementations
         // of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
         public abstract bool Equals(ColumnType other);
 
-        /// <summary>
-        /// Equivalent to calling Equals(ColumnType) for non-vector types. For vector type,
-        /// returns true if current and other vector types have the same size and item type.
-        /// </summary>
-        [BestFriend]
-        internal bool SameSizeAndItemType(ColumnType other)
-        {
-            if (other == null)
-                return false;
-
-            if (Equals(other))
-                return true;
-
-            // For vector types, we don't care about the factoring of the dimensions.
-            if (!IsVector || !other.IsVector)
-                return false;
-            if (!ItemType.Equals(other.ItemType))
-                return false;
-            return VectorSize == other.VectorSize;
-        }
     }
 
     /// <summary>
@@ -789,23 +713,23 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// Whether this is a vector type with known size.
+        /// Equivalent to <c><see cref="Size"/> &gt; 0</c>.
+        /// </summary>
+        public bool IsKnownSize => Size > 0;
+
+        /// <summary>
         /// The type of the items stored as values in vectors of this type.
         /// </summary>
-        public new PrimitiveType ItemType { get; }
+        public PrimitiveType ItemType { get; }
 
         /// <summary>
         /// The size of the vector. A value of zero means it is a vector whose size is unknown.
         /// A vector whose size is known should correspond to values that always have the same <see cref="VBuffer{T}.Length"/>,
-        /// whereas one whose size is known may have values whose <see cref="VBuffer{T}.Length"/> varies from record to record.
+        /// whereas one whose size is unknown may have values whose <see cref="VBuffer{T}.Length"/> varies from record to record.
         /// Note that this is always the product of the elements in <see cref="Dimensions"/>.
         /// </summary>
         public int Size { get; }
-
-        private protected override ColumnType ItemTypeCore => ItemType;
-
-        private protected override int VectorSizeCore => Size;
-
-        private protected override int ValueCountCore => Size;
 
         public override bool Equals(ColumnType other)
         {

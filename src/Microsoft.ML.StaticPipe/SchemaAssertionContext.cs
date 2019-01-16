@@ -98,13 +98,13 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is true.
             /// </summary>
             public Vector<T> Vector => null;
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is false.
             /// </summary>
             public VarVector<T> VarVector => null;
         }
@@ -120,18 +120,18 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is true.
             /// </summary>
             public Vector<T> Vector => null;
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is false.
             /// </summary>
             public VarVector<T> VarVector => null;
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true, and the <see cref="MetadataUtils.Kinds.IsNormalized"/>
+            /// where <see cref="VectorType.IsKnownSize"/> is true, and the <see cref="MetadataUtils.Kinds.IsNormalized"/>
             /// metadata is defined with a Boolean <c>true</c> value.
             /// </summary>
             public NormVector<T> NormVector => null;
@@ -153,13 +153,13 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="KeyType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is true.
             /// </summary>
             public Vector<T> Vector => null;
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="KeyType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is false.
             /// </summary>
             public VarVector<T> VarVector => null;
         }

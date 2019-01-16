@@ -463,9 +463,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _srcTypes[i] = inputSchema[_cols[i]].Type;
-                    if (!IsValidColumnType(_srcTypes[i].ItemType))
+                    VectorType srcVectorType = _srcTypes[i] as VectorType;
+
+                    ColumnType itemType = srcVectorType?.ItemType ?? _srcTypes[i];
+                    if (!IsValidColumnType(itemType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
-                    _slotDropper[i] = new SlotDropper(_srcTypes[i].ValueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
+
+                    int valueCount = srcVectorType?.Size ?? 1;
+                    _slotDropper[i] = new SlotDropper(valueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
                     ComputeType(inputSchema, i, _slotDropper[i], out _suppressed[i], out _dstTypes[i], out _categoricalRanges[i]);
                 }
             }
@@ -503,22 +508,22 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 categoricalRanges = null;
                 var typeSrc = _srcTypes[iinfo];
-                if (!typeSrc.IsVector)
+                if (!(typeSrc is VectorType vectorType))
                 {
                     type = typeSrc;
                     suppressed = slotsMin.Length > 0 && slotsMin[0] == 0;
                 }
-                else if (!typeSrc.IsKnownSizeVector)
+                else if (!vectorType.IsKnownSize)
                 {
                     type = typeSrc;
                     suppressed = false;
                 }
                 else
                 {
-                    Host.Assert(typeSrc.IsKnownSizeVector);
+                    Host.Assert(vectorType.IsKnownSize);
                     var dstLength = slotDropper.DstLength;
-                    var hasSlotNames = input[_cols[iinfo]].HasSlotNames(_srcTypes[iinfo].VectorSize);
-                    type = new VectorType((PrimitiveType)typeSrc.ItemType, Math.Max(dstLength, 1));
+                    var hasSlotNames = input[_cols[iinfo]].HasSlotNames(vectorType.Size);
+                    type = new VectorType(vectorType.ItemType, Math.Max(dstLength, 1));
                     suppressed = dstLength == 0;
                 }
             }
@@ -700,7 +705,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 var typeSrc = _srcTypes[iinfo];
 
-                if (!typeSrc.IsVector)
+                if (!(typeSrc is VectorType))
                 {
                     if (_suppressed[iinfo])
                         return MakeOneTrivialGetter(input, iinfo);
@@ -715,7 +720,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                Host.Assert(!_srcTypes[iinfo].IsVector);
+                Host.Assert(!(_srcTypes[iinfo] is VectorType));
                 Host.Assert(_suppressed[iinfo]);
 
                 Func<ValueGetter<int>> del = MakeOneTrivialGetter<int>;
@@ -738,11 +743,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                Host.Assert(_srcTypes[iinfo].IsVector);
+                VectorType vectorType = (VectorType)_srcTypes[iinfo];
                 Host.Assert(_suppressed[iinfo]);
 
                 Func<ValueGetter<VBuffer<int>>> del = MakeVecTrivialGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vectorType.ItemType.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[0]);
             }
 
@@ -761,11 +766,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
-                Host.Assert(_srcTypes[iinfo].IsVector);
+                VectorType vectorType = (VectorType)_srcTypes[iinfo];
                 Host.Assert(!_suppressed[iinfo]);
 
                 Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vectorType.ItemType.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
             }
 
@@ -773,8 +778,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
                 var typeDst = _dstTypes[iinfo];
-                int srcValueCount = _srcTypes[iinfo].ValueCount;
-                if (typeDst.IsKnownSizeVector && typeDst.ValueCount == srcValueCount)
+                int srcValueCount = _srcTypes[iinfo].GetValueCount();
+                if (typeDst is VectorType dstVector && dstVector.IsKnownSize && dstVector.Size == srcValueCount)
                     return srcGetter;
 
                 var buffer = default(VBuffer<TDst>);
@@ -818,11 +823,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     var builder = new MetadataBuilder();
 
                     // Add SlotNames metadata.
-                    if (_srcTypes[iinfo].IsVector && _srcTypes[iinfo].IsKnownSizeVector)
+                    if (_srcTypes[iinfo] is VectorType vectorType && vectorType.IsKnownSize)
                     {
                         var dstLength = _slotDropper[iinfo].DstLength;
-                        var hasSlotNames = InputSchema[_cols[iinfo]].HasSlotNames(_srcTypes[iinfo].VectorSize);
-                        var type = new VectorType((PrimitiveType)_srcTypes[iinfo].ItemType, Math.Max(dstLength, 1));
+                        var hasSlotNames = InputSchema[_cols[iinfo]].HasSlotNames(vectorType.Size);
+                        var type = new VectorType(vectorType.ItemType, Math.Max(dstLength, 1));
 
                         if (hasSlotNames && dstLength > 0)
                         {

@@ -137,7 +137,7 @@ namespace Microsoft.ML.Transforms
                 var type = Infos[iinfo].TypeSrc;
 
                 // This ensures that our feature count doesn't overflow.
-                Host.Check(type.ValueCount < int.MaxValue / 2);
+                Host.Check(type.GetValueCount() < int.MaxValue / 2);
 
                 if (!(type is VectorType vectorType))
                     types[iinfo] = new VectorType(NumberType.Float, 2);
@@ -146,10 +146,10 @@ namespace Microsoft.ML.Transforms
                     types[iinfo] = new VectorType(NumberType.Float, vectorType, 2);
 
                     // Produce slot names metadata iff the source has (valid) slot names.
-                    ColumnType typeNames;
-                    if (!type.IsKnownSizeVector ||
-                        (typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null ||
-                        typeNames.VectorSize != type.VectorSize ||
+                    VectorType typeNames;
+                    if (!vectorType.IsKnownSize ||
+                        (typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType) == null ||
+                        typeNames.Size != vectorType.Size ||
                         !(typeNames.ItemType is TextType))
                     {
                         continue;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms
                 using (var bldr = md.BuildMetadata(iinfo))
                 {
                     bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
-                        MetadataUtils.GetNamesType(types[iinfo].VectorSize), GetSlotNames);
+                        MetadataUtils.GetNamesType(types[iinfo].Size), GetSlotNames);
                 }
             }
             md.Seal();
@@ -177,28 +177,28 @@ namespace Microsoft.ML.Transforms
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
-            int size = _types[iinfo].VectorSize;
+            int size = _types[iinfo].Size;
             if (size == 0)
                 throw MetadataUtils.ExceptGetMetadata();
 
             var editor = VBufferEditor.Create(ref dst, size);
 
             var type = Infos[iinfo].TypeSrc;
-            if (!type.IsVector)
+            if (!(type is VectorType srcVectorType))
             {
-                Host.Assert(_types[iinfo].VectorSize == 2);
+                Host.Assert(_types[iinfo].Size == 2);
                 var columnName = Source.Schema[Infos[iinfo].Source].Name;
                 editor.Values[0] = columnName.AsMemory();
                 editor.Values[1] = (columnName + IndicatorSuffix).AsMemory();
             }
             else
             {
-                Host.Assert(type.IsKnownSizeVector);
-                Host.Assert(size == 2 * type.VectorSize);
+                Host.Assert(srcVectorType.IsKnownSize);
+                Host.Assert(size == 2 * srcVectorType.Size);
 
                 // REVIEW: Do we need to verify that there is metadata or should we just call GetMetadata?
-                var typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
-                if (typeNames == null || typeNames.VectorSize != type.VectorSize || !(typeNames.ItemType is TextType))
+                var typeNames = Source.Schema[Infos[iinfo].Source].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+                if (typeNames == null || typeNames.Size != srcVectorType.Size || !(typeNames.ItemType is TextType))
                     throw MetadataUtils.ExceptGetMetadata();
 
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms
                 // We both assert and check. If this fails, there is a bug somewhere (possibly in this code
                 // but more likely in the implementation of Base. On the other hand, we don't want to proceed
                 // if we've received garbage.
-                Host.Check(names.Length == type.VectorSize, "Unexpected slot name vector size");
+                Host.Check(names.Length == srcVectorType.Size, "Unexpected slot name vector size");
 
                 var sb = new StringBuilder();
                 int slot = 0;
@@ -243,7 +243,7 @@ namespace Microsoft.ML.Transforms
             disposer = null;
 
             ValueGetter<VBuffer<Float>> del;
-            if (Infos[iinfo].TypeSrc.IsVector)
+            if (Infos[iinfo].TypeSrc is VectorType)
             {
                 var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
                 del =

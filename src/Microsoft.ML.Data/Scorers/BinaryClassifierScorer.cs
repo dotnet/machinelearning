@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
 
             if (trainSchema?.Label == null)
                 return mapper; // We don't even have a label identified in a training schema.
-            var keyType = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var keyType = trainSchema.Label.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
             if (keyType == null || !CanWrap(mapper, keyType))
                 return mapper;
 
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
             if (mapper.OutputSchema[scoreIdx].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.TrainingLabelValues)?.Type != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
 
-            return labelNameType.IsVector && labelNameType.VectorSize == 2;
+            return labelNameType is VectorType vectorType && vectorType.Size == 2;
         }
 
         private static ISchemaBoundMapper WrapCore<T>(IHostEnvironment env, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
@@ -111,15 +111,14 @@ namespace Microsoft.ML.Data
             var labelColumn = trainSchema.Label.Value;
 
             // Key values from the training schema label, will map to slot names of the score output.
-            var type = labelColumn.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
+            var type = labelColumn.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
             env.AssertValue(type);
-            env.Assert(type.IsVector);
 
             // Wrap the fetching of the metadata as a simple getter.
             ValueGetter<VBuffer<T>> getter = (ref VBuffer<T> value) =>
                 labelColumn.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref value);
 
-            return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type as VectorType, getter, MetadataUtils.Kinds.TrainingLabelValues, CanWrap);
+            return MultiClassClassifierScorer.LabelNameBindableMapper.CreateBound<T>(env, (ISchemaBoundRowMapper)mapper, type, getter, MetadataUtils.Kinds.TrainingLabelValues, CanWrap);
         }
 
         [BestFriend]
@@ -290,7 +289,7 @@ namespace Microsoft.ML.Data
             var labelNameBindableMapper = mapper.Bindable as MultiClassClassifierScorer.LabelNameBindableMapper;
             if (labelNameBindableMapper == null)
                 return BoolType.Instance;
-            return new KeyType(DataKind.U4, 0, labelNameBindableMapper.Type.VectorSize);
+            return new KeyType(DataKind.U4, 0, labelNameBindableMapper.Type.Size);
         }
 
         private static bool OutputTypeMatches(ColumnType scoreType)

@@ -358,14 +358,15 @@ namespace Microsoft.ML.Model.Onnx
             else
             {
                 dimsLocal = new List<long>();
-                if (type.ValueCount == 0) //Unknown size.
+                int valueCount = type.GetValueCount();
+                if (valueCount == 0) //Unknown size.
                 {
                     dimsLocal.Add(1);
                     dimsParamLocal = new List<bool>() { false, true }; //false for batch size, true for dims.
                 }
-                else if (type.ValueCount == 1)
+                else if (valueCount == 1)
                     dimsLocal.Add(1);
-                else if (type.ValueCount > 1)
+                else if (valueCount > 1)
                 {
                     var vec = (VectorType)type;
                     for (int i = 0; i < vec.Dimensions.Length; i++)

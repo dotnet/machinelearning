@@ -225,7 +225,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         private static string TestColumnType(ColumnType type)
         {
-            if (type.ItemType == NumberType.Float && type.IsKnownSizeVector)
+            if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberType.Float)
                 return null;
             return "Expected vector of floats with known size";
         }
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Transforms.Projections
             string reason = TestColumnType(type);
             if (reason != null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
-            if (_transformInfos[col].SrcDim != type.VectorSize)
+            if (_transformInfos[col].SrcDim != type.GetVectorSize())
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input,
                     new VectorType(NumberType.Float, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Transforms.Projections
                 input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
                 var typeSrc = input.Schema[srcCol].Type;
                 _transformInfos[i] = new TransformInfo(Host.Register(string.Format("column{0}", i)), columns[i],
-                    typeSrc.ValueCount, avgDistances[i]);
+                    typeSrc.GetValueCount(), avgDistances[i]);
             }
         }
 
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Transforms.Projections
                 {
                     var rng = columns[i].Seed.HasValue ? RandomUtils.Create(columns[i].Seed.Value) : Host.Rand;
                     var srcType = input.Schema[srcCols[i]].Type;
-                    if (srcType.IsVector)
+                    if (srcType is VectorType)
                     {
                         var get = cursor.GetGetter<VBuffer<float>>(srcCols[i]);
                         reservoirSamplers[i] = new ReservoirSamplerWithReplacement<VBuffer<float>>(rng, reservoirSize, get);
@@ -541,7 +541,7 @@ namespace Microsoft.ML.Transforms.Projections
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
-                if (_srcTypes[iinfo].IsVector)
+                if (_srcTypes[iinfo] is VectorType)
                     return GetterFromVectorType(input, iinfo);
                 return GetterFromFloatType(input, iinfo);
             }
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Transforms.Projections
                 var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
                 var src = default(VBuffer<float>);
 
-                var featuresAligned = new AlignedArray(RoundUp(_srcTypes[iinfo].ValueCount, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+                var featuresAligned = new AlignedArray(RoundUp(_srcTypes[iinfo].GetValueCount(), _cfltAlign), CpuMathUtils.GetVectorAlignment());
                 var productAligned = new AlignedArray(RoundUp(_parent._transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
 
                 return

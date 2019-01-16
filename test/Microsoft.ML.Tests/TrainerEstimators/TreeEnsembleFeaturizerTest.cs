@@ -48,9 +48,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 // Check if output schema is correct.
                 var treeValuesColumn = outputSchema[0];
                 Assert.Equal("Trees", treeValuesColumn.Name);
-                Assert.True(treeValuesColumn.Type is VectorType);
-                Assert.Equal(NumberType.R4, treeValuesColumn.Type.ItemType);
-                Assert.Equal(10, treeValuesColumn.Type.VectorSize);
+                VectorType treeValuesType = treeValuesColumn.Type as VectorType;
+                Assert.NotNull(treeValuesType);
+                Assert.Equal(NumberType.R4, treeValuesType.ItemType);
+                Assert.Equal(10, treeValuesType.Size);
                 // Below we check the only metadata field.
                 Assert.Single(treeValuesColumn.Metadata.Schema);
                 VBuffer<ReadOnlyMemory<char>> slotNames = default;
@@ -65,9 +66,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var treeLeafIdsColumn = outputSchema[1];
                 // Check column of tree leaf IDs.
                 Assert.Equal("Leaves", treeLeafIdsColumn.Name);
-                Assert.True(treeLeafIdsColumn.Type is VectorType);
-                Assert.Equal(NumberType.R4, treeLeafIdsColumn.Type.ItemType);
-                Assert.Equal(50, treeLeafIdsColumn.Type.VectorSize);
+                VectorType treeLeafIdsType = treeLeafIdsColumn.Type as VectorType;
+                Assert.NotNull(treeLeafIdsType);
+                Assert.Equal(NumberType.R4, treeLeafIdsType.ItemType);
+                Assert.Equal(50, treeLeafIdsType.Size);
                 // Below we check the two leaf-IDs column's metadata fields.
                 Assert.Equal(2, treeLeafIdsColumn.Metadata.Schema.Count);
                 // Check metadata field IsNormalized's content.
@@ -87,9 +89,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var treePathIdsColumn = outputSchema[2];
                 // Check column of path IDs.
                 Assert.Equal("Paths", treePathIdsColumn.Name);
-                Assert.True(treePathIdsColumn.Type is VectorType);
-                Assert.Equal(NumberType.R4, treePathIdsColumn.Type.ItemType);
-                Assert.Equal(40, treePathIdsColumn.Type.VectorSize);
+                VectorType treePathIdsType = treePathIdsColumn.Type as VectorType;
+                Assert.NotNull(treePathIdsType);
+                Assert.Equal(NumberType.R4, treePathIdsType.ItemType);
+                Assert.Equal(40, treePathIdsType.Size);
                 // Below we check the two path-IDs column's metadata fields.
                 Assert.Equal(2, treePathIdsColumn.Metadata.Schema.Count);
                 // Check metadata field IsNormalized's content.

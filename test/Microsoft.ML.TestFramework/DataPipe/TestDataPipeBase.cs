@@ -577,14 +577,14 @@ namespace Microsoft.ML.RunTests
                 if (!CheckMetadataNames("PurpleDragonScales", -1, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
-                int size = type1.IsVector ? type1.VectorSize : -1;
+                int size = type1 is VectorType vectorType ? vectorType.Size : -1;
                 if (!CheckMetadataNames(MetadataUtils.Kinds.SlotNames, size, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
                 if (!keyNames)
                     continue;
 
-                size = type1.ItemType is KeyType keyType ? keyType.Count : -1;
+                size = type1.GetItemType() is KeyType keyType ? keyType.Count : -1;
                 if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, size, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
@@ -617,7 +617,7 @@ namespace Microsoft.ML.RunTests
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
                 return Failed();
             }
-            if (!(t1.ItemType is TextType))
+            if (!(t1.GetItemType() is TextType))
             {
                 if (!mustBeText)
                 {
@@ -628,9 +628,9 @@ namespace Microsoft.ML.RunTests
                 return Failed();
             }
 
-            if (size != t1.VectorSize)
+            if (size != t1.GetVectorSize())
             {
-                Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.VectorSize, size);
+                Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.GetVectorSize(), size);
                 return Failed();
             }
 
@@ -1022,7 +1022,7 @@ namespace Microsoft.ML.RunTests
 
         protected Func<bool> GetColumnComparer(Row r1, Row r2, int col, ColumnType type, bool exactDoubles)
         {
-            if (!type.IsVector)
+            if (!(type is VectorType vectorType))
             {
                 switch (type.RawKind)
                 {
@@ -1068,9 +1068,9 @@ namespace Microsoft.ML.RunTests
             }
             else
             {
-                int size = type.VectorSize;
+                int size = vectorType.Size;
                 Contracts.Assert(size >= 0);
-                switch (type.ItemType.RawKind)
+                switch (vectorType.ItemType.RawKind)
                 {
                     case DataKind.I1:
                         return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);

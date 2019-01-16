@@ -318,22 +318,23 @@ namespace Microsoft.ML.Data
                 InputRoleMappedSchema = schema;
                 var genericMapper = parent.GenericMapper.Bind(_env, schema);
                 _genericRowMapper = genericMapper as ISchemaBoundRowMapper;
+                var featureSize = FeatureColumn.Type.GetVectorSize();
 
                 if (parent.Stringify)
                 {
                     var builder = new SchemaBuilder();
                     builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
                     _outputSchema = builder.GetSchema();
-                    if (FeatureColumn.HasSlotNames(FeatureColumn.Type.VectorSize))
+                    if (FeatureColumn.HasSlotNames(featureSize))
                         FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                     else
-                        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(FeatureColumn.Type.VectorSize);
+                        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featureSize);
                 }
                 else
                 {
                     var metadataBuilder = new MetadataBuilder();
-                    if (InputSchema[FeatureColumn.Index].HasSlotNames(FeatureColumn.Type.VectorSize))
-                        metadataBuilder.AddSlotNames(FeatureColumn.Type.VectorSize, (ref VBuffer<ReadOnlyMemory<char>> value) =>
+                    if (InputSchema[FeatureColumn.Index].HasSlotNames(featureSize))
+                        metadataBuilder.AddSlotNames(featureSize, (ref VBuffer<ReadOnlyMemory<char>> value) =>
                             FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref value));
 
                     var schemaBuilder = new SchemaBuilder();
