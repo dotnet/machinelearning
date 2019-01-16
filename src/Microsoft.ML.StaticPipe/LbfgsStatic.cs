@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Learners;
 using Microsoft.ML.StaticPipe.Runtime;
@@ -94,7 +96,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName;
+                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
 
                     var trainer = new LogisticRegression(env, options);
 
@@ -191,7 +193,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName;
+                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
 
                     var trainer = new PoissonRegression(env, options);
 
@@ -289,7 +291,7 @@ namespace Microsoft.ML.StaticPipe
                 {
                     options.LabelColumn = labelName;
                     options.FeatureColumn = featuresName;
-                    options.WeightColumn = weightsName;
+                    options.WeightColumn = weightsName != null ? Optional<string>.Explicit(weightsName) : Optional<string>.Implicit(DefaultColumnNames.Weight);
 
                     var trainer = new MulticlassLogisticRegression(env, options);
 
