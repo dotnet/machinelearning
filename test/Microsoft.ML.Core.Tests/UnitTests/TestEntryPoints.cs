@@ -1200,7 +1200,7 @@ namespace Microsoft.ML.RunTests
                 }).Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, "Features", new[] { "Features1", "Features2" }).Transform(data);
 
-                var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
+                var mlr = ML.MulticlassClassification.Trainers.LogisticRegression();
                 var rmd = new RoleMappedData(data, "Label", "Features");
 
                 predictorModels[i] = new PredictorModelImpl(Env, rmd, data, mlr.Train(rmd));

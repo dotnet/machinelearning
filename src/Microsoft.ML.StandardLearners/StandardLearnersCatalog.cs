@@ -237,7 +237,6 @@ namespace Microsoft.ML
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static LogisticRegression LogisticRegression(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
@@ -246,12 +245,25 @@ namespace Microsoft.ML
             float l2Weight = LRArguments.Defaults.L2Weight,
             float optimizationTolerance = LRArguments.Defaults.OptTol,
             int memorySize = LRArguments.Defaults.MemorySize,
-            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity,
-            Action<LRArguments> advancedSettings = null)
+            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new LogisticRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity, advancedSettings);
+            return new LogisticRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity);
+        }
+
+        /// <summary>
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The binary classificaiton context trainer object.</param>
+        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        public static LogisticRegression LogisticRegression(this BinaryClassificationContext.BinaryClassificationTrainers ctx, LRArguments advancedSettings)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new LogisticRegression(env, advancedSettings);
         }
 
         /// <summary>
@@ -266,7 +278,6 @@ namespace Microsoft.ML
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static PoissonRegression PoissonRegression(this RegressionContext.RegressionTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
@@ -275,12 +286,25 @@ namespace Microsoft.ML
             float l2Weight = LRArguments.Defaults.L2Weight,
             float optimizationTolerance = LRArguments.Defaults.OptTol,
             int memorySize = LRArguments.Defaults.MemorySize,
-            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity,
-            Action<PoissonRegression.Arguments> advancedSettings = null)
+            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new PoissonRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity, advancedSettings);
+            return new PoissonRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public static PoissonRegression PoissonRegression(this RegressionContext.RegressionTrainers ctx, PoissonRegression.Arguments advancedSettings)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new PoissonRegression(env, advancedSettings);
         }
 
         /// <summary>
@@ -295,7 +319,6 @@ namespace Microsoft.ML
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
@@ -304,12 +327,26 @@ namespace Microsoft.ML
             float l2Weight = LRArguments.Defaults.L2Weight,
             float optimizationTolerance = LRArguments.Defaults.OptTol,
             int memorySize = LRArguments.Defaults.MemorySize,
-            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity,
-            Action<MulticlassLogisticRegression.Arguments> advancedSettings = null)
+            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new MulticlassLogisticRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity, advancedSettings);
+            return new MulticlassLogisticRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
+        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            MulticlassLogisticRegression.Arguments advancedSettings)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new MulticlassLogisticRegression(env, advancedSettings);
         }
 
         /// <summary>

@@ -9,6 +9,7 @@ using Microsoft.ML.Data.IO;
 using Microsoft.ML.Internal.Internallearn;
 using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 using Xunit;
@@ -84,7 +85,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestPoissonRegression()
         {
-            TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(advancedSettings: args => { args.NumThreads = 1; }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
+            TestFeatureContribution(ML.Regression.Trainers.PoissonRegression(
+                new PoissonRegression.Arguments { NumThreads = 1 }), GetSparseDataset(numberOfInstances: 100), "PoissonRegression");
         }
 
         [Fact]

@@ -36,7 +36,7 @@ namespace Microsoft.ML.Scenarios
             // Pipeline
             var pipeline = new Ova(
                 mlContext, 
-                new LogisticRegression(mlContext, "Label", "Features"),
+                mlContext.BinaryClassification.Trainers.LogisticRegression(),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

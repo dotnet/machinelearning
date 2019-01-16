@@ -34,7 +34,6 @@ namespace Microsoft.ML.StaticPipe
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <returns>The predicted output.</returns>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             Scalar<bool> label,
@@ -45,16 +44,59 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null,
             Action<ParameterMixingCalibratedPredictor> onFit = null)
         {
-            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new LogisticRegression(env, labelName, featuresName, weightsName,
-                        l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings);
+                        l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity);
+
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                    return trainer;
+
+                }, label, features, weights);
+
+            return rec.Output;
+        }
+
+        /// <summary>
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The binary classificaiton context trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
+        /// be informed about what was learnt.</param>
+        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <returns>The predicted output.</returns>
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            Scalar<bool> label,
+            Vector<float> features,
+            Scalar<float> weights,
+            Arguments advancedSettings,
+            Action<ParameterMixingCalibratedPredictor> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValueOrNull(onFit);
+
+            var rec = new TrainerEstimatorReconciler.BinaryClassifier(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    advancedSettings.LabelColumn = labelName;
+                    advancedSettings.FeatureColumn = featuresName;
+                    advancedSettings.WeightColumn = weightsName;
+
+                    var trainer = new LogisticRegression(env, advancedSettings);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -84,7 +126,6 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -100,16 +141,59 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null,
             Action<PoissonRegressionModelParameters> onFit = null)
         {
-            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new PoissonRegression(env, labelName, featuresName, weightsName,
                         l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity);
+
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+
+                    return trainer;
+                }, label, features, weights);
+
+            return rec.Score;
+        }
+
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
+        /// be informed about what was learnt.</param>
+        /// <returns>The predicted output.</returns>
+        public static Scalar<float> PoissonRegression(this RegressionContext.RegressionTrainers ctx,
+            Scalar<float> label,
+            Vector<float> features,
+            Scalar<float> weights,
+            PoissonRegression.Arguments advancedSettings,
+            Action<PoissonRegressionModelParameters> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValueOrNull(onFit);
+
+            var rec = new TrainerEstimatorReconciler.Regression(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    advancedSettings.LabelColumn = labelName;
+                    advancedSettings.FeatureColumn = featuresName;
+                    advancedSettings.WeightColumn = weightsName;
+
+                    var trainer = new PoissonRegression(env, advancedSettings);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -139,7 +223,6 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -156,10 +239,9 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
-            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
@@ -175,6 +257,49 @@ namespace Microsoft.ML.StaticPipe
             return rec.Output;
         }
 
+        /// <summary>
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The multiclass classification context trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
+        public static (Vector<float> score, Key<uint, TVal> predictedLabel)
+            MultiClassLogisticRegression<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            Key<uint, TVal> label,
+            Vector<float> features,
+            Scalar<float> weights,
+            MulticlassLogisticRegression.Arguments advancedSettings,
+            Action<MulticlassLogisticRegressionModelParameters> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValueOrNull(onFit);
+
+            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    advancedSettings.LabelColumn = labelName;
+                    advancedSettings.FeatureColumn = featuresName;
+                    advancedSettings.WeightColumn = weightsName;
+
+                    var trainer = new MulticlassLogisticRegression(env, advancedSettings);
+
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                    return trainer;
+                }, label, features, weights);
+
+            return rec.Output;
+        }
     }
 
     internal static class LbfgsStaticUtils
@@ -188,7 +313,6 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null,
             Delegate onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -197,7 +321,6 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckParam(l1Weight >= 0, nameof(l1Weight), "Must be non-negative");
             Contracts.CheckParam(optimizationTolerance > 0, nameof(optimizationTolerance), "Must be positive");
             Contracts.CheckParam(memorySize > 0, nameof(memorySize), "Must be positive");
-            Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
         }
     }

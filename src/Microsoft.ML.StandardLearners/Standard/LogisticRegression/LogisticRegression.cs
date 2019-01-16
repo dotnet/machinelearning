@@ -74,8 +74,7 @@ namespace Microsoft.ML.Learners
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
         /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public LogisticRegression(IHostEnvironment env,
+        internal LogisticRegression(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -83,9 +82,8 @@ namespace Microsoft.ML.Learners
             float l2Weight = Arguments.Defaults.L2Weight,
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
-            bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights, advancedSettings,
+            bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity)
+            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights,
                   l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
