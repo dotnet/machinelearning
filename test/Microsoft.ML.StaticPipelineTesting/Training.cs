@@ -552,7 +552,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.PoissonRegression(r.label, r.features, null,
-                                new PoissonRegression.Arguments { L2Weight = 2, EnforceNonNegativity = true, NumThreads = 1 },
+                                new PoissonRegression.Options { L2Weight = 2, EnforceNonNegativity = true, NumThreads = 1 },
                                 onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -591,7 +591,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
-                                    new LogisticRegression.Arguments { L1Weight = 10, NumThreads = 1 }, onFit: (p) => { pred = p; })));
+                                    new LogisticRegression.Options { L1Weight = 10, NumThreads = 1 }, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -633,7 +633,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     r.label,
                     r.features,
                     null,
-                    new MulticlassLogisticRegression.Arguments { NumThreads = 1 },
+                    new MulticlassLogisticRegression.Options { NumThreads = 1 },
                     onFit: p => pred = p)));
 
             var pipe = reader.Append(est);

@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(new LogisticRegression.Arguments { ShowTrainingStats = true }));
+            pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(new LogisticRegression.Options { ShowTrainingStats = true }));
             var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
 
             var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryModelParameters;
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
             pipe = pipe.Append(ML.BinaryClassification.Trainers.LogisticRegression(
-                new LogisticRegression.Arguments { 
+                new LogisticRegression.Options { 
                     ShowTrainingStats = true,
                     StdComputer = new ComputeLRTrainingStdThroughHal(),
             }));

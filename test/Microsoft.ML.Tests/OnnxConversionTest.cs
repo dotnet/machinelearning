@@ -373,7 +373,7 @@ namespace Microsoft.ML.Tests
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
-                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Arguments() { UseThreads = false }));
+                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options() { UseThreads = false }));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);

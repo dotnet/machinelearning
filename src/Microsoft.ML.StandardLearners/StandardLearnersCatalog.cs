@@ -12,7 +12,7 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML
 {
-    using LRArguments = LogisticRegression.Arguments;
+    using LROptions = LogisticRegression.Options;
     using SgdArguments = StochasticGradientDescentClassificationTrainer.Arguments;
 
     /// <summary>
@@ -241,11 +241,11 @@ namespace Microsoft.ML
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = LRArguments.Defaults.L1Weight,
-            float l2Weight = LRArguments.Defaults.L2Weight,
-            float optimizationTolerance = LRArguments.Defaults.OptTol,
-            int memorySize = LRArguments.Defaults.MemorySize,
-            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity)
+            float l1Weight = LROptions.Defaults.L1Weight,
+            float l2Weight = LROptions.Defaults.L2Weight,
+            float optimizationTolerance = LROptions.Defaults.OptTol,
+            int memorySize = LROptions.Defaults.MemorySize,
+            bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -256,14 +256,14 @@ namespace Microsoft.ML
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="ctx">The binary classificaiton context trainer object.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
-        public static LogisticRegression LogisticRegression(this BinaryClassificationContext.BinaryClassificationTrainers ctx, LRArguments advancedSettings)
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static LogisticRegression LogisticRegression(this BinaryClassificationContext.BinaryClassificationTrainers ctx, LROptions options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new LogisticRegression(env, advancedSettings);
+            return new LogisticRegression(env, options);
         }
 
         /// <summary>
@@ -282,11 +282,11 @@ namespace Microsoft.ML
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = LRArguments.Defaults.L1Weight,
-            float l2Weight = LRArguments.Defaults.L2Weight,
-            float optimizationTolerance = LRArguments.Defaults.OptTol,
-            int memorySize = LRArguments.Defaults.MemorySize,
-            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity)
+            float l1Weight = LROptions.Defaults.L1Weight,
+            float l2Weight = LROptions.Defaults.L2Weight,
+            float optimizationTolerance = LROptions.Defaults.OptTol,
+            int memorySize = LROptions.Defaults.MemorySize,
+            bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -297,14 +297,14 @@ namespace Microsoft.ML
         /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="ctx">The regression context trainer object.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public static PoissonRegression PoissonRegression(this RegressionContext.RegressionTrainers ctx, PoissonRegression.Arguments advancedSettings)
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static PoissonRegression PoissonRegression(this RegressionContext.RegressionTrainers ctx, PoissonRegression.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new PoissonRegression(env, advancedSettings);
+            return new PoissonRegression(env, options);
         }
 
         /// <summary>
@@ -323,11 +323,11 @@ namespace Microsoft.ML
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = LRArguments.Defaults.L1Weight,
-            float l2Weight = LRArguments.Defaults.L2Weight,
-            float optimizationTolerance = LRArguments.Defaults.OptTol,
-            int memorySize = LRArguments.Defaults.MemorySize,
-            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity)
+            float l1Weight = LROptions.Defaults.L1Weight,
+            float l2Weight = LROptions.Defaults.L2Weight,
+            float optimizationTolerance = LROptions.Defaults.OptTol,
+            int memorySize = LROptions.Defaults.MemorySize,
+            bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
@@ -338,15 +338,15 @@ namespace Microsoft.ML
         /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
         /// </summary>
         /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
-            MulticlassLogisticRegression.Arguments advancedSettings)
+            MulticlassLogisticRegression.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new MulticlassLogisticRegression(env, advancedSettings);
+            return new MulticlassLogisticRegression(env, options);
         }
 
         /// <summary>

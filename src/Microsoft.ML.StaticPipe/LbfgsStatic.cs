@@ -10,7 +10,7 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.StaticPipe
 {
-    using Arguments = LogisticRegression.Arguments;
+    using Options = LogisticRegression.Options;
 
     /// <summary>
     /// Binary Classification trainer estimators.
@@ -39,11 +39,11 @@ namespace Microsoft.ML.StaticPipe
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Action<ParameterMixingCalibratedPredictor> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
@@ -75,28 +75,28 @@ namespace Microsoft.ML.StaticPipe
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <returns>The predicted output.</returns>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights,
-            Arguments advancedSettings,
+            Options options,
             Action<ParameterMixingCalibratedPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
             Contracts.CheckValueOrNull(onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    advancedSettings.LabelColumn = labelName;
-                    advancedSettings.FeatureColumn = featuresName;
-                    advancedSettings.WeightColumn = weightsName;
+                    options.LabelColumn = labelName;
+                    options.FeatureColumn = featuresName;
+                    options.WeightColumn = weightsName;
 
-                    var trainer = new LogisticRegression(env, advancedSettings);
+                    var trainer = new LogisticRegression(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -136,11 +136,11 @@ namespace Microsoft.ML.StaticPipe
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Action<PoissonRegressionModelParameters> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
@@ -167,7 +167,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -178,22 +178,22 @@ namespace Microsoft.ML.StaticPipe
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights,
-            PoissonRegression.Arguments advancedSettings,
+            PoissonRegression.Options options,
             Action<PoissonRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
             Contracts.CheckValueOrNull(onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    advancedSettings.LabelColumn = labelName;
-                    advancedSettings.FeatureColumn = featuresName;
-                    advancedSettings.WeightColumn = weightsName;
+                    options.LabelColumn = labelName;
+                    options.FeatureColumn = featuresName;
+                    options.WeightColumn = weightsName;
 
-                    var trainer = new PoissonRegression(env, advancedSettings);
+                    var trainer = new PoissonRegression(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -234,11 +234,11 @@ namespace Microsoft.ML.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
@@ -264,7 +264,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -276,22 +276,22 @@ namespace Microsoft.ML.StaticPipe
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,
-            MulticlassLogisticRegression.Arguments advancedSettings,
+            MulticlassLogisticRegression.Options options,
             Action<MulticlassLogisticRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
             Contracts.CheckValueOrNull(onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    advancedSettings.LabelColumn = labelName;
-                    advancedSettings.FeatureColumn = featuresName;
-                    advancedSettings.WeightColumn = weightsName;
+                    options.LabelColumn = labelName;
+                    options.FeatureColumn = featuresName;
+                    options.WeightColumn = weightsName;
 
-                    var trainer = new MulticlassLogisticRegression(env, advancedSettings);
+                    var trainer = new MulticlassLogisticRegression(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -308,11 +308,11 @@ namespace Microsoft.ML.StaticPipe
         internal static void ValidateParams(PipelineColumn label,
             Vector<float> features,
             Scalar<float> weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enoforceNoNegativity = Options.Defaults.EnforceNonNegativity,
             Delegate onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));

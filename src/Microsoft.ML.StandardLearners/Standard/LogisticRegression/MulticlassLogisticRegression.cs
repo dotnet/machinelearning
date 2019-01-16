@@ -22,7 +22,7 @@ using Microsoft.ML.Trainers;
 using Microsoft.ML.Training;
 using Newtonsoft.Json.Linq;
 
-[assembly: LoadableClass(typeof(MulticlassLogisticRegression), typeof(MulticlassLogisticRegression.Arguments),
+[assembly: LoadableClass(typeof(MulticlassLogisticRegression), typeof(MulticlassLogisticRegression.Options),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     MulticlassLogisticRegression.UserNameValue,
     MulticlassLogisticRegression.LoadNameValue,
@@ -38,14 +38,14 @@ namespace Microsoft.ML.Learners
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
-    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Arguments,
+    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Options,
         MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>, MulticlassLogisticRegressionModelParameters>
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
         internal const string ShortName = "mlr";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Options : ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
@@ -86,11 +86,11 @@ namespace Microsoft.ML.Learners
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity)
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
             : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -102,8 +102,8 @@ namespace Microsoft.ML.Learners
         /// <summary>
         /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
         /// </summary>
-        internal MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, TrainerUtils.MakeU4ScalarColumn(args.LabelColumn))
+        internal MulticlassLogisticRegression(IHostEnvironment env, Options options)
+            : base(env, options, TrainerUtils.MakeU4ScalarColumn(options.LabelColumn))
         {
             ShowTrainingStats = Args.ShowTrainingStats;
         }
@@ -1004,14 +1004,14 @@ namespace Microsoft.ML.Learners
             ShortName = MulticlassLogisticRegression.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionClassifier""]/*' />" })]
-        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Arguments input)
+        public static CommonOutputs.MulticlassClassificationOutput TrainMultiClass(IHostEnvironment env, MulticlassLogisticRegression.Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLRMultiClass");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<MulticlassLogisticRegression.Arguments, CommonOutputs.MulticlassClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<MulticlassLogisticRegression.Options, CommonOutputs.MulticlassClassificationOutput>(host, input,
                 () => new MulticlassLogisticRegression(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
