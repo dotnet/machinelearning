@@ -192,7 +192,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected GamTrainerBase(IHostEnvironment env, TArgs args, string name, SchemaShape.Column label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Contracts.CheckValue(env, nameof(env));
             Host.CheckValue(args, nameof(args));
