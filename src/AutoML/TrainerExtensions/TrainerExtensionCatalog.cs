@@ -58,7 +58,7 @@ namespace Microsoft.ML.Auto
 
             learners.AddRange(new ITrainerExtension[] {
                 new LogisticRegressionBinaryExtension(),
-                new FastForestBinaryExtension(),
+                //new FastForestBinaryExtension(),
                 new SgdBinaryExtension()
             });
 
