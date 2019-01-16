@@ -36,8 +36,8 @@ namespace Microsoft.ML.Ensemble
                 loaderAssemblyName: typeof(EnsembleMultiClassModelParameters).Assembly.FullName);
         }
 
-        private readonly ColumnType _inputType;
-        private readonly ColumnType _outputType;
+        private readonly VectorType _inputType;
+        private readonly VectorType _outputType;
         private readonly IValueMapper[] _mappers;
 
         ColumnType IValueMapper.InputType => _inputType;
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Ensemble
             InitializeMappers(out _mappers, out _inputType, out _outputType);
         }
 
-        private void InitializeMappers(out IValueMapper[] mappers, out ColumnType inputType, out ColumnType outputType)
+        private void InitializeMappers(out IValueMapper[] mappers, out VectorType inputType, out VectorType outputType)
         {
             Host.AssertNonEmpty(Models);
 
@@ -73,18 +73,18 @@ namespace Microsoft.ML.Ensemble
             for (int i = 0; i < Models.Length; i++)
             {
                 var vm = Models[i].Predictor as IValueMapper;
-                if (!IsValid(vm))
+                if (!IsValid(vm, out VectorType vmInputType, out VectorType vmOutputType))
                     throw Host.Except("Predictor does not implement expected interface");
-                if (vm.InputType.VectorSize > 0)
+                if (vmInputType.Size > 0)
                 {
                     if (inputType == null)
-                        inputType = vm.InputType;
-                    else if (vm.InputType.VectorSize != inputType.VectorSize)
+                        inputType = vmInputType;
+                    else if (vmInputType.Size != inputType.Size)
                         throw Host.Except("Predictor input type mismatch");
                 }
 
-                if (outputType == null || vm.OutputType.VectorSize > outputType.VectorSize)
-                    outputType = vm.OutputType;
+                if (outputType == null || vmOutputType.Size > outputType.Size)
+                    outputType = vmOutputType;
 
                 mappers[i] = vm;
             }
@@ -123,15 +123,15 @@ namespace Microsoft.ML.Ensemble
             {
                 // IsValid method ensures we go this else path only if the OutputType.VectorSize of
                 // all _mappers is greater than zero
-                Host.Assert(_mappers[i].OutputType.VectorSize > 0);
+                Host.Assert(_mappers[i].OutputType.GetVectorSize() > 0);
                 maps[i] = _mappers[i].GetMapper<VBuffer<Single>, VBuffer<Single>>();
             }
 
             ValueMapper<VBuffer<Single>, VBuffer<Single>> del =
                 (in VBuffer<Single> src, ref VBuffer<Single> dst) =>
                 {
-                    if (_inputType.VectorSize > 0)
-                        Host.Check(src.Length == _inputType.VectorSize);
+                    if (_inputType.Size > 0)
+                        Host.Check(src.Length == _inputType.Size);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Ensemble
                             maps[i](in tmp, ref predictions[i]);
 
                         // individual maps delegates will return always the same VBuffer length
-                        Host.Check(predictions[i].Length == _mappers[i].OutputType.VectorSize);
+                        Host.Check(predictions[i].Length == _mappers[i].OutputType.GetVectorSize());
                     });
 
                     combine(ref dst, predictions, Weights);
@@ -155,11 +155,23 @@ namespace Microsoft.ML.Ensemble
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private bool IsValid(IValueMapper mapper)
+        private bool IsValid(IValueMapper mapper, out VectorType inputType, out VectorType outputType)
         {
-            return mapper != null
-                && mapper.InputType.IsVector && mapper.InputType.ItemType == NumberType.Float
-                && mapper.OutputType.VectorSize > 0 && mapper.OutputType.ItemType == NumberType.Float;
+            if (mapper != null
+                && mapper.InputType is VectorType inVectorType && inVectorType.ItemType == NumberType.Float
+                && mapper.OutputType is VectorType outVectorType
+                && outVectorType.Size > 0 && outVectorType.ItemType == NumberType.Float)
+            {
+                inputType = inVectorType;
+                outputType = outVectorType;
+                return true;
+            }
+            else
+            {
+                inputType = null;
+                outputType = null;
+                return false;
+            }
         }
     }
 }

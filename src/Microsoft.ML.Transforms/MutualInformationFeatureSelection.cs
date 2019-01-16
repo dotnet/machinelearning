@@ -394,20 +394,20 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     }
 
                     var colType = schema[colSrc].Type;
-                    if (colType.IsVector && !colType.IsKnownSizeVector)
+                    if (colType is VectorType vectorType && !vectorType.IsKnownSize)
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
                             "Variable length column '{0}' is not allowed", colName);
                     }
 
-                    if (!IsValidColumnType(colType.ItemType))
+                    if (!IsValidColumnType(colType.GetItemType()))
                     {
                         throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
                             "Column '{0}' of type '{1}' does not have compatible type.", colName, colType);
                     }
 
                     colSrcs[i] = colSrc;
-                    colSizes[i] = colType.ValueCount;
+                    colSizes[i] = colType.GetValueCount();
                 }
 
                 var scores = new float[size][];
@@ -523,7 +523,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 // Note: NAs have their own separate bin.
                 var type = trans.Schema[col].Type;
-                if (type.ItemType == NumberType.I4)
+                var itemType = type.GetItemType();
+                if (itemType == NumberType.I4)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<int> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -531,7 +532,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinInts(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (type.ItemType == NumberType.R4)
+                if (itemType == NumberType.R4)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Single> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -539,7 +540,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinSingles(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (type.ItemType == NumberType.R8)
+                if (itemType == NumberType.R8)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Double> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -547,7 +548,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinDoubles(in src, ref dst, _numBins, out min, out lim);
                         });
                 }
-                if (type.ItemType is BoolType)
+                if (itemType is BoolType)
                 {
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<bool> src, ref VBuffer<int> dst, out int min, out int lim) =>
@@ -557,13 +558,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             BinBools(in src, ref dst);
                         });
                 }
-                int keyCount = type.ItemType.GetKeyCount();
+                int keyCount = itemType.GetKeyCount();
                 Contracts.Assert(0 < keyCount && keyCount < Utils.ArrayMaxSize);
                 Func<ColumnType, Mapper<int>> del = MakeKeyMapper<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
                 ComputeMutualInformationDelegate<int> cmiDel = ComputeMutualInformation;
-                var cmiMethodInfo = cmiDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
-                return (Single[])cmiMethodInfo.Invoke(this, new object[] { trans, col, methodInfo.Invoke(null, new object[] { type.ItemType }) });
+                var cmiMethodInfo = cmiDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
+                return (Single[])cmiMethodInfo.Invoke(this, new object[] { trans, col, methodInfo.Invoke(null, new object[] { itemType }) });
             }
 
             private delegate float[] ComputeMutualInformationDelegate<T>(Transposer trans, int col, Mapper<T> mapper);
@@ -589,7 +590,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             /// </summary>
             private float[] ComputeMutualInformation<T>(Transposer trans, int col, Mapper<T> mapper)
             {
-                var slotCount = trans.Schema[col].Type.ValueCount;
+                var slotCount = trans.Schema[col].Type.GetValueCount();
                 var scores = new float[slotCount];
                 int iScore = 0;
                 VBuffer<int> slotValues = default(VBuffer<int>);

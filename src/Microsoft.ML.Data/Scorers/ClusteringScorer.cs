@@ -134,12 +134,14 @@ namespace Microsoft.ML.Data
 
         private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper)
         {
-            return new KeyType(DataKind.U4, 0, scoreType.VectorSize);
+            return new KeyType(DataKind.U4, 0, scoreType.GetVectorSize());
         }
 
         private static bool OutputTypeMatches(ColumnType scoreType)
         {
-            return scoreType.IsKnownSizeVector && scoreType.ItemType == NumberType.Float;
+            return scoreType is VectorType vectorType
+                && vectorType.IsKnownSize
+                && vectorType.ItemType == NumberType.Float;
         }
     }
 }

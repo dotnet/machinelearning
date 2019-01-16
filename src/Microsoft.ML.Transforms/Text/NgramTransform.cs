@@ -315,7 +315,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                 {
-                    env.Assert(srcTypes[iinfo].IsVector && srcTypes[iinfo].ItemType is KeyType);
+                    env.Assert(srcTypes[iinfo] is VectorType vectorType && vectorType.ItemType is KeyType);
                     var ngramLength = columns[iinfo].NgramLength;
                     var skipLength = columns[iinfo].SkipLength;
 
@@ -346,7 +346,7 @@ namespace Microsoft.ML.Transforms.Text
                     for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                     {
                         getters[iinfo](ref src[iinfo]);
-                        var keyCount = (uint)srcTypes[iinfo].ItemType.GetKeyCount();
+                        var keyCount = (uint)srcTypes[iinfo].GetItemType().GetKeyCount();
                         if (keyCount == 0)
                             keyCount = uint.MaxValue;
                         if (!infoFull[iinfo])
@@ -581,7 +581,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
-                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].ItemType.GetKeyCount()))
+                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].GetItemType().GetKeyCount()))
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
@@ -597,7 +597,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var keyCount = _srcTypes[iinfo].ItemType.GetKeyCount();
+                var keyCount = _srcTypes[iinfo].GetItemType().GetKeyCount();
                 Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues(keyCount));
 
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
@@ -677,7 +677,7 @@ namespace Microsoft.ML.Transforms.Text
                 var src = default(VBuffer<uint>);
                 var bldr = new NgramBufferBuilder(_parent._transformInfos[iinfo].NgramLength, _parent._transformInfos[iinfo].SkipLength,
                     _parent._ngramMaps[iinfo].Count, GetNgramIdFinder(iinfo));
-                var keyCount = (uint)_srcTypes[iinfo].ItemType.GetKeyCount();
+                var keyCount = (uint)_srcTypes[iinfo].GetItemType().GetKeyCount();
                 if (keyCount == 0)
                     keyCount = uint.MaxValue;
 
@@ -838,12 +838,12 @@ namespace Microsoft.ML.Transforms.Text
 
         internal static bool IsColumnTypeValid(ColumnType type)
         {
-            if (!type.IsVector)
+            if (!(type is VectorType vectorType))
                 return false;
-            if (!(type.ItemType is KeyType itemKeyType))
+            if (!(vectorType.ItemType is KeyType itemKeyType))
                 return false;
             // Can only accept key types that can be converted to U4.
-            if (itemKeyType.Count == 0 && type.ItemType.RawKind > DataKind.U4)
+            if (itemKeyType.Count == 0 && itemKeyType.RawKind > DataKind.U4)
                 return false;
             return true;
         }

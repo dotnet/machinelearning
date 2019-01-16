@@ -67,9 +67,10 @@ namespace Microsoft.ML.Training
             Contracts.Assert(data.Schema.Feature.HasValue);
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            Contracts.Assert(col.Type.IsKnownSizeVector);
-            Contracts.Assert(col.Type.ItemType == NumberType.Float);
-            length = col.Type.VectorSize;
+            var colType = col.Type as VectorType;
+            Contracts.Assert(colType != null && colType.IsKnownSize);
+            Contracts.Assert(colType.ItemType == NumberType.Float);
+            length = colType.Size;
         }
 
         /// <summary>
@@ -184,7 +185,9 @@ namespace Microsoft.ML.Training
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
+            if (!(col.Type is VectorType vectorType
+                && vectorType.IsKnownSize
+                && vectorType.ItemType == NumberType.Float))
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 

@@ -127,7 +127,7 @@ namespace Microsoft.ML.Data
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var host = Host.SchemaSensitive();
             var t = score.Type;
-            if (t.IsVector || t.ItemType != NumberType.Float)
+            if (t != NumberType.Float)
                 throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4", t.ToString());
             host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
@@ -1100,14 +1100,14 @@ namespace Microsoft.ML.Data
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", LabelCol, t);
 
             t = schema[ScoreIndex].Type;
-            if (t.IsVector || t.ItemType != NumberType.Float)
+            if (t != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", ScoreCol, t);
 
             if (_probIndex >= 0)
             {
                 Host.Assert(!string.IsNullOrEmpty(_probCol));
                 t = schema[_probIndex].Type;
-                if (t.IsVector || t.ItemType != NumberType.Float)
+                if (t != NumberType.Float)
                     throw Host.Except("Probability column '{0}' has type '{1}' but must be R4", _probCol, t);
             }
             else if (!_useRaw)

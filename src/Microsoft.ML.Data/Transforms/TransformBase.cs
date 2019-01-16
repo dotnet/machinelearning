@@ -259,7 +259,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(colSrc >= 0);
                 Contracts.AssertValue(typeSrc);
                 Contracts.AssertValueOrNull(slotTypeSrc);
-                Contracts.Assert(slotTypeSrc == null || typeSrc.ItemType.Equals(slotTypeSrc.ItemType));
+                Contracts.Assert(slotTypeSrc == null || typeSrc.GetItemType().Equals(slotTypeSrc.ItemType));
 
                 Name = name;
                 Source = colSrc;
@@ -906,44 +906,46 @@ namespace Microsoft.ML.Data
 
         protected static string TestIsTextItem(ColumnType type)
         {
-            if (type.ItemType is TextType)
+            if (type.GetItemType() is TextType)
                 return null;
             return "Expected Text type";
         }
 
         protected static string TestIsTextVector(ColumnType type)
         {
-            if (type.ItemType is TextType && type.IsVector)
+            if (type is VectorType vectorType && vectorType.ItemType is TextType)
                 return null;
             return "Expected vector of Text type";
         }
 
         protected static string TestIsFloatItem(ColumnType type)
         {
-            if (type.ItemType == NumberType.Float)
+            if (type.GetItemType() == NumberType.Float)
                 return null;
             return "Expected R4 or a vector of R4";
         }
 
         protected static string TestIsFloatVector(ColumnType type)
         {
-            if (!type.IsVector || type.ItemType != NumberType.Float)
-                return "Expected Float vector";
+            if (type is VectorType vectorType && vectorType.ItemType == NumberType.Float)
+                return null;
 
-            return null;
+            return "Expected Float vector";
         }
 
         protected static string TestIsKnownSizeFloatVector(ColumnType type)
         {
-            if (!type.IsKnownSizeVector || type.ItemType != NumberType.Float)
-                return "Expected Float vector of known size";
+            if (type is VectorType vectorType
+                && vectorType.IsKnownSize
+                && vectorType.ItemType == NumberType.Float)
+                return null;
 
-            return null;
+            return "Expected Float vector of known size";
         }
 
         protected static string TestIsKey(ColumnType type)
         {
-            if (type.ItemType.GetKeyCount() > 0)
+            if (type.GetItemType().GetKeyCount() > 0)
                 return null;
             return "Expected Key type of known cardinality";
         }

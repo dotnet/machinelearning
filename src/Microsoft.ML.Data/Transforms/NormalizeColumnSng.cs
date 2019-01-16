@@ -605,10 +605,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                     {
                     }
 
-                    public static new ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
-                        int cv = Math.Max(1, typeSrc.VectorSize);
+                        int cv = Math.Max(1, typeSrc.Size);
                         List<int> nz = null;
                         int cfeat;
                         TFloat[] scales;
@@ -934,10 +934,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                     {
                     }
 
-                    public static new ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
-                        int cv = Math.Max(1, typeSrc.VectorSize);
+                        int cv = Math.Max(1, typeSrc.Size);
 
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
@@ -1138,10 +1138,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                         }
                     }
 
-                    public static new ImplVec Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
+                    public static ImplVec Create(ModelLoadContext ctx, IHost host, VectorType typeSrc)
                     {
                         host.Check(typeSrc.ItemType.RawType == typeof(TFloat), "The column type must be vector of R4.");
-                        int cv = Math.Max(1, typeSrc.VectorSize);
+                        int cv = Math.Max(1, typeSrc.Size);
                         host.CheckValue(ctx, nameof(ctx));
                         ctx.CheckAtModel(GetVersionInfo());
 
@@ -1483,11 +1483,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MinMaxColumn column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
-                    var cv = srcType.ValueCount;
+                    var cv = srcType.Size;
                     return new MinMaxVecColumnFunctionBuilder(host, cv, column.MaxTrainingExamples, column.FixZero, getter);
                 }
 
@@ -1619,20 +1619,20 @@ namespace Microsoft.ML.Transforms.Normalizers
                     _useCdf = useCdf;
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.MeanVarColumn column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
-                    var cv = srcType.ValueCount;
+                    var cv = srcType.Size;
                     return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaxTrainingExamples, column.FixZero, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.LogMeanVarColumn column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaxTrainingExamples;
                     host.CheckUserArg(lim > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
-                    var cv = srcType.ValueCount;
+                    var cv = srcType.Size;
                     return new MeanVarVecColumnFunctionBuilder(host, cv, lim, false, getter, true, column.UseCdf);
                 }
 
@@ -1784,7 +1784,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     }
                 }
 
-                public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizingEstimator.BinningColumn column, IHost host, VectorType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaxTrainingExamples;
@@ -1792,7 +1792,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     bool fix = column.FixZero;
                     var numBins = column.NumBins;
                     host.CheckUserArg(numBins > 1, nameof(column.NumBins), "Must be greater than 1");
-                    var cv = srcType.ValueCount;
+                    var cv = srcType.Size;
                     return new BinVecColumnFunctionBuilder(host, cv, lim, fix, numBins, getter);
                 }
 

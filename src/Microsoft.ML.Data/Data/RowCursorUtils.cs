@@ -150,8 +150,8 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeDst.RawType);
@@ -170,8 +170,8 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Data
                 return (ValueGetter<VBuffer<TDst>>)(Delegate)getter;
             }
 
-            int size = typeSrc.VectorSize;
+            int size = typeSrc.Size;
             var src = default(VBuffer<TSrc>);
             return (ref VBuffer<TDst> dst) =>
             {

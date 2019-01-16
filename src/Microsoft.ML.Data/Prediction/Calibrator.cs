@@ -537,7 +537,7 @@ namespace Microsoft.ML.Internal.Calibration
                 if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
                 var scoreType = _predictor.OutputSchema[_scoreCol].Type;
-                env.Check(!scoreType.IsVector && scoreType is NumberType);
+                env.Check(scoreType is NumberType);
                 OutputSchema = ScoreSchemaFactory.CreateBinaryClassificationSchema();
             }
 

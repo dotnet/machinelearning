@@ -229,16 +229,18 @@ namespace Microsoft.ML.Transforms.Conversions
                     var typeSrc = schema[ColMapNewToOld[iinfo]].Type;
                     var typeVals = schema[ColMapNewToOld[iinfo]].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     Host.Check(typeVals != null, "Metadata KeyValues does not exist");
-                    Host.Check(typeVals.VectorSize == typeSrc.ItemType.GetKeyCount(), "KeyValues metadata size does not match column type key count");
+                    ColumnType valsItemType = typeVals.GetItemType();
+                    ColumnType srcItemType = typeSrc.GetItemType();
+                    Host.Check(typeVals.GetVectorSize() == srcItemType.GetKeyCount(), "KeyValues metadata size does not match column type key count");
                     if (!(typeSrc is VectorType vectorType))
-                        types[iinfo] = typeVals.ItemType;
+                        types[iinfo] = valsItemType;
                     else
-                        types[iinfo] = new VectorType((PrimitiveType)typeVals.ItemType, vectorType);
+                        types[iinfo] = new VectorType((PrimitiveType)valsItemType, vectorType);
 
                     // MarshalInvoke with two generic params.
                     Func<int, ColumnType, ColumnType, KeyToValueMap> func = GetKeyMetadata<int, int>;
                     var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(
-                        new Type[] { typeSrc.ItemType.RawType, types[iinfo].ItemType.RawType });
+                        new Type[] { srcItemType.RawType, types[iinfo].GetItemType().RawType });
                     kvMaps[iinfo] = (KeyToValueMap)meth.Invoke(this, new object[] { iinfo, typeSrc, typeVals });
                 }
             }
@@ -248,15 +250,17 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 Host.AssertValue(typeKey);
                 Host.AssertValue(typeVal);
-                Host.Assert(typeKey.ItemType.RawType == typeof(TKey));
-                Host.Assert(typeVal.ItemType.RawType == typeof(TValue));
+                ColumnType keyItemType = typeKey.GetItemType();
+                ColumnType valItemType = typeVal.GetItemType();
+                Host.Assert(keyItemType.RawType == typeof(TKey));
+                Host.Assert(valItemType.RawType == typeof(TValue));
 
                 var keyMetadata = default(VBuffer<TValue>);
                 InputSchema[ColMapNewToOld[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyMetadata);
-                Host.Check(keyMetadata.Length == typeKey.ItemType.GetKeyCount());
+                Host.Check(keyMetadata.Length == keyItemType.GetKeyCount());
 
                 VBufferUtils.Densify(ref keyMetadata);
-                return new KeyToValueMap<TKey, TValue>(this, (KeyType)typeKey.ItemType, (PrimitiveType)typeVal.ItemType, keyMetadata, iinfo);
+                return new KeyToValueMap<TKey, TValue>(this, (KeyType)keyItemType, (PrimitiveType)valItemType, keyMetadata, iinfo);
             }
             /// <summary>
             /// A map is an object capable of creating the association from an input type, to an output
@@ -316,12 +320,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     _values = values;
 
                     // REVIEW: May want to include more specific information about what the specific value is for the default.
-                    _na = Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(TypeOutput.ItemType, out _naMapsToDefault);
+                    ColumnType outputItemType = TypeOutput.GetItemType();
+                    _na = Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(outputItemType, out _naMapsToDefault);
 
                     if (_naMapsToDefault)
                     {
                         // Only initialize _isDefault if _defaultIsNA is true as this is the only case in which it is used.
-                        _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<TValue>(TypeOutput.ItemType);
+                        _isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<TValue>(outputItemType);
                     }
 
                     bool identity;
@@ -357,7 +362,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                     Parent.Host.AssertValue(input);
 
-                    if (!Parent._types[InfoIndex].IsVector)
+                    if (!(Parent._types[InfoIndex] is VectorType))
                     {
                         var src = default(TKey);
                         ValueGetter<TKey> getSrc = input.GetGetter<TKey>(Parent.ColMapNewToOld[InfoIndex]);
@@ -479,7 +484,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     JObject cellRef = PfaUtils.Cell(cellName);
 
                     var srcType = Parent.InputSchema[Parent.ColMapNewToOld[InfoIndex]].Type;
-                    if (srcType.IsVector)
+                    if (srcType is VectorType)
                     {
                         var funcName = ctx.GetFreeFunctionName("mapKeyToValue");
                         ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("key", PfaUtils.Type.Int)),

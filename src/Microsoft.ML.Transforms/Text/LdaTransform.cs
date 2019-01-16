@@ -713,7 +713,8 @@ namespace Microsoft.ML.Transforms.Text
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
 
                     var srcCol = inputSchema[_srcCols[i]];
-                    if (!srcCol.Type.IsKnownSizeVector || !(srcCol.Type.ItemType is NumberType))
+                    var srcType = srcCol.Type as VectorType;
+                    if (srcType == null || !srcType.IsKnownSize || !(srcType.ItemType is NumberType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input, "a fixed vector of floats", srcCol.Type.ToString());
                 }
             }
@@ -945,8 +946,8 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputData.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol))
                     throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].Input);
 
-                var srcColType = inputSchema[srcCol].Type;
-                if (!srcColType.IsKnownSizeVector || !(srcColType.ItemType is NumberType))
+                var srcColType = inputSchema[srcCol].Type as VectorType;
+                if (srcColType == null || !srcColType.IsKnownSize || !(srcColType.ItemType is NumberType))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats", srcColType.ToString());
 
                 srcCols[i] = srcCol;
@@ -954,7 +955,7 @@ namespace Microsoft.ML.Transforms.Text
                 numVocabs[i] = 0;
 
                 VBuffer<ReadOnlyMemory<char>> dst = default;
-                if (inputSchema[srcCol].HasSlotNames(srcColType.ValueCount))
+                if (inputSchema[srcCol].HasSlotNames(srcColType.Size))
                     inputSchema[srcCol].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref dst);
                 else
                     dst = default(VBuffer<ReadOnlyMemory<char>>);

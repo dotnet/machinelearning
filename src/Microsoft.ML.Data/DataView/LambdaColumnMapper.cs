@@ -29,8 +29,8 @@ namespace Microsoft.ML.Data
             env.CheckValue(typeSrc, nameof(typeSrc));
             env.CheckValue(typeDst, nameof(typeDst));
             env.CheckValue(mapper, nameof(mapper));
-            env.Check(keyValueGetter == null || typeDst.ItemType is KeyType);
-            env.Check(slotNamesGetter == null || typeDst.IsKnownSizeVector);
+            env.Check(keyValueGetter == null || typeDst.GetItemType() is KeyType);
+            env.Check(slotNamesGetter == null || typeDst.IsKnownSizeVector());
 
             if (typeSrc.RawType != typeof(TSrc))
             {
@@ -122,17 +122,19 @@ namespace Microsoft.ML.Data
                     {
                         if (keyValueGetter != null)
                         {
-                            Host.Assert(_typeDst.ItemType.GetKeyCount() > 0);
+                            int keyCount = _typeDst.GetItemType().GetKeyCount();
+                            Host.Assert(keyCount > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, _typeDst.ItemType.GetKeyCount()), mdGetter);
+                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, keyCount), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {
-                            Host.Assert(_typeDst.VectorSize > 0);
+                            int vectorSize = _typeDst.GetVectorSize();
+                            Host.Assert(vectorSize > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => slotNamesGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, _typeDst.VectorSize), mdGetter);
+                            bldr.AddGetter(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, vectorSize), mdGetter);
                         }
                     }
                 }

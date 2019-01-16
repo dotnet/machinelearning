@@ -540,7 +540,8 @@ namespace Microsoft.ML.Transforms.Text
             public const Language DefaultLanguage = Language.English;
         }
 
-        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType is TextType && type.IsVector;
+        public static bool IsColumnTypeValid(ColumnType type) =>
+            type is VectorType vectorType && vectorType.ItemType is TextType;
 
         internal const string ExpectedColumnType = "vector of Text type";
 
