@@ -14,45 +14,30 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// A view of data where columns can optionally be accessed slot by slot, as opposed to row
     /// by row in a typical dataview. A slot-accessible column can be accessed with a slot-by-slot
-    /// cursor via an <see cref="SlotCursor"/> (naturally, as opposed to row-by-row through an
-    /// <see cref="RowCursor"/>). This interface is intended to be implemented by classes that
-    /// want to provide an option for an alternate way of accessing the data stored in a
-    /// <see cref="IDataView"/>.
+    /// cursor via an <see cref="SlotCursor"/> returned by <see cref="GetSlotCursor(int)"/>
+    /// (naturally, as opposed to row-by-row through an <see cref="RowCursor"/>). This interface
+    /// is intended to be implemented by classes that want to provide an option for an alternate
+    /// way of accessing the data stored in a <see cref="IDataView"/>.
     ///
-    /// The interface only advertises that columns may be accessible in slot-wise fashion. A column
-    /// is accessible in this fashion iff <see cref="TransposeSlotTypeHolder"/>'s
-    /// <see cref="ITransposeSlotTypeHolder.GetSlotType"/> returns a non-null value.
+    /// The interface only advertises that columns may be accessible in slot-wise fashion. The i-th column
+    /// is accessible in this fashion iff <see cref="TransposeSlotTypes"/>[i] is not <see langword="null"/>
+    /// and <see cref="TransposeSlotTypes"/>[i] is not <see langword="null"/>.
     /// </summary>
     [BestFriend]
     internal interface ITransposeDataView : IDataView
     {
         /// <summary>
-        /// An enhanced schema, containing information on the transposition properties, if any,
-        /// of each column.
-        /// </summary>
-        ITransposeSlotTypeHolder TransposeSlotTypeHolder { get; }
-
-        /// <summary>
         /// Presents a cursor over the slots of a transposable column, or throws if the column
         /// is not transposable.
         /// </summary>
         SlotCursor GetSlotCursor(int col);
-    }
 
-    /// <summary>
-    /// The transpose schema returns the schema information of the view we have transposed.
-    /// </summary>
-    [BestFriend]
-    internal interface ITransposeSlotTypeHolder
-    {
         /// <summary>
-        /// Analogous to <see cref="ColumnType"/> in <see cref="Schema"/>, except instead of returning
-        /// the type of value accessible through the <see cref="RowCursor"/>, returns the item type of
-        /// value accessible through the <see cref="SlotCursor"/>. This will return <c>null</c> iff
-        /// this particular column is not transposable, that is, it cannot be viewed in a slotwise fashion.
-        /// Observe from the return type that this will always be a vector type. This vector type should
-        /// be of fixed size and one dimension.
+        /// <see cref="TransposeSlotTypes"/>[i] specifies the type of all values at the i-th column of <see cref="IDataView"/>.
+        /// For example, if <see cref="IDataView.Schema"/>[i] is a scalar float column, then <see cref="TransposeSlotTypes"/>[i]
+        /// may return a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/> field is <see cref="NumberType.R4"/>.
+        /// If the i-th column can't be iterated column-wisely, <see cref="TransposeSlotTypes"/>[i] may be <see langword="null"/>.
         /// </summary>
-        VectorType GetSlotType(int col);
+        VectorType[] TransposeSlotTypes { get; }
     }
 }

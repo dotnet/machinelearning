@@ -64,7 +64,7 @@ namespace Microsoft.ML.RunTests
         private static void TransposeCheckHelper<T>(IDataView view, int viewCol, ITransposeDataView trans)
         {
             int col = viewCol;
-            VectorType type = trans.TransposeSlotTypeHolder.GetSlotType(col);
+            VectorType type = trans.TransposeSlotTypes[col];
             ColumnType colType = trans.Schema[col].Type;
             Assert.Equal(view.Schema[viewCol].Name, trans.Schema[col].Name);
             ColumnType expectedType = view.Schema[viewCol].Type;
@@ -184,7 +184,7 @@ namespace Microsoft.ML.RunTests
                     Assert.True(trueIndex == index, $"Transpose schema had column '{names[i]}' at unexpected index");
                 }
                 // Check the contents
-                Assert.Null(trans.TransposeSlotTypeHolder.GetSlotType(2)); // C check to see that it's not transposable.
+                Assert.Null(trans.TransposeSlotTypes[2]); // C check to see that it's not transposable.
                 TransposeCheckHelper<int>(view, 0, trans); // A check.
                 TransposeCheckHelper<Double>(view, 1, trans); // B check.
                 TransposeCheckHelper<Double>(view, 3, trans); // D check.
@@ -199,9 +199,9 @@ namespace Microsoft.ML.RunTests
             using (Transposer trans = Transposer.Create(Env, view, true, 3, 5, 4))
             {
                 // Check to see that A, B, and C were not transposed somehow.
-                Assert.Null(trans.TransposeSlotTypeHolder.GetSlotType(0));
-                Assert.Null(trans.TransposeSlotTypeHolder.GetSlotType(1));
-                Assert.Null(trans.TransposeSlotTypeHolder.GetSlotType(2));
+                Assert.Null(trans.TransposeSlotTypes[0]);
+                Assert.Null(trans.TransposeSlotTypes[1]);
+                Assert.Null(trans.TransposeSlotTypes[2]);
                 TransposeCheckHelper<Double>(view, 3, trans); // D check.
                 TransposeCheckHelper<uint>(view, 4, trans);   // E check.
                 TransposeCheckHelper<int>(view, 5, trans); // F check.

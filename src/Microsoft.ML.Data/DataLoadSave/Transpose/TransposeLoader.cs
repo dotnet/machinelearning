@@ -322,7 +322,6 @@ namespace Microsoft.ML.Data.IO
         private readonly IMultiStreamSource _file;
         private readonly IHost _host;
         private readonly Header _header;
-        private readonly TransposeSlotTypeHolder _transposeSlotTypeHolder;
 
         // This is a sub-IDV holding the schema, and optionally the data stored in row-wise format.
         private readonly SubIdvEntry.SchemaSubIdv _schemaEntry;
@@ -346,9 +345,6 @@ namespace Microsoft.ML.Data.IO
         /// </summary>
         private const ulong ReaderVersion = ReaderFirstVersion;
 
-        internal const string Summary = "Loads a binary transposed data file.";
-        internal const string LoadName = "TransposeLoader";
-
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -360,16 +356,6 @@ namespace Microsoft.ML.Data.IO
                 loaderAssemblyName: typeof(TransposeLoader).Assembly.FullName);
         }
 
-        // We return the schema view's schema, because we don't necessarily want
-        // something that can be cast to a transpose schema, and also because the
-        // transpose schema is defined after the entries have been read, which
-        // inspect the schema. We also want to ensure that the useful property that
-        // a cursor and view's schemas are the same, is preserved, which allows us
-        // to use the cursors from the schema view if convenient to do so.
-        public Schema Schema => _schemaEntry.GetView().Schema;
-
-        ITransposeSlotTypeHolder ITransposeDataView.TransposeSlotTypeHolder => _transposeSlotTypeHolder;
-
         /// <summary>
         /// Whether the master schema sub-IDV has the actual data.
         /// </summary>
@@ -377,6 +363,17 @@ namespace Microsoft.ML.Data.IO
         {
             get { return _header.RowCount == _schemaEntry.GetView().GetRowCount(); }
         }
+
+        internal const string Summary = "Loads a binary transposed data file.";
+        internal const string LoadName = "TransposeLoader";
+
+        // We return the schema view's schema, because we don't necessarily want
+        // something that can be cast to a transpose schema, and also because the
+        // transpose schema is defined after the entries have been read, which
+        // inspect the schema. We also want to ensure that the useful property that
+        // a cursor and view's schemas are the same, is preserved, which allows us
+        // to use the cursors from the schema view if convenient to do so.
+        public Schema Schema => _schemaEntry.GetView().Schema;
 
         public bool CanShuffle
         {
@@ -390,6 +387,8 @@ namespace Microsoft.ML.Data.IO
                 return false;
             }
         }
+
+        public VectorType[] TransposeSlotTypes { get; }
 
         public TransposeLoader(IHostEnvironment env, Arguments args, IMultiStreamSource file)
         {
@@ -413,13 +412,13 @@ namespace Microsoft.ML.Data.IO
                 _entries = new SubIdvEntry.TransposedSubIdv[_header.ColumnCount];
                 for (int c = 0; c < _entries.Length; ++c)
                     _entries[c] = new SubIdvEntry.TransposedSubIdv(this, reader, c);
-                _transposeSlotTypeHolder = new TransposeSlotTypeHolder(this);
                 if (!HasRowData)
                 {
                     _colTransposers = new Transposer[_header.ColumnCount];
                     _colTransposersLock = new object();
                 }
             }
+            TransposeSlotTypes = ComputeTransposeSchema();
         }
 
         private TransposeLoader(IHost host, ModelLoadContext ctx, IMultiStreamSource file)
@@ -447,7 +446,6 @@ namespace Microsoft.ML.Data.IO
                 _entries = new SubIdvEntry.TransposedSubIdv[_header.ColumnCount];
                 for (int c = 0; c < _entries.Length; ++c)
                     _entries[c] = new SubIdvEntry.TransposedSubIdv(this, reader, c);
-                _transposeSlotTypeHolder = new TransposeSlotTypeHolder(this);
                 if (!HasRowData)
                 {
                     _colTransposers = new Transposer[_header.ColumnCount];
@@ -482,7 +480,7 @@ namespace Microsoft.ML.Data.IO
                 _host.Assert(_entries[c].GetViewOrNull() == null);
             }
             _host.Assert(HasRowData);
-
+            TransposeSlotTypes = ComputeTransposeSchema();
         }
         public static TransposeLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
         {
@@ -610,28 +608,17 @@ namespace Microsoft.ML.Data.IO
             return header;
         }
 
-        private sealed class TransposeSlotTypeHolder : ITransposeSlotTypeHolder
+        private VectorType[] ComputeTransposeSchema()
         {
-            private readonly TransposeLoader _parent;
-            private Schema Schema { get { return _parent.Schema; } }
-            private IHost Host { get { return _parent._host; } }
-            public int ColumnCount { get { return Schema.Count; } }
+            var transposeSchema = new List<VectorType>();
 
-            public TransposeSlotTypeHolder(TransposeLoader parent)
+            for (int i = 0; i < _entries.Length; ++i)
             {
-                Contracts.AssertValue(parent);
-                _parent = parent;
-                var view = parent._schemaEntry.GetView().Schema;
+                var view = _entries[i].GetViewOrNull();
+                transposeSchema.Add(view.Schema[0].Type as VectorType);
             }
 
-            public VectorType GetSlotType(int col)
-            {
-                Host.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                var view = _parent._entries[col].GetViewOrNull();
-                if (view == null)
-                    return null;
-                return view.Schema[0].Type as VectorType;
-            }
+            return transposeSchema.ToArray();
         }
 
         public long? GetRowCount()
@@ -668,7 +655,7 @@ namespace Microsoft.ML.Data.IO
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
-            ColumnType cursorType = _transposeSlotTypeHolder.GetSlotType(col).ItemType;
+            ColumnType cursorType = TransposeSlotTypes[col].ItemType;
             RowCursor inputCursor = view.GetRowCursor(c => true);
             try
             {
@@ -754,7 +741,7 @@ namespace Microsoft.ML.Data.IO
                         _host.Assert(view.Schema.Count == 1);
                         var trans = _colTransposers[col] = Transposer.Create(_host, view, false, new int[] { 0 });
                         _host.Assert(trans.Schema.Count == 1);
-                        _host.Assert(trans.TransposeSlotTypeHolder.GetSlotType(0).GetValueCount() == Schema[col].Type.GetValueCount());
+                        _host.Assert(trans.TransposeSlotTypes[0].GetValueCount() == Schema[col].Type.GetValueCount());
                     }
                 }
             }
@@ -815,7 +802,7 @@ namespace Microsoft.ML.Data.IO
                 Ch.Assert(0 <= col && col < Schema.Count);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
                 var type = Schema[col].Type;
-                Ch.Assert(((ITransposeDataView)_parent).TransposeSlotTypeHolder.GetSlotType(col).GetValueCount() == _parent._header.RowCount);
+                Ch.Assert((type as VectorType).GetValueCount() == _parent._header.RowCount);
                 Action<int> func = InitOne<int>;
                 ColumnType itemType = type;
                 if (type is VectorType vectorType)
