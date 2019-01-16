@@ -87,7 +87,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// </summary>
         internal OlsLinearRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeR4ScalarColumn(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+                  TrainerUtils.MakeR4ScalarColumn(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Host.CheckUserArg(args.L2Weight >= 0, nameof(args.L2Weight), "L2 regularization term cannot be negative");
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             advancedSettings?.Invoke(args);
             args.FeatureColumn = featureColumn;
             args.LabelColumn = labelColumn;
-            args.WeightColumn = weightColumn;
+            args.WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight);
             return args;
         }
 
