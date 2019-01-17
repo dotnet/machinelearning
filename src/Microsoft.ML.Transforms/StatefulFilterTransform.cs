@@ -108,26 +108,26 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInputs = _bindings.GetActiveInput(predicate);
             Func<int, bool> inputPred = c => activeInputs[c];
 
             var input = _typedSource.GetCursor(inputPred, rand == null ? (int?)null : rand.Next());
-            return new Cursor(this, input, colsNeeded);
+            return new Cursor(this, input, columnsNeeded);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             Contracts.CheckParam(n >= 0, nameof(n));
             Contracts.CheckValueOrNull(rand);
 
             // This transform is stateful, its contract is to allocate exactly one state object per cursor and call the filter function
             // on every row in sequence. Therefore, parallel cursoring is not possible.
-            return new[] { GetRowCursor(colsNeeded, rand) };
+            return new[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         public IDataView Source => _source;
@@ -155,11 +155,11 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch => _input.Batch;
 
-            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, IEnumerable<Schema.Column> colsNeeded)
+            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, IEnumerable<Schema.Column> columnsNeeded)
                 : base(parent.Host)
             {
                 Ch.AssertValue(input);
-                Ch.AssertValue(colsNeeded);
+                Ch.AssertValue(columnsNeeded);
 
                 _parent = parent;
                 _input = input;
@@ -176,10 +176,9 @@ namespace Microsoft.ML.Transforms
 
                 var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(parent.Host, _parent._addedSchema);
                 appendedDataView.SetCurrentRowObject(_dst);
-                var appendedIndices = _parent._bindings.AddedColumnIndices;
 
-                var cols = colsNeeded.Select(c => c.Name);
-                _appendedRow = appendedDataView.GetRowCursor(appendedDataView.Schema.Where(c => cols.Contains(c.Name)));
+                var columnNames = columnsNeeded.Select(c => c.Name);
+                _appendedRow = appendedDataView.GetRowCursor(appendedDataView.Schema.Where(c => !c.IsHidden && columnNames.Contains(c.Name)));
             }
 
             protected override void Dispose(bool disposing)

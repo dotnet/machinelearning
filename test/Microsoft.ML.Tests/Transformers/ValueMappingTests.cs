@@ -336,7 +336,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterD = cursor.GetGetter<ReadOnlyMemory<char>>(result.Schema["DOutput"].Index);
             cursor.MoveNext();
 

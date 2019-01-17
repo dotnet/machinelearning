@@ -155,10 +155,10 @@ namespace Microsoft.ML.Transforms
 
         public override Schema OutputSchema => _groupBinding.OutputSchema;
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             return new Cursor(this, predicate);
         }
 
@@ -171,10 +171,10 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return false; } }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(colsNeeded) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded) };
         }
 
         /// <summary>

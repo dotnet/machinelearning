@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Transforms
                 rand = myRandom;
             Random sourceRand = shouldShuffleSource ? RandomUtils.Create(myRandom) : null;
 
-            var input = _subsetInput.GetRowCursor(colsNeeded, sourceRand);
+            var input = _subsetInput.GetRowCursor(columnsNeeded, sourceRand);
             // If rand is null (so we're not doing pool shuffling) or number of pool rows is 1
             // (so any pool shuffling, if attempted, would be trivial anyway), just return the
             // source cursor.
@@ -287,10 +287,10 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _poolRows, input, rand);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(colsNeeded, rand) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
         }
 
         /// <summary>

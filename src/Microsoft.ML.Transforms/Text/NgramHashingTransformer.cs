@@ -817,12 +817,12 @@ namespace Microsoft.ML.Transforms.Text
             private readonly int[] _invertHashMaxCounts;
             private readonly int[][] _srcIndices;
 
-            public InvertHashHelper(NgramHashingTransformer parent, Schema inputSchema, string[][] friendlyNames, IEnumerable<Schema.Column> colsNeeded, int[] invertHashMaxCounts)
+            public InvertHashHelper(NgramHashingTransformer parent, Schema inputSchema, string[][] friendlyNames, IEnumerable<Schema.Column> columnsNeeded, int[] invertHashMaxCounts)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(friendlyNames);
                 Contracts.Assert(friendlyNames.Length == parent._columns.Length);
-                Contracts.AssertValue(colsNeeded);
+                Contracts.AssertValue(columnsNeeded);
                 Contracts.AssertValue(invertHashMaxCounts);
                 Contracts.Assert(invertHashMaxCounts.Length == parent._columns.Length);
                 _parent = parent;
@@ -832,7 +832,7 @@ namespace Microsoft.ML.Transforms.Text
                 _srcTextGetters = new ValueMapper<uint, StringBuilder>[inputSchema.Count];
                 _invertHashMaxCounts = invertHashMaxCounts;
 
-                foreach(var col in colsNeeded)
+                foreach(var col in columnsNeeded)
                 {
                     Contracts.Assert(col.Index < _srcTextGetters.Length);
                     _srcTextGetters[col.Index] = InvertHashUtils.GetSimpleMapper<uint>(inputSchema, col.Index);

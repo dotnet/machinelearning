@@ -164,20 +164,20 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             // We do not use the input random because this cursor does not support shuffling.
             var rgen = new TauswortheHybrid(_state);
-            var input = Source.GetRowCursor(colsNeeded, _shuffleInput ? new TauswortheHybrid(rgen) : null);
+            var input = Source.GetRowCursor(columnsNeeded, _shuffleInput ? new TauswortheHybrid(rgen) : null);
             RowCursor cursor = new Cursor(this, input, rgen);
             if (_poolSize > 1)
                 cursor = RowShufflingTransformer.GetShuffledCursor(Host, _poolSize, cursor, new TauswortheHybrid(rgen));
             return cursor;
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            var cursor = GetRowCursorCore(colsNeeded, rand);
+            var cursor = GetRowCursorCore(columnsNeeded, rand);
             return new RowCursor[] { cursor };
         }
 

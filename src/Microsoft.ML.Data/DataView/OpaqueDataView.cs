@@ -24,10 +24,10 @@ namespace Microsoft.ML.Data
 
         public long? GetRowCount() => _source.GetRowCount();
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
-            =>_source.GetRowCursor(colsNeeded, rand);
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            =>_source.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
-            => _source.GetRowCursorSet(colsNeeded, n, rand);
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => _source.GetRowCursorSet(columnsNeeded, n, rand);
     }
 }

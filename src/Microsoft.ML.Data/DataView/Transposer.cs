@@ -280,11 +280,11 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
-            => _view.GetRowCursor(colsNeeded, rand);
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            => _view.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
-            => _view.GetRowCursorSet(colsNeeded, n, rand);
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => _view.GetRowCursorSet(columnsNeeded, n, rand);
 
         public long? GetRowCount()
         {
@@ -821,9 +821,9 @@ namespace Microsoft.ML.Data
                 splitCol = _colToSplitCol[col];
             }
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
@@ -832,16 +832,16 @@ namespace Microsoft.ML.Data
                 return new Cursor(_host, this, _input.GetRowCursor(inputCols, rand), predicate, activeSplitters);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
 
-                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
 
-                var srcCols = colsNeeded.Where( x => srcPred(x.Index));
+                var srcCols = columnsNeeded.Where( x => srcPred(x.Index));
                 var result = _input.GetRowCursorSet(srcCols, n, rand);
                 for (int i = 0; i < result.Length; ++i)
                     result[i] = new Cursor(_host, this, result[i], predicate, activeSplitters);
@@ -1395,9 +1395,9 @@ namespace Microsoft.ML.Data
                 return valueCount;
             }
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                bool hasZero = colsNeeded != null && colsNeeded.Any(x => x.Index == 0);
+                bool hasZero = columnsNeeded != null && columnsNeeded.Any(x => x.Index == 0);
                 return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, hasZero);
             }
 
@@ -1406,9 +1406,9 @@ namespace Microsoft.ML.Data
                 return new Cursor<T>(this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                return new RowCursor[] { GetRowCursor(colsNeeded, rand) };
+                return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
             }
 
             private sealed class Cursor<T> : RootCursorBase

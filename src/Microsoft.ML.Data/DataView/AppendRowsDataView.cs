@@ -144,16 +144,16 @@ namespace Microsoft.ML.Data
             return sum;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             if (rand == null || !_canShuffle)
-                return new Cursor(this, colsNeeded);
-            return new RandCursor(this, colsNeeded, rand, _counts);
+                return new Cursor(this, columnsNeeded);
+            return new RandCursor(this, columnsNeeded, rand, _counts);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            return new RowCursor[] { GetRowCursor(colsNeeded, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         private abstract class CursorBase : RootCursorBase
@@ -209,14 +209,14 @@ namespace Microsoft.ML.Data
             private ValueGetter<RowId> _currentIdGetter;
             private int _currentSourceIndex;
 
-            public Cursor(AppendRowsDataView parent, IEnumerable<Schema.Column> colsNeeded)
+            public Cursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded)
                 : base(parent)
             {
                 _currentSourceIndex = 0;
-                _currentCursor = Sources[_currentSourceIndex].GetRowCursor(colsNeeded);
+                _currentCursor = Sources[_currentSourceIndex].GetRowCursor(columnsNeeded);
                 _currentIdGetter = _currentCursor.GetIdGetter();
 
-                foreach(var col in colsNeeded)
+                foreach(var col in columnsNeeded)
                     Getters[col.Index] = CreateGetter(col.Index);
             }
 
@@ -266,8 +266,8 @@ namespace Microsoft.ML.Data
                     if (++_currentSourceIndex >= Sources.Length)
                         return false;
 
-                    var colsNeeded = Schema.Where(col => IsColumnActive(col.Index));
-                    _currentCursor = Sources[_currentSourceIndex].GetRowCursor(colsNeeded);
+                    var columnsNeeded = Schema.Where(col => IsColumnActive(col.Index));
+                    _currentCursor = Sources[_currentSourceIndex].GetRowCursor(columnsNeeded);
                     _currentIdGetter = _currentCursor.GetIdGetter();
                 }
 
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Data
             private readonly Random _rand;
             private int _currentSourceIndex;
 
-            public RandCursor(AppendRowsDataView parent, IEnumerable<Schema.Column> colsNeeded, Random rand, int[] counts)
+            public RandCursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded, Random rand, int[] counts)
                 : base(parent)
             {
                 Ch.AssertValue(rand);
@@ -311,12 +311,12 @@ namespace Microsoft.ML.Data
                 for (int i = 0; i < counts.Length; i++)
                 {
                     Ch.Assert(counts[i] >= 0);
-                    _cursorSet[i] = parent._sources[i].GetRowCursor(colsNeeded, RandomUtils.Create(_rand));
+                    _cursorSet[i] = parent._sources[i].GetRowCursor(columnsNeeded, RandomUtils.Create(_rand));
                 }
                 _sampler = new MultinomialWithoutReplacementSampler(Ch, counts, rand);
                 _currentSourceIndex = -1;
 
-                foreach(var col in colsNeeded)
+                foreach(var col in columnsNeeded)
                     Getters[col.Index] = CreateGetter(col.Index);
             }
 

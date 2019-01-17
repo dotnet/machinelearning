@@ -202,11 +202,11 @@ namespace Microsoft.ML.Data
             return _rowCount;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
             // We have this explicit enumeration over the generic types to force different assembly
             // code to be generated for the different types, of both waiters and especially indexers.
@@ -248,16 +248,16 @@ namespace Microsoft.ML.Data
             return CreateCursor(predicate, RandomIndex<TWaiter>.Create(waiter, perm));
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
 
             n = DataViewUtils.GetThreadCount(_host, n);
 
             if (n <= 1)
-                return new RowCursor[] { GetRowCursor(colsNeeded, rand) };
+                return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
 
             var waiter = WaiterWaiter.Create(this, predicate);
             if (waiter.IsTrivial)

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
@@ -143,7 +142,7 @@ namespace Microsoft.ML.Scenarios
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
             var trans = new TensorFlowTransformer(mlContext, model_location, inputs, outputs).Transform(loader); ;
 
-            using (var cursor = trans.GetRowCursor(a => true))
+            using (var cursor = trans.GetRowCursorForAllColumns())
             {
                 var f64getter = cursor.GetGetter<VBuffer<double>>(11);
                 var f32getter = cursor.GetGetter<VBuffer<float>>(12);

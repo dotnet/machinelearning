@@ -624,9 +624,9 @@ namespace Microsoft.ML.Transforms
 
             public long? GetRowCount() => Source.GetRowCount();
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.AssertValueOrNull(rand);
 
                 // Build out the active state for the input
@@ -636,13 +636,13 @@ namespace Microsoft.ML.Transforms
                 var inputRowCursor = Source.GetRowCursor(inputCols, rand);
 
                 // Build the active state for the output
-                var active = Utils.BuildArray(_mapper.OutputSchema.Count, colsNeeded);
+                var active = Utils.BuildArray(_mapper.OutputSchema.Count, columnsNeeded);
                 return new Cursor(_host, _mapper, inputRowCursor, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
                 _host.CheckValueOrNull(rand);
 
                 // Build out the active state for the input
@@ -651,7 +651,7 @@ namespace Microsoft.ML.Transforms
                 var inputs = Source.GetRowCursorSet(inputCols, n, rand);
 
                 // Build out the acitve state for the output
-                var active = Utils.BuildArray(_mapper.OutputSchema.Count, colsNeeded);
+                var active = Utils.BuildArray(_mapper.OutputSchema.Count, columnsNeeded);
                 _host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.

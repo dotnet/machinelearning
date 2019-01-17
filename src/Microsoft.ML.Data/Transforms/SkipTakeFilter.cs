@@ -188,19 +188,19 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             Host.AssertValueOrNull(rand);
 
-            var input = Source.GetRowCursor(colsNeeded);
-            var activeColumns = Utils.BuildArray(OutputSchema.Count, colsNeeded);
+            var input = Source.GetRowCursor(columnsNeeded);
+            var activeColumns = Utils.BuildArray(OutputSchema.Count, columnsNeeded);
             return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(colsNeeded) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded) };
         }
 
         private sealed class Cursor : LinkedRowRootCursorBase

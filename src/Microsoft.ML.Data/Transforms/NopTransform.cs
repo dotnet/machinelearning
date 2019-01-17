@@ -118,11 +118,11 @@ namespace Microsoft.ML.Data
             return Source.GetRowCount();
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
-            => Source.GetRowCursor(colsNeeded, rand);
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            => Source.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
-            => Source.GetRowCursorSet(colsNeeded, n, rand);
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => Source.GetRowCursorSet(columnsNeeded, n, rand);
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {

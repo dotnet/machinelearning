@@ -11,22 +11,22 @@ namespace Microsoft.ML.Data
     internal static class DataViewExtensions
     {
         /// <summary>
-        /// Get a row cursor. The <paramref name="colsNeeded"/> are the active columns.
+        /// Get a row cursor. The <paramref name="columnsNeeded"/> are the active columns.
         /// The schema of the returned cursor will be the same as the schema of the IDataView, but getting
         /// a getter for an inactive columns will throw.
         /// </summary>
-        /// <param name="colsNeeded">The columns requested by this <see cref="RowCursor"/>, or as otherwise called, the active columns.
+        /// <param name="columnsNeeded">The columns requested by this <see cref="RowCursor"/>, or as otherwise called, the active columns.
         /// An empty collection indicates that no column is needed.</param>
-        /// <param name="dv">The <see cref="IDataView"/> containing the <paramref name="colsNeeded"/>.</param>
-        public static RowCursor GetRowCursor(this IDataView dv, params Schema.Column[] colsNeeded)
+        /// <param name="dv">The <see cref="IDataView"/> containing the <paramref name="columnsNeeded"/>.</param>
+        public static RowCursor GetRowCursor(this IDataView dv, params Schema.Column[] columnsNeeded)
         {
-            Contracts.AssertValue(colsNeeded, $"The {nameof(colsNeeded)} cannot be null. Pass an empty array, to indicate that no columns is needed.");
+            Contracts.AssertValue(columnsNeeded, $"The {nameof(columnsNeeded)} cannot be null. Pass an empty array, to indicate that no columns is needed.");
 
-            foreach (var col in colsNeeded)
+            foreach (var col in columnsNeeded)
                 Contracts.Assert(dv.Schema[col.Index].Equals(col), $"The requested column named: {col.Name}, with index: {col.Index} and type: {col.Type}" +
                     $" is not present in the {nameof(IDataView)} where the {nameof(RowCursor)} is being requested.");
 
-            return dv.GetRowCursor(colsNeeded);
+            return dv.GetRowCursor(columnsNeeded);
         }
 
         /// <summary>

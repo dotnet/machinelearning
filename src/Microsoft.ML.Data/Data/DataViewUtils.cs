@@ -115,20 +115,20 @@ namespace Microsoft.ML.Data
         /// the target cardinality of the cursor set.
         /// </summary>
         public static bool TryCreateConsolidatingCursor(out RowCursor curs,
-            IDataView view, IEnumerable<Schema.Column> colsNeeded, IHost host, Random rand)
+            IDataView view, IEnumerable<Schema.Column> columnsNeeded, IHost host, Random rand)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));
 
             int cthd = GetThreadCount(host);
             host.Assert(cthd > 0);
-            if (cthd == 1 || !AllCacheable(colsNeeded))
+            if (cthd == 1 || !AllCacheable(columnsNeeded))
             {
                 curs = null;
                 return false;
             }
 
-            var inputs = view.GetRowCursorSet(colsNeeded, cthd, rand);
+            var inputs = view.GetRowCursorSet(columnsNeeded, cthd, rand);
             host.Check(Utils.Size(inputs) > 0);
 
             if (inputs.Length == 1)
@@ -198,14 +198,14 @@ namespace Microsoft.ML.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCacheable(IEnumerable<Schema.Column> colsNeeded)
+        public static bool AllCacheable(IEnumerable<Schema.Column> columnsNeeded)
         {
-            Contracts.CheckValue(colsNeeded, nameof(colsNeeded));
+            Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
 
-            if (colsNeeded == null)
+            if (columnsNeeded == null)
                 return false;
 
-            foreach (var col in colsNeeded)
+            foreach (var col in columnsNeeded)
                 if (!IsCacheable(col.Type))
                     return false;
 

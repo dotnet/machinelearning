@@ -429,9 +429,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
 
             public override bool CanShuffle { get { return false; } }
 
-            protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+            protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                var srcCursor = _transform.GetRowCursor(colsNeeded, rand);
+                var srcCursor = _transform.GetRowCursor(columnsNeeded, rand);
                 var clone = (SequentialDataTransform)MemberwiseClone();
                 clone.CloneStateInMapper();
                 return new Cursor(Host, clone, srcCursor);
@@ -446,8 +446,8 @@ namespace Microsoft.ML.TimeSeriesProcessing
             public override long? GetRowCount()
                 => _transform.GetRowCount();
 
-            public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
-                => new RowCursor[] { GetRowCursorCore(colsNeeded, rand) };
+            public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+                => new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
 
             public override void Save(ModelSaveContext ctx)
             {
@@ -696,21 +696,21 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             Func<int, bool> predicateInput;
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var active = GetActive(predicate, out predicateInput);
             var inputCols = Source.Schema.Where(x => predicateInput(x.Index));
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
              Host.CheckValueOrNull(rand);
 
             Func<int, bool> predicateInput;
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var active = GetActive(predicate, out predicateInput);
 
             var inputCols = Source.Schema.Where(x => predicateInput(x.Index));

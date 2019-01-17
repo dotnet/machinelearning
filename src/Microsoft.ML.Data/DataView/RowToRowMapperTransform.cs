@@ -181,9 +181,9 @@ namespace Microsoft.ML.Data
             return null;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
@@ -192,11 +192,11 @@ namespace Microsoft.ML.Data
             return new Cursor(Host, Source.GetRowCursor(inputCols, rand), this, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);

@@ -33,10 +33,10 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Get a row cursor. The active column indices are those for which needCol(col) returns true.
         /// The schema of the returned cursor will be the same as the schema of the IDataView, but getting
-        /// a getter for inactive columns will throw. The <paramref name="colsNeeded"/> indicate the columns that are needed
+        /// a getter for inactive columns will throw. The <paramref name="columnsNeeded"/> indicate the columns that are needed
         /// to iterate over.If set to an empty <see cref="IEnumerable"/> no column is requested.
         /// </summary>
-        RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null);
+        RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null);
 
         /// <summary>
         /// This constructs a set of parallel batch cursors. The value <paramref name="n"/> is a recommended limit on
@@ -56,11 +56,11 @@ namespace Microsoft.ML.Data
         /// scenarios will be content with pulling from the single serial cursor of
         /// <see cref="GetRowCursor(IEnumerable{Schema.Column}, Random)"/>.
         /// </summary>
-        /// <param name="colsNeeded">The active columns needed. If passed an empty <see cref="IEnumerable"/> no column is requested.</param>
+        /// <param name="columnsNeeded">The active columns needed. If passed an empty <see cref="IEnumerable"/> no column is requested.</param>
         /// <param name="n">The suggested degree of parallelism.</param>
         /// <param name="rand">An instance of <see cref="Random"/> to seed randomizing the access.</param>
         /// <returns></returns>
-        RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null);
+        RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null);
 
         /// <summary>
         /// Gets an instance of Schema.

@@ -615,21 +615,21 @@ namespace Microsoft.ML.Data.IO
             return _header.RowCount;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, _schemaEntry.GetView().Schema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, _schemaEntry.GetView().Schema);
 
             _host.CheckValueOrNull(rand);
             if (HasRowData)
-                return _schemaEntry.GetView().GetRowCursor(colsNeeded, rand);
+                return _schemaEntry.GetView().GetRowCursor(columnsNeeded, rand);
             return new Cursor(this, predicate);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             if (HasRowData)
-                return _schemaEntry.GetView().GetRowCursorSet(colsNeeded, n, rand);
-            return new RowCursor[] { GetRowCursor(colsNeeded, rand) };
+                return _schemaEntry.GetView().GetRowCursorSet(columnsNeeded, n, rand);
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         SlotCursor ITransposeDataView.GetSlotCursor(int col)

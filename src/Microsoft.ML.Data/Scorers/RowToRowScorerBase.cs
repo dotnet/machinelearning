@@ -119,11 +119,11 @@ namespace Microsoft.ML.Data
         /// </summary>
         protected abstract bool WantParallelCursors(Func<int, bool> predicate);
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             Contracts.AssertValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var bindings = GetBindings();
             Func<int, bool> inputPred;
@@ -135,11 +135,11 @@ namespace Microsoft.ML.Data
             return new Cursor(Host, this, input, active, predicateMapper);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             Host.CheckValueOrNull(rand);
 
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
 
             var bindings = GetBindings();
             Func<int, bool> inputPred;

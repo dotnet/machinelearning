@@ -70,9 +70,9 @@ namespace Microsoft.ML.Data
             return min;
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, Schema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
             _host.CheckValueOrNull(rand);
 
             var srcPredicates = _zipBinding.GetInputPredicates(predicate);
@@ -98,9 +98,9 @@ namespace Microsoft.ML.Data
             return dv.GetRowCursor();
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            return new RowCursor[] { GetRowCursor(colsNeeded, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         private sealed class Cursor : RootCursorBase

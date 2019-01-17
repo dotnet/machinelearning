@@ -28,16 +28,16 @@ namespace Microsoft.ML.Data
 
         public long? GetRowCount() => 0;
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
-            return new Cursor(_host, Schema, colsNeeded);
+            return new Cursor(_host, Schema, columnsNeeded);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
-            return new[] { new Cursor(_host, Schema, colsNeeded) };
+            return new[] { new Cursor(_host, Schema, columnsNeeded) };
         }
 
         private sealed class Cursor : RootCursorBase
@@ -47,12 +47,12 @@ namespace Microsoft.ML.Data
             public override Schema Schema { get; }
             public override long Batch => 0;
 
-            public Cursor(IChannelProvider provider, Schema schema, IEnumerable<Schema.Column> colsNeeded)
+            public Cursor(IChannelProvider provider, Schema schema, IEnumerable<Schema.Column> columnsNeeded)
                 : base(provider)
             {
                 Ch.AssertValue(schema);
                 Schema = schema;
-                _active = Utils.BuildArray(Schema.Count, colsNeeded);
+                _active = Utils.BuildArray(Schema.Count, columnsNeeded);
             }
 
             public override ValueGetter<RowId> GetIdGetter()

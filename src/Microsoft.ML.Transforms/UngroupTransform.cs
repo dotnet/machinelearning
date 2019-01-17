@@ -177,9 +177,9 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
 
             var inputCols = Source.Schema.Where(x => activeInput[x.Index]);
@@ -187,10 +187,10 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, inputCursor, _ungroupBinding, predicate);
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded,
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded,
             int n, Random rand = null)
         {
-            var predicate = RowCursorUtils.FromColumnsToPredicate(colsNeeded, OutputSchema);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
 
             var inputCols = Source.Schema.Where(x => activeInput[x.Index]);

@@ -474,19 +474,19 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Given a collection of <see cref="Schema.Column"/>, that is a subset of the Schema of the data, create a predicate,
         /// that when passed a column index, will return <langword>true</langword> or <langword>false</langword>, based on whether
-        /// the column with the given <see cref="Schema.Column.Index"/> is part of the <paramref name="colsNeeded"/>.
+        /// the column with the given <see cref="Schema.Column.Index"/> is part of the <paramref name="columnsNeeded"/>.
         /// </summary>
-        /// <param name="colsNeeded">The subset of columns from the <see cref="Schema"/> that are needed from this <see cref="RowCursor"/>.</param>
-        /// <param name="sourceSchema">The <see cref="Schema"/> from where the colsNeeded originate.</param>
+        /// <param name="columnsNeeded">The subset of columns from the <see cref="Schema"/> that are needed from this <see cref="RowCursor"/>.</param>
+        /// <param name="sourceSchema">The <see cref="Schema"/> from where the columnsNeeded originate.</param>
         [BestFriend]
-        internal static Func<int, bool> FromColumnsToPredicate(IEnumerable<Schema.Column> colsNeeded, Schema sourceSchema)
+        internal static Func<int, bool> FromColumnsToPredicate(IEnumerable<Schema.Column> columnsNeeded, Schema sourceSchema)
         {
-            Contracts.CheckValue(colsNeeded, nameof(colsNeeded));
+            Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
             Contracts.CheckValue(sourceSchema, nameof(sourceSchema));
 
             bool[] indicesRequested = new bool[sourceSchema.Count];
 
-            foreach (var col in colsNeeded)
+            foreach (var col in columnsNeeded)
             {
                 if (col.Index >= indicesRequested.Length)
                     throw Contracts.Except($"The requested column: {col} is not part of the {nameof(sourceSchema)}");

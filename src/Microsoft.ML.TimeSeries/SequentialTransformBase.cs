@@ -352,9 +352,9 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return false;
         }
 
-        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            var srcCursor = _transform.GetRowCursor(colsNeeded, rand);
+            var srcCursor = _transform.GetRowCursor(columnsNeeded, rand);
             return new Cursor(this, srcCursor);
         }
 
@@ -365,8 +365,8 @@ namespace Microsoft.ML.TimeSeriesProcessing
             return _transform.GetRowCount();
         }
 
-        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
-            => new RowCursor[] { GetRowCursorCore(colsNeeded, rand) };
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
 
         /// <summary>
         /// A wrapper around the cursor which replaces the schema.

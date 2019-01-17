@@ -1212,29 +1212,29 @@ namespace Microsoft.ML.Data.IO
             return entry;
         }
 
-        private RowCursor GetRowCursorCore(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        private RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             if (rand != null && _randomShufflePoolRows > 0)
             {
                 // Don't bother with block shuffling, if the shuffle cursor is just going to hold
                 // the entire dataset in memory anyway.
                 var ourRand = _randomShufflePoolRows == _header.RowCount ? null : rand;
-                var cursor = new Cursor(this, colsNeeded, ourRand);
+                var cursor = new Cursor(this, columnsNeeded, ourRand);
                 return RowShufflingTransformer.GetShuffledCursor(_host, _randomShufflePoolRows, cursor, rand);
             }
-            return new Cursor(this, colsNeeded, rand);
+            return new Cursor(this, columnsNeeded, rand);
         }
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
-            return GetRowCursorCore(colsNeeded, rand);
+            return GetRowCursorCore(columnsNeeded, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colsNeeded, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursorCore(colsNeeded, rand) };
+            return new RowCursor[] { GetRowCursorCore(columnsNeeded, rand) };
         }
 
         private sealed class Cursor : RootCursorBase
@@ -1268,7 +1268,7 @@ namespace Microsoft.ML.Data.IO
                 get { return 0; }
             }
 
-            public Cursor(BinaryLoader parent, IEnumerable<Schema.Column> colsNeeded, Random rand)
+            public Cursor(BinaryLoader parent, IEnumerable<Schema.Column> columnsNeeded, Random rand)
                 : base(parent._host)
             {
                 _parent = parent;
@@ -1278,7 +1278,7 @@ namespace Microsoft.ML.Data.IO
 
                 TableOfContentsEntry[] toc = _parent._aliveColumns;
                 int[] activeIndices;
-                Utils.BuildSubsetMaps(toc.Length, colsNeeded, out activeIndices, out _colToActivesIndex);
+                Utils.BuildSubsetMaps(toc.Length, columnsNeeded, out activeIndices, out _colToActivesIndex);
                 _actives = new TableOfContentsEntry[activeIndices.Length];
                 for (int i = 0; i < activeIndices.Length; ++i)
                     _actives[i] = toc[activeIndices[i]];
