@@ -104,7 +104,7 @@ namespace Microsoft.ML.Benchmarks
             if (!File.Exists(_dataPath_Wiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
 
-#if NET462
+#if NET461
             _modelPath_Wiki = Path.Combine(Directory.GetParent(typeof(MultiClassClassificationTest).Assembly.CodeBase.Substring(8)).FullName, @"WikiModel.zip");
 #else
             _modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");

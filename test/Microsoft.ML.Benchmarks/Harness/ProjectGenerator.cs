@@ -30,7 +30,7 @@ namespace Microsoft.ML.Benchmarks.Harness
 
         public ProjectGenerator(string targetFrameworkMoniker) : base(targetFrameworkMoniker, null, null, null)
         {
-#if NET462
+#if NET461
             rid = "\n<RuntimeIdentifier>win-x64</RuntimeIdentifier>\n";
             ridValue = "win-x64";
 #endif

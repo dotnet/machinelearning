@@ -38,8 +38,8 @@ namespace Microsoft.ML.Benchmarks
         /// </summary>
         private IToolchain CreateToolchain()
         {
-#if NET462
-            var tfm = "net462";
+#if NET461
+            var tfm = "net461";
             var csProj = CsProjClassicNetToolchain.Net462;
 #else
             var tfm = NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Benchmarks
         {
 #if NETCOREAPP3_0
             return "Release-Intrinsics";
-#elif NET462
+#elif NET461
             return "Release-netfx";
 #else
             return "Release";
