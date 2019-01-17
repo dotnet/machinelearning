@@ -901,16 +901,14 @@ namespace Microsoft.ML.Transforms
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                DataKind rawKind;
+                Type rawType;
                 var type = _infos[iinfo].TypeSrc;
                 if (type is VectorType vectorType)
-                    rawKind = vectorType.ItemType.RawKind;
-                else if (type is KeyType keyType)
-                    rawKind = keyType.RawKind;
+                    rawType = vectorType.ItemType.RawType;
                 else
-                    rawKind = type.RawKind;
+                    rawType = type.RawType;
 
-                if (rawKind != DataKind.R4)
+                if (rawType != typeof(float))
                     return false;
 
                 string opType = "Imputer";

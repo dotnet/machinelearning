@@ -15,7 +15,7 @@ namespace Microsoft.ML.Scenarios
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
 
-            var reader = mlContext.Data.CreateTextReader(columns: new[]
+            var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column("SepalLength", DataKind.R4, 1),
