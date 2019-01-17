@@ -285,7 +285,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(predictor == null, "SDCA based trainers don't support continuous training.");
             Contracts.Assert(weightSetCount >= 1);
 
-            int numFeatures = data.Schema.Feature.Value.Type.VectorSize;
+            int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
             long maxTrainingExamples = MaxDualTableSize / weightSetCount;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight | CursOpt.Id);
             int numThreads;
@@ -1763,7 +1763,7 @@ namespace Microsoft.ML.Trainers
             Contracts.AssertValueOrNull(predictor);
             Contracts.Assert(data.Schema.Feature.HasValue);
 
-            int numFeatures = data.Schema.Feature.Value.Type.VectorSize;
+            int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
 
             int numThreads;

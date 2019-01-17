@@ -263,7 +263,10 @@ namespace Microsoft.ML.Transforms.Conversions
 
         internal string TestIsKnownDataKind(ColumnType type)
         {
-            if (type.ItemType.RawKind != default && (type.IsVector || type is PrimitiveType))
+            VectorType vectorType = type as VectorType;
+            ColumnType itemType = vectorType?.ItemType ?? type;
+
+            if (itemType.RawKind != default && (vectorType != null || type is PrimitiveType))
                 return null;
             return "standard type or a vector of standard type";
         }
@@ -549,7 +552,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
                         termsFromFile = CreateFileTermMap(env, ch, file, termsColumn, loaderFactory, bldr);
                     }
-                    if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.ItemType))
+                    if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.GetItemType()))
                     {
                         // We have no current plans to support re-interpretation based on different column
                         // type, not only because it's unclear what realistic customer use-cases for such
@@ -557,7 +560,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // can logically reconcile "reinterpretation" for different types with the resulting
                         // data view having an actual type.
                         throw ch.ExceptUserArg(nameof(file), "Data file terms loaded as type '{0}' but mismatches column '{1}' item type '{2}'",
-                            termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.ItemType);
+                            termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.GetItemType());
                     }
                     termMap[iinfo] = termsFromFile;
                 }
@@ -638,7 +641,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     trainer[itrainer] = null;
                 }
                 ch.Assert(termMap.All(tm => tm != null));
-                ch.Assert(termMap.Zip(infos, (tm, info) => tm.ItemType.Equals(info.TypeSrc.ItemType)).All(x => x));
+                ch.Assert(termMap.Zip(infos, (tm, info) => tm.ItemType.Equals(info.TypeSrc.GetItemType())).All(x => x));
             }
 
             return termMap;
@@ -758,7 +761,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                if (!(info.TypeSrc.ItemType is TextType))
+                if (!(info.TypeSrc.GetItemType() is TextType))
                     return false;
 
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
@@ -834,7 +837,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.AssertValue(srcToken);
                 //Contracts.Assert(CanSavePfa);
 
-                if (!(info.TypeSrc.ItemType is TextType))
+                VectorType vectorType = info.TypeSrc as VectorType;
+                ColumnType itemType = vectorType?.ItemType ?? info.TypeSrc;
+                if (!(itemType is TextType))
                     return null;
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
                 TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
@@ -846,7 +851,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     "TermMap", PfaUtils.Type.Map(PfaUtils.Type.Int), jsonMap);
                 JObject cellRef = PfaUtils.Cell(cellName);
 
-                if (info.TypeSrc.IsVector)
+                if (vectorType != null)
                 {
                     var funcName = ctx.GetFreeFunctionName("mapTerm");
                     ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("term", PfaUtils.Type.String)),

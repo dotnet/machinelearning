@@ -150,8 +150,8 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeDst.RawType);
@@ -170,8 +170,8 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Data
                 return (ValueGetter<VBuffer<TDst>>)(Delegate)getter;
             }
 
-            int size = typeSrc.VectorSize;
+            int size = typeSrc.Size;
             var src = default(VBuffer<TSrc>);
             return (ref VBuffer<TDst> dst) =>
             {
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(cursor, nameof(cursor));
             Contracts.Check(0 <= col && col < cursor.Schema.Count);
             ColumnType type = cursor.Schema[col].Type;
-            Contracts.Check(type.IsKey);
+            Contracts.Check(type is KeyType);
             return Utils.MarshalInvoke(GetIsNewGroupDelegateCore<int>, type.RawType, cursor, col);
         }
 
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Data
             if (type == NumberType.R4 || type == NumberType.R8 || type is BoolType)
                 return null;
 
-            if (allowKeys && type.IsKey)
+            if (allowKeys && type is KeyType)
                 return null;
 
             return allowKeys ? "Expected R4, R8, Bool or Key type" : "Expected R4, R8 or Bool type";
@@ -382,9 +382,11 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            Contracts.Check(type.IsKey, "Only floating point number, boolean, and key type values can be used as label.");
+            if (!(type is KeyType keyType))
+                throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
+
             Contracts.Assert(TestGetLabelGetter(type) == null);
-            ulong keyMax = (ulong)type.KeyCount;
+            ulong keyMax = (ulong)keyType.Count;
             if (keyMax == 0)
                 keyMax = ulong.MaxValue;
             var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, cursor, labelIndex);
@@ -407,9 +409,12 @@ namespace Microsoft.ML.Data
                 return cursor.GetGetter<Single>();
             if (type == NumberType.R8 || type is BoolType)
                 return GetVecGetterAs<Single>(NumberType.R4, cursor);
-            Contracts.Check(type.IsKey, "Only floating point number, boolean, and key type values can be used as label.");
+            if (!(type is KeyType keyType))
+            {
+                throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
+            }
             Contracts.Assert(TestGetLabelGetter(type) == null);
-            ulong keyMax = (ulong)type.KeyCount;
+            ulong keyMax = (ulong)keyType.Count;
             if (keyMax == 0)
                 keyMax = ulong.MaxValue;
             var getSrc = RowCursorUtils.GetVecGetterAs<ulong>(NumberType.U8, cursor);

@@ -321,7 +321,7 @@ namespace Microsoft.ML.Data
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4", LabelCol, t);
 
             t = schema[ScoreIndex].Type;
-            if (t.IsVector || t.ItemType != NumberType.Float)
+            if (t != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", ScoreCol, t);
         }
     }

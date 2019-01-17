@@ -465,7 +465,7 @@ namespace Microsoft.ML.Transforms.Projections
 
                 var ex = _parent._columns[iinfo];
                 Host.Assert(0 < ex.Scale && ex.Scale < float.PositiveInfinity);
-                Host.Assert(_srcTypes[iinfo].IsVector);
+                Host.Assert(_srcTypes[iinfo] is VectorType);
 
                 var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
                 var src = default(VBuffer<float>);
@@ -776,9 +776,9 @@ namespace Microsoft.ML.Transforms.Projections
 
         internal static bool IsColumnTypeValid(ColumnType type)
         {
-            if (!(type.IsVector && type.IsKnownSizeVector))
+            if (!(type is VectorType vectorType && vectorType.IsKnownSize))
                 return false;
-            return type.ItemType == NumberType.R4;
+            return vectorType.ItemType == NumberType.R4;
         }
 
         internal static bool IsSchemaColumnValid(SchemaShape.Column col)

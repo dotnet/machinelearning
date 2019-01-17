@@ -96,17 +96,18 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             var resultDic = inputSchema.ToDictionary(x => x.Name);
-            var vectorKind = Transformer.ValueColumnType.IsVector ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
-            var isKey = Transformer.ValueColumnType.IsKey;
+            var vectorKind = Transformer.ValueColumnType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
+            var isKey = Transformer.ValueColumnType is KeyType;
             var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
                                     Transformer.ValueColumnType;
+            var metadataShape = SchemaShape.Create(Transformer.ValueColumnMetadata.Schema);
             foreach (var (Input, Output) in _columns)
             {
                 if (!inputSchema.TryFindColumn(Input, out var originalColumn))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Input);
 
-                // Get the type from TOutputType
-                var col = new SchemaShape.Column(Output, vectorKind, columnType, isKey, originalColumn.Metadata);
+                // Create the Value column
+                var col = new SchemaShape.Column(Output, vectorKind, columnType, isKey, metadataShape);
                 resultDic[Output] = col;
             }
             return new SchemaShape(resultDic.Values);
@@ -191,18 +192,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 // set of values. This is used for generating the metadata of
                 // the column.
                 HashSet<TValue> valueSet = new HashSet<TValue>();
-                HashSet<TKey> keySet = new HashSet<TKey>();
-                for (int i = 0; i < values.Count(); ++i)
+                foreach (var v in values)
                 {
-                    var v = values.ElementAt(i);
                     if (valueSet.Contains(v))
                         continue;
                     valueSet.Add(v);
-
-                    var k = keys.ElementAt(i);
-                    keySet.Add(k);
                 }
-                var metaKeys = keySet.ToArray();
+
+                var metaKeys = valueSet.ToArray();
 
                 // Key Values are treated in one of two ways:
                 // If the values are of type uint or ulong, these values are used directly as the keys types and no new keys are created.
@@ -387,7 +384,7 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.CheckNonEmpty(valueColumn, nameof(valueColumn), "A value column must be specified when passing in an IDataView for the value mapping");
             _valueMap = CreateValueMapFromDataView(lookupMap, keyColumn, valueColumn);
             int valueColumnIdx = 0;
-            Host.Assert(lookupMap.Schema.TryGetColumnIndex(valueColumn, out valueColumnIdx));
+            Host.Check(lookupMap.Schema.TryGetColumnIndex(valueColumn, out valueColumnIdx));
             _valueMetadata = lookupMap.Schema[valueColumnIdx].Metadata;
 
             // Create the byte array of the original IDataView, this is used for saving out the data.
@@ -802,7 +799,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 // For keys that are not in the mapping, the missingValue will be returned.
                 _missingValue = default;
-                if (!ValueType.IsVector)
+                if (!(ValueType is VectorType))
                 {
                     // For handling missing values, this follows how a missing value is handled when loading from a text source.
                     // First check if there is a String->ValueType conversion method. If so, call the conversion method with an
@@ -845,8 +842,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     getSrc(ref src);
                     if (_mapping.ContainsKey(src))
                     {
-                        if (ValueType.IsVector)
-                            dst = Utils.MarshalInvoke(GetVector<int>, ValueType.ItemType.RawType, _mapping[src]);
+                        if (ValueType is VectorType vectorType)
+                            dst = Utils.MarshalInvoke(GetVector<int>, vectorType.ItemType.RawType, _mapping[src]);
                         else
                             dst = Utils.MarshalInvoke(GetValue<int>, ValueType.RawType, _mapping[src]);
                     }
@@ -862,7 +859,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                                  _mapping.Values,
                                                  ValueMappingTransformer.KeyColumnName,
                                                  ValueMappingTransformer.ValueColumnName,
-                                                 ValueType.IsKey);
+                                                 ValueType is KeyType);
 
             private static TValue GetVector<T>(TValue value)
             {

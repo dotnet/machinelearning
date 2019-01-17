@@ -114,8 +114,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string groupIdColumn,
             int numLeaves,
             int numTrees,
-            int minDatapointsInLeaves,
-            Action<TArgs> advancedSettings)
+            int minDatapointsInLeaves)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
             Args = new TArgs();
@@ -125,9 +124,6 @@ namespace Microsoft.ML.Trainers.FastTree
             Args.NumLeaves = numLeaves;
             Args.NumTrees = numTrees;
             Args.MinDocumentsInLeafs = minDatapointsInLeaves;
-
-            //apply the advanced args, if the user supplied any
-            advancedSettings?.Invoke(Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
@@ -152,10 +148,10 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Legacy constructor that is used when invoking the classes deriving from this, through maml.
+        /// Constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
@@ -2849,7 +2845,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
         /// many decision trees.
         /// </summary>
-        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
+        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         public TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
@@ -2937,8 +2933,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected virtual void Map(in VBuffer<Float> src, ref Float dst)
         {
-            if (InputType.VectorSize > 0)
-                Host.Check(src.Length == InputType.VectorSize);
+            int inputVectorSize = InputType.GetVectorSize();
+            if (inputVectorSize > 0)
+                Host.Check(src.Length == inputVectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
@@ -2964,8 +2961,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void FeatureContributionMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
         {
-            if (InputType.VectorSize > 0)
-                Host.Check(src.Length == InputType.VectorSize);
+            int inputVectorSize = InputType.GetVectorSize();
+            if (inputVectorSize > 0)
+                Host.Check(src.Length == inputVectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 

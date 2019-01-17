@@ -378,8 +378,8 @@ namespace Microsoft.ML.Transforms
                     Contracts.AssertValue(getter);
 
                     Type pipeType;
-                    if (type.IsVector)
-                        pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
+                    if (type is VectorType vectorType)
+                        pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                     else
                     {
                         Contracts.Assert(type is PrimitiveType);

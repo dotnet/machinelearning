@@ -521,7 +521,7 @@ namespace Microsoft.ML.RunTests
         public void TestGamRegressionIni()
         {
             var mlContext = new MLContext(seed: 0);
-            var idv = mlContext.Data.CreateTextReader(
+            var idv = mlContext.Data.CreateTextLoader(
                     new TextLoader.Arguments()
                     {
                         HasHeader = false,
@@ -560,7 +560,7 @@ namespace Microsoft.ML.RunTests
         public void TestGamBinaryClassificationIni()
         {
             var mlContext = new MLContext(seed: 0);
-            var idv = mlContext.Data.CreateTextReader(
+            var idv = mlContext.Data.CreateTextLoader(
                     new TextLoader.Arguments()
                     {
                         HasHeader = false,

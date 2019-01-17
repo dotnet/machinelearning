@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms.Text
                 _type = new VectorType(keyType);
                 _isSourceVector = new bool[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _isSourceVector.Length; i++)
-                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].input].Type.IsVector;
+                    _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].input].Type is VectorType;
             }
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                if (!input.Schema[_parent.ColumnPairs[iinfo].input].Type.IsVector)
+                if (!(input.Schema[_parent.ColumnPairs[iinfo].input].Type is VectorType))
                     return MakeGetterOne(input, iinfo);
                 return MakeGetterVec(input, iinfo);
             }
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Host.AssertValue(input);
 
-                int cv = input.Schema[ColMapNewToOld[iinfo]].Type.VectorSize;
+                int cv = input.Schema[ColMapNewToOld[iinfo]].Type.GetVectorSize();
                 Contracts.Assert(cv >= 0);
 
                 var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public const bool UseMarkerCharacters = true;
         }
-        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType is TextType;
+        public static bool IsColumnTypeValid(ColumnType type) => type.GetItemType() is TextType;
 
         internal const string ExpectedColumnType = "Text";
 

@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms.Text
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var colType = inputSchema[srcCol].Type;
-            if (!(colType.IsVector && colType.ItemType is TextType))
+            if (!(colType is VectorType vectorType && vectorType.ItemType is TextType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "Text", inputSchema[srcCol].Type.ToString());
         }
 
@@ -570,8 +570,8 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var colType = input.Schema[ColMapNewToOld[iinfo]].Type;
-                Host.Assert(colType.IsVector);
-                Host.Assert(colType.ItemType is TextType);
+                Host.Assert(colType is VectorType);
+                Host.Assert(colType.GetItemType() is TextType);
 
                 var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
