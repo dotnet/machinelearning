@@ -586,7 +586,7 @@ namespace Microsoft.ML.Data
             return View.GetRowCursorSet(predicate, n, rand);
         }
 
-        public SlotCursor GetSlotCursor(int col)
+        SlotCursor ITransposeDataView.GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < Schema.Count, nameof(col));
             if (_transposeSlotTypes == null || (_transposeSlotTypes != null && _transposeSlotTypes[col] == null))

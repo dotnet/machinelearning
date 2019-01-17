@@ -736,8 +736,8 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Returns a standard exception for responding to an invalid call to <see cref="GetSlotCursor"/>,
-        /// on a column that is not transposable.
+        /// Returns a standard exception for responding to an invalid call to <see cref="ITransposeDataView.GetSlotCursor"/>
+        /// implementation in <see langword="this"/> on a column that is not transposable.
         /// </summary>
         protected Exception ExceptGetSlotCursor(int col)
         {
@@ -746,7 +746,7 @@ namespace Microsoft.ML.Data
                 OutputSchema[col].Name);
         }
 
-        public SlotCursor GetSlotCursor(int col)
+        SlotCursor ITransposeDataView.GetSlotCursor(int col)
         {
             Host.CheckParam(0 <= col && col < _bindings.ColumnCount, nameof(col));
 
@@ -771,7 +771,8 @@ namespace Microsoft.ML.Data
         /// null for all new columns, and so reaching this is only possible if there is a
         /// bug.
         /// </summary>
-        protected virtual SlotCursor GetSlotCursorCore(int iinfo)
+        [BestFriend]
+        internal virtual SlotCursor GetSlotCursorCore(int iinfo)
         {
             Host.Assert(false);
             throw Host.ExceptNotImpl("Data view indicated it could transpose a column, but apparently it could not");

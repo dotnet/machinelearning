@@ -645,7 +645,7 @@ namespace Microsoft.ML.Data.IO
             return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        public SlotCursor GetSlotCursor(int col)
+        SlotCursor ITransposeDataView.GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
             var view = _entries[col].GetViewOrNull();

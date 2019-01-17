@@ -10,7 +10,8 @@ namespace Microsoft.ML.Data
     /// A cursor that allows slot-by-slot access of data. This is to <see cref="ITransposeDataView"/>
     /// what <see cref="RowCursor"/> is to <see cref="IDataView"/>.
     /// </summary>
-    public abstract class SlotCursor : IDisposable
+    [BestFriend]
+    internal abstract class SlotCursor : IDisposable
     {
         [BestFriend]
         private protected readonly IChannel Ch;
