@@ -13,7 +13,6 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.TensorFlow;
 using Xunit;
-using System.Threading;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -798,24 +797,17 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
+        // This test has been created as result of https://github.com/dotnet/machinelearning/issues/2156.
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowGettingSchemaMultipleTimes()
         {
             var modelLocation = "cifar_saved_model";
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var model = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
-            var t1 = new Thread(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation));
-            var t2 = new Thread(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation));
-            var t3 = new Thread(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation));
-            var t4 = new Thread(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation));
-            var t5 = new Thread(() => TensorFlowUtils.GetModelSchema(mlContext, modelLocation));
-            t1.Start();
-            t2.Start();
-            t3.Start();
-            t4.Start();
-            t5.Start();
-            var a = model.GetInputSchema();
-            Assert.NotNull(a);
+            for (int i = 0; i < 10; i++)
+            {
+                var schema = TensorFlowUtils.GetModelSchema(mlContext, modelLocation);
+                Assert.NotNull(schema);
+            }
         }
 
 

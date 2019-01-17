@@ -42,8 +42,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 // We also cannot output it with a TensorFlowTransform, so we skip it.
                 // Furthermore, 'NoOp' operator usually has 'Unknown' type.
                 // But sometimes it can have valid type upon querying model for multiple times such as 'Float'.
-                // This behavior is inconsistent in TensorFlow runtime (#2156). Therefore, filtering all 'NoOp' operators in the model.
-                if (mlType == null || op.OpType == "NoOp")
+                // This behavior is inconsistent in TensorFlow runtime (https://github.com/dotnet/machinelearning/issues/2156).
+                // Therefore, filtering all operators that have no outputs.
+                if (mlType == null || op.NumOutputs <= 0)
                     continue;
 
                 // Construct the final ML.NET type of a Tensorflow variable.
