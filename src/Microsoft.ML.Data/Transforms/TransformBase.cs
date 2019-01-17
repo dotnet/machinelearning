@@ -274,7 +274,6 @@ namespace Microsoft.ML.Data
         {
             // The parent transform.
             private readonly OneToOneTransformBase _parent;
-            // The source input transform schema, or null if the input was not a transpose dataview.
 
             /// <summary>
             /// Information about each added column.
@@ -283,7 +282,7 @@ namespace Microsoft.ML.Data
 
             public VectorType GetSlotType(int col)
             {
-                var tidv = _parent as ITransposeDataView;
+                var tidv = _parent.InputTranspose;
                 return tidv?.GetSlotType(col);
             }
 

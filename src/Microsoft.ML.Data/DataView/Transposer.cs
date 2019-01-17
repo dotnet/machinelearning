@@ -323,6 +323,7 @@ namespace Microsoft.ML.Data
 
             public override VectorType GetSlotType()
             {
+                Ch.Assert(0 <= _col && _col < _parent.Schema.Count);
                 return ((ITransposeDataView)_parent).GetSlotType(_col);
             }
 
