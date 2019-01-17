@@ -199,9 +199,10 @@ namespace Microsoft.ML.RunTests
             using (Transposer trans = Transposer.Create(Env, view, true, 3, 5, 4))
             {
                 // Check to see that A, B, and C were not transposed somehow.
-                Assert.Null((trans as ITransposeDataView).TransposeSlotTypes[0]);
-                Assert.Null((trans as ITransposeDataView).TransposeSlotTypes[1]);
-                Assert.Null((trans as ITransposeDataView).TransposeSlotTypes[2]);
+                var itdv = trans as ITransposeDataView;
+                Assert.Null(itdv.TransposeSlotTypes[0]);
+                Assert.Null(itdv.TransposeSlotTypes[1]);
+                Assert.Null(itdv.TransposeSlotTypes[2]);
                 TransposeCheckHelper<Double>(view, 3, trans); // D check.
                 TransposeCheckHelper<uint>(view, 4, trans);   // E check.
                 TransposeCheckHelper<int>(view, 5, trans); // F check.
