@@ -466,16 +466,39 @@ namespace Microsoft.ML
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightsColumn">The optional name of the weights column.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightsColumn = null,
-            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
-            Action<LinearSvmTrainer.Arguments> advancedSettings = null)
+            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
-            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, weightsColumn, numIterations, advancedSettings);
+            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, weightsColumn, numIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvmTrainer"/> trainer.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The idea behind support vector machines, is to map instances into a high dimensional space
+        /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
+        /// and all the negative examples are on the other.
+        /// </para>
+        /// <para>
+        /// After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the
+        /// margin, i.e., the minimal distance between it and the instances.
+        /// </para>
+        /// </remarks>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            LinearSvmTrainer.Arguments advancedSettings)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+
+            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(ctx), advancedSettings);
         }
     }
 }

@@ -58,7 +58,10 @@ namespace Microsoft.ML.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => new LinearSvmTrainer(env))
+                        env => {
+                            var mlContext = new MLContext();
+                            return mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines();
+                        })
                 };
             }
         }

@@ -228,20 +228,18 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightsColumn">The optional name of the weights column.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
-        public LinearSvmTrainer(IHostEnvironment env,
+        internal LinearSvmTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightsColumn = null,
-            int numIterations = Arguments.OnlineDefaultArgs.NumIterations,
-            Action<Arguments> advancedSettings = null)
-            : this(env, InvokeAdvanced(advancedSettings, new Arguments
+            int numIterations = Arguments.OnlineDefaultArgs.NumIterations)
+            : this(env, new Arguments
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
                 InitialWeights = weightsColumn,
                 NumIterations = numIterations,
-            }))
+            })
         {
         }
 
