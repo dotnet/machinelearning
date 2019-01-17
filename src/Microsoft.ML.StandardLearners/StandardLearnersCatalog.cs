@@ -152,7 +152,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
+        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer.
         /// </summary>
         /// <param name="ctx">The binary classification context trainer object.</param>
         /// <param name="labelColumn">The name of the label column, or dependent variable.</param>
@@ -180,7 +180,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
+        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer.
         /// </summary>
         /// <param name="ctx">The binary classification context trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>

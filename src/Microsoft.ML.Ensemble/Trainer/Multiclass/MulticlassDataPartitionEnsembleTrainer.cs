@@ -60,10 +60,7 @@ namespace Microsoft.ML.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => {
-                            var mlContext = new MLContext();
-                            return mlContext.MulticlassClassification.Trainers.LogisticRegression(LabelColumn, FeatureColumn);
-                        })
+                        env => new MulticlassLogisticRegression(env, LabelColumn, FeatureColumn))
                 };
             }
         }

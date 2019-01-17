@@ -54,10 +54,7 @@ namespace Microsoft.ML.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => {
-                            var mlContext = new MLContext();
-                            return mlContext.Regression.Trainers.OnlineGradientDescent();
-                        })
+                        env => new OnlineGradientDescentTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features))
                 };
             }
         }

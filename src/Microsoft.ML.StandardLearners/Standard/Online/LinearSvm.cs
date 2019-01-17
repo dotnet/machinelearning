@@ -228,6 +228,7 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightsColumn">The optional name of the weights column.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
+        [BestFriend]
         internal LinearSvmTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
