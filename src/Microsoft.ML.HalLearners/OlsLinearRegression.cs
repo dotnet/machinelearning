@@ -42,6 +42,9 @@ namespace Microsoft.ML.Trainers.HalLearners
             // Adding L2 regularization turns this into a form of ridge regression,
             // rather than, strictly speaking, ordinary least squares. But it is an
             // incredibly uesful thing to have around.
+            /// <summary>
+            /// L2 regularization weight.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1e-6,0.1,1")]
             [TlcModule.SweepableDiscreteParamAttribute("L2Weight", new object[] { 1e-6f, 0.1f, 1f })]
@@ -72,9 +75,9 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// <summary>
         /// Initializes a new instance of <see cref="OlsLinearRegressionTrainer"/>
         /// </summary>
-        internal OlsLinearRegressionTrainer(IHostEnvironment env, Options args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeR4ScalarColumn(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+        internal OlsLinearRegressionTrainer(IHostEnvironment env, Options options)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
+                  TrainerUtils.MakeR4ScalarColumn(options.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(options.WeightColumn))
         {
             Host.CheckValue(options, nameof(options));
             Host.CheckUserArg(options.L2Weight >= 0, nameof(options.L2Weight), "L2 regularization term cannot be negative");
