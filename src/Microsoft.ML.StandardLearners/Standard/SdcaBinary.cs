@@ -1391,8 +1391,7 @@ namespace Microsoft.ML.Trainers
 
     public sealed class SdcaBinaryTrainer : SdcaTrainerBase<SdcaBinaryTrainer.Options, BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
     {
-        public const string LoadNameValue = "SDCA";
-
+        internal const string LoadNameValue = "SDCA";
         internal const string UserNameValue = "Fast Linear (SA-SDCA)";
 
         public sealed class Options : ArgumentsBase
