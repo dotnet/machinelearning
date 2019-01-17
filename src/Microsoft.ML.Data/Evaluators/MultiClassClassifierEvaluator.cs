@@ -74,20 +74,20 @@ namespace Microsoft.ML.Data
         private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var t = score.Type;
-            if (t.VectorSize < 2 || t.ItemType != NumberType.Float)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type R4", t.ToString());
+            var scoreType = score.Type as VectorType;
+            if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberType.Float)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type R4", scoreType.ToString());
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
-            t = schema.Label.Value.Type;
-            if (t != NumberType.Float && t.GetKeyCount() <= 0)
-                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a known-cardinality key", t.ToString());
+            var labelType = schema.Label.Value.Type;
+            if (labelType != NumberType.Float && labelType.GetKeyCount() <= 0)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a known-cardinality key", labelType.ToString());
         }
 
         private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Host.Assert(score.Type.VectorSize > 0);
-            int numClasses = score.Type.VectorSize;
+            int numClasses = score.Type.GetVectorSize();
+            Host.Assert(numClasses > 0);
             var classNames = GetClassNames(schema);
             return new Aggregator(Host, classNames, numClasses, schema.Weight != null, _outputTopKAcc, stratName);
         }
@@ -97,9 +97,9 @@ namespace Microsoft.ML.Data
             ReadOnlyMemory<char>[] names;
             // Get the label names from the score column if they exist, or use the default names.
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var mdType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
+            var mdType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
-            if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType is TextType)
+            if (mdType != null && mdType.IsKnownSize && mdType.ItemType is TextType)
             {
                 schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labelNames);
                 names = new ReadOnlyMemory<char>[labelNames.Length];
@@ -109,8 +109,8 @@ namespace Microsoft.ML.Data
             {
                 var score = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Score);
                 Host.Assert(Utils.Size(score) == 1);
-                Host.Assert(score[0].Type.VectorSize > 0);
-                int numClasses = score[0].Type.VectorSize;
+                int numClasses = score[0].Type.GetVectorSize();
+                Host.Assert(numClasses > 0);
                 names = Enumerable.Range(0, numClasses).Select(i => i.ToString().AsMemory()).ToArray();
             }
             return names;
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Data
         {
             Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            int numClasses = scoreInfo.Type.VectorSize;
+            int numClasses = scoreInfo.Type.GetVectorSize();
             return new MultiClassPerInstanceEvaluator(Host, schema.Schema, scoreInfo, schema.Label.Value.Name);
         }
 
@@ -392,7 +392,7 @@ namespace Microsoft.ML.Data
                 Host.Assert(schema.Label.HasValue);
 
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-                Host.Assert(score.Type.VectorSize == _scoresArr.Length);
+                Host.Assert(score.Type.GetVectorSize() == _scoresArr.Length);
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
                 Host.AssertValue(_labelGetter);
@@ -571,7 +571,7 @@ namespace Microsoft.ML.Data
         {
             CheckInputColumnTypes(schema);
 
-            _numClasses = scoreColumn.Type.VectorSize;
+            _numClasses = scoreColumn.Type.GetVectorSize();
             _types = new ColumnType[4];
 
             if (schema[ScoreIndex].HasSlotNames(_numClasses))
@@ -812,12 +812,12 @@ namespace Microsoft.ML.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema[(int) ScoreIndex].Type;
-            if (t.VectorSize < 2 || t.ItemType != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be a vector of two or more items of type R4", ScoreCol, t);
-            t = schema[LabelIndex].Type;
-            if (t != NumberType.Float && t.GetKeyCount() <= 0)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be a float or a known-cardinality key", LabelCol, t);
+            var scoreType = schema[ScoreIndex].Type as VectorType;
+            if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberType.Float)
+                throw Host.Except("Score column '{0}' has type '{1}' but must be a vector of two or more items of type R4", ScoreCol, scoreType);
+            var labelType = schema[LabelIndex].Type;
+            if (labelType != NumberType.Float && labelType.GetKeyCount() <= 0)
+                throw Host.Except("Label column '{0}' has type '{1}' but must be a float or a known-cardinality key", LabelCol, labelType);
         }
     }
 
@@ -1013,7 +1013,7 @@ namespace Microsoft.ML.Data
             {
                 var type = perInstSchema[sortedClassesIndex].Type;
                 // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
-                if (_numTopClasses < type.VectorSize)
+                if (_numTopClasses < type.GetVectorSize())
                     perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
             }
 
@@ -1021,7 +1021,7 @@ namespace Microsoft.ML.Data
             if (perInst.Schema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedScores, out int sortedScoresIndex))
             {
                 var type = perInst.Schema[sortedScoresIndex].Type;
-                if (_numTopClasses < type.VectorSize)
+                if (_numTopClasses < type.GetVectorSize())
                     perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
             }
             return perInst;

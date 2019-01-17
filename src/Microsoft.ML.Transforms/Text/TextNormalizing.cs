@@ -208,7 +208,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int srcCol);
                     var srcType = inputSchema[srcCol].Type;
-                    _types[i] = srcType.IsVector ? new VectorType(TextType.Instance) : srcType;
+                    _types[i] = srcType is VectorType ? new VectorType(TextType.Instance) : srcType;
                 }
             }
 
@@ -286,15 +286,14 @@ namespace Microsoft.ML.Transforms.Text
                 disposer = null;
 
                 var srcType = input.Schema[_parent.ColumnPairs[iinfo].input].Type;
-                Host.Assert(srcType.ItemType is TextType);
+                Host.Assert(srcType.GetItemType() is TextType);
 
-                if (srcType.IsVector)
+                if (srcType is VectorType vectorType)
                 {
-                    Host.Assert(srcType.VectorSize >= 0);
+                    Host.Assert(vectorType.Size >= 0);
                     return MakeGetterVec(input, iinfo);
                 }
 
-                Host.Assert(!srcType.IsVector);
                 return MakeGetterOne(input, iinfo);
             }
 
@@ -450,7 +449,7 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        public static bool IsColumnTypeValid(ColumnType type) => (type.ItemType is TextType);
+        public static bool IsColumnTypeValid(ColumnType type) => (type.GetItemType() is TextType);
 
         internal const string ExpectedColumnType = "Text or vector of text.";
 

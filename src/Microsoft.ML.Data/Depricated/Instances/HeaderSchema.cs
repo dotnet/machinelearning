@@ -139,31 +139,6 @@ namespace Microsoft.ML.Internal.Internallearn
             return new Dense(count, names);
         }
 
-        public static FeatureNameCollection Create(RoleMappedSchema schema)
-        {
-            // REVIEW: This shim should be deleted as soon as is convenient.
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(schema.Feature.HasValue, nameof(schema), "Cannot create feature name collection if we have no features");
-            var featureCol = schema.Feature.Value;
-            Contracts.CheckParam(schema.Feature.Value.Type.ValueCount > 0, nameof(schema), "Cannot create feature name collection if our features are not of known size");
-
-            VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            int len = featureCol.Type.ValueCount;
-            if (featureCol.HasSlotNames(len))
-                featureCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
-            else
-                slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
-            var slotNameValues = slotNames.GetValues();
-            string[] names = new string[slotNameValues.Length];
-            for (int i = 0; i < slotNameValues.Length; ++i)
-                names[i] = !slotNameValues[i].IsEmpty ? slotNameValues[i].ToString() : null;
-            if (slotNames.IsDense)
-                return new Dense(names.Length, names);
-
-            ReadOnlySpan<int> indices = slotNames.GetIndices();
-            return new Sparse(slotNames.Length, slotNameValues.Length, indices.ToArray(), names);
-        }
-
         public const string LoaderSignature = "FeatureNamesExec";
 
         private static VersionInfo GetVersionInfo()

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Training
@@ -67,9 +68,10 @@ namespace Microsoft.ML.Training
             Contracts.Assert(data.Schema.Feature.HasValue);
             var col = data.Schema.Feature.Value;
             Contracts.Assert(!col.IsHidden);
-            Contracts.Assert(col.Type.IsKnownSizeVector);
-            Contracts.Assert(col.Type.ItemType == NumberType.Float);
-            length = col.Type.VectorSize;
+            var colType = col.Type as VectorType;
+            Contracts.Assert(colType != null && colType.IsKnownSize);
+            Contracts.Assert(colType.ItemType == NumberType.Float);
+            length = colType.Size;
         }
 
         /// <summary>
@@ -184,7 +186,9 @@ namespace Microsoft.ML.Training
                 throw Contracts.ExceptParam(nameof(data), "Training data must specify a label column.");
             var col = data.Schema.Label.Value;
             Contracts.Assert(!col.IsHidden);
-            if (!col.Type.IsKnownSizeVector || col.Type.ItemType != NumberType.Float)
+            if (!(col.Type is VectorType vectorType
+                && vectorType.IsKnownSize
+                && vectorType.ItemType == NumberType.Float))
                 throw Contracts.ExceptParam(nameof(data), "Training label column '{0}' must be a known-size vector of R4, but has type: {1}.", col.Name, col.Type);
         }
 
@@ -382,10 +386,20 @@ namespace Microsoft.ML.Training
         /// The <see cref="SchemaShape.Column"/> for the weight column.
         /// </summary>
         /// <param name="weightColumn">name of the weight column</param>
-        /// <param name="isExplicit">whether the column is implicitly, or explicitly defined</param>
-        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn, bool isExplicit = true)
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn)
         {
-            if (weightColumn == null || !isExplicit)
+            if (weightColumn == null)
+                return default;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the weight column.
+        /// </summary>
+        /// <param name="weightColumn">name of the weight column</param>
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(Optional<string> weightColumn)
+        {
+            if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }

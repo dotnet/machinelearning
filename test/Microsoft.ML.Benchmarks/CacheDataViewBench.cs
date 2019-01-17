@@ -4,10 +4,12 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class CacheDataViewBench
     {
         private const int Length = 100000;

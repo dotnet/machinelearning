@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private readonly ColumnInfo[] _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
-        private readonly ColumnType[] _kvTypes;
+        private readonly VectorType[] _kvTypes;
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
@@ -225,10 +225,10 @@ namespace Microsoft.ML.Transforms.Conversions
             inputSchema.TryGetColumnIndex(column.Input, out int srcCol);
             var itemType = new KeyType(DataKind.U4, 0, keyCount, keyCount > 0);
             var srcType = inputSchema[srcCol].Type;
-            if (!srcType.IsVector)
-                return itemType;
+            if (srcType is VectorType vectorType)
+                return new VectorType(itemType, vectorType.Size);
             else
-                return new VectorType(itemType, srcType.VectorSize);
+                return itemType;
         }
 
         /// <summary>
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             int iinfo = invertIinfos[i];
-                            Host.Assert(types[iinfo].ItemType.GetKeyCount() > 0);
+                            Host.Assert(types[iinfo].GetItemType().GetKeyCount() > 0);
                             var dstGetter = GetGetterCore(srcCursor, iinfo, out disposer);
                             Host.Assert(disposer == null);
                             var ex = _columns[iinfo];
@@ -298,11 +298,11 @@ namespace Microsoft.ML.Transforms.Conversions
                                 helpers[i].Process();
                         }
                         _keyValues = new VBuffer<ReadOnlyMemory<char>>[_columns.Length];
-                        _kvTypes = new ColumnType[_columns.Length];
+                        _kvTypes = new VectorType[_columns.Length];
                         for (int i = 0; i < helpers.Length; ++i)
                         {
                             _keyValues[invertIinfos[i]] = helpers[i].GetKeyValuesMetadata();
-                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].ItemType.GetKeyCount());
+                            Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].GetItemType().GetKeyCount());
                             _kvTypes[invertIinfos[i]] = new VectorType(TextType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
                     }
@@ -317,9 +317,9 @@ namespace Microsoft.ML.Transforms.Conversions
             disposer = null;
             input.Schema.TryGetColumnIndex(_columns[iinfo].Input, out int srcCol);
             var srcType = input.Schema[srcCol].Type;
-            if (!srcType.IsVector)
+            if (!(srcType is VectorType vectorType))
                 return ComposeGetterOne(input, iinfo, srcCol, srcType);
-            return ComposeGetterVec(input, iinfo, srcCol, srcType);
+            return ComposeGetterVec(input, iinfo, srcCol, vectorType);
         }
 
         private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
@@ -455,9 +455,8 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private ValueGetter<VBuffer<uint>> ComposeGetterVec(Row input, int iinfo, int srcCol, ColumnType srcType)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVec(Row input, int iinfo, int srcCol, VectorType srcType)
         {
-            Host.Assert(srcType.IsVector);
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
 
             if (srcType.ItemType is KeyType)
@@ -508,10 +507,9 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(Row input, int iinfo, int srcCol, ColumnType srcType)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(Row input, int iinfo, int srcCol, VectorType srcType)
             where THash : struct, IHasher<T>
         {
-            Host.Assert(srcType.IsVector);
             Host.Assert(srcType.ItemType.RawType == typeof(T));
 
             var getSrc = input.GetGetter<VBuffer<T>>(srcCol);
@@ -914,7 +912,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _parent._keyValues[i].CopyTo(ref dst);
                 };
-                builder.AddKeyValues(_parent._kvTypes[i].VectorSize, (PrimitiveType)_parent._kvTypes[i].ItemType, getter);
+                builder.AddKeyValues(_parent._kvTypes[i].Size, (PrimitiveType)_parent._kvTypes[i].ItemType, getter);
             }
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);
@@ -937,7 +935,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 _srcType = row.Schema[srcCol].Type;
                 _ex = ex;
                 // If this is a vector and ordered, then we must include the slot as part of the representation.
-                _includeSlot = _srcType.IsVector && _ex.Ordered;
+                _includeSlot = _srcType is VectorType && _ex.Ordered;
             }
 
             /// <summary>
@@ -952,9 +950,15 @@ namespace Microsoft.ML.Transforms.Conversions
             public static InvertHashHelper Create(Row row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
             {
                 row.Schema.TryGetColumnIndex(ex.Input, out int srcCol);
+
                 ColumnType typeSrc = row.Schema[srcCol].Type;
-                Type t = typeSrc.IsVector ? (ex.Ordered ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
-                t = t.MakeGenericType(typeSrc.ItemType.RawType);
+                VectorType vectorTypeSrc = typeSrc as VectorType;
+
+                Type t = vectorTypeSrc != null ? (ex.Ordered ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
+                ColumnType itemType = vectorTypeSrc?.ItemType ?? typeSrc;
+
+                t = t.MakeGenericType(itemType.RawType);
+
                 var consTypes = new Type[] { typeof(Row), typeof(ColumnInfo), typeof(int), typeof(Delegate) };
                 var constructorInfo = t.GetConstructor(consTypes);
                 return (InvertHashHelper)constructorInfo.Invoke(new object[] { row, ex, invertHashMaxCount, dstGetter });
@@ -1010,7 +1014,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             private IEqualityComparer<T> GetSimpleComparer<T>()
             {
-                Contracts.Assert(_srcType.ItemType.RawType == typeof(T));
+                Contracts.Assert(_srcType.GetItemType().RawType == typeof(T));
                 if (typeof(T) == typeof(ReadOnlyMemory<char>))
                 {
                     // We are hashing twice, once to assign to the slot, and then again,
@@ -1201,7 +1205,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         internal static bool IsColumnTypeValid(ColumnType type)
         {
-            var itemType = type.ItemType;
+            var itemType = type.GetItemType();
             return itemType is TextType || itemType is KeyType || itemType is NumberType || itemType is BoolType;
         }
 
@@ -1253,7 +1257,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     metadata.Add(slotMeta);
                 if (colInfo.InvertHash != 0)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.ItemType.IsVector ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(metadata));
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.ItemType is VectorType ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }

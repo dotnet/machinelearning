@@ -444,7 +444,7 @@ namespace Microsoft.ML.Trainers
             public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
             public abstract JToken SaveAsPfa(BoundPfaContext ctx, JToken input);
 
-            protected bool IsValid(IValueMapper mapper, ref ColumnType inputType)
+            protected bool IsValid(IValueMapper mapper, ref VectorType inputType)
             {
                 Contracts.AssertValueOrNull(mapper);
                 Contracts.AssertValueOrNull(inputType);
@@ -453,15 +453,15 @@ namespace Microsoft.ML.Trainers
                     return false;
                 if (mapper.OutputType != NumberType.Float)
                     return false;
-                if (!mapper.InputType.IsVector || mapper.InputType.ItemType != NumberType.Float)
+                if (!(mapper.InputType is VectorType mapperVectorType)|| mapperVectorType.ItemType != NumberType.Float)
                     return false;
                 if (inputType == null)
-                    inputType = mapper.InputType;
-                else if (inputType.VectorSize != mapper.InputType.VectorSize)
+                    inputType = mapperVectorType;
+                else if (inputType.Size != mapperVectorType.Size)
                 {
-                    if (inputType.VectorSize == 0)
-                        inputType = mapper.InputType;
-                    else if (mapper.InputType.VectorSize != 0)
+                    if (inputType.Size == 0)
+                        inputType = mapperVectorType;
+                    else if (mapperVectorType.Size != 0)
                         return false;
                 }
                 return true;
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
                 Predictors = new IValueMapper[predictors.Length];
-                ColumnType inputType = null;
+                VectorType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i] as IValueMapper;
@@ -501,8 +501,9 @@ namespace Microsoft.ML.Trainers
                 return
                     (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
-                        if (InputType.VectorSize > 0)
-                            Contracts.Check(src.Length == InputType.VectorSize);
+                        int inputSize = InputType.GetVectorSize();
+                        if (inputSize > 0)
+                            Contracts.Check(src.Length == inputSize);
 
                         var tmp = src;
                         Parallel.For(0, maps.Length, i => maps[i](in tmp, ref buffer[i]));
@@ -543,7 +544,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.Check(Utils.Size(predictors) > 0);
 
                 _mappers = new IValueMapperDist[predictors.Length];
-                ColumnType inputType = null;
+                VectorType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i];
@@ -555,7 +556,7 @@ namespace Microsoft.ML.Trainers
                 InputType = inputType;
             }
 
-            private bool IsValid(IValueMapperDist mapper, ref ColumnType inputType)
+            private bool IsValid(IValueMapperDist mapper, ref VectorType inputType)
             {
                 return base.IsValid(mapper, ref inputType) && mapper.DistType == NumberType.Float;
             }
@@ -574,8 +575,9 @@ namespace Microsoft.ML.Trainers
                 return
                     (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
-                        if (InputType.VectorSize > 0)
-                            Contracts.Check(src.Length == InputType.VectorSize);
+                        int inputSize = InputType.GetVectorSize();
+                        if (inputSize > 0)
+                            Contracts.Check(src.Length == inputSize);
 
                         var tmp = src;
                         Parallel.For(0, maps.Length,
@@ -650,7 +652,7 @@ namespace Microsoft.ML.Trainers
                 Contracts.CheckNonEmpty(predictors, nameof(predictors));
 
                 Predictors = new IValueMapper[predictors.Length];
-                ColumnType inputType = null;
+                VectorType inputType = null;
                 for (int i = 0; i < predictors.Length; i++)
                 {
                     var vm = predictors[i] as IValueMapper;
@@ -672,8 +674,9 @@ namespace Microsoft.ML.Trainers
                 return
                     (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
-                        if (InputType.VectorSize > 0)
-                            Contracts.Check(src.Length == InputType.VectorSize);
+                        int inputSize = InputType.GetVectorSize();
+                        if (inputSize > 0)
+                            Contracts.Check(src.Length == inputSize);
 
                         var tmp = src;
                         Parallel.For(0, maps.Length, i => maps[i](in tmp, ref buffer[i]));
