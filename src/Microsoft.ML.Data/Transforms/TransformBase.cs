@@ -281,7 +281,11 @@ namespace Microsoft.ML.Data
             /// </summary>
             public readonly ColInfo[] Infos;
 
-            public VectorType[] TransposeSchema { get; }
+            public VectorType GetSlotType(int col)
+            {
+                var tidv = _parent as ITransposeDataView;
+                return tidv?.GetSlotType(col);
+            }
 
             private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
 
@@ -294,18 +298,17 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(Utils.Size(infos) == InfoCount);
 
                 _parent = parent;
-                TransposeSchema = (_parent as ITransposeDataView)?.TransposeSlotTypes;
                 Infos = infos;
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, Schema input,
-                VectorType[] transInput, Func<ColumnType, string> testType)
+            public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, Schema inputSchema,
+               ITransposeDataView transposedInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
                 var host = parent.Host;
                 host.CheckUserArg(Utils.Size(column) > 0, nameof(column));
-                host.AssertValue(input);
-                host.AssertValueOrNull(transInput);
+                host.AssertValue(inputSchema);
+                host.AssertValueOrNull(transposedInput);
                 host.AssertValueOrNull(testType);
 
                 var names = new string[column.Length];
@@ -317,10 +320,10 @@ namespace Microsoft.ML.Data
                     names[i] = item.Name;
 
                     int colSrc;
-                    if (!input.TryGetColumnIndex(item.Source, out colSrc))
+                    if (!inputSchema.TryGetColumnIndex(item.Source, out colSrc))
                         throw host.ExceptUserArg(nameof(OneToOneColumn.Source), "Source column '{0}' not found", item.Source);
 
-                    var type = input[colSrc].Type;
+                    var type = inputSchema[colSrc].Type;
                     if (testType != null)
                     {
                         string reason = testType(type);
@@ -328,21 +331,21 @@ namespace Microsoft.ML.Data
                             throw host.ExceptUserArg(nameof(OneToOneColumn.Source), InvalidTypeErrorFormat, item.Source, type, reason);
                     }
 
-                    var slotType = transInput == null ? null : transInput[colSrc];
+                    var slotType = transposedInput?.GetSlotType(i);
                     infos[i] = new ColInfo(names[i], colSrc, type, slotType as VectorType);
                 }
 
-                return new Bindings(parent, infos, input, true, names);
+                return new Bindings(parent, infos, inputSchema, true, names);
             }
 
-            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, Schema input,
-                VectorType[] transInput, Func<ColumnType, string> testType)
+            public static Bindings Create(OneToOneTransformBase parent, ModelLoadContext ctx, Schema inputSchema,
+                ITransposeDataView transposeInput, Func<ColumnType, string> testType)
             {
                 Contracts.AssertValue(parent);
                 var host = parent.Host;
                 host.CheckValue(ctx, nameof(ctx));
-                host.AssertValue(input);
-                host.AssertValueOrNull(transInput);
+                host.AssertValue(inputSchema);
+                host.AssertValueOrNull(transposeInput);
                 host.AssertValueOrNull(testType);
 
                 // *** Binary format ***
@@ -367,20 +370,20 @@ namespace Microsoft.ML.Data
                     host.CheckDecode(!string.IsNullOrEmpty(src));
 
                     int colSrc;
-                    if (!input.TryGetColumnIndex(src, out colSrc))
+                    if (!inputSchema.TryGetColumnIndex(src, out colSrc))
                         throw host.Except("Source column '{0}' is required but not found", src);
-                    var type = input[colSrc].Type;
+                    var type = inputSchema[colSrc].Type;
                     if (testType != null)
                     {
                         string reason = testType(type);
                         if (reason != null)
                             throw host.Except(InvalidTypeErrorFormat, src, type, reason);
                     }
-                    var slotType = transInput == null ? null : transInput[colSrc];
+                    var slotType = transposeInput?.GetSlotType(i);
                     infos[i] = new ColInfo(dst, colSrc, type, slotType as VectorType);
                 }
 
-                return new Bindings(parent, infos, input, false, names);
+                return new Bindings(parent, infos, inputSchema, false, names);
             }
 
             public void Save(ModelSaveContext ctx)
@@ -474,7 +477,7 @@ namespace Microsoft.ML.Data
             Host.CheckValueOrNull(testType);
             InputTranspose = Source as ITransposeDataView;
 
-            _bindings = Bindings.Create(this, column, Source.Schema, InputTranspose?.TransposeSlotTypes, testType);
+            _bindings = Bindings.Create(this, column, Source.Schema, InputTranspose, testType);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -488,7 +491,7 @@ namespace Microsoft.ML.Data
             Host.CheckValueOrNull(testType);
             InputTranspose = Source as ITransposeDataView;
 
-            _bindings = Bindings.Create(this, column, Source.Schema, InputTranspose?.TransposeSlotTypes, testType);
+            _bindings = Bindings.Create(this, column, Source.Schema, InputTranspose, testType);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -502,7 +505,7 @@ namespace Microsoft.ML.Data
             Host.CheckValueOrNull(testType);
             InputTranspose = Source as ITransposeDataView;
 
-            _bindings = Bindings.Create(this, ctx, Source.Schema, InputTranspose?.TransposeSlotTypes, testType);
+            _bindings = Bindings.Create(this, ctx, Source.Schema, InputTranspose, testType);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -526,7 +529,7 @@ namespace Microsoft.ML.Data
                 })
                 .ToArray();
 
-            _bindings = Bindings.Create(this, map, newInput.Schema, InputTranspose.TransposeSlotTypes, checkType);
+            _bindings = Bindings.Create(this, map, newInput.Schema, InputTranspose, checkType);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -623,7 +626,7 @@ namespace Microsoft.ML.Data
 
         public sealed override Schema OutputSchema => _bindings.AsSchema;
 
-        VectorType[] ITransposeDataView.TransposeSlotTypes => _bindings?.TransposeSchema;
+        VectorType ITransposeDataView.GetSlotType(int col) => _bindings.GetSlotType(col);
 
         /// <summary>
         /// Return the (destination) column index for the indicated added column.

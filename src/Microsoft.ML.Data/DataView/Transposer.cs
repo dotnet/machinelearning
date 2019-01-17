@@ -92,10 +92,10 @@ namespace Microsoft.ML.Data
             _tview = _view as ITransposeDataView;
             // Remove duplicates and ensure it is sorted.
             IEnumerable<int> columnSet = columns.Distinct().OrderBy(c => c);
-            if (_tview != null && _tview.TransposeSlotTypes != null)
+            if (_tview != null)
             {
                 // Keep only those columns for which we do not have a slot view already.
-                columnSet = columnSet.Where(c => _tview.TransposeSlotTypes[c] == null);
+                columnSet = columnSet.Where(c => _tview.GetSlotType(c) == null);
             }
             columns = columnSet.ToArray();
             _cols = new Schema.Column[columns.Length];
@@ -183,7 +183,6 @@ namespace Microsoft.ML.Data
                 if (rowCount > Utils.ArrayMaxSize)
                     throw _host.ExceptParam(nameof(view), "View has {0} rows, we cannot transpose with more than {1}", rowCount, Utils.ArrayMaxSize);
                 RowCount = (int)rowCount;
-                _transposeSlotTypes = ComputeTransposeSchema();
             }
         }
 
@@ -229,16 +228,16 @@ namespace Microsoft.ML.Data
 
         public SlotCursor GetSlotCursor(int col)
         {
-            _host.CheckParam(0 <= col && col < _transposeSlotTypes.Length, nameof(col));
+            _host.CheckParam(0 <= col && col < _view.Schema.Count, nameof(col));
             if (_inputToTransposed[col] == -1)
             {
                 // Check if the parent view has this slot transposed. If it doesn't, fail.
-                if (_tview != null && _tview.TransposeSlotTypes[col] != null)
+                if (_tview?.GetSlotType(col) != null)
                     return _tview.GetSlotCursor(col);
                 // Note that i-th transposed column is actually all the values at the i-th original column.
                 throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'", _tview.Schema[col].Name);
             }
-            var type = _transposeSlotTypes[col].ItemType.RawType;
+            var type = ((ITransposeDataView)this).GetSlotType(col).ItemType.RawType;
 
             var tcol = _inputToTransposed[col];
             _host.Assert(0 <= tcol && tcol < _cols.Length);
@@ -254,43 +253,22 @@ namespace Microsoft.ML.Data
             return new SlotCursorOne<T>(this, col);
         }
 
-        /// <summary>
-        /// This is a core function for computing <see cref="_transposeSlotTypes"/>.
-        /// If the i-th column in <see cref="_view"/> is not transposable, then <see cref="_transposeSlotTypes"/>[i] should null.
-        /// If all columns in <see cref="_view"/> are not transposed, there will be two possibilities --- <see cref="_transposeSlotTypes"/>
-        /// is <see langword="null"/> or all <see cref="_transposeSlotTypes"/>[i]s are <see langword="null"/>.
-        /// Note that <see cref="_transposeSlotTypes"/> is parallel to <see cref="_view"/>'s <see cref="Schema"/>, so they have the same numbers
-        /// of columns.
-        /// </summary>
-        private VectorType[] ComputeTransposeSchema()
+        VectorType ITransposeDataView.GetSlotType(int col)
         {
-            var transposeSchema = new VectorType[_view.Schema.Count];
-            for (int i = 0; i < _view.Schema.Count; ++i)
-            {
-                var originalTransposeSchema = _tview?.TransposeSlotTypes;
-                if (_inputToTransposed[i] == -1 && originalTransposeSchema == null)
-                {
-                    transposeSchema[i] = null;
-                    continue;
-                }
+            // We don't need the col-th column to be transposed by this transform, so
+            // its type is inherited from input data.
+            if (_inputToTransposed[col] == -1)
+                return _tview?.GetSlotType(col);
 
-                if (_inputToTransposed[i] == -1 && originalTransposeSchema != null)
-                {
-                    transposeSchema[i] = _tview.TransposeSlotTypes[i];
-                    continue;
-                }
+            var transposedColumn = _view.Schema[col];
+            PrimitiveType elementType = null;
+            if (transposedColumn.Type is PrimitiveType)
+                elementType = (PrimitiveType)transposedColumn.Type;
+            else if (transposedColumn.Type is VectorType)
+                elementType = ((VectorType)transposedColumn.Type).ItemType;
+            _host.Assert(elementType != null);
 
-                var originalColumn = _view.Schema[i];
-                PrimitiveType originalElementType = null;
-                if (originalColumn.Type is PrimitiveType)
-                    originalElementType = originalColumn.Type as PrimitiveType;
-                else if (originalColumn.Type is VectorType)
-                    originalElementType = (originalColumn.Type as VectorType).ItemType;
-                _host.Assert(originalElementType != null);
-                _host.Assert(originalElementType.GetValueCount() == 1);
-                transposeSchema[i] = new VectorType(originalElementType, RowCount);
-            }
-            return transposeSchema;
+            return new VectorType(elementType, RowCount);
         }
 
         #region IDataView implementation stuff, passthrough on to view.
@@ -301,10 +279,6 @@ namespace Microsoft.ML.Data
         public Schema Schema => _view.Schema;
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
-
-        private VectorType[] _transposeSlotTypes;
-
-        VectorType[] ITransposeDataView.TransposeSlotTypes => _transposeSlotTypes;
 
         public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
@@ -349,7 +323,7 @@ namespace Microsoft.ML.Data
 
             public override VectorType GetSlotType()
             {
-                return _parent._transposeSlotTypes[_col];
+                return ((ITransposeDataView)_parent).GetSlotType(_col);
             }
 
             protected abstract ValueGetter<VBuffer<T>> GetGetterCore();
@@ -1398,7 +1372,7 @@ namespace Microsoft.ML.Data
                 _host = env.Register("SlotDataView");
                 _host.CheckValue(data, nameof(data));
                 _host.CheckParam(0 <= col && col < data.Schema.Count, nameof(col));
-                _type = data.TransposeSlotTypes[col];
+                _type = data.GetSlotType(col);
                 _host.AssertValue(_type);
 
                 _data = data;

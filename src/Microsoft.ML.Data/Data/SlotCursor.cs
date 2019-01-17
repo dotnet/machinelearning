@@ -46,14 +46,14 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// The slot type for this cursor. Note that this should equal the
-        /// <see cref="ITransposeDataView.TransposeSlotTypes"/> for the column from which this slot cursor
+        /// <see cref="ITransposeDataView.GetSlotType"/> for the column from which this slot cursor
         /// was created.
         /// </summary>
         public abstract VectorType GetSlotType();
 
         /// <summary>
         /// A getter delegate for the slot values. The type <typeparamref name="TValue"/> must correspond
-        /// to the item type from <see cref="ITransposeDataView.TransposeSlotTypes"/>.
+        /// to the item type from <see cref="ITransposeDataView.GetSlotType"/>.
         /// </summary>
         public abstract ValueGetter<VBuffer<TValue>> GetGetter<TValue>();
 

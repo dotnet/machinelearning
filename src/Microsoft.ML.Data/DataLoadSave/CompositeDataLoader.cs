@@ -408,11 +408,6 @@ namespace Microsoft.ML.Data
 
             View = transforms[transforms.Length - 1].Transform;
             _tview = View as ITransposeDataView;
-            if (_tview == null || _tview.TransposeSlotTypes == null)
-                _transposeSlotTypes = null;
-            else
-                _transposeSlotTypes = _tview.TransposeSlotTypes;
-
             var srcLoader = transforms[0].Transform.Source as IDataLoader;
 
 #if DEBUG
@@ -568,10 +563,6 @@ namespace Microsoft.ML.Data
 
         public Schema Schema => View.Schema;
 
-        private VectorType[] _transposeSlotTypes;
-
-        VectorType[] ITransposeDataView.TransposeSlotTypes => _transposeSlotTypes;
-
         public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
@@ -586,10 +577,12 @@ namespace Microsoft.ML.Data
             return View.GetRowCursorSet(predicate, n, rand);
         }
 
+        VectorType ITransposeDataView.GetSlotType(int col) => _tview?.GetSlotType(col);
+
         SlotCursor ITransposeDataView.GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < Schema.Count, nameof(col));
-            if (_transposeSlotTypes == null || (_transposeSlotTypes != null && _transposeSlotTypes[col] == null))
+            if (_tview?.GetSlotType(col) == null)
             {
                 throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
                     Schema[col].Name);

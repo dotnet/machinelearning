@@ -20,8 +20,7 @@ namespace Microsoft.ML.Data
     /// way of accessing the data stored in a <see cref="IDataView"/>.
     ///
     /// The interface only advertises that columns may be accessible in slot-wise fashion. The i-th column
-    /// is accessible in this fashion iff <see cref="TransposeSlotTypes"/>[i] is not <see langword="null"/>
-    /// and <see cref="TransposeSlotTypes"/>[i] is not <see langword="null"/>.
+    /// is accessible in this fashion iff <see cref="GetSlotType"/> with col=i doesn't return <see langword="null"/>.
     /// </summary>
     [BestFriend]
     internal interface ITransposeDataView : IDataView
@@ -33,11 +32,12 @@ namespace Microsoft.ML.Data
         SlotCursor GetSlotCursor(int col);
 
         /// <summary>
-        /// <see cref="TransposeSlotTypes"/>[i] specifies the type of all values at the i-th column of <see cref="IDataView"/>.
-        /// For example, if <see cref="IDataView.Schema"/>[i] is a scalar float column, then <see cref="TransposeSlotTypes"/>[i]
-        /// may return a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/> field is <see cref="NumberType.R4"/>.
-        /// If the i-th column can't be iterated column-wisely, <see cref="TransposeSlotTypes"/>[i] may be <see langword="null"/>.
+        /// <see cref="GetSlotType"/> (input argument is named col) specifies the type of all values at the col-th column of
+        /// <see cref="IDataView"/>.  For example, if <see cref="IDataView.Schema"/>[i] is a scalar float column, then
+        /// <see cref="GetSlotType"/> with col=i may return a <see cref="VectorType"/> whose <see cref="VectorType.ItemType"/>
+        /// field is <see cref="NumberType.R4"/>. If the i-th column can't be iterated column-wisely, this function may
+        /// return <see langword="null"/>.
         /// </summary>
-        VectorType[] TransposeSlotTypes { get; }
+        VectorType GetSlotType(int col);
     }
 }

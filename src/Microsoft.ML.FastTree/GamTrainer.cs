@@ -268,8 +268,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             if (useTranspose.HasValue)
                 return useTranspose.Value;
-            return data.Data is ITransposeDataView td && td.TransposeSlotTypes != null
-                && td.TransposeSlotTypes[data.Schema.Feature.Value.Index] != null;
+            return (data.Data as ITransposeDataView)?.GetSlotType(data.Schema.Feature.Value.Index) != null;
         }
 
         private void TrainCore(IChannel ch)

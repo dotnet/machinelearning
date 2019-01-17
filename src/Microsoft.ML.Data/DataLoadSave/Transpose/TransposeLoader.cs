@@ -388,10 +388,6 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        private VectorType[] _transposeSlotTypes;
-
-        VectorType[] ITransposeDataView.TransposeSlotTypes => _transposeSlotTypes;
-
         public TransposeLoader(IHostEnvironment env, Arguments args, IMultiStreamSource file)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -420,7 +416,6 @@ namespace Microsoft.ML.Data.IO
                     _colTransposersLock = new object();
                 }
             }
-            _transposeSlotTypes = ComputeTransposeSchema();
         }
 
         private TransposeLoader(IHost host, ModelLoadContext ctx, IMultiStreamSource file)
@@ -482,7 +477,6 @@ namespace Microsoft.ML.Data.IO
                 _host.Assert(_entries[c].GetViewOrNull() == null);
             }
             _host.Assert(HasRowData);
-            _transposeSlotTypes = ComputeTransposeSchema();
         }
         public static TransposeLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
         {
@@ -610,17 +604,10 @@ namespace Microsoft.ML.Data.IO
             return header;
         }
 
-        private VectorType[] ComputeTransposeSchema()
+        VectorType ITransposeDataView.GetSlotType(int col)
         {
-            var transposeSchema = new List<VectorType>();
-
-            for (int i = 0; i < _entries.Length; ++i)
-            {
-                var view = _entries[i].GetViewOrNull();
-                transposeSchema.Add(view.Schema[0].Type as VectorType);
-            }
-
-            return transposeSchema.ToArray();
+            var view = _entries[col].GetViewOrNull();
+            return view.Schema[0].Type as VectorType;
         }
 
         public long? GetRowCount()
@@ -657,7 +644,7 @@ namespace Microsoft.ML.Data.IO
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
-            ColumnType cursorType = _transposeSlotTypes[col].ItemType;
+            ColumnType cursorType = ((ITransposeDataView)this).GetSlotType(col).ItemType;
             RowCursor inputCursor = view.GetRowCursor(c => true);
             try
             {
@@ -742,8 +729,10 @@ namespace Microsoft.ML.Data.IO
                         _host.AssertValue(view);
                         _host.Assert(view.Schema.Count == 1);
                         var trans = _colTransposers[col] = Transposer.Create(_host, view, false, new int[] { 0 });
+                        // There should be only one column.
                         _host.Assert(trans.Schema.Count == 1);
-                        _host.Assert((trans as ITransposeDataView).TransposeSlotTypes[0].GetValueCount() == Schema[col].Type.GetValueCount());
+                        // Check if the only one column is ok.
+                        _host.Assert((trans as ITransposeDataView)?.GetSlotType(0).GetValueCount() == Schema[col].Type.GetValueCount());
                     }
                 }
             }
