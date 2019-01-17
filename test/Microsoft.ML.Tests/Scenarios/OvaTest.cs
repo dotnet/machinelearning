@@ -70,7 +70,8 @@ namespace Microsoft.ML.Scenarios
             // Pipeline
             var pipeline = new Ova(
                 mlContext,
-                new AveragedPerceptronTrainer(mlContext, "Label", "Features", advancedSettings: s => { s.Shuffle = true;  s.Calibrator = null; }),
+                mlContext.BinaryClassification.Trainers.AveragedPerceptron(
+                    new AveragedPerceptronTrainer.Arguments { Shuffle = true, Calibrator = null }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

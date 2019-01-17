@@ -36,10 +36,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 .Append(r => (r.Label, Features: r.Features.Normalize()));
 
             var binaryTrainData = binaryPipe.Fit(binaryData).Transform(binaryData).AsDynamic;
-            var apTrainer = new AveragedPerceptronTrainer(ML, "Label", "Features", lossFunction: new HingeLoss(), advancedSettings: s =>
-            {
-                s.LearningRate = 0.5f;
-            });
+            var apTrainer = ML.BinaryClassification.Trainers.AveragedPerceptron(
+                new AveragedPerceptronTrainer.Arguments{ LearningRate = 0.5f });
             TestEstimatorCore(apTrainer, binaryTrainData);
 
             var apModel = apTrainer.Fit(binaryTrainData);

@@ -115,7 +115,6 @@ namespace Microsoft.ML.StaticPipe
     /// </summary>
     public static class LbfgsRegressionExtensions
     {
-
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
         /// </summary>
@@ -212,7 +211,6 @@ namespace Microsoft.ML.StaticPipe
     /// </summary>
     public static class LbfgsMulticlassExtensions
     {
-
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
         /// </summary>
@@ -306,7 +304,6 @@ namespace Microsoft.ML.StaticPipe
 
     internal static class LbfgsStaticUtils
     {
-
         internal static void ValidateParams(PipelineColumn label,
             Vector<float> features,
             Scalar<float> weights = null,

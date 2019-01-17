@@ -163,7 +163,6 @@ namespace Microsoft.ML
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
@@ -173,12 +172,26 @@ namespace Microsoft.ML
             float learningRate = AveragedLinearArguments.AveragedDefaultArgs.LearningRate,
             bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
-            Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null)
+            int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new AveragedPerceptronTrainer(env, labelColumn, featureColumn, weights, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
+            return new AveragedPerceptronTrainer(env, labelColumn, featureColumn, weights, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
+        /// </summary>
+        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public static AveragedPerceptronTrainer AveragedPerceptron(
+            this BinaryClassificationContext.BinaryClassificationTrainers ctx, AveragedPerceptronTrainer.Arguments advancedSettings)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new AveragedPerceptronTrainer(env, advancedSettings);
         }
 
         private sealed class TrivialClassificationLossFactory : ISupportClassificationLossFactory

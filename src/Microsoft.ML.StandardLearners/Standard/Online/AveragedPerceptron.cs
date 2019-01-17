@@ -103,8 +103,7 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="decreaseLearningRate">Wheather to decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
-        public AveragedPerceptronTrainer(IHostEnvironment env,
+        internal AveragedPerceptronTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -112,9 +111,8 @@ namespace Microsoft.ML.Trainers.Online
             float learningRate = Arguments.AveragedDefaultArgs.LearningRate,
             bool decreaseLearningRate = Arguments.AveragedDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = Arguments.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = Arguments.AveragedDefaultArgs.NumIterations,
-            Action<Arguments> advancedSettings = null)
-            : this(env, InvokeAdvanced(advancedSettings, new Arguments
+            int numIterations = Arguments.AveragedDefaultArgs.NumIterations)
+            : this(env, new Arguments
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
@@ -124,7 +122,7 @@ namespace Microsoft.ML.Trainers.Online
                 L2RegularizerWeight = l2RegularizerWeight,
                 NumIterations = numIterations,
                 LossFunction = new TrivialFactory(lossFunction ?? new HingeLoss())
-            }))
+            })
         {
         }
 
