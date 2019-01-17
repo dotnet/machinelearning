@@ -100,8 +100,7 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="numIterations">Number of training iterations through the data.</param>
         /// <param name="weightsColumn">The name of the weights column.</param>
         /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
-        /// <param name="advancedSettings">A delegate to supply advanced arguments to the algorithm. </param>
-        public OnlineGradientDescentTrainer(IHostEnvironment env,
+        internal OnlineGradientDescentTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             float learningRate = Arguments.OgdDefaultArgs.LearningRate,
@@ -109,9 +108,8 @@ namespace Microsoft.ML.Trainers.Online
             float l2RegularizerWeight = Arguments.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = Arguments.OgdDefaultArgs.NumIterations,
             string weightsColumn = null,
-            IRegressionLoss lossFunction = null,
-            Action<Arguments> advancedSettings = null)
-            : this(env, InvokeAdvanced(advancedSettings, new Arguments
+            IRegressionLoss lossFunction = null)
+            : this(env, new Arguments
             {
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
@@ -121,7 +119,7 @@ namespace Microsoft.ML.Trainers.Online
                 FeatureColumn = featureColumn,
                 InitialWeights = weightsColumn,
                 LossFunction = new TrivialFactory(lossFunction ?? new SquaredLoss())
-            }))
+            })
         {
         }
 

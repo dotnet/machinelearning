@@ -152,7 +152,6 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -171,7 +170,6 @@ namespace Microsoft.ML.StaticPipe
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
-            Action<AveragedLinearArguments> advancedSettings = null,
             Action<LinearRegressionModelParameters> onFit = null)
         {
             OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
@@ -181,7 +179,55 @@ namespace Microsoft.ML.StaticPipe
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new OnlineGradientDescentTrainer(env, labelName, featuresName, learningRate,
-                        decreaseLearningRate, l2RegularizerWeight, numIterations, weightsName, lossFunction, advancedSettings);
+                        decreaseLearningRate, l2RegularizerWeight, numIterations, weightsName, lossFunction);
+
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+
+                    return trainer;
+                }, label, features, weights);
+
+            return rec.Score;
+        }
+
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The optional example weights.</param>
+        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained, as well as the calibrator on top of that model. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted binary classification score (which will range
+        /// from negative to positive infinity), and the predicted label.</returns>
+        /// <seealso cref="OnlineGradientDescentTrainer"/>.
+        /// <returns>The predicted output.</returns>
+        public static Scalar<float> OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
+            Scalar<float> label,
+            Vector<float> features,
+            Scalar<float> weights,
+            OnlineGradientDescentTrainer.Arguments advancedSettings,
+            Action<LinearRegressionModelParameters> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValueOrNull(onFit);
+
+            var rec = new TrainerEstimatorReconciler.Regression(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    advancedSettings.LabelColumn = labelName;
+                    advancedSettings.FeatureColumn = featuresName;
+                    advancedSettings.InitialWeights = weightsName;
+
+                    var trainer = new OnlineGradientDescentTrainer(env, advancedSettings);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

@@ -221,7 +221,6 @@ namespace Microsoft.ML
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
@@ -230,12 +229,27 @@ namespace Microsoft.ML
             float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
-            Action<AveragedLinearArguments> advancedSettings = null)
+            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new OnlineGradientDescentTrainer(env, labelColumn, featureColumn, learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, weights, lossFunction, advancedSettings);
+            return new OnlineGradientDescentTrainer(env, labelColumn, featureColumn, learningRate, decreaseLearningRate, l2RegularizerWeight,
+                numIterations, weights, lossFunction);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
+            OnlineGradientDescentTrainer.Arguments advancedSettings)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new OnlineGradientDescentTrainer(env, advancedSettings);
         }
 
         /// <summary>

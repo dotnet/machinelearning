@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var regressionTrainData = regressionPipe.Fit(regressionData).Transform(regressionData).AsDynamic;
 
-            var ogdTrainer = new OnlineGradientDescentTrainer(ML, "Label", "Features");
+            var ogdTrainer = ML.Regression.Trainers.OnlineGradientDescent();
             TestEstimatorCore(ogdTrainer, regressionTrainData);
             var ogdModel = ogdTrainer.Fit(regressionTrainData);
             ogdTrainer.Train(regressionTrainData, ogdModel.Model);
