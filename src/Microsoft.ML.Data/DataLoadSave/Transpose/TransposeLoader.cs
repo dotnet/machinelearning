@@ -388,7 +388,9 @@ namespace Microsoft.ML.Data.IO
             }
         }
 
-        public VectorType[] TransposeSlotTypes { get; }
+        private VectorType[] _transposeSlotTypes;
+
+        VectorType[] ITransposeDataView.TransposeSlotTypes => _transposeSlotTypes;
 
         public TransposeLoader(IHostEnvironment env, Arguments args, IMultiStreamSource file)
         {
@@ -418,7 +420,7 @@ namespace Microsoft.ML.Data.IO
                     _colTransposersLock = new object();
                 }
             }
-            TransposeSlotTypes = ComputeTransposeSchema();
+            _transposeSlotTypes = ComputeTransposeSchema();
         }
 
         private TransposeLoader(IHost host, ModelLoadContext ctx, IMultiStreamSource file)
@@ -480,7 +482,7 @@ namespace Microsoft.ML.Data.IO
                 _host.Assert(_entries[c].GetViewOrNull() == null);
             }
             _host.Assert(HasRowData);
-            TransposeSlotTypes = ComputeTransposeSchema();
+            _transposeSlotTypes = ComputeTransposeSchema();
         }
         public static TransposeLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
         {
@@ -655,7 +657,7 @@ namespace Microsoft.ML.Data.IO
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
-            ColumnType cursorType = TransposeSlotTypes[col].ItemType;
+            ColumnType cursorType = _transposeSlotTypes[col].ItemType;
             RowCursor inputCursor = view.GetRowCursor(c => true);
             try
             {
@@ -741,7 +743,7 @@ namespace Microsoft.ML.Data.IO
                         _host.Assert(view.Schema.Count == 1);
                         var trans = _colTransposers[col] = Transposer.Create(_host, view, false, new int[] { 0 });
                         _host.Assert(trans.Schema.Count == 1);
-                        _host.Assert(trans.TransposeSlotTypes[0].GetValueCount() == Schema[col].Type.GetValueCount());
+                        _host.Assert((trans as ITransposeDataView).TransposeSlotTypes[0].GetValueCount() == Schema[col].Type.GetValueCount());
                     }
                 }
             }

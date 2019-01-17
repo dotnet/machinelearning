@@ -294,7 +294,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(Utils.Size(infos) == InfoCount);
 
                 _parent = parent;
-                TransposeSchema = _parent?.TransposeSlotTypes;
+                TransposeSchema = (_parent as ITransposeDataView)?.TransposeSlotTypes;
                 Infos = infos;
             }
 
@@ -623,7 +623,7 @@ namespace Microsoft.ML.Data
 
         public sealed override Schema OutputSchema => _bindings.AsSchema;
 
-        public VectorType[] TransposeSlotTypes => _bindings?.TransposeSchema;
+        VectorType[] ITransposeDataView.TransposeSlotTypes => _bindings?.TransposeSchema;
 
         /// <summary>
         /// Return the (destination) column index for the indicated added column.

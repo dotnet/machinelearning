@@ -101,6 +101,9 @@ namespace Microsoft.ML.Data
             _cols = new Schema.Column[columns.Length];
             var schema = _view.Schema;
             _nameToICol = new Dictionary<string, int>();
+            // Let i be a column index in _view's Schema. _inputToTransposed[i] is -1 if the i-th column can
+            // be accessed column-wisely. Otherwise, the i-th input will become the _inputToTransposed[i]-th
+            // transposed column in the output.
             _inputToTransposed = Utils.CreateArray(schema.Count, -1);
             for (int c = 0; c < columns.Length; ++c)
             {
@@ -180,7 +183,7 @@ namespace Microsoft.ML.Data
                 if (rowCount > Utils.ArrayMaxSize)
                     throw _host.ExceptParam(nameof(view), "View has {0} rows, we cannot transpose with more than {1}", rowCount, Utils.ArrayMaxSize);
                 RowCount = (int)rowCount;
-                TransposeSlotTypes = ComputeTransposeSchema();
+                _transposeSlotTypes = ComputeTransposeSchema();
             }
         }
 
@@ -226,7 +229,7 @@ namespace Microsoft.ML.Data
 
         public SlotCursor GetSlotCursor(int col)
         {
-            _host.CheckParam(0 <= col && col < TransposeSlotTypes.Length, nameof(col));
+            _host.CheckParam(0 <= col && col < _transposeSlotTypes.Length, nameof(col));
             if (_inputToTransposed[col] == -1)
             {
                 // Check if the parent view has this slot transposed. If it doesn't, fail.
@@ -235,7 +238,7 @@ namespace Microsoft.ML.Data
                 // Note that i-th transposed column is actually all the values at the i-th original column.
                 throw _host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'", _tview.Schema[col].Name);
             }
-            var type = TransposeSlotTypes[col].ItemType.RawType;
+            var type = _transposeSlotTypes[col].ItemType.RawType;
 
             var tcol = _inputToTransposed[col];
             _host.Assert(0 <= tcol && tcol < _cols.Length);
@@ -252,11 +255,11 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// This is a core function for computing <see cref="TransposeSlotTypes"/>.
-        /// If the i-th column in <see cref="_view"/> is not transposable, then <see cref="TransposeSlotTypes"/>[i] should null.
-        /// If all columns in <see cref="_view"/> are not transposed, there will be two possibilities --- <see cref="TransposeSlotTypes"/>
-        /// is <see langword="null"/> or all <see cref="TransposeSlotTypes"/>[i]s are <see langword="null"/>.
-        /// Note that <see cref="TransposeSlotTypes"/> is parallel to <see cref="_view"/>'s <see cref="Schema"/>, so they have the same numbers
+        /// This is a core function for computing <see cref="_transposeSlotTypes"/>.
+        /// If the i-th column in <see cref="_view"/> is not transposable, then <see cref="_transposeSlotTypes"/>[i] should null.
+        /// If all columns in <see cref="_view"/> are not transposed, there will be two possibilities --- <see cref="_transposeSlotTypes"/>
+        /// is <see langword="null"/> or all <see cref="_transposeSlotTypes"/>[i]s are <see langword="null"/>.
+        /// Note that <see cref="_transposeSlotTypes"/> is parallel to <see cref="_view"/>'s <see cref="Schema"/>, so they have the same numbers
         /// of columns.
         /// </summary>
         private VectorType[] ComputeTransposeSchema()
@@ -299,7 +302,9 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
-        public VectorType[] TransposeSlotTypes { get; }
+        private VectorType[] _transposeSlotTypes;
+
+        VectorType[] ITransposeDataView.TransposeSlotTypes => _transposeSlotTypes;
 
         public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
@@ -344,7 +349,7 @@ namespace Microsoft.ML.Data
 
             public override VectorType GetSlotType()
             {
-                return _parent.TransposeSlotTypes[_col];
+                return _parent._transposeSlotTypes[_col];
             }
 
             protected abstract ValueGetter<VBuffer<T>> GetGetterCore();
