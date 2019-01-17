@@ -20,7 +20,7 @@ using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Training;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Arguments),
+[assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     SymSgdClassificationTrainer.UserNameValue,
     SymSgdClassificationTrainer.LoadNameValue,
@@ -33,48 +33,78 @@ namespace Microsoft.ML.Trainers.SymSgd
     using TPredictor = IPredictorWithFeatureWeights<float>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
+    [BestFriend]
     public sealed class SymSgdClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
         internal const string LoadNameValue = "SymbolicSGD";
         internal const string UserNameValue = "Symbolic SGD (binary)";
         internal const string ShortName = "SymSGD";
 
-        public sealed class Arguments : LearnerInputBaseWithLabel
+        public sealed class Options : LearnerInputBaseWithLabel
         {
+            /// <summary>
+            /// Degree of lock-free parallelism. Determinism not guaranteed.
+            /// Multi-threading is not supported currently.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Determinism not guaranteed. " +
                 "Multi-threading is not supported currently.", ShortName = "nt")]
             public int? NumberOfThreads;
 
+            /// <summary>
+            /// Number of passes over the data.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of passes over the data.", ShortName = "iter", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1,5,10,20,30,40,50")]
             [TlcModule.SweepableDiscreteParam("NumberOfIterations", new object[] { 1, 5, 10, 20, 30, 40, 50 })]
             public int NumberOfIterations = 50;
 
+            /// <summary>
+            /// Tolerance for difference in average loss in consecutive passes.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance for difference in average loss in consecutive passes.", ShortName = "tol")]
             public float Tolerance = 1e-4f;
 
+            /// <summary>
+            /// Learning rate.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", NullName = "<Auto>", SortOrder = 51)]
             [TGUI(SuggestedSweeps = "<Auto>,1e1,1e0,1e-1,1e-2,1e-3")]
             [TlcModule.SweepableDiscreteParam("LearningRate", new object[] { "<Auto>", 1e1f, 1e0f, 1e-1f, 1e-2f, 1e-3f })]
             public float? LearningRate;
 
+            /// <summary>
+            /// L2 regularization.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization", ShortName = "l2", SortOrder = 52)]
             [TGUI(SuggestedSweeps = "0.0,1e-5,1e-5,1e-6,1e-7")]
             [TlcModule.SweepableDiscreteParam("L2Regularization", new object[] { 0.0f, 1e-5f, 1e-5f, 1e-6f, 1e-7f })]
             public float L2Regularization;
 
+            /// <summary>
+            /// The number of iterations each thread learns a local model until combining it with the
+            /// global model. Low value means more updated global model and high value means less cache traffic.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of iterations each thread learns a local model until combining it with the " +
                 "global model. Low value means more updated global model and high value means less cache traffic.", ShortName = "freq", NullName = "<Auto>")]
             [TGUI(SuggestedSweeps = "<Auto>,5,20")]
             [TlcModule.SweepableDiscreteParam("UpdateFrequency", new object[] { "<Auto>", 5, 20 })]
             public int? UpdateFrequency;
 
+            /// <summary>
+            /// The acceleration memory budget in MB.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "The acceleration memory budget in MB", ShortName = "accelMemBudget")]
             public long MemorySize = 1024;
 
+            /// <summary>
+            /// Set to <see langword="true" /> causes the data to shuffle.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data?", ShortName = "shuf")]
             public bool Shuffle = true;
 
+            /// <summary>
+            /// Apply weight to the positive class, for imbalanced data.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
 
@@ -88,7 +118,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         }
 
         public override TrainerInfo Info { get; }
-        private readonly Arguments _args;
+        private readonly Options _args;
 
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its
@@ -152,32 +182,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         /// <summary>
         /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
         /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public SymSgdClassificationTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            Action<Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn),
-                  TrainerUtils.MakeBoolScalarLabel(labelColumn))
-        {
-            _args = new Arguments();
-
-            // Apply the advanced args, if the user supplied any.
-            _args.Check(Host);
-            advancedSettings?.Invoke(_args);
-            _args.FeatureColumn = featureColumn;
-            _args.LabelColumn = labelColumn;
-
-            Info = new TrainerInfo(supportIncrementalTrain: true);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
-        /// </summary>
-        internal SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
+        internal SymSgdClassificationTrainer(IHostEnvironment env, Options args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
                   TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
@@ -218,14 +223,14 @@ namespace Microsoft.ML.Trainers.SymSgd
             UserName = SymSgdClassificationTrainer.UserNameValue,
             ShortName = SymSgdClassificationTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""SymSGD""]/*' />" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSymSGD");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new SymSgdClassificationTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }

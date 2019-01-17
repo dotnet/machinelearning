@@ -19,7 +19,7 @@ using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(OlsLinearRegressionTrainer.Summary, typeof(OlsLinearRegressionTrainer), typeof(OlsLinearRegressionTrainer.Arguments),
+[assembly: LoadableClass(OlsLinearRegressionTrainer.Summary, typeof(OlsLinearRegressionTrainer), typeof(OlsLinearRegressionTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     OlsLinearRegressionTrainer.UserNameValue,
     OlsLinearRegressionTrainer.LoadNameValue,
@@ -34,9 +34,10 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML.Trainers.HalLearners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
+    [BestFriend]
     public sealed class OlsLinearRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionModelParameters>, OlsLinearRegressionModelParameters>
     {
-        public sealed class Arguments : LearnerInputBaseWithWeight
+        public sealed class Options : LearnerInputBaseWithWeight
         {
             // Adding L2 regularization turns this into a form of ridge regression,
             // rather than, strictly speaking, ordinary least squares. But it is an
@@ -46,13 +47,16 @@ namespace Microsoft.ML.Trainers.HalLearners
             [TlcModule.SweepableDiscreteParamAttribute("L2Weight", new object[] { 1e-6f, 0.1f, 1f })]
             public float L2Weight = 1e-6f;
 
+            /// <summary>
+            /// Whether to calculate per parameter significance statistics.
+            /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
             public bool PerParameterSignificance = true;
         }
 
-        public const string LoadNameValue = "OLSLinearRegression";
-        public const string UserNameValue = "Ordinary Least Squares (Regression)";
-        public const string ShortName = "ols";
+        internal const string LoadNameValue = "OLSLinearRegression";
+        internal const string UserNameValue = "Ordinary Least Squares (Regression)";
+        internal const string ShortName = "ols";
         internal const string Summary = "The ordinary least square regression fits the target function as a linear function of the numerical features "
             + "that minimizes the square loss function.";
 
@@ -68,24 +72,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// <summary>
         /// Initializes a new instance of <see cref="OlsLinearRegressionTrainer"/>
         /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="labelColumn">The name of the labelColumn column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weights">The name for the optional example weight column.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public OlsLinearRegressionTrainer(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            Action<Arguments> advancedSettings = null)
-            : this(env, ArgsInit(featureColumn, labelColumn, weights, advancedSettings))
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="OlsLinearRegressionTrainer"/>
-        /// </summary>
-        internal OlsLinearRegressionTrainer(IHostEnvironment env, Arguments args)
+        internal OlsLinearRegressionTrainer(IHostEnvironment env, Options args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
                   TrainerUtils.MakeR4ScalarColumn(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
@@ -93,21 +80,6 @@ namespace Microsoft.ML.Trainers.HalLearners
             Host.CheckUserArg(args.L2Weight >= 0, nameof(args.L2Weight), "L2 regularization term cannot be negative");
             _l2Weight = args.L2Weight;
             _perParameterSignificance = args.PerParameterSignificance;
-        }
-
-        private static Arguments ArgsInit(string featureColumn,
-            string labelColumn,
-            string weightColumn,
-            Action<Arguments> advancedSettings)
-        {
-            var args = new Arguments();
-
-            // Apply the advanced args, if the user supplied any.
-            advancedSettings?.Invoke(args);
-            args.FeatureColumn = featureColumn;
-            args.LabelColumn = labelColumn;
-            args.WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight);
-            return args;
         }
 
         protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, Schema trainSchema)
@@ -518,14 +490,14 @@ namespace Microsoft.ML.Trainers.HalLearners
             UserName = UserNameValue,
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainOLS");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.RegressionOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
                 () => new OlsLinearRegressionTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
@@ -579,7 +551,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// are all null. A model may not have per parameter statistics because either
         /// there were not more examples than parameters in the model, or because they
         /// were explicitly suppressed in training by setting
-        /// <see cref="OlsLinearRegressionTrainer.Arguments.PerParameterSignificance"/>
+        /// <see cref="OlsLinearRegressionTrainer.Options.PerParameterSignificance"/>
         /// to false.
         /// </summary>
         public bool HasStatistics => _standardErrors != null;
