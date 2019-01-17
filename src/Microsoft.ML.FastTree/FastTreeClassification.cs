@@ -155,7 +155,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        private protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
+        private protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainCatalog context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;

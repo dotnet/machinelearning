@@ -38,7 +38,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var ctx = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -80,7 +80,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new RegressionContext(env);
+            var ctx = new RegressionCatalog(env);
 
             // Here we introduce another column called "Score" to collide with the name of the default output. Heh heh heh...
             var reader = TextLoaderStatic.CreateReader(env,
@@ -110,7 +110,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -156,7 +156,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -200,7 +200,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -236,7 +236,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -272,7 +272,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features1: c.LoadFloat(1, 4), features2: c.LoadFloat(5, 9)));
@@ -305,7 +305,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var ctx = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -355,7 +355,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var ctx = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -378,7 +378,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -418,7 +418,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var ctx = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -459,7 +459,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -500,7 +500,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var ctx = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -542,7 +542,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var ctx = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -584,7 +584,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -624,7 +624,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var ctx = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -668,7 +668,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var ctx = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -779,7 +779,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RankingContext(env);
+            var ctx = new RankingCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
@@ -820,7 +820,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RankingContext(env);
+            var ctx = new RankingCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
@@ -861,7 +861,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var ctx = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -899,7 +899,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var ctx = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -943,7 +943,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var ctx = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));

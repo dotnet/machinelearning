@@ -132,7 +132,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             return examplesToFeedTrain;
         }
 
-        private protected override TPredictor TrainModelCore(TrainContext context)
+        private protected override TPredictor TrainModelCore(TrainCatalog context)
         {
             Host.CheckValue(context, nameof(context));
             using (var ch = Host.Start("Training"))

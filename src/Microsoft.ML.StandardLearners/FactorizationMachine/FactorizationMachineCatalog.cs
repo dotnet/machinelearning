@@ -24,7 +24,7 @@ namespace Microsoft.ML
         /// The settings here will override the ones provided in the direct method signature,
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
-        public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers ctx,
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,
             string weights = null,

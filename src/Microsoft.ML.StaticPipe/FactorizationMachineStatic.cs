@@ -36,7 +36,7 @@ namespace Microsoft.ML.StaticPipe
         /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<bool> predictedLabel) FieldAwareFactorizationMachine(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<bool> predictedLabel) FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers ctx,
             Scalar<bool> label, Vector<float>[] features,
             float learningRate = 0.1f,
             int numIterations = 5,

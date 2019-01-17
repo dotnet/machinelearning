@@ -29,11 +29,11 @@ namespace Microsoft.ML.Training
             Host = env.Register(name);
         }
 
-        IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        IPredictor ITrainer.Train(TrainCatalog context) => Train(context);
 
-        TPredictor ITrainer<TPredictor>.Train(TrainContext context) => Train(context);
+        TPredictor ITrainer<TPredictor>.Train(TrainCatalog context) => Train(context);
 
         [BestFriend]
-        private protected abstract TPredictor Train(TrainContext context);
+        private protected abstract TPredictor Train(TrainCatalog context);
     }
 }

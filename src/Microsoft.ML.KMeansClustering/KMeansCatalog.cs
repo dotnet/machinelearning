@@ -27,7 +27,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KMeans.cs)]
         /// ]]></format>
         /// </example>
-        public static KMeansPlusPlusTrainer KMeans(this ClusteringContext.ClusteringTrainers ctx,
+        public static KMeansPlusPlusTrainer KMeans(this ClusteringCatalog.ClusteringTrainers ctx,
            string featureColumn = DefaultColumnNames.Features,
            string weights = null,
            int clustersCount = KMeansPlusPlusTrainer.Defaults.ClustersCount)
@@ -49,7 +49,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="ctx">The clustering context trainer object.</param>
         /// <param name="options">Algorithm advanced options.</param>
-        public static KMeansPlusPlusTrainer KMeans(this ClusteringContext.ClusteringTrainers ctx, KMeansPlusPlusTrainer.Options options)
+        public static KMeansPlusPlusTrainer KMeans(this ClusteringCatalog.ClusteringTrainers ctx, KMeansPlusPlusTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(options, nameof(options));

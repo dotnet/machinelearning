@@ -55,7 +55,7 @@ namespace Microsoft.ML
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RegressionMetricsStatistics>
             PermutationFeatureImportance(
-                this RegressionContext ctx,
+                this RegressionCatalog ctx,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
@@ -132,7 +132,7 @@ namespace Microsoft.ML
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<BinaryClassificationMetricsStatistics>
             PermutationFeatureImportance(
-                this BinaryClassificationContext ctx,
+                this BinaryClassificationCatalog ctx,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
@@ -206,7 +206,7 @@ namespace Microsoft.ML
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<MultiClassClassifierMetricsStatistics>
             PermutationFeatureImportance(
-                this MulticlassClassificationContext ctx,
+                this MulticlassClassificationCatalog ctx,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
@@ -286,7 +286,7 @@ namespace Microsoft.ML
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RankerMetricsStatistics>
             PermutationFeatureImportance(
-                this RankingContext ctx,
+                this RankingCatalog ctx,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,

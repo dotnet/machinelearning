@@ -102,7 +102,7 @@ namespace Microsoft.ML.LightGBM
             InitParallelTraining();
         }
 
-        private protected override TModel TrainModelCore(TrainContext context)
+        private protected override TModel TrainModelCore(TrainCatalog context)
         {
             Host.CheckValue(context, nameof(context));
 

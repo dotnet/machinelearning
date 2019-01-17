@@ -274,7 +274,7 @@ namespace Microsoft.ML.Data
                 inputPredictor = null;
             }
             ch.Assert(validData == null || trainer.Info.SupportsValidation);
-            var predictor = trainer.Train(new TrainContext(data, validData, testData, inputPredictor));
+            var predictor = trainer.Train(new TrainCatalog(data, validData, testData, inputPredictor));
             var caliTrainer = calibrator?.CreateComponent(env);
             return CalibratorUtils.TrainCalibratorIfNeeded(env, ch, caliTrainer, maxCalibrationExamples, trainer, predictor, data);
         }

@@ -22,7 +22,7 @@ namespace Microsoft.ML
     /// <summary>
     /// The central context for regression trainers.
     /// </summary>
-    public sealed class RecommendationContext : TrainContextBase
+    public sealed class RecommendationContext : TrainCatalogBase
     {
         /// <summary>
         /// For trainers for performing regression.
@@ -35,7 +35,7 @@ namespace Microsoft.ML
             Trainers = new RecommendationTrainers(this);
         }
 
-        public sealed class RecommendationTrainers : ContextInstantiatorBase
+        public sealed class RecommendationTrainers : CatalogInstantiatorBase
         {
             internal RecommendationTrainers(RecommendationContext ctx)
                 : base(ctx)

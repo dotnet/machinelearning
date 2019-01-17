@@ -42,7 +42,7 @@ namespace Microsoft.ML.StaticPipe
         /// ]]></format>
         /// </example>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) AveragedPerceptron(
-                this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+                this BinaryClassificationCatalog.BinaryClassificationTrainers ctx,
                 Scalar<bool> label,
                 Vector<float> features,
                 Scalar<float> weights = null,
@@ -104,7 +104,7 @@ namespace Microsoft.ML.StaticPipe
         /// from negative to positive infinity), and the predicted label.</returns>
         /// <seealso cref="OnlineGradientDescentTrainer"/>.
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> OnlineGradientDescent(this RegressionCatalog.RegressionTrainers ctx,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,

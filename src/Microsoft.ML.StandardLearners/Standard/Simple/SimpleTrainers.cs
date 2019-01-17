@@ -71,11 +71,11 @@ namespace Microsoft.ML.Trainers
         public BinaryPredictionTransformer<RandomModelParameters> Fit(IDataView input)
         {
             RoleMappedData trainRoles = new RoleMappedData(input);
-            var pred = Train(new TrainContext(trainRoles));
+            var pred = Train(new TrainCatalog(trainRoles));
             return new BinaryPredictionTransformer<RandomModelParameters>(Host, pred, input.Schema, featureColumn: null);
         }
 
-        private protected override RandomModelParameters Train(TrainContext context)
+        private protected override RandomModelParameters Train(TrainCatalog context)
         {
             Host.CheckValue(context, nameof(context));
             return new RandomModelParameters(Host, Host.Rand.Next());
@@ -275,11 +275,11 @@ namespace Microsoft.ML.Trainers
         public BinaryPredictionTransformer<PriorModelParameters> Fit(IDataView input)
         {
             RoleMappedData trainRoles = new RoleMappedData(input, feature: null, label: _labelColumnName, weight: _weightColumnName);
-            var pred = Train(new TrainContext(trainRoles));
+            var pred = Train(new TrainCatalog(trainRoles));
             return new BinaryPredictionTransformer<PriorModelParameters>(Host, pred, input.Schema, featureColumn: null);
         }
 
-        private protected override PriorModelParameters Train(TrainContext context)
+        private protected override PriorModelParameters Train(TrainCatalog context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;

@@ -24,7 +24,7 @@ namespace Microsoft.ML.StaticPipe
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
         public static CalibratedBinaryClassificationMetrics Evaluate<T>(
-            this BinaryClassificationContext ctx,
+            this BinaryClassificationCatalog ctx,
             DataView<T> data,
             Func<T, Scalar<bool>> label,
             Func<T, (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel)> pred)
@@ -60,7 +60,7 @@ namespace Microsoft.ML.StaticPipe
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
         public static BinaryClassificationMetrics Evaluate<T>(
-            this BinaryClassificationContext ctx,
+            this BinaryClassificationCatalog ctx,
             DataView<T> data,
             Func<T, Scalar<bool>> label,
             Func<T, (Scalar<float> score, Scalar<bool> predictedLabel)> pred)
@@ -94,7 +94,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The optional index delegate for the features column.</param>
         /// <returns>The evaluation metrics.</returns>
         public static ClusteringMetrics Evaluate<T>(
-            this ClusteringContext ctx,
+            this ClusteringCatalog ctx,
             DataView<T> data,
             Func<T, Vector<float>> score,
             Func<T, Key<uint>> label = null,
@@ -131,7 +131,7 @@ namespace Microsoft.ML.StaticPipe
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation metrics.</returns>
         public static MultiClassClassifierMetrics Evaluate<T, TKey>(
-            this MulticlassClassificationContext ctx,
+            this MulticlassClassificationCatalog ctx,
             DataView<T> data,
             Func<T, Key<uint, TKey>> label,
             Func<T, (Vector<float> score, Key<uint, TKey> predictedLabel)> pred,
@@ -178,7 +178,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="loss">Potentially custom loss function. If left unspecified defaults to <see cref="SquaredLoss"/>.</param>
         /// <returns>The evaluation metrics.</returns>
         public static RegressionMetrics Evaluate<T>(
-            this RegressionContext ctx,
+            this RegressionCatalog ctx,
             DataView<T> data,
             Func<T, Scalar<float>> label,
             Func<T, Scalar<float>> score,
@@ -212,7 +212,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="score">The index delegate for predicted score column.</param>
         /// <returns>The evaluation metrics.</returns>
         public static RankerMetrics Evaluate<T, TVal>(
-            this RankingContext ctx,
+            this RankingCatalog ctx,
             DataView<T> data,
             Func<T, Scalar<float>> label,
             Func<T, Key<uint, TVal>> groupId,

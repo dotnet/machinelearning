@@ -16,7 +16,7 @@ namespace Microsoft.ML.StaticPipe
     public static class KMeansClusteringExtensions
     {
         /// <summary>
-        /// KMeans <see cref="ClusteringContext"/> extension method.
+        /// KMeans <see cref="ClusteringCatalog"/> extension method.
         /// </summary>
         /// <param name="ctx">The clustering context trainer object.</param>
         /// <param name="features">The features, or independent variables.</param>
@@ -28,7 +28,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Vector<float> score, Key<uint> predictedLabel) KMeans(this ClusteringContext.ClusteringTrainers ctx,
+        public static (Vector<float> score, Key<uint> predictedLabel) KMeans(this ClusteringCatalog.ClusteringTrainers ctx,
            Vector<float> features, Scalar<float> weights = null,
            int clustersCount = KMeansPlusPlusTrainer.Defaults.ClustersCount,
            Action<KMeansModelParameters> onFit = null)
@@ -60,7 +60,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// KMeans <see cref="ClusteringContext"/> extension method.
+        /// KMeans <see cref="ClusteringCatalog"/> extension method.
         /// </summary>
         /// <param name="ctx">The regression context trainer object.</param>
         /// <param name="features">The features, or independent variables.</param>
@@ -72,7 +72,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Vector<float> score, Key<uint> predictedLabel) KMeans(this ClusteringContext.ClusteringTrainers ctx,
+        public static (Vector<float> score, Key<uint> predictedLabel) KMeans(this ClusteringCatalog.ClusteringTrainers ctx,
            Vector<float> features, Scalar<float> weights,
            KMeansPlusPlusTrainer.Options options,
            Action<KMeansModelParameters> onFit = null)

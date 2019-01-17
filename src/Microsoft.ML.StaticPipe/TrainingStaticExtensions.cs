@@ -12,7 +12,7 @@ namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Defines static extension methods that allow operations like train-test split, cross-validate,
-    /// sampling etc. with the <see cref="TrainContextBase"/>.
+    /// sampling etc. with the <see cref="TrainCatalogBase"/>.
     /// </summary>
     public static class TrainingStaticExtensions
     {
@@ -31,7 +31,7 @@ namespace Microsoft.ML.StaticPipe
         /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>A pair of datasets, for the train and test set.</returns>
-        public static (DataView<T> trainSet, DataView<T> testSet) TrainTestSplit<T>(this TrainContextBase context,
+        public static (DataView<T> trainSet, DataView<T> testSet) TrainTestSplit<T>(this TrainCatalogBase context,
             DataView<T> data, double testFraction = 0.1, Func<T, PipelineColumn> stratificationColumn = null, uint? seed = null)
         {
             var env = StaticPipeUtils.GetEnvironment(data);
@@ -74,7 +74,7 @@ namespace Microsoft.ML.StaticPipe
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (RegressionMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
-            this RegressionContext context,
+            this RegressionCatalog context,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<float>> label,
@@ -132,7 +132,7 @@ namespace Microsoft.ML.StaticPipe
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (MultiClassClassifierMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
-            this MulticlassClassificationContext context,
+            this MulticlassClassificationCatalog context,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Key<uint>> label,
@@ -190,7 +190,7 @@ namespace Microsoft.ML.StaticPipe
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (BinaryClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidateNonCalibrated<TInShape, TOutShape, TTransformer>(
-            this BinaryClassificationContext context,
+            this BinaryClassificationCatalog context,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,
@@ -248,7 +248,7 @@ namespace Microsoft.ML.StaticPipe
         /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public static (CalibratedBinaryClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
-            this BinaryClassificationContext context,
+            this BinaryClassificationCatalog context,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
             Func<TOutShape, Scalar<bool>> label,

@@ -36,7 +36,7 @@ namespace Microsoft.ML.StaticPipe
         /// be informed about what was learnt.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationCatalog.BinaryClassificationTrainers ctx,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -91,7 +91,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> PoissonRegression(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> PoissonRegression(this RegressionCatalog.RegressionTrainers ctx,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -147,7 +147,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            MultiClassLogisticRegression<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            MultiClassLogisticRegression<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers ctx,
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights = null,

@@ -26,7 +26,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            MultiClassNaiveBayesTrainer<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            MultiClassNaiveBayesTrainer<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers ctx,
             Key<uint, TVal> label,
             Vector<float> features,
             Action<MultiClassNaiveBayesModelParameters> onFit = null)

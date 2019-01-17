@@ -84,7 +84,7 @@ namespace Microsoft.ML.Training
         /// </summary>
         protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
 
-        TModel ITrainer<TModel>.Train(TrainContext context)
+        TModel ITrainer<TModel>.Train(TrainCatalog context)
         {
             Host.CheckValue(context, nameof(context));
             return TrainModelCore(context);
@@ -131,19 +131,19 @@ namespace Microsoft.ML.Training
             var trainRoleMapped = MakeRoles(trainSet);
             var validRoleMapped = validationSet == null ? null : MakeRoles(validationSet);
 
-            var pred = TrainModelCore(new TrainContext(trainRoleMapped, validRoleMapped, null, initPredictor));
+            var pred = TrainModelCore(new TrainCatalog(trainRoleMapped, validRoleMapped, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
         }
 
         [BestFriend]
-        private protected abstract TModel TrainModelCore(TrainContext trainContext);
+        private protected abstract TModel TrainModelCore(TrainCatalog trainContext);
 
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
 
         private protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, weight: WeightColumn.Name);
 
-        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
+        IPredictor ITrainer.Train(TrainCatalog context) => ((ITrainer<TModel>)this).Train(context);
     }
 
     /// <summary>
