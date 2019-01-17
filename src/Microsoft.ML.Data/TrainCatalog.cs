@@ -193,8 +193,8 @@ namespace Microsoft.ML
 
         public sealed class BinaryClassificationTrainers : CatalogInstantiatorBase
         {
-            internal BinaryClassificationTrainers(BinaryClassificationCatalog ctx)
-                : base(ctx)
+            internal BinaryClassificationTrainers(BinaryClassificationCatalog catalog)
+                : base(catalog)
             {
             }
         }
@@ -312,8 +312,8 @@ namespace Microsoft.ML
 
         public sealed class ClusteringTrainers : CatalogInstantiatorBase
         {
-            internal ClusteringTrainers(ClusteringCatalog ctx)
-                : base(ctx)
+            internal ClusteringTrainers(ClusteringCatalog catalog)
+                : base(catalog)
             {
             }
         }
