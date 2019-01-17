@@ -21,27 +21,17 @@ namespace Microsoft.ML.Transforms
                 // The type is a scalar.
                 if (kind == ReplacementKind.Mean)
                 {
-                    switch (type.RawKind)
-                    {
-                    case DataKind.R4:
+                    if (type.RawType == typeof(float))
                         return new R4.MeanAggregatorOne(ch, cursor, col);
-                    case DataKind.R8:
+                    else if (type.RawType == typeof(double))
                         return new R8.MeanAggregatorOne(ch, cursor, col);
-                    default:
-                        break;
-                    }
                 }
                 if (kind == ReplacementKind.Min || kind == ReplacementKind.Max)
                 {
-                    switch (type.RawKind)
-                    {
-                    case DataKind.R4:
+                    if (type.RawType == typeof(float))
                         return new R4.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.R8:
+                    else if (type.RawType == typeof(double))
                         return new R8.MinMaxAggregatorOne(ch, cursor, col, kind == ReplacementKind.Max);
-                    default:
-                        break;
-                    }
                 }
             }
             else if (bySlot)
@@ -53,27 +43,17 @@ namespace Microsoft.ML.Transforms
 
                 if (kind == ReplacementKind.Mean)
                 {
-                    switch (vectorType.ItemType.RawKind)
-                    {
-                    case DataKind.R4:
+                    if (vectorType.ItemType.RawType == typeof(float))
                         return new R4.MeanAggregatorBySlot(ch, vectorType, cursor, col);
-                    case DataKind.R8:
+                    else if (vectorType.ItemType.RawType == typeof(double))
                         return new R8.MeanAggregatorBySlot(ch, vectorType, cursor, col);
-                    default:
-                        break;
-                    }
                 }
                 else if (kind == ReplacementKind.Min || kind == ReplacementKind.Max)
                 {
-                    switch (vectorType.ItemType.RawKind)
-                    {
-                    case DataKind.R4:
+                    if (vectorType.ItemType.RawType == typeof(float))
                         return new R4.MinMaxAggregatorBySlot(ch, vectorType, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.R8:
+                    else if (vectorType.ItemType.RawType == typeof(double))
                         return new R8.MinMaxAggregatorBySlot(ch, vectorType, cursor, col, kind == ReplacementKind.Max);
-                    default:
-                        break;
-                    }
                 }
             }
             else
@@ -81,27 +61,17 @@ namespace Microsoft.ML.Transforms
                 // Imputation across slots.
                 if (kind == ReplacementKind.Mean)
                 {
-                    switch (vectorType.ItemType.RawKind)
-                    {
-                    case DataKind.R4:
+                    if (vectorType.ItemType.RawType == typeof(float))
                         return new R4.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    case DataKind.R8:
+                    else if (vectorType.ItemType.RawType == typeof(double))
                         return new R8.MeanAggregatorAcrossSlots(ch, cursor, col);
-                    default:
-                        break;
-                    }
                 }
                 else if (kind == ReplacementKind.Min || kind == ReplacementKind.Max)
                 {
-                    switch (vectorType.ItemType.RawKind)
-                    {
-                    case DataKind.R4:
+                    if (vectorType.ItemType.RawType == typeof(float))
                         return new R4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    case DataKind.R8:
+                    else if (vectorType.ItemType.RawType == typeof(double))
                         return new R8.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
-                    default:
-                        break;
-                    }
                 }
             }
             ch.Assert(false);
