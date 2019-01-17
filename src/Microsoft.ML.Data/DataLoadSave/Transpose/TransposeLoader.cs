@@ -793,7 +793,7 @@ namespace Microsoft.ML.Data.IO
                 Ch.Assert(0 <= col && col < Schema.Count);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
                 var type = Schema[col].Type;
-                Ch.Assert((type as VectorType).GetValueCount() == _parent._header.RowCount);
+                Ch.Assert(((VectorType)type).GetValueCount() == _parent._header.RowCount);
                 Action<int> func = InitOne<int>;
                 ColumnType itemType = type;
                 if (type is VectorType vectorType)
