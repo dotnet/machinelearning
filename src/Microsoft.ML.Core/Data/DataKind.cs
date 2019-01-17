@@ -227,6 +227,41 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// Returns true if type is a valid DataKind type. Otherwise, false.
+        /// </summary>
+        public static bool IsValidDataKindType(this Type type)
+        {
+            Contracts.CheckValueOrNull(type);
+
+            return type == typeof(sbyte)
+                || type == typeof(byte)
+                || type == typeof(short)
+                || type == typeof(ushort)
+                || type == typeof(int)
+                || type == typeof(uint)
+                || type == typeof(long)
+                || type == typeof(ulong)
+                || type == typeof(float)
+                || type == typeof(double)
+                || type == typeof(ReadOnlyMemory<char>) || type == typeof(string)
+                || type == typeof(bool)
+                || type == typeof(TimeSpan)
+                || type == typeof(DateTime)
+                || type == typeof(DateTimeOffset)
+                || type == typeof(RowId);
+        }
+
+        /// <summary>
+        /// Returns true if the types are compatible with each other.
+        /// </summary>
+        public static bool AreDataKindCompatibleTypes(Type left, Type right)
+        {
+            return left == right
+                || (left == typeof(ReadOnlyMemory<char>) && right == typeof(string))
+                || (left == typeof(string) && right == typeof(ReadOnlyMemory<char>));
+        }
+
+        /// <summary>
         /// Get the canonical string for a DataKind. Note that using DataKind.ToString() is not stable
         /// and is also slow, so use this instead.
         /// </summary>

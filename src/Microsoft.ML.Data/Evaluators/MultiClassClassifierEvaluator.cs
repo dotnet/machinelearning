@@ -1001,7 +1001,7 @@ namespace Microsoft.ML.Data
             if (!perInst.Schema.TryGetColumnIndex(labelName, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", labelName);
             var labelType = perInst.Schema[labelCol].Type;
-            if (labelType is KeyType keyType && (!(bool)perInst.Schema[labelCol].HasKeyValues(keyType.Count) || labelType.RawKind != DataKind.U4))
+            if (labelType is KeyType keyType && (!(bool)perInst.Schema[labelCol].HasKeyValues(keyType.Count) || labelType.RawType != typeof(uint)))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, labelName,
                     labelName, perInst.Schema[labelCol].Type, NumberType.R8,

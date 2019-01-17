@@ -436,7 +436,7 @@ namespace Microsoft.ML.Data.Conversion
                     // Technically there is no standard conversion from a key type to an unsigned integer type,
                     // but it's very convenient for client code, so we allow it here. Note that ConvertTransform
                     // does not allow this.
-                    if (!KeyType.IsValidDataKind(typeDst.RawKind))
+                    if (!KeyType.IsValidDataType(typeDst.RawType))
                         return false;
                     if (keySrc.RawKind > typeDst.RawKind)
                     {
@@ -460,8 +460,8 @@ namespace Microsoft.ML.Data.Conversion
             else if (!typeDst.IsStandardScalar())
                 return false;
 
-            Contracts.Assert(typeSrc.RawKind != 0);
-            Contracts.Assert(typeDst.RawKind != 0);
+            Contracts.Assert(typeSrc.RawType.IsValidDataKindType());
+            Contracts.Assert(typeDst.RawType.IsValidDataKindType());
 
             int key = GetKey(typeSrc.RawKind, typeDst.RawKind);
             identity = typeSrc.RawKind == typeDst.RawKind;

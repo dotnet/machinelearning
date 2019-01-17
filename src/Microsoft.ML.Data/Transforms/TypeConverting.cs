@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
             else
             {
-                ectx.Assert(KeyType.IsValidDataKind(key.RawKind));
+                ectx.Assert(KeyType.IsValidDataType(key.RawType));
                 int count = key.Count;
                 // Technically, it's an error for the counts not to match, but we'll let the Conversions
                 // code return false below. There's a possibility we'll change the standard conversions to
