@@ -48,7 +48,7 @@ phases:
         Build_Debug_netfx:
           _configuration: Debug-netfx
           _config_short: DFX
-        _includeBenchmarkData: false
+          _includeBenchmarkData: false
         Build_Release_netfx:
           _configuration: Release-netfx
           _config_short: RFX

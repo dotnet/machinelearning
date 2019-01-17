@@ -16,17 +16,17 @@ phases:
         timeoutInMinutes: 45
         parallel: 99
         matrix:
-        ${{ if eq(parameters.customMatrixes, '') }}:
-          Build_Debug:
-            _configuration: Debug
-            _config_short: D
-            _includeBenchmarkData: false
-          Build_Release:
-            _configuration: Release
-            _config_short: R
-            _includeBenchmarkData: true
-        ${{ if ne(parameters.customMatrixes, '') }}:
-          ${{ insert }}: ${{ parameters.customMatrixes }}
+          ${{ if eq(parameters.customMatrixes, '') }}:
+            Build_Debug:
+              _configuration: Debug
+              _config_short: D
+              _includeBenchmarkData: false
+            Build_Release:
+              _configuration: Release
+              _config_short: R
+              _includeBenchmarkData: true
+          ${{ if ne(parameters.customMatrixes, '') }}:
+            ${{ insert }}: ${{ parameters.customMatrixes }}
         ${{ insert }}: ${{ parameters.queue }}
       steps:
       - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
@@ -47,7 +47,7 @@ phases:
           testResultsFiles: '**/*.trx'
           testRunTitle: Machinelearning_Tests_$(_phaseName)_$(_configuration)_$(Build.BuildNumber)
           configuration: $(_configuration)
-        mergeTestResults: true
+          mergeTestResults: true
       - task: CopyFiles@2
         displayName: Stage build logs
         condition: not(succeeded())
@@ -84,13 +84,13 @@ phases:
         timeoutInMinutes: 90
         parallel: 99
         matrix:
-        ${{ if eq(parameters.customMatrixes, '') }}:
-          Build_Debug:
-            _configuration: Debug
-            _config_short: D
-            _includeBenchmarkData: false
-        ${{ if ne(parameters.customMatrixes, '') }}:
-          ${{ insert }}: ${{ parameters.customMatrixes }}
+          ${{ if eq(parameters.customMatrixes, '') }}:
+            Build_Debug:
+              _configuration: Debug
+              _config_short: D
+              _includeBenchmarkData: false
+          ${{ if ne(parameters.customMatrixes, '') }}:
+            ${{ insert }}: ${{ parameters.customMatrixes }}
         ${{ insert }}: ${{ parameters.queue }}
       steps:
       - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch) -codeCoverage
