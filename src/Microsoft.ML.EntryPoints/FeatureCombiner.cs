@@ -119,8 +119,8 @@ namespace Microsoft.ML.EntryPoints
             var col = schema.GetColumnOrNull(colName);
             if (!col.HasValue)
                 return null;
-            var type = col.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            if (type == null || !type.IsKnownSizeVector || !(type.ItemType is TextType))
+            var type = col.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            if (type == null || !type.IsKnownSize || !(type.ItemType is TextType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
             col.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
@@ -164,9 +164,9 @@ namespace Microsoft.ML.EntryPoints
                 if (!featNames.Add(col.Name))
                     continue;
 
-                if (!col.Type.IsVector || col.Type.VectorSize > 0)
+                if (!(col.Type is VectorType vectorType) || vectorType.Size > 0)
                 {
-                    var type = col.Type.ItemType;
+                    var type = col.Type.GetItemType();
                     if (type is KeyType keyType)
                     {
                         if (keyType.Count > 0)

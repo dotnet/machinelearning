@@ -345,7 +345,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private readonly ImmutableArray<ColumnInfo> _columns;
         private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
-        private readonly ColumnType[] _slotNamesTypes;
+        private readonly VectorType[] _slotNamesTypes;
 
         /// <summary>
         /// Constructor for case where you don't need to 'train' transform on data, for example, InvertHash for all columns set to zero.
@@ -548,7 +548,7 @@ namespace Microsoft.ML.Transforms.Text
         private sealed class Mapper : MapperBase
         {
             private readonly NgramHashingTransformer _parent;
-            private readonly ColumnType[] _types;
+            private readonly VectorType[] _types;
             private readonly int[][] _srcIndices;
             private readonly ColumnType[][] _srcTypes;
             private readonly FinderDecorator _decorator;
@@ -558,7 +558,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 _parent = parent;
                 _decorator = decorator;
-                _types = new ColumnType[_parent._columns.Length];
+                _types = new VectorType[_parent._columns.Length];
                 _srcIndices = new int[_parent._columns.Length][];
                 _srcTypes = new ColumnType[_parent._columns.Length][];
                 for (int i = 0; i < _parent._columns.Length; i++)
@@ -741,9 +741,9 @@ namespace Microsoft.ML.Transforms.Text
                 if (_decorator != null)
                     ngramIdFinder = _decorator(iinfo, ngramIdFinder);
                 var bldr = new NgramBufferBuilder(_parent._columns[iinfo].NgramLength, _parent._columns[iinfo].SkipLength,
-                    _types[iinfo].ValueCount, ngramIdFinder);
+                    _types[iinfo].Size, ngramIdFinder);
                 var keyCounts = _srcTypes[iinfo].Select(
-                    t => (t.ItemType is KeyType keyType && keyType.Count > 0) ? (uint)keyType.Count : uint.MaxValue).ToArray();
+                    t => (t.GetItemType() is KeyType keyType && keyType.Count > 0) ? (uint)keyType.Count : uint.MaxValue).ToArray();
 
                 // REVIEW: Special casing the srcCount==1 case could potentially improve perf.
                 ValueGetter<VBuffer<float>> del =
@@ -1011,10 +1011,10 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            public VBuffer<ReadOnlyMemory<char>>[] SlotNamesMetadata(out ColumnType[] types)
+            public VBuffer<ReadOnlyMemory<char>>[] SlotNamesMetadata(out VectorType[] types)
             {
                 var values = new VBuffer<ReadOnlyMemory<char>>[_iinfoToCollector.Length];
-                types = new ColumnType[_iinfoToCollector.Length];
+                types = new VectorType[_iinfoToCollector.Length];
                 for (int iinfo = 0; iinfo < _iinfoToCollector.Length; ++iinfo)
                 {
                     if (_iinfoToCollector[iinfo] != null)
@@ -1172,12 +1172,12 @@ namespace Microsoft.ML.Transforms.Text
 
         internal static bool IsColumnTypeValid(ColumnType type)
         {
-            if (!type.IsVector)
+            if (!(type is VectorType vectorType))
                 return false;
-            if (!(type.ItemType is KeyType itemKeyType))
+            if (!(vectorType.ItemType is KeyType itemKeyType))
                 return false;
             // Can only accept key types that can be converted to U4.
-            if (itemKeyType.Count == 0 && type.ItemType.RawKind > DataKind.U4)
+            if (itemKeyType.Count == 0 && itemKeyType.RawKind > DataKind.U4)
                 return false;
             return true;
         }

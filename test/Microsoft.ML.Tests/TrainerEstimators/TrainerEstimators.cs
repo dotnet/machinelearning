@@ -71,8 +71,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weights: weights,
-                            advancedSettings: s => { s.InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel; });
+            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options {
+                FeatureColumn = featureColumn,
+                WeightColumn = weights,
+                InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel,
+            });
 
             TestEstimatorCore(pipeline, data);
 

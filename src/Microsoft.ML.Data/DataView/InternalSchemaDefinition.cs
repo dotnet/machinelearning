@@ -120,8 +120,8 @@ namespace Microsoft.ML.Data
 
                 // Checks that the return type of the generator is compatible with ColumnType.
                 GetVectorAndKind(ComputedReturnType, "return type", out bool isVector, out DataKind datakind);
-                Contracts.Assert(isVector == ColumnType.IsVector);
-                Contracts.Assert(datakind == ColumnType.ItemType.RawKind);
+                Contracts.Assert(isVector == ColumnType is VectorType);
+                Contracts.Assert(datakind == ColumnType.GetItemType().RawKind);
             }
 
         }
@@ -276,15 +276,17 @@ namespace Microsoft.ML.Data
                 {
                     // Make sure that the types are compatible with the declared type, including
                     // whether it is a vector type.
-                    if (isVector != col.ColumnType.IsVector)
+                    VectorType columnVectorType = col.ColumnType as VectorType;
+                    if (isVector != (columnVectorType != null))
                     {
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to be {1}, but type of associated field '{2}' is {3}",
-                            colName, col.ColumnType.IsVector ? "vector" : "scalar", col.MemberName, isVector ? "vector" : "scalar");
+                            colName, columnVectorType != null ? "vector" : "scalar", col.MemberName, isVector ? "vector" : "scalar");
                     }
-                    if (kind != col.ColumnType.ItemType.RawKind)
+                    ColumnType itemType = columnVectorType?.ItemType ?? col.ColumnType;
+                    if (kind != itemType.RawKind)
                     {
                         throw Contracts.ExceptParam(nameof(userSchemaDefinition), "Column '{0}' is supposed to have item kind {1}, but associated field has kind {2}",
-                            colName, col.ColumnType.ItemType.RawKind, kind);
+                            colName, itemType.RawKind, kind);
                     }
                     colType = col.ColumnType;
                 }

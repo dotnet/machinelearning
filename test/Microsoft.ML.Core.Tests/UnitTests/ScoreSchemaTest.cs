@@ -60,8 +60,8 @@ namespace Microsoft.ML.RunTests
             Assert.Equal(MetadataUtils.Kinds.ScoreValueKind, scoreMetadata.Schema[2].Name);
 
             // Check metadata columns' types.
-            Assert.True(scoreMetadata.Schema[0].Type.IsVector);
-            Assert.Equal(keyNames.Length, (scoreMetadata.Schema[0].Type as VectorType).VectorSize);
+            Assert.True(scoreMetadata.Schema[0].Type is VectorType);
+            Assert.Equal(keyNames.Length, (scoreMetadata.Schema[0].Type as VectorType).Size);
             Assert.Equal(TextType.Instance, (scoreMetadata.Schema[0].Type as VectorType).ItemType);
             Assert.Equal(TextType.Instance, scoreColumn.Metadata.Schema[1].Type);
             Assert.Equal(TextType.Instance, scoreColumn.Metadata.Schema[2].Type);

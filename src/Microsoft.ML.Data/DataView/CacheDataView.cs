@@ -1365,8 +1365,8 @@ namespace Microsoft.ML.Data
 
                 var type = input.Schema[srcCol].Type;
                 Type pipeType;
-                if (type.IsVector)
-                    pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
+                if (type is VectorType vectorType)
+                    pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                 else
                 {
                     host.Assert(type is PrimitiveType);
@@ -1427,8 +1427,8 @@ namespace Microsoft.ML.Data
                     : base(parent, input, srcCol, waiter)
                 {
                     var type = input.Schema[srcCol].Type;
-                    Ctx.Assert(type.IsVector);
-                    _uniformLength = type.VectorSize;
+                    Ctx.Assert(type is VectorType);
+                    _uniformLength = type.GetVectorSize();
                     _indices = new BigArray<int>();
                     _values = new BigArray<T>();
                     _getter = input.GetGetter<VBuffer<T>>(srcCol);

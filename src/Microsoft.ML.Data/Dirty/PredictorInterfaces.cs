@@ -208,7 +208,7 @@ namespace Microsoft.ML.Internal.Internallearn
     /// </summary>
     public interface ICalculateFeatureContribution : IPredictor
     {
-        FeatureContributionCalculator FeatureContributionClaculator { get; }
+        FeatureContributionCalculator FeatureContributionCalculator { get; }
     }
 
     /// <summary>

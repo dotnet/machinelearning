@@ -456,18 +456,23 @@ namespace Microsoft.ML.Data
                     sources[i] = srcCol;
 
                     var curType = inputSchema[srcCol].Type;
+                    VectorType curVectorType = curType as VectorType;
+
+                    ColumnType currentItemType = curVectorType?.ItemType ?? curType;
+                    int currentValueCount = curVectorType?.Size ?? 1;
+
                     if (itemType == null)
                     {
-                        itemType = curType.ItemType;
-                        totalSize = curType.ValueCount;
+                        itemType = currentItemType;
+                        totalSize = currentValueCount;
                     }
-                    else if (curType.ItemType.Equals(itemType))
+                    else if (currentItemType.Equals(itemType))
                     {
                         // If any one input is variable length, then the output is variable length.
-                        if (totalSize == 0 || curType.ValueCount == 0)
+                        if (totalSize == 0 || currentValueCount == 0)
                             totalSize = 0;
                         else
-                            totalSize += curType.ValueCount;
+                            totalSize += currentValueCount;
                     }
                     else
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, itemType.ToString(), curType.ToString());
@@ -482,7 +487,8 @@ namespace Microsoft.ML.Data
                         hasCategoricals = true;
                     }
 
-                    if (!hasSlotNames && !curType.IsVector || inputSchema[srcCol].HasSlotNames(curType.VectorSize))
+                    if ((!hasSlotNames && curVectorType == null)
+                        || (curVectorType != null && inputSchema[srcCol].HasSlotNames(curVectorType.Size)))
                         hasSlotNames = true;
                 }
 
@@ -508,7 +514,7 @@ namespace Microsoft.ML.Data
                 private readonly ColumnInfo _columnInfo;
                 private readonly ColumnType[] _srcTypes;
 
-                public readonly ColumnType OutputType;
+                public readonly VectorType OutputType;
 
                 // Fields pertaining to column metadata.
                 private readonly bool _isIdentity;
@@ -516,12 +522,12 @@ namespace Microsoft.ML.Data
                 private readonly bool _hasSlotNames;
                 private readonly bool _hasCategoricals;
 
-                private readonly ColumnType _slotNamesType;
+                private readonly VectorType _slotNamesType;
                 private readonly ColumnType _categoricalRangeType;
 
                 private readonly Schema _inputSchema;
 
-                public BoundColumn(Schema inputSchema, ColumnInfo columnInfo, int[] sources, ColumnType outputType,
+                public BoundColumn(Schema inputSchema, ColumnInfo columnInfo, int[] sources, VectorType outputType,
                     bool isNormalized, bool hasSlotNames, bool hasCategoricals, int slotCount, int catCount)
                 {
                     _columnInfo = columnInfo;
@@ -532,7 +538,7 @@ namespace Microsoft.ML.Data
 
                     _inputSchema = inputSchema;
 
-                    _isIdentity = SrcIndices.Length == 1 && _inputSchema[SrcIndices[0]].Type.IsVector;
+                    _isIdentity = SrcIndices.Length == 1 && _inputSchema[SrcIndices[0]].Type is VectorType;
                     _isNormalized = isNormalized;
 
                     _hasSlotNames = hasSlotNames;
@@ -556,7 +562,7 @@ namespace Microsoft.ML.Data
                     if (_isNormalized)
                         metadata.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, (ValueGetter<bool>)GetIsNormalized);
                     if (_hasSlotNames)
-                        metadata.AddSlotNames(_slotNamesType.VectorSize, GetSlotNames);
+                        metadata.AddSlotNames(_slotNamesType.Size, GetSlotNames);
                     if (_hasCategoricals)
                         metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, _categoricalRangeType, (ValueGetter<VBuffer<int>>)GetCategoricalSlotRanges);
 
@@ -572,10 +578,10 @@ namespace Microsoft.ML.Data
                     for (int i = 0; i < SrcIndices.Length; i++)
                     {
 
-                        Contracts.Assert(_srcTypes[i].ValueCount > 0);
+                        Contracts.Assert(_srcTypes[i].GetValueCount() > 0);
 
                         if (i > 0)
-                            slotCount += _srcTypes[i - 1].ValueCount;
+                            slotCount += _srcTypes[i - 1].GetValueCount();
 
                         if (MetadataUtils.TryGetCategoricalFeatureIndices(_inputSchema, SrcIndices[i], out int[] values))
                         {
@@ -594,13 +600,13 @@ namespace Microsoft.ML.Data
                 private void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
                     Contracts.Assert(!_isIdentity);
-                    Contracts.Assert(OutputType.VectorSize > 0);
+                    Contracts.Assert(OutputType.Size > 0);
 
                     Contracts.AssertValue(_slotNamesType);
-                    Contracts.Assert(_slotNamesType.VectorSize == OutputType.VectorSize);
+                    Contracts.Assert(_slotNamesType.Size == OutputType.Size);
 
                     var bldr = BufferBuilder<ReadOnlyMemory<char>>.CreateDefault();
-                    bldr.Reset(_slotNamesType.VectorSize, dense: false);
+                    bldr.Reset(_slotNamesType.Size, dense: false);
 
                     var sb = new StringBuilder();
                     var names = default(VBuffer<ReadOnlyMemory<char>>);
@@ -612,20 +618,20 @@ namespace Microsoft.ML.Data
                         Contracts.Assert(_columnInfo.Inputs[i].alias != "");
                         var colName = _inputSchema[colSrc].Name;
                         var nameSrc = _columnInfo.Inputs[i].alias ?? colName;
-                        if (!typeSrc.IsVector)
+                        if (!(typeSrc is VectorType vectorTypeSrc))
                         {
                             bldr.AddFeature(slot++, nameSrc.AsMemory());
                             continue;
                         }
 
-                        Contracts.Assert(typeSrc.IsKnownSizeVector);
-                        ColumnType typeNames = null;
+                        Contracts.Assert(vectorTypeSrc.IsKnownSize);
+                        VectorType typeNames = null;
 
                         var inputMetadata = _inputSchema[colSrc].Metadata;
                         if (inputMetadata != null && inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.SlotNames, out int idx))
-                            typeNames = inputMetadata.Schema[idx].Type;
+                            typeNames = inputMetadata.Schema[idx].Type as VectorType;
 
-                        if (typeNames != null && typeNames.VectorSize == typeSrc.VectorSize && typeNames.ItemType is TextType)
+                        if (typeNames != null && typeNames.Size == vectorTypeSrc.Size && typeNames.ItemType is TextType)
                         {
                             inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
                             sb.Clear();
@@ -641,9 +647,9 @@ namespace Microsoft.ML.Data
                                 bldr.AddFeature(slot + kvp.Key, sb.ToString().AsMemory());
                             }
                         }
-                        slot += _srcTypes[i].VectorSize;
+                        slot += vectorTypeSrc.Size;
                     }
-                    Contracts.Assert(slot == OutputType.VectorSize);
+                    Contracts.Assert(slot == OutputType.Size);
 
                     bldr.GetResult(ref dst);
                 }
@@ -668,7 +674,7 @@ namespace Microsoft.ML.Data
                     var srcGetterVecs = new ValueGetter<VBuffer<T>>[SrcIndices.Length];
                     for (int j = 0; j < SrcIndices.Length; j++)
                     {
-                        if (_srcTypes[j].IsVector)
+                        if (_srcTypes[j] is VectorType)
                             srcGetterVecs[j] = input.GetGetter<VBuffer<T>>(SrcIndices[j]);
                         else
                             srcGetterOnes[j] = input.GetGetter<T>(SrcIndices[j]);
@@ -683,13 +689,13 @@ namespace Microsoft.ML.Data
                         for (int i = 0; i < SrcIndices.Length; i++)
                         {
                             var type = _srcTypes[i];
-                            if (type.IsVector)
+                            if (type is VectorType vectorType)
                             {
                                 srcGetterVecs[i](ref tmpBufs[i]);
-                                if (type.VectorSize != 0 && type.VectorSize != tmpBufs[i].Length)
+                                if (vectorType.Size != 0 && vectorType.Size != tmpBufs[i].Length)
                                 {
                                     throw Contracts.Except("Column '{0}': expected {1} slots, but got {2}",
-                                        input.Schema[SrcIndices[i]].Name, type.VectorSize, tmpBufs[i].Length)
+                                        input.Schema[SrcIndices[i]].Name, vectorType.Size, tmpBufs[i].Length)
                                         .MarkSensitive(MessageSensitivity.Schema);
                                 }
                                 dstLength = checked(dstLength + tmpBufs[i].Length);
@@ -712,7 +718,7 @@ namespace Microsoft.ML.Data
                             for (int j = 0; j < SrcIndices.Length; j++)
                             {
                                 Contracts.Assert(offset < dstLength);
-                                if (_srcTypes[j].IsVector)
+                                if (_srcTypes[j] is VectorType)
                                 {
                                     var buffer = tmpBufs[j];
                                     var bufferValues = buffer.GetValues();
@@ -759,7 +765,7 @@ namespace Microsoft.ML.Data
                             for (int j = 0; j < SrcIndices.Length; j++)
                             {
                                 Contracts.Assert(tmpBufs[j].Length <= dstLength - offset);
-                                if (_srcTypes[j].IsVector)
+                                if (_srcTypes[j] is VectorType)
                                 {
                                     tmpBufs[j].CopyTo(editor.Values, offset);
                                     offset += tmpBufs[j].Length;
@@ -781,7 +787,7 @@ namespace Microsoft.ML.Data
                 {
                     Contracts.AssertValue(ctx);
                     string outName = _columnInfo.Output;
-                    if (OutputType.ValueCount == 0) // Do not attempt variable length.
+                    if (!OutputType.IsKnownSize) // Do not attempt variable length.
                         return new KeyValuePair<string, JToken>(outName, null);
 
                     string[] srcTokens = new string[SrcIndices.Length];
@@ -883,7 +889,7 @@ namespace Microsoft.ML.Data
 
                     string outName = colInfo.Output;
                     var outColType = boundCol.OutputType;
-                    if (outColType.ValueCount == 0)
+                    if (!outColType.IsKnownSize)
                     {
                         ctx.RemoveColumn(outName, false);
                         continue;
@@ -901,7 +907,7 @@ namespace Microsoft.ML.Data
 
                         var srcIndex = boundCol.SrcIndices[i];
                         inputList.Add(new KeyValuePair<string, long>(ctx.GetVariableName(srcName),
-                            InputSchema[srcIndex].Type.ValueCount));
+                            InputSchema[srcIndex].Type.GetValueCount()));
                     }
 
                     var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),

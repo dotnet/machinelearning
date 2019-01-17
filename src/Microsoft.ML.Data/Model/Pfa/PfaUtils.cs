@@ -157,16 +157,16 @@ namespace Microsoft.ML.Model.Pfa
             public static JToken PfaTypeOrNullForColumnType(ColumnType type)
             {
                 Contracts.CheckValue(type, nameof(type));
-                if (type.IsVector)
+                if (type is VectorType vectorType)
                 {
                     // We represent vectors as the union of array (for dense) and map (for sparse),
                     // of the appropriate item type.
-                    var itemType = PfaTypeOrNullCore(type.ItemType);
+                    var itemType = PfaTypeOrNullCore(vectorType.ItemType);
                     if (itemType == null)
                         return null;
                     return Array(itemType);
                 }
-                return PfaTypeOrNullCore(type.ItemType);
+                return PfaTypeOrNullCore(type);
             }
 
             private static JToken PfaTypeOrNullCore(ColumnType itemType)

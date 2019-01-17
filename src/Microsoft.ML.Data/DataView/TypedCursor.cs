@@ -125,7 +125,7 @@ namespace Microsoft.ML.Data
             var schema = _data.Schema;
             for (int i = 0; i < n; i++)
             {
-                if (_columns[i].ColumnType.IsVector)
+                if (_columns[i].ColumnType is VectorType)
                     _peeks[i] = ApiUtils.GeneratePeek<TypedCursorable<TRow>, TRow>(_columns[i]);
                 _pokes[i] = ApiUtils.GeneratePoke<TypedCursorable<TRow>, TRow>(_columns[i]);
             }
@@ -139,9 +139,9 @@ namespace Microsoft.ML.Data
         {
             InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
             if (isVector)
-                return colType.IsVector && colType.ItemType.RawKind == kind;
+                return colType is VectorType vectorType && vectorType.ItemType.RawKind == kind;
             else
-                return !colType.IsVector && colType.RawKind == kind;
+                return !(colType is VectorType) && colType.RawKind == kind;
         }
 
         /// <summary>
@@ -274,27 +274,27 @@ namespace Microsoft.ML.Data
                     // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
-                        Ch.Assert(colType.ItemType is TextType);
+                        Ch.Assert(colType.GetItemType() is TextType);
                         return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
 
                     // VBuffer<T> -> T[]
                     if (fieldType.GetElementType().IsGenericType && fieldType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
-                        Ch.Assert(colType.ItemType.RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
+                        Ch.Assert(colType.GetItemType().RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
                     else
-                        Ch.Assert(colType.ItemType.RawType == fieldType.GetElementType());
+                        Ch.Assert(colType.GetItemType().RawType == fieldType.GetElementType());
                     del = CreateDirectVBufferSetter<int>;
                     genericType = fieldType.GetElementType();
                 }
-                else if (colType.IsVector)
+                else if (colType is VectorType vectorType)
                 {
                     // VBuffer<T> -> VBuffer<T>
                     // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
                     Ch.Assert(fieldType.IsGenericType);
                     Ch.Assert(fieldType.GetGenericTypeDefinition() == typeof(VBuffer<>));
-                    Ch.Assert(fieldType.GetGenericArguments()[0] == colType.ItemType.RawType);
+                    Ch.Assert(fieldType.GetGenericArguments()[0] == vectorType.ItemType.RawType);
                     del = CreateVBufferToVBufferSetter<int>;
-                    genericType = colType.ItemType.RawType;
+                    genericType = vectorType.ItemType.RawType;
                 }
                 else if (colType is PrimitiveType)
                 {

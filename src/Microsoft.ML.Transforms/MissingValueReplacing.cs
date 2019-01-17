@@ -151,13 +151,14 @@ namespace Microsoft.ML.Transforms
         {
             // Item type must have an NA value that exists and is not equal to its default value.
             Func<ColumnType, string> func = TestType<int>;
-            return Utils.MarshalInvoke(func, type.ItemType.RawType, type.ItemType);
+            var itemType = type.GetItemType();
+            return Utils.MarshalInvoke(func, itemType.RawType, itemType);
         }
 
         private static string TestType<T>(ColumnType type)
         {
-            Contracts.Assert(type.ItemType.RawType == typeof(T));
-            if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out InPredicate<T> isNA))
+            Contracts.Assert(type.GetItemType().RawType == typeof(T));
+            if (!Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type.GetItemType(), out InPredicate<T> isNA))
             {
                 return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
                     type, LoadName);
@@ -267,30 +268,30 @@ namespace Microsoft.ML.Transforms
                 if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out ColumnType savedType, out object repValue))
                     throw Host.ExceptDecode();
                 _replaceTypes[i] = savedType;
-                if (savedType.IsVector)
+                if (savedType is VectorType savedVectorType)
                 {
                     // REVIEW: The current implementation takes the serialized VBuffer, densifies it, and stores the values array.
-                    // It might be of value to consider storing the VBUffer in order to possibly benefit from sparsity. However, this would
+                    // It might be of value to consider storing the VBuffer in order to possibly benefit from sparsity. However, this would
                     // necessitate a reimplementation of the FillValues code to accomodate sparse VBuffers.
-                    object[] args = new object[] { repValue, _replaceTypes[i], i };
-                    Func<VBuffer<int>, ColumnType, int, int[]> func = GetValuesArray<int>;
-                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedType.ItemType.RawType);
+                    object[] args = new object[] { repValue, savedVectorType, i };
+                    Func<VBuffer<int>, VectorType, int, int[]> func = GetValuesArray<int>;
+                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedVectorType.ItemType.RawType);
                     _repValues[i] = meth.Invoke(this, args);
                 }
                 else
                     _repValues[i] = repValue;
 
-                Host.Assert(repValue.GetType() == _replaceTypes[i].RawType || repValue.GetType() == _replaceTypes[i].ItemType.RawType);
+                Host.Assert(repValue.GetType() == _replaceTypes[i].RawType || repValue.GetType() == _replaceTypes[i].GetItemType().RawType);
             }
         }
 
-        private T[] GetValuesArray<T>(VBuffer<T> src, ColumnType srcType, int iinfo)
+        private T[] GetValuesArray<T>(VBuffer<T> src, VectorType srcType, int iinfo)
         {
-            Host.Assert(srcType.IsVector);
-            Host.Assert(srcType.VectorSize == src.Length);
+            Host.Assert(srcType != null);
+            Host.Assert(srcType.Size == src.Length);
             VBufferUtils.Densify<T>(ref src);
             InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
-            _repIsDefault[iinfo] = new BitArray(srcType.VectorSize);
+            _repIsDefault[iinfo] = new BitArray(srcType.Size);
             var srcValues = src.GetValues();
             for (int slot = 0; slot < srcValues.Length; slot++)
             {
@@ -326,7 +327,7 @@ namespace Microsoft.ML.Transforms
                 sources[iinfo] = colSrc;
                 var type = input.Schema[colSrc].Type;
                 if (type is VectorType vectorType)
-                     type = new VectorType((PrimitiveType)type.ItemType, vectorType);
+                     type = new VectorType(vectorType.ItemType, vectorType);
                 Delegate isNa = GetIsNADelegate(type);
                 types[iinfo] = type;
                 var kind = (ReplacementKind)columns[iinfo].Replacement;
@@ -341,8 +342,8 @@ namespace Microsoft.ML.Transforms
                     case ReplacementKind.Mean:
                     case ReplacementKind.Minimum:
                     case ReplacementKind.Maximum:
-                        if (!(type.ItemType is NumberType))
-                            throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.ItemType);
+                        if (!(type.GetItemType() is NumberType))
+                            throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.GetItemType());
                         imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);
                         Utils.Add(ref sourceColumns, colSrc);
@@ -366,7 +367,7 @@ namespace Microsoft.ML.Transforms
                 {
                     int iinfo = columnsToImpute[ii];
                     bool bySlot = columns[ii].ImputeBySlot;
-                    if (types[iinfo].IsVector && !types[iinfo].IsKnownSizeVector && bySlot)
+                    if (types[iinfo] is VectorType vectorType && !vectorType.IsKnownSize && bySlot)
                     {
                         ch.Warning("By-slot imputation can not be done on variable-length column");
                         bySlot = false;
@@ -393,7 +394,7 @@ namespace Microsoft.ML.Transforms
                 if (repValues[slot] is Array)
                 {
                     Func<ColumnType, int[], BitArray> func = ComputeDefaultSlots<int>;
-                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(types[slot].ItemType.RawType);
+                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(types[slot].GetItemType().RawType);
                     slotIsDefault[slot] = (BitArray)meth.Invoke(this, new object[] { types[slot], repValues[slot] });
                 }
             }
@@ -401,9 +402,9 @@ namespace Microsoft.ML.Transforms
 
         private BitArray ComputeDefaultSlots<T>(ColumnType type, T[] values)
         {
-            Host.Assert(values.Length == type.VectorSize);
+            Host.Assert(values.Length == type.GetVectorSize());
             BitArray defaultSlots = new BitArray(values.Length);
-            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+            InPredicate<T> defaultPred = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.GetItemType());
             for (int slot = 0; slot < values.Length; slot++)
             {
                 if (defaultPred(in values[slot]))
@@ -415,7 +416,7 @@ namespace Microsoft.ML.Transforms
         private object GetDefault(ColumnType type)
         {
             Func<object> func = GetDefault<int>;
-            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
+            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.GetItemType().RawType);
             return meth.Invoke(this, null);
         }
 
@@ -430,11 +431,11 @@ namespace Microsoft.ML.Transforms
         private Delegate GetIsNADelegate(ColumnType type)
         {
             Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
-            return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
+            return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
         }
 
         private Delegate GetIsNADelegate<T>(ColumnType type)
-            => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+            => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
 
         /// <summary>
         /// Converts a string to its respective value in the corresponding type.
@@ -442,7 +443,7 @@ namespace Microsoft.ML.Transforms
         private object GetSpecifiedValue(string srcStr, ColumnType dstType, Delegate isNA)
         {
             Func<string, ColumnType, InPredicate<int>, object> func = GetSpecifiedValue<int>;
-            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstType.ItemType.RawType);
+            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstType.GetItemType().RawType);
             return meth.Invoke(this, new object[] { srcStr, dstType, isNA });
         }
 
@@ -453,11 +454,11 @@ namespace Microsoft.ML.Transforms
             {
                 // Handles converting input strings to correct types.
                 var srcTxt = srcStr.AsMemory();
-                var strToT = Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.ItemType, out bool identity);
+                var strToT = Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.GetItemType(), out bool identity);
                 strToT(in srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(in val))
-                    throw Contracts.Except("No conversion of '{0}' to '{1}'", srcStr, dstType.ItemType);
+                    throw Contracts.Except("No conversion of '{0}' to '{1}'", srcStr, dstType.GetItemType());
             }
 
             return val;
@@ -523,7 +524,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.AssertValue(stream);
             Host.AssertValue(saver);
-            Host.Assert(type.RawType == typeof(T) || type.ItemType.RawType == typeof(T));
+            Host.Assert(type.RawType == typeof(T) || type.GetItemType().RawType == typeof(T));
 
             if (!saver.TryWriteTypeAndValue<T>(stream, type, ref rep, out int bytesWritten))
                 throw Host.Except("We do not know how to serialize terms of type '{0}'", type);
@@ -541,7 +542,7 @@ namespace Microsoft.ML.Transforms
             for (int iinfo = 0; iinfo < _replaceTypes.Length; iinfo++)
             {
                 var repValue = _repValues[iinfo];
-                var repType = _replaceTypes[iinfo].ItemType;
+                var repType = _replaceTypes[iinfo].GetItemType();
                 if (_repIsDefault[iinfo] != null)
                 {
                     Host.Assert(repValue is Array);
@@ -553,7 +554,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(!(repValue is Array));
                 object[] args = new object[] { ctx.Writer.BaseStream, saver, repType, repValue };
                 Action<Stream, BinarySaver, ColumnType, int> func = WriteTypeAndValue<int>;
-                Host.Assert(repValue.GetType() == _replaceTypes[iinfo].RawType || repValue.GetType() == _replaceTypes[iinfo].ItemType.RawType);
+                Host.Assert(repValue.GetType() == _replaceTypes[iinfo].RawType || repValue.GetType() == _replaceTypes[iinfo].GetItemType().RawType);
                 var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(repValue.GetType());
                 meth.Invoke(this, args);
             }
@@ -594,21 +595,25 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var type = _infos[i].TypeSrc;
-                    if (type is VectorType vectorType)
-                        type = new VectorType((PrimitiveType)type.ItemType, vectorType);
-                    var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].ItemType;
-                    if (!type.ItemType.Equals(repType.ItemType))
-                        throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
-                            _infos[i].Source, _parent._replaceTypes[i].ItemType.ToString(), _infos[i].TypeSrc);
-                    // If type is a vector and the value is not either a scalar or a vector of the same size, throw an error.
-                    if (repType.IsVector)
+                    VectorType vectorType = type as VectorType;
+                    if (vectorType != null)
                     {
-                        if (!type.IsVector)
+                        vectorType = new VectorType(vectorType.ItemType, vectorType);
+                        type = vectorType;
+                    }
+                    var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].GetItemType();
+                    if (!type.GetItemType().Equals(repType.GetItemType()))
+                        throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
+                            _infos[i].Source, _parent._replaceTypes[i].GetItemType().ToString(), _infos[i].TypeSrc);
+                    // If type is a vector and the value is not either a scalar or a vector of the same size, throw an error.
+                    if (repType is VectorType repVectorType)
+                    {
+                        if (vectorType == null)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' cannot be a vector when Columntype is a scalar of type '{2}'",
                                 _infos[i].Source, repType, type);
-                        if (!type.IsKnownSizeVector)
+                        if (!vectorType.IsKnownSize)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' is unknown size vector '{1}' must be a scalar instead of type '{2}'", _infos[i].Source, type, parent._replaceTypes[i]);
-                        if (type.VectorSize != repType.VectorSize)
+                        if (vectorType.Size != repVectorType.Size)
                             throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' must be a scalar or a vector of the same size as Columntype '{2}'",
                                  _infos[i].Source, repType, type);
                     }
@@ -652,7 +657,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
                 disposer = null;
 
-                if (!_infos[iinfo].TypeSrc.IsVector)
+                if (!(_infos[iinfo].TypeSrc is VectorType))
                     return ComposeGetterOne(input, iinfo);
                 return ComposeGetterVec(input, iinfo);
             }
@@ -687,7 +692,7 @@ namespace Microsoft.ML.Transforms
             /// Getter generator for vector valued inputs.
             /// </summary>
             private Delegate ComposeGetterVec(Row input, int iinfo)
-                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.ItemType.RawType, input, iinfo);
+                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.GetItemType().RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for vectors.
@@ -696,7 +701,7 @@ namespace Microsoft.ML.Transforms
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];
-                var isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.ItemType);
+                var isDefault = Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.GetItemType());
 
                 var src = default(VBuffer<T>);
                 ValueGetter<VBuffer<T>> getter;
@@ -912,7 +917,7 @@ namespace Microsoft.ML.Transforms
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                 node.AddAttribute("replaced_value_float", Single.NaN);
 
-                if (!_infos[iinfo].TypeSrc.IsVector)
+                if (!(_infos[iinfo].TypeSrc is VectorType))
                     node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_parent._repValues[iinfo], 1));
                 else
                 {
@@ -968,7 +973,7 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(normalized);
                 var type = !(col.ItemType is VectorType vectorType) ?
                     col.ItemType :
-                    new VectorType((PrimitiveType)col.ItemType.ItemType, vectorType);
+                    new VectorType(vectorType.ItemType, vectorType);
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

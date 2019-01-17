@@ -605,8 +605,8 @@ namespace Microsoft.ML.Ensemble
             if (isBinary && labelKeyType.Count != 2)
                 throw env.Except("Label is not binary");
             var schema = rmd.Schema.Schema;
-            var mdType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-            if (mdType == null || !mdType.IsKnownSizeVector)
+            var mdType = labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            if (mdType == null || !mdType.IsKnownSize)
                 throw env.Except("Label column of type key must have a vector of key values metadata");
 
             return Utils.MarshalInvoke(CheckKeyLabelColumnCore<int>, mdType.ItemType.RawType, env, models, (KeyType)labelType, schema, labelCol.Index, mdType);
@@ -626,7 +626,7 @@ namespace Microsoft.ML.Ensemble
             // The label is numeric, we just have to check that the number of classes is the same.
             if (!(pred is IValueMapper vm))
                 throw env.Except("Cannot determine the number of classes the predictor outputs");
-            var classCount = vm.OutputType.VectorSize;
+            var classCount = vm.OutputType.GetVectorSize();
 
             for (int i = 1; i < models.Length; i++)
             {
@@ -634,7 +634,7 @@ namespace Microsoft.ML.Ensemble
                 var edv = new EmptyDataView(env, model.TransformModel.InputSchema);
                 model.PrepareData(env, edv, out RoleMappedData rmd, out pred);
                 vm = pred as IValueMapper;
-                if (vm.OutputType.VectorSize != classCount)
+                if (vm.OutputType.GetVectorSize() != classCount)
                     throw env.Except("Label of model {0} has different number of classes than model 0", i);
             }
             return classCount;
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Ensemble
 
         // Checks that all the label columns of the model have the same key type as their label column - including the same
         // cardinality and the same key values, and returns the cardinality of the label column key.
-        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, ColumnType keyValuesType)
+        private static int CheckKeyLabelColumnCore<T>(IHostEnvironment env, PredictorModel[] models, KeyType labelType, Schema schema, int labelIndex, VectorType keyValuesType)
             where T : IEquatable<T>
         {
             env.Assert(keyValuesType.ItemType.RawType == typeof(T));

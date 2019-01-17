@@ -136,7 +136,7 @@ namespace Microsoft.ML.Data
                     var type = schema[_cols[c].Index].Type;
                     if (!saver.IsColumnSavable(type))
                         throw ch.ExceptParam(nameof(view), "Column named '{0}' is not serializable by the transposer", _cols[c].Name);
-                    if (type.IsVector && !type.IsKnownSizeVector)
+                    if (type is VectorType vectorType && !vectorType.IsKnownSize)
                         throw ch.ExceptParam(nameof(view), "Column named '{0}' is vector, but not of known size, and so cannot be transposed", _cols[c].Name);
                 }
 
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Data
 
         private SlotCursor GetSlotCursorCore<T>(int col)
         {
-            if (_tschema.GetColumnType(col).IsVector)
+            if (_tschema.GetColumnType(col) is VectorType)
                 return new SlotCursorVec<T>(this, col);
             return new SlotCursorOne<T>(this, col);
         }
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Data
                 for (int c = 0; c < _slotTypes.Length; ++c)
                 {
                     var srcInfo = _parent._cols[c];
-                    var ctype = srcInfo.Type.ItemType;
+                    var ctype = srcInfo.Type.GetItemType();
                     var primitiveType = ctype as PrimitiveType;
                     _ectx.Assert(primitiveType != null);
                     _slotTypes[c] = new VectorType(primitiveType, _parent.RowCount);
@@ -572,10 +572,11 @@ namespace Microsoft.ML.Data
                     return;
 
                 var type = _view.Schema[_colCurr].Type;
-                Ch.Assert(type.ItemType.RawType == typeof(T));
-                Ch.Assert(type.ValueCount > 0);
-                InPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-                int vecLen = type.ValueCount;
+                ColumnType itemType = type.GetItemType();
+                Ch.Assert(itemType.RawType == typeof(T));
+                int vecLen = type.GetValueCount();
+                Ch.Assert(vecLen > 0);
+                InPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(itemType);
                 int maxPossibleSize = _rbuff.Length * vecLen;
                 const int sparseThresholdRatio = 5;
                 int sparseThreshold = (maxPossibleSize + sparseThresholdRatio - 1) / sparseThresholdRatio;
@@ -592,10 +593,10 @@ namespace Microsoft.ML.Data
                 {
                     // Make sure that the buffers (and subbuffers) are all of appropriate size.
                     Utils.EnsureSize(ref _indices, vecLen);
-                    for (int i = 0; i < type.ValueCount; ++i)
+                    for (int i = 0; i < vecLen; ++i)
                         _indices[i] = _indices[i] ?? new int[_len];
                     Utils.EnsureSize(ref _values, vecLen);
-                    for (int i = 0; i < type.ValueCount; ++i)
+                    for (int i = 0; i < vecLen; ++i)
                         _values[i] = _values[i] ?? new T[_len];
                     Utils.EnsureSize(ref _counts, vecLen, keepOld: false);
                     if (vecLen > 0)
@@ -742,7 +743,7 @@ namespace Microsoft.ML.Data
                 _slotCurr = 0;
                 if (++_colCurr == _colLim)
                     return false;
-                _slotLim = _view.Schema[_colCurr].Type.ValueCount;
+                _slotLim = _view.Schema[_colCurr].Type.GetValueCount();
                 Ch.Assert(_slotLim > 0);
                 return true;
             }
@@ -967,9 +968,10 @@ namespace Microsoft.ML.Data
                 public static Splitter Create(IDataView view, int col)
                 {
                     var type = view.Schema[col].Type;
-                    Contracts.Assert(type is PrimitiveType || type.VectorSize > 0);
+                    int vectorSize = type.GetVectorSize();
+                    Contracts.Assert(type is PrimitiveType || vectorSize > 0);
                     const int defaultSplitThreshold = 16;
-                    if (type.VectorSize <= defaultSplitThreshold)
+                    if (vectorSize <= defaultSplitThreshold)
                         return Utils.MarshalInvoke(CreateCore<int>, type.RawType, view, col);
                     else
                     {
@@ -977,7 +979,7 @@ namespace Microsoft.ML.Data
                         // We balance this by setting a hard limit on the number of splits per column we will
                         // generate.
                         const int maxSplitInto = 256;
-                        int splitInto = (type.VectorSize - 1) / defaultSplitThreshold + 1;
+                        int splitInto = (vectorSize - 1) / defaultSplitThreshold + 1;
                         int[] ends;
                         if (splitInto <= maxSplitInto)
                         {
@@ -989,13 +991,13 @@ namespace Microsoft.ML.Data
                         {
                             ends = new int[maxSplitInto];
                             for (int i = 0; i < ends.Length; ++i)
-                                ends[i] = (int)((long)(i + 1) * type.VectorSize / maxSplitInto);
+                                ends[i] = (int)((long)(i + 1) * vectorSize / maxSplitInto);
                         }
-                        ends[ends.Length - 1] = type.VectorSize;
+                        ends[ends.Length - 1] = vectorSize;
                         // We have a min of 1 here, because if the first min was 0 then
                         // the first split would cover no slots.
-                        Contracts.Assert(Utils.IsIncreasing(1, ends, type.VectorSize + 1));
-                        return Utils.MarshalInvoke(CreateCore<int>, type.ItemType.RawType, view, col, ends);
+                        Contracts.Assert(Utils.IsIncreasing(1, ends, vectorSize + 1));
+                        return Utils.MarshalInvoke(CreateCore<int>, type.GetItemType().RawType, view, col, ends);
                     }
                 }
 
@@ -1129,10 +1131,10 @@ namespace Microsoft.ML.Data
                         // Only valid use is for two or more slices.
                         Contracts.Assert(Utils.Size(lims) >= 2);
                         Contracts.AssertValue(type);
-                        Contracts.Assert(type.VectorSize > 0);
+                        Contracts.Assert(type.Size > 0);
                         Contracts.Assert(type.ItemType.RawType == typeof(T));
-                        Contracts.Assert(Utils.IsIncreasing(0, lims, type.VectorSize + 1));
-                        Contracts.Assert(lims[lims.Length - 1] == type.VectorSize);
+                        Contracts.Assert(Utils.IsIncreasing(0, lims, type.Size + 1));
+                        Contracts.Assert(lims[lims.Length - 1] == type.Size);
 
                         _lims = lims;
                         _types = new VectorType[_lims.Length];
@@ -1444,7 +1446,7 @@ namespace Microsoft.ML.Data
             public long? GetRowCount()
             {
                 var type = _data.Schema[_col].Type;
-                int valueCount = type.ValueCount;
+                int valueCount = type.GetValueCount();
                 _host.Assert(valueCount > 0);
                 return valueCount;
             }
@@ -1452,7 +1454,7 @@ namespace Microsoft.ML.Data
             public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
-                return Utils.MarshalInvoke(GetRowCursor<int>, _type.ItemType.RawType, predicate(0));
+                return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, predicate(0));
             }
 
             private RowCursor GetRowCursor<T>(bool active)

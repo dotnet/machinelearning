@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Internal.CpuMath;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,33 +23,42 @@ namespace Microsoft.ML.Benchmarks.Tests
         protected override Job GetJobDefinition() => Job.Dry; // Job.Dry runs the benchmark just once
     }
 
-    public class BenchmarkTouchingNativeDependency
-    {
-        [Benchmark]
-        public float Simple() => CpuMathUtils.Sum(Enumerable.Range(0, 1024).Select(Convert.ToSingle).ToArray());
-    }
-
     public class BenchmarksTest
     {
-        private const string SkipTheDebug =
-#if DEBUG
-            "BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG";
-#else
-            "";
-#endif
-
         public BenchmarksTest(ITestOutputHelper output) => Output = output;
 
         private ITestOutputHelper Output { get; }
 
+        public static bool CanExecute =>
 #if DEBUG
-        [Fact(Skip = SkipTheDebug)]
+            false; // BenchmarkDotNet does not allow running the benchmarks in Debug, so this test is disabled for DEBUG
+#elif NET462
+            false; // We are currently not running Benchmarks for FullFramework
 #else
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+            Environment.Is64BitProcess; // we don't support 32 bit yet
 #endif
-        public void BenchmarksProjectIsNotBroken()
+
+        public static TheoryData<Type> GetBenchmarks()
         {
-            var summary = BenchmarkRunner.Run<BenchmarkTouchingNativeDependency>(new TestConfig().With(new OutputLogger(Output)));
+            TheoryData<Type> benchmarks = new TheoryData<Type>();
+            Assembly asm = typeof(StochasticDualCoordinateAscentClassifierBench).Assembly;
+
+            var types = from type in asm.GetTypes()
+                        where Attribute.IsDefined(type, typeof(CIBenchmark))
+                        select type;
+
+            foreach (Type type in types)
+            {
+                benchmarks.Add(type);
+            }
+            return benchmarks;
+        }
+
+        [ConditionalTheory(typeof(BenchmarksTest), nameof(CanExecute))]
+        [MemberData(nameof(GetBenchmarks))]
+        public void BenchmarksProjectIsNotBroken(Type type)
+        {
+            var summary = BenchmarkRunner.Run(type, new TestConfig().With(new OutputLogger(Output)));
 
             Assert.False(summary.HasCriticalValidationErrors, "The \"Summary\" should have NOT \"HasCriticalValidationErrors\"");
 

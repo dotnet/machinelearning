@@ -238,6 +238,39 @@ namespace Microsoft.ML.SamplesUtils
             return data;
         }
 
+        private const int _simpleBinaryClassSampleFeatureLength = 10;
+
+        public class BinaryLabelFloatFeatureVectorSample
+        {
+            public bool Label;
+
+            [VectorType(_simpleBinaryClassSampleFeatureLength)]
+            public float[] Features;
+        }
+
+        public static  IEnumerable<BinaryLabelFloatFeatureVectorSample> GenerateBinaryLabelFloatFeatureVectorSamples(int exampleCount)
+        {
+            var rnd = new Random(0);
+            var data = new List<BinaryLabelFloatFeatureVectorSample>();
+            for (int i = 0; i < exampleCount; ++i)
+            {
+                // Initialize an example with a random label and an empty feature vector.
+                var sample = new BinaryLabelFloatFeatureVectorSample() { Label = rnd.Next() % 2 == 0, Features = new float[_simpleBinaryClassSampleFeatureLength] };
+                // Fill feature vector according the assigned label.
+                for (int j = 0; j < 10; ++j)
+                {
+                    var value = (float)rnd.NextDouble();
+                    // Positive class gets larger feature value.
+                    if (sample.Label)
+                        value += 0.2f;
+                    sample.Features[j] = value;
+                }
+
+                data.Add(sample);
+            }
+            return data;
+        }
+
         /// <summary>
         /// feature vector's length in <see cref="MulticlassClassificationExample"/>.
         /// </summary>

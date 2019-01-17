@@ -15,8 +15,8 @@ namespace Microsoft.ML.Transforms
     {
         private static StatAggregator CreateStatAggregator(IChannel ch, ColumnType type, ReplacementKind? kind, bool bySlot, RowCursor cursor, int col)
         {
-            ch.Assert(type.ItemType is NumberType);
-            if (!type.IsVector)
+            ch.Assert(type.GetItemType() is NumberType);
+            if (!(type is VectorType vectorType))
             {
                 // The type is a scalar.
                 if (kind == ReplacementKind.Mean)
@@ -48,29 +48,29 @@ namespace Microsoft.ML.Transforms
             {
                 // Imputation by slot.
                 // REVIEW: It may be more appropriate to have a warning here instead.
-                if (type.ValueCount == 0)
+                if (vectorType.Size == 0)
                     throw ch.Except("Imputation by slot is not allowed for vectors of unknown size.");
 
                 if (kind == ReplacementKind.Mean)
                 {
-                    switch (type.ItemType.RawKind)
+                    switch (vectorType.ItemType.RawKind)
                     {
                     case DataKind.R4:
-                        return new R4.MeanAggregatorBySlot(ch, type, cursor, col);
+                        return new R4.MeanAggregatorBySlot(ch, vectorType, cursor, col);
                     case DataKind.R8:
-                        return new R8.MeanAggregatorBySlot(ch, type, cursor, col);
+                        return new R8.MeanAggregatorBySlot(ch, vectorType, cursor, col);
                     default:
                         break;
                     }
                 }
                 else if (kind == ReplacementKind.Min || kind == ReplacementKind.Max)
                 {
-                    switch (type.ItemType.RawKind)
+                    switch (vectorType.ItemType.RawKind)
                     {
                     case DataKind.R4:
-                        return new R4.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
+                        return new R4.MinMaxAggregatorBySlot(ch, vectorType, cursor, col, kind == ReplacementKind.Max);
                     case DataKind.R8:
-                        return new R8.MinMaxAggregatorBySlot(ch, type, cursor, col, kind == ReplacementKind.Max);
+                        return new R8.MinMaxAggregatorBySlot(ch, vectorType, cursor, col, kind == ReplacementKind.Max);
                     default:
                         break;
                     }
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Transforms
                 // Imputation across slots.
                 if (kind == ReplacementKind.Mean)
                 {
-                    switch (type.ItemType.RawKind)
+                    switch (vectorType.ItemType.RawKind)
                     {
                     case DataKind.R4:
                         return new R4.MeanAggregatorAcrossSlots(ch, cursor, col);
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms
                 }
                 else if (kind == ReplacementKind.Min || kind == ReplacementKind.Max)
                 {
-                    switch (type.ItemType.RawKind)
+                    switch (vectorType.ItemType.RawKind)
                     {
                     case DataKind.R4:
                         return new R4.MinMaxAggregatorAcrossSlots(ch, cursor, col, kind == ReplacementKind.Max);
@@ -198,12 +198,12 @@ namespace Microsoft.ML.Transforms
 
         private abstract class StatAggregatorBySlot<TItem, TStatItem> : StatAggregator<VBuffer<TItem>, TStatItem[]>
         {
-            protected StatAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col)
+            protected StatAggregatorBySlot(IChannel ch, VectorType type, RowCursor cursor, int col)
                 : base(ch, cursor, col)
             {
                 Ch.AssertValue(type);
-                Ch.Assert(type.IsKnownSizeVector);
-                Stat = new TStatItem[type.VectorSize];
+                Ch.Assert(type.IsKnownSize);
+                Stat = new TStatItem[type.Size];
             }
 
             protected sealed override void ProcessRow(in VBuffer<TItem> src)
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Transforms
             // The count of the number of times ProcessValue has been called on a specific slot (used for tracking sparsity).
             private readonly long[] _valuesProcessed;
 
-            protected MinMaxAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col, bool returnMax)
+            protected MinMaxAggregatorBySlot(IChannel ch, VectorType type, RowCursor cursor, int col, bool returnMax)
                 : base(ch, type, cursor, col)
             {
                 Ch.AssertValue(type);
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Transforms
                 else
                     ProcValueDelegate = ProcessValueMin;
 
-                _valuesProcessed = new long[type.VectorSize];
+                _valuesProcessed = new long[type.Size];
             }
 
             protected override void ProcessValue(in TItem val, int slot)
@@ -579,7 +579,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<Single, MeanStatDouble>
             {
-                public MeanAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col)
+                public MeanAggregatorBySlot(IChannel ch, VectorType type, RowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
@@ -658,7 +658,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<Single, Single>
             {
-                public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorBySlot(IChannel ch, VectorType type, RowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
                 {
                     Single bound = ReturnMax ? Single.NegativeInfinity : Single.PositiveInfinity;
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MeanAggregatorBySlot : StatAggregatorBySlot<Double, MeanStatDouble>
             {
-                public MeanAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col)
+                public MeanAggregatorBySlot(IChannel ch, VectorType type, RowCursor cursor, int col)
                     : base(ch, type, cursor, col)
                 {
                 }
@@ -811,7 +811,7 @@ namespace Microsoft.ML.Transforms
 
             public sealed class MinMaxAggregatorBySlot : MinMaxAggregatorBySlot<Double, Double>
             {
-                public MinMaxAggregatorBySlot(IChannel ch, ColumnType type, RowCursor cursor, int col, bool returnMax)
+                public MinMaxAggregatorBySlot(IChannel ch, VectorType type, RowCursor cursor, int col, bool returnMax)
                     : base(ch, type, cursor, col, returnMax)
                 {
                     Double bound = ReturnMax ? Double.MinValue : Double.MaxValue;

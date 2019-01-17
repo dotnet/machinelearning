@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms
 
                 // Get slot names.
                 var featuresColumn = data.Schema[features];
-                int numSlots = featuresColumn.Type.VectorSize;
+                int numSlots = featuresColumn.Type.GetVectorSize();
                 data.Schema.TryGetColumnIndex(features, out int featuresColumnIndex);
 
                 ch.Info("Number of slots: " + numSlots);

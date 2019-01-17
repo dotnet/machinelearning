@@ -124,7 +124,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 var maxLabel = GetLabelGains().Length - 1;
                 ConvertData(trainData);
                 TrainCore(ch);
-                FeatureCount = trainData.Schema.Feature.Value.Type.ValueCount;
+                FeatureCount = trainData.Schema.Feature.Value.Type.GetValueCount();
             }
             return new FastTreeRankingModelParameters(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }

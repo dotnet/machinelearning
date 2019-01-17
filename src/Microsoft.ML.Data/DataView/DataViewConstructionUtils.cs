@@ -164,31 +164,33 @@ namespace Microsoft.ML.Data
 
                 if (outputType.IsArray)
                 {
-                    Host.Assert(colType.IsVector);
+                    VectorType vectorType = colType as VectorType;
+                    Host.Assert(vectorType != null);
+
                     // String[] -> ReadOnlyMemory<char>
                     if (outputType.GetElementType() == typeof(string))
                     {
-                        Host.Assert(colType.ItemType is TextType);
+                        Host.Assert(vectorType.ItemType is TextType);
                         return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(peek, x => x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
                     }
 
                     // T[] -> VBuffer<T>
                     if (outputType.GetElementType().IsGenericType && outputType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
-                        Host.Assert(Nullable.GetUnderlyingType(outputType.GetElementType()) == colType.ItemType.RawType);
+                        Host.Assert(Nullable.GetUnderlyingType(outputType.GetElementType()) == vectorType.ItemType.RawType);
                     else
-                        Host.Assert(outputType.GetElementType() == colType.ItemType.RawType);
+                        Host.Assert(outputType.GetElementType() == vectorType.ItemType.RawType);
                     del = CreateDirectArrayGetterDelegate<int>;
                     genericType = outputType.GetElementType();
                 }
-                else if (colType.IsVector)
+                else if (colType is VectorType vectorType)
                 {
                     // VBuffer<T> -> VBuffer<T>
                     // REVIEW: Do we care about accomodating VBuffer<string> -> ReadOnlyMemory<char>?
                     Host.Assert(outputType.IsGenericType);
                     Host.Assert(outputType.GetGenericTypeDefinition() == typeof(VBuffer<>));
-                    Host.Assert(outputType.GetGenericArguments()[0] == colType.ItemType.RawType);
+                    Host.Assert(outputType.GetGenericArguments()[0] == vectorType.ItemType.RawType);
                     del = CreateDirectVBufferGetterDelegate<int>;
-                    genericType = colType.ItemType.RawType;
+                    genericType = vectorType.ItemType.RawType;
                 }
                 else if (colType is PrimitiveType)
                 {
@@ -855,16 +857,20 @@ namespace Microsoft.ML.Data
             else
             {
                 // Make sure that the types are compatible with the declared type, including whether it is a vector type.
-                if (isVector != metadataType.IsVector)
+                VectorType metadataVectorType = metadataType as VectorType;
+                bool metadataIsVector = metadataVectorType != null;
+                if (isVector != metadataIsVector)
                 {
                     throw Contracts.Except("Value inputted is supposed to be {0}, but type of Metadatainfo is {1}",
-                        isVector ? "vector" : "scalar", metadataType.IsVector ? "vector" : "scalar");
+                        isVector ? "vector" : "scalar", metadataIsVector ? "vector" : "scalar");
                 }
-                if (dataKind != metadataType.ItemType.RawKind)
+
+                ColumnType metadataItemType = metadataVectorType?.ItemType ?? metadataType;
+                if (dataKind != metadataItemType.RawKind)
                 {
                     throw Contracts.Except(
                         "Value inputted is supposed to have dataKind {0}, but type of Metadatainfo has {1}",
-                        dataKind.ToString(), metadataType.ItemType.RawKind.ToString());
+                        dataKind.ToString(), metadataItemType.RawKind.ToString());
                 }
             }
             MetadataType = metadataType;
@@ -876,7 +882,7 @@ namespace Microsoft.ML.Data
             var typeT = typeof(T);
             if (typeT.IsArray)
             {
-                Contracts.Assert(MetadataType.IsVector);
+                Contracts.Assert(MetadataType is VectorType);
                 Contracts.Check(typeof(TDst).IsGenericType && typeof(TDst).GetGenericTypeDefinition() == typeof(VBuffer<>));
                 var itemType = typeT.GetElementType();
                 var dstItemType = typeof(TDst).GetGenericArguments()[0];
@@ -898,7 +904,7 @@ namespace Microsoft.ML.Data
                 return srcMethod.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstItemType)
                     .Invoke(this, new object[] { }) as ValueGetter<TDst>;
             }
-            if (MetadataType.IsVector)
+            if (MetadataType is VectorType metadataVectorType)
             {
                 // VBuffer<T> -> VBuffer<T>
                 // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
@@ -909,12 +915,12 @@ namespace Microsoft.ML.Data
                 Contracts.Check(typeof(TDst).GetGenericTypeDefinition() == typeof(VBuffer<>));
                 var dstItemType = typeof(TDst).GetGenericArguments()[0];
                 var itemType = typeT.GetGenericArguments()[0];
-                Contracts.Assert(itemType == MetadataType.ItemType.RawType);
+                Contracts.Assert(itemType == metadataVectorType.ItemType.RawType);
                 Contracts.Check(itemType == dstItemType);
 
                 Func<ValueGetter<VBuffer<int>>> srcMethod = GetVBufferGetter<int>;
                 return srcMethod.GetMethodInfo().GetGenericMethodDefinition()
-                    .MakeGenericMethod(MetadataType.ItemType.RawType)
+                    .MakeGenericMethod(metadataVectorType.ItemType.RawType)
                     .Invoke(this, new object[] { }) as ValueGetter<TDst>;
             }
             if (MetadataType is PrimitiveType)

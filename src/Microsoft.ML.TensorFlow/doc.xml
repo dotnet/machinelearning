@@ -48,7 +48,7 @@
             <description>The name of each output column should match one of the operations in the TensorFlow graph.</description>
           </item>
           <item>
-            <description>Currently, float, double, int, long, uint, ulong are the acceptable data types for input/output.</description>
+            <description>Currently, double, float, long, int, short, sbyte, ulong, uint, ushort, byte and bool are the acceptable data types for input/output.</description>
           </item>
           <item>
             <description>Upon success, the transform will introduce a new column in <see cref="IDataView"/> corresponding to each output column specified.</description>
