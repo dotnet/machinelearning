@@ -18,36 +18,36 @@ namespace Microsoft.ML
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OlsLinearRegressionTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RegressionCatalog"/>.</param>
+        /// <param name="catalog">The <see cref="RegressionCatalog"/>.</param>
         /// <param name="labelColumn">The labelColumn column.</param>
         /// <param name="featureColumn">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionCatalog.RegressionTrainers ctx,
+        public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             Action<OlsLinearRegressionTrainer.Arguments> advancedSettings = null)
         {
-            Contracts.CheckValue(ctx, nameof(ctx));
-            var env = CatalogUtils.GetEnvironment(ctx);
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
             return new OlsLinearRegressionTrainer(env, labelColumn, featureColumn, weights, advancedSettings);
         }
 
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="SymSgdClassificationTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="BinaryClassificationCatalog"/>.</param>
+        /// <param name="catalog">The <see cref="BinaryClassificationCatalog"/>.</param>
         /// <param name="labelColumn">The labelColumn column.</param>
         /// <param name="featureColumn">The features column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers ctx,
+        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             Action<SymSgdClassificationTrainer.Arguments> advancedSettings = null)
         {
-            Contracts.CheckValue(ctx, nameof(ctx));
-            var env = CatalogUtils.GetEnvironment(ctx);
+            Contracts.CheckValue(catalog, nameof(catalog));
+            var env = CatalogUtils.GetEnvironment(catalog);
             return new SymSgdClassificationTrainer(env, labelColumn, featureColumn, advancedSettings);
         }
 

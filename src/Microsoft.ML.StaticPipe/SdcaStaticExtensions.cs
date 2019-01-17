@@ -18,7 +18,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear regression model trained with the SDCA trainer.
         /// </summary>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -42,7 +42,7 @@ namespace Microsoft.ML.StaticPipe
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCARegression.cs)]
         /// ]]></format>
         /// </example>
-        public static Scalar<float> Sdca(this RegressionCatalog.RegressionTrainers ctx,
+        public static Scalar<float> Sdca(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             float? l2Const = null,
             float? l1Threshold = null,
@@ -76,7 +76,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the SDCA trainer, and log-loss.
         /// </summary>
-        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -101,7 +101,7 @@ namespace Microsoft.ML.StaticPipe
         /// ]]></format>
         /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
-                    this BinaryClassificationCatalog.BinaryClassificationTrainers ctx,
+                    this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                     Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
                     float? l2Const = null,
                     float? l1Threshold = null,
@@ -144,7 +144,7 @@ namespace Microsoft.ML.StaticPipe
         /// Note that because we cannot be sure that all loss functions will produce naturally calibrated outputs, setting
         /// a custom loss function will not produce a calibrated probability column.
         /// </summary>
-        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="loss">The custom loss.</param>
@@ -165,7 +165,7 @@ namespace Microsoft.ML.StaticPipe
         /// from negative to positive infinity), and the predicted label.</returns>
         /// <seealso cref="Sdca(BinaryClassificationCatalog.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{SdcaBinaryTrainer.Arguments}, Action{LinearBinaryModelParameters, ParameterMixingCalibratedPredictor})"/>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) Sdca(
-                this BinaryClassificationCatalog.BinaryClassificationTrainers ctx,
+                this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 Scalar<bool> label, Vector<float> features,
                 ISupportSdcaClassificationLoss loss,
                 Scalar<float> weights = null,
@@ -212,7 +212,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the SDCA trainer.
         /// </summary>
-        /// <param name="ctx">The multiclass classification context trainer object.</param>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="loss">The custom loss.</param>
@@ -231,7 +231,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-                Sdca<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers ctx,
+                Sdca<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
                     Key<uint, TVal> label,
                     Vector<float> features,
                     ISupportSdcaClassificationLoss loss = null,
