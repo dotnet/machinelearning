@@ -135,7 +135,7 @@ namespace Microsoft.ML.Trainers.PCA
 
         }
 
-        private protected override PcaModelParameters TrainModelCore(TrainCatalog context)
+        private protected override PcaModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 

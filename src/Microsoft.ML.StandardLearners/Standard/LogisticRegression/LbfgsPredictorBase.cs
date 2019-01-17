@@ -379,7 +379,7 @@ namespace Microsoft.ML.Learners
         /// <summary>
         /// The basic training calls the optimizer
         /// </summary>
-        private protected override TModel TrainModelCore(TrainCatalog context)
+        private protected override TModel TrainModelCore(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
             Host.CheckParam(context.InitialPredictor == null || context.InitialPredictor is TModel, nameof(context.InitialPredictor));

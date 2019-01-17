@@ -214,7 +214,7 @@ namespace Microsoft.ML.Trainers.FastTree
             InitializeThreads();
         }
 
-        private protected void TrainBase(TrainCatalog context)
+        private protected void TrainBase(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
             {

@@ -143,7 +143,7 @@ namespace Microsoft.ML.Trainers.KMeans
             Info = new TrainerInfo();
         }
 
-        private protected override KMeansModelParameters TrainModelCore(TrainCatalog context)
+        private protected override KMeansModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;

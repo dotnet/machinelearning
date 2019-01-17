@@ -58,8 +58,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="context">A context containing at least the training data</param>
         /// <returns>The trained predictor</returns>
-        /// <seealso cref="ITrainer{TPredictor}.Train(TrainCatalog)"/>
-        IPredictor Train(TrainCatalog context);
+        /// <seealso cref="ITrainer{TPredictor}.Train(TrainContext)"/>
+        IPredictor Train(TrainContext context);
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="context">A context containing at least the training data</param>
         /// <returns>The trained predictor</returns>
-        new TPredictor Train(TrainCatalog context);
+        new TPredictor Train(TrainContext context);
     }
 
     [BestFriend]
@@ -84,24 +84,24 @@ namespace Microsoft.ML
     {
         /// <summary>
         /// Convenience train extension for the case where one has only a training set with no auxiliary information.
-        /// Equivalent to calling <see cref="ITrainer.Train(TrainCatalog)"/>
-        /// on a <see cref="TrainCatalog"/> constructed with <paramref name="trainData"/>.
+        /// Equivalent to calling <see cref="ITrainer.Train(TrainContext)"/>
+        /// on a <see cref="TrainContext"/> constructed with <paramref name="trainData"/>.
         /// </summary>
         /// <param name="trainer">The trainer</param>
         /// <param name="trainData">The training data.</param>
         /// <returns>The trained predictor</returns>
         public static IPredictor Train(this ITrainer trainer, RoleMappedData trainData)
-            => trainer.Train(new TrainCatalog(trainData));
+            => trainer.Train(new TrainContext(trainData));
 
         /// <summary>
         /// Convenience train extension for the case where one has only a training set with no auxiliary information.
-        /// Equivalent to calling <see cref="ITrainer{TPredictor}.Train(TrainCatalog)"/>
-        /// on a <see cref="TrainCatalog"/> constructed with <paramref name="trainData"/>.
+        /// Equivalent to calling <see cref="ITrainer{TPredictor}.Train(TrainContext)"/>
+        /// on a <see cref="TrainContext"/> constructed with <paramref name="trainData"/>.
         /// </summary>
         /// <param name="trainer">The trainer</param>
         /// <param name="trainData">The training data.</param>
         /// <returns>The trained predictor</returns>
         public static TPredictor Train<TPredictor>(this ITrainer<TPredictor> trainer, RoleMappedData trainData) where TPredictor : IPredictor
-            => trainer.Train(new TrainCatalog(trainData));
+            => trainer.Train(new TrainContext(trainData));
     }
 }

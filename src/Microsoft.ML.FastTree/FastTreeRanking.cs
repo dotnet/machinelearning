@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return GetLabelGains().Length - 1;
         }
 
-        private protected override FastTreeRankingModelParameters TrainModelCore(TrainCatalog context)
+        private protected override FastTreeRankingModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;

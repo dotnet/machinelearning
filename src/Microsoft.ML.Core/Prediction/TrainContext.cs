@@ -8,11 +8,11 @@ namespace Microsoft.ML
 {
     /// <summary>
     /// Holds information relevant to trainers. Instances of this class are meant to be constructed and passed
-    /// into <see cref="ITrainer{TPredictor}.Train(TrainCatalog)"/> or <see cref="ITrainer.Train(TrainCatalog)"/>.
+    /// into <see cref="ITrainer{TPredictor}.Train(TrainContext)"/> or <see cref="ITrainer.Train(TrainContext)"/>.
     /// This holds at least a training set, as well as optioonally a predictor.
     /// </summary>
     [BestFriend]
-    internal sealed class TrainCatalog
+    internal sealed class TrainContext
     {
         /// <summary>
         /// The training set. Cannot be <c>null</c>.
@@ -49,7 +49,7 @@ namespace Microsoft.ML
         /// <param name="validationSet">Will set <see cref="ValidationSet"/> to this value if specified</param>
         /// <param name="testSet">Will set <see cref="TestSet"/> to this value if specified</param>
         /// <param name="initialPredictor">Will set <see cref="InitialPredictor"/> to this value if specified</param>
-        public TrainCatalog(RoleMappedData trainingSet, RoleMappedData validationSet = null, RoleMappedData testSet = null, IPredictor initialPredictor = null)
+        public TrainContext(RoleMappedData trainingSet, RoleMappedData validationSet = null, RoleMappedData testSet = null, IPredictor initialPredictor = null)
         {
             Contracts.CheckValue(trainingSet, nameof(trainingSet));
             Contracts.CheckValueOrNull(validationSet);

@@ -157,7 +157,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Subclasses of <see cref="TrainCatalog"/> will provide little "extension method" hookable objects
+        /// Subclasses of <see cref="TrainContext"/> will provide little "extension method" hookable objects
         /// (for example, something like <see cref="BinaryClassificationCatalog.Trainers"/>). User code will only
         /// interact with these objects by invoking the extension methods. The actual component code can work
         /// through <see cref="CatalogUtils"/> to get more "hidden" information from this object,

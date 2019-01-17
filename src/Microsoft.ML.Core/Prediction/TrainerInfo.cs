@@ -36,21 +36,21 @@ namespace Microsoft.ML
         public bool WantCaching { get; }
 
         /// <summary>
-        /// Whether the trainer supports validation set via <see cref="TrainCatalog.ValidationSet"/>. Not implementing
+        /// Whether the trainer supports validation set via <see cref="TrainContext.ValidationSet"/>. Not implementing
         /// this interface and returning <c>false</c> from this property is an indication the trainer does not support
         /// that.
         /// </summary>
         public bool SupportsValidation { get; }
 
         /// <summary>
-        /// Whether the trainer can use test set via <see cref="TrainCatalog.TestSet"/>. Not implementing
+        /// Whether the trainer can use test set via <see cref="TrainContext.TestSet"/>. Not implementing
         /// this interface and returning <c>false</c> from this property is an indication the trainer does not support
         /// that.
         /// </summary>
         public bool SupportsTest { get; }
 
         /// <summary>
-        /// Whether the trainer can support incremental trainers via <see cref="TrainCatalog.InitialPredictor"/>. Not
+        /// Whether the trainer can support incremental trainers via <see cref="TrainContext.InitialPredictor"/>. Not
         /// implementing this interface and returning <c>true</c> from this property is an indication the trainer does
         /// not support that.
         /// </summary>

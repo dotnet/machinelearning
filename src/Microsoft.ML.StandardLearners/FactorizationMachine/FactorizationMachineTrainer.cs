@@ -425,7 +425,7 @@ namespace Microsoft.ML.FactorizationMachine
             return new FieldAwareFactorizationMachineModelParameters(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
         }
 
-        private protected override FieldAwareFactorizationMachineModelParameters Train(TrainCatalog context)
+        private protected override FieldAwareFactorizationMachineModelParameters Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachineModelParameters;
