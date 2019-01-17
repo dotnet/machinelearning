@@ -8,59 +8,6 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Legacy interface for schema information.
-    /// Please avoid implementing this interface, use <see cref="Schema"/>.
-    /// </summary>
-    [BestFriend]
-    internal interface ISchema
-    {
-        /// <summary>
-        /// Number of columns.
-        /// </summary>
-        int ColumnCount { get; }
-
-        /// <summary>
-        /// If there is a column with the given name, set col to its index and return true.
-        /// Otherwise, return false. The expectation is that if there are multiple columns
-        /// with the same name, the greatest index is returned.
-        /// </summary>
-        bool TryGetColumnIndex(string name, out int col);
-
-        /// <summary>
-        /// Get the name of the given column index. Column names must be non-empty and non-null,
-        /// but multiple columns may have the same name.
-        /// </summary>
-        string GetColumnName(int col);
-
-        /// <summary>
-        /// Get the type of the given column index. This must be non-null.
-        /// </summary>
-        ColumnType GetColumnType(int col);
-
-        /// <summary>
-        /// Produces the metadata kinds and associated types supported by the given column.
-        /// If there is no metadata the returned enumerable should be non-null, but empty.
-        /// The string key values are unique, non-empty, non-null strings. The type should
-        /// be non-null.
-        /// </summary>
-        IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col);
-
-        /// <summary>
-        /// If the given column has metadata of the indicated kind, this returns the type of the metadata.
-        /// Otherwise, it returns null.
-        /// </summary>
-        ColumnType GetMetadataTypeOrNull(string kind, int col);
-
-        /// <summary>
-        /// Fetches the indicated metadata for the indicated column.
-        /// This should only be called if a corresponding call to GetMetadataTypeOrNull
-        /// returned non-null. And the TValue type should be compatible with the type
-        /// returned by that call. Otherwise, this should throw an exception.
-        /// </summary>
-        void GetMetadata<TValue>(string kind, int col, ref TValue value);
-    }
-
-    /// <summary>
     /// The input and output of Query Operators (Transforms). This is the fundamental data pipeline
     /// type, comparable to <see cref="IEnumerable{T}"/> for LINQ.
     /// </summary>
