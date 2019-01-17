@@ -18,13 +18,13 @@ phases:
         matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
           Build_Debug:
-          _configuration: Debug
-          _config_short: D
-          _includeBenchmarkData: false
+            _configuration: Debug
+            _config_short: D
+            _includeBenchmarkData: false
           Build_Release:
-          _configuration: Release
-          _config_short: R
-          _includeBenchmarkData: true
+            _configuration: Release
+            _config_short: R
+            _includeBenchmarkData: true
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
         ${{ insert }}: ${{ parameters.queue }}
@@ -86,9 +86,9 @@ phases:
         matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:
           Build_Debug:
-          _configuration: Debug
-          _config_short: D
-          _includeBenchmarkData: false
+            _configuration: Debug
+            _config_short: D
+            _includeBenchmarkData: false
         ${{ if ne(parameters.customMatrixes, '') }}:
           ${{ insert }}: ${{ parameters.customMatrixes }}
         ${{ insert }}: ${{ parameters.queue }}
