@@ -278,8 +278,13 @@ namespace Microsoft.ML.Data
                 }
 
                 var originalColumn = _view.Schema[i];
-                var originalElementType = (originalColumn.Type as VectorType).ItemType as PrimitiveType;
+                PrimitiveType originalElementType = null;
+                if (originalColumn.Type is PrimitiveType)
+                    originalElementType = originalColumn.Type as PrimitiveType;
+                else if (originalColumn.Type is VectorType)
+                    originalElementType = (originalColumn.Type as VectorType).ItemType;
                 _host.Assert(originalElementType != null);
+                _host.Assert(originalElementType.GetValueCount() == 1);
                 transposeSchema[i] = new VectorType(originalElementType, RowCount);
             }
             return transposeSchema;
