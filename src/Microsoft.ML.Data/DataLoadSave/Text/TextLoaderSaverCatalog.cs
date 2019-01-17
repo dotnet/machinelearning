@@ -13,7 +13,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Create a text loader <see cref="TextLoader"/>.
         /// </summary>
-        /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">Array of columns <see cref="TextLoader.Column"/> defining the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>

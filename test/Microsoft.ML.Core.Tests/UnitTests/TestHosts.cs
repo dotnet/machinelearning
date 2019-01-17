@@ -83,7 +83,7 @@ namespace Microsoft.ML.RunTests
             env.Log += (sender, e) => messages.Add(e.Message);
 
             // create a dummy text reader to trigger log messages
-            env.Data.CreateTextReader(
+            env.Data.CreateTextLoader(
                 new TextLoader.Arguments {Column = new[] {new TextLoader.Column("TestColumn", null, 0)}});
 
             Assert.True(messages.Count > 0);
