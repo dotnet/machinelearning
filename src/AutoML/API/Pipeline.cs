@@ -37,4 +37,10 @@ namespace Microsoft.ML.Auto
         Transform,
         Trainer
     }
+
+    public class CustomProperty
+    {
+        public readonly string Name;
+        public readonly IDictionary<string, object> Properties;
+    }
 }
