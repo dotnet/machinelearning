@@ -122,7 +122,7 @@ namespace Microsoft.ML.Benchmarks
         public void Test_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron()
         {
             // This benchmark is profiling bulk scoring speed and not training speed. 
-            string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
+            string modelpath = Path.Combine(Path.GetDirectoryName(typeof(MultiClassClassificationTest).Assembly.Location), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
