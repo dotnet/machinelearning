@@ -14,7 +14,7 @@ namespace Microsoft.ML.Benchmarks
 {
     public class RecommendedConfig : ManualConfig
     {
-        protected static List<MsBuildArgument> msbuildArguments = new List<MsBuildArgument>() { new MsBuildArgument($"/p:Configuration={GetBuildConfigurationName()}") };
+        protected static readonly IReadOnlyList<MsBuildArgument> msbuildArguments = new List<MsBuildArgument>() { new MsBuildArgument($"/p:Configuration={GetBuildConfigurationName()}") };
 
         public RecommendedConfig()
         {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Benchmarks
         {
 #if NET461
             var tfm = "net461";
-            var csProj = CsProjClassicNetToolchain.Net462;
+            var csProj = CsProjClassicNetToolchain.Net461;
 #else
             var tfm = NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
             var csProj = CsProjCoreToolchain.Current.Value;
