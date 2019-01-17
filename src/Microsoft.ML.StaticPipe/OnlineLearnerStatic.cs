@@ -82,7 +82,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="lossFunction">The custom loss.</param>
         /// <param name="weights">The optional example weights.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -103,14 +103,14 @@ namespace Microsoft.ML.StaticPipe
                 Vector<float> features,
                 Scalar<float> weights,
                 IClassificationLoss lossFunction,
-                AveragedPerceptronTrainer.Arguments advancedSettings,
+                AveragedPerceptronTrainer.Options options,
                 Action<LinearBinaryModelParameters> onFit = null
             )
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);
-            Contracts.CheckValueOrNull(advancedSettings);
+            Contracts.CheckValueOrNull(options);
             Contracts.CheckValueOrNull(onFit);
 
             bool hasProbs = lossFunction is LogLoss;
@@ -118,11 +118,11 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    advancedSettings.LabelColumn = labelName;
-                    advancedSettings.FeatureColumn = featuresName;
-                    advancedSettings.InitialWeights = weightsName;
+                    options.LabelColumn = labelName;
+                    options.FeatureColumn = featuresName;
+                    options.InitialWeights = weightsName;
 
-                    var trainer = new AveragedPerceptronTrainer(env, advancedSettings);
+                    var trainer = new AveragedPerceptronTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -166,9 +166,9 @@ namespace Microsoft.ML.StaticPipe
             Vector<float> features,
             Scalar<float> weights = null,
             IRegressionLoss lossFunction = null,
-            float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
-            bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.L2RegularizerWeight,
+            float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
+            bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
+            float l2RegularizerWeight = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
             Action<LinearRegressionModelParameters> onFit = null)
         {
@@ -197,7 +197,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
-        /// <param name="advancedSettings">Advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -211,23 +211,23 @@ namespace Microsoft.ML.StaticPipe
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights,
-            OnlineGradientDescentTrainer.Arguments advancedSettings,
+            OnlineGradientDescentTrainer.Options options,
             Action<LinearRegressionModelParameters> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
             Contracts.CheckValueOrNull(onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    advancedSettings.LabelColumn = labelName;
-                    advancedSettings.FeatureColumn = featuresName;
-                    advancedSettings.InitialWeights = weightsName;
+                    options.LabelColumn = labelName;
+                    options.FeatureColumn = featuresName;
+                    options.InitialWeights = weightsName;
 
-                    var trainer = new OnlineGradientDescentTrainer(env, advancedSettings);
+                    var trainer = new OnlineGradientDescentTrainer(env, options);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

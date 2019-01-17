@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipeline, data) = GetMultiClassPipeline();
             var calibrator = new PlattCalibratorTrainer(Env);
             var averagePerceptron = ML.BinaryClassification.Trainers.AveragedPerceptron(
-                new AveragedPerceptronTrainer.Arguments { Shuffle = true, Calibrator = null });
+                new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null });
 
             pipeline = pipeline.Append(new Ova(Env, averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));

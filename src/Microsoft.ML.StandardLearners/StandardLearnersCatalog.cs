@@ -183,15 +183,15 @@ namespace Microsoft.ML
         /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
         /// </summary>
         /// <param name="ctx">The binary classification context trainer object.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         public static AveragedPerceptronTrainer AveragedPerceptron(
-            this BinaryClassificationContext.BinaryClassificationTrainers ctx, AveragedPerceptronTrainer.Arguments advancedSettings)
+            this BinaryClassificationContext.BinaryClassificationTrainers ctx, AveragedPerceptronTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new AveragedPerceptronTrainer(env, advancedSettings);
+            return new AveragedPerceptronTrainer(env, options);
         }
 
         private sealed class TrivialClassificationLossFactory : ISupportClassificationLossFactory
@@ -226,8 +226,8 @@ namespace Microsoft.ML
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             IRegressionLoss lossFunction = null,
-            float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
-            bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
+            float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
+            bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
             int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations)
         {
@@ -241,15 +241,15 @@ namespace Microsoft.ML
         /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
         /// </summary>
         /// <param name="ctx">The regression context trainer object.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
-            OnlineGradientDescentTrainer.Arguments advancedSettings)
+            OnlineGradientDescentTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
 
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new OnlineGradientDescentTrainer(env, advancedSettings);
+            return new OnlineGradientDescentTrainer(env, options);
         }
 
         /// <summary>
@@ -491,14 +491,14 @@ namespace Microsoft.ML
         /// </para>
         /// </remarks>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
         public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-            LinearSvmTrainer.Arguments advancedSettings)
+            LinearSvmTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
-            Contracts.CheckValue(advancedSettings, nameof(advancedSettings));
+            Contracts.CheckValue(options, nameof(options));
 
-            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(ctx), advancedSettings);
+            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(ctx), options);
         }
     }
 }

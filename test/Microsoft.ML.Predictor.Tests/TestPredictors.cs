@@ -741,7 +741,7 @@ namespace Microsoft.ML.RunTests
                     LabelColumn = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Arguments()
+                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,

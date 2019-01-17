@@ -71,7 +71,7 @@ namespace Microsoft.ML.Scenarios
             var pipeline = new Ova(
                 mlContext,
                 mlContext.BinaryClassification.Trainers.AveragedPerceptron(
-                    new AveragedPerceptronTrainer.Arguments { Shuffle = true, Calibrator = null }),
+                    new AveragedPerceptronTrainer.Options { Shuffle = true, Calibrator = null }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Scenarios
 
             // Pipeline
             var pipeline = new Ova(mlContext, 
-                mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Arguments { NumIterations = 100 }),
+                mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(new LinearSvmTrainer.Options { NumIterations = 100 }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);

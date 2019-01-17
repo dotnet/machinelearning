@@ -181,7 +181,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var cached = mlContext.Data.Cache(xf);
 
             var estimator = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
-                new AveragedPerceptronTrainer.Arguments { NumIterations = 2 });
+                new AveragedPerceptronTrainer.Options { NumIterations = 2 });
 
             estimator.Fit(cached).Transform(cached);
 
