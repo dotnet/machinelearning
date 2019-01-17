@@ -76,10 +76,10 @@ namespace Microsoft.ML.Trainers.HalLearners
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
                   TrainerUtils.MakeR4ScalarColumn(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(args.L2Weight >= 0, nameof(args.L2Weight), "L2 regularization term cannot be negative");
-            _l2Weight = args.L2Weight;
-            _perParameterSignificance = args.PerParameterSignificance;
+            Host.CheckValue(options, nameof(options));
+            Host.CheckUserArg(options.L2Weight >= 0, nameof(options.L2Weight), "L2 regularization term cannot be negative");
+            _l2Weight = options.L2Weight;
+            _perParameterSignificance = options.PerParameterSignificance;
         }
 
         protected override RegressionPredictionTransformer<OlsLinearRegressionModelParameters> MakeTransformer(OlsLinearRegressionModelParameters model, Schema trainSchema)
@@ -490,17 +490,17 @@ namespace Microsoft.ML.Trainers.HalLearners
             UserName = UserNameValue,
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""OLS""]/*' />" })]
-        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options input)
+        public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainOLS");
-            host.CheckValue(input, nameof(input));
-            EntryPointUtils.CheckInputArgs(host, input);
+            host.CheckValue(options, nameof(options));
+            EntryPointUtils.CheckInputArgs(host, options);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, input,
-                () => new OlsLinearRegressionTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.RegressionOutput>(host, options,
+                () => new OlsLinearRegressionTrainer(host, options),
+                () => LearnerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumn),
+                () => LearnerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.WeightColumn));
         }
     }
 

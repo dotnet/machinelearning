@@ -118,7 +118,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         }
 
         public override TrainerInfo Info { get; }
-        private readonly Options _args;
+        private readonly Options _options;
 
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                 var shuffleArgs = new RowShufflingTransformer.Arguments
                 {
                     PoolOnly = false,
-                    ForceShuffle = _args.Shuffle
+                    ForceShuffle = _options.Shuffle
                 };
                 idvToFeedTrain = new RowShufflingTransformer(Host, shuffleArgs, idvToShuffle);
             }
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                   TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             args.Check(Host);
-            _args = args;
+            _options = args;
             Info = new TrainerInfo(supportIncrementalTrain: true);
         }
 
@@ -223,16 +223,16 @@ namespace Microsoft.ML.Trainers.SymSgd
             UserName = SymSgdClassificationTrainer.UserNameValue,
             ShortName = SymSgdClassificationTrainer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name=""SymSGD""]/*' />" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options input)
+        public static CommonOutputs.BinaryClassificationOutput TrainSymSgd(IHostEnvironment env, Options options)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSymSGD");
-            host.CheckValue(input, nameof(input));
-            EntryPointUtils.CheckInputArgs(host, input);
+            host.CheckValue(options, nameof(options));
+            EntryPointUtils.CheckInputArgs(host, options);
 
-            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new SymSgdClassificationTrainer(host, input),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, options,
+                () => new SymSgdClassificationTrainer(host, options),
+                () => LearnerEntryPointsUtils.FindColumn(host, options.TrainingData.Schema, options.LabelColumn));
         }
 
         // We buffer instances from the cursor (limited to memorySize) and passes that buffer to
@@ -643,10 +643,10 @@ namespace Microsoft.ML.Trainers.SymSgd
             int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
             int numThreads = 1;
-            ch.CheckUserArg(numThreads > 0, nameof(_args.NumberOfThreads),
+            ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads),
                 "The number of threads must be either null or a positive integer.");
 
-            var positiveInstanceWeight = _args.PositiveInstanceWeight;
+            var positiveInstanceWeight = _options.PositiveInstanceWeight;
             VBuffer<float> weights = default;
             float bias = 0.0f;
             if (predictor != null)
@@ -661,14 +661,14 @@ namespace Microsoft.ML.Trainers.SymSgd
             var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights);
 
             // Reference: Parasail. SymSGD.
-            bool tuneLR = _args.LearningRate == null;
-            var lr = _args.LearningRate ?? 1.0f;
+            bool tuneLR = _options.LearningRate == null;
+            var lr = _options.LearningRate ?? 1.0f;
 
-            bool tuneNumLocIter = (_args.UpdateFrequency == null);
-            var numLocIter = _args.UpdateFrequency ?? 1;
+            bool tuneNumLocIter = (_options.UpdateFrequency == null);
+            var numLocIter = _options.UpdateFrequency ?? 1;
 
-            var l2Const = _args.L2Regularization;
-            var piw = _args.PositiveInstanceWeight;
+            var l2Const = _options.L2Regularization;
+            var piw = _options.PositiveInstanceWeight;
 
             // This is state of the learner that is shared with the native code.
             State state = new State();
@@ -692,32 +692,32 @@ namespace Microsoft.ML.Trainers.SymSgd
                         if (inputDataManager.IsFullyLoaded)
                         {
                             pch.SetHeader(new ProgressHeader(new[] { "iterations" }),
-                                entry => entry.SetProgress(0, state.PassIteration, _args.NumberOfIterations));
+                                entry => entry.SetProgress(0, state.PassIteration, _options.NumberOfIterations));
                             // If fully loaded, call the SymSGDNative and do not come back until learned for all iterations.
                             Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsEditor.Values, ref bias, numFeatures,
-                                _args.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize,
+                                _options.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _options.Tolerance, _options.Shuffle, shouldInitialize,
                                 stateGCHandle, ch.Info);
                             shouldInitialize = false;
                         }
                         else
                         {
                             pch.SetHeader(new ProgressHeader(new[] { "iterations" }),
-                                entry => entry.SetProgress(0, iter, _args.NumberOfIterations));
+                                entry => entry.SetProgress(0, iter, _options.NumberOfIterations));
 
                             // Since we loaded data in batch sizes, multiple passes over the loaded data is feasible.
                             int numPassesForABatch = inputDataManager.Count / 10000;
-                            while (iter < _args.NumberOfIterations)
+                            while (iter < _options.NumberOfIterations)
                             {
                                 // We want to train on the final passes thoroughly (without learning on the same batch multiple times)
                                 // This is for fine tuning the AUC. Experimentally, we found that 1 or 2 passes is enough
                                 int numFinalPassesToTrainThoroughly = 2;
                                 // We also do not want to learn for more passes than what the user asked
-                                int numPassesForThisBatch = Math.Min(numPassesForABatch, _args.NumberOfIterations - iter - numFinalPassesToTrainThoroughly);
+                                int numPassesForThisBatch = Math.Min(numPassesForABatch, _options.NumberOfIterations - iter - numFinalPassesToTrainThoroughly);
                                 // If all of this leaves us with 0 passes, then set numPassesForThisBatch to 1
                                 numPassesForThisBatch = Math.Max(1, numPassesForThisBatch);
                                 state.PassIteration = iter;
                                 Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsEditor.Values, ref bias, numFeatures,
-                                    numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize,
+                                    numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _options.Tolerance, _options.Shuffle, shouldInitialize,
                                     stateGCHandle, ch.Info);
                                 shouldInitialize = false;
 
@@ -726,12 +726,12 @@ namespace Microsoft.ML.Trainers.SymSgd
                                 {
                                     iter += numPassesForThisBatch;
                                     // Check if more passes are left
-                                    if (iter < _args.NumberOfIterations)
-                                        inputDataManager.RestartLoading(_args.Shuffle, Host);
+                                    if (iter < _options.NumberOfIterations)
+                                        inputDataManager.RestartLoading(_options.Shuffle, Host);
                                 }
 
                                 // If more passes are left, load as much as possible
-                                if (iter < _args.NumberOfIterations)
+                                if (iter < _options.NumberOfIterations)
                                     inputDataManager.LoadAsMuchAsPossible();
                             }
                         }
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             weightSetCount = 1;
         }
 
-        private long AcceleratedMemoryBudgetBytes => _args.MemorySize * 1024 * 1024;
+        private long AcceleratedMemoryBudgetBytes => _options.MemorySize * 1024 * 1024;
         private long UsedMemory { get; set; }
 
         private static unsafe class Native
