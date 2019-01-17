@@ -12,7 +12,7 @@ phases:
       _phaseName: ${{ parameters.name }}
       _arch: ${{ parameters.architecture }}
     queue:
-      timeoutInMinutes: 75
+      timeoutInMinutes: 200
       parallel: 99
       matrix:
         ${{ if eq(parameters.customMatrixes, '') }}:

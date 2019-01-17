@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -78,6 +79,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Construct a possibly sparse representation.
         /// </summary>
+        [ExcludeFromCodeCoverage]
         public VBuffer(int length, int count, T[] values, int[] indices)
         {
             Contracts.CheckParam(length >= 0, nameof(length));
