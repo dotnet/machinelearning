@@ -50,7 +50,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The binary classificaiton context trainer object.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
-        public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationCatalogBinaryClassificationTrainers catalog,
+        public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             SgdOptions options)
         {
             Contracts.CheckValue(catalog, nameof(catalog));
