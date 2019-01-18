@@ -22,6 +22,7 @@
       <_CodecovArgs Include="-c;$(BUILD_SOURCEVERSION)" Condition="'$(BUILD_SOURCEVERSION)' != ''" />
       <_CodecovArgs Include="-n;$(BUILD_DEFINITIONNAME)" Condition="'$(BUILD_DEFINITIONNAME)' != ''" />
       <_CodecovArgs Include="--flag;$(Configuration)" Condition="'$(Configuration)' != ''" />
+      <_CodecovArgs Include="-t;$(CODECOV_TOKEN)" Condition="'$(CODECOV_TOKEN)' != ''" />
     </ItemGroup>
 
 
