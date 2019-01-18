@@ -244,7 +244,7 @@ namespace Microsoft.ML.Tests.Transformers
                 HashTestCore((uint)value, new KeyType(typeof(uint), int.MaxValue - 1), eKey, eoKey, e3Key);
             }
             HashTestCore(value, NumberType.U8, expected, expectedOrdered, expectedOrdered3);
-            HashTestCore((ulong)value, new KeyType(typeof(ulong), 0), eKey, eoKey, e3Key);
+            HashTestCore((ulong)value, new KeyType(typeof(ulong), int.MaxValue - 1), eKey, eoKey, e3Key);
 
             HashTestCore(new RowId(value, 0), NumberType.UG, expected, expectedOrdered, expectedOrdered3);
 

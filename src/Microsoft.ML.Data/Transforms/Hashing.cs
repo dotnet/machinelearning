@@ -221,9 +221,9 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private ColumnType GetOutputType(Schema inputSchema, ColumnInfo column)
         {
-            var keyCount = column.HashBits < 31 ? 1 << column.HashBits : 0;
+            var keyCount = (ulong)1 << column.HashBits;
             inputSchema.TryGetColumnIndex(column.Input, out int srcCol);
-            var itemType = new KeyType(DataKind.U4, (ulong)keyCount);
+            var itemType = new KeyType(typeof(uint), keyCount);
             var srcType = inputSchema[srcCol].Type;
             if (srcType is VectorType vectorType)
                 return new VectorType(itemType, vectorType.Size);

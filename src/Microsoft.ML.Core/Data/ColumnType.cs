@@ -456,8 +456,7 @@ namespace Microsoft.ML.Data
     /// class numbers, etc. For example, in multi-class classification, the label is typically
     /// a class number which is naturally a KeyType.
     ///
-    /// KeyTypes with a known range of values have a cardinality/Count. If the range is
-    /// unknown the Count property returns zero.
+    /// KeyTypes have a cardinality/Count that is strictly positive.
     ///
     /// Note that the representation value does not necessarily match the logical value.
     /// For example, if a KeyType has range 0-5000, then it has a Count of 5001, but
@@ -471,6 +470,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(type);
             Contracts.Assert(kind.ToType() == type);
+            Contracts.CheckParam(0 < count && count <= kind.ToMaxInt(), nameof(count));
             Count = count;
         }
 
@@ -482,20 +482,13 @@ namespace Microsoft.ML.Data
         public KeyType(Type type, int count)
             : this(type, CheckRefRawType(type), (ulong)count)
         {
-            Contracts.CheckParam(0 <= count, nameof(count));
+            Contracts.CheckParam(0 < count, nameof(count));
         }
 
         [BestFriend]
         internal KeyType(DataKind kind, ulong count)
             : this(ToRawType(kind), kind, count)
         {
-        }
-
-        [BestFriend]
-        internal KeyType(DataKind kind, int count)
-            : this(ToRawType(kind), kind, (ulong)count)
-        {
-            Contracts.CheckParam(0 <= count, nameof(count));
         }
 
         private static DataKind CheckRefRawType(Type type)
@@ -545,12 +538,11 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// If this key type has a known cardinality, Count is that cardinality. Otherwise, this returns
-        /// zero. Note that such a key type can be converted to a bit vector representation by mapping
-        /// to a vector of length Count, with "id" mapped to a vector with 1 in slot (id - 1) and 0 in
-        /// all other slots. This is the standard "indicator" representation. Note that an id of 0 is
-        /// used to represent the notion "none", which is typically mapped to a vector of all zeros
-        /// (of length Count).
+        /// Count is the cardinality of the KeyType. Note that such a key type can be converted to a
+        /// bit vector representation by mapping to a vector of length Count, with "id" mapped to a
+        /// vector with 1 in slot (id - 1) and 0 in all other slots. This is the standard "indicator"
+        /// representation. Note that an id of 0 is used to represent the notion "none", which is
+        /// typically mapped to a vector of all zeros (of length Count).
         /// </summary>
         public ulong Count { get; }
 

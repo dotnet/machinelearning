@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data
             (columnType is TimeSpanType) || (columnType is DateTimeType) || (columnType is DateTimeOffsetType);
 
         /// <summary>
-        /// Zero return means either it's not a key type or the cardinality is unknown.
+        /// Zero return means either it's not a key type.
         /// </summary>
         public static ulong GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
 

@@ -409,7 +409,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
             return LambdaColumnMapper.Create(env, registrationName, input, inputColName, outputColName, typeSrc,
-                new KeyType(DataKind.U4, (ulong)keyCount), (in TSrc src, ref uint dst) =>
+                new KeyType(typeof(uint), keyCount), (in TSrc src, ref uint dst) =>
                 {
                     if (value < 0 || value > keyCount)
                         dst = 0;
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Data
             var keyNames = new Dictionary<ReadOnlyMemory<char>, int>();
             // We use MarshalInvoke so that we can call MapKeys with the correct generic: keyValueType.RawType.
             var keyValueMappers = Utils.MarshalInvoke(MapKeys<int>, keyValueType.RawType, views.Select(view => view.Schema).ToArray(), columnName, false, indices, keyNames);
-            var keyType = new KeyType(DataKind.U4, keyNames.Count);
+            var keyType = new KeyType(typeof(uint), keyNames.Count);
             var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
@@ -638,12 +638,12 @@ namespace Microsoft.ML.Data
         /// data view, with the union of the key values as the new key values. For each data view, the value in the output column is the value
         /// corresponding to the key value in the original column.
         /// </summary>
-        public static void ReconcileKeyValuesWithNoNames(IHostEnvironment env, IDataView[] views, string columnName, int keyCount)
+        public static void ReconcileKeyValuesWithNoNames(IHostEnvironment env, IDataView[] views, string columnName, ulong keyCount)
         {
             Contracts.CheckNonEmpty(views, nameof(views));
             Contracts.CheckNonEmpty(columnName, nameof(columnName));
 
-            var keyType = new KeyType(DataKind.U4, keyCount);
+            var keyType = new KeyType(typeof(uint), keyCount);
 
             // For each input data view, create the reconciled key column by wrapping it in a LambdaColumnMapper.
             for (int i = 0; i < views.Length; i++)
@@ -677,7 +677,7 @@ namespace Microsoft.ML.Data
             var keyNames = new Dictionary<ReadOnlyMemory<char>, int>();
             var columnIndices = new int[dvCount];
             var keyValueMappers = Utils.MarshalInvoke(MapKeys<int>, keyValueType.RawType, views.Select(view => view.Schema).ToArray(), columnName, true, columnIndices, keyNames);
-            var keyType = new KeyType(DataKind.U4, (ulong)keyNames.Count);
+            var keyType = new KeyType(typeof(uint), keyNames.Count);
             var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
@@ -812,7 +812,7 @@ namespace Microsoft.ML.Data
             var firstDvSlotNames = new Dictionary<string, VBuffer<ReadOnlyMemory<char>>>();
             ColumnType labelColKeyValuesType = null;
             var firstDvKeyWithNamesColumns = new List<string>();
-            var firstDvKeyNoNamesColumns = new Dictionary<string, int>();
+            var firstDvKeyNoNamesColumns = new Dictionary<string, ulong>();
             var firstDvVectorKeyColumns = new List<string>();
             var variableSizeVectorColumnNamesList = new List<string>();
             var list = new List<IDataView>();
@@ -830,12 +830,12 @@ namespace Microsoft.ML.Data
 
                     var type = dv.Schema[i].Type;
                     var name = dv.Schema[i].Name;
-                    int typeKeyCount = type.AssertRangeReturnCount(env);
+                    ulong typeKeyCount = type.GetKeyCount();
                     if (type is VectorType vectorType)
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema[i].HasKeyValues(type.GetItemType().AssertRangeReturnCount(env)))
+                            if (dv.Schema[i].HasKeyValues(type.GetItemType()))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema[i].HasSlotNames(vectorType.Size))
@@ -864,9 +864,9 @@ namespace Microsoft.ML.Data
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
                         labelColKeyValuesType = dv.Schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
                     }
-                    else if (dvNumber == 0 && dv.Schema[i].HasKeyValues(typeKeyCount))
+                    else if (dvNumber == 0 && dv.Schema[i].HasKeyValues(type))
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (typeKeyCount > 0 && name != labelColName && !dv.Schema[i].HasKeyValues(typeKeyCount))
+                    else if (type.GetKeyCount() > 0 && name != labelColName && !dv.Schema[i].HasKeyValues(type))
                     {
                         // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
                         if (!firstDvKeyNoNamesColumns.ContainsKey(name))

@@ -584,7 +584,7 @@ namespace Microsoft.ML.Data
             else
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
-            var key = new KeyType(DataKind.U4, _numClasses);
+            var key = new KeyType(typeof(uint), _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberType.R8;
             _types[SortedScoresCol] = new VectorType(NumberType.R4, _numClasses);
@@ -613,7 +613,7 @@ namespace Microsoft.ML.Data
                 _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             _types = new ColumnType[4];
-            var key = new KeyType(DataKind.U4, _numClasses);
+            var key = new KeyType(typeof(uint), _numClasses);
             _types[AssignedCol] = key;
             _types[LogLossCol] = NumberType.R8;
             _types[SortedScoresCol] = new VectorType(NumberType.R4, _numClasses);
@@ -1001,7 +1001,7 @@ namespace Microsoft.ML.Data
             if (!perInst.Schema.TryGetColumnIndex(labelName, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", labelName);
             var labelType = perInst.Schema[labelCol].Type;
-            if (labelType is KeyType keyType && (!perInst.Schema[labelCol].HasKeyValues(keyType.AssertRangeReturnCount(Host)) || labelType.RawType != typeof(uint)))
+            if (labelType is KeyType keyType && (!perInst.Schema[labelCol].HasKeyValues(keyType) || labelType.RawType != typeof(uint)))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, labelName,
                     labelName, perInst.Schema[labelCol].Type, NumberType.R8,

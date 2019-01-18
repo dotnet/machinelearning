@@ -61,7 +61,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckUserArg(KeyType.IsValidDataKind(kind), nameof(TextLoader.Column.Type), "Bad item type for Key");
 
             if (range.Max == null)
-                keyType = new KeyType(kind, 0);
+                keyType = new KeyType(kind, kind.ToMaxInt());
             else
             {
                 ulong max = range.Max.GetValueOrDefault();

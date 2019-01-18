@@ -669,7 +669,7 @@ namespace Microsoft.ML.Data
         {
             // Any key is convertible to ulong, so rather than add special case handling for all possible
             // key-types we just upfront convert it to the most general type (ulong) and work from there.
-            KeyType dstType = new KeyType(DataKind.U8, type.Count);
+            KeyType dstType = new KeyType(typeof(ulong), type.Count);
             bool identity;
             var converter = Conversions.Instance.GetStandardConversion<TInput, ulong>(type, dstType, out identity);
             var isNa = Conversions.Instance.GetIsNAPredicate<TInput>(type);

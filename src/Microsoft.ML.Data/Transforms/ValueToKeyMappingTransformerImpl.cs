@@ -501,7 +501,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(count >= 0);
                 ItemType = type;
                 Count = count;
-                OutputType = new KeyType(DataKind.U4, Count == 0 ? 1 : Count);
+                OutputType = new KeyType(typeof(uint), Count == 0 ? 1 : Count);
             }
 
             internal abstract void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory);
@@ -1102,7 +1102,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _host.AssertValue(builder);
                     var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
-                    var dstType = new KeyType(DataKind.U4, srcType.Count);
+                    var dstType = new KeyType(typeof(uint), srcType.Count);
                     var convInst = Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;
@@ -1182,7 +1182,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
                     var srcType = TypedMap.ItemType as KeyType;
                     _host.AssertValue(srcType);
-                    var dstType = new KeyType(DataKind.U4, srcType.Count);
+                    var dstType = new KeyType(typeof(uint), srcType.Count);
                     var convInst = Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;

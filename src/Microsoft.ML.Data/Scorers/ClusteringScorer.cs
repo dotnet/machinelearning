@@ -136,7 +136,7 @@ namespace Microsoft.ML.Data
 
         private static ColumnType GetPredColType(ColumnType scoreType, ISchemaBoundRowMapper mapper)
         {
-            return new KeyType(DataKind.U4, scoreType.GetVectorSize());
+            return new KeyType(typeof(uint), scoreType.GetVectorSize());
         }
 
         private static bool OutputTypeMatches(ColumnType scoreType)

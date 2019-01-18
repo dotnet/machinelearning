@@ -390,12 +390,9 @@ namespace Microsoft.ML.Data.Conversion
                 // types that are large enough.
                 if (typeDst is KeyType keyDst)
                 {
-                    // We currently don't allow the counts to vary.
                     // REVIEW: Should we allow the counts to vary? Allowing the dst to be bigger is trivial.
                     // Smaller dst means mapping values to NA.
                     if (keySrc.Count != keyDst.Count)
-                        return false;
-                    if (keySrc.Count == 0 && Marshal.SizeOf(keySrc.RawType) > Marshal.SizeOf(keyDst.RawType))
                         return false;
                 }
                 else
@@ -407,8 +404,6 @@ namespace Microsoft.ML.Data.Conversion
                         return false;
                     if (Marshal.SizeOf(keySrc.RawType) > Marshal.SizeOf(typeDst.RawType))
                     {
-                        if (keySrc.Count == 0)
-                            return false;
                         if (keySrc.Count > typeDst.RawType.ToMaxInt())
                             return false;
                     }
@@ -488,38 +483,19 @@ namespace Microsoft.ML.Data.Conversion
             bool identity;
             var convSrc = GetStandardConversion<TSrc, U8>(key, NumberType.U8, out identity);
             var convU8 = GetStringConversion<U8>(NumberType.U8);
-            if (count > 0)
-            {
-                return
-                    (in TSrc src, ref SB dst) =>
+            return
+                (in TSrc src, ref SB dst) =>
+                {
+                    ulong tmp = 0;
+                    convSrc(in src, ref tmp);
+                    if (tmp == 0 || tmp > count)
+                        ClearDst(ref dst);
+                    else
                     {
-                        ulong tmp = 0;
-                        convSrc(in src, ref tmp);
-                        if (tmp == 0 || tmp > count)
-                            ClearDst(ref dst);
-                        else
-                        {
-                            tmp = tmp - 1;
-                            convU8(in tmp, ref dst);
-                        }
-                    };
-            }
-            else
-            {
-                return
-                    (in TSrc src, ref SB dst) =>
-                    {
-                        U8 tmp = 0;
-                        convSrc(in src, ref tmp);
-                        if (tmp == 0)
-                            ClearDst(ref dst);
-                        else
-                        {
-                            tmp = tmp - 1;
-                            convU8(in tmp, ref dst);
-                        }
-                    };
-            }
+                        tmp = tmp - 1;
+                        convU8(in tmp, ref dst);
+                    }
+                };
         }
 
         public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
@@ -541,13 +517,7 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.Assert(key.RawType == typeof(TDst));
 
             // First parse as ulong, then convert to T.
-            ulong max;
-
-            ulong count = key.RawType.ToMaxInt();
-            if (key.Count > 0)
-                max = key.Count - 1;
-            else
-                max = count - 1;
+            ulong max = key.Count - 1;
 
             var fnConv = GetKeyStandardConversion<TDst>();
             return
@@ -576,13 +546,7 @@ namespace Microsoft.ML.Data.Conversion
             Contracts.Assert(key.RawType == typeof(TDst));
 
             // First parse as ulong, then convert to T.
-            ulong max;
-
-            ulong count = key.RawType.ToMaxInt();
-            if (key.Count > 0)
-                max = key.Count - 1;
-            else
-                max = count - 1;
+            ulong max = key.Count - 1;
 
             var fnConv = GetKeyStandardConversion<TDst>();
             return

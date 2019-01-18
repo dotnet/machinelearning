@@ -7,9 +7,9 @@
   A: Key<U1, 0-5>
   B: Key<U1, 0-8>
   C: Key<U8, 0-5>
-  D: Key<U1, 0-*>
-  E: Key<U8, 0-*>
-  F: Key<U1, 0-*>
+  D: Key<U1, 0-254>
+  E: Key<U8, 0-18446744073709551614>
+  F: Key<U1, 0-254>
 ---- RowToRowMapperTransform ----
 10 columns:
   Label: Key<U1, 0-1>
@@ -19,9 +19,9 @@
   A: Key<U1, 0-5>
   B: Key<U1, 0-8>
   C: Key<U8, 0-5>
-  D: Key<U1, 0-*>
-  E: Key<U8, 0-*>
-  F: Key<U1, 0-*>
+  D: Key<U1, 0-254>
+  E: Key<U8, 0-18446744073709551614>
+  F: Key<U1, 0-254>
   Label2: Key<U2, 0-1>
   Features2: Vec<R4, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9

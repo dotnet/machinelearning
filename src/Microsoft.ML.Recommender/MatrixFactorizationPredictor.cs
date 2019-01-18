@@ -118,8 +118,8 @@ namespace Microsoft.ML.Trainers.Recommender
             _leftFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(_numberOfRows * _approximationRank));
             _rightFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(_numberofColumns * _approximationRank));
 
-            MatrixColumnIndexType = new KeyType(DataKind.U4, _numberofColumns);
-            MatrixRowIndexType = new KeyType(DataKind.U4, _numberOfRows);
+            MatrixColumnIndexType = new KeyType(typeof(uint), _numberofColumns);
+            MatrixRowIndexType = new KeyType(typeof(uint), _numberOfRows);
         }
 
         /// <summary>

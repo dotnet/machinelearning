@@ -383,7 +383,7 @@ Key types are instances of the sealed class `KeyType`, which derives from
 
 In addition to its underlying type, a key type specifies:
 
-* A count value, between `0` and `ulong.MaxValue`, inclusive
+* A count value, between `1` and `ulong.MaxValue`, inclusive
 
 Regardless of the count value, the representational value zero
 always means `NA` and the representational value one is always the first valid
@@ -391,10 +391,9 @@ value of the key type.
 
 Notes:
 
-* The `Count` property returns the count of the key type. This is of type
-  `ulong`. When `Count` is zero, the key type has no known or useful maximum
-  value. Otherwise, the legal representation values are from one up to and
-  including `Count`. The `Count` is required to be representable in the 
+* The `Count` property returns the count, or cardinality of the key type. This 
+  is of type `ulong`. The legal representation values are from one up to 
+  and including `Count`. The `Count` is required to be representable in the 
   underlying type, so, for example, the `Count` value of a key type based
   on `System.Byte` must not exceed `255`. As an example of the usefulness 
   of the `Count` property, consider the `KeyToVector` transform implemented
@@ -416,9 +415,6 @@ Notes:
   the representation values always start at 1 and extend up to `Count`,
   in this case `100`.
 
-* For a key type with representation type `System.UInt32` with no known
-maximum, the shorthand is `U4[0-*]`.
-
 There are standard conversions from text to each key type. This conversion
 parses the text as a standard non-negative integer value and honors the `Count`
 value of the key type. If a parsed numeric value falls outside the range 
@@ -433,9 +429,7 @@ There are standard conversions from one key type to another, provided:
   than the number of bytes in the source's underlying type, or the `Count`
   value is positive. In the latter case, the `Count` is necessarily less than
   2k, where k is the number of bits in the destination type's underlying type.
-  For example, `U1[0-*]` can be converted to `U2[0-*]`, but `U2[0-*]` cannot
-  be converted to `U1[0-*]`. Also, `U1[0-100]` and `U2[0-100]` can be
-  converted in both directions.
+  For example, `U1[0-100]` and `U2[0-100]` can be converted in both directions.
 
 ## Vector Types
 

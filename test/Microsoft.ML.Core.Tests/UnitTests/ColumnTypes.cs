@@ -47,7 +47,7 @@ namespace Microsoft.ML.RunTests
                     continue;
                 for (ulong min = 0; min < 5; min++)
                 {
-                    for (var count = 0; count < 5; count++)
+                    for (var count = 1; count < 5; count++)
                     {
                         tmp = new KeyType(rawType, count);
                         if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
@@ -68,7 +68,8 @@ namespace Microsoft.ML.RunTests
                             }
                         }
                     }
-                    tmp = new KeyType(rawType, 0);
+                    Assert.True(rawType.TryGetDataKind(out var kind));
+                    tmp = new KeyType(rawType, kind.ToMaxInt());
                     if (dict.ContainsKey(tmp) && dict[tmp] != tmp.ToString())
                         Assert.True(false, dict[tmp] + " and " + tmp.ToString() + " are duplicates.");
                     dict[tmp] = tmp.ToString();

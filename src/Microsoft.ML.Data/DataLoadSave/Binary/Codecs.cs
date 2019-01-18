@@ -1251,7 +1251,7 @@ namespace Microsoft.ML.Data.IO
                 Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());
                 Contracts.CheckDecode(contiguous || count == 0);
 
-                type = new KeyType(itemType.RawType, min, count, contiguous);
+                type = new KeyType(itemType.RawType, count);
             }
             // Next create the key codec.
             Type codecType = typeof(KeyCodecOld<>).MakeGenericType(itemType.RawType);
@@ -1356,7 +1356,7 @@ namespace Microsoft.ML.Data.IO
                 Contracts.CheckDecode(0 <= count);
                 Contracts.CheckDecode(count <= itemType.RawKind.ToMaxInt());
 
-                type = new KeyType(itemType.RawKind, count);
+                type = new KeyType(itemType.RawType, count);
             }
             // Next create the key codec.
             Type codecType = typeof(KeyCodec<>).MakeGenericType(itemType.RawType);
