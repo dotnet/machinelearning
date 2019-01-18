@@ -1177,7 +1177,7 @@ namespace Microsoft.ML.Transforms.Text
             if (!(vectorType.ItemType is KeyType itemKeyType))
                 return false;
             // Can only accept key types that can be converted to U4.
-            if (itemKeyType.Count == 0 && itemKeyType.RawKind > DataKind.U4)
+            if (itemKeyType.Count == 0 && !NgramUtils.IsValidNgramRawType(itemKeyType.RawType))
                 return false;
             return true;
         }
@@ -1189,7 +1189,7 @@ namespace Microsoft.ML.Transforms.Text
             if (!col.IsKey)
                 return false;
             // Can only accept key types that can be converted to U4.
-            if (col.ItemType.RawKind > DataKind.U4)
+            if (!NgramUtils.IsValidNgramRawType(col.ItemType.RawType))
                 return false;
             return true;
         }

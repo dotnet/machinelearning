@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Authors>Intel</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageLicenseFile>NOTICE.txt</PackageLicenseFile>
     <PackageDescription>$(MSBuildProjectName) contains the MKL library redistributed as a NuGet package.</PackageDescription>
     <PackageTags>$(PackageTags) MLNET MKL</PackageTags>
   </PropertyGroup>

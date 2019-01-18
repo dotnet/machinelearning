@@ -47,6 +47,8 @@ namespace Microsoft.ML
             FastTreeRegressionTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new FastTreeRegressionTrainer(env, options);
         }
@@ -85,6 +87,8 @@ namespace Microsoft.ML
             FastTreeBinaryClassificationTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new FastTreeBinaryClassificationTrainer(env, options);
         }
@@ -125,6 +129,8 @@ namespace Microsoft.ML
             FastTreeRankingTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new FastTreeRankingTrainer(env, options);
         }
@@ -213,6 +219,8 @@ namespace Microsoft.ML
             FastTreeTweedieTrainer.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new FastTreeTweedieTrainer(env, options);
         }
@@ -251,6 +259,8 @@ namespace Microsoft.ML
             FastForestRegression.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new FastForestRegression(env, options);
         }
@@ -289,6 +299,8 @@ namespace Microsoft.ML
             FastForestClassification.Options options)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new FastForestClassification(env, options);
         }

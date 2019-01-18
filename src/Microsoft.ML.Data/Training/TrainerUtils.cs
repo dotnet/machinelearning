@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Training
@@ -385,10 +386,20 @@ namespace Microsoft.ML.Training
         /// The <see cref="SchemaShape.Column"/> for the weight column.
         /// </summary>
         /// <param name="weightColumn">name of the weight column</param>
-        /// <param name="isExplicit">whether the column is implicitly, or explicitly defined</param>
-        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn, bool isExplicit = true)
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn)
         {
-            if (weightColumn == null || !isExplicit)
+            if (weightColumn == null)
+                return default;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the weight column.
+        /// </summary>
+        /// <param name="weightColumn">name of the weight column</param>
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(Optional<string> weightColumn)
+        {
+            if (weightColumn == null || weightColumn.Value == null || !weightColumn.IsExplicit)
                 return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
