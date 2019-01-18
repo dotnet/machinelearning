@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -36,7 +37,8 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.Transforms.Normalize("Features"))
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("IrisPlantType", "Label"), TransformerScope.TrainTest)
                 .AppendCacheCheckpoint(mlContext)
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1))
+                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaMultiClassTrainer.Options { NumThreads = 1 }))
                 .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Plant")));
 
             // Train the pipeline
