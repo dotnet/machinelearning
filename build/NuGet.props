@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <!-- Respect environment variable for the NuGet Packages Root if set; otherwise, use the current default location -->
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages\</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="!HasTrailingSlash('$(NuGetPackageRoot)')">$(NuGetPackageRoot)\</NuGetPackageRoot>
+  </PropertyGroup>
+</Project>
