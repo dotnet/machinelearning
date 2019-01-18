@@ -8,25 +8,27 @@
     <PropertyGroup Condition="'$(UseCodecov)' == 'true'">
       <_CodecovPath>$(NuGetPackageRoot)codecov\$(CodecovVersion)\tools\Codecov.exe</_CodecovPath>
 
-      <_BranchName Condition="'$(_BranchName)' == ''">$(ghprbTargetBranch)</_BranchName>
-      <_BranchName Condition="'$(_BranchName)' == ''">$(BranchName)</_BranchName>
+      <_BranchName Condition="'$(_BranchName)' == ''">$(SYSTEM_PULLREQUEST_TARGETBRANCH)</_BranchName>
+      <_BranchName Condition="'$(_BranchName)' == ''">$(BUILD_SOURCEBRANCHNAME)</_BranchName>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(UseCodecov)' == 'true'">
       <_CoverageReports Include="$(ArtifactsTestResultsDir)*.coverage" />
 
       <_CodecovArgs Include="-f;@(_CoverageReports)" />
-      <_CodecovArgs Include="-r;$(QualifiedRepoName)" Condition="'$(QualifiedRepoName)' != ''" />
-      <_CodecovArgs Include="--pr;$(ghprbPullId)" Condition="'$(ghprbPullId)' != ''" />
-      <_CodecovArgs Include="-b;$(BUILD_NUMBER)" Condition="'$(BUILD_NUMBER)' != ''" />
+      <_CodecovArgs Include="-r;$(BUILD_REPOSITORY_NAME)" Condition="'$(BUILD_REPOSITORY_NAME)' != ''" />
+      <_CodecovArgs Include="--pr;$(SYSTEM_PULLREQUEST_PULLREQUESTNUMBER)" Condition="'$(SYSTEM_PULLREQUEST_PULLREQUESTNUMBER)' != ''" />
+      <_CodecovArgs Include="-b;$(BUILD_BUILDNUMBER)" Condition="'$(BUILD_BUILDNUMBER)' != ''" />
       <_CodecovArgs Include="--branch;$(_BranchName)" Condition="'$(_BranchName)' != ''" />
-      <_CodecovArgs Include="-c;$(ghprbActualCommit)" Condition="'$(ghprbActualCommit)' != ''" />
-      <_CodecovArgs Include="-n;$(JOB_NAME)" Condition="'$(JOB_NAME)' != ''" />
+      <_CodecovArgs Include="-c;$(BUILD_SOURCEVERSION)" Condition="'$(BUILD_SOURCEVERSION)' != ''" />
+      <_CodecovArgs Include="-n;$(BUILD_DEFINITIONNAME)" Condition="'$(BUILD_DEFINITIONNAME)' != ''" />
       <_CodecovArgs Include="--flag;$(Configuration)" Condition="'$(Configuration)' != ''" />
     </ItemGroup>
 
-    <Exec Condition="'$(UseCodecov)' == 'true'"
-          Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
+
+    <!-- <Exec Condition="'$(UseCodecov)' == 'true'"
+          Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" /> -->
+    <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
   </Target>
 
   <Import Project="..\Packages.targets" />
