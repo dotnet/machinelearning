@@ -832,25 +832,53 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
+            private TValue MapValue(TKey key)
+            {
+                if (_mapping.ContainsKey(key))
+                {
+                    if (ValueType is VectorType vectorType)
+                        return Utils.MarshalInvoke(GetVector<int>, vectorType.ItemType.RawType, _mapping[key]);
+                    else
+                        return Utils.MarshalInvoke(GetValue<int>, ValueType.RawType, _mapping[key]);
+                }
+                else
+                    return _missingValue;
+            }
+
             public override Delegate GetGetter(Row input, int index)
             {
-                var src = default(TKey);
-                ValueGetter<TKey> getSrc = input.GetGetter<TKey>(index);
-                ValueGetter<TValue> retVal =
-                (ref TValue dst) =>
+                if (input.Schema[index].Type is VectorType)
                 {
-                    getSrc(ref src);
-                    if (_mapping.ContainsKey(src))
-                    {
-                        if (ValueType is VectorType vectorType)
-                            dst = Utils.MarshalInvoke(GetVector<int>, vectorType.ItemType.RawType, _mapping[src]);
-                        else
-                            dst = Utils.MarshalInvoke(GetValue<int>, ValueType.RawType, _mapping[src]);
-                    }
-                    else
-                        dst = _missingValue;
-                };
-                return retVal;
+                    var src = default(VBuffer<TKey>);
+                    var getSrc = input.GetGetter<VBuffer<TKey>>(index);
+
+                    ValueGetter<VBuffer<TValue>> retVal =
+                        (ref VBuffer<TValue> dst) =>
+                        {
+                            getSrc(ref src);
+                            var editor = VBufferEditor.Create(ref dst, src.Length);
+                            var values = src.GetValues();
+                            src.GetIndices().CopyTo(editor.Indices);
+                            for (int ich = 0; ich < values.Length; ich++)
+                            {
+                                editor.Values[ich] = MapValue(values[ich]);
+                            }
+                            dst = editor.Commit();
+                        };
+                    return retVal;
+                }
+                else
+                {
+                    var src = default(TKey);
+                    var getSrc = input.GetGetter<TKey>(index);
+                    ValueGetter<TValue> retVal =
+                        (ref TValue dst) =>
+                        {
+                            getSrc(ref src);
+                            dst = MapValue(src);
+                        };
+                    return retVal;
+                }
             }
 
             public override IDataView GetDataView(IHostEnvironment env)
@@ -961,8 +989,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 var result = new Schema.DetachedColumn[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
-                    var srcCol = _inputSchema[_columns[i].Source];
-                    result[i] = new Schema.DetachedColumn(_columns[i].Name, _valueMap.ValueType, _valueMetadata);
+                    if (_inputSchema[_columns[i].Source].Type is VectorType && _valueMap.ValueType is VectorType)
+                        throw _parent.Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when both input and values are of vector type.", _columns[i].Source);
+                    var colType = _valueMap.ValueType;
+                    if (_inputSchema[_columns[i].Source].Type is VectorType)
+                        colType = new VectorType(PrimitiveType.FromKind(_valueMap.ValueType.GetItemType().RawKind));
+                    result[i] = new Schema.DetachedColumn(_columns[i].Name, colType, _valueMetadata);
                 }
                 return result;
             }
