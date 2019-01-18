@@ -12,7 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(UseCodecov)' == 'true'">
-      <_CoverageReports Include="$(MSBuildThisFileDirectory)..\bin\AnyCPU.Debug\coverage\*.coverage" />
+      <_CoverageReports Include="$(MSBuildThisFileDirectory)..\bin\AnyCPU.Debug\coverage\*.xml" />
 
       <_CodecovArgs Include="-f;@(_CoverageReports)" />
       <_CodecovArgs Include="-r;$(BUILD_REPOSITORY_NAME)" Condition="'$(BUILD_REPOSITORY_NAME)' != ''" />
@@ -25,10 +25,9 @@
       <_CodecovArgs Include="-t;$(CODECOV_TOKEN)" Condition="'$(CODECOV_TOKEN)' != ''" />
     </ItemGroup>
 
-
-    <!-- <Exec Condition="'$(UseCodecov)' == 'true'"
-          Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" /> -->
     <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
+    <Exec Condition="'$(UseCodecov)' == 'true'"
+          Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
   </Target>
 
 </Project>
