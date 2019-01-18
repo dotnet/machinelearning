@@ -109,7 +109,7 @@ namespace Microsoft.ML.Data.IO
             header.Signature = TransposeLoader.Header.SignatureValue;
             header.Version = TransposeLoader.Header.WriterVersion;
             header.CompatibleVersion = TransposeLoader.Header.WriterVersion;
-            VectorType slotType = data.TransposeSchema.GetSlotType(cols[0]);
+            var slotType = data.GetSlotType(cols[0]);
             ch.AssertValue(slotType);
             header.RowCount = slotType.Size;
             header.ColumnCount = cols.Length;
