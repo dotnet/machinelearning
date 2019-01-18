@@ -2,10 +2,11 @@
 <Project>
   <Import Project="NuGet.props" />
   <Import Project="Dependencies.props" />
-
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'Directory.Build.props'))" />
+  
   <Target Name="Codecov">
     <PropertyGroup Condition="'$(UseCodecov)' == 'true'">
-      <_CodecovPath>$(NuGetPackageRoot)codecov\$(CodecovVersion)\tools\Codecov.exe</_CodecovPath>
+      <_CodecovPath>$(RestorePackagesPath)codecov\$(CodecovVersion)\tools\Codecov.exe</_CodecovPath>
 
       <_BranchName Condition="'$(_BranchName)' == ''">$(SYSTEM_PULLREQUEST_TARGETBRANCH)</_BranchName>
       <_BranchName Condition="'$(_BranchName)' == ''">$(BUILD_SOURCEBRANCHNAME)</_BranchName>
