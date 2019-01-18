@@ -191,7 +191,8 @@ namespace Microsoft.ML.Transforms
             return _slotType;
         }
 
-        protected override SlotCursor GetSlotCursorCore(int iinfo)
+        [BestFriend]
+        internal override SlotCursor GetSlotCursorCore(int iinfo)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             Host.AssertValue(Infos[iinfo].SlotTypeSrc);

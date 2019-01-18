@@ -91,11 +91,11 @@ namespace Microsoft.ML.Data
                 foreach (var view in viewChainReversed.Reverse())
                 {
                     writer.WriteLine("---- {0} ----", view.GetType().Name);
-                    PrintSchema(writer, args, view.Schema, (view as ITransposeDataView)?.TransposeSchema);
+                    PrintSchema(writer, args, view.Schema, view as ITransposeDataView);
                 }
             }
             else
-                PrintSchema(writer, args, data.Schema, (data as ITransposeDataView)?.TransposeSchema);
+                PrintSchema(writer, args, data.Schema, data as ITransposeDataView);
         }
 
         /// <summary>
@@ -113,12 +113,12 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private static void PrintSchema(TextWriter writer, Arguments args, Schema schema, ITransposeSchema tschema)
+        private static void PrintSchema(TextWriter writer, Arguments args, Schema schema, ITransposeDataView transposeDataView)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValue(args);
             Contracts.AssertValue(schema);
-            Contracts.AssertValueOrNull(tschema);
+            Contracts.AssertValueOrNull(transposeDataView);
 #if !CORECLR
             if (args.ShowJson)
             {
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Data
                 {
                     var name = schema[col].Name;
                     var type = schema[col].Type;
-                    var slotType = tschema == null ? null : tschema.GetSlotType(col);
+                    var slotType = transposeDataView?.GetSlotType(col);
                     itw.WriteLine("{0}: {1}{2}", name, type, slotType == null ? "" : " (T)");
 
                     bool metaVals = args.ShowMetadataValues;

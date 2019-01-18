@@ -13,7 +13,7 @@ using Microsoft.ML.Training;
 namespace Microsoft.ML
 {
     using LRArguments = LogisticRegression.Arguments;
-    using SgdArguments = StochasticGradientDescentClassificationTrainer.Arguments;
+    using SgdOptions = StochasticGradientDescentClassificationTrainer.Options;
 
     /// <summary>
     /// TrainerEstimator extension methods.
@@ -31,20 +31,33 @@ namespace Microsoft.ML
         /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularization constant.</param>
         /// <param name="loss">The loss function to use.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            int maxIterations = SgdArguments.Defaults.MaxIterations,
-            double initLearningRate = SgdArguments.Defaults.InitLearningRate,
-            float l2Weight = SgdArguments.Defaults.L2Weight,
-            ISupportClassificationLossFactory loss = null,
-            Action<SgdArguments> advancedSettings = null)
+            int maxIterations = SgdOptions.Defaults.MaxIterations,
+            double initLearningRate = SgdOptions.Defaults.InitLearningRate,
+            float l2Weight = SgdOptions.Defaults.L2Weight,
+            ISupportClassificationLossFactory loss = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new StochasticGradientDescentClassificationTrainer(env, labelColumn, featureColumn, weights, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
+            return new StochasticGradientDescentClassificationTrainer(env, labelColumn, featureColumn, weights, maxIterations, initLearningRate, l2Weight, loss);
+        }
+
+        /// <summary>
+        ///  Predict a target using a linear binary classification model trained with the <see cref="StochasticGradientDescentClassificationTrainer"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The binary classificaiton context trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            SgdOptions options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new StochasticGradientDescentClassificationTrainer(env, options);
         }
 
         /// <summary>
@@ -58,10 +71,6 @@ namespace Microsoft.ML
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
         /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLoss"/>.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.
-        /// The settings here will override the ones provided in the direct method signature,
-        /// if both are present and have different values.
-        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public static SdcaRegressionTrainer StochasticDualCoordinateAscent(this RegressionContext.RegressionTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
@@ -69,12 +78,26 @@ namespace Microsoft.ML
             ISupportSdcaRegressionLoss loss = null,
             float? l2Const = null,
             float? l1Threshold = null,
-            int? maxIterations = null,
-            Action<SdcaRegressionTrainer.Arguments> advancedSettings = null)
+            int? maxIterations = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new SdcaRegressionTrainer(env, labelColumn, featureColumn, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+            return new SdcaRegressionTrainer(env, labelColumn, featureColumn, weights, loss, l2Const, l1Threshold, maxIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the SDCA trainer.
+        /// </summary>
+        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static SdcaRegressionTrainer StochasticDualCoordinateAscent(this RegressionContext.RegressionTrainers ctx,
+            SdcaRegressionTrainer.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new SdcaRegressionTrainer(env, options);
         }
 
         /// <summary>
@@ -88,16 +111,6 @@ namespace Microsoft.ML
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.
-        /// The settings here will override the ones provided in the direct method signature,
-        /// if both are present and have different values.
-        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs)]
-        /// ]]></format>
-        /// </example>
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
@@ -112,13 +125,27 @@ namespace Microsoft.ML
                 ISupportSdcaClassificationLoss loss = null,
                 float? l2Const = null,
                 float? l1Threshold = null,
-                int? maxIterations = null,
-                Action<SdcaBinaryTrainer.Arguments> advancedSettings = null
-            )
+                int? maxIterations = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new SdcaBinaryTrainer(env, labelColumn, featureColumn, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+            return new SdcaBinaryTrainer(env, labelColumn, featureColumn, weights, loss, l2Const, l1Threshold, maxIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the SDCA trainer.
+        /// </summary>
+        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static SdcaBinaryTrainer StochasticDualCoordinateAscent(
+                this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+                SdcaBinaryTrainer.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new SdcaBinaryTrainer(env, options);
         }
 
         /// <summary>
@@ -132,10 +159,6 @@ namespace Microsoft.ML
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.
-        /// The settings here will override the ones provided in the direct method signature,
-        /// if both are present and have different values.
-        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public static SdcaMultiClassTrainer StochasticDualCoordinateAscent(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
                     string labelColumn = DefaultColumnNames.Label,
                     string featureColumn = DefaultColumnNames.Features,
@@ -143,12 +166,26 @@ namespace Microsoft.ML
                     ISupportSdcaClassificationLoss loss = null,
                     float? l2Const = null,
                     float? l1Threshold = null,
-                    int? maxIterations = null,
-                    Action<SdcaMultiClassTrainer.Arguments> advancedSettings = null)
+                    int? maxIterations = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new SdcaMultiClassTrainer(env, labelColumn, featureColumn, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+            return new SdcaMultiClassTrainer(env, labelColumn, featureColumn, weights, loss, l2Const, l1Threshold, maxIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear multiclass classification model trained with the SDCA trainer.
+        /// </summary>
+        /// <param name="ctx">The multiclass classification context trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static SdcaMultiClassTrainer StochasticDualCoordinateAscent(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+                    SdcaMultiClassTrainer.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new SdcaMultiClassTrainer(env, options);
         }
 
         /// <summary>
@@ -177,6 +214,7 @@ namespace Microsoft.ML
             Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
+
             var env = CatalogUtils.GetEnvironment(ctx);
             return new AveragedPerceptronTrainer(env, labelColumn, featureColumn, weights, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
         }
