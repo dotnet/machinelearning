@@ -25,11 +25,6 @@ namespace Microsoft.ML.Auto
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastForestRegression.Arguments>(sweepParams);
             return mlContext.Regression.Trainers.FastForest(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.FastForestRegression;
-        }
     }
 
     internal class FastTreeRegressionExtension : ITrainerExtension
@@ -43,11 +38,6 @@ namespace Microsoft.ML.Auto
         {
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastTreeRegressionTrainer.Arguments>(sweepParams);
             return mlContext.Regression.Trainers.FastTree(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.FastTreeRegression;
         }
     }
 
@@ -63,11 +53,6 @@ namespace Microsoft.ML.Auto
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastTreeTweedieTrainer.Arguments>(sweepParams);
             return mlContext.Regression.Trainers.FastTreeTweedie(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.FastTreeTweedieRegression;
-        }
     }
 
     internal class LightGbmRegressionExtension : ITrainerExtension
@@ -81,11 +66,6 @@ namespace Microsoft.ML.Auto
         {
             var argsFunc = TrainerExtensionUtil.CreateLightGbmArgsFunc(sweepParams);
             return mlContext.Regression.Trainers.LightGbm(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.LightGbmRegression;
         }
     }
 
@@ -101,11 +81,6 @@ namespace Microsoft.ML.Auto
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<AveragedLinearArguments>(sweepParams);
             return mlContext.Regression.Trainers.OnlineGradientDescent(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.OnlineGradientDescentRegression;
-        }
     }
 
     internal class OrdinaryLeastSquaresRegressionExtension : ITrainerExtension
@@ -119,11 +94,6 @@ namespace Microsoft.ML.Auto
         {
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<OlsLinearRegressionTrainer.Arguments>(sweepParams);
             return mlContext.Regression.Trainers.OrdinaryLeastSquares(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.OrdinaryLeastSquaresRegression;
         }
     }
 
@@ -139,11 +109,6 @@ namespace Microsoft.ML.Auto
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<PoissonRegression.Arguments>(sweepParams);
             return mlContext.Regression.Trainers.PoissonRegression(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.PoissonRegression;
-        }
     }
 
     internal class SdcaRegressionExtension : ITrainerExtension
@@ -157,11 +122,6 @@ namespace Microsoft.ML.Auto
         {
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<SdcaRegressionTrainer.Arguments>(sweepParams);
             return mlContext.Regression.Trainers.StochasticDualCoordinateAscent(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.SdcaRegression;
         }
     }
 }

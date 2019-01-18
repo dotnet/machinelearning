@@ -9,77 +9,50 @@ using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.Text;
-using static Microsoft.ML.Auto.TransformInference;
 
 namespace Microsoft.ML.Auto
 {
     internal class SuggestedTransform
     {
         public readonly IEstimator<ITransformer> Estimator;
-        public readonly IDictionary<string, string> Properties;
-        // Stores which columns are consumed by this transform,
-        // and which are produced, at which level.
-        public ColumnRoutingStructure RoutingStructure { get; set; }
+        public readonly PipelineNode PipelineNode;
 
-        public SuggestedTransform(IEstimator<ITransformer> estimator,
-            ColumnRoutingStructure routingStructure = null, IDictionary<string, string> properties = null)
+        public SuggestedTransform(PipelineNode pipelineNode, IEstimator<ITransformer> estimator)
         {
+            PipelineNode = pipelineNode;
             Estimator = estimator;
-            RoutingStructure = routingStructure;
-            Properties = properties;
         }
 
         public SuggestedTransform Clone()
         {
-            return new SuggestedTransform(Estimator, RoutingStructure, Properties);
+            return new SuggestedTransform(PipelineNode, Estimator);
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append(Estimator.GetType().FullName);
+            sb.Append(PipelineNode.Name);
             sb.Append("{");
-            if (RoutingStructure.ColumnsProduced.Count() > 1)
+            if (PipelineNode.OutColumns.Length > 1)
             {
-                for (var i = 0; i < RoutingStructure.ColumnsProduced.Count(); i++)
+                for (var i = 0; i < PipelineNode.OutColumns.Length; i++)
                 {
-                    sb.Append($" col={RoutingStructure.ColumnsProduced[i].Name}:{RoutingStructure.ColumnsConsumed[i].Name}");
+                    sb.Append($" col={PipelineNode.OutColumns[i]}:{PipelineNode.InColumns[i]}");
                 }
             }
             else
             {
-                sb.Append($" col={RoutingStructure.ColumnsProduced.First().Name}:{string.Join(",", RoutingStructure.ColumnsConsumed.Select(c => c.Name))}");
+                sb.Append($" col={PipelineNode.OutColumns[0]}:{string.Join(",", PipelineNode.InColumns)}");
             }
-            if (Properties != null)
+            if (PipelineNode.Properties != null)
             {
-                foreach (var property in Properties)
+                foreach (var property in PipelineNode.Properties)
                 {
                     sb.Append($" {property.Key}={property.Value}");
                 }
             }
             sb.Append("}");
             return sb.ToString();
-        }
-
-        public PipelineNode ToPipelineNode()
-        {
-            var inputColumns = RoutingStructure.ColumnsConsumed.Select(c => c.Name).ToArray();
-            var outputColumns = RoutingStructure.ColumnsProduced.Select(c => c.Name).ToArray();
-
-            var elementProperties = new Dictionary<string, object>();
-            if (Properties != null)
-            {
-                foreach (var property in Properties)
-                {
-                    elementProperties[property.Key] = property.Value;
-                }
-            }
-
-            return new PipelineNode(Estimator.GetType().FullName, PipelineNodeType.Transform,
-                inputColumns, outputColumns, elementProperties);
         }
     }
 
@@ -234,11 +207,11 @@ namespace Microsoft.ML.Auto
 
             public abstract IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns);
 
-            protected readonly MLContext Env;
+            protected readonly MLContext Context;
 
             public TransformInferenceExpertBase()
             {
-                Env = new MLContext();
+                Context = new MLContext();
             }
         }
 
@@ -289,47 +262,13 @@ namespace Microsoft.ML.Auto
 
                     var col = columns[lastLabelColId];
                     
-                    var columnName = new StringBuilder();
-                    columnName.Append(col.ColumnName);
-
                     if (col.Type.IsText())
                     {
-                        col.GetUniqueValueCounts<ReadOnlyMemory<char>>(out var unique, out var _, out var _);
-
-                        string dest = DefaultColumnNames.Label;
-                        string source = columnName.ToString();
-                        var input = new ValueToKeyMappingEstimator(Env, source, dest);
-
-                        var routingStructure = new ColumnRoutingStructure(
-                            new[]
-                            {
-                                new ColumnRoutingStructure.AnnotatedName {IsNumeric = false, Name = source}
-                            },
-                            new[]
-                            {
-                                new ColumnRoutingStructure.AnnotatedName {IsNumeric = true, Name = dest}
-                            }
-                        );
-                        yield return new SuggestedTransform(input, routingStructure);
+                        yield return ValueToKeyMappingExtension.CreateSuggestedTransform(Context, col.ColumnName, DefaultColumnNames.Label);
                     }
                     else if (col.ColumnName != DefaultColumnNames.Label)
                     {
-                        string dest = DefaultColumnNames.Label;
-                        string source = columnName.ToString();
-                        var input = new ColumnCopyingEstimator(Env, source, dest);
-
-                        var routingStructure = new ColumnRoutingStructure(
-                            new[]
-                            {
-                                new ColumnRoutingStructure.AnnotatedName {IsNumeric = true, Name = source}
-                            },
-                            new[]
-                            {
-                                new ColumnRoutingStructure.AnnotatedName {IsNumeric = true, Name = dest}
-                            }
-                        );
-
-                        yield return new SuggestedTransform(input, routingStructure);
+                        yield return ColumnCopyingExtension.CreateSuggestedTransform(Context, col.ColumnName, DefaultColumnNames.Label);
                     }
                 }
             }
@@ -344,48 +283,14 @@ namespace Microsoft.ML.Auto
 
                     var col = columns[firstGroupColId];
 
-                    var columnName = new StringBuilder();
-                    columnName.AppendFormat("{0}", col.ColumnName);
-
                     if (col.Type.IsText())
                     {
                         // REVIEW: we could potentially apply HashJoin to vectors of text.
-                        string dest = DefaultColumnNames.GroupId;
-                        string source = columnName.ToString();
-                        var input = new OneHotHashEncodingEstimator(Env, new OneHotHashEncodingEstimator.ColumnInfo(dest, source));
-
-                        var routingStructure = new ColumnRoutingStructure(
-                            new[]
-                            {
-                                new ColumnRoutingStructure.AnnotatedName {IsNumeric = false, Name = source}
-                            },
-                            new[]
-                            {
-                                new ColumnRoutingStructure.AnnotatedName {IsNumeric = true, Name = dest}
-                            }
-                        );
-
-                        string[] outputColNames = new string[] { DefaultColumnNames.GroupId };
-                        yield return new SuggestedTransform(input, routingStructure);
+                        yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, col.ColumnName, DefaultColumnNames.GroupId);
                     }
                     else if (col.ColumnName != DefaultColumnNames.GroupId)
                     {
-                        string dest = DefaultColumnNames.GroupId;
-                        string source = columnName.ToString();
-                        var input = new ColumnCopyingEstimator(Env, source, dest);
-
-                        var routingStructure = new ColumnRoutingStructure(
-                            new[]
-                            {
-                                new ColumnRoutingStructure.AnnotatedName {IsNumeric = true, Name = source}
-                            },
-                            new[]
-                            {
-                                new ColumnRoutingStructure.AnnotatedName {IsNumeric = true, Name = dest}
-                            }
-                        );
-
-                        yield return new SuggestedTransform(input, routingStructure);
+                        yield return ColumnCopyingExtension.CreateSuggestedTransform(Context, col.ColumnName, DefaultColumnNames.GroupId);
                     }
                 }
             }
@@ -396,8 +301,8 @@ namespace Microsoft.ML.Auto
                 {
                     bool foundCat = false;
                     bool foundCatHash = false;
-                    var catColumnsNew = new List<OneHotEncodingEstimator.ColumnInfo>();
-                    var catHashColumnsNew = new List<OneHotHashEncodingEstimator.ColumnInfo>();
+                    var catColumnsNew = new List<string>();
+                    var catHashColumnsNew = new List<string>();
                     var featureCols = new List<string>();
 
                     foreach (var column in columns)
@@ -405,51 +310,33 @@ namespace Microsoft.ML.Auto
                         if (!column.Type.ItemType().IsText() || column.Purpose != ColumnPurpose.CategoricalFeature)
                             continue;
 
-                        var columnName = new StringBuilder();
-                        columnName.AppendFormat("{0}", column.ColumnName);
-
                         if (IsDictionaryOk(column, EstimatedSampleFraction))
                         {
                             foundCat = true;
-                            catColumnsNew.Add(new OneHotEncodingEstimator.ColumnInfo(columnName.ToString(), columnName.ToString()));
+                            catColumnsNew.Add(column.ColumnName);
                         }
                         else
                         {
                             foundCatHash = true;
-                            catHashColumnsNew.Add(new OneHotHashEncodingEstimator.ColumnInfo(columnName.ToString(), columnName.ToString()));
+                            catHashColumnsNew.Add(column.ColumnName);
                         }
                     }
 
                     if (foundCat)
                     {
-                        ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                            catColumnsNew.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = c.Output }).ToArray();
-                        ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                            catColumnsNew.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = true, Name = c.Output }).ToArray();
-                        var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-
-                        var input = new OneHotEncodingEstimator(Env, catColumnsNew.ToArray());
-                        featureCols.AddRange(catColumnsNew.Select(c => c.Output));
-                        
-                        yield return new SuggestedTransform(input, routingStructure);
+                        var catColumnsArr = catColumnsNew.ToArray();
+                        yield return OneHotEncodingExtension.CreateSuggestedTransform(Context, catColumnsArr, catColumnsArr);
                     }
 
                     if (foundCatHash)
                     {
-                        ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                            catHashColumnsNew.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = c.HashInfo.Output }).ToArray();
-                        ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                            catHashColumnsNew.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = true, Name = c.HashInfo.Output }).ToArray();
-                        var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-
-                        var input = new OneHotHashEncodingEstimator(Env, catHashColumnsNew.ToArray());
-                        
-                        yield return new SuggestedTransform(input, routingStructure);
+                        var catHashColumnsNewArr = catHashColumnsNew.ToArray();
+                        yield return OneHotHashEncodingExtension.CreateSuggestedTransform(Context, catHashColumnsNewArr, catHashColumnsNewArr);
                     }
 
                     if (!ExcludeFeaturesConcatTransforms && featureCols.Count > 0)
                     {
-                        yield return InferenceHelpers.GetRemainingFeatures(featureCols, columns, GetType(), IncludeFeaturesOverride);
+                        yield return InferenceHelpers.GetRemainingFeatures(featureCols, columns, IncludeFeaturesOverride);
                         IncludeFeaturesOverride = true;
                     }
                 }
@@ -476,34 +363,27 @@ namespace Microsoft.ML.Auto
             {
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
-                    var columnName = new StringBuilder();
-                    var newColumns = new List<TypeConvertingTransformer.ColumnInfo>();
+                    var newColumns = new List<string>();
 
                     foreach (var column in columns)
                     {
                         if (!column.Type.ItemType().IsBool() || column.Purpose != ColumnPurpose.NumericFeature)
+                        {
                             continue;
-                        columnName.AppendFormat("{0}", column.ColumnName);
+                        }
 
-                        newColumns.Add(new TypeConvertingTransformer.ColumnInfo(columnName.ToString(),
-                            columnName.ToString(), DataKind.R4));
+                        newColumns.Add(column.ColumnName);
                     }
 
-                    if (columnName.Length > 0)
+                    if (newColumns.Count() > 0)
                     {
-                        var input = new TypeConvertingEstimator(Env, newColumns.ToArray());
-                        ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                            newColumns.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = c.Input }).ToArray();
-                        ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                            newColumns.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = true, Name = c.Output }).ToArray();
-                        var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-                        yield return new SuggestedTransform(input, routingStructure);
+                        var newColumnsArr = newColumns.ToArray();
+                        yield return TypeConvertingExtension.CreateSuggestedTransform(Context, newColumnsArr, newColumnsArr);
 
                         // Concat featurized columns into existing feature column, if transformed at least one column.
                         if (!ExcludeFeaturesConcatTransforms)
                         {
-                            yield return InferenceHelpers.GetRemainingFeatures(newColumns.Select(c => c.Output).ToList(),
-                                columns, GetType(), IncludeFeaturesOverride);
+                            yield return InferenceHelpers.GetRemainingFeatures(newColumns, columns, IncludeFeaturesOverride);
                             IncludeFeaturesOverride = true;
                         }
                     }
@@ -513,7 +393,7 @@ namespace Microsoft.ML.Auto
             internal static class InferenceHelpers
             {
                 public static SuggestedTransform GetRemainingFeatures(List<string> newCols, IntermediateColumn[] existingColumns,
-                    Type currentType, bool includeFeaturesOverride)
+                    bool includeFeaturesOverride)
                 {
                     // Pick up existing features columns, if they exist
                     var featuresColumnsCount = existingColumns.Count(col =>
@@ -521,64 +401,27 @@ namespace Microsoft.ML.Auto
                      (col.ColumnName == DefaultColumnNames.Features));
                     if (includeFeaturesOverride || featuresColumnsCount > 0)
                         newCols.Insert(0, DefaultColumnNames.Features);
-                    return InferenceHelpers.ConcatColumnsIntoOne(newCols, DefaultColumnNames.Features, currentType, true);
+                    return ColumnConcatenatingExtension.CreateSuggestedTransform(new MLContext(), newCols.ToArray(), DefaultColumnNames.Features);
                 }
 
-                public static SuggestedTransform ConcatColumnsIntoOne(List<string> columnNames, string concatColumnName,
-                    Type transformType, bool isNumeric)
+                public static SuggestedTransform TextTransformUnigramTriChar(MLContext context, string srcColumn, string dstColumn)
                 {
-                    StringBuilder columnName = new StringBuilder();
-
-                    columnNames.ForEach(column =>
-                    {
-                        columnName.AppendFormat("{0}", column);
-                    });
-
-                    string columnsToConcat = string.Join(",", columnNames);
-
-                    var env = new MLContext();
-                    var input = new ColumnConcatenatingEstimator(env, concatColumnName, columnNames.ToArray());
-
-                    // Not sure if resulting columns will be numeric or text, since concat can apply to either.
-                    ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                        columnNames.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = isNumeric, Name = c }).ToArray();
-                    ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                        new[] { new ColumnRoutingStructure.AnnotatedName { IsNumeric = isNumeric, Name = concatColumnName } };
-                    var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-
-                    return new SuggestedTransform(input, routingStructure);
-                }
-
-                public static SuggestedTransform TextTransformUnigramTriChar(MLContext env, string srcColumn, string dstColumn)
-                {
-                    var input = new TextFeaturizingEstimator(env, srcColumn, dstColumn)
-                    {
+                    //var input = new TextFeaturizingEstimator(context, srcColumn, dstColumn)
+                    //{
                         //WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 1 },
                         //CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3 }
-                    };
-
-                    return TextTransform(srcColumn, dstColumn, input);
+                    //};
+                    return TextFeaturizingExtension.CreateSuggestedTransform(context, srcColumn, dstColumn);
                 }
 
-                public static SuggestedTransform TextTransformBigramTriChar(MLContext env, string srcColumn, string dstColumn, Type transformType)
+                public static SuggestedTransform TextTransformBigramTriChar(MLContext context, string srcColumn, string dstColumn)
                 {
-                    var input = new TextFeaturizingEstimator(env, srcColumn, dstColumn)
-                    {
+                    //var input = new TextFeaturizingEstimator(env, srcColumn, dstColumn)
+                    //{
                         //WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2 },
                         //CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3 }
-                    };
-
-                    return TextTransform(srcColumn, dstColumn, input);
-                }
-
-                public static SuggestedTransform TextTransform(string srcColumn, string dstColumn, IEstimator<ITransformer> estimator)
-                {
-                    ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                        { new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = srcColumn } };
-                    ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                        { new ColumnRoutingStructure.AnnotatedName { IsNumeric = true, Name = dstColumn } };
-                    var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-                    return new SuggestedTransform(estimator, routingStructure);
+                    //};
+                    return TextFeaturizingExtension.CreateSuggestedTransform(context, srcColumn, dstColumn);
                 }
             }
 
@@ -599,19 +442,13 @@ namespace Microsoft.ML.Auto
                         string columnDestRenamed = $"{columnNameSafe}{columnDestSuffix}";
 
                         featureCols.Add(columnDestRenamed);
-                        var input = new TextFeaturizingEstimator(Env, columnNameSafe, columnDestRenamed);
-                        ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                            { new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = columnNameSafe} };
-                        ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                            { new ColumnRoutingStructure.AnnotatedName { IsNumeric = true, Name = columnDestRenamed} };
-                        var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-                        yield return new SuggestedTransform(input, routingStructure);
+                        yield return TextFeaturizingExtension.CreateSuggestedTransform(Context, columnNameSafe, columnDestRenamed);
                     }
 
                     // Concat text featurized columns into existing feature column, if transformed at least one column.
                     if (!ExcludeFeaturesConcatTransforms && featureCols.Count > 0)
                     {
-                        yield return InferenceHelpers.GetRemainingFeatures(featureCols, columns, GetType(), IncludeFeaturesOverride);
+                        yield return InferenceHelpers.GetRemainingFeatures(featureCols, columns, IncludeFeaturesOverride);
                         IncludeFeaturesOverride = true;
                     }
                 }
@@ -621,22 +458,21 @@ namespace Microsoft.ML.Auto
             {
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
-                    List<string> textColumnNames =
+                    var textColumnNames =
                         columns.Where(
                             column => column.Type.ItemType().IsText() && column.Purpose == ColumnPurpose.TextFeature)
-                            .Select(column => column.ColumnName).ToList();
+                            .Select(column => column.ColumnName).ToArray();
 
-                    if ((textColumnNames.Count == 0) ||
+                    if ((textColumnNames.Length == 0) ||
                         (columns.Count(col => col.Purpose == ColumnPurpose.Label) != 1))
                         yield break;
 
                     //Concat text columns into one.
                     string concatTextColumnName;
-                    if (textColumnNames.Count > 1)
+                    if (textColumnNames.Length > 1)
                     {
                         concatTextColumnName = columns[0].GetTempColumnName("TextConcat");
-                        yield return
-                            InferenceHelpers.ConcatColumnsIntoOne(textColumnNames, concatTextColumnName, GetType(), false);
+                        yield return ColumnConcatenatingExtension.CreateSuggestedTransform(Context, textColumnNames, concatTextColumnName);
                     }
                     else
                     {
@@ -645,7 +481,7 @@ namespace Microsoft.ML.Auto
 
                     //Get Unigram + Trichar for text transform on the concatenated text column.
                     string featureTextColumn = columns[0].GetTempColumnName("FeaturesText");
-                    yield return InferenceHelpers.TextTransformUnigramTriChar(Env, concatTextColumnName, featureTextColumn);
+                    yield return InferenceHelpers.TextTransformUnigramTriChar(Context, concatTextColumnName, featureTextColumn);
 
                     //Concat text featurized column into feature column.
                     List<string> featureCols = new List<string>(new[] { featureTextColumn });
@@ -657,7 +493,7 @@ namespace Microsoft.ML.Auto
 
                     if (!ExcludeFeaturesConcatTransforms)
                     {
-                        yield return InferenceHelpers.ConcatColumnsIntoOne(featureCols, DefaultColumnNames.Features, GetType(), true);
+                        yield return ColumnConcatenatingExtension.CreateSuggestedTransform(Context, featureCols.ToArray(), DefaultColumnNames.Features);
                     }
                 }
             }
@@ -666,30 +502,21 @@ namespace Microsoft.ML.Auto
             {
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
-                    bool found = false;
-                    var columnName = new StringBuilder();
+                    var columnsWithMissing = new List<string>();
                     foreach (var column in columns)
                     {
-                        if (column.Type.ItemType() != NumberType.R4 || column.Purpose != ColumnPurpose.NumericFeature)
+                        if (column.Type.ItemType() != NumberType.R4 || column.Purpose != ColumnPurpose.NumericFeature
+                            || !column.HasMissing)
+                        {
                             continue;
-                        if (!column.HasMissing)
-                            continue;
-                        
-                        found = true;
-                        
-                        columnName.AppendFormat("{0}", column.ColumnName);
-                    }
-                    if (found)
-                    {
-                        string name = columnName.ToString();
-                        var input = new MissingValueIndicatorEstimator(Env, name, name);
+                        }
 
-                        ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                            { new ColumnRoutingStructure.AnnotatedName { IsNumeric = true, Name = name} };
-                        ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                            { new ColumnRoutingStructure.AnnotatedName { IsNumeric = true, Name = name} };
-                        var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-                        yield return new SuggestedTransform(input, routingStructure);
+                        columnsWithMissing.Add(column.ColumnName);
+                    }
+                    if (columnsWithMissing.Any())
+                    {
+                        var columnsArr = columnsWithMissing.ToArray();
+                        yield return MissingValueIndicatorExtension.CreateSuggestedTransform(Context, columnsArr, columnsArr);
                     }
                 }
             }
@@ -716,28 +543,17 @@ namespace Microsoft.ML.Auto
                     {
                         // Check if column is named features and already numeric
                         if (colList.Length == 1 && colList[0] == DefaultColumnNames.Features && allColumnsNumeric)
-                            yield break;
-
-                        if (!allColumnsNumeric && !allColumnsNonNumeric)
-                            yield break;
-                        
-                        List<string> columnList = new List<string>();
-
-                        foreach (var column in colList)
                         {
-                            var columnName = new StringBuilder();
-                            columnName.AppendFormat("{0}", column);
-                            columnList.Add(columnName.ToString());
+                            yield break;
                         }
                         
-                        var input = new ColumnConcatenatingEstimator(Env, DefaultColumnNames.Features, columnList.ToArray());
-
-                        ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                            columnList.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = allColumnsNumeric, Name = c }).ToArray();
-                        ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                            { new ColumnRoutingStructure.AnnotatedName { IsNumeric = allColumnsNumeric, Name = DefaultColumnNames.Features} };
-                        var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-                        yield return new SuggestedTransform(input, routingStructure);
+                        if (!allColumnsNumeric && !allColumnsNonNumeric)
+                        {
+                            yield break;
+                        }
+                        
+                        var input = new ColumnConcatenatingEstimator(Context, DefaultColumnNames.Features, colList);
+                        yield return ColumnConcatenatingExtension.CreateSuggestedTransform(Context, colList, DefaultColumnNames.Features);
                     }
                 }
             }
@@ -763,7 +579,6 @@ namespace Microsoft.ML.Auto
                 public override IEnumerable<SuggestedTransform> Apply(IntermediateColumn[] columns)
                 {
                     int count = 0;
-                    bool isAllText = true;
                     var colSpec = new StringBuilder();
                     var colSpecTextOnly = new List<string>();
                     var columnList = new List<string>();
@@ -772,47 +587,39 @@ namespace Microsoft.ML.Auto
                     {
                         var columnName = new StringBuilder();
                         if (column.Purpose != ColumnPurpose.Name)
+                        {
                             continue;
+                        }
                         count++;
 
                         if (colSpec.Length > 0)
+                        {
                             colSpec.Append(",");
+                        }
                         colSpec.Append(column.ColumnName);
                         
                         columnName.Append(column.ColumnName);
                         columnList.Add(columnName.ToString());
 
                         if (column.Type.ItemType().IsText())
+                        {
                             colSpecTextOnly.Add(column.ColumnName);
-                        isAllText = isAllText && column.Type.ItemType().IsText();
+                        }
                     }
 
                     if (count == 1 && colSpec.ToString() != DefaultColumnNames.Name)
                     {
-                        var columnName = new StringBuilder();
-                        columnName.AppendFormat("{0}", colSpec);
-                        var input = new ColumnCopyingEstimator(Env, columnName.ToString(), DefaultColumnNames.Name);
-                        ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                            { new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = columnName.ToString()} };
-                        ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                            { new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = DefaultColumnNames.Name} };
-                        var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-                        yield return new SuggestedTransform(input, routingStructure);
+                        yield return ColumnCopyingExtension.CreateSuggestedTransform(Context, colSpec.ToString(), DefaultColumnNames.Name);
                     }
                     else if (count > 1)
                     {
                         if (string.IsNullOrWhiteSpace(colSpecTextOnly.ToString()))
+                        {
                             yield break;
+                        }
 
                         // suggested grouping name columns into one vector
-                        var input = new ColumnConcatenatingEstimator(Env, DefaultColumnNames.Name, columnList.ToArray());
-
-                        ColumnRoutingStructure.AnnotatedName[] columnsSource =
-                            columnList.Select(c => new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = c }).ToArray();
-                        ColumnRoutingStructure.AnnotatedName[] columnsDest =
-                            { new ColumnRoutingStructure.AnnotatedName { IsNumeric = false, Name = DefaultColumnNames.Name} };
-                        var routingStructure = new ColumnRoutingStructure(columnsSource, columnsDest);
-                        yield return new SuggestedTransform(input, routingStructure);
+                        yield return ColumnConcatenatingExtension.CreateSuggestedTransform(Context, columnList.ToArray(), DefaultColumnNames.Name);
                     }
                 }
             }

@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using static Microsoft.ML.Auto.TransformInference.ColumnRoutingStructure;
 
 namespace Microsoft.ML.Auto
 {
@@ -22,12 +22,17 @@ namespace Microsoft.ML.Auto
 
         public InferredPipeline(IEnumerable<SuggestedTransform> transforms,
             SuggestedTrainer trainer,
-            MLContext context = null)
+            MLContext context = null,
+            bool autoNormalize = true)
         {
             Transforms = transforms.Select(t => t.Clone()).ToList();
             Trainer = trainer.Clone();
             _context = context ?? new MLContext();
-            AddNormalizationTransforms();
+
+            if(autoNormalize)
+            {
+                AddNormalizationTransforms();
+            }
         }
         
         public override string ToString() => $"{Trainer}+{string.Join("+", Transforms.Select(t => t.ToString()))}";
@@ -52,10 +57,40 @@ namespace Microsoft.ML.Auto
             var pipelineElements = new List<PipelineNode>();
             foreach(var transform in Transforms)
             {
-                pipelineElements.Add(transform.ToPipelineNode());
+                pipelineElements.Add(transform.PipelineNode);
             }
             pipelineElements.Add(Trainer.ToPipelineNode());
             return new Pipeline(pipelineElements.ToArray());
+        }
+
+        public static InferredPipeline FromPipeline(Pipeline pipeline)
+        {
+            var context = new MLContext();
+
+            var transforms = new List<SuggestedTransform>();
+            SuggestedTrainer trainer = null;
+
+            foreach(var pipelineNode in pipeline.Elements)
+            {
+                if(pipelineNode.ElementType == PipelineNodeType.Trainer)
+                {
+                    var trainerName = (TrainerName)Enum.Parse(typeof(TrainerName), pipelineNode.Name);
+                    var trainerExtension = TrainerExtensionCatalog.GetTrainerExtension(trainerName);
+                    var stringParamVals = pipelineNode.Properties.Select(prop => new StringParameterValue(prop.Key, prop.Value.ToString()));
+                    var hyperParamSet = new ParameterSet(stringParamVals);
+                    trainer = new SuggestedTrainer(context, trainerExtension, hyperParamSet);
+                }
+                else if (pipelineNode.ElementType == PipelineNodeType.Transform)
+                {
+                    var estimatorName = (EstimatorName)Enum.Parse(typeof(EstimatorName), pipelineNode.Name);
+                    var estimatorExtension = EstimatorExtensionCatalog.GetExtension(estimatorName);
+                    var estimator = estimatorExtension.CreateInstance(new MLContext(), pipelineNode);
+                    var transform = new SuggestedTransform(pipelineNode, estimator);
+                    transforms.Add(transform);
+                }
+            }
+
+            return new InferredPipeline(transforms, trainer, null, false);
         }
 
         public ITransformer TrainTransformer(IDataView trainData)
@@ -91,15 +126,7 @@ namespace Microsoft.ML.Auto
                 return;
             }
 
-            var estimator = _context.Transforms.Normalize(DefaultColumnNames.Features);
-            var annotatedColNames = new[] { new AnnotatedName() { Name = DefaultColumnNames.Features, IsNumeric = true } };
-            var routingStructure = new TransformInference.ColumnRoutingStructure(annotatedColNames, annotatedColNames);
-            var properties = new Dictionary<string, string>()
-            {
-                { "mode", "MinMax" }
-            };
-            var transform = new SuggestedTransform(estimator, 
-                routingStructure: routingStructure, properties: properties);
+            var transform = NormalizingExtension.CreateSuggestedTransform(_context, DefaultColumnNames.Features, DefaultColumnNames.Features);
             Transforms.Add(transform);
         }
     }

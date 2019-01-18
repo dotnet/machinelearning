@@ -14,7 +14,5 @@ namespace Microsoft.ML.Auto
         IEnumerable<SweepableParam> GetHyperparamSweepRanges();
 
         ITrainerEstimator CreateInstance(MLContext mlContext, IEnumerable<SweepableParam> sweepParams);
-
-        TrainerName GetTrainerName();
     }
 }

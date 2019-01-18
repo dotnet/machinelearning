@@ -28,11 +28,6 @@ namespace Microsoft.ML.Auto
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.AveragedPerceptronOva;
-        }
     }
 
     internal class FastForestOvaExtension : ITrainerExtension
@@ -48,11 +43,6 @@ namespace Microsoft.ML.Auto
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.FastForestOva;
         }
     }
 
@@ -70,11 +60,6 @@ namespace Microsoft.ML.Auto
             Action<LightGbmArguments> argsFunc = TrainerExtensionUtil.CreateLightGbmArgsFunc(sweepParams);
             return mlContext.MulticlassClassification.Trainers.LightGbm(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.LightGbmMulti;
-        }
     }
 
     internal class LinearSvmOvaExtension : ITrainerExtension
@@ -91,11 +76,6 @@ namespace Microsoft.ML.Auto
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.LinearSvmOva;
-        }
     }
 
     internal class SdcaMultiExtension : ITrainerExtension
@@ -111,11 +91,6 @@ namespace Microsoft.ML.Auto
         {
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<SdcaMultiClassTrainer.Arguments>(sweepParams);
             return mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.SdcaMulti;
         }
     }
 
@@ -134,11 +109,6 @@ namespace Microsoft.ML.Auto
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.LogisticRegressionOva;
-        }
     }
 
     internal class SgdOvaExtension : ITrainerExtension
@@ -154,11 +124,6 @@ namespace Microsoft.ML.Auto
         {
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.StochasticGradientDescentOva;
         }
     }
 
@@ -176,11 +141,6 @@ namespace Microsoft.ML.Auto
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.SymSgdOva;
-        }
     }
 
     internal class FastTreeOvaExtension : ITrainerExtension
@@ -197,11 +157,6 @@ namespace Microsoft.ML.Auto
             var binaryTrainer = _binaryLearnerCatalogItem.CreateInstance(mlContext, sweepParams) as ITrainerEstimatorProducingFloat;
             return mlContext.MulticlassClassification.Trainers.OneVersusAll(binaryTrainer);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.FastTreeOva;
-        }
     }
 
     internal class LogisticRegressionMultiExtension : ITrainerExtension
@@ -217,11 +172,6 @@ namespace Microsoft.ML.Auto
         {
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<MulticlassLogisticRegression.Arguments>(sweepParams);
             return mlContext.MulticlassClassification.Trainers.LogisticRegression(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.LogisticRegressionMulti;
         }
     }
 }

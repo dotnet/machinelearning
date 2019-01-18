@@ -9,6 +9,7 @@ namespace Microsoft.ML.Auto.Test
     [TestClass]
     public class SweeperTests
     {
+        [Ignore]
         [TestMethod]
         public void Smac2ParamsTest()
         {
@@ -47,6 +48,7 @@ namespace Microsoft.ML.Auto.Test
             }
         }
 
+        [Ignore]
         [TestMethod]
         public void Smac4ParamsTest()
         {

@@ -41,11 +41,6 @@ namespace Microsoft.ML.Auto
             }
             return mlContext.BinaryClassification.Trainers.AveragedPerceptron(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.AveragedPerceptronBinary;
-        }
     }
 
     internal class FastForestBinaryExtension : ITrainerExtension
@@ -59,11 +54,6 @@ namespace Microsoft.ML.Auto
         {
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastForestClassification.Arguments>(sweepParams);
             return mlContext.BinaryClassification.Trainers.FastForest(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.FastForestBinary;
         }
     }
 
@@ -79,11 +69,6 @@ namespace Microsoft.ML.Auto
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<FastTreeBinaryClassificationTrainer.Arguments>(sweepParams);
             return mlContext.BinaryClassification.Trainers.FastTree(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.FastTreeBinary;
-        }
     }
 
     internal class LightGbmBinaryExtension : ITrainerExtension
@@ -97,11 +82,6 @@ namespace Microsoft.ML.Auto
         {
             Action<LightGbmArguments> argsFunc = TrainerExtensionUtil.CreateLightGbmArgsFunc(sweepParams);
             return mlContext.BinaryClassification.Trainers.LightGbm(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.LightGbmBinary;
         }
     }
 
@@ -117,11 +97,6 @@ namespace Microsoft.ML.Auto
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<LinearSvmTrainer.Arguments>(sweepParams);
             return mlContext.BinaryClassification.Trainers.LinearSupportVectorMachines(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.LinearSvmBinary;
-        }
     }
 
     internal class SdcaBinaryExtension : ITrainerExtension
@@ -135,11 +110,6 @@ namespace Microsoft.ML.Auto
         {
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<SdcaBinaryTrainer.Arguments>(sweepParams);
             return mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.SdcaBinary;
         }
     }
 
@@ -155,11 +125,6 @@ namespace Microsoft.ML.Auto
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<LogisticRegression.Arguments>(sweepParams);
             return mlContext.BinaryClassification.Trainers.LogisticRegression(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.LogisticRegressionBinary;
-        }
     }
 
     internal class SgdBinaryExtension : ITrainerExtension
@@ -174,11 +139,6 @@ namespace Microsoft.ML.Auto
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<StochasticGradientDescentClassificationTrainer.Arguments>(sweepParams);
             return mlContext.BinaryClassification.Trainers.StochasticGradientDescent(advancedSettings: argsFunc);
         }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.StochasticGradientDescentBinary;
-        }
     }
 
     internal class SymSgdBinaryExtension : ITrainerExtension
@@ -192,11 +152,6 @@ namespace Microsoft.ML.Auto
         {
             var argsFunc = TrainerExtensionUtil.CreateArgsFunc<SymSgdClassificationTrainer.Arguments>(sweepParams);
             return mlContext.BinaryClassification.Trainers.SymbolicStochasticGradientDescent(advancedSettings: argsFunc);
-        }
-
-        public TrainerName GetTrainerName()
-        {
-            return TrainerName.SymSgdBinary;
         }
     }
 }

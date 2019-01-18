@@ -394,58 +394,5 @@ namespace Microsoft.ML.Auto
                 eis[i] = ComputeEI(bestVal, forestStatistics[i]);
             return eis;
         }
-
-        // *********** Utility Functions *******************
-
-        private ParameterSet UpdateParameterSet(ParameterSet original, IParameterValue newParam)
-        {
-            List<IParameterValue> parameters = new List<IParameterValue>();
-            for (int i = 0; i < _sweepParameters.Length; i++)
-            {
-                if (_sweepParameters[i].Name.Equals(newParam.Name))
-                    parameters.Add(newParam);
-                else
-                {
-                    parameters.Add(original[_sweepParameters[i].Name]);
-                }
-            }
-
-            return new ParameterSet(parameters);
-        }
-
-        private Float ParameterAsFloat(ParameterSet parameterSet, int index)
-        {
-            AutoMlUtils.Assert(parameterSet.Count == _sweepParameters.Length);
-            AutoMlUtils.Assert(index >= 0 && index <= _sweepParameters.Length);
-
-            var sweepParam = _sweepParameters[index];
-            var pset = parameterSet[sweepParam.Name];
-            AutoMlUtils.Assert(pset != null);
-
-            var parameterDiscrete = sweepParam as DiscreteValueGenerator;
-            if (parameterDiscrete != null)
-            {
-                int hotIndex = -1;
-                for (int j = 0; j < parameterDiscrete.Count; j++)
-                {
-                    if (parameterDiscrete[j].Equals(pset))
-                    {
-                        hotIndex = j;
-                        break;
-                    }
-                }
-                AutoMlUtils.Assert(hotIndex >= 0);
-
-                return hotIndex;
-            }
-            else
-            {
-                var parameterNumeric = sweepParam as INumericValueGenerator;
-                //_host.Check(parameterNumeric != null, "SMAC sweeper can only sweep over discrete and numeric parameters");
-
-                // Normalizing all numeric parameters to [0,1] range.
-                return parameterNumeric.NormalizeValue(pset);
-            }
-        }
     }
 }

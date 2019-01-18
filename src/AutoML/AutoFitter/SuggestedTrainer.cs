@@ -19,7 +19,7 @@ namespace Microsoft.ML.Auto
             _mlContext = mlContext;
             _trainerExtension = trainerExtension;
             SweepParams = _trainerExtension.GetHyperparamSweepRanges();
-            TrainerName = _trainerExtension.GetTrainerName();
+            TrainerName = TrainerExtensionCatalog.GetTrainerName(_trainerExtension);
             SetHyperparamValues(hyperParamSet);
         }
 

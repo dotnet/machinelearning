@@ -65,14 +65,6 @@ namespace Microsoft.ML.Auto
         string Name { get; }
     }
 
-    internal interface ISweepResultEvaluator<in TResults>
-    {
-        /// <summary>
-        /// Return an IRunResult based on the results given as a TResults object.
-        /// </summary>
-        IRunResult GetRunResult(ParameterSet parameters, TResults results);
-    }
-
     /// <summary>
     /// Parameter value generated from the sweeping.
     /// The parameter values must be immutable.

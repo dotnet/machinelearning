@@ -22,13 +22,25 @@ namespace Microsoft.ML.Auto
 
         public PipelineNode(string name, PipelineNodeType elementType,
             string[] inColumns, string[] outColumns,
-            IDictionary<string, object> properties)
+            IDictionary<string, object> properties = null)
         {
             Name = name;
             ElementType = elementType;
             InColumns = inColumns;
             OutColumns = outColumns;
-            Properties = properties;
+            Properties = properties ?? new Dictionary<string, object>();
+        }
+
+        public PipelineNode(string name, PipelineNodeType elementType, 
+            string inColumn, string outColumn, IDictionary<string, object> properties = null) :
+            this(name, elementType, new string[] { inColumn }, new string[] { outColumn }, properties)
+        {
+        }
+
+        public PipelineNode(string name, PipelineNodeType elementType,
+            string[] inColumns, string outColumn, IDictionary<string, object> properties = null) :
+            this(name, elementType, inColumns, new string[] { outColumn }, properties)
+        {
         }
     }
 
