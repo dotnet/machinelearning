@@ -544,20 +544,20 @@ namespace Microsoft.ML.Data
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="dataOperations">Context for performing this operation.</param>
+        /// <param name="catalog">Context for performing this operation.</param>
         /// <param name="data">The underlying data view.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
         [BestFriend]
-        internal static ICursorable<TRow> AsCursorable<TRow>(this DataOperations dataOperations, IDataView data, bool ignoreMissingColumns = false,
+        internal static ICursorable<TRow> AsCursorable<TRow>(this DataOperationsCatalog catalog, IDataView data, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            dataOperations.Environment.CheckValue(data, nameof(data));
-            dataOperations.Environment.CheckValueOrNull(schemaDefinition);
+            catalog.Environment.CheckValue(data, nameof(data));
+            catalog.Environment.CheckValueOrNull(schemaDefinition);
 
-            return TypedCursorable<TRow>.Create(dataOperations.Environment, data, ignoreMissingColumns, schemaDefinition);
+            return TypedCursorable<TRow>.Create(catalog.Environment, data, ignoreMissingColumns, schemaDefinition);
         }
 
         /// <summary>
