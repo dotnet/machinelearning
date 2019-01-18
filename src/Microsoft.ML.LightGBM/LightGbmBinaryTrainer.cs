@@ -104,7 +104,7 @@ namespace Microsoft.ML.LightGBM
         /// Initializes a new instance of <see cref="LightGbmBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the labelColumn column.</param>
+        /// <param name="labelColumn">The name of The label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weights">The name for the column containing the initial weight.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
