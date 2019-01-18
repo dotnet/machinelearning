@@ -12,7 +12,18 @@ namespace Microsoft.ML.Auto
     {
         private const int TopKTrainers = 3;
 
-        public static InferredPipeline GetNextPipeline(IEnumerable<PipelineRunResult> history,
+        public static Pipeline GetNextPipeline(IEnumerable<PipelineRunResult> history,
+            IEnumerable<SuggestedTransform> transforms,
+            IEnumerable<SuggestedTrainer> availableTrainers,
+            bool isMaximizingMetric = true)
+        {
+            var inferredHistory = history.Select(r => InferredPipelineRunResult.FromPipelineRunResult(r));
+            var nextInferredPipeline = GetNextInferredPipeline(inferredHistory,
+                transforms, availableTrainers, isMaximizingMetric);
+            return nextInferredPipeline.ToPipeline();
+        }
+
+        public static InferredPipeline GetNextInferredPipeline(IEnumerable<InferredPipelineRunResult> history,
             IEnumerable<SuggestedTransform> transforms,
             IEnumerable<SuggestedTrainer> availableTrainers,
             bool isMaximizingMetric = true)
@@ -49,7 +60,7 @@ namespace Microsoft.ML.Auto
         /// <summary>
         /// Get top trainers from first stage
         /// </summary>
-        private static IEnumerable<SuggestedTrainer> GetTopTrainers(IEnumerable<PipelineRunResult> history, 
+        private static IEnumerable<SuggestedTrainer> GetTopTrainers(IEnumerable<InferredPipelineRunResult> history, 
             IEnumerable<SuggestedTrainer> availableTrainers,
             bool isMaximizingMetric)
         {
@@ -57,7 +68,7 @@ namespace Microsoft.ML.Auto
             history = history.Take(availableTrainers.Count());
 
             history = history.GroupBy(r => r.Pipeline.Trainer.TrainerName).Select(g => g.First());
-            IEnumerable<PipelineRunResult> sortedHistory = history.OrderBy(r => r.Score);
+            IEnumerable<InferredPipelineRunResult> sortedHistory = history.OrderBy(r => r.Score);
             if(isMaximizingMetric)
             {
                 sortedHistory = sortedHistory.Reverse();
@@ -66,7 +77,7 @@ namespace Microsoft.ML.Auto
             return topTrainers;
         }
 
-        private static InferredPipeline GetNextFirstStagePipeline(IEnumerable<PipelineRunResult> history,
+        private static InferredPipeline GetNextFirstStagePipeline(IEnumerable<InferredPipelineRunResult> history,
             IEnumerable<SuggestedTrainer> availableTrainers,
             IEnumerable<SuggestedTransform> transforms)
         {
@@ -133,7 +144,7 @@ namespace Microsoft.ML.Auto
             return results;
         }
 
-        private static void SampleHyperparameters(SuggestedTrainer trainer, IEnumerable<PipelineRunResult> history, bool isMaximizingMetric)
+        private static void SampleHyperparameters(SuggestedTrainer trainer, IEnumerable<InferredPipelineRunResult> history, bool isMaximizingMetric)
         {
             var sps = ConvertToValueGenerators(trainer.SweepParams);
             var sweeper = new SmacSweeper(
@@ -142,7 +153,7 @@ namespace Microsoft.ML.Auto
                     SweptParameters = sps
                 });
 
-            IEnumerable<PipelineRunResult> historyToUse = history
+            IEnumerable<InferredPipelineRunResult> historyToUse = history
                 .Where(r => r.RunSucceded && r.Pipeline.Trainer.TrainerName == trainer.TrainerName && r.Pipeline.Trainer.HyperParamSet != null);
 
             // get new set of hyperparameter values

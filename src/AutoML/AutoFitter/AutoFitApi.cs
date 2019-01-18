@@ -6,7 +6,7 @@ namespace Microsoft.ML.Auto
 {
     internal static class AutoFitApi
     {
-        public static (PipelineRunResult[] allPipelines, PipelineRunResult bestPipeline) Fit(IDataView trainData, 
+        public static (InferredPipelineRunResult[] allPipelines, InferredPipelineRunResult bestPipeline) Fit(IDataView trainData, 
             IDataView validationData, string label, AutoFitSettings settings, TaskKind task, OptimizingMetric metric, 
             IEnumerable<(string, ColumnPurpose)> purposeOverrides, IDebugLogger debugLogger)
         {

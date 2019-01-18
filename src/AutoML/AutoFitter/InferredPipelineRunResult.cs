@@ -7,7 +7,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Auto
 {
-    internal class PipelineRunResult
+    internal class InferredPipelineRunResult
     {
         public readonly object EvaluatedMetrics;
         public readonly InferredPipeline Pipeline;
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Auto
 
         public ITransformer Model { get; set; }
 
-        public PipelineRunResult(object evaluatedMetrics, ITransformer model, InferredPipeline pipeline, double score, IDataView scoredValidationData,
+        public InferredPipelineRunResult(object evaluatedMetrics, ITransformer model, InferredPipeline pipeline, double score, IDataView scoredValidationData,
             bool runSucceeded = true)
         {
             EvaluatedMetrics = evaluatedMetrics;
@@ -33,10 +33,17 @@ namespace Microsoft.ML.Auto
             RunSucceded = runSucceeded;
         }
 
-        public PipelineRunResult(InferredPipeline pipeline, bool runSucceeded)
+        public InferredPipelineRunResult(InferredPipeline pipeline, bool runSucceeded)
         {
             Pipeline = pipeline;
             RunSucceded = runSucceeded;
+        }
+
+        public static InferredPipelineRunResult FromPipelineRunResult(PipelineRunResult pipelineRunResult)
+        {
+            return new InferredPipelineRunResult(null, null, 
+                InferredPipeline.FromPipeline(pipelineRunResult.Pipeline),
+                pipelineRunResult.Score, null, pipelineRunResult.RunSucceded);
         }
 
         public IRunResult ToRunResult(bool isMetricMaximizing)

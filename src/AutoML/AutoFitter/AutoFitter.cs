@@ -14,7 +14,7 @@ namespace Microsoft.ML.Auto
     internal class AutoFitter
     {
         private readonly IDebugLogger _debugLogger;
-        private readonly IList<PipelineRunResult> _history;
+        private readonly IList<InferredPipelineRunResult> _history;
         private readonly string _label;
         private readonly MLContext _mlContext;
         private readonly OptimizingMetricInfo _optimizingMetricInfo;
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Auto
             IDictionary<string, ColumnPurpose> purposeOverrides, IDebugLogger debugLogger)
         {
             _debugLogger = debugLogger;
-            _history = new List<PipelineRunResult>();
+            _history = new List<InferredPipelineRunResult>();
             _label = label;
             _mlContext = mlContext;
             _optimizingMetricInfo = metricInfo;
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Auto
             _validationData = validationData;
         }
 
-        public PipelineRunResult[] Fit()
+        public InferredPipelineRunResult[] Fit()
         {
             IteratePipelinesAndFit();
             return _history.ToArray();
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Auto
             do
             {
                 // get next pipeline
-                var pipeline = PipelineSuggester.GetNextPipeline(_history, transforms, availableTrainers, _optimizingMetricInfo.IsMaximizing);
+                var pipeline = PipelineSuggester.GetNextInferredPipeline(_history, transforms, availableTrainers, _optimizingMetricInfo.IsMaximizing);
 
                 // break if no candidates returned, means no valid pipeline available
                 if (pipeline == null)
@@ -75,19 +75,19 @@ namespace Microsoft.ML.Auto
             // run pipeline
             var stopwatch = Stopwatch.StartNew();
 
-            PipelineRunResult runResult;
+            InferredPipelineRunResult runResult;
             try
             {
                 var pipelineModel = pipeline.TrainTransformer(_trainData);
                 var scoredValidationData = pipelineModel.Transform(_validationData);
                 var evaluatedMetrics = GetEvaluatedMetrics(scoredValidationData);
                 var score = GetPipelineScore(evaluatedMetrics);
-                runResult = new PipelineRunResult(evaluatedMetrics, pipelineModel, pipeline, score, scoredValidationData);
+                runResult = new InferredPipelineRunResult(evaluatedMetrics, pipelineModel, pipeline, score, scoredValidationData);
             }
             catch(Exception ex)
             {
                 WriteDebugLog(DebugStream.Exception, $"{pipeline.Trainer} Crashed {ex}");
-                runResult = new PipelineRunResult(pipeline, false);
+                runResult = new InferredPipelineRunResult(pipeline, false);
             }
 
             // save pipeline run

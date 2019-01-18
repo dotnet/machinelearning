@@ -11,7 +11,7 @@ namespace Microsoft.ML.Auto
         {
             var sample = TextFileSample.CreateFromFullFile(path);
             var splitInference = InferSplit(sample, separatorChar, allowQuotedStrings, supportSparse);
-            var typeInference = InferColumnTypes(context, sample, splitInference);
+            var typeInference = InferColumnTypes(context, sample, splitInference, hasHeader);
             var typedLoaderArgs = new TextLoader.Arguments
             {
                 Column = ColumnTypeInference.GenerateLoaderColumns(typeInference.Columns),
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Auto
         }
 
         private static ColumnTypeInference.InferenceResult InferColumnTypes(MLContext context, TextFileSample sample,
-            TextFileContents.ColumnSplitResult splitInference)
+            TextFileContents.ColumnSplitResult splitInference, bool hasHeader)
         {
             // infer column types
             var typeInferenceResult = ColumnTypeInference.InferTextFileColumnTypes(context, sample,
@@ -69,6 +69,7 @@ namespace Microsoft.ML.Auto
                     Separator = splitInference.Separator,
                     AllowSparse = splitInference.AllowSparse,
                     AllowQuote = splitInference.AllowQuote,
+                    HasHeader = hasHeader
                 });
 
             if (!typeInferenceResult.IsSuccess)

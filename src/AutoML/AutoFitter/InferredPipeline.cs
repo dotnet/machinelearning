@@ -93,7 +93,7 @@ namespace Microsoft.ML.Auto
             return new InferredPipeline(transforms, trainer, null, false);
         }
 
-        public ITransformer TrainTransformer(IDataView trainData)
+        public IEstimator<ITransformer> ToEstimator()
         {
             IEstimator<ITransformer> pipeline = new EstimatorChain<ITransformer>();
 
@@ -112,7 +112,13 @@ namespace Microsoft.ML.Auto
             // append learner to pipeline
             pipeline = pipeline.Append(learner);
 
-            return pipeline.Fit(trainData);
+            return pipeline;
+        }
+
+        public ITransformer TrainTransformer(IDataView trainData)
+        {
+            var estimator = ToEstimator();
+            return estimator.Fit(trainData);
         }
 
         private void AddNormalizationTransforms()

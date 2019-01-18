@@ -27,6 +27,7 @@ namespace Microsoft.ML.Auto
             public bool AllowSparse;
             public bool AllowQuote;
             public int ColumnCount;
+            public bool HasHeader;
             public int MaxRowsToRead;
 
             public Arguments()
@@ -325,15 +326,6 @@ namespace Microsoft.ML.Auto
                     suspect--;
             }
 
-            // REVIEW: Why not use this for column names as well?
-            TextLoader.Arguments fileArgs;
-            bool hasHeader;
-            if (TextLoader.FileContainsValidSchema(env, fileSource, out fileArgs))
-                hasHeader = fileArgs.HasHeader;
-            else
-                hasHeader = suspect > 0;
-            hasHeader = true;
-
             // suggest names
             var names = new List<string>();
             usedNames.Clear();
@@ -341,7 +333,7 @@ namespace Microsoft.ML.Auto
             {
                 string name0;
                 string name;
-                name0 = name = SuggestName(col, hasHeader);
+                name0 = name = SuggestName(col, args.HasHeader);
                 int i = 0;
                 while (!usedNames.Add(name))
                     name = string.Format("{0}_{1:00}", name0, i++);
@@ -352,7 +344,7 @@ namespace Microsoft.ML.Auto
 
             var numerics = outCols.Count(x => x.ItemType.IsNumber());
             
-            return InferenceResult.Success(outCols, hasHeader, cols.Select(col => col.RawData).ToArray());
+            return InferenceResult.Success(outCols, args.HasHeader, cols.Select(col => col.RawData).ToArray());
         }
 
         private static string SuggestName(IntermediateColumn column, bool hasHeader)
