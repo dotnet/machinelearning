@@ -409,18 +409,32 @@ namespace Microsoft.ML.Transforms.Conversions
 
             if (srcType is KeyType)
             {
-                if (srcType.RawType == typeof(byte))
-                    return MakeScalarHashGetter<byte, HashKey1>(input, srcCol, seed, mask);
+                if (srcType.RawType == typeof(uint))
+                    return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
+                else if (srcType.RawType == typeof(ulong))
+                    return MakeScalarHashGetter<ulong, HashKey8>(input, srcCol, seed, mask);
                 else if (srcType.RawType == typeof(ushort))
                     return MakeScalarHashGetter<ushort, HashKey2>(input, srcCol, seed, mask);
-                else if (srcType.RawType == typeof(uint))
-                    return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
 
-                Host.Assert(srcType.RawType == typeof(ulong));
-                return MakeScalarHashGetter<ulong, HashKey8>(input, srcCol, seed, mask);
+                Host.Assert(srcType.RawType == typeof(byte));
+                return MakeScalarHashGetter<byte, HashKey1>(input, srcCol, seed, mask);
             }
 
-            if (srcType.RawType == typeof(byte))
+            if (srcType.RawType == typeof(ReadOnlyMemory<char>))
+                return MakeScalarHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(float))
+                return MakeScalarHashGetter<float, HashFloat>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(double))
+                return MakeScalarHashGetter<double, HashDouble>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(sbyte))
+                return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(short))
+                return MakeScalarHashGetter<short, HashI2>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(int))
+                return MakeScalarHashGetter<int, HashI4>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(long))
+                return MakeScalarHashGetter<long, HashI8>(input, srcCol, seed, mask);
+            else if (srcType.RawType == typeof(byte))
                 return MakeScalarHashGetter<byte, HashU1>(input, srcCol, seed, mask);
             else if (srcType.RawType == typeof(ushort))
                 return MakeScalarHashGetter<ushort, HashU2>(input, srcCol, seed, mask);
@@ -429,24 +443,10 @@ namespace Microsoft.ML.Transforms.Conversions
             else if (srcType.RawType == typeof(ulong))
                 return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
             else if (srcType.RawType == typeof(RowId))
-                    return MakeScalarHashGetter<RowId, HashU16>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(sbyte))
-                    return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(short))
-                    return MakeScalarHashGetter<short, HashI2>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(int))
-                    return MakeScalarHashGetter<int, HashI4>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(long))
-                    return MakeScalarHashGetter<long, HashI8>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(float))
-                    return MakeScalarHashGetter<float, HashFloat>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(double))
-                    return MakeScalarHashGetter<double, HashDouble>(input, srcCol, seed, mask);
-            else if (srcType.RawType == typeof(bool))
-                    return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask);
+                return MakeScalarHashGetter<RowId, HashU16>(input, srcCol, seed, mask);
 
-            Host.Assert(srcType == TextType.Instance);
-            return MakeScalarHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask);
+            Host.Assert(srcType.RawType == typeof(bool));
+            return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask);
         }
 
         private ValueGetter<VBuffer<uint>> ComposeGetterVec(Row input, int iinfo, int srcCol, VectorType srcType)

@@ -866,7 +866,7 @@ namespace Microsoft.ML.Data
                 }
 
                 ColumnType metadataItemType = metadataVectorType?.ItemType ?? metadataType;
-                if (!DataKindExtensions.AreDataKindCompatibleTypes(itemType, metadataItemType.RawType))
+                if (itemType != metadataItemType.RawType)
                 {
                     throw Contracts.Except(
                         "Value inputted is supposed to have Type {0}, but type of Metadatainfo has {1}",

@@ -124,7 +124,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         internal static PrimitiveType FromType(Type type)
         {
-            if (type == typeof(ReadOnlyMemory<char>) || type == typeof(string))
+            if (type == typeof(ReadOnlyMemory<char>))
                 return TextType.Instance;
             if (type == typeof(bool))
                 return BoolType.Instance;

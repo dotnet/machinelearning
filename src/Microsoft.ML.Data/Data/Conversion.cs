@@ -460,8 +460,8 @@ namespace Microsoft.ML.Data.Conversion
             else if (!typeDst.IsStandardScalar())
                 return false;
 
-            Contracts.Assert(typeSrc.RawType.IsValidDataKindType());
-            Contracts.Assert(typeDst.RawType.IsValidDataKindType());
+            Contracts.Assert(typeSrc.RawKind != 0);
+            Contracts.Assert(typeDst.RawKind != 0);
 
             int key = GetKey(typeSrc.RawKind, typeDst.RawKind);
             identity = typeSrc.RawKind == typeDst.RawKind;

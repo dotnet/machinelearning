@@ -266,7 +266,7 @@ namespace Microsoft.ML.Transforms.Conversions
             VectorType vectorType = type as VectorType;
             ColumnType itemType = vectorType?.ItemType ?? type;
 
-            if (itemType.RawType.IsValidDataKindType() && (vectorType != null || type is PrimitiveType))
+            if (itemType.IsStandardScalar())
                 return null;
             return "standard type or a vector of standard type";
         }

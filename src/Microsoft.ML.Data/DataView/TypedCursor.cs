@@ -139,9 +139,9 @@ namespace Microsoft.ML.Data
         {
             InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type itemType);
             if (isVector)
-                return colType is VectorType vectorType && DataKindExtensions.AreDataKindCompatibleTypes(vectorType.ItemType.RawType, itemType);
+                return colType is VectorType vectorType && vectorType.ItemType.RawType == itemType;
             else
-                return !(colType is VectorType) && DataKindExtensions.AreDataKindCompatibleTypes(colType.RawType, itemType);
+                return !(colType is VectorType) && colType.RawType == itemType;
         }
 
         /// <summary>

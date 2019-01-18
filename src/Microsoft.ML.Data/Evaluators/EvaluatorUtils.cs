@@ -183,7 +183,7 @@ namespace Microsoft.ML.Data
 
             // Get the score column set id from colScore.
             var type = schema[colScore].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.ScoreColumnSetId)?.Type;
-            if (type == null || !(type is KeyType) || type.RawType != typeof(uint))
+            if (!(type is KeyType) || type.RawType != typeof(uint))
             {
                 // scoreCol is not part of a score column set, so can't determine an aux column.
                 return null;
