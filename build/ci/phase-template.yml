@@ -41,7 +41,7 @@ phases:
       env:
         CODECOV_TOKEN: $(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io    
-      condition: and(eq($(_phaseName), 'Windows_x64'), eq($(_configuration), 'Debug'))        
+      condition: and(eq(variables._phaseName, 'Windows_x64'), eq(variables._configuration, 'Debug'))        
     - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()
