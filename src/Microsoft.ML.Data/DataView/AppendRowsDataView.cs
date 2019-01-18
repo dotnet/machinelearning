@@ -208,6 +208,7 @@ namespace Microsoft.ML.Data
             private RowCursor _currentCursor;
             private ValueGetter<RowId> _currentIdGetter;
             private int _currentSourceIndex;
+            private bool _disposed;
 
             public Cursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded)
                 : base(parent)
@@ -243,7 +244,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue val) =>
                     {
-                        Ch.Check(State == CursorState.Good, "A getter can only be used when the cursor state is Good.");
+                        Ch.Check(Position >= 0, "A getter can only be used when the cursor state is Good.");
                         if (_currentSourceIndex != capturedSourceIndex)
                         {
                             Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
@@ -276,13 +277,14 @@ namespace Microsoft.ML.Data
 
             protected override void Dispose(bool disposing)
             {
-                if (State == CursorState.Done)
+                if (_disposed)
                     return;
                 if (disposing)
                 {
                     Ch.Dispose();
                     _currentCursor?.Dispose();
                 }
+                _disposed = true;
                 base.Dispose(disposing);
             }
         }
@@ -298,6 +300,7 @@ namespace Microsoft.ML.Data
             private readonly MultinomialWithoutReplacementSampler _sampler;
             private readonly Random _rand;
             private int _currentSourceIndex;
+            private bool _disposed;
 
             public RandCursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded, Random rand, int[] counts)
                 : base(parent)
@@ -340,7 +343,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue val) =>
                     {
-                        Ch.Check(State == CursorState.Good, "A getter can only be used when the cursor state is Good.");
+                        Ch.Check(Position >= 0, "A getter can only be used when the cursor is active.");
                         Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
                         if (getSrc[_currentSourceIndex] == null)
                             getSrc[_currentSourceIndex] = _cursorSet[_currentSourceIndex].GetGetter<TValue>(col);
@@ -363,7 +366,7 @@ namespace Microsoft.ML.Data
 
             protected override void Dispose(bool disposing)
             {
-                if (State == CursorState.Done)
+                if (_disposed)
                     return;
                 if (disposing)
                 {
@@ -371,6 +374,7 @@ namespace Microsoft.ML.Data
                     foreach (RowCursor c in _cursorSet)
                         c.Dispose();
                 }
+                _disposed = true;
                 base.Dispose(disposing);
             }
         }

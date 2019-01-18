@@ -148,10 +148,8 @@ namespace Microsoft.ML.Data
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State != CursorState.Done);
                 foreach (var cursor in _cursors)
                 {
-                    Ch.Assert(cursor.State != CursorState.Done);
                     if (!cursor.MoveNext())
                         return false;
                 }

@@ -31,12 +31,11 @@ namespace Microsoft.ML.Data
 
         public sealed override long Batch => Root.Batch;
 
-        public sealed override CursorState State => Root.State;
-
         /// <summary>
-        /// Convenience property for checking whether the current state is CursorState.Good.
+        /// Convenience property for checking whether the cursor is in a good state where values
+        /// can be retrieved, that is, whenever <see cref="Position"/> is non-negative.
         /// </summary>
-        protected bool IsGood => Root.State == CursorState.Good;
+        protected bool IsGood => Position >= 0;
 
         protected SynchronizedCursorBase(IChannelProvider provider, RowCursor input)
         {

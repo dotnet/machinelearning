@@ -850,7 +850,6 @@ namespace Microsoft.ML.Data.IO
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State != CursorState.Done);
                 bool more = Position < _parent._header.RowCount - 1;
                 for (int i = 0; i < _transCursors.Length; ++i)
                 {

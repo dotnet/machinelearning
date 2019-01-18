@@ -448,17 +448,14 @@ namespace Microsoft.ML.Data
         private sealed class RowCursor<TIndex> : RowCursorSeekerBase
             where TIndex : struct, IIndex
         {
-            private CursorState _state;
             private readonly TIndex _index;
-
-            public override CursorState State => _state;
+            private bool _disposed;
 
             public override long Batch => _index.Batch;
 
             public RowCursor(CacheDataView parent, Func<int, bool> predicate, TIndex index)
                 : base(parent, predicate)
             {
-                _state = CursorState.NotStarted;
                 _index = index;
             }
 
@@ -466,18 +463,13 @@ namespace Microsoft.ML.Data
 
             public override bool MoveNext()
             {
-                if (_state == CursorState.Done)
-                {
-                    Ch.Assert(Position == -1);
+                if (_disposed)
                     return false;
-                }
 
-                Ch.Assert(_state == CursorState.NotStarted || _state == CursorState.Good);
                 if (_index.MoveNext())
                 {
                     PositionCore++;
                     Ch.Assert(Position >= 0);
-                    _state = CursorState.Good;
                     return true;
                 }
 
@@ -488,7 +480,7 @@ namespace Microsoft.ML.Data
 
             protected override void DisposeCore()
             {
-                _state = CursorState.Done;
+                _disposed = true;
             }
 
             protected override ValueGetter<TValue> CreateGetterDelegateCore<TValue>(ColumnCache<TValue> cache)
@@ -496,14 +488,14 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue value) =>
                     {
-                        Ch.Check(_state == CursorState.Good, "Cannot use getter with cursor in this state");
+                        Ch.Check(Position >= 0, "Cannot use getter with cursor in this state");
                         cache.Fetch((int)_index.GetIndex(), ref value);
                     };
             }
         }
 
         private sealed class RowSeeker<TWaiter> : RowSeeker
-    where TWaiter : struct, IWaiter
+            where TWaiter : struct, IWaiter
         {
             private readonly RowSeekerCore<TWaiter> _internal;
 
@@ -529,8 +521,6 @@ namespace Microsoft.ML.Data
             private readonly TWaiter _waiter;
 
             public override long Batch => 0;
-
-            public override CursorState State => throw new NotImplementedException();
 
             public override ValueGetter<RowId> GetIdGetter()
             {

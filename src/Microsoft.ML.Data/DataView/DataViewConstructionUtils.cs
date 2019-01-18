@@ -410,7 +410,6 @@ namespace Microsoft.ML.Data
 
                 public WrappedCursor(DataViewCursorBase toWrap) => _toWrap = toWrap;
 
-                public override CursorState State => _toWrap.State;
                 public override long Position => _toWrap.Position;
                 public override long Batch => _toWrap.Batch;
                 public override Schema Schema => _toWrap.Schema;
@@ -437,6 +436,7 @@ namespace Microsoft.ML.Data
                 protected readonly DataViewBase<TRow> DataView;
                 protected readonly IChannel Ch;
                 private long _position;
+                private bool _disposed;
 
                 /// <summary>
                 /// Zero-based position of the cursor.
@@ -454,38 +454,35 @@ namespace Microsoft.ML.Data
 
                     DataView = dataView;
                     _position = -1;
-                    State = CursorState.NotStarted;
                 }
 
-                public CursorState State { get; private set; }
-
                 /// <summary>
-                /// Convenience property for checking whether the current state of the cursor is <see cref="CursorState.Good"/>.
+                /// Convenience property for checking whether the cursor is in a good state where values
+                /// can be retrieved, that is, whenever <see cref="Position"/> is non-negative.
                 /// </summary>
-                protected bool IsGood => State == CursorState.Good;
+                protected bool IsGood => Position >= 0;
 
                 protected sealed override void Dispose(bool disposing)
                 {
-                    if (State == CursorState.Done)
+                    if (_disposed)
                         return;
-                    Ch.Dispose();
-                    _position = -1;
+                    if (disposing)
+                    {
+                        Ch.Dispose();
+                        _position = -1;
+                    }
+                    _disposed = true;
                     base.Dispose(disposing);
-                    State = CursorState.Done;
                 }
 
                 public bool MoveNext()
                 {
-                    if (State == CursorState.Done)
+                    if (_disposed)
                         return false;
 
-                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
                     if (MoveNextCore())
                     {
-                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
                         _position++;
-                        State = CursorState.Good;
                         return true;
                     }
 
@@ -494,8 +491,8 @@ namespace Microsoft.ML.Data
                 }
 
                 /// <summary>
-                /// Core implementation of <see cref="MoveNext"/>, called if the cursor state is not
-                /// <see cref="CursorState.Done"/>.
+                /// Core implementation of <see cref="MoveNext"/>, called if no prior call to this method
+                /// has returned <see langword="false"/>.
                 /// </summary>
                 protected abstract bool MoveNextCore();
             }
@@ -517,10 +514,7 @@ namespace Microsoft.ML.Data
                 _data = data;
             }
 
-            public override bool CanShuffle
-            {
-                get { return true; }
-            }
+            public override bool CanShuffle => true;
 
             public override long? GetRowCount()
             {
@@ -583,7 +577,6 @@ namespace Microsoft.ML.Data
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(State != CursorState.Done);
                     Ch.Assert(Position < _data.Count);
                     return Position + 1 < _data.Count;
                 }
@@ -606,15 +599,10 @@ namespace Microsoft.ML.Data
                 _data = data;
             }
 
-            public override bool CanShuffle
-            {
-                get { return false; }
-            }
+            public override bool CanShuffle => false;
 
             public override long? GetRowCount()
-            {
-                return (_data as ICollection<TRow>)?.Count;
-            }
+                => (_data as ICollection<TRow>)?.Count;
 
             public override RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
@@ -651,7 +639,6 @@ namespace Microsoft.ML.Data
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(State != CursorState.Done);
                     var result = _enumerator.MoveNext();
                     _currentRow = result ? _enumerator.Current : null;
                     if (result && _currentRow == null)
@@ -715,11 +702,7 @@ namespace Microsoft.ML.Data
 
                 protected override TRow GetCurrentRowObject() => _currentRow;
 
-                protected override bool MoveNextCore()
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    return true;
-                }
+                protected override bool MoveNextCore() => true;
             }
         }
 

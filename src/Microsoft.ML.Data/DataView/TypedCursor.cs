@@ -489,7 +489,6 @@ namespace Microsoft.ML.Data
 
             public RowCursorImplementation(TypedCursor cursor) => _cursor = cursor;
 
-            public override CursorState State => _cursor.State;
             public override long Position => _cursor.Position;
             public override long Batch => _cursor.Batch;
             public override Schema Schema => _cursor.Schema;
@@ -523,11 +522,9 @@ namespace Microsoft.ML.Data
 
             public override void FillValues(TRow row)
             {
-                Ch.Check(_input.State == CursorState.Good, "Can't fill values: the cursor is not active.");
+                Ch.Check(Position >= 0, "Can't fill values: the cursor is not active.");
                 base.FillValues(row);
             }
-
-            public CursorState State => _input.State;
 
             public bool MoveNext() => _input.MoveNext();
         }

@@ -8,28 +8,26 @@ namespace Microsoft.ML.Data
     // ownership of the channel so the derived classes don't have to.
 
     /// <summary>
-    /// Base class for creating a cursor with default tracking of <see cref="Position"/> and <see cref="State"/>.
-    /// All calls to <see cref="MoveNext"/> calls will be seen by subclasses of this cursor. For a cursor that has
-    /// an input cursor and does not need notification on <see cref="MoveNext"/>, use <see cref="SynchronizedCursorBase"/>.
+    /// Base class for creating a cursor with default tracking of <see cref="Position"/>. All calls to <see cref="MoveNext"/>
+    /// will be seen by subclasses of this cursor. For a cursor that has an input cursor and does not need notification on
+    /// <see cref="MoveNext"/>, use <see cref="SynchronizedCursorBase"/> instead.
     /// </summary>
     [BestFriend]
     internal abstract class RootCursorBase : RowCursor
     {
         protected readonly IChannel Ch;
-        private CursorState _state;
         private long _position;
+        private bool _disposed;
 
         /// <summary>
         /// Zero-based position of the cursor.
         /// </summary>
         public sealed override long Position => _position;
 
-        public sealed override CursorState State => _state;
-
         /// <summary>
-        /// Convenience property for checking whether the current state of the cursor is <see cref="CursorState.Good"/>.
+        /// Convenience property for checking whether the current state of the cursor is one where data can be fetched.
         /// </summary>
-        protected bool IsGood => State == CursorState.Good;
+        protected bool IsGood => _position >= 0;
 
         /// <summary>
         /// Creates an instance of the <see cref="RootCursorBase"/> class
@@ -41,31 +39,30 @@ namespace Microsoft.ML.Data
             Ch = provider.Start("Cursor");
 
             _position = -1;
-            _state = CursorState.NotStarted;
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (State == CursorState.Done)
+            if (_disposed)
                 return;
             if (disposing)
+            {
                 Ch.Dispose();
-            _position = -1;
-            _state = CursorState.Done;
+                _position = -1;
+            }
+            _disposed = true;
+            base.Dispose(disposing);
+
         }
 
         public sealed override bool MoveNext()
         {
-            if (State == CursorState.Done)
+            if (_disposed)
                 return false;
 
-            Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
             if (MoveNextCore())
             {
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
                 _position++;
-                _state = CursorState.Good;
                 return true;
             }
 
@@ -74,8 +71,8 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Core implementation of <see cref="MoveNext"/>, called if the cursor state is not
-        /// <see cref="CursorState.Done"/>.
+        /// Core implementation of <see cref="MoveNext"/>, called if no prior call to this method
+        /// has returned <see langword="false"/>.
         /// </summary>
         protected abstract bool MoveNextCore();
     }

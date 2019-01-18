@@ -286,8 +286,6 @@ namespace Microsoft.ML.Data
 
             protected override bool MoveNextCore()
             {
-                Contracts.Assert(State != CursorState.Done);
-
                 if (_ator.MoveNext())
                 {
                     _rows.Index = _ator.Current;

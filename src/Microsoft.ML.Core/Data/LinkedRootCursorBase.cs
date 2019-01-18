@@ -23,6 +23,8 @@ namespace Microsoft.ML.Data
         /// </summary>
         protected RowCursor Root { get; }
 
+        private bool _disposed;
+
         protected LinkedRootCursorBase(IChannelProvider provider, RowCursor input)
             : base(provider)
         {
@@ -34,14 +36,16 @@ namespace Microsoft.ML.Data
 
         protected override void Dispose(bool disposing)
         {
-            if (State == CursorState.Done)
+            if (_disposed)
                 return;
             if (disposing)
             {
                 Input.Dispose();
                 // The base class should set the state to done under these circumstances.
-                base.Dispose(true);
+
             }
+            _disposed = true;
+            base.Dispose(disposing);
         }
     }
 }

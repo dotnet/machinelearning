@@ -233,8 +233,6 @@ namespace Microsoft.ML.Transforms
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
                 // Exit if count + _rowsTaken will overflow.
                 // Exit if we already have taken enough rows.
                 if (1 > _take - _rowsTaken)
@@ -265,7 +263,6 @@ namespace Microsoft.ML.Transforms
                     return true;
                 }
 
-                Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
                 return Root.MoveNext();
             }
         }

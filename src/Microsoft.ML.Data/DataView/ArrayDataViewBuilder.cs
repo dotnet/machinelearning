@@ -328,7 +328,6 @@ namespace Microsoft.ML.Data
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(State != CursorState.Done);
                     Ch.Assert(Position < _view._rowCount);
                     return 1 < _view._rowCount - Position;
                 }
