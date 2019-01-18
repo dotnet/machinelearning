@@ -43,7 +43,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void OVAUncalibrated()
         {
             var (pipeline, data) = GetMultiClassPipeline();
-            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; s.Calibrator = null; });
+            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1, Calibrator = null });
 
             pipeline = pipeline.Append(new Ova(Env, sdcaTrainer, useProbabilities: false))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
@@ -60,7 +61,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetMultiClassPipeline();
 
-            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
+            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
+
             pipeline = pipeline.Append(new Pkpd(Env, sdcaTrainer))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
@@ -74,7 +77,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = new TextLoader(Env, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',')
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
-            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Vars", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
+            var sdcaTrainer = ML.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options {
+                    LabelColumn = "Label",
+                    FeatureColumn = "Vars",
+                    MaxIterations = 100,
+                    Shuffle = true,
+                    NumThreads = 1, });
+
             var pipeline = new ColumnConcatenatingEstimator(Env, "Vars", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(Env, "Label"), TransformerScope.TrainTest)
                 .Append(new Ova(Env, sdcaTrainer))
