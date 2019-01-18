@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-
+  <Include Project="NuGet.props" />
   <Import Project="Dependencies.props" />
 
   <Target Name="Codecov">
@@ -12,7 +12,7 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(UseCodecov)' == 'true'">
-      <_CoverageReports Include="$(ArtifactsTestResultsDir)*.coverage" />
+      <_CoverageReports Include="$(MSBuildThisFileDirectory)..\bin\AnyCPU.Debug\coverage\*.coverage" />
 
       <_CodecovArgs Include="-f;@(_CoverageReports)" />
       <_CodecovArgs Include="-r;$(BUILD_REPOSITORY_NAME)" Condition="'$(BUILD_REPOSITORY_NAME)' != ''" />
