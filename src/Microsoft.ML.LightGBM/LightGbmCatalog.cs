@@ -17,7 +17,7 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
@@ -47,7 +47,7 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
@@ -78,7 +78,7 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RankingContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="groupIdColumn">The groupId column.</param>
@@ -111,7 +111,7 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RankingContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>

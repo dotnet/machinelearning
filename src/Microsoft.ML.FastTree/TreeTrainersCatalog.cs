@@ -57,7 +57,7 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The featureColumn column.</param>
         /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
@@ -97,7 +97,7 @@ namespace Microsoft.ML
         /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="FastTreeRankingTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RankingContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The featureColumn column.</param>
         /// <param name="groupId">The groupId column.</param>
         /// <param name="weights">The optional weights column.</param>
@@ -139,7 +139,7 @@ namespace Microsoft.ML
         /// Predict a target using generalized additive models trained with the <see cref="BinaryClassificationGamTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The featureColumn column.</param>
         /// <param name="weights">The optional weights column.</param>
         /// <param name="numIterations">The number of iterations to use in learning the features.</param>
@@ -164,7 +164,7 @@ namespace Microsoft.ML
         /// Predict a target using generalized additive models trained with the <see cref="RegressionGamTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The featureColumn column.</param>
         /// <param name="weights">The optional weights column.</param>
         /// <param name="numIterations">The number of iterations to use in learning the features.</param>
@@ -189,7 +189,7 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeTweedieTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The featureColumn column.</param>
         /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
@@ -229,7 +229,7 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="FastForestRegression"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The featureColumn column.</param>
         /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
@@ -269,7 +269,7 @@ namespace Microsoft.ML
         /// Predict a target using a decision tree regression model trained with the <see cref="FastForestClassification"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The featureColumn column.</param>
         /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>

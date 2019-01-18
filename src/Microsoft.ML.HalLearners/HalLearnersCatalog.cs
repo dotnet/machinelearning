@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
 using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Transforms.Projections;
@@ -19,36 +20,78 @@ namespace Microsoft.ML
         /// Predict a target using a linear regression model trained with the <see cref="OlsLinearRegressionTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The features column.</param>
         /// <param name="weights">The weights column.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionContext.RegressionTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
-            Action<OlsLinearRegressionTrainer.Arguments> advancedSettings = null)
+            string weights = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new OlsLinearRegressionTrainer(env, labelColumn, featureColumn, weights, advancedSettings);
+            var options = new OlsLinearRegressionTrainer.Options
+            {
+                LabelColumn = labelColumn,
+                FeatureColumn = featureColumn,
+                WeightColumn = weights != null ? Optional<string>.Explicit(weights) : Optional<string>.Implicit(DefaultColumnNames.Weight)
+            };
+
+            return new OlsLinearRegressionTrainer(env, options);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the <see cref="OlsLinearRegressionTrainer"/>.
+        /// </summary>
+        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="options">Algorithm advanced options. See <see cref="OlsLinearRegressionTrainer.Options"/>.</param>
+        public static OlsLinearRegressionTrainer OrdinaryLeastSquares(
+            this RegressionContext.RegressionTrainers ctx,
+            OlsLinearRegressionTrainer.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new OlsLinearRegressionTrainer(env, options);
         }
 
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="SymSgdClassificationTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
-        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="labelColumn">The label column.</param>
         /// <param name="featureColumn">The features column.</param>
-        /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(
+            this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            Action<SymSgdClassificationTrainer.Arguments> advancedSettings = null)
+            string featureColumn = DefaultColumnNames.Features)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new SymSgdClassificationTrainer(env, labelColumn, featureColumn, advancedSettings);
+
+            var options = new SymSgdClassificationTrainer.Options
+            {
+                LabelColumn = labelColumn,
+                FeatureColumn = featureColumn,
+            };
+
+            return new SymSgdClassificationTrainer(env, options);
+        }
+
+        /// <summary>
+        ///  Predict a target using a linear binary classification model trained with the <see cref="SymSgdClassificationTrainer"/>.
+        /// </summary>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="options">Algorithm advanced options. See <see cref="SymSgdClassificationTrainer.Options"/>.</param>
+        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(
+            this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            SymSgdClassificationTrainer.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new SymSgdClassificationTrainer(env, options);
         }
 
         /// <summary>
@@ -57,7 +100,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>.
+        /// Null means <paramref name="inputColumn"/> is replaced. </param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
         /// <param name="eps">Whitening constant, prevents division by zero.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
@@ -69,7 +113,8 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn = null,
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog,
+            string inputColumn, string outputColumn = null,
             WhiteningKind kind = VectorWhiteningTransformer.Defaults.Kind,
             float eps = VectorWhiteningTransformer.Defaults.Eps,
             int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
@@ -77,8 +122,8 @@ namespace Microsoft.ML
                 => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, kind, eps, maxRows, pcaNum);
 
         /// <summary>
-        /// Takes columns filled with a vector of random variables with a known covariance matrix into a set of new variables whose covariance is the identity matrix,
-        /// meaning that they are uncorrelated and each have variance 1.
+        /// Takes columns filled with a vector of random variables with a known covariance matrix into a set of new variables whose
+        /// covariance is the identity matrix, meaning that they are uncorrelated and each have variance 1.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
