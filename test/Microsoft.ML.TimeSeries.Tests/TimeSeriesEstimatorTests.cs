@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests
             int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
             List<Data> data = new List<Data>();
-            var dataView = Env.CreateStreamingDataView(data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests
             int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
             List<Data> data = new List<Data>();
-            var dataView = Env.CreateStreamingDataView(data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
                 for (int i = 0; i < SeasonalitySize; i++)
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Tests
             int ChangeHistorySize = 10;
 
             List<Data> data = new List<Data>();
-            var dataView = Env.CreateStreamingDataView(data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             for (int i = 0; i < ChangeHistorySize; i++)
                 data.Add(new Data(i * 100));
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tests
             int PValueHistorySize = 10;
 
             List<Data> data = new List<Data>();
-            var dataView = Env.CreateStreamingDataView(data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             for (int i = 0; i < PValueHistorySize; i++)
                 data.Add(new Data(i * 100));

@@ -14,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Get a small dataset as an IEnumerable and convert to IDataView.
             IEnumerable<SamplesUtils.DatasetUtils.SampleSentimentData> data = SamplesUtils.DatasetUtils.GetSentimentData();
-            var trainData = ml.CreateStreamingDataView(data);
+            var trainData = ml.Data.ReadFromEnumerable(data);
 
             // Preview of the data.
             //

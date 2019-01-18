@@ -58,6 +58,32 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// Create a new <see cref="IDataView"/> over an enumerable of the items of user-defined type.
+        /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
+        /// never alter the contents of the <paramref name="data"/>.
+        /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to support
+        /// multiple enumeration of the <paramref name="data"/> that would return the same results, unless
+        /// the user knows that the data will only be cursored once.
+        ///
+        /// One typical usage for streaming data view could be: create the data view that lazily loads data
+        /// as needed, then apply pre-trained transformations to it and cursor through it for transformation
+        /// results.
+        /// </summary>
+        /// <typeparam name="TRow">The user-defined item type.</typeparam>
+        /// <param name="catalog">The context to use for data view creation.</param>
+        /// <param name="data">The data to wrap around.</param>
+        /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
+        /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
+        /// <returns>The constructed <see cref="IDataView"/>.</returns>
+        public static IDataView ReadFromEnumerable<TRow>(this DataOperations catalog, IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
+            where TRow : class
+        {
+            catalog.Environment.CheckValue(data, nameof(data));
+            catalog.Environment.CheckValueOrNull(schemaDefinition);
+            return DataViewConstructionUtils.CreateFromEnumerable(catalog.Environment, data, schemaDefinition);
+        }
+
+        /// <summary>
         /// Create a new <see cref="IDataView"/> over an in-memory collection of the items of user-defined type.
         /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
         /// never alter the contents of the <paramref name="data"/>.
@@ -81,33 +107,6 @@ namespace Microsoft.ML.Data
             env.CheckValue(data, nameof(data));
             env.CheckValueOrNull(schemaDefinition);
             return DataViewConstructionUtils.CreateFromList(env, data, schemaDefinition);
-        }
-
-        /// <summary>
-        /// Create a new <see cref="IDataView"/> over an enumerable of the items of user-defined type.
-        /// The user maintains ownership of the <paramref name="data"/> and the resulting data view will
-        /// never alter the contents of the <paramref name="data"/>.
-        /// Since <see cref="IDataView"/> is assumed to be immutable, the user is expected to support
-        /// multiple enumeration of the <paramref name="data"/> that would return the same results, unless
-        /// the user knows that the data will only be cursored once.
-        ///
-        /// One typical usage for streaming data view could be: create the data view that lazily loads data
-        /// as needed, then apply pre-trained transformations to it and cursor through it for transformation
-        /// results.
-        /// </summary>
-        /// <typeparam name="TRow">The user-defined item type.</typeparam>
-        /// <param name="env">The host environment to use for data view creation.</param>
-        /// <param name="data">The data to wrap around.</param>
-        /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
-        /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
-        /// <returns>The constructed <see cref="IDataView"/>.</returns>
-        public static IDataView CreateStreamingDataView<TRow>(this IHostEnvironment env, IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
-            where TRow : class
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
-            return DataViewConstructionUtils.CreateFromEnumerable(env, data, schemaDefinition);
         }
 
         /// <summary>
