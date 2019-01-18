@@ -43,7 +43,8 @@ namespace Microsoft.ML.Trainers.HalLearners
             // rather than, strictly speaking, ordinary least squares. But it is an
             // incredibly uesful thing to have around.
             /// <summary>
-            /// L2 regularization weight.
+            /// L2 regularization weight. Adding L2 regularization turns this algorithm into a form of ridge regression,
+            /// rather than, strictly speaking, ordinary least squares.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "1e-6,0.1,1")]
@@ -51,7 +52,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             public float L2Weight = 1e-6f;
 
             /// <summary>
-            /// Whether to calculate per parameter significance statistics.
+            /// Whether to calculate per parameter (e.g., the coefficient of the i-th input feature) significance statistics.
             /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to calculate per parameter significance statistics", ShortName = "sig")]
             public bool PerParameterSignificance = true;

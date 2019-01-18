@@ -43,7 +43,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         public sealed class Options : LearnerInputBaseWithLabel
         {
             /// <summary>
-            /// Degree of lock-free parallelism. Determinism not guaranteed.
+            /// Degree of lock-free parallelism. Determinism not guaranteed if this is set to higher than 1.
             /// Multi-threading is not supported currently.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Determinism not guaranteed. " +
@@ -60,12 +60,13 @@ namespace Microsoft.ML.Trainers.SymSgd
 
             /// <summary>
             /// Tolerance for difference in average loss in consecutive passes.
+            /// If the reduction on loss is smaller than the specified tolerance in one iteration, the training process will be terminated.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance for difference in average loss in consecutive passes.", ShortName = "tol")]
             public float Tolerance = 1e-4f;
 
             /// <summary>
-            /// Learning rate.
+            /// Learning rate. A larger value can potentially reduce the training time but incur numerical instability and over-fitting.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", NullName = "<Auto>", SortOrder = 51)]
             [TGUI(SuggestedSweeps = "<Auto>,1e1,1e0,1e-1,1e-2,1e-3")]
@@ -641,7 +642,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         private TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearModelParameters predictor, int weightSetCount)
         {
             int numFeatures = data.Schema.Feature.Value.Type.GetVectorSize();
-            var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
+            var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features);
             int numThreads = 1;
             ch.CheckUserArg(numThreads > 0, nameof(_options.NumberOfThreads),
                 "The number of threads must be either null or a positive integer.");
