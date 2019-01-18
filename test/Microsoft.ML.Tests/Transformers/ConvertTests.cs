@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", "ConvA", DataKind.R4),
                 new TypeConvertingTransformer.ColumnInfo("B", "ConvB", DataKind.R4)});
 
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             };
 
-            var allTypesDataView = ComponentCreation.CreateDataView(Env, allTypesData);
+            var allTypesDataView = ML.Data.ReadFromEnumerable(allTypesData);
             var allTypesPipe = new TypeConvertingEstimator(Env, columns: new[] {
                 new TypeConvertingTransformer.ColumnInfo("AA", "ConvA", DataKind.R4),
                 new TypeConvertingTransformer.ColumnInfo("AB", "ConvB", DataKind.R4),
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var pipe = new TypeConvertingEstimator(Env, columns: new[] {new TypeConvertingTransformer.ColumnInfo("A", "ConvA", DataKind.R8),
                 new TypeConvertingTransformer.ColumnInfo("B", "ConvB", DataKind.R8)});
 
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TypeConvertingTransformer.ColumnInfo("CatA", "ConvA", DataKind.R8),
                 new TypeConvertingTransformer.ColumnInfo("CatB", "ConvB", DataKind.U2)
             }));
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             dataView = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(dataView);
         }

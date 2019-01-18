@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapOneValueTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<int>() { 1, 2, 3, 4 };
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMapVectorValueTest()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory() };
             List<int[]> values = new List<int[]>() {
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingMissingKey()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<int>() { 1, 2, 3, 4 };
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests.Transformers
         void TestDuplicateKeys()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "foo".AsMemory() };
             var values = new List<int>() { 1, 2 };
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingOutputSchema()
         {
             var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<int>() { 1, 2, 3, 4 };
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingWithValuesAsKeyTypesOutputSchema()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<ReadOnlyMemory<char>>() { "t".AsMemory(), "s".AsMemory(), "u".AsMemory(), "v".AsMemory() };
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingValuesAsUintKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
 
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingValuesAsUlongKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test2", C = "wahoo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
 
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingValuesAsStringKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
 
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingValuesAsKeyTypesReverseLookup()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "notfound" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
 
@@ -350,9 +350,9 @@ namespace Microsoft.ML.Tests.Transformers
         public void ValueMappingWorkout()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
-            var badDataView = ComponentCreation.CreateDataView(Env, badData);
+            var badDataView = ML.Data.ReadFromEnumerable(badData);
 
             var keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             var values = new List<int>() { 1, 2, 3, 4 };
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Tests.Transformers
         void TestSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = "bar", B = "foo", C = "test", } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             var est = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env,
                                                 new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory() },
                                                 new List<int>() { 2, 43, 56 },
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Model generated with: xf=drop{col=A} 
             // Expected output: Features Label B C
             var data = new[] { new TestTermLookup() { Label = "good", GroupId = 1 } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             string termLookupModelPath = GetDataPath("backcompat/termlookup.zip");
             using (FileStream fs = File.OpenRead(termLookupModelPath))
             {
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Tests.Transformers
             // Model generated with: xf=drop{col=A} 
             // Expected output: Features Label B C
             var data = new[] { new TestTermLookup() { Label = "Good", GroupId = 1 } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var dataView = ML.Data.ReadFromEnumerable(data);
             string termLookupModelPath = GetDataPath("backcompat/termlookup_with_key.zip");
             using (FileStream fs = File.OpenRead(termLookupModelPath))
             {

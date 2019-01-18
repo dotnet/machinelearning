@@ -65,8 +65,8 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
@@ -99,8 +99,8 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
@@ -126,8 +126,8 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
@@ -153,8 +153,8 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
 
-            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
-            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+            var invalidDataWrongNames = ML.Data.ReadFromEnumerable(xyData);
+            var invalidDataWrongTypes = ML.Data.ReadFromEnumerable(stringData);
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);

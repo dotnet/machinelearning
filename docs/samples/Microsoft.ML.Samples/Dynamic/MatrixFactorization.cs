@@ -57,7 +57,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext(seed: 0, conc: 1);
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var dataView = ComponentCreation.CreateDataView(mlContext, dataMatrix);
+            var dataView = mlContext.Data.ReadFromEnumerable(dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = 0 } };
 
             // Again, convert the test data to a format supported by ML.NET.
-            var testDataView = ComponentCreation.CreateDataView(mlContext, testMatrix);
+            var testDataView = mlContext.Data.ReadFromEnumerable(testMatrix);
 
             // Feed the test data into the model and then iterate through all predictions.
             foreach (var pred in mlContext.CreateEnumerable<MatrixElementForScore>(testDataView, false))

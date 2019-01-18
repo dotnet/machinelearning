@@ -75,7 +75,7 @@ namespace Microsoft.ML.Data
         /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
         /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
         /// <returns>The constructed <see cref="IDataView"/>.</returns>
-        public static IDataView ReadFromEnumerable<TRow>(this DataOperations catalog, IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
+        public static IDataView ReadFromEnumerable<TRow>(this DataOperationsCatalog catalog, IEnumerable<TRow> data, SchemaDefinition schemaDefinition = null)
             where TRow : class
         {
             catalog.Environment.CheckValue(data, nameof(data));
@@ -100,7 +100,8 @@ namespace Microsoft.ML.Data
         /// <param name="schemaDefinition">The optional schema definition of the data view to create. If <c>null</c>,
         /// the schema definition is inferred from <typeparamref name="TRow"/>.</param>
         /// <returns>The constructed <see cref="IDataView"/>.</returns>
-        public static IDataView CreateDataView<TRow>(this IHostEnvironment env, IList<TRow> data, SchemaDefinition schemaDefinition = null)
+        [BestFriend]
+        internal static IDataView CreateDataView<TRow>(this IHostEnvironment env, IList<TRow> data, SchemaDefinition schemaDefinition = null)
             where TRow : class
         {
             Contracts.CheckValue(env, nameof(env));
