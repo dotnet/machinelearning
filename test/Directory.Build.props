@@ -34,7 +34,7 @@
     <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
     <PackageReference Include="Codecov" Version="1.1.0" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Coverage)' == 'true' and !$(Configuration.EndsWith('-netfx'))">
+  <PropertyGroup Condition="'$(Coverage)' == 'true' and '$(Configuration)'=='Debug' and '$(OS)' == 'Windows_NT' and '$(TargetArchitecture)' == 'x64'">
       <CollectCoverage>true</CollectCoverage>
       <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
       <CoverletOutputFormat>opencover</CoverletOutputFormat>
