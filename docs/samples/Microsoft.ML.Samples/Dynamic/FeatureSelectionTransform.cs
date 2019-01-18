@@ -30,7 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // First, we define the reader: specify the data columns and where to find them in the text file. Notice that we combine entries from
             // all the feature columns into entries of a vector of a single column named "Features".
-            var reader = ml.Data.CreateTextReader(
+            var reader = ml.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("Label", DataKind.BL, 0),

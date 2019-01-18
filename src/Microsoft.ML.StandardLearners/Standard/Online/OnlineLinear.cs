@@ -249,12 +249,6 @@ namespace Microsoft.ML.Trainers.Online
             Info = new TrainerInfo(calibration: NeedCalibration, supportIncrementalTrain: true);
         }
 
-        private protected static TArgs InvokeAdvanced<TArgs>(Action<TArgs> advancedSettings, TArgs args)
-        {
-            advancedSettings?.Invoke(args);
-            return args;
-        }
-
         private protected sealed override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));

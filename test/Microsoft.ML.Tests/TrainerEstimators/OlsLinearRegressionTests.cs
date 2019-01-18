@@ -13,7 +13,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorOlsLinearRegression()
         {
             var dataView = GetRegressionPipeline();
-            var trainer = new OlsLinearRegressionTrainer(Env, "Label", "Features");
+            var trainer = new OlsLinearRegressionTrainer(Env, new OlsLinearRegressionTrainer.Options());
             TestEstimatorCore(trainer, dataView);
 
             var model = trainer.Fit(dataView);
