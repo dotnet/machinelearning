@@ -549,7 +549,8 @@ namespace Microsoft.ML.Data
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
-        public static ICursorable<TRow> AsCursorable<TRow>(this IDataView data, IHostEnvironment env, bool ignoreMissingColumns = false,
+        [BestFriend]
+        internal static ICursorable<TRow> AsCursorable<TRow>(this IDataView data, IHostEnvironment env, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
