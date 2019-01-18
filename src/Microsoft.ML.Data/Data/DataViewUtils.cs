@@ -1223,7 +1223,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(_icursor >= 0, "Cannot call ID getter in current state");
+                        Ch.Check(_icursor >= 0, RowCursorUtils.FetchValueStateError);
                         idGetters[_icursor](ref val);
                     };
             }
@@ -1250,7 +1250,7 @@ namespace Microsoft.ML.Data
                 ValueGetter<T> mine =
                     (ref T value) =>
                     {
-                        Ch.Check(_icursor >= 0, "Cannot get value as the cursor is not in a good state");
+                        Ch.Check(_icursor >= 0, RowCursorUtils.FetchValueStateError);
                         getters[_icursor](ref value);
                     };
                 return mine;

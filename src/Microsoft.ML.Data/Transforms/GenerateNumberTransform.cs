@@ -439,7 +439,7 @@ namespace Microsoft.ML.Transforms
             {
                 return (ref long value) =>
                 {
-                    Ch.Check(IsGood);
+                    Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                     value = Input.Position;
                 };
             }
@@ -458,7 +458,7 @@ namespace Microsoft.ML.Transforms
             {
                 return (ref Float value) =>
                 {
-                    Ch.Check(IsGood);
+                    Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                     Ch.Assert(!_bindings.UseCounter[iinfo]);
                     EnsureValue(ref _lastCounters[iinfo], ref _values[iinfo], _rngs[iinfo]);
                     value = _values[iinfo];

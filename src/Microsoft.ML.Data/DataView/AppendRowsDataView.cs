@@ -244,7 +244,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue val) =>
                     {
-                        Ch.Check(Position >= 0, "A getter can only be used when the cursor state is Good.");
+                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                         if (_currentSourceIndex != capturedSourceIndex)
                         {
                             Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         idGetters[_currentSourceIndex](ref val);
                         val = val.Combine(new RowId((ulong)_currentSourceIndex, 0));
                     };
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue val) =>
                     {
-                        Ch.Check(Position >= 0, "A getter can only be used when the cursor is active.");
+                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                         Ch.Assert(0 <= _currentSourceIndex && _currentSourceIndex < Sources.Length);
                         if (getSrc[_currentSourceIndex] == null)
                             getSrc[_currentSourceIndex] = _cursorSet[_currentSourceIndex].GetGetter<TValue>(col);

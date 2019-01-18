@@ -543,6 +543,7 @@ namespace Microsoft.ML.Data
 
                 return (ref TValue value) =>
                 {
+                    Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                     TSource val = (TSource)_columnValues[activeIdx][_curDataSetRow];
                     valueConverter(in val, ref value);
                 };
@@ -604,7 +605,7 @@ namespace Microsoft.ML.Data
                    (ref RowId val) =>
                    {
                        // Unique row id consists of Position of cursor (how many times MoveNext has been called), and position in file
-                       Ch.Check(IsGood, "Cannot call ID getter in current state");
+                       Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                        val = new RowId((ulong)(_readerOptions.Offset + _curDataSetRow), 0);
                    };
             }

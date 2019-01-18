@@ -522,7 +522,7 @@ namespace Microsoft.ML.Data
 
             public override void FillValues(TRow row)
             {
-                Ch.Check(Position >= 0, "Can't fill values: the cursor is not active.");
+                Ch.Check(Position >= 0, "Cannot fill values. The cursor is not active.");
                 base.FillValues(row);
             }
 

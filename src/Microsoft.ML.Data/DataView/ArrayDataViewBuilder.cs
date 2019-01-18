@@ -289,7 +289,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)Position, 0);
                             };
                     }
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)MappedIndex(), 0);
                             };
                     }
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Data
                     return
                         (ref TValue value) =>
                         {
-                            Ch.Check(IsGood);
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             column.CopyOut(MappedIndex(), ref value);
                         };
                 }

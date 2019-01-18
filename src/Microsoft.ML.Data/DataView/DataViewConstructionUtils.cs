@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
 
             protected override TRow GetCurrentRowObject()
             {
-                Host.Check(Position >= 0, "Can't call a getter on an inactive cursor.");
+                Host.Check(Position >= 0, "Cannot get the row object. The cursor is not active.");
                 return _value;
             }
         }
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)Position, 0);
                             };
                     }
@@ -563,7 +563,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)Index, 0);
                             };
                     }
@@ -571,7 +571,7 @@ namespace Microsoft.ML.Data
 
                 protected override TRow GetCurrentRowObject()
                 {
-                    Ch.Check(0 <= Position && Position < _data.Count, "Can't call a getter on an inactive cursor.");
+                    Ch.Check(0 <= Position && Position < _data.Count, RowCursorUtils.FetchValueStateError);
                     return _data[Index];
                 }
 
@@ -627,7 +627,7 @@ namespace Microsoft.ML.Data
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
@@ -695,7 +695,7 @@ namespace Microsoft.ML.Data
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }

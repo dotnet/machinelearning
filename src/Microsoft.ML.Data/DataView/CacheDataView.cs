@@ -488,7 +488,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref TValue value) =>
                     {
-                        Ch.Check(Position >= 0, "Cannot use getter with cursor in this state");
+                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                         cache.Fetch((int)_index.GetIndex(), ref value);
                     };
             }
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(Position >= 0, "Cannot call ID getter in current state");
+                        Ch.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                         val = new RowId((ulong)Position, 0);
                     };
             }

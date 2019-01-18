@@ -39,10 +39,10 @@ namespace Microsoft.ML.Data
 
         protected SynchronizedCursorBase(IChannelProvider provider, RowCursor input)
         {
-            Contracts.AssertValue(provider, "provider");
+            Contracts.AssertValue(provider);
             Ch = provider.Start("Cursor");
 
-            Ch.AssertValue(input, "input");
+            Ch.AssertValue(input);
             Input = input;
             // If this thing happens to be itself an instance of this class (which, practically, it will
             // be in the majority of situations), we can treat the input as likewise being a passthrough,
