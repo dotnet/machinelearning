@@ -11,7 +11,8 @@ namespace Microsoft.ML.Data
     /// <summary>
     /// Represents a data view that supports random access to a specific row.
     /// </summary>
-    public interface IRowSeekable
+    [BestFriend]
+    internal interface IRowSeekable
     {
         RowSeeker GetSeeker(Func<int, bool> predicate);
 
