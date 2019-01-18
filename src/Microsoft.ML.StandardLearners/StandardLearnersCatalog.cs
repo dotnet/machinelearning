@@ -12,7 +12,7 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML
 {
-    using LRArguments = LogisticRegression.Arguments;
+    using LROptions = LogisticRegression.Options;
     using SgdOptions = StochasticGradientDescentClassificationTrainer.Options;
 
     /// <summary>
@@ -189,7 +189,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
+        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer.
         /// </summary>
         /// <param name="ctx">The binary classification context trainer object.</param>
         /// <param name="labelColumn">The name of the label column, or dependent variable.</param>
@@ -200,7 +200,6 @@ namespace Microsoft.ML
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
@@ -210,13 +209,27 @@ namespace Microsoft.ML
             float learningRate = AveragedLinearArguments.AveragedDefaultArgs.LearningRate,
             bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
-            Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null)
+            int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
 
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new AveragedPerceptronTrainer(env, labelColumn, featureColumn, weights, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
+            return new AveragedPerceptronTrainer(env, labelColumn, featureColumn, weights, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer.
+        /// </summary>
+        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static AveragedPerceptronTrainer AveragedPerceptron(
+            this BinaryClassificationContext.BinaryClassificationTrainers ctx, AveragedPerceptronTrainer.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new AveragedPerceptronTrainer(env, options);
         }
 
         private sealed class TrivialClassificationLossFactory : ISupportClassificationLossFactory
@@ -246,21 +259,35 @@ namespace Microsoft.ML
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             IRegressionLoss lossFunction = null,
-            float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
-            bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
+            float learningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.LearningRate,
+            bool decreaseLearningRate = OnlineGradientDescentTrainer.Options.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
-            Action<AveragedLinearArguments> advancedSettings = null)
+            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new OnlineGradientDescentTrainer(env, labelColumn, featureColumn, learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, weights, lossFunction, advancedSettings);
+            return new OnlineGradientDescentTrainer(env, labelColumn, featureColumn, learningRate, decreaseLearningRate, l2RegularizerWeight,
+                numIterations, weights, lossFunction);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
+            OnlineGradientDescentTrainer.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new OnlineGradientDescentTrainer(env, options);
         }
 
         /// <summary>
@@ -275,21 +302,33 @@ namespace Microsoft.ML
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static LogisticRegression LogisticRegression(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = LRArguments.Defaults.L1Weight,
-            float l2Weight = LRArguments.Defaults.L2Weight,
-            float optimizationTolerance = LRArguments.Defaults.OptTol,
-            int memorySize = LRArguments.Defaults.MemorySize,
-            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity,
-            Action<LRArguments> advancedSettings = null)
+            float l1Weight = LROptions.Defaults.L1Weight,
+            float l2Weight = LROptions.Defaults.L2Weight,
+            float optimizationTolerance = LROptions.Defaults.OptTol,
+            int memorySize = LROptions.Defaults.MemorySize,
+            bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new LogisticRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity, advancedSettings);
+            return new LogisticRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity);
+        }
+
+        /// <summary>
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The binary classificaiton context trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static LogisticRegression LogisticRegression(this BinaryClassificationContext.BinaryClassificationTrainers ctx, LROptions options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new LogisticRegression(env, options);
         }
 
         /// <summary>
@@ -304,21 +343,33 @@ namespace Microsoft.ML
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static PoissonRegression PoissonRegression(this RegressionContext.RegressionTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = LRArguments.Defaults.L1Weight,
-            float l2Weight = LRArguments.Defaults.L2Weight,
-            float optimizationTolerance = LRArguments.Defaults.OptTol,
-            int memorySize = LRArguments.Defaults.MemorySize,
-            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity,
-            Action<PoissonRegression.Arguments> advancedSettings = null)
+            float l1Weight = LROptions.Defaults.L1Weight,
+            float l2Weight = LROptions.Defaults.L2Weight,
+            float optimizationTolerance = LROptions.Defaults.OptTol,
+            int memorySize = LROptions.Defaults.MemorySize,
+            bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new PoissonRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity, advancedSettings);
+            return new PoissonRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static PoissonRegression PoissonRegression(this RegressionContext.RegressionTrainers ctx, PoissonRegression.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new PoissonRegression(env, options);
         }
 
         /// <summary>
@@ -333,21 +384,34 @@ namespace Microsoft.ML
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Learners.LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = LRArguments.Defaults.L1Weight,
-            float l2Weight = LRArguments.Defaults.L2Weight,
-            float optimizationTolerance = LRArguments.Defaults.OptTol,
-            int memorySize = LRArguments.Defaults.MemorySize,
-            bool enforceNoNegativity = LRArguments.Defaults.EnforceNonNegativity,
-            Action<MulticlassLogisticRegression.Arguments> advancedSettings = null)
+            float l1Weight = LROptions.Defaults.L1Weight,
+            float l2Weight = LROptions.Defaults.L2Weight,
+            float optimizationTolerance = LROptions.Defaults.OptTol,
+            int memorySize = LROptions.Defaults.MemorySize,
+            bool enforceNoNegativity = LROptions.Defaults.EnforceNonNegativity)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new MulticlassLogisticRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity, advancedSettings);
+            return new MulticlassLogisticRegression(env, labelColumn, featureColumn, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
+        /// </summary>
+        /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            MulticlassLogisticRegression.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new MulticlassLogisticRegression(env, options);
         }
 
         /// <summary>
@@ -440,16 +504,39 @@ namespace Microsoft.ML
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightsColumn">The optional name of the weights column.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightsColumn = null,
-            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
-            Action<LinearSvmTrainer.Arguments> advancedSettings = null)
+            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
-            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, weightsColumn, numIterations, advancedSettings);
+            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(ctx), labelColumn, featureColumn, weightsColumn, numIterations);
+        }
+
+        /// <summary>
+        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvmTrainer"/> trainer.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The idea behind support vector machines, is to map instances into a high dimensional space
+        /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
+        /// and all the negative examples are on the other.
+        /// </para>
+        /// <para>
+        /// After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the
+        /// margin, i.e., the minimal distance between it and the instances.
+        /// </para>
+        /// </remarks>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="options">Advanced arguments to the algorithm.</param>
+        public static LinearSvmTrainer LinearSupportVectorMachines(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            LinearSvmTrainer.Options options)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(options, nameof(options));
+
+            return new LinearSvmTrainer(CatalogUtils.GetEnvironment(ctx), options);
         }
     }
 }

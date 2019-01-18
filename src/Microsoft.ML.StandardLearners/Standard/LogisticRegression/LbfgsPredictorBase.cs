@@ -156,7 +156,6 @@ namespace Microsoft.ML.Learners
             string featureColumn,
             SchemaShape.Column labelColumn,
             string weightColumn,
-            Action<TArgs> advancedSettings,
             float l1Weight,
             float l2Weight,
             float optimizationTolerance,
@@ -173,7 +172,7 @@ namespace Microsoft.ML.Learners
                             MemorySize = memorySize,
                             EnforceNonNegativity = enforceNoNegativity
                         },
-                  labelColumn, advancedSettings)
+                  labelColumn)
         {
         }
 

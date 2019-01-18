@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Google.Protobuf;
 using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
 using Microsoft.ML.Model.Onnx;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Tools;
@@ -373,11 +374,7 @@ namespace Microsoft.ML.Tests
 
             var pipeline = mlContext.Transforms.Normalize("Features").
                 Append(mlContext.Transforms.Conversion.MapValueToKey("Label")).
-                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(labelColumn: "Label", featureColumn: "Features",
-                advancedSettings: settings =>
-                {
-                    settings.UseThreads = false;
-                }));
+                Append(mlContext.MulticlassClassification.Trainers.LogisticRegression(new MulticlassLogisticRegression.Options() { UseThreads = false }));
 
             var model = pipeline.Fit(data);
             var transformedData = model.Transform(data);

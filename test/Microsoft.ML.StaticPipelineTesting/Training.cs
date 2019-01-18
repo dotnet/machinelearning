@@ -551,11 +551,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             PoissonRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.PoissonRegression(r.label, r.features,
-                    l1Weight: 2,
-                    enoforceNoNegativity: true,
-                    onFit: (p) => { pred = p; },
-                    advancedSettings: s => s.NumThreads = 1)));
+                .Append(r => (r.label, score: ctx.Trainers.PoissonRegression(r.label, r.features, null,
+                                new PoissonRegression.Options { L2Weight = 2, EnforceNonNegativity = true, NumThreads = 1 },
+                                onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -592,10 +590,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             IPredictorWithFeatureWeights<float> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features,
-                    l1Weight: 10,
-                    onFit: (p) => { pred = p; },
-                    advancedSettings: s => s.NumThreads = 1)));
+                .Append(r => (r.label, preds: ctx.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
+                                    new LogisticRegression.Options { L1Weight = 10, NumThreads = 1 }, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -635,8 +631,10 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (label: r.label.ToKey(), r.features))
                 .Append(r => (r.label, preds: ctx.Trainers.MultiClassLogisticRegression(
                     r.label,
-                    r.features, onFit: p => pred = p,
-                    advancedSettings: s => s.NumThreads = 1)));
+                    r.features,
+                    null,
+                    new MulticlassLogisticRegression.Options { NumThreads = 1 },
+                    onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
