@@ -87,7 +87,7 @@ namespace Microsoft.ML.RunTests
         public void SequencePredictorSchemaWithoutKeyNamesMetadataTest()
         {
             int keyCount = 10;
-            var scoreColumnType = new KeyType(typeof(uint), keyCount);
+            var expectedScoreColumnType = new KeyType(typeof(uint), keyCount);
             VBuffer<ReadOnlyMemory<char>> keyNames = GenerateKeyNames(0);
 
             var sequenceSchema = ScoreSchemaFactory.CreateSequencePredictionSchema(expectedScoreColumnType,
