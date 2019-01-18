@@ -31,7 +31,7 @@ or from the NuGet package manager:
 Install-Package Microsoft.ML.AutoML
 ```
 
-Or alternatively, you can add the Microsoft.ML.AutoMO package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
+Or alternatively, you can add the Microsoft.ML.AutoML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
 
 Daily NuGet builds of the project are also available in our [MyGet](https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML.AutoML) feed:
 
