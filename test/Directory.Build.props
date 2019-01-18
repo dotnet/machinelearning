@@ -40,6 +40,7 @@
       <CoverletOutputFormat>opencover</CoverletOutputFormat>
       <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).xml</CoverletOutput>
       <Include>[Microsoft.ML.*]*</Include>
+      <Exclude>[*]Microsoft.ML.*Contracts*,[*]Microsoft.ML.Internal.Utilities*,[*]Microsoft.ML.Data.VBuffer*</Exclude>
   </PropertyGroup>
   
 </Project>
