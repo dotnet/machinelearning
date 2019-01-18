@@ -21,7 +21,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.StochasticGradientDescentClassificationTrainer"/> trainer.
         /// </summary>
-        /// <param name="ctx">The binary classificaiton context trainer object.</param>
+        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
@@ -35,7 +35,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) StochasticGradientDescentClassificationTrainer(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) StochasticGradientDescentClassificationTrainer(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -62,7 +62,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.StochasticGradientDescentClassificationTrainer"/> trainer.
         /// </summary>
-        /// <param name="ctx">The binary classificaiton context trainer object.</param>
+        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
@@ -73,7 +73,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) StochasticGradientDescentClassificationTrainer(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) StochasticGradientDescentClassificationTrainer(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights,

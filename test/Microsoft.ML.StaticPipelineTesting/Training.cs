@@ -38,7 +38,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var catalog = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -47,7 +47,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             LinearRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.Sdca(r.label, r.features, null,
+                .Append(r => (r.label, score: catalog.Trainers.Sdca(r.label, r.features, null,
                 new SdcaRegressionTrainer.Options() { MaxIterations = 2, NumThreads = 1 },
                 onFit: p => pred = p)));
 
@@ -61,7 +61,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
             Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
@@ -81,7 +81,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new RegressionContext(env);
+            var catalog = new RegressionCatalog(env);
 
             // Here we introduce another column called "Score" to collide with the name of the default output. Heh heh heh...
             var reader = TextLoaderStatic.CreateReader(env,
@@ -89,7 +89,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 separator: ';', hasHeader: true);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, r.Score, score: ctx.Trainers.Sdca(r.label, r.features, null,
+                .Append(r => (r.label, r.Score, score: catalog.Trainers.Sdca(r.label, r.features, null,
                 new SdcaRegressionTrainer.Options() { MaxIterations = 2, NumThreads = 1 })));
 
             var pipe = reader.Append(est);
@@ -112,7 +112,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var catalog = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -121,7 +121,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             ParameterMixingCalibratedPredictor cali = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features, null,
+                .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null,
                     new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
                     onFit: (p, c) => { pred = p; cali = c; })));
 
@@ -137,7 +137,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
@@ -157,7 +157,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var catalog = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -168,7 +168,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features, null, loss,
+                .Append(r => (r.label, preds: catalog.Trainers.Sdca(r.label, r.features, null, loss,
                 new SdcaBinaryTrainer.Options { MaxIterations = 2, NumThreads = 1 },
                 onFit: p => pred = p)));
 
@@ -182,7 +182,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
@@ -200,7 +200,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var catalog = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -210,7 +210,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new HingeLoss(1);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
+                .Append(r => (r.label, preds: catalog.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
                 numIterations: 2, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -223,7 +223,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
@@ -236,7 +236,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var catalog = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -246,7 +246,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new HingeLoss(1);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
+                .Append(r => (r.label, preds: catalog.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
                 numIterations: 2, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -259,7 +259,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
@@ -272,7 +272,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var catalog = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features1: c.LoadFloat(1, 4), features2: c.LoadFloat(5, 9)));
@@ -281,7 +281,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.FieldAwareFactorizationMachine(r.label, new[] { r.features1, r.features2 }, onFit: p => pred = p)));
+                .Append(r => (r.label, preds: catalog.Trainers.FieldAwareFactorizationMachine(r.label, new[] { r.features1, r.features2 }, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
@@ -291,7 +291,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
@@ -305,7 +305,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var catalog = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -316,7 +316,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: ctx.Trainers.Sdca(
+                .Append(r => (r.label, preds: catalog.Trainers.Sdca(
                     r.label,
                     r.features,
                     maxIterations: 2,
@@ -343,7 +343,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int c = 0; c < schema.Count; ++c)
                 Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
             Assert.True(metrics.TopKAccuracy > 0);
         }
@@ -355,18 +355,18 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var catalog = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: ctx.Trainers.Sdca(
+                .Append(r => (r.label, preds: catalog.Trainers.Sdca(
                     r.label,
                     r.features,
                     maxIterations: 2)));
 
-            var results = ctx.CrossValidate(reader.Read(dataSource), est, r => r.label)
+            var results = catalog.CrossValidate(reader.Read(dataSource), est, r => r.label)
                 .Select(x => x.metrics).ToArray();
             Assert.Equal(5, results.Length);
             Assert.True(results.All(x => x.LogLoss > 0));
@@ -378,7 +378,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var catalog = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -386,7 +386,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             IPredictorWithFeatureWeights<float> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.FastTree(r.label, r.features,
+                .Append(r => (r.label, preds: catalog.Trainers.FastTree(r.label, r.features,
                     numTrees: 10,
                     numLeaves: 5,
                     onFit: (p) => { pred = p; })));
@@ -404,7 +404,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
@@ -418,7 +418,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var catalog = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -427,7 +427,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             FastTreeRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.FastTree(r.label, r.features,
+                .Append(r => (r.label, score: catalog.Trainers.FastTree(r.label, r.features,
                     numTrees: 10,
                     numLeaves: 5,
                     onFit: (p) => { pred = p; })));
@@ -444,7 +444,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
             Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
@@ -459,7 +459,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var catalog = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -467,7 +467,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             IPredictorWithFeatureWeights<float> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.LightGbm(r.label, r.features,
+                .Append(r => (r.label, preds: catalog.Trainers.LightGbm(r.label, r.features,
                     numBoostRound: 10,
                     numLeaves: 5,
                     learningRate: 0.01,
@@ -486,7 +486,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
@@ -500,7 +500,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var catalog = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -509,7 +509,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             LightGbmRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.LightGbm(r.label, r.features,
+                .Append(r => (r.label, score: catalog.Trainers.LightGbm(r.label, r.features,
                     numBoostRound: 10,
                     numLeaves: 5,
                     onFit: (p) => { pred = p; })));
@@ -526,7 +526,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
             Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
@@ -542,7 +542,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var catalog = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -551,7 +551,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             PoissonRegressionModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.PoissonRegression(r.label, r.features, null,
+                .Append(r => (r.label, score: catalog.Trainers.PoissonRegression(r.label, r.features, null,
                                 new PoissonRegression.Options { L2Weight = 2, EnforceNonNegativity = true, NumThreads = 1 },
                                 onFit: (p) => { pred = p; })));
 
@@ -567,7 +567,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
             Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
@@ -582,7 +582,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var catalog = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -590,7 +590,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             IPredictorWithFeatureWeights<float> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
+                .Append(r => (r.label, preds: catalog.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features, null,
                                     new LogisticRegression.Options { L1Weight = 10, NumThreads = 1 }, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -606,7 +606,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
@@ -620,7 +620,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var catalog = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -629,7 +629,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: ctx.Trainers.MultiClassLogisticRegression(
+                .Append(r => (r.label, preds: catalog.Trainers.MultiClassLogisticRegression(
                     r.label,
                     r.features,
                     null,
@@ -654,7 +654,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int c = 0; c < schema.Count; ++c)
                 Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
             Assert.True(metrics.TopKAccuracy > 0);
         }
@@ -666,7 +666,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            var catalog = new RegressionCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
@@ -677,7 +677,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new SquaredLoss();
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features,
+                .Append(r => (r.label, score: catalog.Trainers.OnlineGradientDescent(r.label, r.features,
                 lossFunction: loss,
                 onFit: (p) => { pred = p; })));
 
@@ -693,7 +693,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
             Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
@@ -777,7 +777,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RankingContext(env);
+            var catalog = new RankingCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
@@ -787,7 +787,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))
-                .Append(r => (r.label, r.groupId, score: ctx.Trainers.FastTree(r.label, r.features, r.groupId, onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, r.groupId, score: catalog.Trainers.FastTree(r.label, r.features, r.groupId, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -797,7 +797,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
             Assert.True(metrics.Ndcg.Length == metrics.Dcg.Length && metrics.Dcg.Length == 3);
@@ -818,7 +818,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RankingContext(env);
+            var catalog = new RankingCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
@@ -828,7 +828,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))
-                .Append(r => (r.label, r.groupId, score: ctx.Trainers.LightGbm(r.label, r.features, r.groupId, onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, r.groupId, score: catalog.Trainers.LightGbm(r.label, r.features, r.groupId, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
@@ -838,7 +838,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
             Assert.NotNull(metrics);
 
             Assert.True(metrics.Ndcg.Length == metrics.Dcg.Length && metrics.Dcg.Length == 3);
@@ -859,7 +859,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var catalog = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -868,7 +868,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: ctx.Trainers.LightGbm(
+                .Append(r => (r.label, preds: catalog.Trainers.LightGbm(
                     r.label,
                     r.features, onFit: p => pred = p)));
 
@@ -885,7 +885,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int c = 0; c < schema.Count; ++c)
                 Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
             Assert.True(metrics.TopKAccuracy > 0);
         }
@@ -897,7 +897,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new MulticlassClassificationContext(env);
+            var catalog = new MulticlassClassificationCatalog(env);
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -906,7 +906,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
                 .Append(r => (label: r.label.ToKey(), r.features))
-                .Append(r => (r.label, preds: ctx.Trainers.MultiClassNaiveBayesTrainer(
+                .Append(r => (r.label, preds: catalog.Trainers.MultiClassNaiveBayesTrainer(
                     r.label,
                     r.features, onFit: p => pred = p)));
 
@@ -930,7 +930,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int c = 0; c < schema.Count; ++c)
                 Console.WriteLine($"{schema[c].Name}, {schema[c].Type}");
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
             Assert.True(metrics.TopKAccuracy > 0);
         }
@@ -941,7 +941,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
-            var ctx = new BinaryClassificationContext(env);
+            var catalog = new BinaryClassificationCatalog(env);
 
             var reader = TextLoaderStatic.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -949,7 +949,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             IPredictorWithFeatureWeights<float> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features, null,
+                .Append(r => (r.label, preds: catalog.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features, null,
                     new StochasticGradientDescentClassificationTrainer.Options { L2Weight = 0, NumThreads = 1 },
                     onFit: (p) => { pred = p; })));
 
@@ -966,7 +966,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = catalog.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);

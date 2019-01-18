@@ -17,7 +17,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
         /// </summary>
-        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="lossFunction">The custom loss.</param>
@@ -41,7 +41,7 @@ namespace Microsoft.ML.StaticPipe
         /// ]]></format>
         /// </example>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) AveragedPerceptron(
-                this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+                this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 Scalar<bool> label,
                 Vector<float> features,
                 Scalar<float> weights = null,
@@ -77,7 +77,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
         /// </summary>
-        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="catalog">The binary classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="lossFunction">The custom loss.</param>
@@ -98,7 +98,7 @@ namespace Microsoft.ML.StaticPipe
         /// ]]></format>
         /// </example>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) AveragedPerceptron(
-                this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+                this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
                 Scalar<bool> label,
                 Vector<float> features,
                 Scalar<float> weights,
@@ -143,7 +143,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
         /// </summary>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -161,7 +161,7 @@ namespace Microsoft.ML.StaticPipe
         /// from negative to positive infinity), and the predicted label.</returns>
         /// <seealso cref="OnlineGradientDescentTrainer"/>.
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -193,7 +193,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
         /// </summary>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -207,7 +207,7 @@ namespace Microsoft.ML.StaticPipe
         /// from negative to positive infinity), and the predicted label.</returns>
         /// <seealso cref="OnlineGradientDescentTrainer"/>.
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights,
