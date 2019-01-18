@@ -35,7 +35,7 @@ phases:
     - ${{ if eq(parameters.name, 'MacOS') }}:
       - script: brew update && brew install libomp mono-libgdiplus gettext && brew link gettext --force
         displayName: Install runtime dependencies
-    - script: msbuild build/Codecov.proj /t:Codecov /p:UseCodecov=true
+    - script: dotnet msbuild build/Codecov.proj /t:Codecov /p:UseCodecov=true
       env:
         CODECOV_TOKEN: $(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io    
