@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Get <see cref="ISchema"/> for complete model. Every node in the TensorFlow model will be included in the <see cref="ISchema"/> object.
+        /// Get <see cref="Schema"/> for complete model. Every node in the TensorFlow model will be included in the <see cref="Schema"/> object.
         /// </summary>
         internal Schema GetModelSchema()
         {
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Get <see cref="ISchema"/> for only those nodes which are marked "Placeholder" in the TensorFlow model.
+        /// Get <see cref="Schema"/> for only those nodes which are marked "Placeholder" in the TensorFlow model.
         /// This method is convenient for exploring the model input(s) in case TensorFlow graph is very large.
         /// </summary>
         public Schema GetInputSchema()
