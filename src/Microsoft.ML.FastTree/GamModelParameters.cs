@@ -283,7 +283,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         /// <param name="featureIndex">The index of the feature (in the training vector) to get.</param>
         /// <returns>The bin upper bounds. May be null if this feature has no bins.</returns>
-        public double[] GetFeatureBinUpperBounds(int featureIndex)
+        public double[] GetBinUpperBounds(int featureIndex)
         {
             Host.Check(0 <= featureIndex && featureIndex < NumShapeFunctions, "Index out of range.");
             double[] featureBins;
@@ -301,11 +301,24 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
+        /// Get all the bin upper bounds.
+        /// </summary>
+        public double[][] GetBinUpperBounds()
+        {
+            double[][] featureBins = new double[_binUpperBounds.Length][];
+            for (int i = 0; i < featureBins.Length; i++)
+            {
+                featureBins[i] = GetBinUpperBounds(i);
+            }
+            return featureBins;
+        }
+
+        /// <summary>
         /// Get the binned weights for each feature.
         /// </summary>
         /// <param name="featureIndex">The index of the feature (in the training vector) to get.</param>
         /// <returns>The binned weights for each feature.</returns>
-        public double[] GetFeatureWeights(int featureIndex)
+        public double[] GetBinEffects(int featureIndex)
         {
             Host.Check(0 <= featureIndex && featureIndex < NumShapeFunctions, "Index out of range.");
             double[] featureWeights;
@@ -319,6 +332,19 @@ namespace Microsoft.ML.Trainers.FastTree
                 featureWeights = new double[0];
             }
 
+            return featureWeights;
+        }
+
+        /// <summary>
+        /// Get all the binned weights.
+        /// </summary>
+        public double[][] GetBinEffects()
+        {
+            double[][] featureWeights = new double[_binEffects.Length][];
+            for (int i = 0; i < featureWeights.Length; i++)
+            {
+                featureWeights[i] = GetBinEffects(i);
+            }
             return featureWeights;
         }
 

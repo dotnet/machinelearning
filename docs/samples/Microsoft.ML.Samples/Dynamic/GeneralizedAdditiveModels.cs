@@ -78,9 +78,9 @@ namespace Microsoft.ML.Samples.Dynamic
             var studentTeacherRatioIndex = featureNames.ToList().FindIndex(str => str.Equals("TeacherRatio"));
 
             // Next, let's get the array of bin upper bounds from the model for this feature
-            var teacherRatioBinUpperBounds = gamModel.GetFeatureBinUpperBounds(studentTeacherRatioIndex);
+            var teacherRatioBinUpperBounds = gamModel.GetBinUpperBounds(studentTeacherRatioIndex);
             // And the array of bin weights; these are the effect size for each bin
-            var teacherRatioFeatureWeights = gamModel.GetFeatureWeights(studentTeacherRatioIndex);
+            var teacherRatioFeatureWeights = gamModel.GetBinEffects(studentTeacherRatioIndex);
 
             // Now, write the function to the console. The function is a set of bins, and the corresponding
             // function values. You can think of GAMs as building a bar-chart lookup table.
