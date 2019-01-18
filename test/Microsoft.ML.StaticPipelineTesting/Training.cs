@@ -1082,7 +1082,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(0.86309523809523814, metrics.AccuracyMicro, 6);
 
             // Convert prediction in ML.NET format to native C# class.
-            var nativePredictions = new List<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic.AsEnumerable<DatasetUtils.MulticlassClassificationExample>(mlContext, false));
+            var nativePredictions = mlContext.CreateEnumerable<DatasetUtils.MulticlassClassificationExample>(prediction.AsDynamic, false).ToList();
 
             // Get schema object of the prediction. It contains metadata such as the mapping from predicted label index
             // (e.g., 1) to its actual label (e.g., "AA").

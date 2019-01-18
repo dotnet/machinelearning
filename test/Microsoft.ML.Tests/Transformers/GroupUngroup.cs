@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
@@ -49,7 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
             var groupTransform = new GroupTransform(Env, dataView, "Age", "UserName", "Gender");
-            var grouped = new List<UngroupExample>(groupTransform.AsEnumerable<UngroupExample>(Env, false));
+            var grouped = ML.CreateEnumerable<UngroupExample>(groupTransform, false).ToList();
 
             // Expected content of grouped should contains two rows.
             // Age, UserName, Gender
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
             var ungroupTransform = new UngroupTransform(Env, dataView, UngroupTransform.UngroupMode.Inner, "UserName", "Gender");
-            var ungrouped = new List<GroupExample>(ungroupTransform.AsEnumerable<GroupExample>(Env, false));
+            var ungrouped = ML.CreateEnumerable<GroupExample>(ungroupTransform, false).ToList();
 
             Assert.Equal(4, ungrouped.Count);
 

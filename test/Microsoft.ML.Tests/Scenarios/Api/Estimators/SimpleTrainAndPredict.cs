@@ -38,8 +38,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
 
             // Take a couple examples out of the test data and run predictions on top.
-            var testData = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true)
-                .AsEnumerable<SentimentData>(ml, false);
+            var testData = ml.CreateEnumerable<SentimentData>(
+                ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true), false);
             foreach (var input in testData.Take(5))
             {
                 var prediction = engine.Predict(input);
@@ -77,8 +77,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var engine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
 
             // Take a couple examples out of the test data and run predictions on top.
-            var testData = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true)
-                .AsEnumerable<SentimentData>(ml, false);
+            var testData = ml.CreateEnumerable<SentimentData>(
+                ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true), false);
             foreach (var input in testData.Take(5))
             {
                 var prediction = engine.Predict(input);

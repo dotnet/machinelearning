@@ -62,7 +62,7 @@ namespace Microsoft.ML.RunTests
                 }
             }
             Assert.True(n == 2);
-            var iter = data.AsEnumerable<SparseExample<T>>(env, false).GetEnumerator();
+            var iter = env.CreateEnumerable<SparseExample<T>>(data, false).GetEnumerator();
             n = 0;
             while (iter.MoveNext())
                 ++n;
@@ -102,7 +102,7 @@ namespace Microsoft.ML.RunTests
                 }
             }
             Assert.True(n == 2);
-            var iter = data.AsEnumerable<DenseExample<T>>(env, false).GetEnumerator();
+            var iter = env.CreateEnumerable<DenseExample<T>>(data, false).GetEnumerator();
             n = 0;
             while (iter.MoveNext())
                 ++n;
