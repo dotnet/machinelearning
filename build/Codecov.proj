@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <Include Project="NuGet.props" />
+  <Import Project="NuGet.props" />
   <Import Project="Dependencies.props" />
 
   <Target Name="Codecov">
