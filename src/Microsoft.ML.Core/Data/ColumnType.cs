@@ -470,7 +470,8 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(type);
             Contracts.Assert(kind.ToType() == type);
-            Contracts.CheckParam(0 < count && count <= kind.ToMaxInt(), nameof(count));
+            Contracts.CheckParam(0 < count && count <= kind.ToMaxInt(), nameof(count),
+                "The cardinality of a " + nameof(KeyType) + " must not exceed " + nameof(type) + ".MaxValue and must be strictly positive.");
             Count = count;
         }
 
@@ -482,7 +483,7 @@ namespace Microsoft.ML.Data
         public KeyType(Type type, int count)
             : this(type, CheckRefRawType(type), (ulong)count)
         {
-            Contracts.CheckParam(0 < count, nameof(count));
+            Contracts.CheckParam(0 < count, nameof(count), "The cardinality of a " + nameof(KeyType) + " must be strictly positive.");
         }
 
         [BestFriend]

@@ -1204,7 +1204,7 @@ namespace Microsoft.ML.Data.IO
             }
 
             // REVIEW: There is something a little bit troubling here. If someone, say,
-            // produces a column on KeyType(I4, 4, true) and then returns 10 as a value in
+            // produces a column on KeyType(I4, 4) and then returns 10 as a value in
             // that column, that's obviously a violation of the type, and lots of things
             // downstream may complain, but it is a "valid" cursor in that it produces values
             // and does not throw. So from that perspective of the codecs and their users being
@@ -1251,7 +1251,11 @@ namespace Microsoft.ML.Data.IO
                 Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());
                 Contracts.CheckDecode(contiguous || count == 0);
 
-                type = new KeyType(itemType.RawType, count);
+                // Since we removed the notion of unknown cardinality (count == 0), we map to the maximum value.
+                if (count == 0)
+                    type = new KeyType(itemType.RawType, itemType.RawKind.ToMaxInt());
+                else
+                    type = new KeyType(itemType.RawType, count);
             }
             // Next create the key codec.
             Type codecType = typeof(KeyCodecOld<>).MakeGenericType(itemType.RawType);
@@ -1286,7 +1290,7 @@ namespace Microsoft.ML.Data.IO
             // We rely on a more basic value codec to do the actual saving and loading.
             private readonly IValueCodec<T> _innerCodec;
 
-            public string LoadName { get { return "KeyNew"; } }
+            public string LoadName { get { return "Key2"; } }
 
             public ColumnType Type { get { return _type; } }
 
@@ -1314,7 +1318,7 @@ namespace Microsoft.ML.Data.IO
             }
 
             // REVIEW: There is something a little bit troubling here. If someone, say,
-            // produces a column on KeyType(I4, 4, true) and then returns 10 as a value in
+            // produces a column on KeyType(I4, 4) and then returns 10 as a value in
             // that column, that's obviously a violation of the type, and lots of things
             // downstream may complain, but it is a "valid" cursor in that it produces values
             // and does not throw. So from that perspective of the codecs and their users being
@@ -1353,7 +1357,7 @@ namespace Microsoft.ML.Data.IO
             {
                 ulong count = reader.ReadUInt64();
 
-                Contracts.CheckDecode(0 <= count);
+                Contracts.CheckDecode(0 < count);
                 Contracts.CheckDecode(count <= itemType.RawKind.ToMaxInt());
 
                 type = new KeyType(itemType.RawType, count);

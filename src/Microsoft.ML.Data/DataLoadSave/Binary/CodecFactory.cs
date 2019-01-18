@@ -68,7 +68,7 @@ namespace Microsoft.ML.Data.IO
             RegisterOtherCodec("DvTimeSpan", new UnsafeTypeCodec<TimeSpan>(this).GetCodec);
 
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
-            RegisterOtherCodec("KeyNew", GetKeyCodec);
+            RegisterOtherCodec("Key2", GetKeyCodec);
             RegisterOtherCodec("Key", GetKeyCodecOld);
         }
 
