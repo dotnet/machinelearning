@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <PropertyGroup>
-    <RepoRoot>$(MSBuildThisFileDirectory)..\</RepoRoot>
-  </PropertyGroup>
+
+  <Import Project="Dependencies.props" />
 
   <Target Name="Codecov">
     <PropertyGroup Condition="'$(UseCodecov)' == 'true'">
@@ -31,5 +30,4 @@
     <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
   </Target>
 
-  <Import Project="..\Packages.targets" />
 </Project>
