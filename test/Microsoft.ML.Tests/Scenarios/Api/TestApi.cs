@@ -224,7 +224,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             featureColumnWithMetadata.AddMetadata(kindVBuffer, valueVBuffer);
 
             var mySchema = new SchemaDefinition { labelColumnWithMetadata, featureColumnWithMetadata };
-            var idv = mlContext.Data.ReadFromEnumerable(mySchema);
+            var idv = mlContext.Data.ReadFromEnumerable(data, mySchema);
 
             Assert.True(idv.Schema[0].Metadata.Schema.Count == 2);
             Assert.True(idv.Schema[0].Metadata.Schema[0].Name == kindFloat);
