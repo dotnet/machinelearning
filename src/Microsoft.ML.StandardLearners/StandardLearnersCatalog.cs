@@ -260,7 +260,6 @@ namespace Microsoft.ML
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionCatalog.RegressionTrainers catalog,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
@@ -404,7 +403,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="catalog">The <see cref="MulticlassClassificationCatalogt.MulticlassClassificationTrainers"/>.</param>
+        /// <param name="catalog">The <see cref="MulticlassClassificationCatalog.MulticlassClassificationTrainers"/>.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
         public static MulticlassLogisticRegression LogisticRegression(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             MulticlassLogisticRegression.Options options)
