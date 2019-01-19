@@ -30,8 +30,8 @@ namespace Microsoft.ML.Data.DataLoadSave
                 {
                     var metaColumnType = MakeColumnType(partialMetadata[i]);
                     Delegate del;
-                    if (metaColumnType.IsVector)
-                        del = Utils.MarshalInvoke(GetDefaultVectorGetter<int>, metaColumnType.ItemType.RawType);
+                    if (metaColumnType is VectorType vectorType)
+                        del = Utils.MarshalInvoke(GetDefaultVectorGetter<int>, vectorType.ItemType.RawType);
                     else
                         del = Utils.MarshalInvoke(GetDefaultGetter<int>, metaColumnType.RawType);
                     metaBuilder.Add(partialMetadata[j].Name, metaColumnType, del);

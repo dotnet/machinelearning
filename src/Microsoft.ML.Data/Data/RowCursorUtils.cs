@@ -150,8 +150,8 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeDst.RawType);
@@ -170,8 +170,8 @@ namespace Microsoft.ML.Data
             Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema[col].Type;
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
@@ -182,7 +182,8 @@ namespace Microsoft.ML.Data
         /// Given the item type, typeDst, and a slot cursor, return a ValueGetter{VBuffer{TDst}} for the
         /// vector-valued column with a conversion to a vector of typeDst, if needed.
         /// </summary>
-        public static ValueGetter<VBuffer<TDst>> GetVecGetterAs<TDst>(PrimitiveType typeDst, SlotCursor cursor)
+        [BestFriend]
+        internal static ValueGetter<VBuffer<TDst>> GetVecGetterAs<TDst>(PrimitiveType typeDst, SlotCursor cursor)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
@@ -259,7 +260,7 @@ namespace Microsoft.ML.Data
                 return (ValueGetter<VBuffer<TDst>>)(Delegate)getter;
             }
 
-            int size = typeSrc.VectorSize;
+            int size = typeSrc.Size;
             var src = default(VBuffer<TSrc>);
             return (ref VBuffer<TDst> dst) =>
             {
@@ -402,7 +403,8 @@ namespace Microsoft.ML.Data
                 };
         }
 
-        public static ValueGetter<VBuffer<Single>> GetLabelGetter(SlotCursor cursor)
+        [BestFriend]
+        internal static ValueGetter<VBuffer<Single>> GetLabelGetter(SlotCursor cursor)
         {
             var type = cursor.GetSlotType().ItemType;
             if (type == NumberType.R4)

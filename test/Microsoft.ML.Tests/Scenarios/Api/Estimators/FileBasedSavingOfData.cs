@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Data.IO;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var ml = new MLContext(seed: 1, conc: 1);
             var src = new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename));
-            var trainData = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
+            var trainData = ml.Data.CreateTextLoader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features"))
                 .Fit(src).Read(src);
 
@@ -37,7 +38,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     DataSaverUtils.SaveDataView(ch, saver, trainData, file);
             }
 
-            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1);
+            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options { NumThreads = 1 });
             var loadedTrainData = new BinaryLoader(ml, new BinaryLoader.Arguments(), new MultiFileSource(path));
 
             // Train.

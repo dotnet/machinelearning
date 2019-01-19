@@ -11,14 +11,14 @@ namespace Microsoft.ML
     public static class TextLoaderSaverCatalog
     {
         /// <summary>
-        /// Create a text reader <see cref="TextLoader"/>.
+        /// Create a text loader <see cref="TextLoader"/>.
         /// </summary>
-        /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
-        /// <param name="columns">The columns of the schema.</param>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
+        /// <param name="columns">Array of columns <see cref="TextLoader.Column"/> defining the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="dataSample">The optional location of a data sample.</param>
-        public static TextLoader CreateTextReader(this DataOperations catalog,
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
+        public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Column[] columns,
             bool hasHeader = TextLoader.DefaultArguments.HasHeader,
             char separatorChar = TextLoader.DefaultArguments.Separator,
@@ -26,20 +26,20 @@ namespace Microsoft.ML
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChar, dataSample);
 
         /// <summary>
-        /// Create a text reader <see cref="TextLoader"/>.
+        /// Create a text loader <see cref="TextLoader"/>.
         /// </summary>
-        /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
-        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        public static TextLoader CreateTextReader(this DataOperations catalog,
+        /// <param name="dataSample">The optional location of a data sample. The sample can be used to infer column names and number of slots in each column.</param>
+        public static TextLoader CreateTextLoader(this DataOperationsCatalog catalog,
             TextLoader.Arguments args,
             IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), args, dataSample);
 
         /// <summary>
-        /// Create a text reader <see cref="TextLoader"/> by inferencing the dataset schema from a data model type.
+        /// Create a text loader <see cref="TextLoader"/> by inferencing the dataset schema from a data model type.
         /// </summary>
-        /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
         /// <param name="allowQuotedStrings">Whether the input may include quoted values,
@@ -51,7 +51,7 @@ namespace Microsoft.ML
         /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
-        public static TextLoader CreateTextReader<TInput>(this DataOperations catalog,
+        public static TextLoader CreateTextLoader<TInput>(this DataOperationsCatalog catalog,
             bool hasHeader = TextLoader.DefaultArguments.HasHeader,
             char separatorChar = TextLoader.DefaultArguments.Separator,
             bool allowQuotedStrings = TextLoader.DefaultArguments.AllowQuoting,
@@ -62,13 +62,13 @@ namespace Microsoft.ML
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
         /// </summary>
-        /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="path">The path to the file.</param>
         /// <returns>The data view.</returns>
-        public static IDataView ReadFromTextFile(this DataOperations catalog,
+        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog,
             string path,
             TextLoader.Column[] columns,
             bool hasHeader = TextLoader.DefaultArguments.HasHeader,
@@ -87,7 +87,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
         /// </summary>
-        /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="hasHeader">Does the file contains header?</param>
         /// <param name="separatorChar">Column separator character. Default is '\t'</param>
         /// <param name="allowQuotedStrings">Whether the input may include quoted values,
@@ -101,7 +101,7 @@ namespace Microsoft.ML
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
         /// <param name="path">The path to the file.</param>
         /// <returns>The data view.</returns>
-        public static IDataView ReadFromTextFile<TInput>(this DataOperations catalog,
+        public static IDataView ReadFromTextFile<TInput>(this DataOperationsCatalog catalog,
             string path,
             bool hasHeader = TextLoader.DefaultArguments.HasHeader,
             char separatorChar = TextLoader.DefaultArguments.Separator,
@@ -120,10 +120,10 @@ namespace Microsoft.ML
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
         /// </summary>
-        /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="path">Specifies a file from which to read.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
-        public static IDataView ReadFromTextFile(this DataOperations catalog, string path, TextLoader.Arguments args = null)
+        public static IDataView ReadFromTextFile(this DataOperationsCatalog catalog, string path, TextLoader.Arguments args = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
@@ -136,14 +136,14 @@ namespace Microsoft.ML
         /// <summary>
         /// Save the data view as text.
         /// </summary>
-        /// <param name="catalog">The <see cref="DataOperations"/> catalog.</param>
+        /// <param name="catalog">The <see cref="DataOperationsCatalog"/> catalog.</param>
         /// <param name="data">The data view to save.</param>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="separatorChar">The column separator.</param>
         /// <param name="headerRow">Whether to write the header row.</param>
         /// <param name="schema">Whether to write the header comment with the schema.</param>
         /// <param name="keepHidden">Whether to keep hidden columns in the dataset.</param>
-        public static void SaveAsText(this DataOperations catalog,
+        public static void SaveAsText(this DataOperationsCatalog catalog,
             IDataView data,
             Stream stream,
             char separatorChar = TextLoader.DefaultArguments.Separator,

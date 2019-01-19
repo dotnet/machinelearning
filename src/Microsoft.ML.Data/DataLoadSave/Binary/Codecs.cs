@@ -857,7 +857,7 @@ namespace Microsoft.ML.Data.IO
                 public Writer(VBufferCodec<T> codec, Stream stream)
                     : base(codec._factory, stream)
                 {
-                    _size = codec._type.VectorSize;
+                    _size = codec._type.Size;
                     _lengths = FixedLength ? null : new List<int>();
                     _counts = new List<int>();
                     _indices = new List<int>();
@@ -1002,8 +1002,8 @@ namespace Microsoft.ML.Data.IO
 
                     // The length of all those vectors.
                     _size = Reader.ReadInt32();
-                    if (codec._type.IsKnownSizeVector)
-                        Contracts.CheckDecode(codec._type.VectorSize == _size);
+                    if (codec._type.IsKnownSize)
+                        Contracts.CheckDecode(codec._type.Size == _size);
                     else
                         Contracts.CheckDecode(_size >= 0);
                     if (!FixedLength)
@@ -1171,10 +1171,8 @@ namespace Microsoft.ML.Data.IO
             return true;
         }
 
-        private bool GetVBufferCodec(ColumnType type, out IValueCodec codec)
+        private bool GetVBufferCodec(VectorType type, out IValueCodec codec)
         {
-            if (!type.IsVector)
-                throw Contracts.ExceptParam(nameof(type), "type must be a vector type");
             ColumnType itemType = type.ItemType;
             // First create the element codec.
             IValueCodec innerCodec;

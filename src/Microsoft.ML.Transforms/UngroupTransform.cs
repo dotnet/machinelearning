@@ -305,7 +305,7 @@ namespace Microsoft.ML.Transforms
                         //   18  "Amy"
                         //   18  "Willy"
                         // One can see that "UserID" column (in output data) has a type identical to the element's type of the "UserID" column in input data.
-                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.ItemType, metadataBuilder.GetMetadata());
+                        schemaBuilder.AddColumn(inputSchema[i].Name, inputSchema[i].Type.GetItemType(), metadataBuilder.GetMetadata());
                     }
                 }
                 OutputSchema = schemaBuilder.GetSchema();
@@ -327,11 +327,10 @@ namespace Microsoft.ML.Transforms
                     int col;
                     if (!inputSchema.TryGetColumnIndex(name, out col))
                         throw ectx.ExceptUserArg(nameof(Arguments.Column), "Pivot column '{0}' is not found", name);
-                    var colType = inputSchema[col].Type;
-                    if (!colType.IsVector || !(colType.ItemType is PrimitiveType))
+                    if (!(inputSchema[col].Type is VectorType colType))
                         throw ectx.ExceptUserArg(nameof(Arguments.Column),
-                            "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, colType);
-                    infos[i] = new PivotColumnInfo(name, col, colType.VectorSize, (PrimitiveType)colType.ItemType);
+                            "Pivot column '{0}' has type '{1}', but must be a vector of primitive types", name, inputSchema[col].Type);
+                    infos[i] = new PivotColumnInfo(name, col, colType.Size, colType.ItemType);
                 }
             }
 

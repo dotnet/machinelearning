@@ -192,7 +192,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected GamTrainerBase(IHostEnvironment env, TArgs args, string name, SchemaShape.Column label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Contracts.CheckValue(env, nameof(env));
             Host.CheckValue(args, nameof(args));
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 DefineScoreTrackers();
                 if (HasValidSet)
                     DefinePruningTest();
-                InputLength = context.TrainingSet.Schema.Feature.Value.Type.ValueCount;
+                InputLength = context.TrainingSet.Schema.Feature.Value.Type.GetValueCount();
 
                 TrainCore(ch);
             }
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             if (useTranspose.HasValue)
                 return useTranspose.Value;
-            return data.Data is ITransposeDataView td && td.TransposeSchema.GetSlotType(data.Schema.Feature.Value.Index) != null;
+            return (data.Data as ITransposeDataView)?.GetSlotType(data.Schema.Feature.Value.Index) != null;
         }
 
         private void TrainCore(IChannel ch)
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly double[][] _binEffects;
         public readonly double Intercept;
         private readonly int _numFeatures;
-        private readonly ColumnType _inputType;
+        private readonly VectorType _inputType;
         private readonly ColumnType _outputType;
         // These would be the bins for a totally sparse input.
         private readonly int[] _binsAtAllZero;
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// For Generalized Additive Models (GAM), the contribution of a feature is equal to the shape function for the given feature evaluated at
         /// the feature value.
         /// </summary>
-        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
+        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         private protected GamModelParametersBase(IHostEnvironment env, string name,
             int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap)
@@ -1219,7 +1219,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 /// These are the number of input features, as opposed to the number of features used within GAM
                 /// which may be lower.
                 /// </summary>
-                public int NumFeatures => _pred._inputType.VectorSize;
+                public int NumFeatures => _pred._inputType.Size;
 
                 public Context(IChannel ch, GamModelParametersBase pred, RoleMappedData data, IEvaluator eval)
                 {
@@ -1233,9 +1233,9 @@ namespace Microsoft.ML.Trainers.FastTree
                     _data = data;
                     var schema = _data.Schema;
                     var featCol = schema.Feature.Value;
-                    ch.Check(featCol.Type.ValueCount == _pred._inputLength);
+                    int len = featCol.Type.GetValueCount();
+                    ch.Check(len == _pred._inputLength);
 
-                    int len = featCol.Type.ValueCount;
                     if (featCol.HasSlotNames(len))
                         featCol.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _featNames);
                     else
@@ -1440,7 +1440,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     public static FeatureInfo GetInfoForIndex(Context context, int index)
                     {
                         Contracts.AssertValue(context);
-                        Contracts.Assert(0 <= index && index < context._pred._inputType.ValueCount);
+                        Contracts.Assert(0 <= index && index < context._pred._inputType.Size);
                         lock (context._pred)
                         {
                             int internalIndex;

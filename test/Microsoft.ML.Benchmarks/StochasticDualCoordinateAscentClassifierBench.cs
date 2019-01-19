@@ -6,18 +6,21 @@ using System.Collections.Generic;
 using System.Globalization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Learners;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
-        private readonly string _dataPath = Program.GetInvariantCultureDataPath("iris.txt");
-        private readonly string _sentimentDataPath = Program.GetInvariantCultureDataPath("wikipedia-detox-250-line-data.tsv");
+        private readonly string _dataPath = BaseTestClass.GetDataPath("iris.txt");
+        private readonly string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
         private readonly Consumer _consumer = new Consumer(); // BenchmarkDotNet utility type used to prevent dead code elimination
 
         private readonly MLContext _env = new MLContext(seed: 1);
@@ -65,7 +68,7 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = reader.Read(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(_env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(new SdcaMultiClassTrainer(_env, "Label", "Features"));
+                .Append(_env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
             return pipeline.Fit(data);
         }
@@ -109,7 +112,7 @@ namespace Microsoft.ML.Benchmarks
             var trans = new WordEmbeddingsExtractingEstimator(_env, "WordEmbeddings_TransformedText", "Features",
                 WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe).Fit(text).Transform(text);
             // Train
-            var trainer = new SdcaMultiClassTrainer(_env, "Label", "Features", maxIterations: 20);
+            var trainer = _env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent();
             var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }

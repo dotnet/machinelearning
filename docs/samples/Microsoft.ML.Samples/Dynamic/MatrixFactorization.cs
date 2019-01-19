@@ -101,7 +101,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var testDataView = ComponentCreation.CreateDataView(mlContext, testMatrix);
 
             // Feed the test data into the model and then iterate through all predictions.
-            foreach (var pred in model.Transform(testDataView).AsEnumerable<MatrixElementForScore>(mlContext, false))
+            foreach (var pred in mlContext.CreateEnumerable<MatrixElementForScore>(testDataView, false))
                 Console.WriteLine($"Predicted value at row {pred.MatrixRowIndex} and column {pred.MatrixColumnIndex} is {pred.Score}");
         }
     }

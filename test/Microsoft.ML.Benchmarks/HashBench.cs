@@ -5,11 +5,13 @@
 using System;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class HashBench
     {
         private sealed class RowImpl : Row

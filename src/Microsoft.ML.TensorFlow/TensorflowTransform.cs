@@ -378,7 +378,7 @@ namespace Microsoft.ML.Transforms
                 throw Host.Except($"Column {columnName} doesn't exist");
 
             var type = inputSchema[inputColIndex].Type;
-            var isInputVector = type.IsVector;
+            var isInputVector = type is VectorType;
 
             var tfInput = new TFOutput(Graph[tfNodeName]);
             var tfInputType = tfInput.OutputType;
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Transforms
             }
 
             var expectedType = TensorFlowUtils.Tf2MlNetType(tfInputType);
-            if (type.ItemType != expectedType)
+            if (type.GetItemType() != expectedType)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", columnName, expectedType.ToString(), type.ToString());
 
             return (inputColIndex, isInputVector, tfInputType, tfInputShape);
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Transforms
                         throw Host.Except("Non-vector columns not supported");
                     vecType = (VectorType)type;
                     var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
-                    if (type.ItemType != expectedType)
+                    if (type.GetItemType() != expectedType)
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
                     var originalShape = _parent.TFInputShapes[i];
                     var shape = originalShape.ToIntArray();
@@ -842,15 +842,16 @@ namespace Microsoft.ML.Transforms
                         // Compute the total size of the known dimensions of the shape.
                         int valCount = shape.Where(x => x > 0).Aggregate((x, y) => x * y);
                         // The column length should be divisible by this, so that the other dimensions can be integral.
-                        if (type.ValueCount % valCount != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {type.ValueCount}.");
+                        int typeValueCount = type.GetValueCount();
+                        if (typeValueCount % valCount != 0)
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
                         // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
                         // in a single value for the unknown shapes. For example, if the shape is [?,?,3], then there should exist a value
                         // d such that d*d*3 is equal to the length of the input column.
-                        var d = originalShape.NumDimensions > 2 ? Math.Pow(type.ValueCount / valCount, 1.0 / (originalShape.NumDimensions - 2)) : 1;
+                        var d = originalShape.NumDimensions > 2 ? Math.Pow(typeValueCount / valCount, 1.0 / (originalShape.NumDimensions - 2)) : 1;
                         if (originalShape.NumDimensions > 2 && d - (int)d != 0)
-                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {type.ValueCount}.");
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {typeValueCount}.");
 
                         // Fill in the unknown dimensions.
                         var l = new long[originalShape.NumDimensions];
@@ -894,7 +895,7 @@ namespace Microsoft.ML.Transforms
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
                 var type = TFTensor.TypeFromTensorType(_parent.TFOutputTypes[iinfo]);
-                Host.Assert(type == _parent.OutputTypes[iinfo].ItemType.RawType);
+                Host.Assert(type == _parent.OutputTypes[iinfo].GetItemType().RawType);
                 var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
             }
@@ -1141,8 +1142,8 @@ namespace Microsoft.ML.Transforms
             for (var i = 0; i < _args.OutputColumns.Length; i++)
             {
                 resultDic[_args.OutputColumns[i]] = new SchemaShape.Column(_args.OutputColumns[i],
-                    _outputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
-                    : SchemaShape.Column.VectorKind.VariableVector, _outputTypes[i].ItemType, false);
+                    _outputTypes[i].IsKnownSizeVector() ? SchemaShape.Column.VectorKind.Vector
+                    : SchemaShape.Column.VectorKind.VariableVector, _outputTypes[i].GetItemType(), false);
             }
             return new SchemaShape(resultDic.Values);
         }

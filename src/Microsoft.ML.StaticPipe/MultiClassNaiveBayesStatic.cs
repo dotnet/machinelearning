@@ -16,7 +16,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the <see cref="MultiClassNaiveBayesTrainer"/> trainer.
         /// </summary>
-        /// <param name="ctx">The multiclass classification context trainer object.</param>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -26,7 +26,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            MultiClassNaiveBayesTrainer<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            MultiClassNaiveBayesTrainer<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
             Action<MultiClassNaiveBayesModelParameters> onFit = null)

@@ -94,7 +94,7 @@ namespace Microsoft.ML.LightGBM
         }
 
         private protected LightGbmTrainerBase(IHostEnvironment env, string name, LightGbmArguments args, SchemaShape.Column label)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
 
@@ -289,7 +289,7 @@ namespace Microsoft.ML.LightGBM
                 MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureCol.Index, out categoricalFeatures);
             }
             var colType = trainData.Schema.Feature.Value.Type;
-            int rawNumCol = colType.VectorSize;
+            int rawNumCol = colType.GetVectorSize();
             FeatureCount = rawNumCol;
             catMetaData.TotalCats = 0;
             if (categoricalFeatures == null)

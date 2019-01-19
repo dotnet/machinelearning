@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Benchmarks.Harness;
 using Microsoft.ML.Data;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class PredictionEngineBench
     {
         private IrisData _irisExample;
@@ -32,7 +35,7 @@ namespace Microsoft.ML.Benchmarks
                 PetalWidth = 5.1f,
             };
 
-            string _irisDataPath = Program.GetInvariantCultureDataPath("iris.txt");
+            string _irisDataPath = BaseTestClass.GetDataPath("iris.txt");
 
             var env = new MLContext(seed: 1, conc: 1);
             var reader = new TextLoader(env,
@@ -50,7 +53,8 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = reader.Read(_irisDataPath);
 
             var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(new SdcaMultiClassTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
+                .Append(env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaMultiClassTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
@@ -65,7 +69,7 @@ namespace Microsoft.ML.Benchmarks
                 SentimentText = "Not a big fan of this."
             };
 
-            string _sentimentDataPath = Program.GetInvariantCultureDataPath("wikipedia-detox-250-line-data.tsv");
+            string _sentimentDataPath = BaseTestClass.GetDataPath("wikipedia-detox-250-line-data.tsv");
 
             var env = new MLContext(seed: 1, conc: 1);
             var reader = new TextLoader(env, columns: new[]
@@ -79,7 +83,8 @@ namespace Microsoft.ML.Benchmarks
             IDataView data = reader.Read(_sentimentDataPath);
 
             var pipeline = new TextFeaturizingEstimator(env, "SentimentText", "Features")
-                .Append(new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
+                .Append(env.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaBinaryTrainer.Options {NumThreads = 1, ConvergenceTolerance = 1e-2f, }));
 
             var model = pipeline.Fit(data);
 
@@ -94,7 +99,7 @@ namespace Microsoft.ML.Benchmarks
                 Features = new[] { 5f, 1f, 1f, 1f, 2f, 1f, 3f, 1f, 1f }
             };
 
-            string _breastCancerDataPath = Program.GetInvariantCultureDataPath("breast-cancer.txt");
+            string _breastCancerDataPath = BaseTestClass.GetDataPath("breast-cancer.txt");
 
             var env = new MLContext(seed: 1, conc: 1);
             var reader = new TextLoader(env, columns: new[]
@@ -107,7 +112,8 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = reader.Read(_breastCancerDataPath);
 
-            var pipeline = new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
+            var pipeline = env.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f, });
 
             var model = pipeline.Fit(data);
 

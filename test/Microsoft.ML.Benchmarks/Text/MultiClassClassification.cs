@@ -6,6 +6,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.LightGBM;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Transforms.Categorical;
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPath_Wiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
@@ -98,7 +99,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPath_Wiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));

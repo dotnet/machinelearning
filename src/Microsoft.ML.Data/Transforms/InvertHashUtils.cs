@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(schema);
             Contracts.Assert(0 <= col && col < schema.Count);
-            var type = schema[col].Type.ItemType;
+            var type = schema[col].Type.GetItemType();
             Contracts.Assert(type.RawType == typeof(T));
             var conv = Conversion.Conversions.Instance;
 
@@ -356,8 +356,9 @@ namespace Microsoft.ML.Data
             if (!factory.TryReadCodec(ctx.Reader.BaseStream, out codec))
                 throw ch.ExceptDecode();
             ch.AssertValue(codec);
-            ch.CheckDecode(codec.Type.IsVector);
-            ch.CheckDecode(codec.Type.ItemType is TextType);
+            if (!(codec.Type is VectorType vectorType))
+                throw ch.ExceptDecode();
+            ch.CheckDecode(vectorType.ItemType is TextType);
             var textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             var bufferLen = ctx.Reader.ReadInt32();
@@ -390,9 +391,9 @@ namespace Microsoft.ML.Data
             IValueCodec codec;
             var result = factory.TryGetCodec(new VectorType(TextType.Instance), out codec);
             ch.Assert(result);
-            ch.Assert(codec.Type.IsVector);
-            ch.Assert(codec.Type.VectorSize == 0);
-            ch.Assert(codec.Type.ItemType.RawType == typeof(ReadOnlyMemory<char>));
+            VectorType vectorType = (VectorType)codec.Type;
+            ch.Assert(vectorType.Size == 0);
+            ch.Assert(vectorType.ItemType == TextType.Instance);
             IValueCodec<VBuffer<ReadOnlyMemory<char>>> textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             factory.WriteCodec(ctx.Writer.BaseStream, codec);
@@ -439,7 +440,7 @@ namespace Microsoft.ML.Data
                 });
         }
 
-        public static void LoadAll(IHost host, ModelLoadContext ctx, int infoLim, out VBuffer<ReadOnlyMemory<char>>[] keyValues, out ColumnType[] kvTypes)
+        public static void LoadAll(IHost host, ModelLoadContext ctx, int infoLim, out VBuffer<ReadOnlyMemory<char>>[] keyValues, out VectorType[] kvTypes)
         {
             Contracts.AssertValue(host);
             host.AssertValue(ctx);
@@ -448,7 +449,7 @@ namespace Microsoft.ML.Data
             {
                 // Try to find the key names.
                 VBuffer<ReadOnlyMemory<char>>[] keyValuesLocal = null;
-                ColumnType[] kvTypesLocal = null;
+                VectorType[] kvTypesLocal = null;
                 CodecFactory factory = null;
                 const string dirFormat = "Vocabulary_{0:000}";
                 for (int iinfo = 0; iinfo < infoLim; iinfo++)
@@ -460,7 +461,7 @@ namespace Microsoft.ML.Data
                             if (keyValuesLocal == null)
                             {
                                 keyValuesLocal = new VBuffer<ReadOnlyMemory<char>>[infoLim];
-                                kvTypesLocal = new ColumnType[infoLim];
+                                kvTypesLocal = new VectorType[infoLim];
                                 factory = new CodecFactory(host);
                             }
                             Load(ch, c, factory, ref keyValuesLocal[iinfo]);

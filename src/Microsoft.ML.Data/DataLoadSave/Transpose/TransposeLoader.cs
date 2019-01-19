@@ -294,11 +294,13 @@ namespace Microsoft.ML.Data.IO
                     var schema = view.Schema;
                     Host.CheckDecode(schema.Count == 1);
                     var ttype = schema[0].Type;
-                    Host.CheckDecode(ttype.IsVector);
+                    VectorType vectorType = ttype as VectorType;
+                    if (vectorType == null)
+                        throw Host.ExceptDecode();
                     // We have no way to encode a type of zero length vectors per se in the case
                     // when there are no rows in the original dataset, but accept that if the vector
                     // count is "unknown" then it's really a zero-row dataset.
-                    Host.CheckDecode(ttype.ValueCount == _parent._header.RowCount);
+                    Host.CheckDecode(vectorType.Size == _parent._header.RowCount);
                     // This came from a binary IDV, so it must have an actual "row" count,
                     // though this row count for this is more like a "slot" count.
                     var rowCountNull = view.GetRowCount();
@@ -307,9 +309,9 @@ namespace Microsoft.ML.Data.IO
                     // There must be one "row" per "slot" on the column this is a transpose of.
                     // Check that.
                     var type = _parent.Schema[_col].Type;
-                    Host.CheckDecode(type.ValueCount == rowCount);
+                    Host.CheckDecode(type.GetValueCount() == rowCount);
                     // The item types should be the same.
-                    Host.CheckDecode(type.ItemType.Equals(ttype.ItemType));
+                    Host.CheckDecode(type.GetItemType().Equals(vectorType.ItemType));
                 }
             }
         }
@@ -320,7 +322,6 @@ namespace Microsoft.ML.Data.IO
         private readonly IMultiStreamSource _file;
         private readonly IHost _host;
         private readonly Header _header;
-        private readonly SchemaImpl _schema;
 
         // This is a sub-IDV holding the schema, and optionally the data stored in row-wise format.
         private readonly SubIdvEntry.SchemaSubIdv _schemaEntry;
@@ -344,9 +345,6 @@ namespace Microsoft.ML.Data.IO
         /// </summary>
         private const ulong ReaderVersion = ReaderFirstVersion;
 
-        internal const string Summary = "Loads a binary transposed data file.";
-        internal const string LoadName = "TransposeLoader";
-
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -358,16 +356,6 @@ namespace Microsoft.ML.Data.IO
                 loaderAssemblyName: typeof(TransposeLoader).Assembly.FullName);
         }
 
-        // We return the schema view's schema, because we don't necessarily want
-        // something that can be cast to a transpose schema, and also because the
-        // transpose schema is defined after the entries have been read, which
-        // inspect the schema. We also want to ensure that the useful property that
-        // a cursor and view's schemas are the same, is preserved, which allows us
-        // to use the cursors from the schema view if convenient to do so.
-        public Schema Schema { get { return _schemaEntry.GetView().Schema; } }
-
-        ITransposeSchema ITransposeDataView.TransposeSchema { get { return _schema; } }
-
         /// <summary>
         /// Whether the master schema sub-IDV has the actual data.
         /// </summary>
@@ -375,6 +363,17 @@ namespace Microsoft.ML.Data.IO
         {
             get { return _header.RowCount == _schemaEntry.GetView().GetRowCount(); }
         }
+
+        internal const string Summary = "Loads a binary transposed data file.";
+        internal const string LoadName = "TransposeLoader";
+
+        // We return the schema view's schema, because we don't necessarily want
+        // something that can be cast to a transpose schema, and also because the
+        // transpose schema is defined after the entries have been read, which
+        // inspect the schema. We also want to ensure that the useful property that
+        // a cursor and view's schemas are the same, is preserved, which allows us
+        // to use the cursors from the schema view if convenient to do so.
+        public Schema Schema => _schemaEntry.GetView().Schema;
 
         public bool CanShuffle
         {
@@ -411,7 +410,6 @@ namespace Microsoft.ML.Data.IO
                 _entries = new SubIdvEntry.TransposedSubIdv[_header.ColumnCount];
                 for (int c = 0; c < _entries.Length; ++c)
                     _entries[c] = new SubIdvEntry.TransposedSubIdv(this, reader, c);
-                _schema = new SchemaImpl(this);
                 if (!HasRowData)
                 {
                     _colTransposers = new Transposer[_header.ColumnCount];
@@ -445,7 +443,6 @@ namespace Microsoft.ML.Data.IO
                 _entries = new SubIdvEntry.TransposedSubIdv[_header.ColumnCount];
                 for (int c = 0; c < _entries.Length; ++c)
                     _entries[c] = new SubIdvEntry.TransposedSubIdv(this, reader, c);
-                _schema = new SchemaImpl(this);
                 if (!HasRowData)
                 {
                     _colTransposers = new Transposer[_header.ColumnCount];
@@ -480,7 +477,6 @@ namespace Microsoft.ML.Data.IO
                 _host.Assert(_entries[c].GetViewOrNull() == null);
             }
             _host.Assert(HasRowData);
-
         }
         public static TransposeLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
         {
@@ -608,58 +604,10 @@ namespace Microsoft.ML.Data.IO
             return header;
         }
 
-        private sealed class SchemaImpl : ITransposeSchema
+        VectorType ITransposeDataView.GetSlotType(int col)
         {
-            private readonly TransposeLoader _parent;
-            private Schema Schema { get { return _parent.Schema; } }
-            private IHost Host { get { return _parent._host; } }
-            public int ColumnCount { get { return Schema.Count; } }
-
-            public SchemaImpl(TransposeLoader parent)
-            {
-                Contracts.AssertValue(parent);
-                _parent = parent;
-                var view = parent._schemaEntry.GetView().Schema;
-            }
-
-            public string GetColumnName(int col)
-            {
-                return Schema[col].Name;
-            }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                return Schema.TryGetColumnIndex(name, out col);
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                return Schema[col].Type;
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                return Schema[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                return Schema[col].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type));
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                Schema[col].Metadata.GetValue(kind, ref value);
-            }
-
-            public VectorType GetSlotType(int col)
-            {
-                Host.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                var view = _parent._entries[col].GetViewOrNull();
-                if (view == null)
-                    return null;
-                return view.Schema[0].Type as VectorType;
-            }
+            var view = _entries[col].GetViewOrNull();
+            return view.Schema[0].Type as VectorType;
         }
 
         public long? GetRowCount()
@@ -684,7 +632,7 @@ namespace Microsoft.ML.Data.IO
             return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        public SlotCursor GetSlotCursor(int col)
+        SlotCursor ITransposeDataView.GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
             var view = _entries[col].GetViewOrNull();
@@ -696,7 +644,7 @@ namespace Microsoft.ML.Data.IO
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
-            ColumnType cursorType = _schema.GetSlotType(col).ItemType;
+            ColumnType cursorType = ((ITransposeDataView)this).GetSlotType(col).ItemType;
             RowCursor inputCursor = view.GetRowCursor(c => true);
             try
             {
@@ -781,8 +729,10 @@ namespace Microsoft.ML.Data.IO
                         _host.AssertValue(view);
                         _host.Assert(view.Schema.Count == 1);
                         var trans = _colTransposers[col] = Transposer.Create(_host, view, false, new int[] { 0 });
-                        _host.Assert(((ITransposeDataView)trans).TransposeSchema.ColumnCount == 1);
-                        _host.Assert(((ITransposeDataView)trans).TransposeSchema.GetSlotType(0).ValueCount == Schema[col].Type.ValueCount);
+                        // There should be only one column.
+                        _host.Assert(trans.Schema.Count == 1);
+                        // Check if the only one column is ok.
+                        _host.Assert((trans as ITransposeDataView)?.GetSlotType(0).GetValueCount() == Schema[col].Type.GetValueCount());
                     }
                 }
             }
@@ -843,11 +793,15 @@ namespace Microsoft.ML.Data.IO
                 Ch.Assert(0 <= col && col < Schema.Count);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
                 var type = Schema[col].Type;
-                Ch.Assert(((ITransposeDataView)_parent).TransposeSchema.GetSlotType(col).ValueCount == _parent._header.RowCount);
+                Ch.Assert(((VectorType)type).GetValueCount() == _parent._header.RowCount);
                 Action<int> func = InitOne<int>;
-                if (type.IsVector)
+                ColumnType itemType = type;
+                if (type is VectorType vectorType)
+                {
                     func = InitVec<int>;
-                var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
+                    itemType = vectorType.ItemType;
+                }
+                var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(itemType.RawType);
                 meth.Invoke(this, new object[] { col });
             }
 
@@ -874,8 +828,8 @@ namespace Microsoft.ML.Data.IO
             private void InitVec<T>(int col)
             {
                 var type = Schema[col].Type;
-                Ch.Assert(type.IsVector);
-                Ch.Assert(typeof(T) == type.ItemType.RawType);
+                Ch.Assert(type is VectorType);
+                Ch.Assert(typeof(T) == type.GetItemType().RawType);
                 var trans = _parent.EnsureAndGetTransposer(col);
                 SlotCursor cursor = trans.GetSlotCursor(0);
                 ValueGetter<VBuffer<T>> getter = cursor.GetGetter<T>();

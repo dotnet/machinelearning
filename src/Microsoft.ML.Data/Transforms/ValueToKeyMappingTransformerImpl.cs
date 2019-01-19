@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public static Builder Create(ColumnType type, SortOrder sortOrder)
             {
                 Contracts.AssertValue(type);
-                Contracts.Assert(type.IsVector || type is PrimitiveType);
+                Contracts.Assert(type is VectorType || type is PrimitiveType);
                 // Right now we have only two. This "public" interface externally looks like it might
                 // accept any value, but currently the internal implementations of Builder are split
                 // along this being a purely binary option, for now (though this can easily change
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.Assert(sortOrder == SortOrder.Occurrence || sortOrder == SortOrder.Value);
                 bool sorted = sortOrder == SortOrder.Value;
 
-                PrimitiveType itemType = type.ItemType as PrimitiveType;
+                PrimitiveType itemType = type.GetItemType() as PrimitiveType;
                 Contracts.AssertValue(itemType);
                 if (itemType is TextType)
                     return new TextImpl(sorted);
@@ -287,10 +287,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.AssertValue(bldr);
 
                 var type = schema[col].Type;
-                Contracts.Assert(autoConvert || bldr.ItemType == type.ItemType);
+                Contracts.Assert(autoConvert || bldr.ItemType == type.GetItemType());
                 // Auto conversion should only be possible when the type is text.
                 Contracts.Assert(type is TextType || !autoConvert);
-                if (type.IsVector)
+                if (type is VectorType)
                     return Utils.MarshalInvoke(CreateVec<int>, bldr.ItemType.RawType, row, col, count, bldr);
                 return Utils.MarshalInvoke(CreateOne<int>, bldr.ItemType.RawType, row, col, autoConvert, count, bldr);
             }
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms.Conversions
             env.Assert(0 <= iinfo && iinfo < infos.Length);
 
             var info = infos[iinfo];
-            var inType = info.TypeSrc.ItemType;
+            var inType = info.TypeSrc.GetItemType();
             if (!inType.Equals(unbound.ItemType))
             {
                 throw env.Except("Could not apply a map over type '{0}' to column '{1}' since it has type '{2}'",
@@ -823,11 +823,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 _host.AssertValue(map);
                 _host.Assert(0 <= iinfo && iinfo < infos.Length);
                 var info = infos[iinfo];
-                _host.Assert(info.TypeSrc.ItemType.Equals(map.ItemType));
+                _host.Assert(info.TypeSrc.GetItemType().Equals(map.ItemType));
 
                 Map = map;
                 _iinfo = iinfo;
-                _inputIsVector = info.TypeSrc.IsVector;
+                _inputIsVector = info.TypeSrc is VectorType;
             }
 
             public static BoundTermMap Create(IHostEnvironment host, Schema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
@@ -835,7 +835,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 host.AssertValue(map);
                 host.Assert(0 <= iinfo && iinfo < infos.Length);
                 var info = infos[iinfo];
-                host.Assert(info.TypeSrc.ItemType.Equals(map.ItemType));
+                host.Assert(info.TypeSrc.GetItemType().Equals(map.ItemType));
 
                 return Utils.MarshalInvoke(CreateCore<int>, map.ItemType.RawType, host, schema, map, infos, textMetadata, iinfo);
             }
@@ -904,7 +904,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         ValueMapper<T, uint> map = TypedMap.GetKeyMapper();
                         var info = _infos[_iinfo];
                         T src = default(T);
-                        Contracts.Assert(!info.TypeSrc.IsVector);
+                        Contracts.Assert(!(info.TypeSrc is VectorType));
                         input.Schema.TryGetColumnIndex(info.Source, out int colIndex);
                         _host.Assert(input.IsColumnActive(colIndex));
                         var getSrc = input.GetGetter<T>(colIndex);
@@ -933,7 +933,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         ValueGetter<VBuffer<uint>> retVal;
                         // REVIEW: Consider whether possible or reasonable to not use a builder here.
                         var bldr = new BufferBuilder<uint>(U4Adder.Instance);
-                        int cv = info.TypeSrc.VectorSize;
+                        int cv = info.TypeSrc.GetVectorSize();
                         uint defaultMapValue = MapDefault(map);
                         uint dstItem = default(uint);
 
@@ -1086,8 +1086,8 @@ namespace Microsoft.ML.Transforms.Conversions
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
-                    ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.GetKeyCount() ||
+                    VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+                    if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCount() ||
                         TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
@@ -1155,7 +1155,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                 getter(ref dst);
                                 _host.Assert(dst.Length == TypedMap.OutputType.Count);
                             };
-                        builder.AddKeyValues(TypedMap.OutputType.Count, (PrimitiveType)srcMetaType.ItemType, mgetter);
+                        builder.AddKeyValues(TypedMap.OutputType.Count, (PrimitiveType)srcMetaType.GetItemType(), mgetter);
                     }
                     return true;
                 }
@@ -1166,9 +1166,9 @@ namespace Microsoft.ML.Transforms.Conversions
                         return;
 
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
-                    ColumnType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
-                    if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.GetKeyCount() ||
-                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, ((VectorType)srcMetaType).ItemType, writer))
+                    VectorType srcMetaType = _schema[srcCol].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+                    if (srcMetaType == null || srcMetaType.Size != TypedMap.ItemType.GetKeyCount() ||
+                        TypedMap.ItemType.GetKeyCount() == 0 || !Utils.MarshalInvoke(WriteTextTermsCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, writer))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
                         base.WriteTextTerms(writer);
