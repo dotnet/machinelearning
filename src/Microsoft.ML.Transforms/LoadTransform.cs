@@ -59,7 +59,8 @@ namespace Microsoft.ML.Transforms
             return Create(env, args, input);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("LoadTransform");

@@ -212,7 +212,7 @@ namespace Microsoft.ML.Data
             private readonly FeatureContributionCalculatingTransformer _parent;
             private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _featureColumnIndex;
-            private readonly ColumnType _featureColumnType;
+            private readonly VectorType _featureColumnType;
 
             public Mapper(FeatureContributionCalculatingTransformer parent, Schema schema)
                 : base(parent.Host, parent, schema)
@@ -222,14 +222,14 @@ namespace Microsoft.ML.Data
                 // Check that the featureColumn is present and has the expected type.
                 if (!schema.TryGetColumnIndex(_parent.ColumnPairs[0].input, out _featureColumnIndex))
                     throw Host.ExceptSchemaMismatch(nameof(schema), "input", _parent.ColumnPairs[0].input);
-                _featureColumnType = schema[_featureColumnIndex].Type;
-                if (_featureColumnType.ItemType != NumberType.R4 || !_featureColumnType.IsVector)
+                _featureColumnType = schema[_featureColumnIndex].Type as VectorType;
+                if (_featureColumnType == null || _featureColumnType.ItemType != NumberType.R4)
                     throw Host.ExceptSchemaMismatch(nameof(schema), "feature column", _parent.ColumnPairs[0].input, "Expected type is vector of float.", _featureColumnType.ItemType.ToString());
 
-                if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.VectorSize))
+                if (InputSchema[_featureColumnIndex].HasSlotNames(_featureColumnType.Size))
                     InputSchema[_featureColumnIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
                 else
-                    _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(_featureColumnType.VectorSize);
+                    _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(_featureColumnType.Size);
             }
 
             // The FeatureContributionCalculatingTransformer produces two sets of columns: the columns obtained from scoring and the FeatureContribution column.
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Data
                 // Add FeatureContributions column.
                 var builder = new MetadataBuilder();
                 builder.Add(InputSchema[_featureColumnIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
-                return new[] { new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _featureColumnType.ValueCount), builder.GetMetadata()) };
+                return new[] { new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _featureColumnType.Size), builder.GetMetadata()) };
             }
 
             protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> active, out Action disposer)

@@ -14,14 +14,35 @@ namespace Microsoft.ML.TestFramework
 {
     public class BaseTestClass : IDisposable
     {
-        private readonly string _rootDir;
-        private readonly string _outDir;
-        private readonly string _dataRoot;
-
         public string TestName { get; set; }
         public string FullTestName { get; set; }
 
-        static BaseTestClass() => GlobalBase.AssemblyInit();
+        static BaseTestClass()
+        {
+            GlobalBase.AssemblyInit();
+            RootDir = GetRepoRoot();
+            DataDir = Path.Combine(RootDir, "test", "data");
+        }
+
+        private static string GetRepoRoot()
+        {
+#if NET462
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+#else
+            string directory = AppContext.BaseDirectory;
+#endif
+
+            while (!Directory.Exists(Path.Combine(directory, ".git")) && directory != null)
+            {
+                directory = Directory.GetParent(directory).FullName;
+            }
+
+            if (directory == null)
+            {
+                return null;
+            }
+            return directory;
+        }
 
         public BaseTestClass(ITestOutputHelper output)
         {
@@ -30,11 +51,15 @@ namespace Microsoft.ML.TestFramework
             //correct results that are on en-US locale.
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
+#if NET462
+            // Substring is  removing initial "file:///" from the codebase string.
+            var currentAssemblyLocation = new FileInfo(Directory.GetParent(typeof(BaseTestClass).Assembly.CodeBase.Substring(8)).FullName);
+#else
+            // There is an extra folder in the netfx path representing the runtime identifier.
             var currentAssemblyLocation = new FileInfo(typeof(BaseTestClass).Assembly.Location);
-            _rootDir = currentAssemblyLocation.Directory.Parent.Parent.Parent.Parent.FullName;
-            _outDir = Path.Combine(currentAssemblyLocation.Directory.FullName, "TestOutput");
-            Directory.CreateDirectory(_outDir);
-            _dataRoot = Path.Combine(_rootDir, "test", "data");
+#endif
+            OutDir = Path.Combine(currentAssemblyLocation.Directory.FullName, "TestOutput");
+            Directory.CreateDirectory(OutDir);
             Output = output;
 
             ITest test = (ITest)output.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(output);
@@ -60,33 +85,34 @@ namespace Microsoft.ML.TestFramework
         {
         }
 
-        protected string RootDir => _rootDir;
-        protected string OutDir => _outDir;
+        protected static string RootDir { get; }
+        protected string OutDir { get; }
+        protected static string DataDir { get; }
 
         protected ITestOutputHelper Output { get; }
 
-        protected string GetDataPath(string name)
+        public static string GetDataPath(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
-            return Path.GetFullPath(Path.Combine(_dataRoot, name));
+            return Path.GetFullPath(Path.Combine(DataDir, name));
         }
-        protected string GetDataPath(string subDir, string name)
+        public static string GetDataPath(string subDir, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
-            return Path.GetFullPath(Path.Combine(_dataRoot, subDir, name));
+            return Path.GetFullPath(Path.Combine(DataDir, subDir, name));
         }
 
         protected void EnsureOutputDir(string subDir)
         {
-            Directory.CreateDirectory(Path.Combine(_outDir, subDir));
+            Directory.CreateDirectory(Path.Combine(OutDir, subDir));
         }
         protected string GetOutputPath(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
-            return Path.Combine(_outDir, name);
+            return Path.Combine(OutDir, name);
         }
         protected string GetOutputPath(string subDir, string name)
         {
@@ -95,7 +121,7 @@ namespace Microsoft.ML.TestFramework
             EnsureOutputDir(subDir);
             if (string.IsNullOrWhiteSpace(name))
                 return null;
-            return Path.Combine(_outDir, subDir, name); // REVIEW: put the path in in braces in case the path has spaces
+            return Path.Combine(OutDir, subDir, name); // REVIEW: put the path in in braces in case the path has spaces
         }
         protected string DeleteOutputPath(string subDir, string name)
         {

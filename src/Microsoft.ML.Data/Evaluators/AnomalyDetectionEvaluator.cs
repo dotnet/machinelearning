@@ -98,7 +98,7 @@ namespace Microsoft.ML.Data
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", score, t).MarkSensitive(MessageSensitivity.Schema);
             Host.Check(schema.Label.HasValue, "Could not find the label column");
             t = schema.Label.Value.Type;
-            if (t != NumberType.Float && t.KeyCount != 2)
+            if (t != NumberType.Float && t.GetKeyCount() != 2)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4 or a 2-value key", schema.Label.Value.Name, t).MarkSensitive(MessageSensitivity.Schema);
         }
 

@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms.Text
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
     // integer index mapping through hashing) as an option.
     /// <include file='doc.xml' path='doc/members/member[@name="TextFeaturizingEstimator "]/*' />
-    public sealed class TextFeaturizingEstimator  : IEstimator<ITransformer>
+    public sealed class TextFeaturizingEstimator : IEstimator<ITransformer>
     {
         /// <summary>
         /// Text language. This enumeration is serialized.
@@ -129,6 +129,9 @@ namespace Microsoft.ML.Transforms.Text
             public bool KeepNumbers { get; set; } = true;
             public bool OutputTokens { get; set; } = false;
             public TextNormKind VectorNormalizer { get; set; } = TextNormKind.L2;
+            public bool UseStopRemover { get; set; } = false;
+            public bool UseCharExtractor { get; set; } = true;
+            public bool UseWordExtractor { get; set; } = true;
 #pragma warning restore MSML_NoInstanceInitializers // No initializers on instance fields or properties
         }
 
@@ -139,7 +142,6 @@ namespace Microsoft.ML.Transforms.Text
 
         // These parameters are hardcoded for now.
         // REVIEW: expose them once sub-transforms are estimators.
-        private bool _usePredefinedStopWordRemover;
         private TermLoaderArguments _dictionary;
         private INgramExtractorFactoryFactory _wordFeatureExtractor;
         private INgramExtractorFactoryFactory _charFeatureExtractor;
@@ -166,7 +168,7 @@ namespace Microsoft.ML.Transforms.Text
             public readonly TermLoaderArguments Dictionary;
 
             public StopWordsRemovingEstimator.Language StopwordsLanguage
-                =>(StopWordsRemovingEstimator.Language) Enum.Parse(typeof(StopWordsRemovingEstimator.Language), Language.ToString());
+                => (StopWordsRemovingEstimator.Language)Enum.Parse(typeof(StopWordsRemovingEstimator.Language), Language.ToString());
 
             public LpNormalizingEstimatorBase.NormalizerKind LpNormalizerKind
             {
@@ -226,7 +228,7 @@ namespace Microsoft.ML.Transforms.Text
             }
             #endregion
 
-            public TransformApplierParams(TextFeaturizingEstimator  parent)
+            public TransformApplierParams(TextFeaturizingEstimator parent)
             {
                 var host = parent._host;
                 host.Check(Enum.IsDefined(typeof(Language), parent.AdvancedSettings.TextLanguage));
@@ -235,7 +237,7 @@ namespace Microsoft.ML.Transforms.Text
                 CharExtractorFactory = parent._charFeatureExtractor?.CreateComponent(host, parent._dictionary);
                 VectorNormalizer = parent.AdvancedSettings.VectorNormalizer;
                 Language = parent.AdvancedSettings.TextLanguage;
-                UsePredefinedStopWordRemover = parent._usePredefinedStopWordRemover;
+                UsePredefinedStopWordRemover = parent.AdvancedSettings.UseStopRemover;
                 TextCase = parent.AdvancedSettings.TextCase;
                 KeepDiacritics = parent.AdvancedSettings.KeepDiacritics;
                 KeepPunctuations = parent.AdvancedSettings.KeepPunctuations;
@@ -255,17 +257,17 @@ namespace Microsoft.ML.Transforms.Text
 
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
-        public TextFeaturizingEstimator (IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public TextFeaturizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             Action<Settings> advancedSettings = null)
             : this(env, new[] { inputColumn }, outputColumn ?? inputColumn, advancedSettings)
         {
         }
 
-        public TextFeaturizingEstimator (IHostEnvironment env, IEnumerable<string> inputColumns, string outputColumn,
+        public TextFeaturizingEstimator(IHostEnvironment env, IEnumerable<string> inputColumns, string outputColumn,
             Action<Settings> advancedSettings = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(TextFeaturizingEstimator ));
+            _host = env.Register(nameof(TextFeaturizingEstimator));
             _host.CheckValue(inputColumns, nameof(inputColumns));
             _host.CheckParam(inputColumns.Any(), nameof(inputColumns));
             _host.CheckParam(!inputColumns.Any(string.IsNullOrWhiteSpace), nameof(inputColumns));
@@ -279,8 +281,10 @@ namespace Microsoft.ML.Transforms.Text
             advancedSettings?.Invoke(AdvancedSettings);
 
             _dictionary = null;
-            _wordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
-            _charFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
+            if (AdvancedSettings.UseWordExtractor)
+                _wordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
+            if (AdvancedSettings.UseCharExtractor)
+                _charFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
         }
 
         public ITransformer Fit(IDataView input)
@@ -494,6 +498,7 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
+        // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
         {
             Action<Settings> settings = s =>
@@ -505,10 +510,12 @@ namespace Microsoft.ML.Transforms.Text
                 s.KeepNumbers = args.KeepNumbers;
                 s.OutputTokens = args.OutputTokens;
                 s.VectorNormalizer = args.VectorNormalizer;
+                s.UseStopRemover = args.UsePredefinedStopWordRemover;
+                s.UseWordExtractor = args.WordFeatureExtractor != null;
+                s.UseCharExtractor = args.CharFeatureExtractor != null;
             };
 
             var estimator = new TextFeaturizingEstimator(env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
-            estimator._usePredefinedStopWordRemover = args.UsePredefinedStopWordRemover;
             estimator._dictionary = args.Dictionary;
             estimator._wordFeatureExtractor = args.WordFeatureExtractor;
             estimator._charFeatureExtractor = args.CharFeatureExtractor;

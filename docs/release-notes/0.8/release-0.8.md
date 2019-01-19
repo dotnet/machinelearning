@@ -86,7 +86,8 @@ Below are some of the highlights from this release.
     * Example usage can be found
       [here](https://github.com/dotnet/machinelearning/blob/71d58fa83f77abb630d815e5cf8aa9dd3390aa65/test/Microsoft.ML.Tests/TrainerEstimators/MatrixFactorizationTests.cs#L335).
       You'll need to add the Microsoft.ML.MatrixFactorization NuGet to your
-      project.
+      project. After ML.NET 0.9, please switch to Microsoft.ML.Recommender
+      Nuget.
 
 * Enabled saving and loading data as a binary file (IDataView/IDV)
   ([#1678](https://github.com/dotnet/machinelearning/pull/1678))

@@ -295,56 +295,40 @@ namespace Microsoft.ML.Model.Onnx
             Contracts.CheckNonEmpty(colName, nameof(colName));
 
             TensorProto.Types.DataType dataType = TensorProto.Types.DataType.Undefined;
-            DataKind rawKind;
+            Type rawType;
             if (type is VectorType vectorType)
-                rawKind = vectorType.ItemType.RawKind;
-            else if (type is KeyType keyType)
-                rawKind = keyType.RawKind;
+                rawType = vectorType.ItemType.RawType;
             else
-                rawKind = type.RawKind;
+                rawType = type.RawType;
 
-            switch (rawKind)
+            if (rawType == typeof(bool))
+                dataType = TensorProto.Types.DataType.Float;
+            else if (rawType == typeof(ReadOnlyMemory<char>))
+                dataType = TensorProto.Types.DataType.String;
+            else if (rawType == typeof(sbyte))
+                dataType = TensorProto.Types.DataType.Int8;
+            else if (rawType == typeof(byte))
+                dataType = TensorProto.Types.DataType.Uint8;
+            else if (rawType == typeof(short))
+                dataType = TensorProto.Types.DataType.Int16;
+            else if (rawType == typeof(ushort))
+                dataType = TensorProto.Types.DataType.Uint16;
+            else if (rawType == typeof(int))
+                dataType = TensorProto.Types.DataType.Int32;
+            else if (rawType == typeof(uint))
+                dataType = TensorProto.Types.DataType.Int64;
+            else if (rawType == typeof(long))
+                dataType = TensorProto.Types.DataType.Int64;
+            else if (rawType == typeof(ulong))
+                dataType = TensorProto.Types.DataType.Uint64;
+            else if (rawType == typeof(float))
+                dataType = TensorProto.Types.DataType.Float;
+            else if (rawType == typeof(double))
+                dataType = TensorProto.Types.DataType.Double;
+            else
             {
-                case DataKind.BL:
-                    dataType = TensorProto.Types.DataType.Float;
-                    break;
-                case DataKind.TX:
-                    dataType = TensorProto.Types.DataType.String;
-                    break;
-                case DataKind.I1:
-                    dataType = TensorProto.Types.DataType.Int8;
-                    break;
-                case DataKind.U1:
-                    dataType = TensorProto.Types.DataType.Uint8;
-                    break;
-                case DataKind.I2:
-                    dataType = TensorProto.Types.DataType.Int16;
-                    break;
-                case DataKind.U2:
-                    dataType = TensorProto.Types.DataType.Uint16;
-                    break;
-                case DataKind.I4:
-                    dataType = TensorProto.Types.DataType.Int32;
-                    break;
-                case DataKind.U4:
-                    dataType = TensorProto.Types.DataType.Int64;
-                    break;
-                case DataKind.I8:
-                    dataType = TensorProto.Types.DataType.Int64;
-                    break;
-                case DataKind.U8:
-                    dataType = TensorProto.Types.DataType.Uint64;
-                    break;
-                case DataKind.R4:
-                    dataType = TensorProto.Types.DataType.Float;
-                    break;
-                case DataKind.R8:
-                    dataType = TensorProto.Types.DataType.Double;
-                    break;
-                default:
-                    string msg = "Unsupported type: DataKind " + rawKind.ToString();
-                    Contracts.Check(false, msg);
-                    break;
+                string msg = "Unsupported type: " + type.ToString();
+                Contracts.Check(false, msg);
             }
 
             string name = colName;
@@ -358,14 +342,15 @@ namespace Microsoft.ML.Model.Onnx
             else
             {
                 dimsLocal = new List<long>();
-                if (type.ValueCount == 0) //Unknown size.
+                int valueCount = type.GetValueCount();
+                if (valueCount == 0) //Unknown size.
                 {
                     dimsLocal.Add(1);
                     dimsParamLocal = new List<bool>() { false, true }; //false for batch size, true for dims.
                 }
-                else if (type.ValueCount == 1)
+                else if (valueCount == 1)
                     dimsLocal.Add(1);
-                else if (type.ValueCount > 1)
+                else if (valueCount > 1)
                 {
                     var vec = (VectorType)type;
                     for (int i = 0; i < vec.Dimensions.Length; i++)

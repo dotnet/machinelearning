@@ -199,7 +199,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public static bool IsCachable(this ColumnType type)
         {
-            return type != null && (type is PrimitiveType || type.IsVector);
+            return type != null && (type is PrimitiveType || type is VectorType);
         }
 
         /// <summary>
@@ -855,8 +855,8 @@ namespace Microsoft.ML.Data
                     Contracts.AssertValue(pool);
 
                     Type pipeType;
-                    if (type.IsVector)
-                        pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
+                    if (type is VectorType vectorType)
+                        pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                     else
                     {
                         Contracts.Assert(type is PrimitiveType);
@@ -1299,14 +1299,14 @@ namespace Microsoft.ML.Data
                 var srcColIndex = colIndices[i];
 
                 var colType = cursor.Schema[srcColIndex].Type;
-                if (colType.IsVector)
+                if (colType is VectorType vectorType)
                 {
-                    getter = Utils.MarshalInvoke(GetVectorFlatteningGetter<int>, colType.ItemType.RawType,
-                        cursor, srcColIndex, colType.ItemType);
+                    getter = Utils.MarshalInvoke(GetVectorFlatteningGetter<int>, vectorType.ItemType.RawType,
+                        cursor, srcColIndex, vectorType.ItemType);
                 }
                 else
                 {
-                    getter = Utils.MarshalInvoke(GetSingleValueGetter<int>, colType.ItemType.RawType,
+                    getter = Utils.MarshalInvoke(GetSingleValueGetter<int>, colType.RawType,
                         cursor, srcColIndex, colType);
                 }
 

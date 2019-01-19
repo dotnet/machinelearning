@@ -22,6 +22,7 @@
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />

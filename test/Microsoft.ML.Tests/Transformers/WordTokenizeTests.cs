@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Model;
 using Microsoft.ML.RunTests;
@@ -66,7 +67,7 @@ namespace Microsoft.ML.Tests.Transformers
             var result = pipe.Fit(dataView).Transform(dataView);
 
             // Extract the transformed result of the first row (the only row we have because data contains only one TestClass) as a native class.
-            var nativeResult = new List<NativeResult>(result.AsEnumerable<NativeResult>(Env, false))[0];
+            var nativeResult = ML.CreateEnumerable<NativeResult>(result, false).First();
 
             // Check the tokenization of A. Expected result is { "This", "is", "a", "good", "sentence." }.
             var tokenizeA = new[] { "This", "is", "a", "good", "sentence." };

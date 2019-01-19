@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Learners;
 using Microsoft.ML.RunTests;
 using Xunit;
 using Xunit.Abstractions;
@@ -150,7 +151,8 @@ namespace Microsoft.ML.Tests
         public void TestPfiBinaryClassificationOnDenseFeatures()
         {
             var data = GetDenseDataset(TaskType.BinaryClassification);
-            var model = ML.BinaryClassification.Trainers.LogisticRegression(advancedSettings: args => args.NumThreads = 1).Fit(data);
+            var model = ML.BinaryClassification.Trainers.LogisticRegression(
+                new LogisticRegression.Options { NumThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
@@ -187,7 +189,8 @@ namespace Microsoft.ML.Tests
         public void TestPfiBinaryClassificationOnSparseFeatures()
         {
             var data = GetSparseDataset(TaskType.BinaryClassification);
-            var model = ML.BinaryClassification.Trainers.LogisticRegression(advancedSettings: args => args.NumThreads = 1).Fit(data);
+            var model = ML.BinaryClassification.Trainers.LogisticRegression(
+                new LogisticRegression.Options { NumThreads = 1 }).Fit(data);
             var pfi = ML.BinaryClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
@@ -265,7 +268,8 @@ namespace Microsoft.ML.Tests
         public void TestPfiMulticlassClassificationOnSparseFeatures()
         {
             var data = GetSparseDataset(TaskType.MulticlassClassification);
-            var model = ML.MulticlassClassification.Trainers.LogisticRegression(advancedSettings: args => { args.MaxIterations = 1000; }).Fit(data);
+            var model = ML.MulticlassClassification.Trainers.LogisticRegression(
+                new MulticlassLogisticRegression.Options { MaxIterations = 1000 }).Fit(data);
             var pfi = ML.MulticlassClassification.PermutationFeatureImportance(model, data);
 
             // Pfi Indices:
