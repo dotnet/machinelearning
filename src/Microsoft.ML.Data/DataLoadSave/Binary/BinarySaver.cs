@@ -664,7 +664,7 @@ namespace Microsoft.ML.Data.IO
                     Task[] compressionThreads = new Task[Environment.ProcessorCount];
                     for (int i = 0; i < compressionThreads.Length; ++i)
                     {
-                        compressionThreads[i] = Utils.StartBackgroundThread(
+                        compressionThreads[i] = Utils.RunOnBackgroundThread(
                             () => CompressionWorker(toCompress, toWrite, activeColumns.Length, waiter, exMarshaller));
                     }
                     compressionTask = Task.WhenAll(compressionThreads);
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Data.IO
 
                 // While there is an advantage to putting the IO into a separate thread, there is not an
                 // advantage to having more than one worker.
-                Task writeThread = Utils.StartBackgroundThread(
+                Task writeThread = Utils.RunOnBackgroundThread(
                     () => WriteWorker(stream, toWrite, activeColumns, data.Schema, rowsPerBlock, _host, exMarshaller));
                 sw.Start();
 

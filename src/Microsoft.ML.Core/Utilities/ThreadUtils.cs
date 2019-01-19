@@ -11,33 +11,33 @@ namespace Microsoft.ML.Internal.Utilities
 {
     internal static partial class Utils
     {
-        public static Task StartBackgroundThread(Action start) =>
+        public static Task RunOnBackgroundThread(Action start) =>
             ImmediateBackgroundThreadPool.Queue(start);
 
-        public static Task StartBackgroundThread(Action<object> start, object obj) =>
+        public static Task RunOnBackgroundThread(Action<object> start, object obj) =>
             ImmediateBackgroundThreadPool.Queue(start, obj);
 
-        public static Thread CreateForegroundThread(ParameterizedThreadStart start) =>
+        public static Thread RunOnForegroundThread(ParameterizedThreadStart start) =>
             new Thread(start) { IsBackground = false };
 
         /// <summary>
         /// Naive thread pool focused on reducing the latency to execution of chunky work items as much as possible.
         /// If a thread is ready to process a work item the moment a work item is queued, it's used, otherwise
-        /// a new thread is created.  This is meant as a stop-gap measure for workloads that would otherwise be
+        /// a new thread is created. This is meant as a stop-gap measure for workloads that would otherwise be
         /// creating a new thread for every work item.
         /// </summary>
         private static class ImmediateBackgroundThreadPool
         {
             /// <summary>How long should threads wait around for additional work items before retiring themselves.</summary>
             private const int IdleMilliseconds = 1_000;
-            /// <summary>The queue of work items.  Also used as a lock to protect all relevant state.</summary>
+            /// <summary>The queue of work items. Also used as a lock to protect all relevant state.</summary>
             private static readonly Queue<(Delegate, object, TaskCompletionSource<bool>)> _queue = new Queue<(Delegate, object, TaskCompletionSource<bool>)>();
             /// <summary>The number of threads currently waiting for work to arrive.</summary>
             private static int _availableThreads = 0;
 
             /// <summary>
             /// Queues an <see cref="Action"/> delegate to be executed immediately on another thread,
-            /// and returns a <see cref="Task"/> that represents its eventual completion.  The task will
+            /// and returns a <see cref="Task"/> that represents its eventual completion. The task will
             /// always end in the <see cref="TaskStatus.RanToCompletion"/> state; if the delegate throws
             /// an exception, it'll be allowed to propagate on the thread, crashing the process.
             /// </summary>
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Internal.Utilities
 
             /// <summary>
             /// Queues an <see cref="Action{Object}"/> delegate and associated state to be executed immediately on another thread,
-            /// and returns a <see cref="Task"/> that represents its eventual completion.  The task will
+            /// and returns a <see cref="Task"/> that represents its eventual completion. The task will
             /// always end in the <see cref="TaskStatus.RanToCompletion"/> state; if the delegate throws
             /// an exception, it'll be allowed to propagate on the thread, crashing the process.
             /// </summary>
@@ -59,11 +59,8 @@ namespace Microsoft.ML.Internal.Utilities
                 // so only SetResult is used.
                 var tcs = new TaskCompletionSource<bool>(TaskContinuationOptions.RunContinuationsAsynchronously);
 
-                // Queue the work for a thread to pick up.  If no thread is immediately available, create one.
-                if (!Enqueue((threadStart, state, tcs)))
-                {
-                    CreateThread();
-                }
+                // Queue the work for a thread to pick up. If no thread is immediately available, it will create one.
+                Enqueue((threadStart, state, tcs));
 
                 // Return the task.
                 return tcs.Task;
@@ -75,22 +72,22 @@ namespace Microsoft.ML.Internal.Utilities
                     {
                         // Repeatedly get the next item and invoke it, setting its TCS when we're done.
                         // This will wait for up to the idle time before giving up and exiting.
-                        while (TryDequeue(out (Delegate, object, TaskCompletionSource<bool>) item))
+                        while (TryDequeue(out (Delegate action, object state, TaskCompletionSource<bool> tcs) item))
                         {
                             try
                             {
-                                if (item.Item1 is Action<object> pts)
+                                if (item.action is Action<object> pts)
                                 {
-                                    pts(item.Item2);
+                                    pts(item.state);
                                 }
                                 else
                                 {
-                                    ((Action)item.Item1)();
+                                    ((Action)item.action)();
                                 }
                             }
                             finally
                             {
-                                item.Item3.SetResult(true);
+                                item.tcs.SetResult(true);
                             }
                         }
                     });
@@ -98,11 +95,11 @@ namespace Microsoft.ML.Internal.Utilities
                     t.Start();
                 }
 
-                bool Enqueue((Delegate, object, TaskCompletionSource<bool>) item)
+                void Enqueue((Delegate, object, TaskCompletionSource<bool>) item)
                 {
-                    // Enqueue the work.  If there are currently fewer threads waiting
+                    // Enqueue the work. If there are currently fewer threads waiting
                     // for work than there are work items in the queue, create another
-                    // thread.  This is a heuristic, in that we might end up creating
+                    // thread. This is a heuristic, in that we might end up creating
                     // more threads than are truly needed, but this whole type is being
                     // used to replace a previous solution where every work item created
                     // its own thread, so this is an improvement regardless of any
@@ -114,19 +111,20 @@ namespace Microsoft.ML.Internal.Utilities
                         if (_queue.Count <= _availableThreads)
                         {
                             Monitor.Pulse(_queue);
-                            return true;
+                            return;
                         }
-
-                        return false;
                     }
+
+                    // No thread was currently available.  Create one.
+                    CreateThread();
                 }
 
-                bool TryDequeue(out (Delegate, object, TaskCompletionSource<bool>) item)
+                bool TryDequeue(out (Delegate action, object state, TaskCompletionSource<bool> tcs) item)
                 {
-                    // Dequeues the next item if one is available.  Before checking,
+                    // Dequeues the next item if one is available. Before checking,
                     // the available thread count is increased, so that enqueuers can
                     // see how many threads are currently waiting, with the count
-                    // decreased after.  Each time it waits, it'll wait for at most
+                    // decreased after. Each time it waits, it'll wait for at most
                     // the idle timeout before giving up.
                     lock (_queue)
                     {

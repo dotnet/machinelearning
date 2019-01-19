@@ -1334,7 +1334,7 @@ namespace Microsoft.ML.Data.IO
                     _pipeGetters[c] = _pipes[c].GetGetter();
                 }
                 // The data structures are initialized. Now set up the workers.
-                _readerThread = Utils.StartBackgroundThread(ReaderWorker);
+                _readerThread = Utils.RunOnBackgroundThread(ReaderWorker);
 
                 _pipeTask = SetupDecompressTask();
             }
@@ -1413,7 +1413,7 @@ namespace Microsoft.ML.Data.IO
                 long decompressSequenceLim = (long)_numBlocks * _actives.Length;
                 for (int w = 0; w < pipeWorkers.Length; ++w)
                 {
-                    pipeWorkers[w] = Utils.StartBackgroundThread(() =>
+                    pipeWorkers[w] = Utils.RunOnBackgroundThread(() =>
                     {
                         try
                         {

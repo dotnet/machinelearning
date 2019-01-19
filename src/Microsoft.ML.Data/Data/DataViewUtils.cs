@@ -356,7 +356,7 @@ namespace Microsoft.ML.Data
                     ch.Assert(localCursor.State == CursorState.NotStarted);
                     // Note that these all take ownership of their respective cursors,
                     // so they all handle their disposal internal to the thread.
-                    workers[t] = Utils.StartBackgroundThread(() =>
+                    workers[t] = Utils.RunOnBackgroundThread(() =>
                     {
                             // This will be the last batch sent in the finally. If iteration procedes without
                             // error, it will remain null, and be sent as a sentinel. If iteration results in
@@ -546,7 +546,7 @@ namespace Microsoft.ML.Data
                 // Set up and start the thread that consumes the input, and utilizes the InPipe
                 // instances to compose the Batch objects. The thread takes ownership of the
                 // cursor, and so handles its disposal.
-                Task thread = Utils.StartBackgroundThread(
+                Task thread = Utils.RunOnBackgroundThread(
                     () =>
                     {
                         Batch lastBatch = null;
