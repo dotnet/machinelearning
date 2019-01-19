@@ -15,7 +15,7 @@ phases:
       timeoutInMinutes: 200
       parallel: 99
       matrix:
-        ${{ if ne(parameters.customMatrixes, '') }}:
+        ${{ if eq(parameters.customMatrixes, '') }}:
           Build_Debug:
             _configuration: Debug
             _config_short: D
