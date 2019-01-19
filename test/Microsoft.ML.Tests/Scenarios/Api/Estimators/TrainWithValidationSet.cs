@@ -14,7 +14,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// The learner might be trees with early stopping.
         /// </summary>
         [Fact]
-        public void New_TrainWithValidationSet()
+        public void TrainWithValidationSet()
         {
             var ml = new MLContext(seed: 1, conc: 1);
             // Pipeline.

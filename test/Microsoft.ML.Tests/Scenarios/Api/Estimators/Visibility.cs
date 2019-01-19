@@ -20,10 +20,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// float vector {3:1, 25:1, 203:1, 511:1}, etc. etc.
         /// </summary>
         [Fact]
-        void New_Visibility()
+        void Visibility()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var pipeline = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
+            var pipeline = ml.Data.CreateTextLoader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features", s => s.OutputTokens = true));
 
             var src = new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename));

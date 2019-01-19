@@ -114,8 +114,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string groupIdColumn,
             int numLeaves,
             int numTrees,
-            int minDatapointsInLeaves,
-            Action<TArgs> advancedSettings)
+            int minDatapointsInLeaves)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
             Args = new TArgs();
@@ -125,9 +124,6 @@ namespace Microsoft.ML.Trainers.FastTree
             Args.NumLeaves = numLeaves;
             Args.NumTrees = numTrees;
             Args.MinDocumentsInLeafs = minDatapointsInLeaves;
-
-            //apply the advanced args, if the user supplied any
-            advancedSettings?.Invoke(Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
@@ -152,10 +148,10 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Legacy constructor that is used when invoking the classes deriving from this, through maml.
+        /// Constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
@@ -230,8 +226,8 @@ namespace Microsoft.ML.Trainers.FastTree
             if (useTranspose.HasValue)
                 return useTranspose.Value;
 
-            ITransposeDataView td = data.Data as ITransposeDataView;
-            return td != null && td.TransposeSchema.GetSlotType(data.Schema.Feature.Value.Index) != null;
+            var itdv = data.Data as ITransposeDataView;
+            return itdv?.GetSlotType(data.Schema.Feature.Value.Index) != null;
         }
 
         protected void TrainCore(IChannel ch)
@@ -1409,7 +1405,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         BinFinder finder = new BinFinder();
                         FeaturesToContentMap fmap = new FeaturesToContentMap(examples.Schema);
 
-                        var hasMissingPred = Conversions.Instance.GetHasMissingPredicate<Float>(trans.TransposeSchema.GetSlotType(featIdx));
+                        var hasMissingPred = Conversions.Instance.GetHasMissingPredicate<Float>(((ITransposeDataView)trans).GetSlotType(featIdx));
                         // There is no good mechanism to filter out rows with missing feature values on transposed data.
                         // So, we instead perform one featurization pass which, if successful, will remain one pass but,
                         // if we ever encounter missing values will become a "detect missing features" pass, which will
@@ -2837,7 +2833,19 @@ namespace Microsoft.ML.Trainers.FastTree
         bool ICanSavePfa.CanSavePfa => true;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
-        public FeatureContributionCalculator FeatureContributionClaculator => new FeatureContributionCalculator(this);
+
+        /// <summary>
+        /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
+        /// The calculation of feature contribution essentially consists in determining which splits in the tree have the most impact
+        /// on the final score and assigning the value of the impact to the features determining the split. More precisely, the contribution of a feature
+        /// is equal to the change in score produced by exploring the opposite sub-tree every time a decision node for the given feature is encountered.
+        /// Consider a simple case with a single decision tree that has a decision node for the binary feature F1. Given an example that has feature F1
+        /// equal to true, we can calculate the score it would have obtained if we chose the subtree corresponding to the feature F1 being equal to false
+        /// while keeping the other features constant. The contribution of feature F1 for the given example is the difference between the original score
+        /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
+        /// many decision trees.
+        /// </summary>
+        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         public TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
@@ -2925,8 +2933,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected virtual void Map(in VBuffer<Float> src, ref Float dst)
         {
-            if (InputType.VectorSize > 0)
-                Host.Check(src.Length == InputType.VectorSize);
+            int inputVectorSize = InputType.GetVectorSize();
+            if (inputVectorSize > 0)
+                Host.Check(src.Length == inputVectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
@@ -2952,8 +2961,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void FeatureContributionMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
         {
-            if (InputType.VectorSize > 0)
-                Host.Check(src.Length == InputType.VectorSize);
+            int inputVectorSize = InputType.GetVectorSize();
+            if (inputVectorSize > 0)
+                Host.Check(src.Length == inputVectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 

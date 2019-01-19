@@ -168,19 +168,22 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void TrainAveragedPerceptronWithCache()
         {
-            var env = new MLContext(0);
+            var mlContext = new MLContext(0);
             var dataFile = GetDataPath("breast-cancer.txt");
-            var loader = TextLoader.Create(env, new TextLoader.Arguments(), new MultiFileSource(dataFile));
+            var loader = TextLoader.Create(mlContext, new TextLoader.Arguments(), new MultiFileSource(dataFile));
             var globalCounter = 0;
-            var xf = LambdaTransform.CreateFilter<object, object>(env, loader,
+            var xf = LambdaTransform.CreateFilter<object, object>(mlContext, loader,
                 (i, s) => true,
                 s => { globalCounter++; });
 
             // The baseline result of this was generated with everything cached in memory. As auto-cache is removed,
             // an explicit step of caching is required to make this test ok.
-            var cached = env.Data.Cache(xf);
+            var cached = mlContext.Data.Cache(xf);
 
-            new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).Fit(cached).Transform(cached);
+            var estimator = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
+                new AveragedPerceptronTrainer.Options { NumIterations = 2 });
+
+            estimator.Fit(cached).Transform(cached);
 
             // Make sure there were 2 cursoring events.
             Assert.Equal(1, globalCounter);
@@ -231,7 +234,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             Assert.True(idv.Schema[1].Metadata.Schema.Count == 3);
             Assert.True(idv.Schema[1].Metadata.Schema[0].Name == kindStringArray);
-            Assert.True(idv.Schema[1].Metadata.Schema[0].Type.IsVector && idv.Schema[1].Metadata.Schema[0].Type.ItemType.IsText);
+            Assert.True(idv.Schema[1].Metadata.Schema[0].Type is VectorType vectorType && vectorType.ItemType is TextType);
             Assert.Throws<ArgumentOutOfRangeException>(() => idv.Schema[1].Metadata.Schema[kindFloat]);
 
             float retrievedFloat = 0;

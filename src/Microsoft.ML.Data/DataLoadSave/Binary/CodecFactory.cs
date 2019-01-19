@@ -98,10 +98,10 @@ namespace Microsoft.ML.Data.IO
         public bool TryGetCodec(ColumnType type, out IValueCodec codec)
         {
             // Handle the primier types specially.
-            if (type.IsKey)
+            if (type is KeyType)
                 return GetKeyCodec(type, out codec);
-            if (type.IsVector)
-                return GetVBufferCodec(type, out codec);
+            if (type is VectorType vectorType)
+                return GetVBufferCodec(vectorType, out codec);
             return _simpleCodecTypeMap.TryGetValue(type.RawKind, out codec);
         }
 

@@ -68,13 +68,13 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// <summary>Assertions over a column of <see cref="BoolType"/>.</summary>
         public PrimitiveTypeAssertions<bool> Bool => default;
 
-        /// <summary>Assertions over a column of <see cref="KeyType"/> with <see cref="DataKind.U1"/> <see cref="ColumnType.RawKind"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="KeyType"/> with <see cref="byte"/> <see cref="ColumnType.RawType"/>.</summary>
         public KeyTypeSelectorAssertions<byte> KeyU1 => default;
-        /// <summary>Assertions over a column of <see cref="KeyType"/> with <see cref="DataKind.U2"/> <see cref="ColumnType.RawKind"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="KeyType"/> with <see cref="ushort"/> <see cref="ColumnType.RawType"/>.</summary>
         public KeyTypeSelectorAssertions<ushort> KeyU2 => default;
-        /// <summary>Assertions over a column of <see cref="KeyType"/> with <see cref="DataKind.U4"/> <see cref="ColumnType.RawKind"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="KeyType"/> with <see cref="uint"/> <see cref="ColumnType.RawType"/>.</summary>
         public KeyTypeSelectorAssertions<uint> KeyU4 => default;
-        /// <summary>Assertions over a column of <see cref="KeyType"/> with <see cref="DataKind.U8"/> <see cref="ColumnType.RawKind"/>.</summary>
+        /// <summary>Assertions over a column of <see cref="KeyType"/> with <see cref="ulong"/> <see cref="ColumnType.RawType"/>.</summary>
         public KeyTypeSelectorAssertions<ulong> KeyU8 => default;
 
         internal static SchemaAssertionContext Inst = new SchemaAssertionContext();
@@ -98,13 +98,13 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is true.
             /// </summary>
             public Vector<T> Vector => null;
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is false.
             /// </summary>
             public VarVector<T> VarVector => null;
         }
@@ -120,18 +120,18 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is true.
             /// </summary>
             public Vector<T> Vector => null;
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is false.
             /// </summary>
             public VarVector<T> VarVector => null;
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="PrimitiveType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true, and the <see cref="MetadataUtils.Kinds.IsNormalized"/>
+            /// where <see cref="VectorType.IsKnownSize"/> is true, and the <see cref="MetadataUtils.Kinds.IsNormalized"/>
             /// metadata is defined with a Boolean <c>true</c> value.
             /// </summary>
             public NormVector<T> NormVector => null;
@@ -153,13 +153,13 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="KeyType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is true.
             /// </summary>
             public Vector<T> Vector => null;
 
             /// <summary>
             /// Asserts a type corresponding to a <see cref="VectorType"/> of this <see cref="KeyType"/>,
-            /// where <see cref="ColumnType.IsKnownSizeVector"/> is true.
+            /// where <see cref="VectorType.IsKnownSize"/> is false.
             /// </summary>
             public VarVector<T> VarVector => null;
         }

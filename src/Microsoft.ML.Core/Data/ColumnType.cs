@@ -18,20 +18,10 @@ namespace Microsoft.ML.Data
     /// </summary>
     public abstract class ColumnType : IEquatable<ColumnType>
     {
-        // This private constructor sets all the IsXxx flags. It is invoked by other ctors.
-        private ColumnType()
-        {
-            IsPrimitive = this is PrimitiveType;
-            IsVector = this is VectorType;
-            IsNumber = this is NumberType;
-            IsKey = this is KeyType;
-        }
-
         /// <summary>
         /// Constructor for extension types, which must be either <see cref="PrimitiveType"/> or <see cref="StructuredType"/>.
         /// </summary>
         private protected ColumnType(Type rawType)
-            : this()
         {
             Contracts.CheckValue(rawType, nameof(rawType));
             RawType = rawType;
@@ -44,7 +34,6 @@ namespace Microsoft.ML.Data
         /// This asserts that they are consistent.
         /// </summary>
         private protected ColumnType(Type rawType, DataKind rawKind)
-            : this()
         {
             Contracts.AssertValue(rawType);
 #if DEBUG
@@ -73,153 +62,12 @@ namespace Microsoft.ML.Data
         [BestFriend]
         internal DataKind RawKind { get; }
 
-        /// <summary>
-        /// Whether this is a primitive type. External code should use <c>is <see cref="PrimitiveType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsPrimitive { get; }
-
-        /// <summary>
-        /// Whether this type is a standard numeric type. External code should use <c>is <see cref="NumberType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsNumber { get; }
-
-        /// <summary>
-        /// Whether this type is the standard text type. External code should use <c>is <see cref="TextType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsText
-        {
-            get
-            {
-                if (!(this is TextType))
-                    return false;
-                // TextType is a singleton.
-                Contracts.Assert(this == TextType.Instance);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Whether this type is the standard boolean type. External code should use <c>is <see cref="BoolType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsBool
-        {
-            get
-            {
-                if (!(this is BoolType))
-                    return false;
-                // BoolType is a singleton.
-                Contracts.Assert(this == BoolType.Instance);
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Whether this type is a standard scalar type completely determined by its <see cref="RawType"/>
-        /// (not a <see cref="KeyType"/> or <see cref="StructuredType"/>, etc).
-        /// </summary>
-        [BestFriend]
-        internal bool IsStandardScalar => IsNumber || IsText || IsBool ||
-            (this is TimeSpanType) || (this is DateTimeType) || (this is DateTimeOffsetType);
-
-        /// <summary>
-        /// Whether this type is a key type, which implies that the order of values is not significant,
-        /// and arithmetic is non-sensical. A key type can define a cardinality.
-        /// External code should use <c>is <see cref="KeyType"/></c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsKey { get; }
-
-        /// <summary>
-        /// Zero return means either it's not a key type or the cardinality is unknown. External code should first
-        /// test whether this is of type <see cref="KeyType"/>, then if so get the <see cref="KeyType.Count"/> property
-        /// from that.
-        /// </summary>
-        [BestFriend]
-        internal int KeyCount => KeyCountCore;
-
-        /// <summary>
-        /// The only sub-class that should override this is <see cref="KeyType"/>.
-        /// </summary>
-        private protected virtual int KeyCountCore => 0;
-
-        /// <summary>
-        /// Whether this is a vector type. External code should just check directly against whether this type
-        /// is <see cref="VectorType"/>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsVector { get; }
-
-        /// <summary>
-        /// For non-vector types, this returns the column type itself (i.e., return <c>this</c>).
-        /// </summary>
-        [BestFriend]
-        internal ColumnType ItemType => ItemTypeCore;
-
-        /// <summary>
-        /// Whether this is a vector type with known size. Returns false for non-vector types.
-        /// Equivalent to <c><see cref="VectorSize"/> &gt; 0</c>.
-        /// </summary>
-        [BestFriend]
-        internal bool IsKnownSizeVector => VectorSize > 0;
-
-        /// <summary>
-        /// Zero return means either it's not a vector or the size is unknown.
-        /// </summary>
-        [BestFriend]
-        internal int VectorSize => VectorSizeCore;
-
-        /// <summary>
-        /// For non-vectors, this returns one. For unknown size vectors, it returns zero.
-        /// Equivalent to IsVector ? VectorSize : 1.
-        /// </summary>
-        [BestFriend]
-        internal int ValueCount => ValueCountCore;
-
-        /// <summary>
-        /// The only sub-class that should override this is VectorType!
-        /// </summary>
-        private protected virtual ColumnType ItemTypeCore => this;
-
-        /// <summary>
-        /// The only sub-class that should override this is <see cref="VectorType"/>!
-        /// </summary>
-        private protected virtual int VectorSizeCore => 0;
-
-        /// <summary>
-        /// The only sub-class that should override this is VectorType!
-        /// </summary>
-        private protected virtual int ValueCountCore => 1;
-
         // IEquatable<T> interface recommends also to override base class implementations of
         // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
         // is effectively a referencial comparison, there is no need to override base class implementations
         // of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
         public abstract bool Equals(ColumnType other);
 
-        /// <summary>
-        /// Equivalent to calling Equals(ColumnType) for non-vector types. For vector type,
-        /// returns true if current and other vector types have the same size and item type.
-        /// </summary>
-        [BestFriend]
-        internal bool SameSizeAndItemType(ColumnType other)
-        {
-            if (other == null)
-                return false;
-
-            if (Equals(other))
-                return true;
-
-            // For vector types, we don't care about the factoring of the dimensions.
-            if (!IsVector || !other.IsVector)
-                return false;
-            if (!ItemType.Equals(other.ItemType))
-                return false;
-            return VectorSize == other.VectorSize;
-        }
     }
 
     /// <summary>
@@ -230,13 +78,11 @@ namespace Microsoft.ML.Data
         protected StructuredType(Type rawType)
             : base(rawType)
         {
-            Contracts.Assert(!IsPrimitive);
         }
 
         private protected StructuredType(Type rawType, DataKind rawKind)
             : base(rawType, rawKind)
         {
-            Contracts.Assert(!IsPrimitive);
         }
     }
 
@@ -249,7 +95,6 @@ namespace Microsoft.ML.Data
         protected PrimitiveType(Type rawType)
             : base(rawType)
         {
-            Contracts.Assert(IsPrimitive);
             Contracts.CheckParam(!typeof(IDisposable).IsAssignableFrom(RawType), nameof(rawType),
                 "A " + nameof(PrimitiveType) + " cannot have a disposable " + nameof(RawType));
         }
@@ -257,7 +102,6 @@ namespace Microsoft.ML.Data
         private protected PrimitiveType(Type rawType, DataKind rawKind)
             : base(rawType, rawKind)
         {
-            Contracts.Assert(IsPrimitive);
             Contracts.Assert(!typeof(IDisposable).IsAssignableFrom(RawType));
         }
 
@@ -322,7 +166,6 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertNonEmpty(name);
             _name = name;
-            Contracts.Assert(IsNumber);
         }
 
         private static volatile NumberType _instI1;
@@ -496,7 +339,7 @@ namespace Microsoft.ML.Data
         {
             if (other == this)
                 return true;
-            Contracts.Assert(other == null || !other.IsNumber || other.RawKind != RawKind);
+            Contracts.Assert(other == null || !(other is NumberType) || other.RawKind != RawKind);
             return false;
         }
 
@@ -661,7 +504,6 @@ namespace Microsoft.ML.Data
             Contiguous = contiguous;
             Min = min;
             Count = count;
-            Contracts.Assert(IsKey);
         }
 
         public KeyType(Type type, ulong min, int count, bool contiguous = true)
@@ -720,8 +562,6 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(type, nameof(type));
             return type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong);
         }
-
-        private protected override int KeyCountCore => Count;
 
         /// <summary>
         /// This is the Min of the key type for display purposes and conversion to/from text. The values
@@ -873,23 +713,23 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// Whether this is a vector type with known size.
+        /// Equivalent to <c><see cref="Size"/> &gt; 0</c>.
+        /// </summary>
+        public bool IsKnownSize => Size > 0;
+
+        /// <summary>
         /// The type of the items stored as values in vectors of this type.
         /// </summary>
-        public new PrimitiveType ItemType { get; }
+        public PrimitiveType ItemType { get; }
 
         /// <summary>
         /// The size of the vector. A value of zero means it is a vector whose size is unknown.
         /// A vector whose size is known should correspond to values that always have the same <see cref="VBuffer{T}.Length"/>,
-        /// whereas one whose size is known may have values whose <see cref="VBuffer{T}.Length"/> varies from record to record.
+        /// whereas one whose size is unknown may have values whose <see cref="VBuffer{T}.Length"/> varies from record to record.
         /// Note that this is always the product of the elements in <see cref="Dimensions"/>.
         /// </summary>
         public int Size { get; }
-
-        private protected override ColumnType ItemTypeCore => ItemType;
-
-        private protected override int VectorSizeCore => Size;
-
-        private protected override int ValueCountCore => Size;
 
         public override bool Equals(ColumnType other)
         {

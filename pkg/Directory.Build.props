@@ -21,7 +21,7 @@
   <!-- nuspec properties -->
   <PropertyGroup>
     <Authors>Microsoft</Authors>
-    <PackageLicenseUrl>https://github.com/dotnet/machinelearning/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://dot.net/ml</PackageProjectUrl>
     <PackageIconUrl>https://aka.ms/mlnetlogo</PackageIconUrl>
     <PackageReleaseNotes>https://aka.ms/mlnetreleasenotes</PackageReleaseNotes>

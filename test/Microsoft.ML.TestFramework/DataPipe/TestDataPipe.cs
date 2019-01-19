@@ -1104,14 +1104,7 @@ namespace Microsoft.ML.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var col = new HashingTransformer.Column();
-            col.Name = "F1";
-            col.HashBits = 5;
-            col.Seed = 42;
-            var args = new HashingTransformer.Arguments();
-            args.Column = new HashingTransformer.Column[] { col };
-
-            var hashTransform = HashingTransformer.Create(Env, args, srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingTransformer.ColumnInfo("F1", "F1", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
@@ -1142,14 +1135,7 @@ namespace Microsoft.ML.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var col = new HashingTransformer.Column();
-            col.Name = "F1V";
-            col.HashBits = 5;
-            col.Seed = 42;
-            var args = new HashingTransformer.Arguments();
-            args.Column = new HashingTransformer.Column[] { col };
-
-            var hashTransform = HashingTransformer.Create(Env, args, srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingTransformer.ColumnInfo("F1V", "F1V", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);

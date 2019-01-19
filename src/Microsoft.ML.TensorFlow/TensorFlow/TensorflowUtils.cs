@@ -15,103 +15,114 @@ namespace Microsoft.ML.Transforms.TensorFlow
 {
     public static class TensorFlowUtils
     {
-        public const string OpType = "OpType";
-        public const string InputOps = "InputOps";
+        /// <summary>
+        /// Key to access operator's type (a string) in <see cref="Schema.Column.Metadata"/>.
+        /// Its value describes the Tensorflow operator that produces this <see cref="Schema.Column"/>.
+        /// </summary>
+        public const string TensorflowOperatorTypeKind = "TensorflowOperatorType";
+        /// <summary>
+        /// Key to access upstream operators' names (a string array) in <see cref="Schema.Column.Metadata"/>.
+        /// Its value states operators that the associated <see cref="Schema.Column"/>'s generator depends on.
+        /// </summary>
+        public const string TensorflowUpstreamOperatorsKind = "TensorflowUpstreamOperators";
 
         internal static Schema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
-            var res = new List<KeyValuePair<string, ColumnType>>();
-            var opTypeGetters = new List<MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>>();
-            var inputOpsGetters = new List<MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>>();
-            var inputOpsLengths = new List<int>();
+            var schemaBuilder = new SchemaBuilder();
             foreach (var op in graph)
             {
                 if (opType != null && opType != op.OpType)
                     continue;
+
                 var tfType = op[0].OutputType;
+                // Determine element type in Tensorflow tensor. For example, a vector of floats may get NumberType.R4 here.
                 var mlType = Tf2MlNetTypeOrNull(tfType);
 
-                // If the type is not supported in ML.NET then we cannot represent it as a column in an ISchema.
+                // If the type is not supported in ML.NET then we cannot represent it as a column in an Schema.
                 // We also cannot output it with a TensorFlowTransform, so we skip it.
                 if (mlType == null)
                     continue;
 
-                var shape = graph.GetTensorShape(op[0]);
-                var shapeArray = shape.ToIntArray();
+                // Construct the final ML.NET type of a Tensorflow variable.
+                var tensorShape = graph.GetTensorShape(op[0]).ToIntArray();
+                var columnType = new VectorType(mlType);
+                if (!(Utils.Size(tensorShape) == 1 && tensorShape[0] <= 0) &&
+                    (Utils.Size(tensorShape) > 0 && tensorShape.Skip(1).All(x => x > 0)))
+                    columnType = new VectorType(mlType, tensorShape[0] > 0 ? tensorShape : tensorShape.Skip(1).ToArray());
 
-                inputOpsLengths.Add(op.NumInputs);
-                MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> inputOpsGetter = null;
+                // There can be at most two metadata fields.
+                //  1. The first field always presents. Its value is this operator's type. For example,
+                //     if an output is produced by an "Softmax" operator, the value of this field should be "Softmax".
+                //  2. The second field stores operators whose outputs are consumed by this operator. In other words,
+                //     these values are names of some upstream operators which should be evaluated before executing
+                //     the current operator. It's possible that one operator doesn't need any input, so this field
+                //     can be missing.
+                var metadataBuilder = new MetadataBuilder();
+                // Create the first metadata field.
+                metadataBuilder.Add(TensorflowOperatorTypeKind, TextType.Instance, (ref ReadOnlyMemory<char> value) => value = op.OpType.AsMemory());
                 if (op.NumInputs > 0)
                 {
-                    var inputOps = new ReadOnlyMemory<char>[op.NumInputs];
-                    for (int i = 0; i < op.NumInputs; i++)
-                    {
-                        var input = op.GetInput(i);
-                        inputOps[i] = new ReadOnlyMemory<char>(input.Operation.Name.ToArray());
-                    }
-                    inputOpsGetter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                        dst = new VBuffer<ReadOnlyMemory<char>>(op.NumInputs, inputOps);
+                    // Put upstream operators' names to an array (type: VBuffer) of string (type: ReadOnlyMemory<char>).
+                    VBuffer<ReadOnlyMemory<char>> upstreamOperatorNames = default;
+                    var bufferEditor = VBufferEditor.Create(ref upstreamOperatorNames, op.NumInputs);
+                    for (int i = 0; i < op.NumInputs; ++i)
+                        bufferEditor.Values[i] = op.GetInput(i).Operation.Name.AsMemory();
+                    upstreamOperatorNames = bufferEditor.Commit(); // Used in metadata's getter.
+
+                    // Create the second metadata field.
+                    metadataBuilder.Add(TensorflowUpstreamOperatorsKind, new VectorType(TextType.Instance, op.NumInputs),
+                        (ref VBuffer<ReadOnlyMemory<char>> value) => { upstreamOperatorNames.CopyTo(ref value); });
                 }
-                inputOpsGetters.Add(inputOpsGetter);
 
-                MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> opTypeGetter =
-                    (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(op.OpType.ToArray());
-                opTypeGetters.Add(opTypeGetter);
-
-                var columnType = Utils.Size(shapeArray) == 1 && shapeArray[0] <= 0 ? new VectorType(mlType) :
-                    Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
-                        new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray())
-                        : new VectorType(mlType);
-                res.Add(new KeyValuePair<string, ColumnType>(op.Name, columnType));
+                schemaBuilder.AddColumn(op.Name, columnType, metadataBuilder.GetMetadata());
             }
-            return Schema.Create(new TensorFlowSchema(ectx, res.ToArray(), opTypeGetters.ToArray(), inputOpsGetters.ToArray(), inputOpsLengths.ToArray()));
+            return schemaBuilder.GetSchema();
         }
 
         /// <summary>
-        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="ISchema"/>.
+        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="Schema"/>.
         /// For every node in the graph that has an output type that is compatible with the types supported by
-        /// <see cref="TensorFlowTransform"/>, the output schema contains a column with the name of that node, and the
+        /// <see cref="TensorFlowTransformer"/>, the output schema contains a column with the name of that node, and the
         /// type of its output (including the item type and the shape, if it is known). Every column also contains metadata
-        /// of kind <see cref="OpType"/>, indicating the operation type of the node, and if that node has inputs in the graph,
-        /// it contains metadata of kind <see cref="InputOps"/>, indicating the names of the input nodes.
+        /// of kind <see cref="TensorflowOperatorTypeKind"/>, indicating the operation type of the node, and if that node has inputs in the graph,
+        /// it contains metadata of kind <see cref="TensorflowUpstreamOperatorsKind"/>, indicating the names of the input nodes.
         /// </summary>
-        /// <param name="ectx">An <see cref="IExceptionContext"/>.</param>
-        /// <param name="modelFile">The name of the file containing the TensorFlow model. Currently only frozen model
-        /// format is supported.</param>
-        public static Schema GetModelSchema(IExceptionContext ectx, string modelFile)
+        /// <param name="env">The environment to use.</param>
+        /// <param name="modelPath">Model to load.</param>
+        public static Schema GetModelSchema(IHostEnvironment env, string modelPath)
         {
-            var bytes = File.ReadAllBytes(modelFile);
-            var session = LoadTFSession(ectx, bytes, modelFile);
-            return GetModelSchema(ectx, session.Graph);
+            var model = LoadTensorFlowModel(env, modelPath);
+            return GetModelSchema(env, model.Session.Graph);
         }
 
         /// <summary>
         /// This is a convenience method for iterating over the nodes of a TensorFlow model graph. It
-        /// iterates over the columns of the <see cref="ISchema"/> returned by <see cref="GetModelSchema(IExceptionContext, string)"/>,
+        /// iterates over the columns of the <see cref="Schema"/> returned by <see cref="GetModelSchema(IHostEnvironment, string)"/>,
         /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
         /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
         /// </summary>
-        /// <param name="modelFile"></param>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="modelPath">Model to load.</param>
         /// <returns></returns>
-        public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(string modelFile)
+        public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(IHostEnvironment env, string modelPath)
         {
-            var schema = GetModelSchema(null, modelFile);
+            var schema = GetModelSchema(env, modelPath);
 
             for (int i = 0; i < schema.Count; i++)
             {
                 var name = schema[i].Name;
                 var type = schema[i].Type;
 
-                var metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.OpType)?.Type;
-                Contracts.Assert(metadataType != null && metadataType.IsText);
+                var metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowOperatorTypeKind)?.Type;
+                Contracts.Assert(metadataType != null && metadataType is TextType);
                 ReadOnlyMemory<char> opType = default;
-                schema[i].Metadata.GetValue(TensorFlowUtils.OpType, ref opType);
-                metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.InputOps)?.Type;
+                schema[i].Metadata.GetValue(TensorflowOperatorTypeKind, ref opType);
+                metadataType = schema[i].Metadata.Schema.GetColumnOrNull(TensorflowUpstreamOperatorsKind)?.Type;
                 VBuffer<ReadOnlyMemory<char>> inputOps = default;
                 if (metadataType != null)
                 {
-                    Contracts.Assert(metadataType.IsKnownSizeVector && metadataType.ItemType.IsText);
-                    schema[i].Metadata.GetValue(TensorFlowUtils.InputOps, ref inputOps);
+                    Contracts.Assert(metadataType.IsKnownSizeVector() && metadataType.GetItemType() is TextType);
+                    schema[i].Metadata.GetValue(TensorflowUpstreamOperatorsKind, ref inputOps);
                 }
 
                 string[] inputOpsResult = inputOps.DenseValues()
@@ -140,20 +151,24 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return NumberType.R4;
                 case TFDataType.Double:
                     return NumberType.R8;
-                case TFDataType.UInt16:
-                    return NumberType.U2;
                 case TFDataType.UInt8:
                     return NumberType.U1;
+                case TFDataType.UInt16:
+                    return NumberType.U2;
                 case TFDataType.UInt32:
                     return NumberType.U4;
                 case TFDataType.UInt64:
                     return NumberType.U8;
+                case TFDataType.Int8:
+                    return NumberType.I1;
                 case TFDataType.Int16:
                     return NumberType.I2;
                 case TFDataType.Int32:
                     return NumberType.I4;
                 case TFDataType.Int64:
                     return NumberType.I8;
+                case TFDataType.Bool:
+                    return BoolType.Instance;
                 default:
                     return null;
             }
@@ -310,6 +325,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
+        /// <summary>
+        /// Load TensorFlow model into memory.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="modelPath">The model to load.</param>
+        /// <returns></returns>
         public static TensorFlowModelInfo LoadTensorFlowModel(IHostEnvironment env, string modelPath)
         {
             var session = GetSession(env, modelPath);
@@ -346,62 +367,14 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.UInt16:
                 case TFDataType.UInt32:
                 case TFDataType.UInt64:
+                case TFDataType.Int8:
                 case TFDataType.Int16:
                 case TFDataType.Int32:
                 case TFDataType.Int64:
+                case TFDataType.Bool:
                     return true;
                 default:
                     return false;
-            }
-        }
-
-        private sealed class TensorFlowSchema : SimpleSchemaBase
-        {
-            private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>[] _opTypeGetters;
-            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[] _inputOpsGetters;
-            private readonly int[] _inputOpsLengths;
-
-            public TensorFlowSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns,
-                MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>[] opTypeGetters,
-                MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[] inputOpsGetters, int[] inputOpsLengths)
-                : base(ectx, columns)
-            {
-                ectx.CheckParam(Utils.Size(opTypeGetters) == ColumnCount, nameof(opTypeGetters));
-                ectx.CheckParam(Utils.Size(inputOpsGetters) == ColumnCount, nameof(inputOpsGetters));
-                ectx.CheckParam(Utils.Size(inputOpsLengths) == ColumnCount, nameof(inputOpsLengths));
-
-                _opTypeGetters = opTypeGetters;
-                _inputOpsGetters = inputOpsGetters;
-                _inputOpsLengths = inputOpsLengths;
-            }
-
-            protected override void GetMetadataCore<TValue>(string kind, int col, ref TValue value)
-            {
-                Ectx.Assert(0 <= col && col < ColumnCount);
-                if (kind == OpType)
-                    _opTypeGetters[col].Marshal(col, ref value);
-                else if (kind == InputOps && _inputOpsGetters[col] != null)
-                    _inputOpsGetters[col].Marshal(col, ref value);
-                else
-                    throw Ectx.ExceptGetMetadata();
-            }
-
-            protected override ColumnType GetMetadataTypeOrNullCore(string kind, int col)
-            {
-                Ectx.Assert(0 <= col && col < ColumnCount);
-                if (kind == OpType)
-                    return TextType.Instance;
-                if (kind == InputOps && _inputOpsGetters[col] != null)
-                    return new VectorType(TextType.Instance, _inputOpsLengths[col]);
-                return null;
-            }
-
-            protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int col)
-            {
-                Ectx.Assert(0 <= col && col < ColumnCount);
-                yield return new KeyValuePair<string, ColumnType>(OpType, TextType.Instance);
-                if (_inputOpsGetters[col] != null)
-                    yield return new KeyValuePair<string, ColumnType>(InputOps, new VectorType(TextType.Instance, _inputOpsLengths[col]));
             }
         }
     }

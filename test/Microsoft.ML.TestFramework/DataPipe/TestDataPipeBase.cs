@@ -577,14 +577,14 @@ namespace Microsoft.ML.RunTests
                 if (!CheckMetadataNames("PurpleDragonScales", -1, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
-                int size = type1.IsVector ? type1.VectorSize : -1;
+                int size = type1 is VectorType vectorType ? vectorType.Size : -1;
                 if (!CheckMetadataNames(MetadataUtils.Kinds.SlotNames, size, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
                 if (!keyNames)
                     continue;
 
-                size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
+                size = type1.GetItemType() is KeyType keyType ? keyType.Count : -1;
                 if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, size, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
@@ -617,7 +617,7 @@ namespace Microsoft.ML.RunTests
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
                 return Failed();
             }
-            if (!t1.ItemType.IsText)
+            if (!(t1.GetItemType() is TextType))
             {
                 if (!mustBeText)
                 {
@@ -628,9 +628,9 @@ namespace Microsoft.ML.RunTests
                 return Failed();
             }
 
-            if (size != t1.VectorSize)
+            if (size != t1.GetVectorSize())
             {
-                Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.VectorSize, size);
+                Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.GetVectorSize(), size);
                 return Failed();
             }
 
@@ -1022,95 +1022,97 @@ namespace Microsoft.ML.RunTests
 
         protected Func<bool> GetColumnComparer(Row r1, Row r2, int col, ColumnType type, bool exactDoubles)
         {
-            if (!type.IsVector)
+            if (!(type is VectorType vectorType))
             {
-                switch (type.RawKind)
+                Type rawType = type.RawType;
+                if (rawType == typeof(sbyte))
+                    return GetComparerOne<sbyte>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(byte))
+                    return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(short))
+                    return GetComparerOne<short>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(ushort))
+                    return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(int))
+                    return GetComparerOne<int>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(uint))
+                    return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(long))
+                    return GetComparerOne<long>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(ulong))
+                    return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(float))
+                    return GetComparerOne<float>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                else if (rawType == typeof(double))
                 {
-                    case DataKind.I1:
-                        return GetComparerOne<sbyte>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U1:
-                        return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.I2:
-                        return GetComparerOne<short>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U2:
-                        return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.I4:
-                        return GetComparerOne<int>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U4:
-                        return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.I8:
-                        return GetComparerOne<long>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U8:
-                        return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.R4:
-                        return GetComparerOne<Single>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                    case DataKind.R8:
-                        if (exactDoubles)
-                            return GetComparerOne<Double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                        else
-                            return GetComparerOne<Double>(r1, r2, col, EqualWithEpsDouble);
-                    case DataKind.Text:
-                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a ,b) => a.Span.SequenceEqual(b.Span));
-                    case DataKind.Bool:
-                        return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.TimeSpan:
-                        return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.DT:
-                        return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.DZ:
-                        return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
-                    case DataKind.UG:
-                        return GetComparerOne<RowId>(r1, r2, col, (x, y) => x.Equals(y));
-                    case (DataKind)0:
-                        // We cannot compare custom types (including image).
-                        return () => true;
+                    if (exactDoubles)
+                        return GetComparerOne<double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    else
+                        return GetComparerOne<double>(r1, r2, col, EqualWithEpsDouble);
                 }
+                else if (rawType == typeof(ReadOnlyMemory<char>))
+                    return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a, b) => a.Span.SequenceEqual(b.Span));
+                else if (rawType == typeof(bool))
+                    return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(TimeSpan))
+                    return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(DateTime))
+                    return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(DateTimeOffset))
+                    return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
+                else if (rawType == typeof(RowId))
+                    return GetComparerOne<RowId>(r1, r2, col, (x, y) => x.Equals(y));
+                else
+                    return () => true;
             }
             else
             {
-                int size = type.VectorSize;
+                int size = vectorType.Size;
                 Contracts.Assert(size >= 0);
-                switch (type.ItemType.RawKind)
+                Type itemType = vectorType.ItemType.RawType;
+
+                if (itemType == typeof(sbyte))
+                    return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(byte))
+                    return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(short))
+                    return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(ushort))
+                    return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(int))
+                    return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(uint))
+                    return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(long))
+                    return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(ulong))
+                    return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(float))
                 {
-                    case DataKind.I1:
-                        return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U1:
-                        return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I2:
-                        return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U2:
-                        return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I4:
-                        return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U4:
-                        return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I8:
-                        return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U8:
-                        return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.R4:
-                        if (exactDoubles)
-                            return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                        else
-                            return GetComparerVec<Single>(r1, r2, col, size, EqualWithEpsSingle);
-                    case DataKind.R8:
-                        if (exactDoubles)
-                            return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                        else
-                            return GetComparerVec<Double>(r1, r2, col, size, EqualWithEpsDouble);
-                    case DataKind.Text:
-                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
-                    case DataKind.Bool:
-                        return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.TimeSpan:
-                        return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.DT:
-                        return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.DZ:
-                        return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
-                    case DataKind.UG:
-                        return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    if (exactDoubles)
+                        return GetComparerVec<float>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    else
+                        return GetComparerVec<float>(r1, r2, col, size, EqualWithEpsSingle);
                 }
+                else if (itemType == typeof(double))
+                {
+                    if (exactDoubles)
+                        return GetComparerVec<double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    else
+                        return GetComparerVec<double>(r1, r2, col, size, EqualWithEpsDouble);
+                }
+                else if (itemType == typeof(ReadOnlyMemory<char>))
+                    return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
+                else if (itemType == typeof(bool))
+                    return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(TimeSpan))
+                    return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(DateTime))
+                    return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(DateTimeOffset))
+                    return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
+                else if (itemType == typeof(RowId))
+                    return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
             }
 
 #if !CORECLR // REVIEW: Port Picture type to CoreTLC.

@@ -137,7 +137,7 @@ namespace Microsoft.ML.Data.Commands
         {
             Contracts.AssertValue(ch);
             ch.AssertValue(type);
-            ch.Assert(type.IsStandardScalar);
+            ch.Assert(type.IsStandardScalar());
 
             var conv = Conversions.Instance;
             InPredicate<T> isNaDel;

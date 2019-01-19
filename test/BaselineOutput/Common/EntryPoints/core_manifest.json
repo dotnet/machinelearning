@@ -464,9 +464,6 @@
           "Type": "DataView",
           "Desc": "The resulting data view"
         }
-      ],
-      "InputKind": [
-        "ILearningPipelineLoader"
       ]
     },
     {
@@ -6585,7 +6582,7 @@
         {
           "Name": "UnbalancedSets",
           "Type": "Bool",
-          "Desc": "Should we use derivatives optimized for unbalanced sets",
+          "Desc": "Option for using derivatives optimized for unbalanced sets",
           "Aliases": [
             "us"
           ],
@@ -6597,7 +6594,7 @@
         {
           "Name": "BestStepRankingRegressionTrees",
           "Type": "Bool",
-          "Desc": "Use best regression step trees?",
+          "Desc": "Option for using best regression step trees",
           "Aliases": [
             "bsr"
           ],
@@ -7590,7 +7587,7 @@
         {
           "Name": "BestStepRankingRegressionTrees",
           "Type": "Bool",
-          "Desc": "Use best regression step trees?",
+          "Desc": "Option for using best regression step trees",
           "Aliases": [
             "bsr"
           ],
@@ -8490,7 +8487,7 @@
         {
           "Name": "BestStepRankingRegressionTrees",
           "Type": "Bool",
-          "Desc": "Use best regression step trees?",
+          "Desc": "Option for using best regression step trees",
           "Aliases": [
             "bsr"
           ],
@@ -9399,7 +9396,7 @@
         {
           "Name": "BestStepRankingRegressionTrees",
           "Type": "Bool",
-          "Desc": "Use best regression step trees?",
+          "Desc": "Option for using best regression step trees",
           "Aliases": [
             "bsr"
           ],
@@ -25154,7 +25151,7 @@
             {
               "Name": "UnbalancedSets",
               "Type": "Bool",
-              "Desc": "Should we use derivatives optimized for unbalanced sets",
+              "Desc": "Option for using derivatives optimized for unbalanced sets",
               "Aliases": [
                 "us"
               ],
@@ -25166,7 +25163,7 @@
             {
               "Name": "BestStepRankingRegressionTrees",
               "Type": "Bool",
-              "Desc": "Use best regression step trees?",
+              "Desc": "Option for using best regression step trees",
               "Aliases": [
                 "bsr"
               ],
@@ -26141,7 +26138,7 @@
             {
               "Name": "BestStepRankingRegressionTrees",
               "Type": "Bool",
-              "Desc": "Use best regression step trees?",
+              "Desc": "Option for using best regression step trees",
               "Aliases": [
                 "bsr"
               ],
@@ -27023,7 +27020,7 @@
             {
               "Name": "BestStepRankingRegressionTrees",
               "Type": "Bool",
-              "Desc": "Use best regression step trees?",
+              "Desc": "Option for using best regression step trees",
               "Aliases": [
                 "bsr"
               ],
@@ -27914,7 +27911,7 @@
             {
               "Name": "BestStepRankingRegressionTrees",
               "Type": "Bool",
-              "Desc": "Use best regression step trees?",
+              "Desc": "Option for using best regression step trees",
               "Aliases": [
                 "bsr"
               ],
@@ -29195,10 +29192,6 @@
           "Type": "DataView"
         }
       ]
-    },
-    {
-      "Kind": "ILearningPipelineLoader",
-      "Settings": []
     },
     {
       "Kind": "IMulticlassClassificationOutput",

@@ -553,7 +553,7 @@ namespace Microsoft.ML
         /// into a vector of floats over a set of topics.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns"> Describes the parameters of LDA for each column pair.</param>
+        /// <param name="columns">Describes the parameters of LDA for each column pair.</param>
         public static LatentDirichletAllocationEstimator LatentDirichletAllocation(this TransformsCatalog.TextTransforms catalog, params LatentDirichletAllocationTransformer.ColumnInfo[] columns)
             => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }

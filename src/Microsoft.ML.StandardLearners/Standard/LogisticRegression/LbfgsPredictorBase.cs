@@ -156,7 +156,6 @@ namespace Microsoft.ML.Learners
             string featureColumn,
             SchemaShape.Column labelColumn,
             string weightColumn,
-            Action<TArgs> advancedSettings,
             float l1Weight,
             float l2Weight,
             float optimizationTolerance,
@@ -166,14 +165,14 @@ namespace Microsoft.ML.Learners
                         {
                             FeatureColumn = featureColumn,
                             LabelColumn = labelColumn.Name,
-                            WeightColumn = weightColumn ?? Optional<string>.Explicit(weightColumn),
+                            WeightColumn = weightColumn != null ? Optional<string>.Explicit(weightColumn) : Optional<string>.Implicit(DefaultColumnNames.Weight),
                             L1Weight = l1Weight,
                             L2Weight = l2Weight,
                             OptTol = optimizationTolerance,
                             MemorySize = memorySize,
                             EnforceNonNegativity = enforceNoNegativity
                         },
-                  labelColumn, advancedSettings)
+                  labelColumn)
         {
         }
 
@@ -182,7 +181,7 @@ namespace Microsoft.ML.Learners
             SchemaShape.Column labelColumn,
             Action<TArgs> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+                  labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;

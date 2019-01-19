@@ -220,10 +220,10 @@ namespace Microsoft.ML.Data
                     var meta = new MetadataBuilder();
 
                     if (builder._getSlotNames.TryGetValue(builder._names[i], out var slotNamesGetter))
-                        meta.AddSlotNames(_columns[i].Type.VectorSize, slotNamesGetter);
+                        meta.AddSlotNames(_columns[i].Type.GetVectorSize(), slotNamesGetter);
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
-                        meta.AddKeyValues(_columns[i].Type.KeyCount, TextType.Instance, keyValueGetter);
+                        meta.AddKeyValues(_columns[i].Type.GetKeyCount(), TextType.Instance, keyValueGetter);
                     schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.GetMetadata());
                 }
 

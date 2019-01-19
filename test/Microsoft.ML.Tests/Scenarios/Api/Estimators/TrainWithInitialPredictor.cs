@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Data;
 using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// The scenario might be one of the online linear learners that can take advantage of this, for example, averaged perceptron.
         /// </summary>
         [Fact]
-        public void New_TrainWithInitialPredictor()
+        public void TrainWithInitialPredictor()
         {
 
             var ml = new MLContext(seed: 1, conc: 1);
@@ -30,7 +31,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var trainData = ml.Data.Cache(pipeline.Fit(data).Transform(data));
 
             // Train the first predictor.
-            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features",advancedSettings: s => s.NumThreads = 1);
+            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options { NumThreads = 1 });
+
             var firstModel = trainer.Fit(trainData);
 
             // Train the second predictor on the same data.

@@ -264,38 +264,6 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Manufacture an instance of <see cref="Schema"/> out of any <see cref="ISchema"/>.
-        /// </summary>
-        [BestFriend]
-        internal static Schema Create(ISchema inputSchema)
-        {
-            Contracts.CheckValue(inputSchema, nameof(inputSchema));
-
-            var builder = new SchemaBuilder();
-            for (int i = 0; i < inputSchema.ColumnCount; i++)
-            {
-                var meta = new MetadataBuilder();
-                foreach (var kvp in inputSchema.GetMetadataTypes(i))
-                {
-                    var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputSchema, i, kvp.Key);
-                    meta.Add(kvp.Key, kvp.Value, getter);
-                }
-                builder.AddColumn(inputSchema.GetColumnName(i), inputSchema.GetColumnType(i), meta.GetMetadata());
-            }
-
-            return builder.GetSchema();
-        }
-
-        private static Delegate GetMetadataGetterDelegate<TValue>(ISchema schema, int col, string kind)
-        {
-            // REVIEW: We are facing a choice here: cache 'value' and get rid of 'schema' reference altogether,
-            // or retain the reference but be more memory efficient. This code should not stick around for too long
-            // anyway, so let's not sweat too much, and opt for the latter.
-            ValueGetter<TValue> getter = (ref TValue value) => schema.GetMetadata(kind, col, ref value);
-            return getter;
-        }
-
-        /// <summary>
         /// Legacy method to get the column index.
         /// DO NOT USE: use <see cref="GetColumnOrNull"/> instead.
         /// </summary>

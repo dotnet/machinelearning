@@ -9,9 +9,6 @@ using Microsoft.ML.EntryPoints;
 
 [assembly: LoadableClass(typeof(void), typeof(ImportTextData), null, typeof(SignatureEntryPointModule), "ImportTextData")]
 
-// The warning #612 is disabled because the following code uses legacy TextLoader.
-// Because that dependency will be removed form ML.NET, one needs to rewrite all places where legacy APIs are used.
-#pragma warning disable 612
 namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
@@ -44,6 +41,25 @@ namespace Microsoft.ML.EntryPoints
             var loader = host.CreateLoader(string.Format("Text{{{0}}}", input.CustomSchema), new FileHandleSource(input.InputFile));
             return new Output { Data = loader };
         }
+
+        public sealed class LoaderInput
+        {
+            [Argument(ArgumentType.Required, ShortName = "data", HelpText = "Location of the input file", SortOrder = 1)]
+            public IFileHandle InputFile;
+
+            [Argument(ArgumentType.Required, ShortName = "args", HelpText = "Arguments", SortOrder = 2)]
+            public TextLoader.Arguments Arguments = new TextLoader.Arguments();
+        }
+
+        [TlcModule.EntryPoint(Name = "Data.TextLoader", Desc = "Import a dataset from a text file")]
+        public static Output TextLoader(IHostEnvironment env, LoaderInput input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("ImportTextData");
+            env.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
+            var loader = host.CreateLoader(input.Arguments, new FileHandleSource(input.InputFile));
+            return new Output { Data = loader };
+        }
     }
 }
-#pragma warning restore 612

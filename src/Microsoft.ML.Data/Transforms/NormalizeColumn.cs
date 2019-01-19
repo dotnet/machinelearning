@@ -180,12 +180,18 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             public string TestType(ColumnType type)
             {
-                if (type.ItemType != NumberType.R4 && type.ItemType != NumberType.R8)
-                    return "Expected R4 or R8 item type";
+                ColumnType itemType = type;
+                if (type is VectorType vectorType)
+                {
+                    // We require vectors to be of known size.
+                    if (!vectorType.IsKnownSize)
+                        return "Expected known size vector";
 
-                // We require vectors to be of known size.
-                if (type.IsVector && !type.IsKnownSizeVector)
-                    return "Expected known size vector";
+                    itemType = vectorType.ItemType;
+                }
+
+                if (itemType != NumberType.R4 && itemType != NumberType.R8)
+                    return "Expected R4 or R8 item type";
 
                 return null;
             }
@@ -255,7 +261,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        public static IDataTransform CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string name, string source = null)
+        public static IDataView CreateMinMaxNormalizer(IHostEnvironment env, IDataView input, string name, string source = null)
         {
             Contracts.CheckValue(env, nameof(env));
 
@@ -264,9 +270,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Public create method corresponding to SignatureDataTransform.
+        /// Factory method corresponding to SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, MinMaxArguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, MinMaxArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -283,10 +289,8 @@ namespace Microsoft.ML.Transforms.Normalizers
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
-        /// <summary>
-        /// Public create method corresponding to SignatureDataTransform.
-        /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, MeanVarArguments args, IDataView input)
+        // Factory method corresponding to SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, MeanVarArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -304,9 +308,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Public create method corresponding to SignatureDataTransform.
+        /// Factory method corresponding to SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, LogMeanVarArguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, LogMeanVarArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -324,9 +328,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Public create method corresponding to SignatureDataTransform.
+        /// Factory method corresponding to SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, BinArguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, BinArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -370,19 +374,19 @@ namespace Microsoft.ML.Transforms.Normalizers
             public static AffineColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
                 Contracts.CheckValue(host, nameof(host));
-                if (typeSrc.IsNumber)
+                if (typeSrc is NumberType)
                 {
                     if (typeSrc == NumberType.R4)
                         return Sng.ImplOne.Create(ctx, host, typeSrc);
                     if (typeSrc == NumberType.R8)
                         return Dbl.ImplOne.Create(ctx, host, typeSrc);
                 }
-                else if (typeSrc.ItemType.IsNumber)
+                else if (typeSrc is VectorType vectorType && vectorType.ItemType is NumberType)
                 {
-                    if (typeSrc.ItemType == NumberType.R4)
-                        return Sng.ImplVec.Create(ctx, host, typeSrc);
-                    if (typeSrc.ItemType == NumberType.R8)
-                        return Dbl.ImplVec.Create(ctx, host, typeSrc);
+                    if (vectorType.ItemType == NumberType.R4)
+                        return Sng.ImplVec.Create(ctx, host, vectorType);
+                    if (vectorType.ItemType == NumberType.R8)
+                        return Dbl.ImplVec.Create(ctx, host, vectorType);
                 }
                 throw host.ExceptUserArg(nameof(AffineArgumentsBase.Column), "Wrong column type. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", typeSrc.ToString());
             }
@@ -435,8 +439,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
-                    Host.Check(typeSrc.VectorSize == Scale.Length);
-                    Host.Check(typeSrc.ItemType.RawType == typeof(TFloat));
+                    Host.Check(typeSrc.GetVectorSize() == Scale.Length);
+                    Host.Check(typeSrc.GetItemType().RawType == typeof(TFloat));
                     bldr.AddGetter<VBuffer<TFloat>>("AffineScale", typeSrc, ScaleMetadataGetter);
                     if (Offset != null)
                         bldr.AddGetter<VBuffer<TFloat>>("AffineOffset", typeSrc, OffsetMetadataGetter);
@@ -487,19 +491,19 @@ namespace Microsoft.ML.Transforms.Normalizers
             public static CdfColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
                 Contracts.CheckValue(host, nameof(host));
-                if (typeSrc.IsNumber)
+                if (typeSrc is NumberType)
                 {
                     if (typeSrc == NumberType.R4)
                         return Sng.ImplOne.Create(ctx, host, typeSrc);
                     if (typeSrc == NumberType.R8)
                         return Dbl.ImplOne.Create(ctx, host, typeSrc);
                 }
-                else if (typeSrc.ItemType.IsNumber)
+                else if (typeSrc is VectorType vectorType && vectorType.ItemType is NumberType)
                 {
-                    if (typeSrc.ItemType == NumberType.R4)
-                        return Sng.ImplVec.Create(ctx, host, typeSrc);
-                    if (typeSrc.ItemType == NumberType.R8)
-                        return Dbl.ImplVec.Create(ctx, host, typeSrc);
+                    if (vectorType.ItemType == NumberType.R4)
+                        return Sng.ImplVec.Create(ctx, host, vectorType);
+                    if (vectorType.ItemType == NumberType.R8)
+                        return Dbl.ImplVec.Create(ctx, host, vectorType);
                 }
                 throw host.ExceptUserArg(nameof(AffineArgumentsBase.Column), "Wrong column type. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", typeSrc);
             }
@@ -553,8 +557,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
-                    Host.Check(typeSrc.VectorSize == Mean.Length);
-                    Host.Check(typeSrc.ItemType.RawType == typeof(TFloat));
+                    Host.Check(typeSrc.GetVectorSize() == Mean.Length);
+                    Host.Check(typeSrc.GetItemType().RawType == typeof(TFloat));
                     bldr.AddGetter<VBuffer<TFloat>>("CdfMean", typeSrc, MeanMetadataGetter);
                     bldr.AddGetter<VBuffer<TFloat>>("CdfStdDev", typeSrc, StddevMetadataGetter);
                     bldr.AddPrimitive("CdfUseLog", BoolType.Instance, UseLog);
@@ -621,19 +625,19 @@ namespace Microsoft.ML.Transforms.Normalizers
             public static BinColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
                 Contracts.CheckValue(host, nameof(host));
-                if (typeSrc.IsNumber)
+                if (typeSrc is NumberType)
                 {
                     if (typeSrc == NumberType.R4)
                         return Sng.ImplOne.Create(ctx, host, typeSrc);
                     if (typeSrc == NumberType.R8)
                         return Dbl.ImplOne.Create(ctx, host, typeSrc);
                 }
-                if (typeSrc.IsVector && typeSrc.ItemType.IsNumber)
+                if (typeSrc is VectorType vectorType && vectorType.ItemType is NumberType)
                 {
-                    if (typeSrc.ItemType == NumberType.R4)
-                        return Sng.ImplVec.Create(ctx, host, typeSrc);
-                    if (typeSrc.ItemType == NumberType.R8)
-                        return Dbl.ImplVec.Create(ctx, host, typeSrc);
+                    if (vectorType.ItemType == NumberType.R4)
+                        return Sng.ImplVec.Create(ctx, host, vectorType);
+                    if (vectorType.ItemType == NumberType.R8)
+                        return Dbl.ImplVec.Create(ctx, host, vectorType);
                 }
                 throw host.ExceptUserArg(nameof(BinArguments.Column), "Wrong column type. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", typeSrc);
             }
@@ -746,14 +750,14 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
                 // The label column type is checked as part of args validation.
                 var type = row.Schema[col].Type;
-                Host.Assert(type.IsKey || type.IsNumber);
+                Host.Assert(type is KeyType || type is NumberType);
 
-                if (type.IsKey)
+                if (type is KeyType keyType)
                 {
-                    Host.Assert(type.KeyCount > 0);
-                    labelCardinality = type.KeyCount;
+                    Host.Assert(keyType.Count > 0);
+                    labelCardinality = keyType.Count;
 
-                    int size = type.KeyCount;
+                    int size = keyType.Count;
                     ulong src = 0;
                     var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col);
                     return
@@ -849,8 +853,8 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
                 _colValueGetter = dataRow.GetGetter<VBuffer<TFloat>>(valueColId);
                 var valueColType = dataRow.Schema[valueColId].Type;
-                Host.Assert(valueColType.IsKnownSizeVector);
-                ColumnSlotCount = valueColType.ValueCount;
+                Host.Assert(valueColType.IsKnownSizeVector());
+                ColumnSlotCount = valueColType.GetValueCount();
 
                 ColValues = new List<TFloat>[ColumnSlotCount];
                 for (int i = 0; i < ColumnSlotCount; i++)
@@ -914,19 +918,19 @@ namespace Microsoft.ML.Transforms.Normalizers
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MinMaxColumn column, IHost host,
                 int srcIndex, ColumnType srcType, RowCursor cursor)
             {
-                if (srcType.IsNumber)
+                if (srcType is NumberType)
                 {
                     if (srcType == NumberType.R4)
                         return Sng.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
                     if (srcType == NumberType.R8)
                         return Dbl.MinMaxOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
                 }
-                if (srcType.IsKnownSizeVector && srcType.ItemType.IsNumber)
+                if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberType)
                 {
-                    if (srcType.ItemType == NumberType.R4)
-                        return Sng.MinMaxVecColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
-                    if (srcType.ItemType == NumberType.R8)
-                        return Dbl.MinMaxVecColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                    if (vectorType.ItemType == NumberType.R4)
+                        return Sng.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                    if (vectorType.ItemType == NumberType.R8)
+                        return Dbl.MinMaxVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
                 }
                 throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", srcType.ToString());
             }
@@ -953,19 +957,19 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
                 Contracts.AssertValue(host);
 
-                if (srcType.IsNumber)
+                if (srcType is NumberType)
                 {
                     if (srcType == NumberType.R4)
                         return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
                     if (srcType == NumberType.R8)
                         return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
                 }
-                if (srcType.IsKnownSizeVector && srcType.ItemType.IsNumber)
+                if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberType)
                 {
-                    if (srcType.ItemType == NumberType.R4)
-                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
-                    if (srcType.ItemType == NumberType.R8)
-                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                    if (vectorType.ItemType == NumberType.R4)
+                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                    if (vectorType.ItemType == NumberType.R8)
+                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
                 }
                 throw host.ExceptParam(nameof(srcType), "Wrong column type for input column. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", srcType.ToString());
             }
@@ -993,19 +997,19 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.AssertValue(host);
                 host.AssertValue(column);
 
-                if (srcType.IsNumber)
+                if (srcType is NumberType)
                 {
                     if (srcType == NumberType.R4)
                         return Sng.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
                     if (srcType == NumberType.R8)
                         return Dbl.MeanVarOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
                 }
-                if (srcType.IsKnownSizeVector && srcType.ItemType.IsNumber)
+                if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberType)
                 {
-                    if (srcType.ItemType == NumberType.R4)
-                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
-                    if (srcType.ItemType == NumberType.R8)
-                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                    if (vectorType.ItemType == NumberType.R4)
+                        return Sng.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                    if (vectorType.ItemType == NumberType.R8)
+                        return Dbl.MeanVarVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
                 }
                 throw host.ExceptUserArg(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.Input, srcType.ToString());
             }
@@ -1032,19 +1036,19 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
                 Contracts.AssertValue(host);
 
-                if (srcType.IsNumber)
+                if (srcType is NumberType)
                 {
                     if (srcType == NumberType.R4)
                         return Sng.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Single>(srcIndex));
                     if (srcType == NumberType.R8)
                         return Dbl.BinOneColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<Double>(srcIndex));
                 }
-                if (srcType.IsKnownSizeVector && srcType.ItemType.IsNumber)
+                if (srcType is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType is NumberType)
                 {
-                    if (srcType.ItemType == NumberType.R4)
-                        return Sng.BinVecColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
-                    if (srcType.ItemType == NumberType.R8)
-                        return Dbl.BinVecColumnFunctionBuilder.Create(column, host, srcType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
+                    if (vectorType.ItemType == NumberType.R4)
+                        return Sng.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Single>>(srcIndex));
+                    if (vectorType.ItemType == NumberType.R8)
+                        return Dbl.BinVecColumnFunctionBuilder.Create(column, host, vectorType, cursor.GetGetter<VBuffer<Double>>(srcIndex));
                 }
                 throw host.ExceptParam(nameof(column), "Wrong column type for column {0}. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {1}.", column.Input, srcType.ToString());
             }
@@ -1062,10 +1066,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                 host.CheckUserArg(!string.IsNullOrWhiteSpace(args.LabelColumn), nameof(args.LabelColumn), "Must specify the label column name");
                 int labelColumnId = GetLabelColumnId(host, cursor.Schema, args.LabelColumn);
                 var labelColumnType = cursor.Schema[labelColumnId].Type;
-                if (labelColumnType.IsKey)
-                    host.CheckUserArg(labelColumnType.KeyCount > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
+                if (labelColumnType is KeyType labelKeyType)
+                    host.CheckUserArg(labelKeyType.Count > 0, nameof(args.LabelColumn), "Label column must have a known cardinality");
                 else
-                    host.CheckUserArg(labelColumnType.IsNumber, nameof(args.LabelColumn), "Label column must be a number or a key type");
+                    host.CheckUserArg(labelColumnType is NumberType, nameof(args.LabelColumn), "Label column must be a number or a key type");
 
                 return CreateBuilder(
                     new NormalizingEstimator.SupervisedBinningColumn(
@@ -1091,18 +1095,18 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
                 Contracts.AssertValue(host);
 
-                if (srcType.IsNumber)
+                if (srcType is NumberType)
                 {
                     if (srcType == NumberType.R4)
                         return Sng.SupervisedBinOneColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                     if (srcType == NumberType.R8)
                         return Dbl.SupervisedBinOneColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                 }
-                if (srcType.IsVector && srcType.ItemType.IsNumber)
+                if (srcType is VectorType vectorType && vectorType.ItemType is NumberType)
                 {
-                    if (srcType.ItemType == NumberType.R4)
+                    if (vectorType.ItemType == NumberType.R4)
                         return Sng.SupervisedBinVecColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
-                    if (srcType.ItemType == NumberType.R8)
+                    if (vectorType.ItemType == NumberType.R8)
                         return Dbl.SupervisedBinVecColumnFunctionBuilder.Create(column, host, srcIndex, labelColumnId, cursor);
                 }
 

@@ -125,7 +125,7 @@ namespace Microsoft.ML.Data
             var schema = _data.Schema;
             for (int i = 0; i < n; i++)
             {
-                if (_columns[i].ColumnType.IsVector)
+                if (_columns[i].ColumnType is VectorType)
                     _peeks[i] = ApiUtils.GeneratePeek<TypedCursorable<TRow>, TRow>(_columns[i]);
                 _pokes[i] = ApiUtils.GeneratePoke<TypedCursorable<TRow>, TRow>(_columns[i]);
             }
@@ -139,9 +139,9 @@ namespace Microsoft.ML.Data
         {
             InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
             if (isVector)
-                return colType.IsVector && colType.ItemType.RawKind == kind;
+                return colType is VectorType vectorType && vectorType.ItemType.RawKind == kind;
             else
-                return !colType.IsVector && colType.RawKind == kind;
+                return !(colType is VectorType) && colType.RawKind == kind;
         }
 
         /// <summary>
@@ -274,34 +274,34 @@ namespace Microsoft.ML.Data
                     // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
-                        Ch.Assert(colType.ItemType.IsText);
+                        Ch.Assert(colType.GetItemType() is TextType);
                         return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
 
                     // VBuffer<T> -> T[]
                     if (fieldType.GetElementType().IsGenericType && fieldType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
-                        Ch.Assert(colType.ItemType.RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
+                        Ch.Assert(colType.GetItemType().RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
                     else
-                        Ch.Assert(colType.ItemType.RawType == fieldType.GetElementType());
+                        Ch.Assert(colType.GetItemType().RawType == fieldType.GetElementType());
                     del = CreateDirectVBufferSetter<int>;
                     genericType = fieldType.GetElementType();
                 }
-                else if (colType.IsVector)
+                else if (colType is VectorType vectorType)
                 {
                     // VBuffer<T> -> VBuffer<T>
                     // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
                     Ch.Assert(fieldType.IsGenericType);
                     Ch.Assert(fieldType.GetGenericTypeDefinition() == typeof(VBuffer<>));
-                    Ch.Assert(fieldType.GetGenericArguments()[0] == colType.ItemType.RawType);
+                    Ch.Assert(fieldType.GetGenericArguments()[0] == vectorType.ItemType.RawType);
                     del = CreateVBufferToVBufferSetter<int>;
-                    genericType = colType.ItemType.RawType;
+                    genericType = vectorType.ItemType.RawType;
                 }
-                else if (colType.IsPrimitive)
+                else if (colType is PrimitiveType)
                 {
                     if (fieldType == typeof(string))
                     {
                         // ReadOnlyMemory<char> -> String
-                        Ch.Assert(colType.IsText);
+                        Ch.Assert(colType is TextType);
                         Ch.Assert(peek == null);
                         return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }
@@ -544,41 +544,41 @@ namespace Microsoft.ML.Data
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
+        /// <param name="catalog">Context for performing this operation.</param>
         /// <param name="data">The underlying data view.</param>
-        /// <param name="env">The environment.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
-        public static ICursorable<TRow> AsCursorable<TRow>(this IDataView data, IHostEnvironment env, bool ignoreMissingColumns = false,
+        [BestFriend]
+        internal static ICursorable<TRow> AsCursorable<TRow>(this DataOperationsCatalog catalog, IDataView data, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
+            catalog.Environment.CheckValue(data, nameof(data));
+            catalog.Environment.CheckValueOrNull(schemaDefinition);
 
-            return TypedCursorable<TRow>.Create(env, data, ignoreMissingColumns, schemaDefinition);
+            return TypedCursorable<TRow>.Create(catalog.Environment, data, ignoreMissingColumns, schemaDefinition);
         }
 
         /// <summary>
         /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
         /// </summary>
         /// <typeparam name="TRow">The user-defined row type.</typeparam>
+        /// <param name="mlContext">Context where </param>
         /// <param name="data">The underlying data view.</param>
-        /// <param name="env">The environment.</param>
         /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The <see cref="IEnumerable{TRow}"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
-        public static IEnumerable<TRow> AsEnumerable<TRow>(this IDataView data, IHostEnvironment env, bool reuseRowObject,
+        public static IEnumerable<TRow> CreateEnumerable<TRow>(this MLContext mlContext, IDataView data, bool reuseRowObject,
             bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            Contracts.AssertValue(env);
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
+            Contracts.AssertValue(mlContext);
+            mlContext.CheckValue(data, nameof(data));
+            mlContext.CheckValueOrNull(schemaDefinition);
 
-            var engine = new PipeEngine<TRow>(env, data, ignoreMissingColumns, schemaDefinition);
+            var engine = new PipeEngine<TRow>(mlContext, data, ignoreMissingColumns, schemaDefinition);
             return engine.RunPipe(reuseRowObject);
         }
     }

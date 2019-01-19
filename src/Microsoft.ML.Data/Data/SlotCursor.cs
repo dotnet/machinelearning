@@ -10,7 +10,8 @@ namespace Microsoft.ML.Data
     /// A cursor that allows slot-by-slot access of data. This is to <see cref="ITransposeDataView"/>
     /// what <see cref="RowCursor"/> is to <see cref="IDataView"/>.
     /// </summary>
-    public abstract class SlotCursor : IDisposable
+    [BestFriend]
+    internal abstract class SlotCursor : IDisposable
     {
         [BestFriend]
         private protected readonly IChannel Ch;
@@ -45,14 +46,14 @@ namespace Microsoft.ML.Data
 
         /// <summary>
         /// The slot type for this cursor. Note that this should equal the
-        /// <see cref="ITransposeSchema.GetSlotType"/> for the column from which this slot cursor
+        /// <see cref="ITransposeDataView.GetSlotType"/> for the column from which this slot cursor
         /// was created.
         /// </summary>
         public abstract VectorType GetSlotType();
 
         /// <summary>
         /// A getter delegate for the slot values. The type <typeparamref name="TValue"/> must correspond
-        /// to the item type from <see cref="ITransposeSchema.GetSlotType"/>.
+        /// to the item type from <see cref="ITransposeDataView.GetSlotType"/>.
         /// </summary>
         public abstract ValueGetter<VBuffer<TValue>> GetGetter<TValue>();
 
