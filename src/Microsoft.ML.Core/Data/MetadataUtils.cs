@@ -342,6 +342,7 @@ namespace Microsoft.ML.Data
         [BestFriend]
         internal static bool HasKeyValues(this Schema.Column column, ColumnType type)
         {
+            // False if type is not KeyType because GetKeyCount() returns 0.
             ulong keyCount = type.GetKeyCount();
             if (keyCount == 0)
                 return false;

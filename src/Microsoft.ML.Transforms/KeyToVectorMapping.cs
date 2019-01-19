@@ -256,7 +256,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
                     typeNames = inputMetadata.Schema[metaKeyValuesCol].Type as VectorType;
                 if (typeNames == null || !typeNames.IsKnownSize || !(typeNames.ItemType is TextType) ||
-                    typeNames.Size != _infos[iinfo].TypeSrc.GetItemType().AssertRangeReturnCount(Host))
+                    typeNames.Size != _infos[iinfo].TypeSrc.GetItemType().ChecktRangeReturnCount(Host))
                 {
                     typeNames = null;
                 }

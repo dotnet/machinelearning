@@ -1220,10 +1220,9 @@ namespace Microsoft.ML.Data
 
                 var type = schema[i].Type;
                 var name = schema[i].Name;
-                int count = type.AssertRangeReturnCount(env);
                 if (i == stratCol)
                 {
-                    int typeKeyCount = type.AssertRangeReturnCount(env);
+                    int typeKeyCount = type.ChecktRangeReturnCount(env);
 
                     var keyValuesType = schema[i].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
                     if (keyValuesType == null || !(keyValuesType.ItemType is TextType) ||
@@ -1241,8 +1240,8 @@ namespace Microsoft.ML.Data
                         };
 
                     var keys = foldCol >= 0 ? new uint[] { 0, 0 } : new uint[] { 0 };
-                    dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, (ulong)count, keys);
-                    weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, (ulong)count, keys);
+                    dvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, type.GetKeyCount(), keys);
+                    weightedDvBldr?.AddColumn(MetricKinds.ColumnNames.StratCol, getKeyValues, type.GetKeyCount(), keys);
                 }
                 else if (i == stratVal)
                 {

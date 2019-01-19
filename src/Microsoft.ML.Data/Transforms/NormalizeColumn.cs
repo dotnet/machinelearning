@@ -754,10 +754,10 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                 if (type is KeyType keyType)
                 {
-                    Host.Assert(type.AssertRangeReturnCount(Host) > 0);
-                    labelCardinality = type.AssertRangeReturnCount(Host);
+                    Host.Assert(type.ChecktRangeReturnCount(Host) > 0);
+                    labelCardinality = type.ChecktRangeReturnCount(Host);
 
-                    int size = type.AssertRangeReturnCount(Host);
+                    int size = type.ChecktRangeReturnCount(Host);
                     ulong src = 0;
                     var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col);
                     return

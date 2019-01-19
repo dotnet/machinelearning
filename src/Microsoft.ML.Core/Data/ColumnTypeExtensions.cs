@@ -19,17 +19,17 @@ namespace Microsoft.ML.Data
             (columnType is TimeSpanType) || (columnType is DateTimeType) || (columnType is DateTimeOffsetType);
 
         /// <summary>
-        /// Zero return means either it's not a key type.
+        /// Zero return means it's not a key type.
         /// </summary>
         public static ulong GetKeyCount(this ColumnType columnType) => (columnType as KeyType)?.Count ?? 0;
 
         /// <summary>
         /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
         /// </summary>
-        public static int AssertRangeReturnCount(this ColumnType columnType, IExceptionContext ectx = null)
+        public static int ChecktRangeReturnCount(this ColumnType columnType, IExceptionContext ectx = null)
         {
             ulong count = columnType.GetKeyCount();
-            ectx.Assert(count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
+            ectx.Check(count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
             return (int)count;
         }
 
@@ -97,9 +97,9 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Sometimes it is necessary to cast the Count to an int. This performs overflow check.
         /// </summary>
-        public static int AssertRangeReturnCount(this KeyType key, IExceptionContext ectx = null)
+        public static int CheckRangeReturnCount(this KeyType key, IExceptionContext ectx = null)
         {
-            ectx.Assert(key.Count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
+            ectx.Check(key.Count <= int.MaxValue, nameof(KeyType) + "." + nameof(KeyType.Count) + " exceeds int.MaxValue.");
             return (int)key.Count;
         }
     }

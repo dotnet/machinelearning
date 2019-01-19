@@ -602,7 +602,7 @@ namespace Microsoft.ML.Transforms.Text
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 
                 // Get the key values of the unigrams.
-                var keyCount = _srcTypes[iinfo].GetItemType().AssertRangeReturnCount(Host);
+                var keyCount = _srcTypes[iinfo].GetItemType().ChecktRangeReturnCount(Host);
                 InputSchema[_srcCols[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref unigramNames);
                 Host.Check(unigramNames.Length == keyCount);
 

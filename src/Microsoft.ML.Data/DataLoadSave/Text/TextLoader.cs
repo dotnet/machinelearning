@@ -784,16 +784,13 @@ namespace Microsoft.ML.Data
                             int cnt = ctx.Reader.ReadInt32();
                             Contracts.CheckDecode(cnt >= 0);
                             count = (ulong)cnt;
+                            if (count == 0)
+                                count = kind.ToMaxInt();
                         }
                         else
                             count = ctx.Reader.ReadUInt64();
-                        if (count == 0)
-                            itemType = new KeyType(kind, 0);
-                        else
-                        {
-                            Contracts.CheckDecode(2 <= count && count <= kind.ToMaxInt());
-                            itemType = new KeyType(kind, count);
-                        }
+
+                        itemType = new KeyType(kind, count);
                     }
                     else
                         itemType = PrimitiveType.FromKind(kind);

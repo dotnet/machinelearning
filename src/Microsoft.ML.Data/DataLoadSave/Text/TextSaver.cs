@@ -492,13 +492,8 @@ namespace Microsoft.ML.Data.IO
             ColumnType itemType = vectorType?.ItemType ?? type;
             if (itemType is KeyType key)
             {
-                if (key.Count == 0)
-                    keyRange = new KeyRange();
-                else
-                {
-                    Contracts.Assert(key.Count >= 1);
-                    keyRange = new KeyRange(key.Count - 1);
-                }
+                keyRange = new KeyRange(key.Count - 1);
+                kind = key.RawKind;
             }
 
             DataKind kind = itemType.GetRawKind();

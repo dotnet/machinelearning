@@ -145,10 +145,10 @@ namespace Microsoft.ML.LightGBM
                 if (data.Schema.Label.Value.Type is KeyType keyType)
                 {
                     if (hasNaNLabel)
-                        _numClass = keyType.AssertRangeReturnCount(Host) + 1;
+                        _numClass = keyType.CheckRangeReturnCount(Host) + 1;
                     else
-                        _numClass = keyType.AssertRangeReturnCount(Host);
-                    _tlcNumClass = keyType.AssertRangeReturnCount(Host);
+                        _numClass = keyType.CheckRangeReturnCount(Host);
+                    _tlcNumClass = keyType.CheckRangeReturnCount(Host);
                 }
                 else
                 {
