@@ -81,11 +81,13 @@ namespace Microsoft.ML.Transforms
         {
             _modelFile = modelFile;
 
-            if (gpuDeviceId.HasValue)
+            // Reserve Int32.MinValue for test purpose.
+            if (gpuDeviceId.HasValue && gpuDeviceId.Value != Int32.MinValue)
             {
                 try
                 {
-                    _session = new InferenceSession(modelFile, SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
+                    _session = new InferenceSession(modelFile,
+                        SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
                 }
                 catch (OnnxRuntimeException)
                 {

@@ -231,15 +231,14 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        //[ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
-        [Fact(Skip = "Skip Temporaily")]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         void TestCommandLine()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
             var env = new MLContext();
-            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx} GpuDeviceId=0 FallbackToCpu=+}" });
+            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx} GpuDeviceId=" + Int32.MinValue + " FallbackToCpu=+}" });
             Assert.Equal(0, x);
         }
 
