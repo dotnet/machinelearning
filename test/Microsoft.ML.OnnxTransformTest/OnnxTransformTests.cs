@@ -339,7 +339,7 @@ namespace Microsoft.ML.Tests
             var idv = mlContext.CreateStreamingDataView(data);
             var pipeline = new OnnxScoringEstimator(mlContext, modelFile);
             var transformedValues = pipeline.Fit(idv).Transform(idv);
-            var predictions = transformedValues.AsEnumerable<PredictionUnknownDimensions>(mlContext, reuseRowObject: false).ToArray();
+            var predictions = mlContext.CreateEnumerable<PredictionUnknownDimensions>(transformedValues, reuseRowObject: false).ToArray();
 
             Assert.Equal(1, predictions[0].argmax[0]);
             Assert.Equal(0, predictions[1].argmax[0]);

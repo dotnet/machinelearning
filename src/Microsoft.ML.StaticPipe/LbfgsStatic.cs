@@ -22,7 +22,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="ctx">The binary classificaiton context trainer object.</param>
+        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -37,7 +37,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -68,7 +68,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="ctx">The binary classificaiton context trainer object.</param>
+        /// <param name="catalog">The binary classificaiton catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -79,7 +79,7 @@ namespace Microsoft.ML.StaticPipe
         /// be informed about what was learnt.</param>
         /// <param name="options">Advanced arguments to the algorithm.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label,
             Vector<float> features,
             Scalar<float> weights,
@@ -118,7 +118,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -133,7 +133,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> PoissonRegression(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -164,7 +164,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Learners.LogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="ctx">The regression context trainer object.</param>
+        /// <param name="catalog">The regression catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -175,7 +175,7 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> PoissonRegression(this RegressionContext.RegressionTrainers ctx,
+        public static Scalar<float> PoissonRegression(this RegressionCatalog.RegressionTrainers catalog,
             Scalar<float> label,
             Vector<float> features,
             Scalar<float> weights,
@@ -214,7 +214,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="ctx">The multiclass classification context trainer object.</param>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -230,7 +230,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            MultiClassLogisticRegression<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            MultiClassLogisticRegression<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights = null,
@@ -260,7 +260,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Learners.MulticlassLogisticRegression"/> trainer.
         /// </summary>
-        /// <param name="ctx">The multiclass classification context trainer object.</param>
+        /// <param name="catalog">The multiclass classification catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -272,7 +272,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            MultiClassLogisticRegression<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            MultiClassLogisticRegression<TVal>(this MulticlassClassificationCatalog.MulticlassClassificationTrainers catalog,
             Key<uint, TVal> label,
             Vector<float> features,
             Scalar<float> weights,

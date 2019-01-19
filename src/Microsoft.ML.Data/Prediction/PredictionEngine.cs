@@ -21,13 +21,13 @@ namespace Microsoft.ML
         private readonly ICursorable<TDst> _cursorablePipe;
         private long _counter;
 
-        internal PipeEngine(IHostEnvironment env, IDataView pipe, bool ignoreMissingColumns, SchemaDefinition schemaDefinition = null)
+        internal PipeEngine(MLContext mlContext, IDataView pipe, bool ignoreMissingColumns, SchemaDefinition schemaDefinition = null)
         {
-            Contracts.AssertValue(env);
-            env.AssertValue(pipe);
-            env.AssertValueOrNull(schemaDefinition);
+            Contracts.AssertValue(mlContext);
+            mlContext.AssertValue(pipe);
+            mlContext.AssertValueOrNull(schemaDefinition);
 
-            _cursorablePipe = pipe.AsCursorable<TDst>(env, ignoreMissingColumns, schemaDefinition);
+            _cursorablePipe = mlContext.Data.AsCursorable<TDst>(pipe, ignoreMissingColumns, schemaDefinition);
             _counter = 0;
         }
 

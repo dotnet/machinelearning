@@ -16,29 +16,29 @@ namespace Microsoft.ML
         /// <summary>
         /// Trainers and tasks specific to ranking problems.
         /// </summary>
-        public static RecommendationContext Recommendation(this MLContext ctx) => new RecommendationContext(ctx);
+        public static RecommendationCatalog Recommendation(this MLContext ctx) => new RecommendationCatalog(ctx);
     }
 
     /// <summary>
-    /// The central context for regression trainers.
+    /// The central catalog for recommendation trainers.
     /// </summary>
-    public sealed class RecommendationContext : TrainContextBase
+    public sealed class RecommendationCatalog : TrainCatalogBase
     {
         /// <summary>
-        /// For trainers for performing regression.
+        /// For trainers for performing recommendation.
         /// </summary>
         public RecommendationTrainers Trainers { get; }
 
-        public RecommendationContext(IHostEnvironment env)
-            : base(env, nameof(RecommendationContext))
+        public RecommendationCatalog(IHostEnvironment env)
+            : base(env, nameof(RecommendationCatalog))
         {
             Trainers = new RecommendationTrainers(this);
         }
 
-        public sealed class RecommendationTrainers : ContextInstantiatorBase
+        public sealed class RecommendationTrainers : CatalogInstantiatorBase
         {
-            internal RecommendationTrainers(RecommendationContext ctx)
-                : base(ctx)
+            internal RecommendationTrainers(RecommendationCatalog catalog)
+                : base(catalog)
             {
             }
 

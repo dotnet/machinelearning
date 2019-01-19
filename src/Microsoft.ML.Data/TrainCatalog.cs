@@ -13,11 +13,11 @@ using Microsoft.ML.Transforms.Conversions;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// A training context is an object instantiable by a user to do various tasks relating to a particular
+    /// A training catalog is an object instantiable by a user to do various tasks relating to a particular
     /// "area" of machine learning. A subclass would represent a particular task in machine learning. The idea
     /// is that a user can instantiate that particular area, and get trainers and evaluators.
     /// </summary>
-    public abstract class TrainContextBase
+    public abstract class TrainCatalogBase
     {
         protected readonly IHost Host;
 
@@ -110,7 +110,7 @@ namespace Microsoft.ML
             return result.ToArray();
         }
 
-        protected TrainContextBase(IHostEnvironment env, string registrationName)
+        protected TrainCatalogBase(IHostEnvironment env, string registrationName)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(registrationName, nameof(registrationName));
@@ -158,43 +158,43 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Subclasses of <see cref="TrainContext"/> will provide little "extension method" hookable objects
-        /// (for example, something like <see cref="BinaryClassificationContext.Trainers"/>). User code will only
+        /// (for example, something like <see cref="BinaryClassificationCatalog.Trainers"/>). User code will only
         /// interact with these objects by invoking the extension methods. The actual component code can work
         /// through <see cref="CatalogUtils"/> to get more "hidden" information from this object,
         /// for example, the environment.
         /// </summary>
-        public abstract class ContextInstantiatorBase
+        public abstract class CatalogInstantiatorBase
         {
             [BestFriend]
-            internal TrainContextBase Owner { get; }
+            internal TrainCatalogBase Owner { get; }
 
-            protected ContextInstantiatorBase(TrainContextBase ctx)
+            protected CatalogInstantiatorBase(TrainCatalogBase catalog)
             {
-                Owner = ctx;
+                Owner = catalog;
             }
         }
     }
 
     /// <summary>
-    /// The central context for binary classification trainers.
+    /// The central catalog for binary classification trainers.
     /// </summary>
-    public sealed class BinaryClassificationContext : TrainContextBase
+    public sealed class BinaryClassificationCatalog : TrainCatalogBase
     {
         /// <summary>
         /// For trainers for performing binary classification.
         /// </summary>
         public BinaryClassificationTrainers Trainers { get; }
 
-        public BinaryClassificationContext(IHostEnvironment env)
-            : base(env, nameof(BinaryClassificationContext))
+        public BinaryClassificationCatalog(IHostEnvironment env)
+            : base(env, nameof(BinaryClassificationCatalog))
         {
             Trainers = new BinaryClassificationTrainers(this);
         }
 
-        public sealed class BinaryClassificationTrainers : ContextInstantiatorBase
+        public sealed class BinaryClassificationTrainers : CatalogInstantiatorBase
         {
-            internal BinaryClassificationTrainers(BinaryClassificationContext ctx)
-                : base(ctx)
+            internal BinaryClassificationTrainers(BinaryClassificationCatalog catalog)
+                : base(catalog)
             {
             }
         }
@@ -292,9 +292,9 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central context for clustering trainers.
+    /// The central catalog for clustering trainers.
     /// </summary>
-    public sealed class ClusteringContext : TrainContextBase
+    public sealed class ClusteringCatalog : TrainCatalogBase
     {
         /// <summary>
         /// List of trainers for performing clustering.
@@ -304,16 +304,16 @@ namespace Microsoft.ML
         /// <summary>
         /// The clustering context.
         /// </summary>
-        public ClusteringContext(IHostEnvironment env)
-            : base(env, nameof(ClusteringContext))
+        public ClusteringCatalog(IHostEnvironment env)
+            : base(env, nameof(ClusteringCatalog))
         {
             Trainers = new ClusteringTrainers(this);
         }
 
-        public sealed class ClusteringTrainers : ContextInstantiatorBase
+        public sealed class ClusteringTrainers : CatalogInstantiatorBase
         {
-            internal ClusteringTrainers(ClusteringContext ctx)
-                : base(ctx)
+            internal ClusteringTrainers(ClusteringCatalog catalog)
+                : base(catalog)
             {
             }
         }
@@ -373,25 +373,25 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central context for multiclass classification trainers.
+    /// The central catalog for multiclass classification trainers.
     /// </summary>
-    public sealed class MulticlassClassificationContext : TrainContextBase
+    public sealed class MulticlassClassificationCatalog : TrainCatalogBase
     {
         /// <summary>
         /// For trainers for performing multiclass classification.
         /// </summary>
         public MulticlassClassificationTrainers Trainers { get; }
 
-        public MulticlassClassificationContext(IHostEnvironment env)
-            : base(env, nameof(MulticlassClassificationContext))
+        public MulticlassClassificationCatalog(IHostEnvironment env)
+            : base(env, nameof(MulticlassClassificationCatalog))
         {
             Trainers = new MulticlassClassificationTrainers(this);
         }
 
-        public sealed class MulticlassClassificationTrainers : ContextInstantiatorBase
+        public sealed class MulticlassClassificationTrainers : CatalogInstantiatorBase
         {
-            internal MulticlassClassificationTrainers(MulticlassClassificationContext ctx)
-                : base(ctx)
+            internal MulticlassClassificationTrainers(MulticlassClassificationCatalog catalog)
+                : base(catalog)
             {
             }
         }
@@ -449,25 +449,25 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central context for regression trainers.
+    /// The central catalog for regression trainers.
     /// </summary>
-    public sealed class RegressionContext : TrainContextBase
+    public sealed class RegressionCatalog : TrainCatalogBase
     {
         /// <summary>
         /// For trainers for performing regression.
         /// </summary>
         public RegressionTrainers Trainers { get; }
 
-        public RegressionContext(IHostEnvironment env)
-            : base(env, nameof(RegressionContext))
+        public RegressionCatalog(IHostEnvironment env)
+            : base(env, nameof(RegressionCatalog))
         {
             Trainers = new RegressionTrainers(this);
         }
 
-        public sealed class RegressionTrainers : ContextInstantiatorBase
+        public sealed class RegressionTrainers : CatalogInstantiatorBase
         {
-            internal RegressionTrainers(RegressionContext ctx)
-                : base(ctx)
+            internal RegressionTrainers(RegressionCatalog catalog)
+                : base(catalog)
             {
             }
         }
@@ -516,25 +516,25 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central context for ranking trainers.
+    /// The central catalog for ranking trainers.
     /// </summary>
-    public sealed class RankingContext : TrainContextBase
+    public sealed class RankingCatalog : TrainCatalogBase
     {
         /// <summary>
         /// For trainers for performing regression.
         /// </summary>
         public RankingTrainers Trainers { get; }
 
-        public RankingContext(IHostEnvironment env)
-            : base(env, nameof(RankingContext))
+        public RankingCatalog(IHostEnvironment env)
+            : base(env, nameof(RankingCatalog))
         {
             Trainers = new RankingTrainers(this);
         }
 
-        public sealed class RankingTrainers : ContextInstantiatorBase
+        public sealed class RankingTrainers : CatalogInstantiatorBase
         {
-            internal RankingTrainers(RankingContext ctx)
-                : base(ctx)
+            internal RankingTrainers(RankingCatalog catalog)
+                : base(catalog)
             {
             }
         }
