@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Float = System.Single;
 
 namespace Microsoft.ML.Trainers.FastTree
@@ -29,16 +28,10 @@ namespace Microsoft.ML.Trainers.FastTree
             int numLeaves,
             int numTrees,
             int minDatapointsInLeaves,
-            double learningRate,
-            Action<TArgs> advancedSettings)
-            : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDatapointsInLeaves, advancedSettings)
+            double learningRate)
+            : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDatapointsInLeaves)
         {
-
-            if (Args.LearningRates != learningRate)
-            {
-                using (var ch = Host.Start($"Setting learning rate to: {learningRate} as supplied in the direct arguments."))
-                    Args.LearningRates = learningRate;
-            }
+            Args.LearningRates = learningRate;
         }
 
         protected override void CheckArgs(IChannel ch)

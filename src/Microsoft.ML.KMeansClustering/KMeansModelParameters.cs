@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Trainers.KMeans;
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Trainers.KMeans;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(KMeansModelParameters), null, typeof(SignatureLoadModel),
     "KMeans predictor", KMeansModelParameters.LoaderSignature)]
@@ -28,10 +27,9 @@ namespace Microsoft.ML.Trainers.KMeans
     /// ]]></format>
     /// </example>
     public sealed class KMeansModelParameters :
-        PredictorBase<VBuffer<Float>>,
+        ModelParametersBase<VBuffer<Float>>,
         IValueMapper,
         ICanSaveInTextFormat,
-        ICanSaveModel,
         ISingleCanSaveOnnx
     {
         internal const string LoaderSignature = "KMeansPredictor";

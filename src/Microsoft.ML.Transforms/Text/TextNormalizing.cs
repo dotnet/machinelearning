@@ -4,19 +4,18 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), typeof(TextNormalizingTransformer.Arguments), typeof(SignatureDataTransform),
     "Text Normalizer Transform", "TextNormalizerTransform", "TextNormalizer", "TextNorm")]
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             if (!TextNormalizingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextNormalizingEstimator.ExpectedColumnType, type.ToString());
         }
@@ -208,8 +207,8 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < _types.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int srcCol);
-                    var srcType = inputSchema.GetColumnType(srcCol);
-                    _types[i] = srcType.IsVector ? new VectorType(TextType.Instance) : srcType;
+                    var srcType = inputSchema[srcCol].Type;
+                    _types[i] = srcType is VectorType ? new VectorType(TextType.Instance) : srcType;
                 }
             }
 
@@ -287,15 +286,14 @@ namespace Microsoft.ML.Transforms.Text
                 disposer = null;
 
                 var srcType = input.Schema[_parent.ColumnPairs[iinfo].input].Type;
-                Host.Assert(srcType.ItemType.IsText);
+                Host.Assert(srcType.GetItemType() is TextType);
 
-                if (srcType.IsVector)
+                if (srcType is VectorType vectorType)
                 {
-                    Host.Assert(srcType.VectorSize >= 0);
+                    Host.Assert(vectorType.Size >= 0);
                     return MakeGetterVec(input, iinfo);
                 }
 
-                Host.Assert(!srcType.IsVector);
                 return MakeGetterOne(input, iinfo);
             }
 
@@ -451,7 +449,7 @@ namespace Microsoft.ML.Transforms.Text
 
         }
 
-        public static bool IsColumnTypeValid(ColumnType type) => (type.ItemType.IsText);
+        public static bool IsColumnTypeValid(ColumnType type) => (type.GetItemType() is TextType);
 
         internal const string ExpectedColumnType = "Text or vector of text.";
 

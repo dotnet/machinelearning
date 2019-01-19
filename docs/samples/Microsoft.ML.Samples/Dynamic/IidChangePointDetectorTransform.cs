@@ -1,13 +1,15 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.TimeSeries;
 using System.IO;
+using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
+using Microsoft.ML.TimeSeries;
+using Microsoft.ML.TimeSeriesProcessing;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -64,7 +66,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = new IidChangePointEstimator(ml, args).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of ChangePointPrediction.
-            var predictionColumn = transformedData.AsEnumerable<ChangePointPrediction>(ml, reuseRowObject: false);
+            var predictionColumn = ml.CreateEnumerable<ChangePointPrediction>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");

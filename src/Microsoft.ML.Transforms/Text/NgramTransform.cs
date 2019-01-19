@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(NgramExtractingTransformer.Summary, typeof(IDataTransform), typeof(NgramExtractingTransformer), typeof(NgramExtractingTransformer.Arguments), typeof(SignatureDataTransform),
     "Ngram Transform", "NgramTransform", "Ngram")]
@@ -273,7 +272,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             if (!NgramExtractingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, NgramExtractingEstimator.ExpectedColumnType, type.ToString());
         }
@@ -285,7 +284,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int i = 0; i < columns.Length; i++)
             {
                 input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
-                var typeSrc = input.Schema.GetColumnType(srcCol);
+                var typeSrc = input.Schema[srcCol].Type;
                 transformInfos[i] = new TransformInfo(columns[i]);
             }
             _transformInfos = transformInfos.ToImmutableArray();
@@ -302,7 +301,7 @@ namespace Microsoft.ML.Transforms.Text
             // i in _counts counts how many (i+1)-grams are in the pool for column iinfo.
             var counts = new int[columns.Length][];
             var ngramMaps = new SequencePool[columns.Length];
-            var activeInput = new bool[trainingData.Schema.ColumnCount];
+            var activeInput = new bool[trainingData.Schema.Count];
             var srcTypes = new ColumnType[columns.Length];
             var srcCols = new int[columns.Length];
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
@@ -316,7 +315,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                 {
-                    env.Assert(srcTypes[iinfo].IsVector && srcTypes[iinfo].ItemType.IsKey);
+                    env.Assert(srcTypes[iinfo] is VectorType vectorType && vectorType.ItemType is KeyType);
                     var ngramLength = columns[iinfo].NgramLength;
                     var skipLength = columns[iinfo].SkipLength;
 
@@ -347,7 +346,7 @@ namespace Microsoft.ML.Transforms.Text
                     for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                     {
                         getters[iinfo](ref src[iinfo]);
-                        var keyCount = (uint)srcTypes[iinfo].ItemType.KeyCount;
+                        var keyCount = (uint)srcTypes[iinfo].GetItemType().GetKeyCount();
                         if (keyCount == 0)
                             keyCount = uint.MaxValue;
                         if (!infoFull[iinfo])
@@ -563,7 +562,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     _types[i] = new VectorType(NumberType.Float, _parent._ngramMaps[i].Count);
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
-                    _srcTypes[i] = inputSchema.GetColumnType(_srcCols[i]);
+                    _srcTypes[i] = inputSchema[_srcCols[i]].Type;
                 }
             }
 
@@ -582,7 +581,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
-                if (InputSchema.HasKeyValues(_srcCols[iinfo], _srcTypes[iinfo].ItemType.KeyCount))
+                if (InputSchema[_srcCols[iinfo]].HasKeyValues(_srcTypes[iinfo].GetItemType().GetKeyCount()))
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
@@ -598,13 +597,13 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
-                var keyCount = _srcTypes[iinfo].ItemType.KeyCount;
-                Host.Assert(InputSchema.HasKeyValues(_srcCols[iinfo], keyCount));
+                var keyCount = _srcTypes[iinfo].GetItemType().GetKeyCount();
+                Host.Assert(InputSchema[_srcCols[iinfo]].HasKeyValues(keyCount));
 
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 
                 // Get the key values of the unigrams.
-                InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, _srcCols[iinfo], ref unigramNames);
+                InputSchema[_srcCols[iinfo]].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref unigramNames);
                 Host.Check(unigramNames.Length == keyCount);
 
                 var pool = _parent._ngramMaps[iinfo];
@@ -678,7 +677,7 @@ namespace Microsoft.ML.Transforms.Text
                 var src = default(VBuffer<uint>);
                 var bldr = new NgramBufferBuilder(_parent._transformInfos[iinfo].NgramLength, _parent._transformInfos[iinfo].SkipLength,
                     _parent._ngramMaps[iinfo].Count, GetNgramIdFinder(iinfo));
-                var keyCount = (uint)_srcTypes[iinfo].ItemType.KeyCount;
+                var keyCount = (uint)_srcTypes[iinfo].GetItemType().GetKeyCount();
                 if (keyCount == 0)
                     keyCount = uint.MaxValue;
 
@@ -839,12 +838,12 @@ namespace Microsoft.ML.Transforms.Text
 
         internal static bool IsColumnTypeValid(ColumnType type)
         {
-            if (!type.IsVector)
+            if (!(type is VectorType vectorType))
                 return false;
-            if (!type.ItemType.IsKey)
+            if (!(vectorType.ItemType is KeyType itemKeyType))
                 return false;
             // Can only accept key types that can be converted to U4.
-            if (type.ItemType.KeyCount == 0 && type.ItemType.RawKind > DataKind.U4)
+            if (itemKeyType.Count == 0 && !NgramUtils.IsValidNgramRawType(itemKeyType.RawType))
                 return false;
             return true;
         }
@@ -856,7 +855,7 @@ namespace Microsoft.ML.Transforms.Text
             if (!col.IsKey)
                 return false;
             // Can only accept key types that can be converted to U4.
-            if (col.ItemType.RawKind > DataKind.U4)
+            if (!NgramUtils.IsValidNgramRawType(col.ItemType.RawType))
                 return false;
             return true;
         }

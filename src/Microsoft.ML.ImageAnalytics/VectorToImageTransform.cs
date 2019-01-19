@@ -5,13 +5,13 @@
 using System;
 using System.Drawing;
 using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(VectorToImageTransform.Summary, typeof(VectorToImageTransform), typeof(VectorToImageTransform.Arguments),
     typeof(SignatureDataTransform), VectorToImageTransform.UserName, "VectorToImageTransform", "VectorToImage")]
@@ -19,7 +19,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(VectorToImageTransform.Summary, typeof(VectorToImageTransform), null, typeof(SignatureLoadDataTransform),
     VectorToImageTransform.UserName, VectorToImageTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.ImageAnalytics
+namespace Microsoft.ML.ImageAnalytics
 {
     // REVIEW: Rewrite as LambdaTransform to simplify.
 
@@ -340,11 +340,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             var ex = _exes[iinfo];
             bool needScale = ex.Offset != 0 || ex.Scale != 1;
             disposer = null;
-            var sourceType = InputSchema.GetColumnType(Infos[iinfo].Source);
-            if (sourceType.ItemType == NumberType.R4 || sourceType.ItemType == NumberType.R8)
+            var sourceType = InputSchema[Infos[iinfo].Source].Type;
+            var sourceItemType = sourceType.GetItemType();
+            if (sourceItemType == NumberType.R4 || sourceItemType == NumberType.R8)
                 return GetterFromType<float>(input, iinfo, ex, needScale);
             else
-                if (sourceType.ItemType == NumberType.U1)
+                if (sourceItemType == NumberType.U1)
                 return GetterFromType<byte>(input, iinfo, ex, false);
             else
                 throw Contracts.Except("We only support float or byte arrays");
@@ -377,8 +378,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     int cpix = height * width;
                     int position = 0;
 
-                    for (int x = 0; x < width; x++)
-                        for (int y = 0; y < height; ++y)
+                    for (int y = 0; y < height; ++y)
+                        for (int x = 0; x < width; x++)
                         {
                             float red = 0;
                             float green = 0;

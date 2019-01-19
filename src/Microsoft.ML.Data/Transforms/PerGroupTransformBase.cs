@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This is a base implementation for a transform that in order to compute its output columns, needs to look
@@ -25,13 +24,13 @@ namespace Microsoft.ML.Runtime.Data
         /// Deriving classes only need to implement <see cref="ColumnBindingsBase.GetColumnTypeCore"/>.
         /// If any of the output columns have metadata, then the metadata methods should be overridden.
         /// </summary>
-        protected abstract class BindingsBase : ColumnBindingsBase
+        private protected abstract class BindingsBase : ColumnBindingsBase
         {
             public readonly int LabelIndex;
             public readonly int ScoreIndex;
             public readonly int GroupIndex;
 
-            protected BindingsBase(IExceptionContext ectx, ISchema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
+            protected BindingsBase(IExceptionContext ectx, Schema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
                 : base(input, user, names)
             {
                 ectx.AssertNonWhiteSpace(labelCol);
@@ -63,7 +62,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.AssertValue(predicate);
 
-                var active = new bool[Input.ColumnCount];
+                var active = new bool[Input.Count];
                 for (int col = 0; col < ColumnCount; col++)
                 {
                     if (!predicate(col))
@@ -145,18 +144,17 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveNonEmptyString(GroupCol);
         }
 
-        protected abstract BindingsBase GetBindings();
+        private protected abstract BindingsBase GetBindings();
 
         public long? GetRowCount()
         {
             return Source.GetRowCount();
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            consolidator = null;
             return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 

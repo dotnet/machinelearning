@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 
-[assembly: LoadableClass(MissingValueHandlingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueHandlingTransformer), typeof(MissingValueHandlingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(MissingValueHandlingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueHandlingTransformer),
+    typeof(MissingValueHandlingTransformer.Arguments), typeof(SignatureDataTransform),
     MissingValueHandlingTransformer.FriendlyName, "NAHandleTransform", MissingValueHandlingTransformer.ShortName, "NA", DocName = "transform/NAHandle.md")]
 
 namespace Microsoft.ML.Transforms
@@ -115,7 +116,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="replaceWith">The replacement method to utilize.</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source = null, ReplacementKind replaceWith = ReplacementKind.DefaultValue)
+        public static IDataView Create(IHostEnvironment env, IDataView input, string name, string source = null, ReplacementKind replaceWith = ReplacementKind.DefaultValue)
         {
             var args = new Arguments()
             {
@@ -128,7 +129,8 @@ namespace Microsoft.ML.Transforms
             return Create(env, args, input);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        /// Factory method for SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("Categorical");
@@ -158,11 +160,12 @@ namespace Microsoft.ML.Transforms
                 // so that they can be concatenated.
                 if (!input.Schema.TryGetColumnIndex(column.Source, out int inputCol))
                     throw h.Except("Column '{0}' does not exist", column.Source);
-                var replaceType = input.Schema.GetColumnType(inputCol);
-                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceType.ItemType, out Delegate conv, out bool identity))
+                var replaceType = input.Schema[inputCol].Type;
+                var replaceItemType = replaceType.GetItemType();
+                if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceItemType, out Delegate conv, out bool identity))
                 {
                     throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",
-                        BoolType.Instance, replaceType.ItemType);
+                        BoolType.Instance, replaceItemType);
                 }
 
                 // Find a temporary name for the NAReplaceTransform and NAIndicatorTransform output columns.
@@ -174,13 +177,13 @@ namespace Microsoft.ML.Transforms
 
                 // Add a ConvertTransform column if necessary.
                 if (!identity)
-                    naConvCols.Add(new TypeConvertingTransformer.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceType.ItemType.RawKind));
+                    naConvCols.Add(new TypeConvertingTransformer.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceItemType.RawKind));
 
                 // Add the NAReplaceTransform column.
                 replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(column.Source, tmpReplacementColName, (MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
 
                 // Add the ConcatTransform column.
-                if (replaceType.IsVector)
+                if (replaceType is VectorType)
                 {
                     concatCols.Add(new ColumnConcatenatingTransformer.TaggedColumn()
                     {

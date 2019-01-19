@@ -5,17 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Training;
 
-namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
+namespace Microsoft.ML.Ensemble.OutputCombiners
 {
-    using ColumnRole = RoleMappedSchema.ColumnRole;
     internal abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>
     {
         public abstract class ArgumentsBase
@@ -117,7 +115,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 
             var ivm = Meta as IValueMapper;
             Contracts.Check(ivm != null, "Stacking predictor doesn't implement the expected interface");
-            if (!ivm.InputType.IsVector || ivm.InputType.ItemType != NumberType.Float)
+            if (!(ivm.InputType is VectorType vectorType) || vectorType.ItemType != NumberType.Float)
                 throw Contracts.Except("Stacking predictor input type is unsupported: {0}", ivm.InputType);
             if (ivm.OutputType.RawType != typeof(TOutput))
                 throw Contracts.Except("Stacking predictor output type is unsupported: {0}", ivm.OutputType);

@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime.Model.Pfa
+namespace Microsoft.ML.Model.Pfa
 {
     [BestFriend]
     internal static class PfaUtils
@@ -157,30 +157,30 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             public static JToken PfaTypeOrNullForColumnType(ColumnType type)
             {
                 Contracts.CheckValue(type, nameof(type));
-                if (type.IsVector)
+                if (type is VectorType vectorType)
                 {
                     // We represent vectors as the union of array (for dense) and map (for sparse),
                     // of the appropriate item type.
-                    var itemType = PfaTypeOrNullCore(type.ItemType);
+                    var itemType = PfaTypeOrNullCore(vectorType.ItemType);
                     if (itemType == null)
                         return null;
                     return Array(itemType);
                 }
-                return PfaTypeOrNullCore(type.ItemType);
+                return PfaTypeOrNullCore(type);
             }
 
             private static JToken PfaTypeOrNullCore(ColumnType itemType)
             {
                 Contracts.AssertValue(itemType);
 
-                if (!itemType.IsPrimitive)
+                if (!(itemType is PrimitiveType))
                     return null;
 
-                if (itemType.IsKey)
+                if (itemType is KeyType keyType)
                 {
                     // Keys will retain the property that they are just numbers,
                     // with 0 representing missing.
-                    if (itemType.KeyCount > 0 || itemType.RawKind != DataKind.U8)
+                    if (keyType.Count > 0 || itemType.RawKind != DataKind.U8)
                         return Int;
                     return Long;
                 }
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             {
                 Contracts.CheckValue(itemType, nameof(itemType));
 
-                if (itemType.IsKey)
+                if (itemType is KeyType)
                     return 0;
 
                 switch (itemType.RawKind)

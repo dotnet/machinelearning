@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -16,18 +14,18 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// The learner might be trees with early stopping.
         /// </summary>
         [Fact]
-        public void New_TrainWithValidationSet()
+        public void TrainWithValidationSet()
         {
             var ml = new MLContext(seed: 1, conc: 1);
             // Pipeline.
-            var reader = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true);
+            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features");
 
             // Train the pipeline, prepare train and validation set.
-            var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
             var preprocess = pipeline.Fit(data);
             var trainData = preprocess.Transform(data);
-            var validData = preprocess.Transform(reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename)));
+            var validDataSource = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true);
+            var validData = preprocess.Transform(validDataSource);
 
             // Train model with validation set.
             var trainer = ml.BinaryClassification.Trainers.FastTree("Label","Features");

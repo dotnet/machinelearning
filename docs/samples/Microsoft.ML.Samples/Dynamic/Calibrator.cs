@@ -1,8 +1,7 @@
-﻿using Microsoft.ML.Calibrator;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.ML.Calibrator;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -29,7 +28,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var mlContext = new MLContext();
 
             // Create a text loader.
-            var reader = mlContext.Data.CreateTextReader(new TextLoader.Arguments()
+            var reader = mlContext.Data.CreateTextLoader(new TextLoader.Arguments()
             {
                 Separator = "tab",
                 HasHeader = true,

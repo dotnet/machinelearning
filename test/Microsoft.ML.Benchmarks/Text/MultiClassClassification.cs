@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Data;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Transforms.Categorical;
 using System.IO;
 
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPath_Wiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Benchmarks
                         " tr=OVA{p=AveragedPerceptron{iter=10}}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Benchmarks
                     " tr=LightGBMMulticlass{iter=10}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, LightGbmMulticlassTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, SdcaMultiClassTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
     }
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
+            _dataPath_Wiki = BaseTestClass.GetDataPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Benchmarks
                 " out={" + _modelPath_Wiki + "}";
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Benchmarks
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
     }
 }

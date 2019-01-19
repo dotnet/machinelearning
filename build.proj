@@ -78,7 +78,7 @@
   
   <ItemGroup Condition="'$(IncludeBenchmarkData)' == 'true'">
     <BenchmarkFile Update="@(BenchmarkFile)">
-      <Url>https://aka.ms/tlc-resources/benchmarks/%(Identity)</Url>
+      <Url>https://aka.ms/mlnet-resources/benchmarks/%(Identity)</Url>
       <DestinationFile>$(MSBuildThisFileDirectory)/test/data/external/%(Identity)</DestinationFile>
     </BenchmarkFile>
 

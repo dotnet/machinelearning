@@ -3,18 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Microsoft.ML.TimeSeries;
 
-namespace Microsoft.ML.Runtime.TimeSeriesProcessing
+namespace Microsoft.ML.TimeSeriesProcessing
 {
     // REVIEW: This base class and its children classes generate one output column of type VBuffer<Double> to output 3 different anomaly scores as well as
     // the alert flag. Ideally these 4 output information should be put in four seaparate columns instead of one VBuffer<> column. However, this is not currently
@@ -592,7 +590,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 if (!inputSchema.TryGetColumnIndex(parent.InputColumnName, out _inputColumnIndex))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName);
 
-                var colType = inputSchema.GetColumnType(_inputColumnIndex);
+                var colType = inputSchema[_inputColumnIndex].Type;
                 if (colType != NumberType.R4)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, NumberType.R4.ToString(), colType.ToString());
 

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
 using System;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public class TestDataset
     {
@@ -135,6 +135,15 @@ namespace Microsoft.ML.Runtime.RunTests
             trainFilename = "breast-cancer.txt",
             testFilename = "breast-cancer.txt",
             loaderSettings = "xf=expr{col=Features expr=x:float(x>4?1:0)}"
+        };
+
+        // The data set contains images of hand-written digits.
+        // The input is given in the form of matrix id 8x8 where
+        // each element is an integer in the range 0..16
+        public static TestDataset Digits = new TestDataset
+        {
+            name = "Digits",
+            trainFilename = @"external/digits.csv",
         };
 
         public static TestDataset vw = new TestDataset

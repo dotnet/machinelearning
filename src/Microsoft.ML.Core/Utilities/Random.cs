@@ -4,9 +4,9 @@
 
 using System;
 using System.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     [BestFriend]
     internal static class RandomUtils

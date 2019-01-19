@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(WordBagBuildingTransformer.Summary, typeof(IDataTransform), typeof(WordBagBuildingTransformer), typeof(WordBagBuildingTransformer.Arguments), typeof(SignatureDataTransform),
     "Word Bag Transform", "WordBagTransform", "WordBag")]
@@ -286,7 +285,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckNonWhiteSpace(col.Source, nameof(col.Source));
                 int colId;
                 if (input.Schema.TryGetColumnIndex(col.Source, out colId) &&
-                    input.Schema.GetColumnType(colId).ItemType.IsText)
+                    input.Schema[colId].Type.GetItemType() is TextType)
                 {
                     termCols.Add(col);
                     isTermCol[i] = true;
@@ -513,29 +512,18 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             IDataView view = input;
-            var concatCols = new List<ColumnConcatenatingTransformer.Column>();
+            var concatColumns = new List<ColumnConcatenatingTransformer.ColumnInfo>();
             foreach (var col in columns)
             {
                 env.CheckUserArg(col != null, nameof(WordBagBuildingTransformer.Arguments.Column));
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
-
                 if (col.Source.Length > 1)
-                {
-                    concatCols.Add(
-                        new ColumnConcatenatingTransformer.Column
-                        {
-                            Source = col.Source,
-                            Name = col.Name
-                        });
-                }
+                    concatColumns.Add(new ColumnConcatenatingTransformer.ColumnInfo(col.Name, col.Source));
             }
-            if (concatCols.Count > 0)
-            {
-                var concatArgs = new ColumnConcatenatingTransformer.Arguments { Column = concatCols.ToArray() };
-                return ColumnConcatenatingTransformer.Create(env, concatArgs, view);
-            }
+            if (concatColumns.Count > 0)
+                return new ColumnConcatenatingTransformer(env, concatColumns.ToArray()).Transform(view);
 
             return view;
         }

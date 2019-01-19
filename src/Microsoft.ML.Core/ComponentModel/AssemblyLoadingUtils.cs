@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     [Obsolete("The usage for this is intended for the internal command line utilities and is not intended for anything related to the API. " +
         "Please consider another way of doing whatever it is you're attempting to accomplish.")]
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime
                 case "neuraltreeevaluator.dll":
                 case "optimizationbuilderdotnet.dll":
                 case "parallelcommunicator.dll":
-                case "microsoft.ml.runtime.runtests.dll":
+                case "Microsoft.ML.runtests.dll":
                 case "scopecompiler.dll":
                 case "symsgdnative.dll":
                 case "tbb.dll":

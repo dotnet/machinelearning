@@ -2,22 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.TestFramework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.TestFramework;
 using Xunit;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public abstract partial class TestDataPipeBase : TestDataViewBase
     {
@@ -172,7 +171,7 @@ namespace Microsoft.ML.Runtime.RunTests
         protected IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
             Action<IDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
             bool forceDense = false, bool logCurs = false, bool roundTripText = true,
-            bool checkTranspose = false, bool checkId = true, bool baselineSchema = true)
+            bool checkTranspose = false, bool checkId = true, bool baselineSchema = true, int digitsOfPrecision = DigitsOfPrecision)
         {
             Contracts.AssertValue(Env);
 
@@ -223,7 +222,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     _env.ConcurrencyFactor = conc;
                 }
 
-                CheckEqualityNormalized("SavePipe", name);
+                CheckEqualityNormalized("SavePipe", name, digitsOfPrecision: digitsOfPrecision);
             }
 
             var pathModel = SavePipe(pipe1, suffix);
@@ -236,10 +235,10 @@ namespace Microsoft.ML.Runtime.RunTests
             else if (!CheckSameValues(pipe1, pipe2, checkId: checkId))
                 Failed();
 
-            if (pipe1.Schema.ColumnCount > 0)
+            if (pipe1.Schema.Count > 0)
             {
                 // The text saver fails if there are no columns, so we cannot check in that case.
-                if (!SaveLoadText(pipe1, _env, keepHidden, suffix, suffixBase, checkBaseline, forceDense, roundTripText))
+                if (!SaveLoadText(pipe1, _env, keepHidden, suffix, suffixBase, checkBaseline, forceDense, roundTripText, digitsOfPrecision: digitsOfPrecision))
                     Failed();
                 // The transpose saver likewise fails for the same reason.
                 if (checkTranspose && !SaveLoadTransposed(pipe1, _env, suffix))
@@ -280,7 +279,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ShowSchemaCommand.Arguments() { ShowMetadataValues = true, ShowSteps = true },
                         pipe1);
                 }
-                if (!CheckEquality("SavePipe", name))
+                if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision))
                     Log("*** ShowSchema failed on pipe1");
                 else
                 {
@@ -291,7 +290,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             new ShowSchemaCommand.Arguments() { ShowMetadataValues = true, ShowSteps = true },
                             pipe2);
                     }
-                    if (!CheckEquality("SavePipe", name))
+                    if (!CheckEquality("SavePipe", name, digitsOfPrecision: digitsOfPrecision))
                         Log("*** ShowSchema failed on pipe2");
                 }
             }
@@ -392,15 +391,15 @@ namespace Microsoft.ML.Runtime.RunTests
         protected bool SaveLoadText(IDataView view, IHostEnvironment env,
             bool hidden = true, string suffix = "", string suffixBase = null,
             bool checkBaseline = true, bool forceDense = false, bool roundTrip = true,
-            bool outputSchema = true, bool outputHeader = true)
+            bool outputSchema = true, bool outputHeader = true, int digitsOfPrecision = DigitsOfPrecision)
         {
             TextSaver saver = new TextSaver(env, new TextSaver.Arguments() { Dense = forceDense, OutputSchema = outputSchema, OutputHeader = outputHeader });
             var schema = view.Schema;
             List<int> savable = new List<int>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema.GetColumnType(c);
-                if (saver.IsColumnSavable(type) && (hidden || !schema.IsHidden(c)))
+                ColumnType type = schema[c].Type;
+                if (saver.IsColumnSavable(type) && (hidden || !schema[c].IsHidden))
                     savable.Add(c);
             }
 
@@ -414,13 +413,13 @@ namespace Microsoft.ML.Runtime.RunTests
             if (checkBaseline)
             {
                 string nameBase = suffixBase != null ? TestName + suffixBase + "-Data" + ".txt" : name;
-                CheckEquality("SavePipe", name, nameBase);
+                CheckEquality("SavePipe", name, nameBase, digitsOfPrecision: digitsOfPrecision);
             }
 
             if (!roundTrip)
                 return true;
 
-            if (savable.Count < view.Schema.ColumnCount)
+            if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
@@ -487,28 +486,27 @@ namespace Microsoft.ML.Runtime.RunTests
         protected bool CheckMetadataTypes(Schema sch)
         {
             var hs = new HashSet<string>();
-            for (int col = 0; col < sch.ColumnCount; col++)
+            for (int col = 0; col < sch.Count; col++)
             {
-                var typeSlot = sch.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, col);
-                var typeKeys = sch.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, col);
-                var all = sch.GetMetadataTypes(col);
+                var typeSlot = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
+                var typeKeys = sch[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type;
 
                 hs.Clear();
-                foreach (var kvp in all)
+                foreach (var metaColumn in sch[col].Metadata.Schema)
                 {
-                    if (kvp.Key == null || kvp.Value == null)
+                    if (metaColumn.Name == null || metaColumn.Type == null)
                     {
                         Fail("Null returned from GetMetadataTypes");
                         return Failed();
                     }
-                    if (!hs.Add(kvp.Key))
+                    if (!hs.Add(metaColumn.Name))
                     {
-                        Fail("Duplicate metadata type: {0}", kvp.Key);
+                        Fail("Duplicate metadata type: {0}", metaColumn.Name);
                         return Failed();
                     }
-                    if (kvp.Key == MetadataUtils.Kinds.SlotNames)
+                    if (metaColumn.Name == MetadataUtils.Kinds.SlotNames)
                     {
-                        if (typeSlot == null || !typeSlot.Equals(kvp.Value))
+                        if (typeSlot == null || !typeSlot.Equals(metaColumn.Type))
                         {
                             Fail("SlotNames types don't match");
                             return Failed();
@@ -516,22 +514,14 @@ namespace Microsoft.ML.Runtime.RunTests
                         typeSlot = null;
                         continue;
                     }
-                    if (kvp.Key == MetadataUtils.Kinds.KeyValues)
+                    if (metaColumn.Name == MetadataUtils.Kinds.KeyValues)
                     {
-                        if (typeKeys == null || !typeKeys.Equals(kvp.Value))
+                        if (typeKeys == null || !typeKeys.Equals(metaColumn.Type))
                         {
                             Fail("KeyValues types don't match");
                             return Failed();
                         }
                         typeKeys = null;
-                        continue;
-                    }
-
-                    var type = sch.GetMetadataTypeOrNull(kvp.Key, col);
-                    if (type == null || !type.Equals(kvp.Value))
-                    {
-                        Fail("{0} types don't match", kvp.Key);
-                        return Failed();
                     }
                 }
 
@@ -546,23 +536,23 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckSameSchemas(Schema sch1, Schema sch2, bool exactTypes = true, bool keyNames = true)
         {
-            if (sch1.ColumnCount != sch2.ColumnCount)
+            if (sch1.Count != sch2.Count)
             {
-                Fail("column count mismatch: {0} vs {1}", sch1.ColumnCount, sch2.ColumnCount);
+                Fail("column count mismatch: {0} vs {1}", sch1.Count, sch2.Count);
                 return Failed();
             }
 
-            for (int col = 0; col < sch1.ColumnCount; col++)
+            for (int col = 0; col < sch1.Count; col++)
             {
-                string name1 = sch1.GetColumnName(col);
-                string name2 = sch2.GetColumnName(col);
+                string name1 = sch1[col].Name;
+                string name2 = sch2[col].Name;
                 if (name1 != name2)
                 {
                     Fail("column name mismatch at index {0}: {1} vs {2}", col, name1, name2);
                     return Failed();
                 }
-                var type1 = sch1.GetColumnType(col);
-                var type2 = sch2.GetColumnType(col);
+                var type1 = sch1[col].Type;
+                var type2 = sch2[col].Type;
                 if (!EqualTypes(type1, type2, exactTypes))
                 {
                     Fail("column type mismatch at index {0}", col);
@@ -587,14 +577,14 @@ namespace Microsoft.ML.Runtime.RunTests
                 if (!CheckMetadataNames("PurpleDragonScales", -1, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
-                int size = type1.IsVector ? type1.VectorSize : -1;
+                int size = type1 is VectorType vectorType ? vectorType.Size : -1;
                 if (!CheckMetadataNames(MetadataUtils.Kinds.SlotNames, size, sch1, sch2, col, exactTypes, true))
                     return Failed();
 
                 if (!keyNames)
                     continue;
 
-                size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
+                size = type1.GetItemType() is KeyType keyType ? keyType.Count : -1;
                 if (!CheckMetadataNames(MetadataUtils.Kinds.KeyValues, size, sch1, sch2, col, exactTypes, false))
                     return Failed();
             }
@@ -607,8 +597,8 @@ namespace Microsoft.ML.Runtime.RunTests
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
 
-            var t1 = sch1.GetMetadataTypeOrNull(kind, col);
-            var t2 = sch2.GetMetadataTypeOrNull(kind, col);
+            var t1 = sch1[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
+            var t2 = sch2[col].Metadata.Schema.GetColumnOrNull(kind)?.Type;
             if ((t1 == null) != (t2 == null))
             {
                 Fail("Different null-ness of {0} metadata types", kind);
@@ -627,7 +617,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Fail("Different {0} metadata types: {0} vs {1}", kind, t1, t2);
                 return Failed();
             }
-            if (!t1.ItemType.IsText)
+            if (!(t1.GetItemType() is TextType))
             {
                 if (!mustBeText)
                 {
@@ -638,14 +628,14 @@ namespace Microsoft.ML.Runtime.RunTests
                 return Failed();
             }
 
-            if (size != t1.VectorSize)
+            if (size != t1.GetVectorSize())
             {
-                Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.VectorSize, size);
+                Fail("{0} metadata type wrong size: {1} vs {2}", kind, t1.GetVectorSize(), size);
                 return Failed();
             }
 
-            sch1.GetMetadata(kind, col, ref names1);
-            sch2.GetMetadata(kind, col, ref names2);
+            sch1[col].Metadata.GetValue(kind, ref names1);
+            sch2[col].Metadata.GetValue(kind, ref names2);
             if (!CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
@@ -658,7 +648,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             try
             {
-                sch.GetMetadata(kind, col, ref names);
+                sch[col].Metadata.GetValue(kind, ref names);
                 Fail("Getting {0} metadata unexpectedly succeeded", kind);
                 return Failed();
             }
@@ -682,9 +672,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var schema = view.Schema;
             List<int> savable = new List<int>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema.GetColumnType(c);
+                ColumnType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -698,7 +688,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Log("View saved in {0} bytes", stream.Length);
             }
 
-            if (savable.Count < view.Schema.ColumnCount)
+            if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
@@ -728,9 +718,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var schema = view.Schema;
             List<int> savable = new List<int>();
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                ColumnType type = schema.GetColumnType(c);
+                ColumnType type = schema[c].Type;
                 if (saver.IsColumnSavable(type))
                     savable.Add(c);
             }
@@ -749,7 +739,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Log("View saved in {0} bytes", stream.Length);
             }
 
-            if (savable.Count < view.Schema.ColumnCount)
+            if (savable.Count < view.Schema.Count)
             {
                 // Restrict the comparison to the subset of columns we were able to save.
                 var chooseargs = new ChooseColumnsByIndexTransform.Arguments();
@@ -805,7 +795,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckSameValues(IDataView view1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(view1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(view1.Schema.Count == view2.Schema.Count);
 
             bool all = true;
             bool tmp;
@@ -852,10 +842,10 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckSameValues(RowCursor curs1, RowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == curs2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == curs2.Schema.Count);
 
             // Get the comparison delegates for each column.
-            int colLim = curs1.Schema.ColumnCount;
+            int colLim = curs1.Schema.Count;
             Func<bool>[] comps = new Func<bool>[colLim];
             for (int col = 0; col < colLim; col++)
             {
@@ -864,8 +854,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 if (f1 && f2)
                 {
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = curs2.Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = curs2.Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");
@@ -933,10 +923,10 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckSameValues(RowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
-            Contracts.Assert(curs1.Schema.ColumnCount == view2.Schema.ColumnCount);
+            Contracts.Assert(curs1.Schema.Count == view2.Schema.Count);
 
             // Get a cursor for each column.
-            int colLim = curs1.Schema.ColumnCount;
+            int colLim = curs1.Schema.Count;
             var cursors = new RowCursor[colLim];
             try
             {
@@ -954,8 +944,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 for (int col = 0; col < colLim; col++)
                 {
                     Contracts.Assert(cursors[col] != null);
-                    var type1 = curs1.Schema.GetColumnType(col);
-                    var type2 = cursors[col].Schema.GetColumnType(col);
+                    var type1 = curs1.Schema[col].Type;
+                    var type2 = cursors[col].Schema[col].Type;
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
                         Fail("Different types");
@@ -1032,95 +1022,97 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected Func<bool> GetColumnComparer(Row r1, Row r2, int col, ColumnType type, bool exactDoubles)
         {
-            if (!type.IsVector)
+            if (!(type is VectorType vectorType))
             {
-                switch (type.RawKind)
+                Type rawType = type.RawType;
+                if (rawType == typeof(sbyte))
+                    return GetComparerOne<sbyte>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(byte))
+                    return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(short))
+                    return GetComparerOne<short>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(ushort))
+                    return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(int))
+                    return GetComparerOne<int>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(uint))
+                    return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(long))
+                    return GetComparerOne<long>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(ulong))
+                    return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(float))
+                    return GetComparerOne<float>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                else if (rawType == typeof(double))
                 {
-                    case DataKind.I1:
-                        return GetComparerOne<sbyte>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U1:
-                        return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.I2:
-                        return GetComparerOne<short>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U2:
-                        return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.I4:
-                        return GetComparerOne<int>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U4:
-                        return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.I8:
-                        return GetComparerOne<long>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.U8:
-                        return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.R4:
-                        return GetComparerOne<Single>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                    case DataKind.R8:
-                        if (exactDoubles)
-                            return GetComparerOne<Double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                        else
-                            return GetComparerOne<Double>(r1, r2, col, EqualWithEpsDouble);
-                    case DataKind.Text:
-                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a ,b) => a.Span.SequenceEqual(b.Span));
-                    case DataKind.Bool:
-                        return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.TimeSpan:
-                        return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.DT:
-                        return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
-                    case DataKind.DZ:
-                        return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
-                    case DataKind.UG:
-                        return GetComparerOne<RowId>(r1, r2, col, (x, y) => x.Equals(y));
-                    case (DataKind)0:
-                        // We cannot compare custom types (including image).
-                        return () => true;
+                    if (exactDoubles)
+                        return GetComparerOne<double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    else
+                        return GetComparerOne<double>(r1, r2, col, EqualWithEpsDouble);
                 }
+                else if (rawType == typeof(ReadOnlyMemory<char>))
+                    return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a, b) => a.Span.SequenceEqual(b.Span));
+                else if (rawType == typeof(bool))
+                    return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(TimeSpan))
+                    return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(DateTime))
+                    return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
+                else if (rawType == typeof(DateTimeOffset))
+                    return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
+                else if (rawType == typeof(RowId))
+                    return GetComparerOne<RowId>(r1, r2, col, (x, y) => x.Equals(y));
+                else
+                    return () => true;
             }
             else
             {
-                int size = type.VectorSize;
+                int size = vectorType.Size;
                 Contracts.Assert(size >= 0);
-                switch (type.ItemType.RawKind)
+                Type itemType = vectorType.ItemType.RawType;
+
+                if (itemType == typeof(sbyte))
+                    return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(byte))
+                    return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(short))
+                    return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(ushort))
+                    return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(int))
+                    return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(uint))
+                    return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(long))
+                    return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(ulong))
+                    return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(float))
                 {
-                    case DataKind.I1:
-                        return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U1:
-                        return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I2:
-                        return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U2:
-                        return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I4:
-                        return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U4:
-                        return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I8:
-                        return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U8:
-                        return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.R4:
-                        if (exactDoubles)
-                            return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                        else
-                            return GetComparerVec<Single>(r1, r2, col, size, EqualWithEpsSingle);
-                    case DataKind.R8:
-                        if (exactDoubles)
-                            return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                        else
-                            return GetComparerVec<Double>(r1, r2, col, size, EqualWithEpsDouble);
-                    case DataKind.Text:
-                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
-                    case DataKind.Bool:
-                        return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.TimeSpan:
-                        return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.DT:
-                        return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.DZ:
-                        return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
-                    case DataKind.UG:
-                        return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    if (exactDoubles)
+                        return GetComparerVec<float>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    else
+                        return GetComparerVec<float>(r1, r2, col, size, EqualWithEpsSingle);
                 }
+                else if (itemType == typeof(double))
+                {
+                    if (exactDoubles)
+                        return GetComparerVec<double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    else
+                        return GetComparerVec<double>(r1, r2, col, size, EqualWithEpsDouble);
+                }
+                else if (itemType == typeof(ReadOnlyMemory<char>))
+                    return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
+                else if (itemType == typeof(bool))
+                    return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(TimeSpan))
+                    return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(DateTime))
+                    return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
+                else if (itemType == typeof(DateTimeOffset))
+                    return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
+                else if (itemType == typeof(RowId))
+                    return GetComparerVec<RowId>(r1, r2, col, size, (x, y) => x.Equals(y));
             }
 
 #if !CORECLR // REVIEW: Port Picture type to CoreTLC.

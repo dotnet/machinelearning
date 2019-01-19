@@ -4,13 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Calibration;
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// The base class for all transform inputs.
@@ -36,15 +35,27 @@ namespace Microsoft.ML.Runtime.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInput))]
     public abstract class LearnerInputBase
     {
+        /// <summary>
+        /// The data to be used for training.
+        /// </summary>
         [Argument(ArgumentType.Required, ShortName = "data", HelpText = "The data to be used for training", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public IDataView TrainingData;
 
+        /// <summary>
+        /// Column to use for features.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for features", ShortName = "feat", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string FeatureColumn = DefaultColumnNames.Features;
 
+        /// <summary>
+        /// Normalize option for the feature column.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize option for the feature column", ShortName = "norm", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public NormalizeOption NormalizeFeatures = NormalizeOption.Auto;
 
+        /// <summary>
+        /// Whether learner should cache input training data.
+        /// </summary>
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether learner should cache input training data", ShortName = "cache", SortOrder = 6, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public CachingOptions Caching = CachingOptions.Auto;
     }
@@ -55,6 +66,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithLabel))]
     public abstract class LearnerInputBaseWithLabel : LearnerInputBase
     {
+        /// <summary>
+        /// Column to use for labels.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for labels", ShortName = "lab", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public string LabelColumn = DefaultColumnNames.Label;
     }
@@ -66,6 +80,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithWeight))]
     public abstract class LearnerInputBaseWithWeight : LearnerInputBaseWithLabel
     {
+        /// <summary>
+        /// Column to use for example weight.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
     }
@@ -76,6 +93,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.IUnsupervisedTrainerWithWeight))]
     public abstract class UnsupervisedLearnerInputBaseWithWeight : LearnerInputBase
     {
+        /// <summary>
+        /// Column to use for example weight.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
     }
@@ -96,6 +116,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
     [TlcModule.EntryPointKind(typeof(CommonInputs.ITrainerInputWithGroupId))]
     public abstract class LearnerInputBaseWithGroupId : LearnerInputBaseWithWeight
     {
+        /// <summary>
+        /// Column to use for example groupId.
+        /// </summary>
         [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example groupId", ShortName = "groupId", SortOrder = 5, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
         public Optional<string> GroupIdColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
     }

@@ -2,26 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Calibrator;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.TreePredictor;
-using Microsoft.ML.Trainers.FastTree.Internal;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,6 +10,24 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Calibrator;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Training;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.TreePredictor;
+using Newtonsoft.Json.Linq;
 using Float = System.Single;
 
 // All of these reviews apply in general to fast tree and random forest implementations.
@@ -116,8 +114,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string groupIdColumn,
             int numLeaves,
             int numTrees,
-            int minDatapointsInLeaves,
-            Action<TArgs> advancedSettings)
+            int minDatapointsInLeaves)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
             Args = new TArgs();
@@ -127,9 +124,6 @@ namespace Microsoft.ML.Trainers.FastTree
             Args.NumLeaves = numLeaves;
             Args.NumTrees = numTrees;
             Args.MinDocumentsInLeafs = minDatapointsInLeaves;
-
-            //apply the advanced args, if the user supplied any
-            advancedSettings?.Invoke(Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
@@ -154,10 +148,10 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Legacy constructor that is used when invoking the classes deriving from this, through maml.
+        /// Constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
@@ -212,7 +206,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private protected void ConvertData(RoleMappedData trainData)
         {
-            MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Index, out CategoricalFeatures);
+            MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Value.Index, out CategoricalFeatures);
             var useTranspose = UseTranspose(Args.DiskTranspose, trainData) && (ValidData == null || UseTranspose(Args.DiskTranspose, ValidData));
             var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocumentsInLeafs, GetMaxLabel());
 
@@ -227,13 +221,13 @@ namespace Microsoft.ML.Trainers.FastTree
         private bool UseTranspose(bool? useTranspose, RoleMappedData data)
         {
             Host.AssertValue(data);
-            Host.AssertValue(data.Schema.Feature);
+            Host.Assert(data.Schema.Feature.HasValue);
 
             if (useTranspose.HasValue)
                 return useTranspose.Value;
 
-            ITransposeDataView td = data.Data as ITransposeDataView;
-            return td != null && td.TransposeSchema.GetSlotType(data.Schema.Feature.Index) != null;
+            var itdv = data.Data as ITransposeDataView;
+            return itdv?.GetSlotType(data.Schema.Feature.Value.Index) != null;
         }
 
         protected void TrainCore(IChannel ch)
@@ -949,11 +943,11 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.AssertValue(host, "host");
             Host = host;
             Host.CheckValue(data, nameof(data));
-            data.CheckFeatureFloatVector();
+            data.CheckFeatureFloatVector(out int featLen);
             data.CheckOptFloatWeight();
             data.CheckOptGroup();
 
-            NumFeatures = data.Schema.Feature.Type.VectorSize;
+            NumFeatures = featLen;
             if (binUpperBounds != null)
             {
                 Host.AssertValue(binUpperBounds);
@@ -1320,14 +1314,15 @@ namespace Microsoft.ML.Trainers.FastTree
                 return _dataset;
             }
 
-            private static int AddColumnIfNeeded(ColumnInfo info, List<int> toTranspose)
+            private static int AddColumnIfNeeded(Schema.Column? info, List<int> toTranspose)
             {
-                if (info == null)
+                if (!info.HasValue)
                     return -1;
                 // It is entirely possible that a single column could have two roles,
                 // and so be added twice, but this case is handled by the transposer.
-                toTranspose.Add(info.Index);
-                return info.Index;
+                var idx = info.Value.Index;
+                toTranspose.Add(idx);
+                return idx;
             }
 
             private ValueMapper<VBuffer<T1>, VBuffer<T2>> GetCopier<T1, T2>(ColumnType itemType1, ColumnType itemType2)
@@ -1360,10 +1355,7 @@ namespace Microsoft.ML.Trainers.FastTree
             private Dataset Construct(RoleMappedData examples, ref int numExamples, int maxBins, IParallelTraining parallelTraining)
             {
                 Host.AssertValue(examples);
-                Host.AssertValue(examples.Schema.Feature);
-                Host.AssertValueOrNull(examples.Schema.Label);
-                Host.AssertValueOrNull(examples.Schema.Group);
-                Host.AssertValueOrNull(examples.Schema.Weight);
+                Host.Assert(examples.Schema.Feature.HasValue);
 
                 if (parallelTraining == null)
                     Host.AssertValue(BinUpperBounds);
@@ -1388,8 +1380,8 @@ namespace Microsoft.ML.Trainers.FastTree
                         data = new LabelConvertTransform(Host, convArgs, data);
                     }
                     // Convert the group column, if one exists.
-                    if (examples.Schema.Group != null)
-                        data = new TypeConvertingTransformer(Host, new TypeConvertingTransformer.ColumnInfo(examples.Schema.Group.Name, examples.Schema.Group.Name, DataKind.U8)).Transform(data);
+                    if (examples.Schema.Group?.Name is string groupName)
+                        data = new TypeConvertingTransformer(Host, new TypeConvertingTransformer.ColumnInfo(groupName, groupName, DataKind.U8)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
@@ -1413,7 +1405,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         BinFinder finder = new BinFinder();
                         FeaturesToContentMap fmap = new FeaturesToContentMap(examples.Schema);
 
-                        var hasMissingPred = Conversions.Instance.GetHasMissingPredicate<Float>(trans.TransposeSchema.GetSlotType(featIdx));
+                        var hasMissingPred = Conversions.Instance.GetHasMissingPredicate<Float>(((ITransposeDataView)trans).GetSlotType(featIdx));
                         // There is no good mechanism to filter out rows with missing feature values on transposed data.
                         // So, we instead perform one featurization pass which, if successful, will remain one pass but,
                         // if we ever encounter missing values will become a "detect missing features" pass, which will
@@ -1648,7 +1640,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         else
                         {
                             if (groupIdx >= 0)
-                                ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", examples.Schema.Group.Name);
+                                ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", examples.Schema.Group.Value.Name);
                             const int queryChunkSize = 100;
                             qids = new ulong[(numExamples - 1) / queryChunkSize + 1];
                             boundaries = new int[qids.Length + 1];
@@ -1860,7 +1852,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     else
                     {
                         if (_data.Schema.Group != null)
-                            ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", _data.Schema.Group.Name);
+                            ch.Warning("This is not ranking problem, Group Id '{0}' column will be ignored", _data.Schema.Group.Value.Name);
                     }
                     using (var cursor = new FloatLabelCursor(_data, curOptions))
                     {
@@ -2796,17 +2788,17 @@ namespace Microsoft.ML.Trainers.FastTree
     }
 
     public abstract class TreeEnsembleModelParameters :
-        PredictorBase<Float>,
+        ModelParametersBase<Float>,
         IValueMapper,
         ICanSaveInTextFormat,
         ICanSaveInIniFormat,
         ICanSaveInSourceCode,
-        ICanSaveModel,
         ICanSaveSummary,
         ICanGetSummaryInKeyValuePairs,
         ITreeEnsemble,
         IPredictorWithFeatureWeights<Float>,
         IFeatureContributionMapper,
+        ICalculateFeatureContribution,
         ICanGetSummaryAsIRow,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
@@ -2839,7 +2831,21 @@ namespace Microsoft.ML.Trainers.FastTree
         ColumnType IValueMapper.OutputType => OutputType;
 
         bool ICanSavePfa.CanSavePfa => true;
+
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
+
+        /// <summary>
+        /// Used to determine the contribution of each feature to the score of an example by <see cref="FeatureContributionCalculatingTransformer"/>.
+        /// The calculation of feature contribution essentially consists in determining which splits in the tree have the most impact
+        /// on the final score and assigning the value of the impact to the features determining the split. More precisely, the contribution of a feature
+        /// is equal to the change in score produced by exploring the opposite sub-tree every time a decision node for the given feature is encountered.
+        /// Consider a simple case with a single decision tree that has a decision node for the binary feature F1. Given an example that has feature F1
+        /// equal to true, we can calculate the score it would have obtained if we chose the subtree corresponding to the feature F1 being equal to false
+        /// while keeping the other features constant. The contribution of feature F1 for the given example is the difference between the original score
+        /// and the score obtained by taking the opposite decision at the node corresponding to feature F1. This algorithm extends naturally to models with
+        /// many decision trees.
+        /// </summary>
+        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
 
         public TreeEnsembleModelParameters(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
@@ -2927,8 +2933,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected virtual void Map(in VBuffer<Float> src, ref Float dst)
         {
-            if (InputType.VectorSize > 0)
-                Host.Check(src.Length == InputType.VectorSize);
+            int inputVectorSize = InputType.GetVectorSize();
+            if (inputVectorSize > 0)
+                Host.Check(src.Length == inputVectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
@@ -2947,15 +2954,16 @@ namespace Microsoft.ML.Trainers.FastTree
                 (in VBuffer<Float> src, ref VBuffer<Float> dst) =>
                 {
                     FeatureContributionMap(in src, ref dst, ref builder);
-                    Runtime.Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
+                    Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
                 };
             return (ValueMapper<TSrc, VBuffer<Float>>)(Delegate)del;
         }
 
         private void FeatureContributionMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
         {
-            if (InputType.VectorSize > 0)
-                Host.Check(src.Length == InputType.VectorSize);
+            int inputVectorSize = InputType.GetVectorSize();
+            if (inputVectorSize > 0)
+                Host.Check(src.Length == inputVectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
@@ -2987,39 +2995,9 @@ namespace Microsoft.ML.Trainers.FastTree
         void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.CheckValue(writer, nameof(writer));
-            Host.CheckValue(schema, nameof(schema));
-            Host.CheckValueOrNull(calibrator);
-            string ensembleIni = TrainedEnsemble.ToTreeEnsembleIni(new FeaturesToContentMap(schema),
+            var ensembleIni = FastTreeIniFileUtils.TreeEnsembleToIni(Host, TrainedEnsemble, schema, calibrator,
                 InnerArgs, appendFeatureGain: true, includeZeroGainFeatures: false);
-            ensembleIni = AddCalibrationToIni(ensembleIni, calibrator);
             writer.WriteLine(ensembleIni);
-        }
-
-        /// <summary>
-        /// Get the calibration summary in INI format
-        /// </summary>
-        private string AddCalibrationToIni(string ini, ICalibrator calibrator)
-        {
-            Host.AssertValue(ini);
-            Host.AssertValueOrNull(calibrator);
-
-            if (calibrator == null)
-                return ini;
-
-            if (calibrator is PlattCalibrator)
-            {
-                string calibratorEvaluatorIni = IniFileUtils.GetCalibratorEvaluatorIni(ini, calibrator as PlattCalibrator);
-                return IniFileUtils.AddEvaluator(ini, calibratorEvaluatorIni);
-            }
-            else
-            {
-                StringBuilder newSection = new StringBuilder();
-                newSection.AppendLine();
-                newSection.AppendLine();
-                newSection.AppendLine("[TLCCalibration]");
-                newSection.AppendLine("Type=" + calibrator.GetType().Name);
-                return ini + newSection;
-            }
         }
 
         JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
@@ -3319,7 +3297,7 @@ namespace Microsoft.ML.Trainers.FastTree
             metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
             var weights = default(VBuffer<Single>);
-            GetFeatureWeights(ref weights);
+            ((IHaveFeatureWeights)this).GetFeatureWeights(ref weights);
             var builder = new MetadataBuilder();
             builder.Add<VBuffer<float>>("Gains", new VectorType(NumberType.R4, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
 

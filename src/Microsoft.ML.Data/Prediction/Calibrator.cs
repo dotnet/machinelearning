@@ -2,25 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Calibrator;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Calibrator;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(PlattCalibratorTrainer.Summary, typeof(PlattCalibratorTrainer), null, typeof(SignatureCalibrator),
     PlattCalibratorTrainer.UserName,
@@ -80,7 +79,7 @@ using System.Linq;
 [assembly: EntryPointModule(typeof(PavCalibratorTrainerFactory))]
 [assembly: EntryPointModule(typeof(PlattCalibratorTrainerFactory))]
 
-namespace Microsoft.ML.Runtime.Internal.Calibration
+namespace Microsoft.ML.Internal.Calibration
 {
     /// <summary>
     /// Signature for the loaders of calibrators.
@@ -206,7 +205,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
     }
 
-    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IFeatureContributionMapper,
+    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IFeatureContributionMapper, ICalculateFeatureContribution,
         IDistCanSavePfa, IDistCanSaveOnnx
     {
         private readonly IValueMapper _mapper;
@@ -216,6 +215,9 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         ColumnType IValueMapper.OutputType => _mapper.OutputType;
         ColumnType IValueMapperDist.DistType => NumberType.Float;
         bool ICanSavePfa.CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
+
+        public FeatureContributionCalculator FeatureContributionCalculator => new FeatureContributionCalculator(this);
+
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         protected ValueMapperCalibratedPredictorBase(IHostEnvironment env, string name, IPredictorProducing<float> predictor, ICalibrator calibrator)
@@ -534,14 +536,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 env.Check(_predictor != null, "Predictor is not a row-to-row mapper");
                 if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
-                var scoreType = _predictor.OutputSchema.GetColumnType(_scoreCol);
-                env.Check(!scoreType.IsVector && scoreType.IsNumber);
-                OutputSchema = Schema.Create(new BinaryClassifierSchema());
+                var scoreType = _predictor.OutputSchema[_scoreCol].Type;
+                env.Check(scoreType is NumberType);
+                OutputSchema = ScoreSchemaFactory.CreateBinaryClassificationSchema();
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                         return _predictor.GetDependencies(col => true);
@@ -557,7 +559,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 Func<int, bool> predictorPredicate = col => false;
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.Count; i++)
                 {
                     if (predicate(i))
                     {
@@ -566,16 +568,16 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     }
                 }
                 var predictorRow = _predictor.GetRow(input, predictorPredicate);
-                var getters = new Delegate[OutputSchema.ColumnCount];
-                for (int i = 0; i < OutputSchema.ColumnCount - 1; i++)
+                var getters = new Delegate[OutputSchema.Count];
+                for (int i = 0; i < OutputSchema.Count - 1; i++)
                 {
-                    var type = predictorRow.Schema.GetColumnType(i);
+                    var type = predictorRow.Schema[i].Type;
                     if (!predicate(i))
                         continue;
                     getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
                 }
-                if (predicate(OutputSchema.ColumnCount - 1))
-                    getters[OutputSchema.ColumnCount - 1] = GetProbGetter(predictorRow);
+                if (predicate(OutputSchema.Count - 1))
+                    getters[OutputSchema.Count - 1] = GetProbGetter(predictorRow);
                 return new SimpleRow(OutputSchema, predictorRow, getters);
             }
 
@@ -733,7 +735,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 ch.Info("Not training a calibrator because the predictor does not output a score column.");
                 return false;
             }
-            var type = outputSchema.GetColumnType(scoreCol);
+            var type = outputSchema[scoreCol].Type;
             if (type != NumberType.Float)
             {
                 ch.Info("Not training a calibrator because the predictor output is {0}, but expected to be {1}.", type, NumberType.R4);
@@ -804,21 +806,21 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             env.CheckValue(ch, nameof(ch));
             ch.CheckValue(predictor, nameof(predictor));
             ch.CheckValue(data, nameof(data));
-            ch.CheckParam(data.Schema.Label != null, nameof(data), "data must have a Label column");
+            ch.CheckParam(data.Schema.Label.HasValue, nameof(data), "data must have a Label column");
 
             var scored = ScoreUtils.GetScorer(predictor, data, env, null);
 
             if (caliTrainer.NeedsTraining)
             {
                 int labelCol;
-                if (!scored.Schema.TryGetColumnIndex(data.Schema.Label.Name, out labelCol))
+                if (!scored.Schema.TryGetColumnIndex(data.Schema.Label.Value.Name, out labelCol))
                     throw ch.Except("No label column found");
                 int scoreCol;
                 if (!scored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreCol))
                     throw ch.Except("No score column found");
-                int weightCol;
-                if (data.Schema.Weight == null || !scored.Schema.TryGetColumnIndex(data.Schema.Weight.Name, out weightCol))
-                    weightCol = -1;
+                int weightCol = -1;
+                if (data.Schema.Weight?.Name is string weightName && scored.Schema.GetColumnOrNull(weightName)?.Index is int weightIdx)
+                    weightCol = weightIdx;
                 ch.Info("Training calibrator.");
                 using (var cursor = scored.GetRowCursor(col => col == labelCol || col == scoreCol || col == weightCol))
                 {

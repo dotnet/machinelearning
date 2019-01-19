@@ -5,13 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Base class for handling the schema metadata API.
@@ -162,7 +158,7 @@ namespace Microsoft.ML.Runtime.Data
             Func<string, int, bool> filterSrc = null)
         {
             Contracts.Check(!_sealed, "MetadataDispatcher sealed");
-            Contracts.Check(schemaSrc == null || (0 <= indexSrc && indexSrc < schemaSrc.ColumnCount), "indexSrc out of range");
+            Contracts.Check(schemaSrc == null || (0 <= indexSrc && indexSrc < schemaSrc.Count), "indexSrc out of range");
             Contracts.Check(filterSrc == null || schemaSrc != null, "filterSrc should be null if schemaSrc is null");
             return new ColInfo(schemaSrc, indexSrc, filterSrc);
         }
@@ -236,7 +232,7 @@ namespace Microsoft.ML.Runtime.Data
                 yield break;
 
             // Pass through from base, with filtering.
-            foreach (var kvp in info.SchemaSrc.GetMetadataTypes(info.IndexSrc))
+            foreach (var kvp in info.SchemaSrc[info.IndexSrc].Metadata.Schema.Select(c => new KeyValuePair<string, ColumnType>(c.Name, c.Type)))
             {
                 if (kinds != null && kinds.Contains(kvp.Key))
                     continue;
@@ -268,7 +264,7 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             if (info.FilterSrc != null && !info.FilterSrc(kind, index))
                 return null;
-            return info.SchemaSrc.GetMetadataTypeOrNull(kind, info.IndexSrc);
+            return info.SchemaSrc[info.IndexSrc].Metadata.Schema.GetColumnOrNull(kind)?.Type;
         }
 
         /// <summary>
@@ -298,7 +294,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (info.SchemaSrc == null || info.FilterSrc != null && !info.FilterSrc(kind, index))
                 throw ectx.ExceptGetMetadata();
-            info.SchemaSrc.GetMetadata(kind, info.IndexSrc, ref value);
+            info.SchemaSrc[info.IndexSrc].Metadata.GetValue(kind, ref value);
         }
     }
 
@@ -428,7 +424,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.CheckNonEmpty(kind, nameof(kind));
                 Contracts.CheckValue(type, nameof(type));
                 Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type), "Given type doesn't match type parameter");
-                Contracts.CheckParam(type.IsPrimitive, nameof(type), "Must be a primitive type");
+                Contracts.CheckParam(type is PrimitiveType, nameof(type), "Must be a primitive type");
 
                 if (_getters != null && _getters.Any(g => g.Kind == kind))
                     throw Contracts.Except("Duplicate specification of metadata");

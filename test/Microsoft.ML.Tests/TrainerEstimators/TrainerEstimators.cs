@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;
@@ -71,8 +71,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weights: weights,
-                            advancedSettings: s => { s.InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel; });
+            var pipeline = new KMeansPlusPlusTrainer(Env, new KMeansPlusPlusTrainer.Options {
+                FeatureColumn = featureColumn,
+                WeightColumn = weights,
+                InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel,
+            });
 
             TestEstimatorCore(pipeline, data);
 
@@ -86,7 +89,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            var trainer = new StochasticGradientDescentClassificationTrainer(Env, "Label", "Features");
+            var trainer = ML.BinaryClassification.Trainers.StochasticGradientDescent();
             var pipeWithTrainer = pipe.Append(trainer);
             TestEstimatorCore(pipeWithTrainer, dataView);
 

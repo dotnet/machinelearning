@@ -4,18 +4,18 @@
 
 using System;
 using System.Collections;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.FeatureSelector;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(typeof(RandomFeatureSelector), typeof(RandomFeatureSelector.Arguments),
     typeof(SignatureEnsembleFeatureSelector), RandomFeatureSelector.UserName, RandomFeatureSelector.LoadName)]
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
+namespace Microsoft.ML.Ensemble.Selector.FeatureSelector
 {
     internal class RandomFeatureSelector : IFeatureSelector
     {
@@ -50,8 +50,8 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector
             _host.CheckValue(data, nameof(data));
             data.CheckFeatureFloatVector();
 
-            var type = data.Schema.Feature.Type;
-            int len = type.VectorSize;
+            var type = data.Schema.Feature.Value.Type;
+            int len = type.GetVectorSize();
             var features = new BitArray(len);
             for (int j = 0; j < len; j++)
                 features[j] = rand.NextDouble() < _args.FeaturesSelectionProportion;

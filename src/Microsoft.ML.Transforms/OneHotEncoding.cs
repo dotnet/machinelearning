@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(OneHotEncodingTransformer.Summary, typeof(IDataTransform), typeof(OneHotEncodingTransformer), typeof(OneHotEncodingTransformer.Arguments), typeof(SignatureDataTransform),
     OneHotEncodingTransformer.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
@@ -145,7 +144,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        public OneHotEncodingTransformer(ValueToKeyMappingEstimator term, IEstimator<ITransformer> toVector, IDataView input)
+        internal OneHotEncodingTransformer(ValueToKeyMappingEstimator term, IEstimator<ITransformer> toVector, IDataView input)
         {
             if (toVector != null)
                 _transformer = term.Append(toVector).Fit(input);
@@ -168,6 +167,7 @@ namespace Microsoft.ML.Transforms.Categorical
     /// </summary>
     public sealed class OneHotEncodingEstimator : IEstimator<OneHotEncodingTransformer>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const OneHotEncodingTransformer.OutputKind OutKind = OneHotEncodingTransformer.OutputKind.Ind;
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Transforms.Categorical
             /// <param name="sort">How items should be ordered when vectorized. If <see cref="ValueToKeyMappingTransformer.SortOrder.Occurrence"/> choosen they will be in the order encountered.
             /// If <see cref="ValueToKeyMappingTransformer.SortOrder.Value"/>, items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
             /// <param name="term">List of terms.</param>
-            public ColumnInfo(string input, string output=null,
+            public ColumnInfo(string input, string output = null,
                 OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
                 int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null)
@@ -268,10 +268,17 @@ namespace Microsoft.ML.Transforms.Categorical
             }
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _term.Append(_toSomething).GetOutputSchema(inputSchema);
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            if (_toSomething != null)
+                return _term.Append(_toSomething).GetOutputSchema(inputSchema);
+            else
+                return _term.GetOutputSchema(inputSchema);
+        }
 
         public OneHotEncodingTransformer Fit(IDataView input) => new OneHotEncodingTransformer(_term, _toSomething, input);
 
+        [BestFriend]
         internal void WrapTermWithDelegate(Action<ValueToKeyMappingTransformer> onFit)
         {
             _term = (ValueToKeyMappingEstimator)_term.WithOnFitDelegate(onFit);

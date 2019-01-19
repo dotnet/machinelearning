@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.OnnxRuntime;
-using System.Numerics.Tensors;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using System.Numerics.Tensors;
+using Microsoft.ML.Data;
+using Microsoft.ML.OnnxRuntime;
 using OnnxShape = System.Collections.Generic.List<int>;
 
 namespace Microsoft.ML.Transforms
@@ -73,10 +71,36 @@ namespace Microsoft.ML.Transforms
         public readonly List<string> InputNames;
         public readonly List<string> OutputNames;
 
-        public OnnxModel(string modelFile)
+        /// <summary>
+        /// Constructs OnnxModel object from file.
+        /// </summary>
+        /// <param name="modelFile">Model file path.</param>
+        /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
+        /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error.</param>
+        public OnnxModel(string modelFile, int? gpuDeviceId = null, bool fallbackToCpu = false)
         {
             _modelFile = modelFile;
-            _session = new InferenceSession(modelFile);
+
+            if (gpuDeviceId.HasValue)
+            {
+                try
+                {
+                    _session = new InferenceSession(modelFile, SessionOptions.MakeSessionOptionWithCudaProvider(gpuDeviceId.Value));
+                }
+                catch (OnnxRuntimeException)
+                {
+                    if (fallbackToCpu)
+                        _session = new InferenceSession(modelFile);
+                    else
+                        // if called from OnnxTranform, is caught and rethrown.
+                        throw;
+                }
+            }
+            else
+            {
+                _session = new InferenceSession(modelFile);
+            }
+
             ModelInfo = new OnnxModelInfo(GetInputsInfo(), GetOutputsInfo());
             InputNames = ModelInfo.InputsInfo.Select(i => i.Name).ToList();
             OutputNames = ModelInfo.OutputsInfo.Select(i => i.Name).ToList();
@@ -85,16 +109,28 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Create an OnnxModel from a byte[]
         /// </summary>
-        /// <param name="modelBytes"></param>
+        /// <param name="modelBytes">Bytes of the serialized model</param>
         /// <returns>OnnxModel</returns>
         public static OnnxModel CreateFromBytes(byte[] modelBytes)
+        {
+            return CreateFromBytes(modelBytes, null, false);
+        }
+
+        /// <summary>
+        /// Create an OnnxModel from a byte[]. Set execution to GPU if required.
+        /// </summary>
+        /// <param name="modelBytes">Bytes of the serialized model.</param>
+        /// <param name="gpuDeviceId">GPU device ID to execute on. Null for CPU.</param>
+        /// <param name="fallbackToCpu">If true, resumes CPU execution quitely upon GPU error.</param>
+        /// <returns>OnnxModel</returns>
+        public static OnnxModel CreateFromBytes(byte[] modelBytes, int? gpuDeviceId = null, bool fallbackToCpu = false)
         {
             var tempModelDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempModelDir);
 
             var tempModelFile = Path.Combine(tempModelDir, "model.onnx");
             File.WriteAllBytes(tempModelFile, modelBytes);
-            return new OnnxModel(tempModelFile);
+            return new OnnxModel(tempModelFile, gpuDeviceId, fallbackToCpu);
 
             // TODO:
             // tempModelFile is needed in case the model needs to be saved
@@ -105,8 +141,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Uses an open session to score a list of NamedOnnxValues.
         /// </summary>
-        /// <param name="inputNamedOnnxValues">The NamedOnnxValues to score</param>
-        /// <returns>Resulting output NamedOnnxValues list</returns>
+        /// <param name="inputNamedOnnxValues">The NamedOnnxValues to score.</param>
+        /// <returns>Resulting output NamedOnnxValues list.</returns>
         public IReadOnlyCollection<NamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues)
         {
             return _session.Run(inputNamedOnnxValues);
@@ -172,9 +208,9 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Creates a NamedOnnxValue from a scalar value.
         /// </summary>
-        /// <typeparam name="T">The type of the Tensor contained in the NamedOnnxValue</typeparam>
-        /// <param name="name">The name of the NamedOnnxValue</param>
-        /// <param name="data">The data values of the Tensor</param>
+        /// <typeparam name="T">The type of the Tensor contained in the NamedOnnxValue.</typeparam>
+        /// <param name="name">The name of the NamedOnnxValue.</param>
+        /// <param name="data">The data values of the Tensor.</param>
         /// <returns>NamedOnnxValue</returns>
         public static NamedOnnxValue CreateScalarNamedOnnxValue<T>(string name, T data)
         {
@@ -187,10 +223,10 @@ namespace Microsoft.ML.Transforms
         /// Create a NamedOnnxValue from vbuffer span. Checks if the tensor type
         /// is supported by OnnxRuntime prior to execution.
         /// </summary>
-        /// <typeparam name="T">The type of the Tensor contained in the NamedOnnxValue</typeparam>
-        /// <param name="name">The name of the NamedOnnxValue</param>
+        /// <typeparam name="T">The type of the Tensor contained in the NamedOnnxValue.</typeparam>
+        /// <param name="name">The name of the NamedOnnxValue.</param>
         /// <param name="data">A span containing the data</param>
-        /// <param name="shape">The shape of the Tensor being created</param>
+        /// <param name="shape">The shape of the Tensor being created.</param>
         /// <returns>NamedOnnxValue</returns>
         public static NamedOnnxValue CreateNamedOnnxValue<T>(string name, ReadOnlySpan<T> data, OnnxShape shape)
         {

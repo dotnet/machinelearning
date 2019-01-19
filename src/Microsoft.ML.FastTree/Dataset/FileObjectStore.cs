@@ -1,16 +1,6 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="FileObjectStore.cs" company="Microsoft">
-//     Copyright (C) All Rights Reserved
-// </copyright>
-// -----------------------------------------------------------------------
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.MemoryMappedFiles;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Threading;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
@@ -229,7 +219,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             this.objectCacheFileStream = new FileStream(this.fileStreamName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
         }
 
-        #region Process shutdown event handlers
+    #region Process shutdown event handlers
 
         /// <summary>
         /// Process exit and Domain Unload event handler
@@ -262,7 +252,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             this.Close();
             throw Contracts.Except(e.ExceptionObject as Exception, "Unhandled Exception detected");
         }
-        #endregion
+    #endregion
     }
 
     /// <summary>

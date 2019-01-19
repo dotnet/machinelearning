@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data.DataLoadSave
 {
@@ -31,8 +30,8 @@ namespace Microsoft.ML.Data.DataLoadSave
                 {
                     var metaColumnType = MakeColumnType(partialMetadata[i]);
                     Delegate del;
-                    if (metaColumnType.IsVector)
-                        del = Utils.MarshalInvoke(GetDefaultVectorGetter<int>, metaColumnType.ItemType.RawType);
+                    if (metaColumnType is VectorType vectorType)
+                        del = Utils.MarshalInvoke(GetDefaultVectorGetter<int>, vectorType.ItemType.RawType);
                     else
                         del = Utils.MarshalInvoke(GetDefaultGetter<int>, metaColumnType.RawType);
                     metaBuilder.Add(partialMetadata[j].Name, metaColumnType, del);

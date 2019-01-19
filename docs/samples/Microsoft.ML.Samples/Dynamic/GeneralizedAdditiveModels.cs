@@ -1,6 +1,6 @@
-﻿using Microsoft.ML.Runtime.Data;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 1: Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(
+            var reader = mlContext.Data.CreateTextLoader(
                 columns: new[]
                     {
                         new TextLoader.Column("MedianHomeValue", DataKind.R4, 0),
@@ -48,8 +48,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // and use a small number of bins to make it easy to visualize in the console window.
             // For real appplications, it is recommended to start with the default number of bins.
             var labelName = "MedianHomeValue";
-            var featureNames = data.Schema.GetColumns()
-                .Select(tuple => tuple.column.Name) // Get the column names
+            var featureNames = data.Schema
+                .Select(column => column.Name) // Get the column names
                 .Where(name => name != labelName) // Drop the Label
                 .ToArray();
             var pipeline = mlContext.Transforms.Concatenate("Features", featureNames)

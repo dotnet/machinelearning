@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(LabelIndicatorTransform), typeof(LabelIndicatorTransform.Arguments), typeof(SignatureDataTransform),
     LabelIndicatorTransform.UserName, LabelIndicatorTransform.LoadName, "LabelIndicator")]
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Transforms
 
         private static string TestIsMulticlassLabel(ColumnType type)
         {
-            if (type.KeyCount > 0 || type == NumberType.R4 || type == NumberType.R8)
+            if (type.GetKeyCount() > 0 || type == NumberType.R4 || type == NumberType.R8)
                 return null;
             return $"Label column type is not supported for binary remapping: {type}. Supported types: key, float, double.";
         }
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Transforms
             var info = Infos[iinfo];
             ch.Assert(TestIsMulticlassLabel(info.TypeSrc) == null);
 
-            if (info.TypeSrc.KeyCount > 0)
+            if (info.TypeSrc.GetKeyCount() > 0)
             {
                 var srcGetter = input.GetGetter<uint>(info.Source);
                 var src = default(uint);

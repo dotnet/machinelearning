@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Command;
 using Microsoft.ML.Data.Commands;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Internal.Utilities;
 
 [assembly: LoadableClass(typeof(TypeInfoCommand), typeof(TypeInfoCommand.Arguments), typeof(SignatureCommand),
     "", TypeInfoCommand.LoadName)]
@@ -138,7 +137,7 @@ namespace Microsoft.ML.Data.Commands
         {
             Contracts.AssertValue(ch);
             ch.AssertValue(type);
-            ch.Assert(type.IsStandardScalar);
+            ch.Assert(type.IsStandardScalar());
 
             var conv = Conversions.Instance;
             InPredicate<T> isNaDel;

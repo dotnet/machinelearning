@@ -7,23 +7,23 @@ using System.Collections.Generic;
 using System.IO;
 using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
-    using Microsoft.ML.Runtime;
-    using Microsoft.ML.Runtime.Data;
-    using Microsoft.ML.Runtime.EntryPoints;
-    using Microsoft.ML.Runtime.Ensemble;
-    using Microsoft.ML.Runtime.Internal.Utilities;
-    using Microsoft.ML.Runtime.Learners;
-    using Microsoft.ML.Runtime.LightGBM;
+    using System.Linq;
+    using System.Runtime.InteropServices;
+    using Microsoft.ML;
+    using Microsoft.ML.Data;
+    using Microsoft.ML.Ensemble;
+    using Microsoft.ML.EntryPoints;
+    using Microsoft.ML.Internal.Utilities;
+    using Microsoft.ML.Learners;
+    using Microsoft.ML.LightGBM;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers.FastTree;
     using Microsoft.ML.Trainers.FastTree.Internal;
     using Microsoft.ML.Trainers.Online;
     using Microsoft.ML.Trainers.SymSgd;
     using Microsoft.ML.Transforms.Categorical;
-    using System.Linq;
-    using System.Runtime.InteropServices;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
@@ -611,7 +611,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -634,7 +634,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var fastTrees = new PredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
-                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
+                fastTrees[i] = FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var predictors = new PredictorModel[]
             {
-                FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Arguments
+                FastTree.TrainBinary(ML, new FastTreeBinaryClassificationTrainer.Options
                 {
                     FeatureColumn = "Features",
                     NumTrees = 5,
@@ -741,7 +741,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     LabelColumn = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Arguments()
+                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -749,7 +749,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -787,7 +787,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     LabelColumn = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Arguments()
+                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -795,7 +795,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Arguments()
+                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -1422,8 +1422,8 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 PredictorUtils.Save(mem, pred, null, null, null, useFileSystem: true);
                 mem.Seek(0, SeekOrigin.Begin);
-                Microsoft.ML.Runtime.Model.IDataModel model;
-                Microsoft.ML.Runtime.Model.IDataStats stats;
+                Microsoft.ML.Model.IDataModel model;
+                Microsoft.ML.Model.IDataStats stats;
                 return (OlsLinearRegressionPredictor)PredictorUtils.LoadPredictor(out model, out stats, mem, false);
             }
         }

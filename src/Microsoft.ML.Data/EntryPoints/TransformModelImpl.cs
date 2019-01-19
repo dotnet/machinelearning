@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     /// <summary>
     /// This encapsulates zero or more transform models. It does this by recording
@@ -207,7 +206,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 _ectx.CheckValue(rootSchema, nameof(rootSchema));
 
                 _chain = chain;
-                _rootSchema = Schema.Create(rootSchema);
+                _rootSchema = rootSchema;
             }
 
             public static bool IsCompositeRowToRowMapper(IDataView chain)

@@ -5,13 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     internal sealed partial class CodecFactory
     {
@@ -858,7 +857,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 public Writer(VBufferCodec<T> codec, Stream stream)
                     : base(codec._factory, stream)
                 {
-                    _size = codec._type.VectorSize;
+                    _size = codec._type.Size;
                     _lengths = FixedLength ? null : new List<int>();
                     _counts = new List<int>();
                     _indices = new List<int>();
@@ -1003,8 +1002,8 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                     // The length of all those vectors.
                     _size = Reader.ReadInt32();
-                    if (codec._type.IsKnownSizeVector)
-                        Contracts.CheckDecode(codec._type.VectorSize == _size);
+                    if (codec._type.IsKnownSize)
+                        Contracts.CheckDecode(codec._type.Size == _size);
                     else
                         Contracts.CheckDecode(_size >= 0);
                     if (!FixedLength)
@@ -1172,10 +1171,8 @@ namespace Microsoft.ML.Runtime.Data.IO
             return true;
         }
 
-        private bool GetVBufferCodec(ColumnType type, out IValueCodec codec)
+        private bool GetVBufferCodec(VectorType type, out IValueCodec codec)
         {
-            if (!type.IsVector)
-                throw Contracts.ExceptParam(nameof(type), "type must be a vector type");
             ColumnType itemType = type.ItemType;
             // First create the element codec.
             IValueCodec innerCodec;
@@ -1289,7 +1286,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
         private bool GetKeyCodec(ColumnType type, out IValueCodec codec)
         {
-            if (!type.IsKey)
+            if (!(type is KeyType))
                 throw Contracts.ExceptParam(nameof(type), "type must be a key type");
             // Create the internal codec the key codec will use to do the actual reading/writing.
             IValueCodec innerCodec;

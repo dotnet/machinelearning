@@ -1,9 +1,6 @@
-﻿using Microsoft.ML.Runtime.Data;
+﻿using System;
+using Microsoft.ML.Data;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.FeatureSelection;
-using System;
 
 namespace Microsoft.ML.Samples.Static
 {
@@ -36,7 +33,7 @@ namespace Microsoft.ML.Samples.Static
             var mlContext = new MLContext();
 
             // Creating Data Reader with the initial schema based on the format of the data
-            var reader = TextLoader.CreateReader(
+            var reader = TextLoaderStatic.CreateReader(
                 mlContext,
                 c => (
                     Age: c.LoadFloat(0),

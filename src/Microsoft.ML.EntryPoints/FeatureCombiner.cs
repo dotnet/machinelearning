@@ -2,21 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(typeof(void), typeof(FeatureCombiner), null, typeof(SignatureEntryPointModule), "FeatureCombiner")]
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.EntryPoints
 {
     public static class FeatureCombiner
     {
@@ -107,7 +106,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = KeyToVectorMappingTransformer.Create(host, viewTrain, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Output, c.Output)).ToArray());
+                viewTrain = new KeyToVectorMappingTransformer(host, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Output, c.Output)).ToArray()).Transform(viewTrain);
             }
             return viewTrain;
         }
@@ -116,15 +115,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             Contracts.AssertValue(data);
             Contracts.AssertNonWhiteSpace(colName);
-            int col;
             var schema = data.Schema;
-            if (!schema.TryGetColumnIndex(colName, out col))
+            var col = schema.GetColumnOrNull(colName);
+            if (!col.HasValue)
                 return null;
-            var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, col);
-            if (type == null || !type.IsKnownSizeVector || !type.ItemType.IsText)
+            var type = col.Value.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type as VectorType;
+            if (type == null || !type.IsKnownSize || !(type.ItemType is TextType))
                 return null;
             var metadata = default(VBuffer<ReadOnlyMemory<char>>);
-            schema.GetMetadata(MetadataUtils.Kinds.KeyValues, col, ref metadata);
+            col.Value.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref metadata);
             if (!metadata.IsDense)
                 return null;
             var sb = new StringBuilder();
@@ -149,7 +148,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return viewTrain;
         }
 
-        private static List<KeyToVectorMappingTransformer.ColumnInfo> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
+        private static List<KeyToVectorMappingTransformer.ColumnInfo> ConvertFeatures(IEnumerable<Schema.Column> feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
             out List<TypeConvertingTransformer.ColumnInfo> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);
@@ -165,12 +164,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 if (!featNames.Add(col.Name))
                     continue;
 
-                if (!col.Type.IsVector || col.Type.VectorSize > 0)
+                if (!(col.Type is VectorType vectorType) || vectorType.Size > 0)
                 {
-                    var type = col.Type.ItemType;
-                    if (type.IsKey)
+                    var type = col.Type.GetItemType();
+                    if (type is KeyType keyType)
                     {
-                        if (type.KeyCount > 0)
+                        if (keyType.Count > 0)
                         {
                             var colName = GetUniqueName();
                             concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
@@ -178,7 +177,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                             continue;
                         }
                     }
-                    if (type.IsNumber || type.IsBool)
+                    if (type is NumberType || type is BoolType)
                     {
                         // Even if the column is R4 in training, we still want to add it to the conversion.
                         // The reason is that at scoring time, the column might have a slightly different type (R8 for example).
@@ -232,11 +231,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            int labelCol;
-            if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
-                throw host.Except($"Column '{input.LabelColumn}' not found.");
-            var labelType = input.Data.Schema.GetColumnType(labelCol);
-            if (labelType.IsKey || labelType.IsBool)
+            var labelCol = input.Data.Schema.GetColumnOrNull(input.LabelColumn);
+            if (!labelCol.HasValue)
+                throw host.ExceptSchemaMismatch(nameof(input), "Label", input.LabelColumn);
+
+            var labelType = labelCol.Value.Type;
+            if (labelType is KeyType || labelType is BoolType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
@@ -267,11 +267,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            int predictedLabelCol;
-            if (!input.Data.Schema.TryGetColumnIndex(input.PredictedLabelColumn, out predictedLabelCol))
-                throw host.Except($"Column '{input.PredictedLabelColumn}' not found.");
-            var predictedLabelType = input.Data.Schema.GetColumnType(predictedLabelCol);
-            if (predictedLabelType.IsNumber || predictedLabelType.IsBool)
+            var predictedLabelCol = input.Data.Schema.GetColumnOrNull(input.PredictedLabelColumn);
+            if (!predictedLabelCol.HasValue)
+                throw host.ExceptSchemaMismatch(nameof(input), "PredictedLabel",input.PredictedLabelColumn);
+            var predictedLabelType = predictedLabelCol.Value.Type;
+            if (predictedLabelType is NumberType || predictedLabelType is BoolType)
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };
@@ -289,11 +289,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            int labelCol;
-            if (!input.Data.Schema.TryGetColumnIndex(input.LabelColumn, out labelCol))
+            var labelCol = input.Data.Schema.GetColumnOrNull(input.LabelColumn);
+            if (!labelCol.HasValue)
                 throw host.Except($"Column '{input.LabelColumn}' not found.");
-            var labelType = input.Data.Schema.GetColumnType(labelCol);
-            if (labelType == NumberType.R4 || !labelType.IsNumber)
+            var labelType = labelCol.Value.Type;
+            if (labelType == NumberType.R4 || !(labelType is NumberType))
             {
                 var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModelImpl(env, nop, input.Data), OutputData = nop };

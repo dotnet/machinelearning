@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(typeof(MultiClassClassifierEvaluator), typeof(MultiClassClassifierEvaluator), typeof(MultiClassClassifierEvaluator.Arguments), typeof(SignatureEvaluator),
     "Multi-Class Classifier Evaluator", MultiClassClassifierEvaluator.LoadName, "MultiClassClassifier", "MultiClass")]
@@ -26,7 +25,7 @@ using System.Text.RegularExpressions;
 [assembly: LoadableClass(typeof(MultiClassPerInstanceEvaluator), null, typeof(SignatureLoadRowMapper),
     "", MultiClassPerInstanceEvaluator.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed class MultiClassClassifierEvaluator : RowToRowEvaluatorBase<MultiClassClassifierEvaluator.Aggregator>
     {
@@ -58,7 +57,7 @@ namespace Microsoft.ML.Runtime.Data
             LogLossReduction,
         }
 
-        public const string LoadName = "MultiClassClassifierEvaluator";
+        internal const string LoadName = "MultiClassClassifierEvaluator";
 
         private readonly int? _outputTopKAcc;
         private readonly bool _names;
@@ -72,23 +71,23 @@ namespace Microsoft.ML.Runtime.Data
             _names = args.Names;
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var t = score.Type;
-            if (t.VectorSize < 2 || t.ItemType != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type {1} but must be a vector of two or more items of type R4", score.Name, t);
-            Host.Check(schema.Label != null, "Could not find the label column");
-            t = schema.Label.Type;
-            if (t != NumberType.Float && t.KeyCount <= 0)
-                throw Host.Except("Label column '{0}' has type {1} but must be a float or a known-cardinality key", schema.Label.Name, t);
+            var scoreType = score.Type as VectorType;
+            if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberType.Float)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of two or more items of type R4", scoreType.ToString());
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Could not find the label column");
+            var labelType = schema.Label.Value.Type;
+            if (labelType != NumberType.Float && labelType.GetKeyCount() <= 0)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "float or a known-cardinality key", labelType.ToString());
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Host.Assert(score.Type.VectorSize > 0);
-            int numClasses = score.Type.VectorSize;
+            int numClasses = score.Type.GetVectorSize();
+            Host.Assert(numClasses > 0);
             var classNames = GetClassNames(schema);
             return new Aggregator(Host, classNames, numClasses, schema.Weight != null, _outputTopKAcc, stratName);
         }
@@ -98,11 +97,11 @@ namespace Microsoft.ML.Runtime.Data
             ReadOnlyMemory<char>[] names;
             // Get the label names from the score column if they exist, or use the default names.
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var mdType = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
+            var mdType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
-            if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType.IsText)
+            if (mdType != null && mdType.IsKnownSize && mdType.ItemType is TextType)
             {
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref labelNames);
+                schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref labelNames);
                 names = new ReadOnlyMemory<char>[labelNames.Length];
                 labelNames.CopyTo(names);
             }
@@ -110,8 +109,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var score = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Score);
                 Host.Assert(Utils.Size(score) == 1);
-                Host.Assert(score[0].Type.VectorSize > 0);
-                int numClasses = score[0].Type.VectorSize;
+                int numClasses = score[0].Type.GetVectorSize();
+                Host.Assert(numClasses > 0);
                 names = Enumerable.Range(0, numClasses).Select(i => i.ToString().AsMemory()).ToArray();
             }
             return names;
@@ -119,10 +118,10 @@ namespace Microsoft.ML.Runtime.Data
 
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            int numClasses = scoreInfo.Type.VectorSize;
-            return new MultiClassPerInstanceEvaluator(Host, schema.Schema, scoreInfo, schema.Label.Name);
+            int numClasses = scoreInfo.Type.GetVectorSize();
+            return new MultiClassPerInstanceEvaluator(Host, schema.Schema, scoreInfo, schema.Label.Value.Name);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -137,7 +136,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("LogLossReduction", LogLossReduction);
         }
 
-        protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
+        private protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
@@ -387,20 +386,20 @@ namespace Microsoft.ML.Runtime.Data
                 ClassNames = classNames;
             }
 
-            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Host.Assert(PassNum < 1);
-                Host.AssertValue(schema.Label);
+                Host.Assert(schema.Label.HasValue);
 
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-                Host.Assert(score.Type.VectorSize == _scoresArr.Length);
-                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Index);
+                Host.Assert(score.Type.GetVectorSize() == _scoresArr.Length);
+                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
 
-                if (schema.Weight != null)
-                    _weightGetter = row.GetGetter<float>(schema.Weight.Index);
+                if (schema.Weight.HasValue)
+                    _weightGetter = row.GetGetter<float>(schema.Weight.Value.Index);
             }
 
             public override void ProcessRow()
@@ -567,18 +566,18 @@ namespace Microsoft.ML.Runtime.Data
         private readonly ReadOnlyMemory<char>[] _classNames;
         private readonly ColumnType[] _types;
 
-        public MultiClassPerInstanceEvaluator(IHostEnvironment env, Schema schema, ColumnInfo scoreInfo, string labelCol)
-            : base(env, schema, Contracts.CheckRef(scoreInfo, nameof(scoreInfo)).Name, labelCol)
+        public MultiClassPerInstanceEvaluator(IHostEnvironment env, Schema schema, Schema.Column scoreColumn, string labelCol)
+            : base(env, schema, scoreColumn.Name, labelCol)
         {
             CheckInputColumnTypes(schema);
 
-            _numClasses = scoreInfo.Type.VectorSize;
+            _numClasses = scoreColumn.Type.GetVectorSize();
             _types = new ColumnType[4];
 
-            if (schema.HasSlotNames(ScoreIndex, _numClasses))
+            if (schema[ScoreIndex].HasSlotNames(_numClasses))
             {
                 var classNames = default(VBuffer<ReadOnlyMemory<char>>);
-                schema.GetMetadata(MetadataUtils.Kinds.SlotNames, ScoreIndex, ref classNames);
+                schema[(int) ScoreIndex].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref classNames);
                 _classNames = new ReadOnlyMemory<char>[_numClasses];
                 classNames.CopyTo(_classNames);
             }
@@ -813,12 +812,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(ScoreIndex);
-            if (t.VectorSize < 2 || t.ItemType != NumberType.Float)
-                throw Host.Except("Score column '{0}' has type '{1}' but must be a vector of two or more items of type R4", ScoreCol, t);
-            t = schema.GetColumnType(LabelIndex);
-            if (t != NumberType.Float && t.KeyCount <= 0)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be a float or a known-cardinality key", LabelCol, t);
+            var scoreType = schema[ScoreIndex].Type as VectorType;
+            if (scoreType == null || scoreType.Size < 2 || scoreType.ItemType != NumberType.Float)
+                throw Host.Except("Score column '{0}' has type '{1}' but must be a vector of two or more items of type R4", ScoreCol, scoreType);
+            var labelType = schema[LabelIndex].Type;
+            if (labelType != NumberType.Float && labelType.GetKeyCount() <= 0)
+                throw Host.Except("Label column '{0}' has type '{1}' but must be a float or a known-cardinality key", LabelCol, labelType);
         }
     }
 
@@ -871,7 +870,7 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new MultiClassClassifierEvaluator(Host, evalArgs);
         }
 
-        protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
+        private protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
         {
             Host.AssertValue(metrics);
 
@@ -901,7 +900,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(unweightedFold);
         }
 
-        protected override IDataView CombineOverallMetricsCore(IDataView[] metrics)
+        private protected override IDataView CombineOverallMetricsCore(IDataView[] metrics)
         {
             var overallList = new List<IDataView>();
 
@@ -924,10 +923,10 @@ namespace Microsoft.ML.Runtime.Data
                     var idv = views[i];
 
                     // Find the old per-class log-loss column and drop it.
-                    for (int col = 0; col < idv.Schema.ColumnCount; col++)
+                    for (int col = 0; col < idv.Schema.Count; col++)
                     {
-                        if (idv.Schema.IsHidden(col) &&
-                            idv.Schema.GetColumnName(col).Equals(MultiClassClassifierEvaluator.PerClassLogLoss))
+                        if (idv.Schema[col].IsHidden &&
+                            idv.Schema[col].Name.Equals(MultiClassClassifierEvaluator.PerClassLogLoss))
                         {
                             idv = new ChooseColumnsByIndexTransform(Host,
                                 new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { col } }, idv);
@@ -940,7 +939,7 @@ namespace Microsoft.ML.Runtime.Data
             return base.CombineOverallMetricsCore(views);
         }
 
-        protected override IDataView GetOverallResultsCore(IDataView overall)
+        private protected override IDataView GetOverallResultsCore(IDataView overall)
         {
             // Change the name of the Top-k-accuracy column.
             if (_outputTopKAcc != null)
@@ -978,13 +977,13 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("LogLossReduction", MultiClassClassifierEvaluator.LogLossReduction);
         }
 
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
 
             // Output the label column.
-            yield return schema.Label.Name;
+            yield return schema.Label.Value.Name;
 
             // Return the output columns.
             yield return MultiClassPerInstanceEvaluator.Assigned;
@@ -994,35 +993,36 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Multi-class evaluator adds four per-instance columns: "Assigned", "Top scores", "Top classes" and "Log-loss".
-        protected override IDataView GetPerInstanceMetricsCore(IDataView perInst, RoleMappedSchema schema)
+        private protected override IDataView GetPerInstanceMetricsCore(IDataView perInst, RoleMappedSchema schema)
         {
             // If the label column is a key without key values, convert it to I8, just for saving the per-instance
             // text file, since if there are different key counts the columns cannot be appended.
-            if (!perInst.Schema.TryGetColumnIndex(schema.Label.Name, out int labelCol))
-                throw Host.Except("Could not find column '{0}'", schema.Label.Name);
-            var labelType = perInst.Schema.GetColumnType(labelCol);
-            if (labelType is KeyType keyType && (!perInst.Schema.HasKeyValues(labelCol, keyType.KeyCount) || labelType.RawKind != DataKind.U4))
+            string labelName = schema.Label.Value.Name;
+            if (!perInst.Schema.TryGetColumnIndex(labelName, out int labelCol))
+                throw Host.Except("Could not find column '{0}'", labelName);
+            var labelType = perInst.Schema[labelCol].Type;
+            if (labelType is KeyType keyType && (!(bool)perInst.Schema[labelCol].HasKeyValues(keyType.Count) || labelType.RawKind != DataKind.U4))
             {
-                perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
-                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,
+                perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, labelName,
+                    labelName, perInst.Schema[labelCol].Type, NumberType.R8,
                     (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)keyType.Min);
             }
 
             var perInstSchema = perInst.Schema;
             if (perInstSchema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedClasses, out int sortedClassesIndex))
             {
-                var type = perInstSchema.GetColumnType(sortedClassesIndex);
+                var type = perInstSchema[sortedClassesIndex].Type;
                 // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
-                if (_numTopClasses < type.VectorSize)
+                if (_numTopClasses < type.GetVectorSize())
                     perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
             }
 
             // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
             if (perInst.Schema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedScores, out int sortedScoresIndex))
             {
-                var type = perInst.Schema.GetColumnType(sortedScoresIndex);
-                if (_numTopClasses < type.VectorSize)
-                   perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
+                var type = perInst.Schema[sortedScoresIndex].Type;
+                if (_numTopClasses < type.GetVectorSize())
+                    perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
             }
             return perInst;
         }

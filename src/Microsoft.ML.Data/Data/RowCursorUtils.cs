@@ -7,11 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public static class RowCursorUtils
     {
@@ -26,11 +25,11 @@ namespace Microsoft.ML.Runtime.Data
         public static Delegate GetGetterAsDelegate(Row row, int col)
         {
             Contracts.CheckValue(row, nameof(row));
-            Contracts.CheckParam(0 <= col && col < row.Schema.ColumnCount, nameof(col));
+            Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
             Func<Row, int, Delegate> getGetter = GetGetterAsDelegateCore<int>;
-            return Utils.MarshalInvoke(getGetter, row.Schema.GetColumnType(col).RawType, row, col);
+            return Utils.MarshalInvoke(getGetter, row.Schema[col].Type.RawType, row, col);
         }
 
         private static Delegate GetGetterAsDelegateCore<TValue>(Row row, int col)
@@ -47,13 +46,13 @@ namespace Microsoft.ML.Runtime.Data
         public static Delegate GetGetterAs(ColumnType typeDst, Row row, int col)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsPrimitive, nameof(typeDst));
+            Contracts.CheckParam(typeDst is PrimitiveType, nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
-            Contracts.CheckParam(0 <= col && col < row.Schema.ColumnCount, nameof(col));
+            Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            var typeSrc = row.Schema[col].Type;
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<int>> del = GetGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeDst.RawType);
@@ -67,14 +66,14 @@ namespace Microsoft.ML.Runtime.Data
         public static ValueGetter<TDst> GetGetterAs<TDst>(ColumnType typeDst, Row row, int col)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsPrimitive, nameof(typeDst));
+            Contracts.CheckParam(typeDst is PrimitiveType, nameof(typeDst));
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
-            Contracts.CheckParam(0 <= col && col < row.Schema.ColumnCount, nameof(col));
+            Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            var typeSrc = row.Schema[col].Type;
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
 
             Func<ColumnType, ColumnType, Row, int, ValueGetter<TDst>> del = GetGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType, typeof(TDst));
@@ -115,11 +114,11 @@ namespace Microsoft.ML.Runtime.Data
         public static ValueGetter<StringBuilder> GetGetterAsStringBuilder(Row row, int col)
         {
             Contracts.CheckValue(row, nameof(row));
-            Contracts.CheckParam(0 <= col && col < row.Schema.ColumnCount, nameof(col));
+            Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
-            Contracts.Check(typeSrc.IsPrimitive, "Source column type must be primitive");
+            var typeSrc = row.Schema[col].Type;
+            Contracts.Check(typeSrc is PrimitiveType, "Source column type must be primitive");
             return Utils.MarshalInvoke(GetGetterAsStringBuilderCore<int>, typeSrc.RawType, typeSrc, row, col);
         }
 
@@ -148,11 +147,11 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
-            Contracts.CheckParam(0 <= col && col < row.Schema.ColumnCount, nameof(col));
+            Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<int>>> del = GetVecGetterAsCore<int, int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeDst.RawType);
@@ -168,11 +167,11 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
             Contracts.CheckValue(row, nameof(row));
-            Contracts.CheckParam(0 <= col && col < row.Schema.ColumnCount, nameof(col));
+            Contracts.CheckParam(0 <= col && col < row.Schema.Count, nameof(col));
             Contracts.CheckParam(row.IsColumnActive(col), nameof(col), "column was not active");
 
-            var typeSrc = row.Schema.GetColumnType(col);
-            Contracts.Check(typeSrc.IsVector, "Source column type must be vector");
+            var typeSrc = row.Schema[col].Type as VectorType;
+            Contracts.Check(typeSrc != null, "Source column type must be vector");
 
             Func<VectorType, PrimitiveType, GetterFactory, ValueGetter<VBuffer<TDst>>> del = GetVecGetterAsCore<int, TDst>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.ItemType.RawType, typeof(TDst));
@@ -183,7 +182,8 @@ namespace Microsoft.ML.Runtime.Data
         /// Given the item type, typeDst, and a slot cursor, return a ValueGetter{VBuffer{TDst}} for the
         /// vector-valued column with a conversion to a vector of typeDst, if needed.
         /// </summary>
-        public static ValueGetter<VBuffer<TDst>> GetVecGetterAs<TDst>(PrimitiveType typeDst, SlotCursor cursor)
+        [BestFriend]
+        internal static ValueGetter<VBuffer<TDst>> GetVecGetterAs<TDst>(PrimitiveType typeDst, SlotCursor cursor)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
                 return (ValueGetter<VBuffer<TDst>>)(Delegate)getter;
             }
 
-            int size = typeSrc.VectorSize;
+            int size = typeSrc.Size;
             var src = default(VBuffer<TSrc>);
             return (ref VBuffer<TDst> dst) =>
             {
@@ -297,9 +297,9 @@ namespace Microsoft.ML.Runtime.Data
         public static Func<bool> GetIsNewGroupDelegate(Row cursor, int col)
         {
             Contracts.CheckValue(cursor, nameof(cursor));
-            Contracts.Check(0 <= col && col < cursor.Schema.ColumnCount);
-            ColumnType type = cursor.Schema.GetColumnType(col);
-            Contracts.Check(type.IsKey);
+            Contracts.Check(0 <= col && col < cursor.Schema.Count);
+            ColumnType type = cursor.Schema[col].Type;
+            Contracts.Check(type is KeyType);
             return Utils.MarshalInvoke(GetIsNewGroupDelegateCore<int>, type.RawType, cursor, col);
         }
 
@@ -326,30 +326,6 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        [Obsolete("The usages of this appear to be based on a total misunderstanding of what Batch actually is. It is a mechanism " +
-            "to enable sharding and recovery of parallelized data, and has nothing to do with actual data.")]
-        [BestFriend]
-        internal static Func<bool> GetIsNewBatchDelegate(Row cursor, int batchSize)
-        {
-            Contracts.CheckParam(batchSize > 0, nameof(batchSize), "Batch size must be > 0");
-            long lastNewBatchPosition = -1;
-            return () =>
-            {
-                if (cursor.Position % batchSize != 0)
-                    return false;
-
-                // If the cursor just moved to a new batch, we need to return true.
-                if (lastNewBatchPosition != cursor.Position)
-                {
-                    lastNewBatchPosition = cursor.Position;
-                    return true;
-                }
-
-                // The cursor is already in the new batch, if the condition is tested again, we need to return false.
-                return false;
-            };
-        }
-
         public static string TestGetLabelGetter(ColumnType type)
         {
             return TestGetLabelGetter(type, true);
@@ -357,10 +333,10 @@ namespace Microsoft.ML.Runtime.Data
 
         public static string TestGetLabelGetter(ColumnType type, bool allowKeys)
         {
-            if (type == NumberType.R4 || type == NumberType.R8 || type.IsBool)
+            if (type == NumberType.R4 || type == NumberType.R8 || type is BoolType)
                 return null;
 
-            if (allowKeys && type.IsKey)
+            if (allowKeys && type is KeyType)
                 return null;
 
             return allowKeys ? "Expected R4, R8, Bool or Key type" : "Expected R4, R8 or Bool type";
@@ -368,7 +344,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public static ValueGetter<Single> GetLabelGetter(Row cursor, int labelIndex)
         {
-            var type = cursor.Schema.GetColumnType(labelIndex);
+            var type = cursor.Schema[labelIndex].Type;
 
             if (type == NumberType.R4)
                 return cursor.GetGetter<Single>(labelIndex);
@@ -390,12 +366,12 @@ namespace Microsoft.ML.Runtime.Data
 
         private static ValueGetter<Single> GetLabelGetterNotFloat(Row cursor, int labelIndex)
         {
-            var type = cursor.Schema.GetColumnType(labelIndex);
+            var type = cursor.Schema[labelIndex].Type;
 
             Contracts.Assert(type != NumberType.R4 && type != NumberType.R8);
 
             // boolean type label mapping: True -> 1, False -> 0.
-            if (type.IsBool)
+            if (type is BoolType)
             {
                 var getBoolSrc = cursor.GetGetter<bool>(labelIndex);
                 return
@@ -407,9 +383,11 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            Contracts.Check(type.IsKey, "Only floating point number, boolean, and key type values can be used as label.");
+            if (!(type is KeyType keyType))
+                throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
+
             Contracts.Assert(TestGetLabelGetter(type) == null);
-            ulong keyMax = (ulong)type.KeyCount;
+            ulong keyMax = (ulong)keyType.Count;
             if (keyMax == 0)
                 keyMax = ulong.MaxValue;
             var getSrc = RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, cursor, labelIndex);
@@ -425,16 +403,20 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        public static ValueGetter<VBuffer<Single>> GetLabelGetter(SlotCursor cursor)
+        [BestFriend]
+        internal static ValueGetter<VBuffer<Single>> GetLabelGetter(SlotCursor cursor)
         {
             var type = cursor.GetSlotType().ItemType;
             if (type == NumberType.R4)
                 return cursor.GetGetter<Single>();
-            if (type == NumberType.R8 || type.IsBool)
+            if (type == NumberType.R8 || type is BoolType)
                 return GetVecGetterAs<Single>(NumberType.R4, cursor);
-            Contracts.Check(type.IsKey, "Only floating point number, boolean, and key type values can be used as label.");
+            if (!(type is KeyType keyType))
+            {
+                throw Contracts.Except("Only floating point number, boolean, and key type values can be used as label.");
+            }
             Contracts.Assert(TestGetLabelGetter(type) == null);
-            ulong keyMax = (ulong)type.KeyCount;
+            ulong keyMax = (ulong)keyType.Count;
             if (keyMax == 0)
                 keyMax = ulong.MaxValue;
             var getSrc = RowCursorUtils.GetVecGetterAs<ulong>(NumberType.U8, cursor);
@@ -473,7 +455,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Given a row, returns a one-row data view. This is useful for cases where you have a row, and you
         /// wish to use some facility normally only exposed to dataviews. (For example, you have an <see cref="Row"/>
-        /// but want to save it somewhere using a <see cref="Microsoft.ML.Runtime.Data.IO.BinarySaver"/>.)
+        /// but want to save it somewhere using a <see cref="Microsoft.ML.Data.IO.BinarySaver"/>.)
         /// Note that it is not possible for this method to ensure that the input <paramref name="row"/> does not
         /// change, so users of this convenience must take care of what they do with the input row or the data
         /// source it came from, while the returned dataview is potentially being used.
@@ -485,7 +467,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(row, nameof(row));
-            env.CheckParam(Enumerable.Range(0, row.Schema.ColumnCount).All(c => row.IsColumnActive(c)), nameof(row), "Some columns were inactive");
+            env.CheckParam(Enumerable.Range(0, row.Schema.Count).All(c => row.IsColumnActive(c)), nameof(row), "Some columns were inactive");
             return new OneRowDataView(env, row);
         }
 
@@ -502,7 +484,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(env);
                 _host = env.Register("OneRowDataView");
                 _host.AssertValue(row);
-                _host.Assert(Enumerable.Range(0, row.Schema.ColumnCount).All(c => row.IsColumnActive(c)));
+                _host.Assert(Enumerable.Range(0, row.Schema.Count).All(c => row.IsColumnActive(c)));
 
                 _row = row;
             }
@@ -511,15 +493,14 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
-                bool[] active = Utils.BuildArray(Schema.ColumnCount, needCol);
+                bool[] active = Utils.BuildArray(Schema.Count, needCol);
                 return new Cursor(_host, this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
             {
                 _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
-                consolidator = null;
                 return new RowCursor[] { GetRowCursor(needCol, rand) };
             }
 
@@ -541,7 +522,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Ch.AssertValue(parent);
                     Ch.AssertValue(active);
-                    Ch.Assert(active.Length == parent.Schema.ColumnCount);
+                    Ch.Assert(active.Length == parent.Schema.Count);
                     _parent = parent;
                     _active = active;
                 }
@@ -553,7 +534,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
-                    Ch.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
+                    Ch.CheckParam(0 <= col && col < Schema.Count, nameof(col));
                     Ch.CheckParam(IsColumnActive(col), nameof(col), "Requested column is not active");
                     var getter = _parent._row.GetGetter<TValue>(col);
                     return
@@ -566,7 +547,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override bool IsColumnActive(int col)
                 {
-                    Ch.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
+                    Ch.CheckParam(0 <= col && col < Schema.Count, nameof(col));
                     // We present the "illusion" that this column is not active, even though it must be
                     // in the input row.
                     Ch.Assert(_parent._row.IsColumnActive(col));

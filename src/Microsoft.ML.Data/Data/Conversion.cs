@@ -10,22 +10,22 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data.Conversion
+namespace Microsoft.ML.Data.Conversion
 {
     using BL = Boolean;
     using DT = DateTime;
     using DZ = DateTimeOffset;
-    using R4 = Single;
-    using R8 = Double;
     using I1 = SByte;
     using I2 = Int16;
     using I4 = Int32;
     using I8 = Int64;
+    using R4 = Single;
+    using R8 = Double;
     using SB = StringBuilder;
-    using TX = ReadOnlyMemory<char>;
     using TS = TimeSpan;
+    using TX = ReadOnlyMemory<char>;
     using U1 = Byte;
     using U2 = UInt16;
     using U4 = UInt32;
@@ -452,12 +452,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
             else if (typeDst is KeyType keyDst)
             {
-                if (!typeSrc.IsText)
+                if (!(typeSrc is TextType))
                     return false;
                 conv = GetKeyParse(keyDst);
                 return true;
             }
-            else if (!typeDst.IsStandardScalar)
+            else if (!typeDst.IsStandardScalar())
                 return false;
 
             Contracts.Assert(typeSrc.RawKind != 0);
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
-            Contracts.CheckParam(typeDst.IsStandardScalar || typeDst.IsKey, nameof(typeDst),
+            Contracts.CheckParam(typeDst.IsStandardScalar() || typeDst is KeyType, nameof(typeDst),
                 "Parse conversion only supported for standard types");
             Contracts.Check(typeDst.RawType == typeof(TDst), "Wrong TDst type parameter");
 
@@ -671,12 +671,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public InPredicate<T> GetIsDefaultPredicate<T>(ColumnType type)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(!type.IsVector, nameof(type));
+            Contracts.CheckParam(!(type is VectorType), nameof(type));
             Contracts.CheckParam(type.RawType == typeof(T), nameof(type));
 
             var t = type;
             Delegate del;
-            if (!t.IsStandardScalar && !t.IsKey || !_isDefaultDelegates.TryGetValue(t.RawKind, out del))
+            if (!t.IsStandardScalar() && !(t is KeyType) || !_isDefaultDelegates.TryGetValue(t.RawKind, out del))
                 throw Contracts.Except("No IsDefault predicate for '{0}'", type);
 
             return (InPredicate<T>)del;
@@ -710,16 +710,16 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryGetIsNAPredicate(ColumnType type, out Delegate del)
         {
             Contracts.CheckValue(type, nameof(type));
-            Contracts.CheckParam(!type.IsVector, nameof(type));
+            Contracts.CheckParam(!(type is VectorType), nameof(type));
 
             var t = type;
-            if (t.IsKey)
+            if (t is KeyType)
             {
                 // REVIEW: Should we test for out of range when KeyCount > 0?
                 Contracts.Assert(_isDefaultDelegates.ContainsKey(t.RawKind));
                 del = _isDefaultDelegates[t.RawKind];
             }
-            else if (!t.IsStandardScalar || !_isNADelegates.TryGetValue(t.RawKind, out del))
+            else if (!t.IsStandardScalar() || !_isNADelegates.TryGetValue(t.RawKind, out del))
             {
                 del = null;
                 return false;
@@ -736,13 +736,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             var t = type.ItemType;
             Delegate del;
-            if (t.IsKey)
+            if (t is KeyType)
             {
                 // REVIEW: Should we test for out of range when KeyCount > 0?
                 Contracts.Assert(_hasZeroDelegates.ContainsKey(t.RawKind));
                 del = _hasZeroDelegates[t.RawKind];
             }
-            else if (!t.IsStandardScalar || !_hasNADelegates.TryGetValue(t.RawKind, out del))
+            else if (!t.IsStandardScalar() || !_hasNADelegates.TryGetValue(t.RawKind, out del))
                 throw Contracts.Except("No HasMissing predicate for '{0}'", type);
 
             return (InPredicate<VBuffer<T>>)del;

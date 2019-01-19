@@ -2,23 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.Projections;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Numeric;
+using Microsoft.ML.Transforms.Projections;
 
 [assembly: LoadableClass(PcaTransform.Summary, typeof(IDataTransform), typeof(PcaTransform), typeof(PcaTransform.Arguments), typeof(SignatureDataTransform),
     PcaTransform.UserName, PcaTransform.LoaderSignature, PcaTransform.ShortName)]
@@ -258,7 +254,7 @@ namespace Microsoft.ML.Transforms.Projections
                 var colInfo = columns[i];
                 var sInfo = _schemaInfos[i] = new Mapper.ColumnSchemaInfo(ColumnPairs[i], input.Schema, colInfo.WeightColumn);
                 ValidatePcaInput(Host, colInfo.Input, sInfo.InputType);
-                _transformInfos[i] = new TransformInfo(colInfo.Rank, sInfo.InputType.ValueCount);
+                _transformInfos[i] = new TransformInfo(colInfo.Rank, sInfo.InputType.GetValueCount());
             }
 
             Train(columns, _transformInfos, input);
@@ -347,14 +343,14 @@ namespace Microsoft.ML.Transforms.Projections
             var omega = new float[_numColumns][][];
             var mean = new float[_numColumns][];
             var oversampledRank = new int[_numColumns];
-            var rnd = Host.Rand;
-            Double totalMemoryUsageEstimate = 0;
+            double totalMemoryUsageEstimate = 0;
             for (int iinfo = 0; iinfo < _numColumns; iinfo++)
             {
+                var rnd = columns[iinfo].Seed == null ? Host.Rand : new Random(columns[iinfo].Seed.Value);
                 oversampledRank[iinfo] = Math.Min(transformInfos[iinfo].Rank + columns[iinfo].Oversampling, transformInfos[iinfo].Dimension);
 
                 //exact: (size of the 2 big matrices + other minor allocations) / (2^30)
-                Double colMemoryUsageEstimate = 2.0 * transformInfos[iinfo].Dimension * oversampledRank[iinfo] * sizeof(float) / 1e9;
+                double colMemoryUsageEstimate = 2.0 * transformInfos[iinfo].Dimension * oversampledRank[iinfo] * sizeof(float) / 1e9;
                 totalMemoryUsageEstimate += colMemoryUsageEstimate;
                 if (colMemoryUsageEstimate > 2)
                 {
@@ -449,7 +445,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             Double[] totalColWeight = new Double[_numColumns];
 
-            bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
+            bool[] activeColumns = new bool[trainingData.Schema.Count];
             foreach (var sInfo in _schemaInfos)
             {
                 activeColumns[sInfo.InputIndex] = true;
@@ -544,14 +540,14 @@ namespace Microsoft.ML.Transforms.Projections
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            ValidatePcaInput(Host, inputSchema.GetColumnName(srcCol), inputSchema.GetColumnType(srcCol));
+            ValidatePcaInput(Host, inputSchema[srcCol].Name, inputSchema[srcCol].Type);
         }
 
         internal static void ValidatePcaInput(IExceptionContext ectx, string name, ColumnType type)
         {
             string inputSchema; // just used for the excpections
 
-            if (!(type.IsKnownSizeVector && type.VectorSize > 1 && type.ItemType.Equals(NumberType.R4)))
+            if (!(type is VectorType vectorType && vectorType.Size > 1 && vectorType.ItemType.Equals(NumberType.R4)))
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "vector of floats with fixed size greater than 1", type.ToString());
         }
 
@@ -593,7 +589,7 @@ namespace Microsoft.ML.Transforms.Projections
                     var colPair = _parent.ColumnPairs[i];
                     var colSchemaInfo = new ColumnSchemaInfo(colPair, inputSchema);
                     ValidatePcaInput(Host, colPair.input, colSchemaInfo.InputType);
-                    if (colSchemaInfo.InputType.VectorSize != _parent._transformInfos[i].Dimension)
+                    if (colSchemaInfo.InputType.GetVectorSize() != _parent._transformInfos[i].Dimension)
                     {
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input,
                             new VectorType(NumberType.R4, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());
@@ -663,6 +659,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
     public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransform>
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const string WeightColumn = null;
@@ -722,65 +719,5 @@ namespace Microsoft.ML.Transforms.Projections
 
             return new SchemaShape(result.Values);
         }
-    }
-
-    public static class PcaEstimatorExtensions
-    {
-        private sealed class OutPipelineColumn : Vector<float>
-        {
-            public readonly Vector<float> Input;
-
-            public OutPipelineColumn(Vector<float> input, string weightColumn, int rank,
-                                     int overSampling, bool center, int? seed = null)
-                : base(new Reconciler(weightColumn, rank, overSampling, center, seed), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly PcaTransform.ColumnInfo _colInfo;
-
-            public Reconciler(string weightColumn, int rank, int overSampling, bool center, int? seed = null)
-            {
-                _colInfo = new PcaTransform.ColumnInfo(
-                    null, null, weightColumn, rank, overSampling, center, seed);
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-                var outCol = (OutPipelineColumn)toOutput[0];
-                var inputColName = inputNames[outCol.Input];
-                var outputColName = outputNames[outCol];
-                return new PrincipalComponentAnalysisEstimator(env, inputColName, outputColName,
-                                         _colInfo.WeightColumn, _colInfo.Rank, _colInfo.Oversampling,
-                                         _colInfo.Center, _colInfo.Seed);
-            }
-        }
-
-        /// <summary>
-        /// Replaces the input vector with its projection to the principal component subspace,
-        /// which can significantly reduce size of vector.
-        /// </summary>
-        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
-        /// <param name="input">The column to apply PCA to.</param>
-        /// <param name="weightColumn">The name of the weight column.</param>
-        /// <param name="rank">The number of components in the PCA.</param>
-        /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
-        /// <param name="seed">The seed for random number generation</param>
-        /// <returns>Vector containing the principal components.</returns>
-        public static Vector<float> ToPrincipalComponents(this Vector<float> input,
-            string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
-            int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
-            int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
-            bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,
-            int? seed = null) => new OutPipelineColumn(input, weightColumn, rank, overSampling, center, seed);
     }
 }

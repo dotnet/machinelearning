@@ -1,8 +1,7 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.StaticPipe;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
+using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -32,7 +31,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // First, we define the reader: specify the data columns and where to find them in the text file. Notice that we combine entries from
             // all the feature columns into entries of a vector of a single column named "Features".
-            var reader = TextLoader.CreateReader(ml, c => (
+            var reader = TextLoaderStatic.CreateReader(ml, c => (
                         Label: c.LoadBool(0),
                         Features: c.LoadFloat(1, 9)
                     ),

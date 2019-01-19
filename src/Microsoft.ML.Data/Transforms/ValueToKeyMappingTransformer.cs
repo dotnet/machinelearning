@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Transforms.Conversions;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Onnx;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Transforms.Conversions;
+using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueToKeyMappingTransformer),
     typeof(ValueToKeyMappingTransformer.Arguments), typeof(SignatureDataTransform),
@@ -264,7 +263,10 @@ namespace Microsoft.ML.Transforms.Conversions
 
         internal string TestIsKnownDataKind(ColumnType type)
         {
-            if (type.ItemType.RawKind != default && (type.IsVector || type.IsPrimitive))
+            VectorType vectorType = type as VectorType;
+            ColumnType itemType = vectorType?.ItemType ?? type;
+
+            if (itemType.RawKind != default && (vectorType != null || type is PrimitiveType))
                 return null;
             return "standard type or a vector of standard type";
         }
@@ -277,7 +279,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
-                var type = inputSchema.GetColumnType(colSrc);
+                var type = inputSchema[colSrc].Type;
                 string reason = TestIsKnownDataKind(type);
                 if (reason != null)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input, reason, type.ToString());
@@ -286,7 +288,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return infos;
         }
 
-        public ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
+        internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
             params ColumnInfo[] columns) :
             this(env, input, columns, null, null, null)
         { }
@@ -477,7 +479,7 @@ namespace Microsoft.ML.Transforms.Conversions
             int colSrc;
             if (!termData.Schema.TryGetColumnIndex(src, out colSrc))
                 throw ch.ExceptUserArg(nameof(termsColumn), "Unknown column '{0}'", src);
-            var typeSrc = termData.Schema.GetColumnType(colSrc);
+            var typeSrc = termData.Schema[colSrc].Type;
             if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
                 throw ch.ExceptUserArg(nameof(termsColumn), "Must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
 
@@ -550,7 +552,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
                         termsFromFile = CreateFileTermMap(env, ch, file, termsColumn, loaderFactory, bldr);
                     }
-                    if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.ItemType))
+                    if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.GetItemType()))
                     {
                         // We have no current plans to support re-interpretation based on different column
                         // type, not only because it's unclear what realistic customer use-cases for such
@@ -558,7 +560,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // can logically reconcile "reinterpretation" for different types with the resulting
                         // data view having an actual type.
                         throw ch.ExceptUserArg(nameof(file), "Data file terms loaded as type '{0}' but mismatches column '{1}' item type '{2}'",
-                            termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.ItemType);
+                            termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.GetItemType());
                     }
                     termMap[iinfo] = termsFromFile;
                 }
@@ -639,7 +641,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     trainer[itrainer] = null;
                 }
                 ch.Assert(termMap.All(tm => tm != null));
-                ch.Assert(termMap.Zip(infos, (tm, info) => tm.ItemType.Equals(info.TypeSrc.ItemType)).All(x => x));
+                ch.Assert(termMap.Zip(infos, (tm, info) => tm.ItemType.Equals(info.TypeSrc.GetItemType())).All(x => x));
             }
 
             return termMap;
@@ -759,7 +761,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                if (!info.TypeSrc.ItemType.IsText)
+                if (!(info.TypeSrc.GetItemType() is TextType))
                     return false;
 
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
@@ -835,7 +837,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 Contracts.AssertValue(srcToken);
                 //Contracts.Assert(CanSavePfa);
 
-                if (!info.TypeSrc.ItemType.IsText)
+                VectorType vectorType = info.TypeSrc as VectorType;
+                ColumnType itemType = vectorType?.ItemType ?? info.TypeSrc;
+                if (!(itemType is TextType))
                     return null;
                 var terms = default(VBuffer<ReadOnlyMemory<char>>);
                 TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
@@ -847,7 +851,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     "TermMap", PfaUtils.Type.Map(PfaUtils.Type.Int), jsonMap);
                 JObject cellRef = PfaUtils.Cell(cellName);
 
-                if (info.TypeSrc.IsVector)
+                if (vectorType != null)
                 {
                     var funcName = ctx.GetFreeFunctionName("mapTerm");
                     ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("term", PfaUtils.Type.String)),

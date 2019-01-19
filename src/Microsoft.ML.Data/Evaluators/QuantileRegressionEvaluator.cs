@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 using Float = System.Single;
 
 [assembly: LoadableClass(typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
@@ -23,7 +22,7 @@ using Float = System.Single;
 [assembly: LoadableClass(typeof(QuantileRegressionPerInstanceEvaluator), null, typeof(SignatureLoadRowMapper),
     "", QuantileRegressionPerInstanceEvaluator.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed class QuantileRegressionEvaluator :
         RegressionEvaluatorBase<QuantileRegressionEvaluator.Aggregator, VBuffer<Float>, VBuffer<Double>>
@@ -41,43 +40,40 @@ namespace Microsoft.ML.Runtime.Data
 
         private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            int scoreSize = scoreInfo.Type.VectorSize;
-            var type = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
-            Host.Check(type != null && type.IsKnownSizeVector && type.ItemType.IsText, "Quantile regression score column must have slot names");
+            int scoreSize = scoreInfo.Type.GetVectorSize();
+            var type = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+            Host.Check(type != null && type.IsKnownSize && type.ItemType is TextType, "Quantile regression score column must have slot names");
             var quantiles = default(VBuffer<ReadOnlyMemory<char>>);
-            schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref quantiles);
+            schema.Schema[scoreInfo.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref quantiles);
             Host.Assert(quantiles.IsDense && quantiles.Length == scoreSize);
 
-            return new QuantileRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Name, scoreSize, quantiles);
+            return new QuantileRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Value.Name, scoreSize, quantiles);
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var t = score.Type;
-            if (t.VectorSize == 0 || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
-            {
-                throw Host.Except(
-                    "Score column '{0}' has type '{1}' but must be a known length vector of type R4 or R8", score.Name, t);
-            }
-            Host.Check(schema.Label != null, "Could not find the label column");
-            t = schema.Label.Type;
-            if (t != NumberType.R4)
-                throw Host.Except("Label column '{0}' has type '{1}' but must be R4", schema.Label.Name, t);
+            var t = score.Type as VectorType;
+            if (t == null || t.Size == 0 || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
+                throw Host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "vector of type R4 or R8", t.ToString());
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
+            var labelType = schema.Label.Value.Type;
+            if (labelType != NumberType.R4)
+                throw Host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "R4", t.ToString());
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            var t = scoreInfo.Type;
-            Host.Assert(t.VectorSize > 0 && (t.ItemType == NumberType.R4 || t.ItemType == NumberType.R8));
+            var scoreType = scoreInfo.Type as VectorType;
+            Host.Assert(scoreType != null && scoreType.Size > 0 && (scoreType.ItemType == NumberType.R4 || scoreType.ItemType == NumberType.R8));
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
-            t = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
-            if (t != null && t.VectorSize == scoreInfo.Type.VectorSize && t.ItemType.IsText)
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref slotNames);
-            return new Aggregator(Host, LossFunction, schema.Weight != null, scoreInfo.Type.VectorSize, in slotNames, stratName);
+            var slotNamesType = schema.Schema[scoreInfo.Index].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type as VectorType;
+            if (slotNamesType != null && slotNamesType.Size == scoreType.Size && slotNamesType.ItemType is TextType)
+                schema.Schema[scoreInfo.Index].GetSlotNames(ref slotNames);
+            return new Aggregator(Host, LossFunction, schema.Weight != null, scoreType.Size, in slotNames, stratName);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -447,12 +443,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(LabelIndex);
+            var t = schema[(int)LabelIndex].Type;
             if (t != NumberType.R4)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4", LabelCol, t);
 
-            t = schema.GetColumnType(ScoreIndex);
-            if (t.VectorSize == 0 || (t.ItemType != NumberType.R4 && t.ItemType != NumberType.R8))
+            VectorType scoreType = schema[ScoreIndex].Type as VectorType;
+            if (scoreType == null || scoreType.Size == 0 || (scoreType.ItemType != NumberType.R4 && scoreType.ItemType != NumberType.R8))
             {
                 throw Host.Except(
                     "Score column '{0}' has type '{1}' but must be a known length vector of type R4 or R8", ScoreCol, t);
@@ -487,7 +483,7 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new QuantileRegressionEvaluator(Host, evalArgs);
         }
 
-        protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
+        private protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
         {
             ch.AssertValue(metrics);
 
@@ -505,7 +501,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(unweightedMetrics);
         }
 
-        protected override IDataView GetOverallResultsCore(IDataView overall)
+        private protected override IDataView GetOverallResultsCore(IDataView overall)
         {
             return ExtractRelevantIndex(overall);
         }
@@ -513,13 +509,13 @@ namespace Microsoft.ML.Runtime.Data
         private IDataView ExtractRelevantIndex(IDataView data)
         {
             IDataView output = data;
-            for (int i = 0; i < data.Schema.ColumnCount; i++)
+            for (int i = 0; i < data.Schema.Count; i++)
             {
-                var type = data.Schema.GetColumnType(i);
-                if (type.IsKnownSizeVector && type.ItemType == NumberType.R8)
+                var type = data.Schema[i].Type;
+                if (type is VectorType vectorType && vectorType.IsKnownSize && vectorType.ItemType == NumberType.R8)
                 {
-                    var name = data.Schema.GetColumnName(i);
-                    var index = _index ?? type.VectorSize / 2;
+                    var name = data.Schema[i].Name;
+                    var index = _index ?? vectorType.Size / 2;
                     output = LambdaColumnMapper.Create(Host, "Quantile Regression", output, name, name, type, NumberType.R8,
                         (in VBuffer<Double> src, ref Double dst) => dst = src.GetItemOrDefault(index));
                     output = new ChooseColumnsByIndexTransform(Host,
@@ -538,16 +534,16 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("RSquared", QuantileRegressionEvaluator.RSquared);
         }
 
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Must contain a label column");
 
             // The quantile regression evaluator outputs the label and score columns.
-            yield return schema.Label.Name;
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            yield return schema.Label.Value.Name;
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.QuantileRegression);
-            yield return scoreInfo.Name;
+            yield return scoreCol.Name;
 
             // Return the output columns.
             yield return RegressionPerInstanceEvaluator.L1;

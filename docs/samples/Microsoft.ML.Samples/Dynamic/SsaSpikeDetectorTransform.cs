@@ -1,12 +1,11 @@
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.TimeSeries;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.TimeSeries;
+using Microsoft.ML.TimeSeriesProcessing;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -71,7 +70,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = new SsaSpikeEstimator(ml, args).Fit(dataView).Transform(dataView);
 
             // Getting the data of the newly created column as an IEnumerable of SsaSpikePrediction.
-            var predictionColumn = transformedData.AsEnumerable<SsaSpikePrediction>(ml, reuseRowObject: false);
+            var predictionColumn = ml.CreateEnumerable<SsaSpikePrediction>(transformedData, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Data\tAlert\tScore\tP-Value");

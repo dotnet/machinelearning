@@ -7,15 +7,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Data.Utilities;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Data.Utilities;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(PartitionedFileLoader.Summary, typeof(PartitionedFileLoader), typeof(PartitionedFileLoader.Arguments), typeof(SignatureDataLoader),
     PartitionedFileLoader.UserName, PartitionedFileLoader.LoadName, PartitionedFileLoader.ShortName)]
@@ -23,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(PartitionedFileLoader.Summary, typeof(PartitionedFileLoader), null, typeof(SignatureLoadDataLoader),
     PartitionedFileLoader.UserName, PartitionedFileLoader.LoadName, PartitionedFileLoader.ShortName)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Loads a set of directory partitioned files into an IDataView.
@@ -298,9 +297,8 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(_host, this, _files, needCol, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
         {
-            consolidator = null;
             var cursor = new Cursor(_host, this, _files, needCol, rand);
             return new RowCursor[] { cursor };
         }
@@ -335,7 +333,7 @@ namespace Microsoft.ML.Runtime.Data
                     colSchema
                 };
 
-                return Schema.Create(new CompositeSchema(schemas));
+                return new ZipBinding(schemas).OutputSchema;
             }
         }
 
@@ -526,7 +524,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (_subActive[i])
                     {
-                        var type = _subCursor.Schema.GetColumnType(i);
+                        var type = _subCursor.Schema[i].Type;
                         _subGetters[i] = MarshalGetter(_subCursor.GetGetter<int>, type.RawType, i);
                     }
                 }
@@ -561,7 +559,7 @@ namespace Microsoft.ML.Runtime.Data
                         continue;
                     }
 
-                    var type = Schema.GetColumnType(i);
+                    var type = Schema[i].Type;
 
                     // Use sub-cursor for all sub-columns.
                     if (IsSubColumn(i))
@@ -638,16 +636,16 @@ namespace Microsoft.ML.Runtime.Data
 
             private bool SchemasMatch(Schema schema1, Schema schema2)
             {
-                if (schema1.ColumnCount != schema2.ColumnCount)
+                if (schema1.Count != schema2.Count)
                 {
                     return false;
                 }
 
-                int colLim = schema1.ColumnCount;
+                int colLim = schema1.Count;
                 for (int col = 0; col < colLim; col++)
                 {
-                    var type1 = schema1.GetColumnType(col);
-                    var type2 = schema2.GetColumnType(col);
+                    var type1 = schema1[col].Type;
+                    var type2 = schema2[col].Type;
                     if (!type1.Equals(type2))
                     {
                         return false;

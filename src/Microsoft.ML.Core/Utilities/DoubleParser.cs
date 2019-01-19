@@ -4,14 +4,9 @@
 
 #undef COMPARE_BCL
 
-using Float = System.Single;
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     [BestFriend]
     internal static class DoubleParser

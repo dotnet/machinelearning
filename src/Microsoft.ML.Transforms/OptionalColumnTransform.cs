@@ -6,15 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(OptionalColumnTransform.Summary, typeof(OptionalColumnTransform),
     typeof(OptionalColumnTransform.Arguments), typeof(SignatureDataTransform),
@@ -50,7 +49,7 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _srcColsWithOptionalColumn;
 
             private Bindings(OptionalColumnTransform parent, ColumnType[] columnTypes, int[] srcCols,
-                int[] srcColsWithOptionalColumn, ISchema input, ISchema inputWithOptionalColumn, bool user, string[] names)
+                int[] srcColsWithOptionalColumn, Schema input, Schema inputWithOptionalColumn, bool user, string[] names)
                 : base(input, user, names)
             {
                 Contracts.AssertValue(parent);
@@ -61,7 +60,7 @@ namespace Microsoft.ML.Transforms
                 SrcCols = srcCols;
                 _parent = parent;
                 _metadata = new MetadataDispatcher(InfoCount);
-                _inputWithOptionalColumn = Schema.Create(inputWithOptionalColumn);
+                _inputWithOptionalColumn = inputWithOptionalColumn;
                 _srcColsWithOptionalColumn = srcColsWithOptionalColumn;
                 SetMetadata();
             }
@@ -77,14 +76,14 @@ namespace Microsoft.ML.Transforms
                     int col;
                     bool success = input.TryGetColumnIndex(names[i], out col);
                     Contracts.CheckUserArg(success, nameof(args.Column));
-                    columnTypes[i] = input.GetColumnType(col);
+                    columnTypes[i] = input[col].Type;
                     srcCols[i] = col;
                 }
 
                 return new Bindings(parent, columnTypes, srcCols, srcCols, input, input, true, names);
             }
 
-            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, ISchema input, OptionalColumnTransform parent)
+            public static Bindings Create(IHostEnvironment env, ModelLoadContext ctx, Schema input, OptionalColumnTransform parent)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -201,7 +200,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(predicate);
 
                 var active = GetActiveInput(predicate);
-                Contracts.Assert(active.Length == Input.ColumnCount);
+                Contracts.Assert(active.Length == Input.Count);
 
                 foreach (int srcCol in SrcCols)
                 {
@@ -308,8 +307,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -320,7 +318,7 @@ namespace Microsoft.ML.Transforms
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
-                var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n);
+                var inputs = Source.GetRowCursorSet(inputPred, n);
                 Host.AssertNonEmpty(inputs);
 
                 if (inputs.Length != 1)
@@ -335,7 +333,6 @@ namespace Microsoft.ML.Transforms
             else
                 input = Source.GetRowCursor(inputPred);
 
-            consolidator = null;
             return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
@@ -371,7 +368,7 @@ namespace Microsoft.ML.Transforms
                     else
                     {
                         Func<Row, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
-                        var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].ItemType.RawType);
+                        var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].GetItemType().RawType);
                         getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
                     }
                 }
@@ -387,8 +384,8 @@ namespace Microsoft.ML.Transforms
         private Delegate MakeGetter(int iinfo)
         {
             var columnType = _bindings.ColumnTypes[iinfo];
-            if (columnType.IsVector)
-                return Utils.MarshalInvoke(MakeGetterVec<int>, columnType.ItemType.RawType, columnType.VectorSize);
+            if (columnType is VectorType vectorType)
+                return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
             return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
         }
 
@@ -457,8 +454,8 @@ namespace Microsoft.ML.Transforms
             private Delegate MakeGetter(int iinfo)
             {
                 var columnType = _bindings.ColumnTypes[iinfo];
-                if (columnType.IsVector)
-                    return Utils.MarshalInvoke(MakeGetterVec<int>, columnType.ItemType.RawType, columnType.VectorSize);
+                if (columnType is VectorType vectorType)
+                    return Utils.MarshalInvoke(MakeGetterVec<int>, vectorType.ItemType.RawType, vectorType.Size);
                 return Utils.MarshalInvoke(MakeGetterOne<int>, columnType.RawType);
             }
 

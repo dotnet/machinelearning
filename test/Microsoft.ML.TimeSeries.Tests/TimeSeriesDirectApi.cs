@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.TimeSeries;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TimeSeries;
+using Microsoft.ML.TimeSeriesProcessing;
 using Xunit;
 
 namespace Microsoft.ML.Tests
@@ -69,7 +68,7 @@ namespace Microsoft.ML.Tests
             // Transform
             var output = detector.Transform(dataView);
             // Get predictions
-            var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
+            var enumerator = env.CreateEnumerable<Prediction>(output, true).GetEnumerator();
             Prediction row = null;
             List<double> expectedValues = new List<double>() { 0, 5, 0.5, 5.1200000000000114E-08, 0, 5, 0.4999999995, 5.1200000046080209E-08, 0, 5, 0.4999999995, 5.1200000092160303E-08,
                 0, 5, 0.4999999995, 5.12000001382404E-08};
@@ -119,7 +118,7 @@ namespace Microsoft.ML.Tests
             // Transform
             var output = detector.Transform(dataView);
             // Get predictions
-            var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
+            var enumerator = env.CreateEnumerable<Prediction>(output, true).GetEnumerator();
             Prediction row = null;
             List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
                     0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};

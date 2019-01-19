@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.Ensemble.Selector.FeatureSelector;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Ensemble.Selector;
+using Microsoft.ML.Ensemble.Selector.FeatureSelector;
+using Microsoft.ML.EntryPoints;
 
 [assembly: EntryPointModule(typeof(AllFeatureSelectorFactory))]
 [assembly: EntryPointModule(typeof(RandomFeatureSelector))]

@@ -9,18 +9,17 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Internal.Utilities;
 
 [assembly: LoadableClass(ShowSchemaCommand.Summary, typeof(ShowSchemaCommand), typeof(ShowSchemaCommand.Arguments), typeof(SignatureCommand),
     "Show Schema", ShowSchemaCommand.LoadName, "schema")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     internal sealed class ShowSchemaCommand : DataCommand.ImplBase<ShowSchemaCommand.Arguments>
     {
@@ -92,11 +91,11 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var view in viewChainReversed.Reverse())
                 {
                     writer.WriteLine("---- {0} ----", view.GetType().Name);
-                    PrintSchema(writer, args, view.Schema, (view as ITransposeDataView)?.TransposeSchema);
+                    PrintSchema(writer, args, view.Schema, view as ITransposeDataView);
                 }
             }
             else
-                PrintSchema(writer, args, data.Schema, (data as ITransposeDataView)?.TransposeSchema);
+                PrintSchema(writer, args, data.Schema, data as ITransposeDataView);
         }
 
         /// <summary>
@@ -114,12 +113,12 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static void PrintSchema(TextWriter writer, Arguments args, Schema schema, ITransposeSchema tschema)
+        private static void PrintSchema(TextWriter writer, Arguments args, Schema schema, ITransposeDataView transposeDataView)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValue(args);
             Contracts.AssertValue(schema);
-            Contracts.AssertValueOrNull(tschema);
+            Contracts.AssertValueOrNull(transposeDataView);
 #if !CORECLR
             if (args.ShowJson)
             {
@@ -127,7 +126,7 @@ namespace Microsoft.ML.Runtime.Data
                 return;
             }
 #endif
-            int colLim = schema.ColumnCount;
+            int colLim = schema.Count;
 
             var itw = new IndentedTextWriter(writer, "  ");
             itw.WriteLine("{0} columns:", colLim);
@@ -136,9 +135,9 @@ namespace Microsoft.ML.Runtime.Data
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
                 for (int col = 0; col < colLim; col++)
                 {
-                    var name = schema.GetColumnName(col);
-                    var type = schema.GetColumnType(col);
-                    var slotType = tschema == null ? null : tschema.GetSlotType(col);
+                    var name = schema[col].Name;
+                    var type = schema[col].Type;
+                    var slotType = transposeDataView?.GetSlotType(col);
                     itw.WriteLine("{0}: {1}{2}", name, type, slotType == null ? "" : " (T)");
 
                     bool metaVals = args.ShowMetadataValues;
@@ -150,18 +149,18 @@ namespace Microsoft.ML.Runtime.Data
 
                     if (!args.ShowSlots)
                         continue;
-                    if (!type.IsKnownSizeVector)
+                    if (!type.IsKnownSizeVector())
                         continue;
                     ColumnType typeNames;
-                    if ((typeNames = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, col)) == null)
+                    if ((typeNames = schema[col].Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type) == null)
                         continue;
-                    if (typeNames.VectorSize != type.VectorSize || !typeNames.ItemType.IsText)
+                    if (typeNames.GetVectorSize() != type.GetVectorSize() || !(typeNames.GetItemType() is TextType))
                     {
                         Contracts.Assert(false, "Unexpected slot names type");
                         continue;
                     }
-                    schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref names);
-                    if (names.Length != type.VectorSize)
+                    schema[col].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
+                    if (names.Length != type.GetVectorSize())
                     {
                         Contracts.Assert(false, "Unexpected length of slot names vector");
                         continue;
@@ -184,22 +183,20 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
 
             using (itw.Nest())
             {
-                foreach (var kvp in schema.GetMetadataTypes(col).OrderBy(p => p.Key))
+                foreach (var metaColumn in schema[col].Metadata.Schema.OrderBy(mcol => mcol.Name))
                 {
-                    Contracts.AssertNonEmpty(kvp.Key);
-                    Contracts.AssertValue(kvp.Value);
-                    var type = kvp.Value;
-                    itw.Write("Metadata '{0}': {1}", kvp.Key, type);
+                    var type = metaColumn.Type;
+                    itw.Write("Metadata '{0}': {1}", metaColumn.Name, type);
                     if (showVals)
                     {
-                        if (!type.IsVector)
-                            ShowMetadataValue(itw, schema, col, kvp.Key, type);
+                        if (!(type is VectorType vectorType))
+                            ShowMetadataValue(itw, schema, col, metaColumn.Name, type);
                         else
-                            ShowMetadataValueVec(itw, schema, col, kvp.Key, type);
+                            ShowMetadataValueVec(itw, schema, col, metaColumn.Name, vectorType);
                     }
                     itw.WriteLine();
                 }
@@ -210,12 +207,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
-            Contracts.Assert(!type.IsVector);
+            Contracts.Assert(!(type is VectorType));
 
-            if (!type.IsStandardScalar && !type.IsKey)
+            if (!type.IsStandardScalar() && !(type is KeyType))
             {
                 itw.Write(": Can't display value of this type");
                 return;
@@ -230,56 +227,54 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
-            Contracts.Assert(!type.IsVector);
+            Contracts.Assert(!(type is VectorType));
             Contracts.Assert(type.RawType == typeof(T));
 
             var conv = Conversions.Instance.GetStringConversion<T>(type);
 
             var value = default(T);
             var sb = default(StringBuilder);
-            schema.GetMetadata(kind, col, ref value);
+            schema[col].Metadata.GetValue(kind, ref value);
             conv(in value, ref sb);
 
             itw.Write(": '{0}'", sb);
         }
 
-        private static void ShowMetadataValueVec(IndentedTextWriter itw, Schema schema, int col, string kind, ColumnType type)
+        private static void ShowMetadataValueVec(IndentedTextWriter itw, Schema schema, int col, string kind, VectorType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
-            Contracts.Assert(type.IsVector);
 
-            if (!type.ItemType.IsStandardScalar && !type.ItemType.IsKey)
+            if (!type.ItemType.IsStandardScalar() && !(type.ItemType is KeyType))
             {
                 itw.Write(": Can't display value of this type");
                 return;
             }
 
-            Action<IndentedTextWriter, Schema, int, string, ColumnType> del = ShowMetadataValueVec<int>;
+            Action<IndentedTextWriter, Schema, int, string, VectorType> del = ShowMetadataValueVec<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
             meth.Invoke(null, new object[] { itw, schema, col, kind, type });
         }
 
-        private static void ShowMetadataValueVec<T>(IndentedTextWriter itw, Schema schema, int col, string kind, ColumnType type)
+        private static void ShowMetadataValueVec<T>(IndentedTextWriter itw, Schema schema, int col, string kind, VectorType type)
         {
             Contracts.AssertValue(itw);
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
+            Contracts.Assert(0 <= col && col < schema.Count);
             Contracts.AssertNonEmpty(kind);
             Contracts.AssertValue(type);
-            Contracts.Assert(type.IsVector);
             Contracts.Assert(type.ItemType.RawType == typeof(T));
 
             var conv = Conversions.Instance.GetStringConversion<T>(type.ItemType);
 
             var value = default(VBuffer<T>);
-            schema.GetMetadata(kind, col, ref value);
+            schema[col].Metadata.GetValue(kind, ref value);
 
             itw.Write(": Length={0}, Count={0}", value.Length, value.GetValues().Length);
 

@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Model;
 using Microsoft.ML.Transforms;
 
 // REVIEW: This is a temporary hack code to allow loading old saved loader models. Delete it once it is no longer needed.
@@ -31,7 +31,8 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(CompositeTransformer).Assembly.FullName);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());

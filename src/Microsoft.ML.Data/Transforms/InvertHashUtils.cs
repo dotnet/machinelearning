@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     [BestFriend]
     internal static class InvertHashUtils
@@ -36,8 +35,8 @@ namespace Microsoft.ML.Runtime.Data
         public static ValueMapper<T, StringBuilder> GetSimpleMapper<T>(Schema schema, int col)
         {
             Contracts.AssertValue(schema);
-            Contracts.Assert(0 <= col && col < schema.ColumnCount);
-            var type = schema.GetColumnType(col).ItemType;
+            Contracts.Assert(0 <= col && col < schema.Count);
+            var type = schema[col].Type.GetItemType();
             Contracts.Assert(type.RawType == typeof(T));
             var conv = Conversion.Conversions.Instance;
 
@@ -47,12 +46,12 @@ namespace Microsoft.ML.Runtime.Data
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema.HasKeyValues(col, keyType.KeyCount))
+            if (schema[col].HasKeyValues(keyType.Count))
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
                 VBuffer<ReadOnlyMemory<char>> keyValues = default;
-                schema.GetMetadata(MetadataUtils.Kinds.KeyValues, col, ref keyValues);
+                schema[col].Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref keyValues);
                 ReadOnlyMemory<char> value = default;
 
                 // REVIEW: We could optimize for identity, but it's probably not worthwhile.
@@ -357,8 +356,9 @@ namespace Microsoft.ML.Runtime.Data
             if (!factory.TryReadCodec(ctx.Reader.BaseStream, out codec))
                 throw ch.ExceptDecode();
             ch.AssertValue(codec);
-            ch.CheckDecode(codec.Type.IsVector);
-            ch.CheckDecode(codec.Type.ItemType.IsText);
+            if (!(codec.Type is VectorType vectorType))
+                throw ch.ExceptDecode();
+            ch.CheckDecode(vectorType.ItemType is TextType);
             var textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             var bufferLen = ctx.Reader.ReadInt32();
@@ -391,9 +391,9 @@ namespace Microsoft.ML.Runtime.Data
             IValueCodec codec;
             var result = factory.TryGetCodec(new VectorType(TextType.Instance), out codec);
             ch.Assert(result);
-            ch.Assert(codec.Type.IsVector);
-            ch.Assert(codec.Type.VectorSize == 0);
-            ch.Assert(codec.Type.ItemType.RawType == typeof(ReadOnlyMemory<char>));
+            VectorType vectorType = (VectorType)codec.Type;
+            ch.Assert(vectorType.Size == 0);
+            ch.Assert(vectorType.ItemType == TextType.Instance);
             IValueCodec<VBuffer<ReadOnlyMemory<char>>> textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             factory.WriteCodec(ctx.Writer.BaseStream, codec);
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Runtime.Data
                 });
         }
 
-        public static void LoadAll(IHost host, ModelLoadContext ctx, int infoLim, out VBuffer<ReadOnlyMemory<char>>[] keyValues, out ColumnType[] kvTypes)
+        public static void LoadAll(IHost host, ModelLoadContext ctx, int infoLim, out VBuffer<ReadOnlyMemory<char>>[] keyValues, out VectorType[] kvTypes)
         {
             Contracts.AssertValue(host);
             host.AssertValue(ctx);
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // Try to find the key names.
                 VBuffer<ReadOnlyMemory<char>>[] keyValuesLocal = null;
-                ColumnType[] kvTypesLocal = null;
+                VectorType[] kvTypesLocal = null;
                 CodecFactory factory = null;
                 const string dirFormat = "Vocabulary_{0:000}";
                 for (int iinfo = 0; iinfo < infoLim; iinfo++)
@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.Data
                             if (keyValuesLocal == null)
                             {
                                 keyValuesLocal = new VBuffer<ReadOnlyMemory<char>>[infoLim];
-                                kvTypesLocal = new ColumnType[infoLim];
+                                kvTypesLocal = new VectorType[infoLim];
                                 factory = new CodecFactory(host);
                             }
                             Load(ch, c, factory, ref keyValuesLocal[iinfo]);

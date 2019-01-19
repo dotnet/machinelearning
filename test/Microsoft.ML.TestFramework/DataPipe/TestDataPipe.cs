@@ -2,19 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public sealed partial class TestDataPipe : TestDataPipeBase
     {
@@ -1009,6 +1009,52 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [TestCategory("DataPipeSerialization")]
+        [Fact]
+        public void SavePipeTrainAndScoreFccFastTree()
+        {
+            RunMTAThread(() => TestCore(null, false,
+                new[]
+                {
+                    "loader=Text",
+                    "xf=TrainScore{tr=FT scorer=fcc{top=4 bottom=2 str+}}",
+                    "xf=Copy{col=ContributionsStr:FeatureContributions}",
+                    "xf=TrainScore{tr=FT scorer=fcc{top=3 bottom=3}}"
+                }, digitsOfPrecision: 6));
+
+            Done();
+        }
+
+        [TestCategory("DataPipeSerialization")]
+        [Fact]
+        public void SavePipeTrainAndScoreFccTransformStr()
+        {
+            TestCore(null, false,
+                new[]
+                {
+                    "loader=Text xf=TrainScore{tr=AP{shuf-} scorer=fcc{str+}}"
+                }, digitsOfPrecision: 5);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeLda()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "Lda.txt");
+            File.WriteAllLines(pathData, new string[] {
+                "1\t0\t0",
+                "0\t1\t0",
+                "0\t0\t"
+            });
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{col=F1V:Num:0-2}",
+                    "xf=Lda{col={name=Result src=F1V numtopic=3 alphasum=3 ns=3 reset=+ t=1} summary=+}",
+                }, forceDense: true);
+            Done();
+        }
+
         [Fact]
         public void TestHashTransformFloat()
         {
@@ -1058,14 +1104,7 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var col = new HashingTransformer.Column();
-            col.Name = "F1";
-            col.HashBits = 5;
-            col.Seed = 42;
-            var args = new HashingTransformer.Arguments();
-            args.Column = new HashingTransformer.Column[] { col };
-
-            var hashTransform = HashingTransformer.Create(Env, args, srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingTransformer.ColumnInfo("F1", "F1", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
@@ -1096,14 +1135,7 @@ namespace Microsoft.ML.Runtime.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var col = new HashingTransformer.Column();
-            col.Name = "F1V";
-            col.HashBits = 5;
-            col.Seed = 42;
-            var args = new HashingTransformer.Arguments();
-            args.Column = new HashingTransformer.Column[] { col };
-
-            var hashTransform = HashingTransformer.Create(Env, args, srcView);
+            var hashTransform = new HashingTransformer(Env, new HashingTransformer.ColumnInfo("F1V", "F1V", 5, 42)).Transform(srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);

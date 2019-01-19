@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     internal sealed partial class CodecFactory
     {
@@ -98,10 +98,10 @@ namespace Microsoft.ML.Runtime.Data.IO
         public bool TryGetCodec(ColumnType type, out IValueCodec codec)
         {
             // Handle the primier types specially.
-            if (type.IsKey)
+            if (type is KeyType)
                 return GetKeyCodec(type, out codec);
-            if (type.IsVector)
-                return GetVBufferCodec(type, out codec);
+            if (type is VectorType vectorType)
+                return GetVBufferCodec(vectorType, out codec);
             return _simpleCodecTypeMap.TryGetValue(type.RawKind, out codec);
         }
 

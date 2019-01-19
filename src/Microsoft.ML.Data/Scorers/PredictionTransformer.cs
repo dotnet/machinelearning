@@ -3,11 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.ML;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Model;
 
 [assembly: LoadableClass(typeof(BinaryPredictionTransformer<IPredictorProducing<float>>), typeof(BinaryPredictionTransformer), null, typeof(SignatureLoadModel),
     "", BinaryPredictionTransformer.LoaderSignature)]
@@ -27,7 +26,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(ClusteringPredictionTransformer<IPredictorProducing<VBuffer<float>>>), typeof(ClusteringPredictionTransformer), null, typeof(SignatureLoadModel),
     "", ClusteringPredictionTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
 
     /// <summary>
@@ -47,7 +46,8 @@ namespace Microsoft.ML.Runtime.Data
         protected const string DirModel = "Model";
         protected const string DirTransSchema = "TrainSchema";
         protected readonly IHost Host;
-        protected ISchemaBindableMapper BindableMapper;
+        [BestFriend]
+        private protected ISchemaBindableMapper BindableMapper;
         protected Schema TrainSchema;
 
         public bool IsRowToRowMapper => true;
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Data
             else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
                 throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
             else
-                FeatureColumnType = trainSchema.GetColumnType(col);
+                FeatureColumnType = trainSchema[col].Type;
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
         }
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Runtime.Data
             else if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
                 throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn);
             else
-                FeatureColumnType = TrainSchema.GetColumnType(col);
+                FeatureColumnType = TrainSchema[col].Type;
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
         }
@@ -206,8 +206,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), null);
-                if (!inputSchema.GetColumnType(col).Equals(FeatureColumnType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema.GetColumnType(col).ToString());
+                if (!inputSchema[col].Type.Equals(FeatureColumnType))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema[col].Type.ToString());
             }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;

@@ -1,9 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Transforms
@@ -41,18 +40,18 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Get <see cref="ISchema"/> for complete model. Every node in the TensorFlow model will be included in the <see cref="ISchema"/> object.
+        /// Get <see cref="Schema"/> for complete model. Every node in the TensorFlow model will be included in the <see cref="Schema"/> object.
         /// </summary>
-        public ISchema GetModelSchema()
+        internal Schema GetModelSchema()
         {
             return TensorFlowUtils.GetModelSchema(_env, Session.Graph);
         }
 
         /// <summary>
-        /// Get <see cref="ISchema"/> for only those nodes which are marked "Placeholder" in the TensorFlow model.
+        /// Get <see cref="Schema"/> for only those nodes which are marked "Placeholder" in the TensorFlow model.
         /// This method is convenient for exploring the model input(s) in case TensorFlow graph is very large.
         /// </summary>
-        public ISchema GetInputSchema()
+        public Schema GetInputSchema()
         {
             return TensorFlowUtils.GetModelSchema(_env, Session.Graph, "Placeholder");
         }

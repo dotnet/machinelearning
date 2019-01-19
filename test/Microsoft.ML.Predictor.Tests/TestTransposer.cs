@@ -5,14 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public sealed class TestTransposer : TestDataPipeBase
     {
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private static T[] NaiveTranspose<T>(IDataView view, int col)
         {
-            var type = view.Schema.GetColumnType(col);
+            var type = view.Schema[col].Type;
             int rc = checked((int)DataViewUtils.ComputeRowCount(view));
             var vecType = type as VectorType;
             var itemType = vecType?.ItemType ?? type;
@@ -63,14 +63,17 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private static void TransposeCheckHelper<T>(IDataView view, int viewCol, ITransposeDataView trans)
         {
+            Assert.NotNull(view);
+            Assert.NotNull(trans);
+
             int col = viewCol;
-            VectorType type = trans.TransposeSchema.GetSlotType(col);
-            ColumnType colType = trans.Schema.GetColumnType(col);
-            Assert.Equal(view.Schema.GetColumnName(viewCol), trans.Schema.GetColumnName(col));
-            ColumnType expectedType = view.Schema.GetColumnType(viewCol);
+            VectorType type = trans.GetSlotType(col);
+            ColumnType colType = trans.Schema[col].Type;
+            Assert.Equal(view.Schema[viewCol].Name, trans.Schema[col].Name);
+            ColumnType expectedType = view.Schema[viewCol].Type;
             Assert.Equal(expectedType, colType);
-            string desc = string.Format("Column {0} named '{1}'", col, trans.Schema.GetColumnName(col));
-            Assert.Equal(DataViewUtils.ComputeRowCount(view), (long)type.Size);
+            string desc = string.Format("Column {0} named '{1}'", col, trans.Schema[col].Name);
+            Assert.Equal(DataViewUtils.ComputeRowCount(view), type.Size);
             Assert.True(typeof(T) == type.ItemType.RawType, $"{desc} had wrong type for slot cursor");
             Assert.True(type.Size > 0, $"{desc} expected to be known sized vector but is not");
             int valueCount = (colType as VectorType)?.Size ?? 1;
@@ -184,7 +187,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Assert.True(trueIndex == index, $"Transpose schema had column '{names[i]}' at unexpected index");
                 }
                 // Check the contents
-                Assert.Null(trans.TransposeSchema.GetSlotType(2)); // C check to see that it's not transposable.
+                Assert.Null(((ITransposeDataView)trans).GetSlotType(2)); // C check to see that it's not transposable.
                 TransposeCheckHelper<int>(view, 0, trans); // A check.
                 TransposeCheckHelper<Double>(view, 1, trans); // B check.
                 TransposeCheckHelper<Double>(view, 3, trans); // D check.
@@ -199,9 +202,10 @@ namespace Microsoft.ML.Runtime.RunTests
             using (Transposer trans = Transposer.Create(Env, view, true, 3, 5, 4))
             {
                 // Check to see that A, B, and C were not transposed somehow.
-                Assert.Null(trans.TransposeSchema.GetSlotType(0));
-                Assert.Null(trans.TransposeSchema.GetSlotType(1));
-                Assert.Null(trans.TransposeSchema.GetSlotType(2));
+                var itdv = (ITransposeDataView)trans;
+                Assert.Null(itdv.GetSlotType(0));
+                Assert.Null(itdv.GetSlotType(1));
+                Assert.Null(itdv.GetSlotType(2));
                 TransposeCheckHelper<Double>(view, 3, trans); // D check.
                 TransposeCheckHelper<uint>(view, 4, trans);   // E check.
                 TransposeCheckHelper<int>(view, 5, trans); // F check.
@@ -237,7 +241,7 @@ namespace Microsoft.ML.Runtime.RunTests
             using (MemoryStream mem = new MemoryStream())
             {
                 TransposeSaver saver = new TransposeSaver(Env, new TransposeSaver.Arguments());
-                saver.SaveData(mem, view, Utils.GetIdentityPermutation(view.Schema.ColumnCount));
+                saver.SaveData(mem, view, Utils.GetIdentityPermutation(view.Schema.Count));
                 src = new BytesStreamSource(mem.ToArray());
             }
             TransposeLoader loader = new TransposeLoader(Env, new TransposeLoader.Arguments(), src);

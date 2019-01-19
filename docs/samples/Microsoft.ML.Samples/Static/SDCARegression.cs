@@ -1,7 +1,7 @@
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.StaticPipe;
 using System;
+using Microsoft.ML.Data;
+using Microsoft.ML.Learners;
+using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Samples.Static
 {
@@ -18,7 +18,7 @@ namespace Microsoft.ML.Samples.Static
             var mlContext = new MLContext();
 
             // Creating a data reader, based on the format of the data
-            var reader = TextLoader.CreateReader(mlContext, c => (
+            var reader = TextLoaderStatic.CreateReader(mlContext, c => (
                         label: c.LoadFloat(0),
                         features: c.LoadFloat(1, 6)
                     ),

@@ -2,15 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -21,6 +12,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ML;
+using Microsoft.ML.Command;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(BinaryLoader.Summary, typeof(BinaryLoader), typeof(BinaryLoader.Arguments), typeof(SignatureDataLoader),
     "Binary Loader",
@@ -34,7 +33,7 @@ using System.Threading.Tasks;
 [assembly: LoadableClass(typeof(BinaryLoader.InfoCommand), typeof(BinaryLoader.InfoCommand.Arguments), typeof(SignatureCommand),
     "", BinaryLoader.InfoCommand.LoadName, "idv")]
 
-namespace Microsoft.ML.Runtime.Data.IO
+namespace Microsoft.ML.Data.IO
 {
     public sealed class BinaryLoader : IDataLoader, IDisposable
     {
@@ -473,6 +472,13 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             protected readonly BinaryLoader Parent;
 
+            /// <summary>
+            /// Return <see cref="ValueGetter{TValue}"/> to the stored entry value as <see cref="Delegate"/>. An example of stored value is
+            /// <see cref="MetadataTableOfContentsEntry{T}.Value"/>. For implementations of <see cref="GetGetter"/>, see <see cref="ImplDead"/>,
+            /// <see cref="ImplOne{T}"/>, and <see cref="ImplVec{T}"/>.
+            /// </summary>
+            public abstract Delegate GetGetter();
+
             protected MetadataTableOfContentsEntry(BinaryLoader parent, string kind,
                 CompressionKind compression, long blockOffset, long blockSize)
             {
@@ -500,7 +506,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 var type = codec.Type;
                 Type entryType;
-                if (type.IsVector)
+                if (type is VectorType)
                 {
                     Type valueType = type.RawType;
                     ectx.Assert(valueType.IsGenericEx(typeof(VBuffer<>)));
@@ -542,6 +548,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     _codec = codec;
                 }
+
+                public override Delegate GetGetter() => null;
             }
 
             private sealed class ImplOne<T> : MetadataTableOfContentsEntry<T>
@@ -552,10 +560,11 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                 }
 
-                public override void Get(ref T value)
+                public override Delegate GetGetter()
                 {
                     EnsureValue();
-                    value = Value;
+                    ValueGetter<T> getter = (ref T value) => value = Value;
+                    return getter;
                 }
             }
 
@@ -567,10 +576,11 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                 }
 
-                public override void Get(ref VBuffer<T> value)
+                public override Delegate GetGetter()
                 {
                     EnsureValue();
-                    Value.CopyTo(ref value);
+                    ValueGetter<VBuffer<T>> getter = (ref VBuffer<T> value) => Value.CopyTo(ref value);
+                    return getter;
                 }
             }
         }
@@ -593,6 +603,10 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _codec = codec;
             }
 
+            /// <summary>
+            /// By calling <see cref="EnsureValue"/>, we make sure <see cref="Value"/>'s content get loaded definitely.
+            /// Without calling <see cref="EnsureValue"/>, <see cref="Value"/> could be default value of its type.
+            /// </summary>
             protected void EnsureValue()
             {
                 if (!_fetched)
@@ -615,87 +629,51 @@ namespace Microsoft.ML.Runtime.Data.IO
                     }
                 }
             }
-
-            public abstract void Get(ref T value);
         }
 
-        private sealed class SchemaImpl : ISchema
+        /// <summary>
+        /// This function returns output schema, <see cref="Schema"/>, of <see cref="BinaryLoader"/> by translating <see cref="_aliveColumns"/> into
+        /// <see cref="Schema.Column"/>s. If a <see cref="BinaryLoader"/> loads a text column from the input file, its <see cref="Schema"/>
+        /// should contains a <see cref="Schema.Column"/> with <see cref="TextType.Instance"/> as its <see cref="ColumnType"/>.
+        /// </summary>
+        /// <returns><see cref="Schema"/> of loaded file.</returns>
+        private Schema ComputeOutputSchema()
         {
-            private readonly TableOfContentsEntry[] _toc;
-            private readonly Dictionary<string, int> _name2col;
-            private readonly IExceptionContext _ectx;
+            var schemaBuilder = new SchemaBuilder();
 
-            public SchemaImpl(BinaryLoader parent)
+            for(int i = 0; i < _aliveColumns.Length; ++i)
             {
-                Contracts.AssertValue(parent, "parent");
-                Contracts.AssertValue(parent._host, "parent");
-                _ectx = parent._host;
+                // Informaiton of a column loaded from a binary file.
+                var loadedColumn = _aliveColumns[i];
+                // Metadata fields of the loaded column.
+                var metadataArray = loadedColumn.GetMetadataTocArray();
 
-                _name2col = new Dictionary<string, int>();
-                _toc = parent._aliveColumns;
-                for (int c = 0; c < _toc.Length; ++c)
-                    _name2col[_toc[c].Name] = c;
-            }
-
-            public int ColumnCount { get { return _toc.Length; } }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                _ectx.CheckValueOrNull(name);
-                if (name == null)
+                if (Utils.Size(metadataArray) > 0)
                 {
-                    col = default(int);
-                    return false;
+                    // We got some metadata fields here.
+                    var metadataBuilder = new MetadataBuilder();
+                    foreach(var loadedMetadataColumn in metadataArray)
+                    {
+                        var metadataGetter = loadedMetadataColumn.GetGetter();
+                        if (metadataGetter == null)
+                            throw MetadataUtils.ExceptGetMetadata();
+                        metadataBuilder.Add(loadedMetadataColumn.Kind, loadedMetadataColumn.Codec.Type, metadataGetter);
+                    }
+                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type, metadataBuilder.GetMetadata());
                 }
-                return _name2col.TryGetValue(name, out col);
+                else
+                    // This case has no metadata.
+                    schemaBuilder.AddColumn(loadedColumn.Name, loadedColumn.Type);
             }
 
-            public string GetColumnName(int col)
-            {
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _toc[col].Name;
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                return _toc[col].Type;
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                var metadatas = _toc[col].GetMetadataTocArray();
-                if (Utils.Size(metadatas) > 0)
-                    return metadatas.Select(e => new KeyValuePair<string, ColumnType>(e.Kind, e.Codec.Type));
-                return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                _ectx.CheckNonEmpty(kind, nameof(kind));
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-                var entry = _toc[col].GetMetadataTocEntryOrNull(kind);
-                return entry == null ? null : entry.Codec.Type;
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                _ectx.CheckNonEmpty(kind, nameof(kind));
-                _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-
-                var entry = _toc[col].GetMetadataTocEntryOrNull(kind) as MetadataTableOfContentsEntry<TValue>;
-                if (entry == null)
-                    throw MetadataUtils.ExceptGetMetadata();
-                entry.Get(ref value);
-            }
+            return schemaBuilder.GetSchema();
         }
 
         private readonly Stream _stream;
         private readonly BinaryReader _reader;
         private readonly CodecFactory _factory;
         private readonly Header _header;
-        private readonly Schema _schema;
+        private readonly Schema _outputSchema;
         private readonly bool _autodeterminedThreads;
         private readonly int _threads;
         private readonly string _generatedRowIndexName;
@@ -758,13 +736,13 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 
-        public Schema Schema { get { return _schema; } }
+        public Schema Schema => _outputSchema;
 
-        private long RowCount { get { return _header.RowCount; } }
+        private long RowCount => _header.RowCount;
 
-        public long? GetRowCount() { return RowCount; }
+        public long? GetRowCount() => RowCount;
 
-        public bool CanShuffle { get { return true; } }
+        public bool CanShuffle => true;
 
         internal const string Summary = "Loads native Binary IDV data file.";
         internal const string LoadName = "BinaryLoader";
@@ -806,8 +784,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _threads = Math.Max(1, args.Threads ?? (Environment.ProcessorCount / 2));
                 _generatedRowIndexName = string.IsNullOrWhiteSpace(args.RowIndexName) ? null : args.RowIndexName;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
-                _schema = Schema.Create(new SchemaImpl(this));
-                _host.Assert(_schema.Count == Utils.Size(_aliveColumns));
+                _outputSchema = ComputeOutputSchema();
+                _host.Assert(_outputSchema.Count == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
@@ -824,7 +802,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <param name="args">Arguments</param>
         /// <param name="env">Host environment</param>
         /// <param name="leaveOpen">Whether to leave the input stream open</param>
-        public BinaryLoader(IHostEnvironment env, Arguments args, Stream stream, bool leaveOpen = true)
+        internal BinaryLoader(IHostEnvironment env, Arguments args, Stream stream, bool leaveOpen = true)
             : this(args, env.Register(LoadName), stream, leaveOpen)
         {
         }
@@ -895,8 +873,8 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 _header = InitHeader();
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
-                _schema = Schema.Create(new SchemaImpl(this));
-                ch.Assert(_schema.Count == Utils.Size(_aliveColumns));
+                _outputSchema = ComputeOutputSchema();
+                ch.Assert(_outputSchema.Count == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
@@ -905,7 +883,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        public static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        private static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(LoadName);
@@ -941,7 +919,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// Creates a binary loader from a stream that is not owned by the loader.
         /// This creates its own independent copy of input stream for the binary loader.
         /// </summary>
-        public static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, Stream stream)
+        private static BinaryLoader Create(IHostEnvironment env, ModelLoadContext ctx, Stream stream)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(LoadName);
@@ -1016,7 +994,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             var saver = new BinarySaver(env, saverArgs);
 
             var cols = Enumerable.Range(0, schema.Count)
-                .Select(x => new { col = x, isSavable = saver.IsColumnSavable(schema.GetColumnType(x)) });
+                .Select(x => new { col = x, isSavable = saver.IsColumnSavable(schema[x].Type) });
             int[] toSave = cols.Where(x => x.isSavable).Select(x => x.col).ToArray();
             unsavableColIndices = cols.Where(x => !x.isSavable).Select(x => x.col).ToArray();
             ctx.SaveBinaryStream("Schema.idv", w => saver.SaveData(w.BaseStream, noRows, toSave));
@@ -1254,12 +1232,10 @@ namespace Microsoft.ML.Runtime.Data.IO
             return GetRowCursorCore(predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            consolidator = null;
             return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
@@ -1284,6 +1260,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private readonly ExceptionMarshaller _exMarshaller;
 
             private volatile bool _disposed;
+            private volatile bool _done;
 
             public override Schema Schema => _parent.Schema;
 
@@ -1367,6 +1344,12 @@ namespace Microsoft.ML.Runtime.Data.IO
             {
                 if (_disposed)
                     return;
+                if (_done)
+                {
+                    base.Dispose(disposing);
+                    return;
+                }
+
                 if (disposing)
                 {
                     if (_readerThread != null)
@@ -2037,7 +2020,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                         // threads will exit if all potentially blocking operations are
                         // waiting on the same cancellation token that we catch here.
                         Contracts.Assert(ex.CancellationToken == _exMarshaller.Token);
-                        _disposed = true;
+                        _done = true;
                         // Unlike the early non-error dispose case, we do not make any
                         // effort to recycle buffers since it would be exceptionally difficult
                         // to do so. All threads are already unblocked, one of them with the
@@ -2065,7 +2048,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     // Set the _disposed flag, so that when the Dispose
                     // method is called it does not trigger the "premature
                     // exit" handling.
-                    _disposed = true;
+                    _done = true;
                     // If we got to this point these threads must have already
                     // completed their work, but for the sake of hygiene join
                     // against them anyway.

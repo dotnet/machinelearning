@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Linq;
+using BenchmarkDotNet.Attributes;
+using Microsoft.ML.Benchmarks.Harness;
+using Microsoft.ML.Data;
+using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Benchmarks
 {
+    [CIBenchmark]
     public class HashBench
     {
         private sealed class RowImpl : Row
@@ -75,12 +75,12 @@ namespace Microsoft.ML.Benchmarks
             var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
             var xf = new HashingTransformer(_env, new[] { info });
             var mapper = xf.GetRowToRowMapper(_inRow.Schema);
-            mapper.OutputSchema.TryGetColumnIndex("Bar", out int outCol);
-            var outRow = mapper.GetRow(_inRow, c => c == outCol);
+            var column = mapper.OutputSchema["Bar"];
+            var outRow = mapper.GetRow(_inRow, c => c == column.Index);
             if (type is VectorType)
-                _vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
+                _vecGetter = outRow.GetGetter<VBuffer<uint>>(column.Index);
             else
-                _getter = outRow.GetGetter<uint>(outCol);
+                _getter = outRow.GetGetter<uint>(column.Index);
         }
 
         /// <summary>

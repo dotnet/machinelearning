@@ -4,86 +4,43 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Float = System.Single;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Internal.Internallearn
+namespace Microsoft.ML.Internal.Internallearn
 {
-    public abstract class FeatureNameCollection : IEnumerable<string>
+    [BestFriend]
+    internal abstract class FeatureNameCollection : IEnumerable<string>
     {
-        private sealed class FeatureNameCollectionSchema : ISchema
+        private sealed class FeatureNameCollectionBinding
         {
             private readonly VectorType _colType;
             private readonly VectorType _slotNamesType;
 
             private readonly FeatureNameCollection _collection;
 
-            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
+            public readonly Schema FeatureNameCollectionSchema;
 
-            public int ColumnCount => 1;
-
-            public FeatureNameCollectionSchema(FeatureNameCollection collection)
+            public FeatureNameCollectionBinding(FeatureNameCollection collection)
             {
                 Contracts.CheckValue(collection, nameof(collection));
 
                 _collection = collection;
                 _colType = new VectorType(NumberType.R4, collection.Count);
                 _slotNamesType = new VectorType(TextType.Instance, collection.Count);
-                _getSlotNames = GetSlotNames;
-            }
 
-            public string GetColumnName(int col)
-            {
-                Contracts.CheckParam(col == 0, nameof(col));
-                return RoleMappedSchema.ColumnRole.Feature.Value;
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                Contracts.CheckParam(col == 0, nameof(col));
-                return _colType;
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.CheckParam(col == 0, nameof(col));
-
-                if (kind == MetadataUtils.Kinds.SlotNames)
-                    _getSlotNames.Marshal(col, ref value);
-                else
-                    throw MetadataUtils.ExceptGetMetadata();
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                Contracts.CheckNonEmpty(kind, nameof(kind));
-                Contracts.CheckParam(col == 0, nameof(col));
-
-                if (kind == MetadataUtils.Kinds.SlotNames)
-                    return _slotNamesType;
-                return null;
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                Contracts.CheckParam(col == 0, nameof(col));
-                yield return new KeyValuePair<string, ColumnType>(MetadataUtils.Kinds.SlotNames, _slotNamesType);
-            }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                col = 0;
-                return name == RoleMappedSchema.ColumnRole.Feature.Value;
+                var metadataBuilder = new MetadataBuilder();
+                metadataBuilder.Add(MetadataUtils.Kinds.SlotNames, _slotNamesType,
+                    (ref VBuffer<ReadOnlyMemory<char>> slotNames) => { GetSlotNames(0, ref slotNames); } );
+                var schemaBuilder = new SchemaBuilder();
+                schemaBuilder.AddColumn(RoleMappedSchema.ColumnRole.Feature.Value, _colType, metadataBuilder.GetMetadata());
+                FeatureNameCollectionSchema = schemaBuilder.GetSchema();
             }
 
             private void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
@@ -180,30 +137,6 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             foreach (var kvp in items)
                 names[kvp.Key] = kvp.Value;
             return new Dense(count, names);
-        }
-
-        public static FeatureNameCollection Create(RoleMappedSchema schema)
-        {
-            // REVIEW: This shim should be deleted as soon as is convenient.
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(schema.Feature != null, nameof(schema), "Cannot create feature name collection if we have no features");
-            Contracts.CheckParam(schema.Feature.Type.ValueCount > 0, nameof(schema), "Cannot create feature name collection if our features are not of known size");
-
-            VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            int len = schema.Feature.Type.ValueCount;
-            if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref slotNames);
-            else
-                slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
-            var slotNameValues = slotNames.GetValues();
-            string[] names = new string[slotNameValues.Length];
-            for (int i = 0; i < slotNameValues.Length; ++i)
-                names[i] = !slotNameValues[i].IsEmpty ? slotNameValues[i].ToString() : null;
-            if (slotNames.IsDense)
-                return new Dense(names.Length, names);
-
-            ReadOnlySpan<int> indices = slotNames.GetIndices();
-            return new Sparse(slotNames.Length, slotNameValues.Length, indices.ToArray(), names);
         }
 
         public const string LoaderSignature = "FeatureNamesExec";
@@ -374,7 +307,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     Array.Copy(names, _names, size);
 
                 // REVIEW: This seems wrong. The default feature column name is "Features" yet the role is named "Feature".
-                Schema = new RoleMappedSchema(ML.Data.Schema.Create(new FeatureNameCollectionSchema(this)),
+                Schema = new RoleMappedSchema(new FeatureNameCollectionBinding(this).FeatureNameCollectionSchema,
                     roles: RoleMappedSchema.ColumnRole.Feature.Bind(RoleMappedSchema.ColumnRole.Feature.Value));
             }
 
@@ -466,7 +399,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 Contracts.Assert(cv == cnn);
 
                 // REVIEW: This seems wrong. The default feature column name is "Features" yet the role is named "Feature".
-                _schema = new RoleMappedSchema(ML.Data.Schema.Create(new FeatureNameCollectionSchema(this)),
+                _schema = new RoleMappedSchema(new FeatureNameCollectionBinding(this).FeatureNameCollectionSchema,
                     roles: RoleMappedSchema.ColumnRole.Feature.Bind(RoleMappedSchema.ColumnRole.Feature.Value));
             }
 

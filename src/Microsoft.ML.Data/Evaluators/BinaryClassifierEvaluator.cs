@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(BinaryClassifierEvaluator), typeof(BinaryClassifierEvaluator), typeof(BinaryClassifierEvaluator.Arguments), typeof(SignatureEvaluator),
     "Binary Classifier Evaluator", BinaryClassifierEvaluator.LoadName, "BinaryClassifier", "Binary", "bin")]
@@ -26,7 +25,7 @@ using System.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(Evaluate), null, typeof(SignatureEntryPointModule), "Evaluators")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed class BinaryClassifierEvaluator : RowToRowEvaluatorBase<BinaryClassifierEvaluator.Aggregator>
     {
@@ -123,39 +122,39 @@ namespace Microsoft.ML.Runtime.Data
             _auPrcCount = args.NumAuPrcExamples;
         }
 
-        protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
+        private protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var host = Host.SchemaSensitive();
             var t = score.Type;
-            if (t.IsVector || t.ItemType != NumberType.Float)
-                throw host.SchemaSensitive().Except("Score column '{0}' has type '{1}' but must be R4", score, t);
-            host.Check(schema.Label != null, "Could not find the label column");
-            t = schema.Label.Type;
-            if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.KeyCount != 2)
-                throw host.SchemaSensitive().Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", schema.Label.Name, t);
+            if (t != NumberType.Float)
+                throw host.ExceptSchemaMismatch(nameof(schema), "score", score.Name, "R4", t.ToString());
+            host.Check(schema.Label.HasValue, "Could not find the label column");
+            t = schema.Label.Value.Type;
+            if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
+                throw host.ExceptSchemaMismatch(nameof(schema), "label", schema.Label.Value.Name, "R4, R8, BL or a 2-value key", t.ToString());
         }
 
-        protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
+        private protected override void CheckCustomColumnTypesCore(RoleMappedSchema schema)
         {
             var prob = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
             var host = Host.SchemaSensitive();
             if (prob != null)
             {
-                host.Check(prob.Count == 1, "Cannot have multiple probability columns");
+                host.CheckParam(prob.Count == 1, nameof(schema), "Cannot have multiple probability columns");
                 var probType = prob[0].Type;
                 if (probType != NumberType.Float)
-                    throw host.SchemaSensitive().Except("Probability column '{0}' has type '{1}' but must be R4", prob[0].Name, probType);
+                    throw host.ExceptSchemaMismatch(nameof(schema), "probability", prob[0].Name, "R4", probType.ToString());
             }
             else if (!_useRaw)
             {
-                throw host.Except(
+                throw host.ExceptParam(nameof(schema),
                     "Cannot compute the predicted label from the probability column because it does not exist");
             }
         }
 
         // Add also the probability column.
-        protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
+        private protected override Func<int, bool> GetActiveColsCore(RoleMappedSchema schema)
         {
             var pred = base.GetActiveColsCore(schema);
             var prob = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
@@ -163,7 +162,7 @@ namespace Microsoft.ML.Runtime.Data
             return i => Utils.Size(prob) > 0 && i == prob[0].Index || pred(i);
         }
 
-        protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
+        private protected override Aggregator GetAggregatorCore(RoleMappedSchema schema, string stratName)
         {
             var classNames = GetClassNames(schema);
             return new Aggregator(Host, classNames, schema.Weight != null, _aucCount, _auPrcCount, _threshold, _useRaw, _prCount, stratName);
@@ -172,13 +171,13 @@ namespace Microsoft.ML.Runtime.Data
         private ReadOnlyMemory<char>[] GetClassNames(RoleMappedSchema schema)
         {
             // Get the label names if they exist, or use the default names.
-            ColumnType type;
             var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
-            if (schema.Label.Type.IsKey &&
-                (type = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, schema.Label.Index)) != null &&
-                type.ItemType.IsKnownSizeVector && type.ItemType.IsText)
+            var labelCol = schema.Label.Value;
+            if (labelCol.Type is KeyType &&
+                labelCol.Metadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.KeyValues)?.Type is VectorType vecType &&
+                vecType.Size > 0 && vecType.ItemType == TextType.Instance)
             {
-                schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, schema.Label.Index, ref labelNames);
+                labelCol.Metadata.GetValue(MetadataUtils.Kinds.KeyValues, ref labelNames);
             }
             else
                 labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });
@@ -193,11 +192,10 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
-            Contracts.AssertValue(scoreInfo);
 
             var probInfos = schema.GetColumns(MetadataUtils.Const.ScoreValueKind.Probability);
             var probCol = Utils.Size(probInfos) > 0 ? probInfos[0].Name : null;
-            return new BinaryPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, probCol, schema.Label.Name, _threshold, _useRaw);
+            return new BinaryPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, probCol, schema.Label.Value.Name, _threshold, _useRaw);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -215,7 +213,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return new MetricColumn("AUPRC", AuPrc);
         }
 
-        protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
+        private protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
             out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
@@ -609,14 +607,14 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
+            internal override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
-                Host.AssertValue(schema.Label);
+                Host.Assert(schema.Label.HasValue);
                 Host.Assert(PassNum < 1);
 
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
 
-                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Index);
+                _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Value.Index);
                 _scoreGetter = row.GetGetter<Single>(score.Index);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
@@ -631,7 +629,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 Host.Assert((schema.Weight != null) == Weighted);
                 if (Weighted)
-                    _weightGetter = row.GetGetter<Single>(schema.Weight.Index);
+                    _weightGetter = row.GetGetter<Single>(schema.Weight.Value.Index);
             }
 
             public override void ProcessRow()
@@ -1097,19 +1095,19 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValueOrNull(_probCol);
             Host.AssertNonEmpty(LabelCol);
 
-            var t = schema.GetColumnType(LabelIndex);
-            if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.KeyCount != 2)
+            var t = schema[(int) LabelIndex].Type;
+            if (t != NumberType.R4 && t != NumberType.R8 && t != BoolType.Instance && t.GetKeyCount() != 2)
                 throw Host.Except("Label column '{0}' has type '{1}' but must be R4, R8, BL or a 2-value key", LabelCol, t);
 
-            t = schema.GetColumnType(ScoreIndex);
-            if (t.IsVector || t.ItemType != NumberType.Float)
+            t = schema[ScoreIndex].Type;
+            if (t != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be R4", ScoreCol, t);
 
             if (_probIndex >= 0)
             {
                 Host.Assert(!string.IsNullOrEmpty(_probCol));
-                t = schema.GetColumnType(_probIndex);
-                if (t.IsVector || t.ItemType != NumberType.Float)
+                t = schema[_probIndex].Type;
+                if (t != NumberType.Float)
                     throw Host.Except("Probability column '{0}' has type '{1}' but must be R4", _probCol, t);
             }
             else if (!_useRaw)
@@ -1172,22 +1170,22 @@ namespace Microsoft.ML.Runtime.Data
             _evaluator = new BinaryClassifierEvaluator(Host, evalArgs);
         }
 
-        protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
+        private protected override IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRolesCore(RoleMappedSchema schema)
         {
             var cols = base.GetInputColumnRolesCore(schema);
 
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
 
             // Get the optional probability column.
-            var probInfo = EvaluateUtils.GetOptAuxScoreColumnInfo(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreInfo.Index, MetadataUtils.Const.ScoreValueKind.Probability, t => t == NumberType.Float);
-            if (probInfo != null)
-                cols = cols.Prepend(RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probInfo.Name));
+            var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
+                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberType.Float.Equals);
+            if (probCol.HasValue)
+                cols = MetadataUtils.Prepend(cols, RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probCol.Value.Name));
             return cols;
         }
 
-        protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
+        private protected override void PrintFoldResultsCore(IChannel ch, Dictionary<string, IDataView> metrics)
         {
             ch.AssertValue(metrics);
 
@@ -1240,12 +1238,12 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(MessageSensitivity.None, unweightedFold);
         }
 
-        protected override IDataView GetOverallResultsCore(IDataView overall)
+        private protected override IDataView GetOverallResultsCore(IDataView overall)
         {
             return ColumnSelectingTransformer.CreateDrop(Host, overall, BinaryClassifierEvaluator.Entropy);
         }
 
-        protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
+        private protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
         {
             ch.AssertNonEmpty(metrics);
 
@@ -1479,22 +1477,22 @@ namespace Microsoft.ML.Runtime.Data
             return avgPoints;
         }
 #endif
-        protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
+        private protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)
         {
             Host.CheckValue(schema, nameof(schema));
-            Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
+            Host.CheckParam(schema.Label.HasValue, nameof(schema), "Schema must contain a label column");
 
             // The binary classifier evaluator outputs the label, score and probability columns.
-            yield return schema.Label.Name;
-            var scoreInfo = EvaluateUtils.GetScoreColumnInfo(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
+            yield return schema.Label.Value.Name;
+            var scoreCol = EvaluateUtils.GetScoreColumn(Host, schema.Schema, ScoreCol, nameof(Arguments.ScoreColumn),
                 MetadataUtils.Const.ScoreColumnKind.BinaryClassification);
-            yield return scoreInfo.Name;
-            var probInfo = EvaluateUtils.GetOptAuxScoreColumnInfo(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
-                scoreInfo.Index, MetadataUtils.Const.ScoreValueKind.Probability, t => t == NumberType.Float);
+            yield return scoreCol.Name;
+            var probCol = EvaluateUtils.GetOptAuxScoreColumn(Host, schema.Schema, _probCol, nameof(Arguments.ProbabilityColumn),
+                scoreCol.Index, MetadataUtils.Const.ScoreValueKind.Probability, NumberType.Float.Equals);
             // Return the output columns. The LogLoss column is returned only if the probability column exists.
-            if (probInfo != null)
+            if (probCol.HasValue)
             {
-                yield return probInfo.Name;
+                yield return probCol.Value.Name;
                 yield return BinaryPerInstanceEvaluator.LogLoss;
             }
 

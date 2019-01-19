@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Trainers;
-using System.Linq;
-using System;
 
 namespace Microsoft.ML
 {
@@ -18,29 +16,29 @@ namespace Microsoft.ML
         /// <summary>
         /// Trainers and tasks specific to ranking problems.
         /// </summary>
-        public static RecommendationContext Recommendation(this MLContext ctx) => new RecommendationContext(ctx);
+        public static RecommendationCatalog Recommendation(this MLContext ctx) => new RecommendationCatalog(ctx);
     }
 
     /// <summary>
-    /// The central context for regression trainers.
+    /// The central catalog for recommendation trainers.
     /// </summary>
-    public sealed class RecommendationContext : TrainContextBase
+    public sealed class RecommendationCatalog : TrainCatalogBase
     {
         /// <summary>
-        /// For trainers for performing regression.
+        /// For trainers for performing recommendation.
         /// </summary>
         public RecommendationTrainers Trainers { get; }
 
-        public RecommendationContext(IHostEnvironment env)
-            : base(env, nameof(RecommendationContext))
+        public RecommendationCatalog(IHostEnvironment env)
+            : base(env, nameof(RecommendationCatalog))
         {
             Trainers = new RecommendationTrainers(this);
         }
 
-        public sealed class RecommendationTrainers : ContextInstantiatorBase
+        public sealed class RecommendationTrainers : CatalogInstantiatorBase
         {
-            internal RecommendationTrainers(RecommendationContext ctx)
-                : base(ctx)
+            internal RecommendationTrainers(RecommendationCatalog catalog)
+                : base(catalog)
             {
             }
 
@@ -91,16 +89,19 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">The label column (for evaluation).</param>
-        /// <param name="stratificationColumn">Optional stratification column.</param>
-        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
-        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
-        /// train to the test set.</remarks>
+        /// <param name="stratificationColumn">Optional name of the column to use as a stratification column. If two examples share the same value of the <paramref name="stratificationColumn"/>
+        /// (if provided), they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from train to the test set.
+        /// If this optional parameter is not provided, a stratification columns will be generated, and its values will be random numbers .</param>
+        /// <param name="seed">Optional parameter used in combination with the <paramref name="stratificationColumn"/>.
+        /// If the <paramref name="stratificationColumn"/> is not provided, the random numbers generated to create it, will use this seed as value.
+        /// And if it is not provided, the default value will be used.</param>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (RegressionMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
-            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label,
+            string stratificationColumn = null, uint? seed = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn, seed);
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
     }

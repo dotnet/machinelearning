@@ -2,14 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.TextAnalytics;
-using System.Collections.Generic;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -31,15 +26,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// </summary>
 
         [Fact]
-        public void New_IntrospectiveTraining()
+        public void IntrospectiveTraining()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var data = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true)
-                .Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaBinaryTrainer.Options { NumThreads = 1 }));
 
             // Train.
             var model = pipeline.Fit(data);
@@ -47,7 +42,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Get feature weights.
             VBuffer<float> weights = default;
             model.LastTransformer.Model.GetFeatureWeights(ref weights);
-
         }
     }
 }

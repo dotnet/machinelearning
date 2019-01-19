@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(WordHashBagProducingTransformer.Summary, typeof(IDataTransform), typeof(WordHashBagProducingTransformer), typeof(WordHashBagProducingTransformer.Arguments), typeof(SignatureDataTransform),
     "Word Hash Bag Transform", "WordHashBagTransform", "WordHashBag")]
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Transforms.Text
             List<ValueToKeyMappingTransformer.Column> termCols = null;
             if (termLoaderArgs != null)
                 termCols = new List<ValueToKeyMappingTransformer.Column>();
-            var hashColumns = new List<HashingTransformer.Column>();
+            var hashColumns = new List<HashingTransformer.ColumnInfo>();
             var ngramHashColumns = new NgramHashingTransformer.ColumnInfo[args.Column.Length];
 
             var colCount = args.Column.Length;
@@ -359,16 +359,8 @@ namespace Microsoft.ML.Transforms.Text
                             });
                     }
 
-                    hashColumns.Add(
-                        new HashingTransformer.Column
-                        {
-                            Name = tmpName,
-                            Source = termLoaderArgs == null ? column.Source[isrc] : tmpName,
-                            HashBits = 30,
-                            Seed = column.Seed,
-                            Ordered = false,
-                            InvertHash = column.InvertHash
-                        });
+                    hashColumns.Add(new HashingTransformer.ColumnInfo(termLoaderArgs == null ? column.Source[isrc] : tmpName,
+                        tmpName, 30, column.Seed ?? args.Seed, false, column.InvertHash ?? args.InvertHash));
                 }
 
                 ngramHashColumns[iinfo] =
@@ -408,21 +400,8 @@ namespace Microsoft.ML.Transforms.Text
                     view = new MissingValueDroppingTransformer(h, missingDropColumns).Transform(view);
                 }
             }
-
-            // Args for the Hash function with multiple columns
-            var hashArgs =
-                new HashingTransformer.Arguments
-                {
-                    HashBits = 31,
-                    Seed = args.Seed,
-                    Ordered = false,
-                    Column = hashColumns.ToArray(),
-                    InvertHash = args.InvertHash
-                };
-
-            view = HashingTransformer.Create(h, hashArgs, view);
-
-            view =  new NgramHashingEstimator(h, ngramHashColumns).Fit(view).Transform(view);
+            view = new HashingEstimator(h, hashColumns.ToArray()).Fit(view).Transform(view);
+            view = new NgramHashingEstimator(h, ngramHashColumns).Fit(view).Transform(view);
             return ColumnSelectingTransformer.CreateDrop(h, view, tmpColNames.SelectMany(cols => cols).ToArray());
         }
 

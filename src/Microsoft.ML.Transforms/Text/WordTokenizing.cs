@@ -2,22 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Transforms.Text;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Pfa;
+using Microsoft.ML.Transforms.Text;
+using Newtonsoft.Json.Linq;
 
 [assembly: LoadableClass(WordTokenizingTransformer.Summary, typeof(IDataTransform), typeof(WordTokenizingTransformer), typeof(WordTokenizingTransformer.Arguments), typeof(SignatureDataTransform),
     "Word Tokenizer Transform", "WordTokenizeTransform", "DelimitedTokenizeTransform", "WordToken", "DelimitedTokenize", "Token")]
@@ -147,7 +146,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var type = inputSchema.GetColumnType(srcCol);
+            var type = inputSchema[srcCol].Type;
             if (!WordTokenizingEstimator.IsColumnTypeValid(type))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, WordTokenizingEstimator.ExpectedColumnType, type.ToString());
         }
@@ -240,8 +239,8 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < _isSourceVector.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent._columns[i].Input, out int srcCol);
-                    var srcType = inputSchema.GetColumnType(srcCol);
-                    _isSourceVector[i] = srcType.IsVector;
+                    var srcType = inputSchema[srcCol].Type;
+                    _isSourceVector[i] = srcType is VectorType;
                 }
             }
 
@@ -264,10 +263,10 @@ namespace Microsoft.ML.Transforms.Text
                 disposer = null;
 
                 input.Schema.TryGetColumnIndex(_parent._columns[iinfo].Input, out int srcCol);
-                var srcType = input.Schema.GetColumnType(srcCol);
-                Host.Assert(srcType.ItemType.IsText);
+                var srcType = input.Schema[srcCol].Type;
+                Host.Assert(srcType.GetItemType() is TextType);
 
-                if (!srcType.IsVector)
+                if (!(srcType is VectorType))
                     return MakeGetterOne(input, iinfo);
                 return MakeGetterVec(input, iinfo);
             }
@@ -302,7 +301,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Host.AssertValue(input);
 
-                int cv = input.Schema.GetColumnType(ColMapNewToOld[iinfo]).VectorSize;
+                int cv = input.Schema[ColMapNewToOld[iinfo]].Type.GetVectorSize();
                 Contracts.Assert(cv >= 0);
                 var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
                 var src = default(VBuffer<ReadOnlyMemory<char>>);
@@ -428,7 +427,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public sealed class WordTokenizingEstimator : TrivialEstimator<WordTokenizingTransformer>
     {
-        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType.IsText;
+        public static bool IsColumnTypeValid(ColumnType type) => type.GetItemType() is TextType;
 
         internal const string ExpectedColumnType = "Text";
 

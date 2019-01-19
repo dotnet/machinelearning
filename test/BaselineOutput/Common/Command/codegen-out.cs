@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Legacy;
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Api;
 
 namespace MLGeneratedCode
 {

@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.ImageAnalytics;
+using Microsoft.ML.RunTests;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.TensorFlow;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -30,7 +29,7 @@ namespace Microsoft.ML.Scenarios
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
-            var model_location = "model_matmul/frozen_saved_model.pb";
+            var modelLocation = "model_matmul/frozen_saved_model.pb";
             var mlContext = new MLContext(seed: 1, conc: 1);
             // Pipeline
             var loader = ComponentCreation.CreateDataView(mlContext,
@@ -42,8 +41,7 @@ namespace Microsoft.ML.Scenarios
                                                      2.0f, 2.0f },
                                          b = new[] { 3.0f, 3.0f,
                                                      3.0f, 3.0f } } }));
-
-            var trans = TensorFlowTransform.Create(mlContext, loader, model_location, new[] { "c" }, new[] { "a", "b" });
+            var trans = new TensorFlowTransformer(mlContext, modelLocation, new[] { "a", "b" }, new[] { "c" }).Transform(loader);
 
             using (var cursor = trans.GetRowCursor(a => true))
             {
@@ -72,38 +70,173 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
+        private class TypesData
+        {
+            [VectorType(2)]
+            public double[] f64;
+            [VectorType(2)]
+            public float[] f32;
+            [VectorType(2)]
+            public long[] i64;
+            [VectorType(2)]
+            public int[] i32;
+            [VectorType(2)]
+            public short[] i16;
+            [VectorType(2)]
+            public sbyte[] i8;
+            [VectorType(2)]
+            public ulong[] u64;
+            [VectorType(2)]
+            public uint[] u32;
+            [VectorType(2)]
+            public ushort[] u16;
+            [VectorType(2)]
+            public byte[] u8;
+            [VectorType(2)]
+            public bool[] b;
+        }
+
+        /// <summary>
+        /// Test to ensure the supported datatypes can passed to TensorFlow .
+        /// </summary>
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        public void TensorFlowTransformInputOutputTypesTest()
+        {
+            // This an identity model which returns the same output as input.
+            var model_location = "model_types_test";
+
+            //Data
+            var data = new List<TypesData>(
+                        new TypesData[] {
+                            new TypesData() {   f64 = new[] { -1.0, 2.0 },
+                                                f32 = new[] { -1.0f, 2.0f },
+                                                i64 = new[] { -1L, 2 },
+                                                i32 = new[] { -1, 2 },
+                                                i16 = new short[] { -1, 2 },
+                                                i8 = new sbyte[] { -1, 2 },
+                                                u64 = new ulong[] { 1, 2 },
+                                                u32 = new uint[] { 1, 2 },
+                                                u16 = new ushort[] { 1, 2 },
+                                                u8 = new byte[] { 1, 2 },
+                                                b = new bool[] { true, true },
+                            },
+                           new TypesData() {   f64 = new[] { -3.0, 4.0 },
+                                                f32 = new[] { -3.0f, 4.0f },
+                                                i64 = new[] { -3L, 4 },
+                                                i32 = new[] { -3, 4 },
+                                                i16 = new short[] { -3, 4 },
+                                                i8 = new sbyte[] { -3, 4 },
+                                                u64 = new ulong[] { 3, 4 },
+                                                u32 = new uint[] { 3, 4 },
+                                                u16 = new ushort[] { 3, 4 },
+                                                u8 = new byte[] { 3, 4 },
+                                                b = new bool[] { false, false },
+                            } });
+
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            // Pipeline
+
+            var loader = ComponentCreation.CreateDataView(mlContext,data);
+
+            var inputs = new string[]{"f64", "f32", "i64", "i32", "i16", "i8", "u64", "u32", "u16", "u8","b"};
+            var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
+            var trans = new TensorFlowTransformer(mlContext, model_location, inputs, outputs).Transform(loader); ;
+
+            using (var cursor = trans.GetRowCursor(a => true))
+            {
+                var f64getter = cursor.GetGetter<VBuffer<double>>(11);
+                var f32getter = cursor.GetGetter<VBuffer<float>>(12);
+                var i64getter = cursor.GetGetter<VBuffer<long>>(13);
+                var i32getter = cursor.GetGetter<VBuffer<int>>(14);
+                var i16getter = cursor.GetGetter<VBuffer<short>>(15);
+                var i8getter = cursor.GetGetter<VBuffer<sbyte>>(16);
+                var u64getter = cursor.GetGetter<VBuffer<ulong>>(17);
+                var u32getter = cursor.GetGetter<VBuffer<uint>>(18);
+                var u16getter = cursor.GetGetter<VBuffer<ushort>>(19);
+                var u8getter = cursor.GetGetter<VBuffer<byte>>(20);
+                var boolgetter = cursor.GetGetter<VBuffer<bool>>(21);
+
+               
+                VBuffer<double> f64 = default;
+                VBuffer<float> f32 = default;
+                VBuffer<long> i64 = default;
+                VBuffer<int> i32 = default;
+                VBuffer<short> i16 = default;
+                VBuffer<sbyte> i8 = default;
+                VBuffer<ulong> u64 = default;
+                VBuffer<uint> u32 = default;
+                VBuffer<ushort> u16 = default;
+                VBuffer<byte> u8 = default;
+                VBuffer<bool> b = default;
+                foreach (var sample in data)
+                {
+                    Assert.True(cursor.MoveNext());
+
+                    f64getter(ref f64);
+                    f32getter(ref f32);
+                    i64getter(ref i64);
+                    i32getter(ref i32);
+                    i16getter(ref i16);
+                    i8getter(ref i8);
+                    u64getter(ref u64);
+                    u32getter(ref u32);
+                    u16getter(ref u16);
+                    u8getter(ref u8);
+                    u8getter(ref u8);
+                    boolgetter(ref b);
+
+                    var f64Values = f64.GetValues();
+                    Assert.Equal(2, f64Values.Length);
+                    Assert.True(f64Values.SequenceEqual(sample.f64));
+                    var f32Values = f32.GetValues();
+                    Assert.Equal(2, f32Values.Length);
+                    Assert.True(f32Values.SequenceEqual(sample.f32));
+                    var i64Values = i64.GetValues();
+                    Assert.Equal(2, i64Values.Length);
+                    Assert.True(i64Values.SequenceEqual(sample.i64));
+                    var i32Values = i32.GetValues();
+                    Assert.Equal(2, i32Values.Length);
+                    Assert.True(i32Values.SequenceEqual(sample.i32));
+                    var i16Values = i16.GetValues();
+                    Assert.Equal(2, i16Values.Length);
+                    Assert.True(i16Values.SequenceEqual(sample.i16));
+                    var i8Values = i8.GetValues();
+                    Assert.Equal(2, i8Values.Length);
+                    Assert.True(i8Values.SequenceEqual(sample.i8));
+                    var u64Values = u64.GetValues();
+                    Assert.Equal(2, u64Values.Length);
+                    Assert.True(u64Values.SequenceEqual(sample.u64));
+                    var u32Values = u32.GetValues();
+                    Assert.Equal(2, u32Values.Length);
+                    Assert.True(u32Values.SequenceEqual(sample.u32));
+                    var u16Values = u16.GetValues();
+                    Assert.Equal(2, u16Values.Length);
+                    Assert.True(u16Values.SequenceEqual(sample.u16));
+                    var u8Values = u8.GetValues();
+                    Assert.Equal(2, u8Values.Length);
+                    Assert.True(u8Values.SequenceEqual(sample.u8));
+                    var bValues = b.GetValues();
+                    Assert.Equal(2, bValues.Length);
+                    Assert.True(bValues.SequenceEqual(sample.b));
+                }
+                Assert.False(cursor.MoveNext());
+            }
+        }
+
         [Fact(Skip = "Model files are not available yet")]
         public void TensorFlowTransformObjectDetectionTest()
         {
-            var model_location = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
+            var modelLocation = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
             var mlContext = new MLContext(seed: 1, conc: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-            var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
-            {
-                Column = new ImageLoaderTransform.Column[1]
-                {
-                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
-                },
-                ImageFolder = imageFolder
-            }, data);
-            var cropped = ImageResizerTransform.Create(mlContext, new ImageResizerTransform.Arguments()
-            {
-                Column = new ImageResizerTransform.Column[1]{
-                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =32, ImageWidth = 32, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
-                    }
-            }, images);
-            var pixels = ImagePixelExtractorTransform.Create(mlContext, new ImagePixelExtractorTransform.Arguments()
-            {
-                Column = new ImagePixelExtractorTransform.Column[1]{
-                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "image_tensor", UseAlpha=false, InterleaveArgb=true, Convert = false}
-                    }
-            }, cropped);
+            var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImagePath", "ImageReal")).Transform(data);
+            var cropped = new ImageResizerTransformer(mlContext, "ImageReal", "ImageCropped", 32, 32).Transform(images);
 
-            var tf = TensorFlowTransform.Create(mlContext, pixels, model_location,
-                new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" },
-                new[] { "image_tensor" });
+            var pixels = new ImagePixelExtractorTransformer(mlContext, "ImageCropped", "image_tensor", asFloat: false).Transform(cropped);
+            var tf = new TensorFlowTransformer(mlContext, modelLocation, new[] { "image_tensor" },
+                new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" }).Transform(pixels);
 
             tf.Schema.TryGetColumnIndex("image_tensor", out int input);
             tf.Schema.TryGetColumnIndex("detection_boxes", out int boxes);
@@ -133,33 +266,15 @@ namespace Microsoft.ML.Scenarios
         [Fact(Skip = "Model files are not available yet")]
         public void TensorFlowTransformInceptionTest()
         {
-            var model_location = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
+            var modelLocation = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
             var mlContext = new MLContext(seed: 1, conc: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
             var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-            var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
-            {
-                Column = new ImageLoaderTransform.Column[1]
-                {
-                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
-                },
-                ImageFolder = imageFolder
-            }, data);
-            var cropped = ImageResizerTransform.Create(mlContext, new ImageResizerTransform.Arguments()
-            {
-                Column = new ImageResizerTransform.Column[1]{
-                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =224, ImageWidth = 224, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
-                    }
-            }, images);
-            var pixels = ImagePixelExtractorTransform.Create(mlContext, new ImagePixelExtractorTransform.Arguments()
-            {
-                Column = new ImagePixelExtractorTransform.Column[1]{
-                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "input", UseAlpha=false, InterleaveArgb=true, Convert = true}
-                    }
-            }, cropped);
-
-            var tf = TensorFlowTransform.Create(mlContext, pixels, model_location, new[] { "softmax2_pre_activation" }, new[] { "input" });
+            var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImagePath", "ImageReal")).Transform(data);
+            var cropped = new ImageResizerTransformer(mlContext, "ImageReal", "ImageCropped", 224, 224).Transform(images);
+            var pixels = new ImagePixelExtractorTransformer(mlContext, "ImageCropped", "input").Transform(cropped);
+            var tf = new TensorFlowTransformer(mlContext, modelLocation, "input", "softmax2_pre_activation").Transform(pixels);
 
             tf.Schema.TryGetColumnIndex("input", out int input);
             tf.Schema.TryGetColumnIndex("softmax2_pre_activation", out int b);
@@ -183,72 +298,72 @@ namespace Microsoft.ML.Scenarios
             var mlContext = new MLContext(seed: 1, conc: 1);
             var model_location = "mnist_model/frozen_saved_model.pb";
             var schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
-            Assert.Equal(86, schema.ColumnCount);
+            Assert.Equal(86, schema.Count);
             Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
-            var type = (VectorType)schema.GetColumnType(col);
+            var type = (VectorType)schema[col].Type;
             Assert.Equal(2, type.Dimensions.Length);
             Assert.Equal(28, type.Dimensions[0]);
             Assert.Equal(28, type.Dimensions[1]);
-            var metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+            var metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
             Assert.True(metadataType is TextType);
             ReadOnlyMemory<char> opType = default;
-            schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+            schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowOperatorTypeKind, ref opType);
             Assert.Equal("Placeholder", opType.ToString());
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+            metadataType = schema[col].Metadata.Schema.GetColumnOrNull(TensorFlowUtils.TensorflowUpstreamOperatorsKind)?.Type;
             Assert.Null(metadataType);
 
             Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D/ReadVariableOp", out col));
-            type = (VectorType)schema.GetColumnType(col);
+            type = (VectorType)schema[col].Type;
             Assert.Equal(new[] { 5, 5, 1, 32 }, type.Dimensions);
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
             Assert.True(metadataType is TextType);
-            schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+            schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowOperatorTypeKind, ref opType);
             Assert.Equal("Identity", opType.ToString());
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowUpstreamOperatorsKind].Type;
             Assert.NotNull(metadataType);
             VBuffer<ReadOnlyMemory<char>> inputOps = default;
-            schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+            schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowUpstreamOperatorsKind, ref inputOps);
             Assert.Equal(1, inputOps.Length);
             Assert.Equal("conv2d/kernel", inputOps.GetValues()[0].ToString());
 
             Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D", out col));
-            type = (VectorType)schema.GetColumnType(col);
+            type = (VectorType)schema[col].Type;
             Assert.Equal(new[] { 28, 28, 32 }, type.Dimensions);
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
             Assert.True(metadataType is TextType);
-            schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+            schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowOperatorTypeKind, ref opType);
             Assert.Equal("Conv2D", opType.ToString());
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowUpstreamOperatorsKind].Type;
             Assert.NotNull(metadataType);
-            schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+            schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowUpstreamOperatorsKind, ref inputOps);
             Assert.Equal(2, inputOps.Length);
             Assert.Equal("reshape/Reshape", inputOps.GetValues()[0].ToString());
             Assert.Equal("conv2d/Conv2D/ReadVariableOp", inputOps.GetValues()[1].ToString());
 
             Assert.True(schema.TryGetColumnIndex("Softmax", out col));
-            type = (VectorType)schema.GetColumnType(col);
+            type = (VectorType)schema[col].Type;
             Assert.Equal(new[] { 10 }, type.Dimensions);
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowOperatorTypeKind].Type;
             Assert.NotNull(metadataType);
             Assert.True(metadataType is TextType);
-            schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+            schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowOperatorTypeKind, ref opType);
             Assert.Equal("Softmax", opType.ToString());
-            metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+            metadataType = schema[col].Metadata.Schema[TensorFlowUtils.TensorflowUpstreamOperatorsKind].Type;
             Assert.NotNull(metadataType);
-            schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+            schema[col].Metadata.GetValue(TensorFlowUtils.TensorflowUpstreamOperatorsKind, ref inputOps);
             Assert.Equal(1, inputOps.Length);
             Assert.Equal("sequential/dense_1/BiasAdd", inputOps.GetValues()[0].ToString());
 
             model_location = "model_matmul/frozen_saved_model.pb";
             schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
             char name = 'a';
-            for (int i = 0; i < schema.ColumnCount; i++)
+            for (int i = 0; i < schema.Count; i++)
             {
-                Assert.Equal(name.ToString(), schema.GetColumnName(i));
-                type = (VectorType)schema.GetColumnType(i);
+                Assert.Equal(name.ToString(), schema[i].Name);
+                type = (VectorType)schema[i].Type;
                 Assert.Equal(new[] { 2, 2 }, type.Dimensions);
                 name++;
             }
@@ -258,7 +373,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMNISTConvTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var reader = mlContext.Data.CreateTextReader(
+            var reader = mlContext.Data.CreateTextLoader(
                     columns: new[]
                     {
                         new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyRange(0, 9)),
@@ -285,7 +400,7 @@ namespace Microsoft.ML.Scenarios
 
             var oneSample = GetOneMNISTExample();
 
-            var predictFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+            var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
             var onePrediction = predictFunction.Predict(oneSample);
 
@@ -301,7 +416,7 @@ namespace Microsoft.ML.Scenarios
             try
             {
                 var mlContext = new MLContext(seed: 1, conc: 1);
-                var reader = mlContext.Data.CreateTextReader(columns: new[]
+                var reader = mlContext.Data.CreateTextLoader(columns: new[]
                         {
                             new TextLoader.Column("Label", DataKind.I8, 0),
                             new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
@@ -313,7 +428,7 @@ namespace Microsoft.ML.Scenarios
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("Label", "OneHotLabel")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumn("Placeholder", "Features")))
-                    .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransform.Arguments()
+                    .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransformer.Arguments()
                     {
                         ModelLocation = model_location,
                         InputColumns = new[] { "Features" },
@@ -337,7 +452,7 @@ namespace Microsoft.ML.Scenarios
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted, label: "KeyLabel");
                 Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy, 1);
                 Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy, 1);
-                var predictionFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+                var predictionFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
                 var oneSample = GetOneMNISTExample();
                 var onePrediction = predictionFunction.Predict(oneSample);
@@ -391,7 +506,7 @@ namespace Microsoft.ML.Scenarios
             {
                 var mlContext = new MLContext(seed: 1, conc: 1);
 
-                var reader = mlContext.Data.CreateTextReader(new[]
+                var reader = mlContext.Data.CreateTextLoader(new[]
                     {
                         new TextLoader.Column("Label", DataKind.U4, new []{ new TextLoader.Range(0) }, new KeyRange(0, 9)),
                         new TextLoader.Column("TfLabel", DataKind.I8, 0),
@@ -427,7 +542,7 @@ namespace Microsoft.ML.Scenarios
                 }
 
                 var pipe = mlContext.Transforms.CopyColumns(("Placeholder", "Features"))
-                    .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransform.Arguments()
+                    .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransformer.Arguments()
                     {
                         ModelLocation = modelLocation,
                         InputColumns = new[] { "Features" },
@@ -452,11 +567,11 @@ namespace Microsoft.ML.Scenarios
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
 
                 // First group of checks. They check if the overall prediction quality is ok using a test set.
-                Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy-.01, expectedMicroAccuracy+.01);
-                Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy-.01, expectedMicroAccuracy+.01);
+                Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy - .01, expectedMicroAccuracy + .01);
+                Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy - .01, expectedMicroAccuracy + .01);
 
                 // Create prediction function and test prediction
-                var predictFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+                var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
                 var oneSample = GetOneMNISTExample();
 
@@ -480,7 +595,7 @@ namespace Microsoft.ML.Scenarios
             // of predicted label of a single in-memory example.
 
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var reader = mlContext.Data.CreateTextReader(columns: new[]
+            var reader = mlContext.Data.CreateTextLoader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyRange(0, 9)),
                     new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
@@ -507,7 +622,7 @@ namespace Microsoft.ML.Scenarios
             // An in-memory example. Its label is predicted below.
             var oneSample = GetOneMNISTExample();
 
-            var predictFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
+            var predictFunction = trainedModel.CreatePredictionEngine<MNISTData, MNISTPrediction>(mlContext);
 
             var onePrediction = predictFunction.Predict(oneSample);
 
@@ -585,7 +700,6 @@ namespace Microsoft.ML.Scenarios
             [Column("0")]
             public long Label;
 
-            [Column(ordinal: "1-784")]
             [VectorType(784)]
             public float[] Placeholder;
         }
@@ -599,13 +713,13 @@ namespace Microsoft.ML.Scenarios
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifar()
         {
-            var model_location = "cifar_model/frozen_model.pb";
+            var modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, model_location);
+            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorType)schema.GetColumnType(column);
+            var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
@@ -616,7 +730,7 @@ namespace Microsoft.ML.Scenarios
                     {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                    } 
+                    }
                 );
 
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImagePath", "ImageReal"))
@@ -624,8 +738,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(new ImagePixelExtractingEstimator(mlContext, "ImageCropped", "Input", interleave: true));
 
             var pixels = pipeEstimator.Fit(data).Transform(data);
-
-            IDataView trans = TensorFlowTransform.Create(mlContext, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
+            IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Input", "Output").Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(col => col == output))
@@ -646,13 +759,12 @@ namespace Microsoft.ML.Scenarios
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifarSavedModel()
         {
-            var model_location = "cifar_saved_model";
-
+            var modelLocation = "cifar_saved_model";
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, model_location);
+            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, modelLocation);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
-            var type = (VectorType)schema.GetColumnType(column);
+            var type = (VectorType)schema[column].Type;
             var imageHeight = type.Dimensions[0];
             var imageWidth = type.Dimensions[1];
 
@@ -664,30 +776,10 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Name", DataKind.TX, 1),
                 }
             );
-            var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
-            {
-                Column = new ImageLoaderTransform.Column[1]
-                {
-                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
-                },
-                ImageFolder = imageFolder
-            }, data);
-            var cropped = ImageResizerTransform.Create(mlContext, new ImageResizerTransform.Arguments()
-            {
-                Column = new ImageResizerTransform.Column[1]{
-                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
-                    }
-            }, images);
-
-            var pixels = ImagePixelExtractorTransform.Create(mlContext, new ImagePixelExtractorTransform.Arguments()
-            {
-                Column = new ImagePixelExtractorTransform.Column[1]{
-                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
-                    }
-            }, cropped);
-
-
-            IDataView trans = TensorFlowTransform.Create(mlContext, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
+            var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImagePath", "ImageReal")).Transform(data);
+            var cropped = new ImageResizerTransformer(mlContext, "ImageReal", "ImageCropped", imageWidth, imageHeight).Transform(images);
+            var pixels = new ImagePixelExtractorTransformer(mlContext, "ImageCropped", "Input", interleave: true).Transform(cropped);
+            IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Input", "Output").Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(col => col == output))
@@ -708,46 +800,28 @@ namespace Microsoft.ML.Scenarios
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TensorFlowTransformCifarInvalidShape()
         {
-            var model_location = "cifar_model/frozen_model.pb";
+            var modelLocation = "cifar_model/frozen_model.pb";
 
             var mlContext = new MLContext(seed: 1, conc: 1);
             var imageHeight = 28;
             var imageWidth = 28;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = mlContext.Data.ReadFromTextFile(dataFile, 
+            var data = mlContext.Data.ReadFromTextFile(dataFile,
                 columns: new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
                 }
             );
-            var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
-            {
-                Column = new ImageLoaderTransform.Column[1]
-                {
-                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
-                },
-                ImageFolder = imageFolder
-            }, data);
-            var cropped = ImageResizerTransform.Create(mlContext, new ImageResizerTransform.Arguments()
-            {
-                Column = new ImageResizerTransform.Column[1]{
-                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
-                    }
-            }, images);
-
-            var pixels = ImagePixelExtractorTransform.Create(mlContext, new ImagePixelExtractorTransform.Arguments()
-            {
-                Column = new ImagePixelExtractorTransform.Column[1]{
-                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
-                    }
-            }, cropped);
+            var images = new ImageLoaderTransformer(mlContext, imageFolder, ("ImagePath", "ImageReal")).Transform(data);
+            var cropped = new ImageResizerTransformer(mlContext, "ImageReal", "ImageCropped", imageWidth, imageHeight).Transform(images);
+            var pixels = new ImagePixelExtractorTransformer(mlContext, "ImageCropped", "Input").Transform(cropped);
 
             var thrown = false;
             try
             {
-                IDataView trans = TensorFlowTransform.Create(mlContext, pixels, model_location, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = new TensorFlowTransformer(mlContext, modelLocation, "Input", "Output").Transform(pixels);
             }
             catch
             {

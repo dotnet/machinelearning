@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 
-namespace Microsoft.ML.Runtime
+namespace Microsoft.ML
 {
     /// <summary>
     /// Holds information relevant to trainers. Instances of this class are meant to be constructed and passed
     /// into <see cref="ITrainer{TPredictor}.Train(TrainContext)"/> or <see cref="ITrainer.Train(TrainContext)"/>.
-    /// This holds at least a training set, as well as optioonally a predictor.
+    /// This holds at least a training set, as well as optionally a predictor.
     /// </summary>
     [BestFriend]
     internal sealed class TrainContext

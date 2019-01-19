@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
+using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML
 {
@@ -554,7 +553,7 @@ namespace Microsoft.ML
         /// into a vector of floats over a set of topics.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="columns"> Describes the parameters of LDA for each column pair.</param>
+        /// <param name="columns">Describes the parameters of LDA for each column pair.</param>
         public static LatentDirichletAllocationEstimator LatentDirichletAllocation(this TransformsCatalog.TextTransforms catalog, params LatentDirichletAllocationTransformer.ColumnInfo[] columns)
             => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }

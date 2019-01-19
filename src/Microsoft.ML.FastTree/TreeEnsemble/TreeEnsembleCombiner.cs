@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Ensemble;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using System.Collections.Generic;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Trainers.FastTree.Internal;
 
 [assembly: LoadableClass(typeof(TreeEnsembleCombiner), null, typeof(SignatureModelCombiner), "Fast Tree Model Combiner", "FastTreeCombiner")]
 
@@ -78,12 +79,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 if (modelCount == 1)
                 {
                     binaryClassifier = calibrated != null;
-                    featureCount = tree.InputType.ValueCount;
+                    featureCount = tree.InputType.GetValueCount();
                 }
                 else
                 {
                     _host.Check((calibrated != null) == binaryClassifier, "Ensemble contains both calibrated and uncalibrated models");
-                    _host.Check(featureCount == tree.InputType.ValueCount, "Found models with different number of features");
+                    _host.Check(featureCount == tree.InputType.GetValueCount(), "Found models with different number of features");
                 }
             }
 

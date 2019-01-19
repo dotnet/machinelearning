@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.IO;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Data.IO;
+using Microsoft.ML.Model;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Projections;
-using System;
-using System.Collections.Immutable;
-using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -52,6 +51,10 @@ namespace Microsoft.ML.Tests.Transformers
                 new NormalizingEstimator.BinningColumn("float4", "float4bin"),
                 new NormalizingEstimator.BinningColumn("double1", "double1bin"),
                 new NormalizingEstimator.BinningColumn("double4", "double4bin"),
+                new NormalizingEstimator.SupervisedBinningColumn("float1", "float1supervisedbin", labelColumn:"int1"),
+                new NormalizingEstimator.SupervisedBinningColumn("float4", "float4supervisedbin", labelColumn: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumn("double1", "double1supervisedbin", labelColumn: "int1"),
+                new NormalizingEstimator.SupervisedBinningColumn("double4", "double4supervisedbin", labelColumn: "int1"),
                 new NormalizingEstimator.MeanVarColumn("float1", "float1mv"),
                 new NormalizingEstimator.MeanVarColumn("float4", "float4mv"),
                 new NormalizingEstimator.MeanVarColumn("double1", "double1mv"),
@@ -210,6 +213,7 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
                 Column = new[] {
+                    new TextLoader.Column("Label", DataKind.R4, 0),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
                 }
             });
@@ -237,6 +241,19 @@ namespace Microsoft.ML.Tests.Transformers
             CheckSameValues(data1, data4);
             CheckSameValues(data1, data5);
 
+            // Tests for SupervisedBinning
+            var est6 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
+            var est7 = new NormalizingEstimator(Env, new NormalizingEstimator.SupervisedBinningColumn("float4"));
+            var est8 = ML.Transforms.Normalize(NormalizingEstimator.NormalizerMode.SupervisedBinning, ("float4", "float4"));
+
+            var data6 = est6.Fit(data).Transform(data);
+            var data7 = est7.Fit(data).Transform(data);
+            var data8 = est8.Fit(data).Transform(data);
+            CheckSameSchemas(data6.Schema, data7.Schema);
+            CheckSameSchemas(data6.Schema, data8.Schema);
+            CheckSameValues(data6, data7);
+            CheckSameValues(data6, data8);
+
             Done();
         }
 
@@ -244,12 +261,12 @@ namespace Microsoft.ML.Tests.Transformers
         public void LpGcNormAndWhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoader.CreateReader(ML,
+            var data = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var invalidData = TextLoader.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
@@ -278,12 +295,12 @@ namespace Microsoft.ML.Tests.Transformers
         public void WhiteningWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoader.CreateReader(ML,
+            var data = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var invalidData = TextLoader.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
@@ -307,7 +324,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotFullFramework))] // Tracked by https://github.com/dotnet/machinelearning/issues/2104
         public void TestWhiteningCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }), (int)0);
@@ -317,7 +334,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestWhiteningOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var dataView = TextLoader.CreateReader(ML,
+            var dataView = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
@@ -338,12 +355,12 @@ namespace Microsoft.ML.Tests.Transformers
         public void LpNormWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoader.CreateReader(ML,
+            var data = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var invalidData = TextLoader.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
@@ -377,7 +394,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestLpNormOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var dataView = TextLoader.CreateReader(ML,
+            var dataView = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
@@ -397,12 +414,12 @@ namespace Microsoft.ML.Tests.Transformers
         public void GcnWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var data = TextLoader.CreateReader(ML,
+            var data = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var invalidData = TextLoader.CreateReader(ML,
+            var invalidData = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
@@ -436,7 +453,7 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestGcnNormOldSavingAndLoading()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
-            var dataView = TextLoader.CreateReader(ML,
+            var dataView = TextLoaderStatic.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
@@ -449,6 +466,19 @@ namespace Microsoft.ML.Tests.Transformers
                 TrainUtils.SaveModel(ML, Env.Start("saving"), ms, null, resultRoles);
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(ML, dataView, ms);
+            }
+        }
+
+        [Fact]
+        void TestNormalizeBackCompatibility()
+        {
+            var dataFile = GetDataPath("breast-cancer.txt");
+            var dataView = TextLoader.Create(ML, new TextLoader.Arguments(), new MultiFileSource(dataFile));
+            string chooseModelPath = GetDataPath("backcompat/ap_with_norm.zip");
+            using (FileStream fs = File.OpenRead(chooseModelPath))
+            {
+                var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
+                Assert.Equal(3, result.Schema.Count);
             }
         }
     }

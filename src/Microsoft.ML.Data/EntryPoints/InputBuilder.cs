@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
+namespace Microsoft.ML.EntryPoints.JsonUtils
 {
     /// <summary>
     /// The class that creates and wraps around an instance of an input object and gradually populates all fields, keeping track of missing

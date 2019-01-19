@@ -4,18 +4,17 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), typeof(RowShufflingTransformer.Arguments), typeof(SignatureDataTransform),
     "Shuffle Transform", "ShuffleTransform", "Shuffle", "shuf")]
@@ -191,9 +190,9 @@ namespace Microsoft.ML.Transforms
         {
             List<int> columnsToDrop = null;
             var schema = data.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                var type = schema.GetColumnType(c);
+                var type = schema[c].Type;
                 if (!type.IsCachable())
                     Utils.Add(ref columnsToDrop, c);
             }
@@ -211,9 +210,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         internal static bool CanShuffleAll(Schema schema)
         {
-            for (int c = 0; c < schema.ColumnCount; ++c)
+            for (int c = 0; c < schema.Count; ++c)
             {
-                var type = schema.GetColumnType(c);
+                var type = schema[c].Type;
                 if (!type.IsCachable())
                     return false;
             }
@@ -289,12 +288,10 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _poolRows, input, rand);
         }
 
-        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            consolidator = null;
             return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
@@ -381,11 +378,11 @@ namespace Microsoft.ML.Transforms
                     Contracts.AssertValue(getter);
 
                     Type pipeType;
-                    if (type.IsVector)
-                        pipeType = typeof(ImplVec<>).MakeGenericType(type.ItemType.RawType);
+                    if (type is VectorType vectorType)
+                        pipeType = typeof(ImplVec<>).MakeGenericType(vectorType.ItemType.RawType);
                     else
                     {
-                        Contracts.Assert(type.IsPrimitive);
+                        Contracts.Assert(type is PrimitiveType);
                         pipeType = typeof(ImplOne<>).MakeGenericType(type.RawType);
                     }
                     if (_pipeConstructorTypes == null)
@@ -518,7 +515,7 @@ namespace Microsoft.ML.Transforms
 
                 _pipeIndices = Utils.GetIdentityPermutation(_poolRows - 1 + _bufferDepth * _blockSize);
 
-                int colLim = Schema.ColumnCount;
+                int colLim = Schema.Count;
                 int numActive = 0;
                 _colToActivesIndex = new int[colLim];
                 for (int c = 0; c < colLim; ++c)
@@ -531,7 +528,7 @@ namespace Microsoft.ML.Transforms
                     if (ia < 0)
                         continue;
                     _pipes[ia] = ShufflePipe.Create(_pipeIndices.Length,
-                        input.Schema.GetColumnType(c), RowCursorUtils.GetGetterAsDelegate(input, c));
+                        input.Schema[c].Type, RowCursorUtils.GetGetterAsDelegate(input, c));
                     _getters[ia] = CreateGetterDelegate(c);
                 }
                 var idPipe = _pipes[numActive + (int)ExtraIndex.Id] = ShufflePipe.Create(_pipeIndices.Length, NumberType.UG, input.GetIdGetter());
@@ -682,14 +679,14 @@ namespace Microsoft.ML.Transforms
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
                 Func<int, Delegate> createDel = CreateGetterDelegate<int>;
-                return Utils.MarshalInvoke(createDel, Schema.GetColumnType(col).RawType, col);
+                return Utils.MarshalInvoke(createDel, Schema[col].Type.RawType, col);
             }
 
             private Delegate CreateGetterDelegate<TValue>(int col)
             {
                 Ch.Assert(0 <= col && col < _colToActivesIndex.Length);
                 Ch.Assert(_colToActivesIndex[col] >= 0);
-                Ch.Assert(Schema.GetColumnType(col).RawType == typeof(TValue));
+                Ch.Assert(Schema[col].Type.RawType == typeof(TValue));
                 return CreateGetterDelegate<TValue>(_pipes[_colToActivesIndex[col]]);
             }
 

@@ -2,22 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.CpuMath;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Projections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.CpuMath;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Projections;
 
 [assembly: LoadableClass(VectorWhiteningTransformer.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransformer), typeof(VectorWhiteningTransformer.Arguments), typeof(SignatureDataTransform),
     VectorWhiteningTransformer.FriendlyName, VectorWhiteningTransformer.LoaderSignature, "Whitening")]
@@ -45,6 +44,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
     public sealed class VectorWhiteningTransformer : OneToOneTransformerBase
     {
+        [BestFriend]
         internal static class Defaults
         {
             public const WhiteningKind Kind = WhiteningKind.Zca;
@@ -305,14 +305,14 @@ namespace Microsoft.ML.Transforms.Projections
 
         // Factory method for SignatureLoadRowMapper.
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
             => columns.Select(c => (c.Input, c.Output ?? c.Input)).ToArray();
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var inType = inputSchema.GetColumnType(srcCol);
+            var inType = inputSchema[srcCol].Type;
             var reason = TestColumn(inType);
             if (reason != null)
                 throw Host.ExceptParam(nameof(inputSchema), reason);
@@ -321,11 +321,14 @@ namespace Microsoft.ML.Transforms.Projections
         // Check if the input column's type is supported. Note that only float vector with a known shape is allowed.
         internal static string TestColumn(ColumnType type)
         {
-            if ((type is VectorType vectorType && !vectorType.IsKnownSizeVector && vectorType.Dimensions.Length > 1)
-                || type.ItemType != NumberType.R4)
+            VectorType vectorType = type as VectorType;
+            ColumnType itemType = vectorType?.ItemType ?? type;
+            if ((vectorType != null && !vectorType.IsKnownSize && vectorType.Dimensions.Length > 1)
+                || itemType != NumberType.R4)
                 return "Expected float or float vector of known size";
 
-            if ((long)type.ValueCount * type.ValueCount > Utils.ArrayMaxSize)
+            long valueCount = type.GetValueCount();
+            if (valueCount * valueCount > Utils.ArrayMaxSize)
                 return "Vector size exceeds maximum size for one dimensional array (2 146 435 071 elements)";
 
             return null;
@@ -333,7 +336,8 @@ namespace Microsoft.ML.Transforms.Projections
 
         private static void ValidateModel(IExceptionContext ectx, float[] model, ColumnType col)
         {
-            ectx.CheckDecode(Utils.Size(model) == (long)col.ValueCount * col.ValueCount, "Invalid model size.");
+            long valueCount = col.GetValueCount();
+            ectx.CheckDecode(Utils.Size(model) == valueCount * valueCount, "Invalid model size.");
             for (int i = 0; i < model.Length; i++)
                 ectx.CheckDecode(FloatUtils.IsFinite(model[i]), "Found NaN or infinity in the model.");
         }
@@ -381,9 +385,12 @@ namespace Microsoft.ML.Transforms.Projections
 
             for (int i = 0; i < columns.Length; i++)
             {
-                if (!inputSchema.TryGetColumnIndex(columns[i].Input, out cols[i]))
+                var col = inputSchema.GetColumnOrNull(columns[i].Input);
+                if (!col.HasValue)
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input);
-                srcTypes[i] = inputSchema.GetColumnType(cols[i]);
+
+                cols[i] = col.Value.Index;
+                srcTypes[i] = col.Value.Type;
                 var reason = TestColumn(srcTypes[i]);
                 if (reason != null)
                     throw env.ExceptParam(nameof(inputData.Schema), reason);
@@ -402,7 +409,8 @@ namespace Microsoft.ML.Transforms.Projections
 
             for (int i = 0; i < columns.Length; i++)
             {
-                ch.Assert(srcTypes[i].IsVector && srcTypes[i].IsKnownSizeVector);
+                VectorType vectorType = srcTypes[i] as VectorType;
+                ch.Assert(vectorType != null && vectorType.IsKnownSize);
                 // Use not more than MaxRow number of rows.
                 var ex = columns[i];
                 if (crowData <= ex.MaxRow)
@@ -413,7 +421,7 @@ namespace Microsoft.ML.Transforms.Projections
                     actualRowCounts[i] = ex.MaxRow;
                 }
 
-                int cslot = srcTypes[i].ValueCount;
+                int cslot = vectorType.Size;
                 // Check that total number of values in matrix does not exceed int.MaxValue and adjust row count if necessary.
                 if ((long)cslot * actualRowCounts[i] > int.MaxValue)
                 {
@@ -443,7 +451,7 @@ namespace Microsoft.ML.Transforms.Projections
 
                         getters[i](ref val);
                         val.CopyTo(columnData[i], idxDst[i]);
-                        idxDst[i] += srcTypes[i].ValueCount;
+                        idxDst[i] += srcTypes[i].GetValueCount();
                     }
                     irow++;
                 }
@@ -468,7 +476,7 @@ namespace Microsoft.ML.Transforms.Projections
                 var ex = columns[iinfo];
                 var data = columnData[iinfo];
                 int crow = rowCounts[iinfo];
-                int ccol = srcTypes[iinfo].ValueCount;
+                int ccol = srcTypes[iinfo].GetValueCount();
 
                 // If there is no training data, simply initialize the model matrices to identity matrices.
                 if (crow == 0)
@@ -659,7 +667,7 @@ namespace Microsoft.ML.Transforms.Projections
                 {
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
-                    _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
+                    _srcTypes[i] = inputSchema[_cols[i]].Type;
                     ValidateModel(Host, _parent._models[i], _srcTypes[i]);
                     if (_parent._columns[i].SaveInv)
                         ValidateModel(Host, _parent._invModels[i], _srcTypes[i]);
@@ -699,10 +707,10 @@ namespace Microsoft.ML.Transforms.Projections
                 Host.Assert(ex.Kind == WhiteningKind.Pca || ex.Kind == WhiteningKind.Zca);
                 var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
                 var src = default(VBuffer<float>);
-                int cslotSrc = _srcTypes[iinfo].ValueCount;
+                int cslotSrc = _srcTypes[iinfo].GetValueCount();
                 // Notice that here that the learned matrices in _models will have the same size for both PCA and ZCA,
                 // so we perform a truncation of the matrix in FillValues, that only keeps PcaNum columns.
-                int cslotDst = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? ex.PcaNum : _srcTypes[iinfo].ValueCount;
+                int cslotDst = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? ex.PcaNum : cslotSrc;
                 var model = _parent._models[iinfo];
                 ValueGetter<VBuffer<float>> del =
                     (ref VBuffer<float> dst) =>

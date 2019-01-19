@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.ML.Data;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Model.Pfa;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
@@ -106,7 +105,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <summary>
         /// returns the ensemble in the production TreeEnsemble format
         /// </summary>
-        public string ToTreeEnsembleIni(FeaturesToContentMap fmap,
+        internal string ToTreeEnsembleIni(FeaturesToContentMap fmap,
             string trainingParams, bool appendFeatureGain, bool includeZeroGainFeatures = true)
         {
             StringBuilder sbEvaluator = new StringBuilder();
@@ -305,7 +304,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = BlockingThreadPool.NumThreads }, actions);
         }
 
-        public string ToGainSummary(FeaturesToContentMap fmap, Dictionary<int, int> featureToID, int prefix, bool includeZeroGainFeatures, bool normalize, int startingCommentNumber)
+        internal string ToGainSummary(FeaturesToContentMap fmap, Dictionary<int, int> featureToID, int prefix, bool includeZeroGainFeatures, bool normalize, int startingCommentNumber)
         {
             if (_trees.Count == 0)
                 return string.Empty;
@@ -396,7 +395,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// A class that given either a <see cref="RoleMappedSchema"/>
     /// provides a mechanism for getting the corresponding input INI content for the features.
     /// </summary>
-    public sealed class FeaturesToContentMap
+    internal sealed class FeaturesToContentMap
     {
         private readonly VBuffer<ReadOnlyMemory<char>> _content;
         private readonly VBuffer<ReadOnlyMemory<char>> _names;
@@ -412,15 +411,16 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         public FeaturesToContentMap(RoleMappedSchema schema)
         {
             Contracts.AssertValue(schema);
-            var feat = schema.Feature;
-            Contracts.AssertValue(feat);
-            Contracts.Assert(feat.Type.ValueCount > 0);
+            Contracts.Assert(schema.Feature.HasValue);
+            var feat = schema.Feature.Value;
+            int featValueCount = feat.Type.GetValueCount();
+            Contracts.Assert(featValueCount > 0);
 
             var sch = schema.Schema;
-            if (sch.HasSlotNames(feat.Index, feat.Type.ValueCount))
-                sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref _names);
+            if (sch[feat.Index].HasSlotNames(featValueCount))
+                sch[feat.Index].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _names);
             else
-                _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
+                _names = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
 #if !CORECLR
             var type = sch.GetMetadataTypeOrNull(BingBinLoader.IniContentMetadataKind, feat.Index);
             if (type != null && type.IsVector && type.VectorSize == feat.Type.ValueCount && type.ItemType.IsText)
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             else
                 _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
 #else
-            _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(feat.Type.ValueCount);
+            _content = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featValueCount);
 #endif
             Contracts.Assert(_names.Length == _content.Length);
         }

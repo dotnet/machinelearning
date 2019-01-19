@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
@@ -28,7 +27,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="transformer">The ONNX transformer.</param>
-        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog, OnnxTransform transformer)
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog, OnnxTransformer transformer)
             => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), transformer);
     }
 }

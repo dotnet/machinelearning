@@ -18,7 +18,7 @@ Along with these ML capabilities, this first release of ML.NET also brings the f
 
 ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework. 64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow, LightGBM, and ONNX related functionality.
 
-The current release is 0.8. Check out the [release notes](docs/release-notes/0.8/release-0.8.md) and [blog post](https://blogs.msdn.microsoft.com/dotnet/2018/12/02/announcing-ml-net-0-8-machine-learning-for-net/) to see what's new.
+The current release is 0.9. Check out the [release notes](docs/release-notes/0.9/release-0.9.md) to see what's new.
 
 First, ensure you have installed [.NET Core 2.1](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework 4.6.1 or later, but 4.7.2 or later is recommended.
 
@@ -42,11 +42,13 @@ Daily NuGet builds of the project are also available in our [MyGet](https://dotn
 
 To build ML.NET from source please visit our [developers guide](docs/project-docs/developer-guide.md).
 
-|    | x64 Debug | x64 Release |
+|    | Debug | Release |
 |:---|----------------:|------------------:|
 |**Linux**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Linux&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Linux&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
 |**macOS**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=macOS&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=macOS&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
-|**Windows**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**Windows x64**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Debug)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobname=Windows_x64&configuration=Build_Release)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**Windows x86**|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86&configuration=Build_Debug)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=Windows_x86&configuration=Build_Release)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|
+|**Core 3.0**|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=core30&configuration=Build_Debug_Intrinsics)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|[![Build Status](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master&jobName=core30&configuration=Build_Release_Intrinsics)](https://dnceng.visualstudio.com/public/_build/latest?definitionId=104?branchName=master)|
 
 ## Contributing
 
@@ -61,8 +63,7 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 
 ## Examples
 
-Here's an example of code to train a model to predict sentiment from text samples. 
-(You can find a sample of the legacy API [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
+Here's an example of code to train a model to predict sentiment from text samples.
 
 ```C#
 var mlContext = new MLContext();
@@ -85,8 +86,8 @@ var model = learningPipeline.Fit(data);
 Now from the model we can make inferences (predictions):
 
 ```C#
-var predictionFunc = model.MakePredictionFunction<SentimentData, SentimentPrediction>(mlContext);
-var prediction = predictionFunc.Predict(new SentimentData
+var predictionEngine = model.CreatePredictionEngine<SentimentData, SentimentPrediction>(mlContext);
+var prediction = predictionEngine.Predict(new SentimentData
 {
     SentimentText = "Today is a great day!"
 });

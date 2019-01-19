@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.RunTests;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -21,16 +21,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// "communication pipe" is just a serialized model of some form.
         /// </summary>
         [Fact]
-        public void New_TrainSaveModelAndPredict()
+        public void TrainSaveModelAndPredict()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var reader = ml.Data.CreateTextReader(TestDatasets.Sentiment.GetLoaderColumns(), hasHeader: true);
-            var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+            var data = ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.trainFilename), hasHeader: true);
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
                 .AppendCacheCheckpoint(ml)
-                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaBinaryTrainer.Options { NumThreads = 1 }));
 
             // Train.
             var model = pipeline.Fit(data);
@@ -46,11 +46,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 loadedModel = TransformerChain.LoadFrom(ml, file);
 
             // Create prediction engine and test predictions.
-            var engine = loadedModel.MakePredictionFunction<SentimentData, SentimentPrediction>(ml);
+            var engine = loadedModel.CreatePredictionEngine<SentimentData, SentimentPrediction>(ml);
 
             // Take a couple examples out of the test data and run predictions on top.
-            var testData = reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename))
-                .AsEnumerable<SentimentData>(ml, false);
+            var testData = ml.CreateEnumerable<SentimentData>(
+                ml.Data.ReadFromTextFile<SentimentData>(GetDataPath(TestDatasets.Sentiment.testFilename), hasHeader: true), false);
             foreach (var input in testData.Take(5))
             {
                 var prediction = engine.Predict(input);

@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using Microsoft.ML.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed partial class TextLoader
     {
@@ -46,7 +45,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
-                Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
                 var bindings = parent._bindings;
 
@@ -84,7 +83,7 @@ namespace Microsoft.ML.Runtime.Data
             private Cursor(TextLoader parent, ParseStats stats, bool[] active, LineReader reader, int srcNeeded, int cthd)
                 : base(parent._host)
             {
-                Ch.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Ch.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
                 Ch.AssertValue(reader);
                 Ch.AssertValue(stats);
                 Ch.Assert(srcNeeded >= 0);
@@ -138,7 +137,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(files);
-                Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
                 int srcNeeded;
                 int cthd;
@@ -150,13 +149,12 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
 
-            public static RowCursor[] CreateSet(out IRowCursorConsolidator consolidator,
-                TextLoader parent, IMultiStreamSource files, bool[] active, int n)
+            public static RowCursor[] CreateSet(TextLoader parent, IMultiStreamSource files, bool[] active, int n)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(files);
-                Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
+                Contracts.Assert(active == null || active.Length == parent._bindings.OutputSchema.Count);
 
                 int srcNeeded;
                 int cthd;
@@ -166,12 +164,8 @@ namespace Microsoft.ML.Runtime.Data
                 var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
-                {
-                    consolidator = null;
                     return new RowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
-                }
 
-                consolidator = new Consolidator(cthd);
                 var cursors = new RowCursor[cthd];
                 try
                 {
@@ -273,7 +267,7 @@ namespace Microsoft.ML.Runtime.Data
                 return sb.ToString();
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.OutputSchema;
 
             protected override void Dispose(bool disposing)
             {
@@ -450,27 +444,14 @@ namespace Microsoft.ML.Runtime.Data
 
                 public LineBatch GetBatch()
                 {
-                    Exception inner = null;
-                    try
-                    {
-                        var batch = _queue.Take();
-                        if (batch.Exception == null)
-                            return batch;
-                        inner = batch.Exception;
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // This code detects when there is no more content by catching the exception thrown by _queue.Take() at the end.
-                        // If _queue.IsAddingCompleted is true, we know that this exception was the result of that specifically.
-                        // This should probably be re-engineered to not rely on exception blocks.
-                        // REVIEW: Come up with a less strange scheme for the interthread communication here, that does not
-                        // rely on exceptions and timeouts throughout the pipeline.
-                        if (_queue.IsAddingCompleted)
-                            return default(LineBatch);
-                        throw;
-                    }
-                    Contracts.AssertValue(inner);
-                    throw Contracts.ExceptDecode(inner, "Stream reading encountered exception");
+                    if (!_queue.TryTake(out LineBatch batch, millisecondsTimeout: -1))
+                        return default;
+
+                    if (batch.Exception == null)
+                        return batch;
+
+                    Contracts.AssertValue(batch.Exception);
+                    throw Contracts.ExceptDecode(batch.Exception, "Stream reading encountered exception");
                 }
 
                 private void ThreadProc()
@@ -818,37 +799,6 @@ namespace Microsoft.ML.Runtime.Data
                         if (iblk >= _blockCount)
                             iblk -= _blockCount;
                         Contracts.Assert(0 <= iblk && iblk < _blockCount);
-                    }
-                }
-            }
-
-            /// <summary>
-            /// The consolidator object. This simply records the number of threads and checks
-            /// that they match at the end.
-            /// </summary>
-            private sealed class Consolidator : IRowCursorConsolidator
-            {
-                private int _cthd;
-
-                public Consolidator(int cthd)
-                {
-                    Contracts.Assert(cthd > 1);
-                    _cthd = cthd;
-                }
-
-                public RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs)
-                {
-                    Contracts.AssertValue(provider);
-                    int cthd = Interlocked.Exchange(ref _cthd, 0);
-                    provider.Check(cthd > 1, "Consolidator can only be used once");
-                    provider.Check(Utils.Size(inputs) == cthd, "Unexpected number of cursors");
-
-                    // ConsolidateGeneric does all the standard validity checks: all cursors non-null,
-                    // all have the same schema, all have the same active columns, and all active
-                    // column types are cachable.
-                    using (var ch = provider.Start("Consolidator"))
-                    {
-                        return DataViewUtils.ConsolidateGeneric(provider, inputs, BatchSize);
                     }
                 }
             }

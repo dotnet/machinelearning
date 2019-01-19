@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueDroppingTransformer), typeof(MissingValueDroppingTransformer.Arguments), typeof(SignatureDataTransform),
     MissingValueDroppingTransformer.FriendlyName, MissingValueDroppingTransformer.ShortName, "NADropTransform")]
@@ -103,9 +102,9 @@ namespace Microsoft.ML.Transforms
 
         protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
-            var inType = inputSchema.GetColumnType(srcCol);
-            if (!inType.IsVector)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema.GetColumnName(srcCol), "Vector", inType.ToString());
+            var inType = inputSchema[srcCol].Type;
+            if (!(inType is VectorType))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema[srcCol].Name, "Vector", inType.ToString());
         }
 
         // Factory method for SignatureLoadModel
@@ -164,7 +163,7 @@ namespace Microsoft.ML.Transforms
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
                     _srcTypes[i] = srcCol.Type;
-                    _types[i] = new VectorType((PrimitiveType)srcCol.Type.ItemType);
+                    _types[i] = new VectorType((PrimitiveType)srcCol.Type.GetItemType());
                     _isNAs[i] = GetIsNADelegate(srcCol.Type);
                 }
             }
@@ -175,10 +174,10 @@ namespace Microsoft.ML.Transforms
             private Delegate GetIsNADelegate(ColumnType type)
             {
                 Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
-                return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
+                return Utils.MarshalInvoke(func, type.GetItemType().RawType, type);
             }
 
-            private Delegate GetIsNADelegate<T>(ColumnType type) => Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+            private Delegate GetIsNADelegate<T>(ColumnType type) => Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.GetItemType());
 
             protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
@@ -198,7 +197,7 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
 
                 Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
-                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].GetItemType().RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
             }
 
@@ -374,7 +373,7 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector || col.Kind == SchemaShape.Column.VectorKind.VariableVector))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input, "Vector", col.GetTypeString());

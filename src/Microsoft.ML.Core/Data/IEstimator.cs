@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Core.Data
 {
@@ -65,8 +62,8 @@ namespace Microsoft.ML.Core.Data
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValueOrNull(metadata);
-                Contracts.CheckParam(!itemType.IsKey, nameof(itemType), "Item type cannot be a key");
-                Contracts.CheckParam(!itemType.IsVector, nameof(itemType), "Item type cannot be a vector");
+                Contracts.CheckParam(!(itemType is KeyType), nameof(itemType), "Item type cannot be a key");
+                Contracts.CheckParam(!(itemType is VectorType), nameof(itemType), "Item type cannot be a vector");
                 Contracts.CheckParam(!isKey || KeyType.IsValidDataKind(itemType.RawKind), nameof(itemType), "The item type must be valid for a key");
 
                 Name = name;
@@ -149,17 +146,28 @@ namespace Microsoft.ML.Core.Data
             out ColumnType itemType,
             out bool isKey)
         {
-            if (type.IsKnownSizeVector)
-                vecKind = Column.VectorKind.Vector;
-            else if (type.IsVector)
-                vecKind = Column.VectorKind.VariableVector;
-            else
-                vecKind = Column.VectorKind.Scalar;
+            if (type is VectorType vectorType)
+            {
+                if (vectorType.IsKnownSize)
+                {
+                    vecKind = Column.VectorKind.Vector;
+                }
+                else
+                {
+                    vecKind = Column.VectorKind.VariableVector;
+                }
 
-            itemType = type.ItemType;
-            if (type.ItemType.IsKey)
-                itemType = PrimitiveType.FromKind(type.ItemType.RawKind);
-            isKey = type.ItemType.IsKey;
+                itemType = vectorType.ItemType;
+            }
+            else
+            {
+                vecKind = Column.VectorKind.Scalar;
+                itemType = type;
+            }
+
+            isKey = itemType is KeyType;
+            if (isKey)
+                itemType = PrimitiveType.FromKind(itemType.RawKind);
         }
 
         /// <summary>
@@ -173,19 +181,19 @@ namespace Microsoft.ML.Core.Data
 
             for (int iCol = 0; iCol < schema.Count; iCol++)
             {
-                if (!schema.IsHidden(iCol))
+                if (!schema[iCol].IsHidden)
                 {
                     // First create the metadata.
                     var mCols = new List<Column>();
-                    foreach (var metaNameType in schema.GetMetadataTypes(iCol))
+                    foreach (var metaColumn in schema[iCol].Metadata.Schema)
                     {
-                        GetColumnTypeShape(metaNameType.Value, out var mVecKind, out var mItemType, out var mIsKey);
-                        mCols.Add(new Column(metaNameType.Key, mVecKind, mItemType, mIsKey));
+                        GetColumnTypeShape(metaColumn.Type, out var mVecKind, out var mItemType, out var mIsKey);
+                        mCols.Add(new Column(metaColumn.Name, mVecKind, mItemType, mIsKey));
                     }
                     var metadata = mCols.Count > 0 ? new SchemaShape(mCols) : _empty;
                     // Next create the single column.
-                    GetColumnTypeShape(schema.GetColumnType(iCol), out var vecKind, out var itemType, out var isKey);
-                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, itemType, isKey, metadata));
+                    GetColumnTypeShape(schema[iCol].Type, out var vecKind, out var itemType, out var isKey);
+                    cols.Add(new Column(schema[iCol].Name, vecKind, itemType, isKey, metadata));
                 }
             }
             return new SchemaShape(cols);

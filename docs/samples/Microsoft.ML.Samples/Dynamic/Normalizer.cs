@@ -1,9 +1,8 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms.Normalizers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
+using Microsoft.ML.Transforms.Normalizers;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

@@ -1,13 +1,11 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
 using System.Text;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.Conversion;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public class DataTypesTest : TestDataViewBase
     {

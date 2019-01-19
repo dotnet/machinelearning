@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Float = System.Single;
+using Microsoft.ML;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Utilities;
+using Microsoft.ML.Model;
+using Microsoft.ML.Transforms.Conversions;
 
 [assembly: LoadableClass(HashJoiningTransform.Summary, typeof(HashJoiningTransform), typeof(HashJoiningTransform.Arguments), typeof(SignatureDataTransform),
     HashJoiningTransform.UserName, "HashJoinTransform", HashJoiningTransform.RegistrationName)]
@@ -119,7 +118,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             public int OutputValueCount
             {
-                get { return OutputColumnType.ValueCount; }
+                get { return OutputColumnType.GetValueCount(); }
             }
 
             public ColumnInfoEx(int[][] slotMap, int hashBits, uint hashSeed, bool ordered)
@@ -251,7 +250,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 int[][] slotMap = null;
                 if (slotMapCount > 0)
                 {
-                    Host.CheckDecode(Infos[i].TypeSrc.IsVector);
+                    Host.CheckDecode(Infos[i].TypeSrc is VectorType);
 
                     slotMap = new int[slotMapCount][];
                     for (int j = 0; j < slotMapCount; j++)
@@ -262,7 +261,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         // the slots should be distinct and between 0 and vector size
                         Host.CheckDecode(slotMap[j].Distinct().Count() == slotMap[j].Length);
                         Host.CheckDecode(
-                            slotMap[j].All(slot => 0 <= slot && slot < Infos[i].TypeSrc.ValueCount));
+                            slotMap[j].All(slot => 0 <= slot && slot < Infos[i].TypeSrc.GetValueCount()));
                     }
                 }
 
@@ -319,7 +318,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 for (int i = 0; i < ex.SlotMap.Length; i++)
                 {
                     Host.Assert(ex.SlotMap[i].Distinct().Count() == ex.SlotMap[i].Length);
-                    Host.Assert(ex.SlotMap[i].All(slot => 0 <= slot && slot < Infos[iColumn].TypeSrc.ValueCount));
+                    Host.Assert(ex.SlotMap[i].All(slot => 0 <= slot && slot < Infos[iColumn].TypeSrc.GetValueCount()));
                     ctx.Writer.WriteIntArray(ex.SlotMap[i]);
                 }
             }
@@ -328,13 +327,13 @@ namespace Microsoft.ML.Transforms.Conversions
         private ColumnInfoEx CreateColumnInfoEx(bool join, string customSlotMap, int hashBits, uint hashSeed, bool ordered, ColInfo colInfo)
         {
             int[][] slotMap = null;
-            if (colInfo.TypeSrc.IsVector)
+            if (colInfo.TypeSrc is VectorType vectorType)
             {
                 // fill in the slot map
                 if (!string.IsNullOrWhiteSpace(customSlotMap))
-                    slotMap = CompileSlotMap(customSlotMap, colInfo.TypeSrc.ValueCount);
+                    slotMap = CompileSlotMap(customSlotMap, vectorType.Size);
                 else
-                    slotMap = CreateDefaultSlotMap(join, colInfo.TypeSrc.ValueCount);
+                    slotMap = CreateDefaultSlotMap(join, vectorType.Size);
                 Host.Assert(Utils.Size(slotMap) >= 1);
             }
 
@@ -382,7 +381,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private static string TestColumnType(ColumnType type)
         {
             // REVIEW: list all types that can be hashed.
-            if (type.ValueCount > 0)
+            if (type.GetValueCount() > 0)
                 return null;
             return "Unknown vector size";
         }
@@ -413,15 +412,15 @@ namespace Microsoft.ML.Transforms.Conversions
             int n = _exes[iinfo].OutputValueCount;
             var dstEditor = VBufferEditor.Create(ref dst, n);
 
-            var srcColumnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
-            bool useDefaultSlotNames = !Source.Schema.HasSlotNames(Infos[iinfo].Source, Infos[iinfo].TypeSrc.VectorSize);
+            var srcColumnName = Source.Schema[Infos[iinfo].Source].Name;
+            bool useDefaultSlotNames = !Source.Schema[Infos[iinfo].Source].HasSlotNames(Infos[iinfo].TypeSrc.GetVectorSize());
             VBuffer<ReadOnlyMemory<char>> srcSlotNames = default;
             if (!useDefaultSlotNames)
             {
-                Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref srcSlotNames);
+                Source.Schema[Infos[iinfo].Source].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref srcSlotNames);
                 useDefaultSlotNames =
                     !srcSlotNames.IsDense
-                    || srcSlotNames.Length != Infos[iinfo].TypeSrc.ValueCount;
+                    || srcSlotNames.Length != Infos[iinfo].TypeSrc.GetValueCount();
             }
 
             var outputSlotName = new StringBuilder();
@@ -484,15 +483,23 @@ namespace Microsoft.ML.Transforms.Conversions
             // First, we take a method info for GetGetter<int>
             // Then, we replace <int> with correct type of the input
             // And then we generate a delegate using the generic delegate generator
+            ColumnType itemType;
             MethodInfo mi;
-            if (!Infos[iinfo].TypeSrc.IsVector)
+            if (!(Infos[iinfo].TypeSrc is VectorType vectorType))
+            {
+                itemType = Infos[iinfo].TypeSrc;
                 mi = _methGetterOneToOne;
-            else if (_exes[iinfo].OutputValueCount == 1)
-                mi = _methGetterVecToOne;
+            }
             else
-                mi = _methGetterVecToVec;
+            {
+                itemType = vectorType.ItemType;
+                if (_exes[iinfo].OutputValueCount == 1)
+                    mi = _methGetterVecToOne;
+                else
+                    mi = _methGetterVecToVec;
+            }
 
-            mi = mi.MakeGenericMethod(Infos[iinfo].TypeSrc.ItemType.RawType);
+            mi = mi.MakeGenericMethod(itemType.RawType);
             return (Delegate)mi.Invoke(this, new object[] { input, iinfo });
         }
 
@@ -505,7 +512,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private ValueGetter<uint> ComposeGetterOneToOne<TSrc>(Row input, int iinfo)
         {
             Host.AssertValue(input);
-            Host.Assert(!Infos[iinfo].TypeSrc.IsVector);
+            Host.Assert(!(Infos[iinfo].TypeSrc is VectorType));
 
             var getSrc = GetSrcGetter<TSrc>(input, iinfo);
             var hashFunction = ComposeHashDelegate<TSrc>();
@@ -529,52 +536,36 @@ namespace Microsoft.ML.Transforms.Conversions
         private ValueGetter<VBuffer<uint>> ComposeGetterVecToVec<TSrc>(Row input, int iinfo)
         {
             Host.AssertValue(input);
-            Host.Assert(Infos[iinfo].TypeSrc.IsVector);
+            VectorType srcType = Infos[iinfo].TypeSrc as VectorType;
+            Host.Assert(srcType != null);
 
             var getSrc = GetSrcGetter<VBuffer<TSrc>>(input, iinfo);
             var hashFunction = ComposeHashDelegate<TSrc>();
             var src = default(VBuffer<TSrc>);
             int n = _exes[iinfo].OutputValueCount;
-            int expectedSrcLength = Infos[iinfo].TypeSrc.VectorSize;
+            int expectedSrcLength = srcType.Size;
             int[][] slotMap = _exes[iinfo].SlotMap;
             // REVIEW: consider adding a fix-zero functionality (subtract emptyTextHash from all hashes)
             var mask = (1U << _exes[iinfo].HashBits) - 1;
             var hashSeed = _exes[iinfo].HashSeed;
             bool ordered = _exes[iinfo].Ordered;
-            TSrc[] denseValues = null;
+            var denseSource = default(VBuffer<TSrc>);
             return
                 (ref VBuffer<uint> dst) =>
                 {
                     getSrc(ref src);
                     Host.Check(src.Length == expectedSrcLength);
-                    ReadOnlySpan<TSrc> values;
-
-                    // force-densify the input
-                    // REVIEW: this performs poorly if only a fraction of sparse vector is used for hashing.
-                    // This scenario was unlikely at the time of writing. Regardless of performance, the hash value
-                    // needs to be consistent across equivalent representations - sparse vs dense.
-                    if (src.IsDense)
-                        values = src.GetValues();
-                    else
-                    {
-                        if (denseValues == null)
-                            denseValues = new TSrc[expectedSrcLength];
-                        src.CopyTo(denseValues);
-                        values = denseValues;
-                    }
-
                     var hashes = VBufferEditor.Create(ref dst, n);
-
+                    src.CopyToDense(ref denseSource);
                     for (int i = 0; i < n; i++)
                     {
                         uint hash = hashSeed;
-
                         foreach (var srcSlot in slotMap[i])
                         {
                             // REVIEW: some legacy code hashes 0 for srcSlot in ord- case, do we need to preserve this behavior?
                             if (ordered)
                                 hash = Hashing.MurmurRound(hash, (uint)srcSlot);
-                            hash = hashFunction(in values[srcSlot], hash);
+                            hash = hashFunction(denseSource.GetItemOrDefault(srcSlot), hash);
                         }
 
                         hashes.Values[i] = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
@@ -593,7 +584,8 @@ namespace Microsoft.ML.Transforms.Conversions
         private ValueGetter<uint> ComposeGetterVecToOne<TSrc>(Row input, int iinfo)
         {
             Host.AssertValue(input);
-            Host.Assert(Infos[iinfo].TypeSrc.IsVector);
+            VectorType srcType = Infos[iinfo].TypeSrc as VectorType;
+            Host.Assert(srcType != null);
             Host.Assert(Utils.Size(_exes[iinfo].SlotMap) == 1);
 
             var slots = _exes[iinfo].SlotMap[0];
@@ -601,38 +593,23 @@ namespace Microsoft.ML.Transforms.Conversions
             var getSrc = GetSrcGetter<VBuffer<TSrc>>(input, iinfo);
             var hashFunction = ComposeHashDelegate<TSrc>();
             var src = default(VBuffer<TSrc>);
-            int expectedSrcLength = Infos[iinfo].TypeSrc.VectorSize;
+            int expectedSrcLength = srcType.Size;
             var mask = (1U << _exes[iinfo].HashBits) - 1;
             var hashSeed = _exes[iinfo].HashSeed;
             bool ordered = _exes[iinfo].Ordered;
-            TSrc[] denseValues = null;
+            var denseSource = default(VBuffer<TSrc>);
             return
                 (ref uint dst) =>
                 {
                     getSrc(ref src);
                     Host.Check(src.Length == expectedSrcLength);
-
-                    ReadOnlySpan<TSrc> values;
-                    // force-densify the input
-                    // REVIEW: this performs poorly if only a fraction of sparse vector is used for hashing.
-                    // This scenario was unlikely at the time of writing. Regardless of performance, the hash value
-                    // needs to be consistent across equivalent representations - sparse vs dense.
-                    if (src.IsDense)
-                        values = src.GetValues();
-                    else
-                    {
-                        if (denseValues == null)
-                            denseValues = new TSrc[expectedSrcLength];
-                        src.CopyTo(denseValues);
-                        values = denseValues;
-                    }
-
+                    src.CopyToDense(ref denseSource);
                     uint hash = hashSeed;
                     foreach (var srcSlot in slots)
                     {
                         if (ordered)
                             hash = Hashing.MurmurRound(hash, (uint)srcSlot);
-                        hash = hashFunction(in values[srcSlot], hash);
+                        hash = hashFunction(denseSource.GetItemOrDefault(srcSlot), hash);
                     }
                     dst = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
                 };
@@ -643,16 +620,16 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         private HashDelegate<TSrc> ComposeHashDelegate<TSrc>()
         {
-            // REVIEW: Add a specialized hashing for ints, once numeric bin mapper is done http://sqlbuvsts01:8080/Main/Advanced%20Analytics/_workitems/edit/5823788
-            if (typeof(TSrc) == typeof(Float))
+            // REVIEW: Add a specialized hashing for ints, once numeric bin mapper is done.
+            if (typeof(TSrc) == typeof(float))
                 return (HashDelegate<TSrc>)(Delegate)ComposeFloatHashDelegate();
 
-            if (typeof(TSrc) == typeof(Double))
+            if (typeof(TSrc) == typeof(double))
                 return (HashDelegate<TSrc>)(Delegate)ComposeDoubleHashDelegate();
 
             // Default case: convert to text and hash as a string.
             var sb = default(StringBuilder);
-            var conv = Runtime.Data.Conversion.Conversions.Instance.GetStringConversion<TSrc>();
+            var conv = Data.Conversion.Conversions.Instance.GetStringConversion<TSrc>();
             return
                 (in TSrc value, uint seed) =>
                 {
@@ -664,7 +641,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Generate a specialized hash function for floats
         /// </summary>
-        private HashDelegate<Float> ComposeFloatHashDelegate()
+        private HashDelegate<float> ComposeFloatHashDelegate()
         {
             return Hash;
         }
@@ -672,15 +649,9 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <summary>
         /// Generate a specialized hash function for doubles
         /// </summary>
-        private HashDelegate<Double> ComposeDoubleHashDelegate()
-        {
-            return Hash;
-        }
+        private HashDelegate<double> ComposeDoubleHashDelegate() => Hash;
 
-        private uint Hash(in float value, uint seed)
-        {
-            return Hashing.MurmurRound(seed, FloatUtils.GetBits(value));
-        }
+        private uint Hash(in float value, uint seed) => Hashing.MurmurRound(seed, FloatUtils.GetBits(value));
 
         private uint Hash(in double value, uint seed)
         {

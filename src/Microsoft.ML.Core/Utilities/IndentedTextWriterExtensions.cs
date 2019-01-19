@@ -4,10 +4,8 @@
 
 using System;
 using System.CodeDom.Compiler;
-using System.IO;
-using System.Text;
 
-namespace Microsoft.ML.Runtime.Internal.Utilities
+namespace Microsoft.ML.Internal.Utilities
 {
     [BestFriend]
     internal static class IndentedTextWriterExtensions

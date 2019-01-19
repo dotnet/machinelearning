@@ -1,7 +1,6 @@
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Data;
 using System;
 using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -31,7 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedValues = estimator.Transform(idv);
 
             // Retrieve model scores.
-            var outScores = transformedValues.AsEnumerable<OutputScores>(mlContext, reuseRowObject: false);
+            var outScores = mlContext.CreateEnumerable<OutputScores>(transformedValues, reuseRowObject: false);
 
             // Display scores. (for the sake of brevity we display scores of the first 3 classes)
             foreach (var prediction in outScores)

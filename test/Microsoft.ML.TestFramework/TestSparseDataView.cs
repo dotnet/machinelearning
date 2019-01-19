@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using System;
+using Microsoft.ML.Data;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Runtime.RunTests
+namespace Microsoft.ML.RunTests
 {
     public sealed class TestSparseDataView : TestDataViewBase
     {
@@ -64,7 +62,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             }
             Assert.True(n == 2);
-            var iter = data.AsEnumerable<SparseExample<T>>(env, false).GetEnumerator();
+            var iter = env.CreateEnumerable<SparseExample<T>>(data, false).GetEnumerator();
             n = 0;
             while (iter.MoveNext())
                 ++n;
@@ -104,7 +102,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             }
             Assert.True(n == 2);
-            var iter = data.AsEnumerable<DenseExample<T>>(env, false).GetEnumerator();
+            var iter = env.CreateEnumerable<DenseExample<T>>(data, false).GetEnumerator();
             n = 0;
             while (iter.MoveNext())
                 ++n;

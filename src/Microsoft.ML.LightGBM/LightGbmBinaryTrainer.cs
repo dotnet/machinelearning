@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.ML;
 using Microsoft.ML.Calibrator;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.EntryPoints;
+using Microsoft.ML.Internal.Calibration;
+using Microsoft.ML.Internal.Internallearn;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.Model;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
-using System;
+using Microsoft.ML.Training;
 
 [assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
@@ -27,7 +26,7 @@ using System;
 
 [assembly: LoadableClass(typeof(void), typeof(LightGbm), null, typeof(SignatureEntryPointModule), "LightGBM")]
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.LightGBM
 {
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmBinaryModelParameters : TreeEnsembleModelParameters
@@ -105,7 +104,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// Initializes a new instance of <see cref="LightGbmBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the labelColumn column.</param>
+        /// <param name="labelColumn">The name of The label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weights">The name for the column containing the initial weight.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
@@ -142,11 +141,11 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             Host.AssertValue(ch);
             base.CheckDataValid(ch, data);
-            var labelType = data.Schema.Label.Type;
-            if (!(labelType.IsBool || labelType.IsKey || labelType == NumberType.R4))
+            var labelType = data.Schema.Label.Value.Type;
+            if (!(labelType is BoolType || labelType is KeyType || labelType == NumberType.R4))
             {
                 throw ch.ExceptParam(nameof(data),
-                    $"Label column '{data.Schema.Label.Name}' is of type '{labelType}', but must be key, boolean or R4.");
+                    $"Label column '{data.Schema.Label.Value.Name}' is of type '{labelType}', but must be key, boolean or R4.");
             }
         }
 

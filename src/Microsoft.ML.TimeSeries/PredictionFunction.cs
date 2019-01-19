@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -109,14 +107,14 @@ namespace Microsoft.ML.TimeSeries
             if (innerMappers.Length == 0)
             {
                 bool differentActive = false;
-                for (int c = 0; c < input.Schema.ColumnCount; ++c)
+                for (int c = 0; c < input.Schema.Count; ++c)
                 {
                     bool wantsActive = active(c);
                     bool isActive = input.IsColumnActive(c);
                     differentActive |= wantsActive != isActive;
 
                     if (wantsActive && !isActive)
-                        throw Contracts.ExceptParam(nameof(input), $"Mapper required column '{input.Schema.GetColumnName(c)}' active but it was not.");
+                        throw Contracts.ExceptParam(nameof(input), $"Mapper required column '{input.Schema[c].Name}' active but it was not.");
                 }
 
                 var row = mapper.GetRow(input, active);

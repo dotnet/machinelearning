@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.LightGBM;
+using Microsoft.ML.RunTests;
+using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms.Conversions;
 using System.IO;
 
@@ -22,8 +22,8 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
-            _mslrWeb10k_Validate = Path.GetFullPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10k_Train = Path.GetFullPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10k_Validate = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10k_Train = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
 
             if (!File.Exists(_mslrWeb10k_Validate))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Validate));
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Benchmarks
                 " tr=FastTreeRanking{}";
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Benchmarks
                 " tr=LightGBMRanking{}";
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, LightGbmMulticlassTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
     }
 
@@ -72,9 +72,9 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup]
         public void SetupScoringSpeedTests()
         {
-            _mslrWeb10k_Test = Path.GetFullPath(TestDatasets.MSLRWeb.testFilename);
-            _mslrWeb10k_Validate = Path.GetFullPath(TestDatasets.MSLRWeb.validFilename);
-            _mslrWeb10k_Train = Path.GetFullPath(TestDatasets.MSLRWeb.trainFilename);
+            _mslrWeb10k_Test = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.testFilename);
+            _mslrWeb10k_Validate = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.validFilename);
+            _mslrWeb10k_Train = BaseTestClass.GetDataPath(TestDatasets.MSLRWeb.trainFilename);
 
             if (!File.Exists(_mslrWeb10k_Test))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Test));
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Benchmarks
                 " out={" + _modelPath_MSLR + "}";
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
 
         [Benchmark]
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
             string cmd = @"Test data=" + _mslrWeb10k_Test + " in=" + _modelPath_MSLR;
 
             var environment = EnvironmentFactory.CreateRankingEnvironment<RankerEvaluator, TextLoader, HashingTransformer, FastTreeRankingTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            cmd.ExecuteMamlCommand(environment);
         }
     }
 }

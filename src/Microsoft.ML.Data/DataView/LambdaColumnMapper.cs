@@ -4,10 +4,10 @@
 
 using System;
 using System.Reflection;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data.Conversion;
+using Microsoft.ML.Model;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This applies the user provided ValueMapper to a column to produce a new column. It automatically
@@ -29,8 +29,8 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(typeSrc, nameof(typeSrc));
             env.CheckValue(typeDst, nameof(typeDst));
             env.CheckValue(mapper, nameof(mapper));
-            env.Check(keyValueGetter == null || typeDst.ItemType.IsKey);
-            env.Check(slotNamesGetter == null || typeDst.IsKnownSizeVector);
+            env.Check(keyValueGetter == null || typeDst.GetItemType() is KeyType);
+            env.Check(slotNamesGetter == null || typeDst.IsKnownSizeVector());
 
             if (typeSrc.RawType != typeof(TSrc))
             {
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
             bool tmp = input.Schema.TryGetColumnIndex(src, out int colSrc);
             if (!tmp)
                 throw env.ExceptParam(nameof(src), "The input data doesn't have a column named '{0}'", src);
-            var typeOrig = input.Schema.GetColumnType(colSrc);
+            var typeOrig = input.Schema[colSrc].Type;
 
             // REVIEW: Ideally this should support vector-type conversion. It currently doesn't.
             bool ident;
@@ -122,17 +122,19 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (keyValueGetter != null)
                         {
-                            Host.Assert(_typeDst.ItemType.KeyCount > 0);
+                            int keyCount = _typeDst.GetItemType().GetKeyCount();
+                            Host.Assert(keyCount > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, _typeDst.ItemType.KeyCount), mdGetter);
+                            bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, keyCount), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {
-                            Host.Assert(_typeDst.VectorSize > 0);
+                            int vectorSize = _typeDst.GetVectorSize();
+                            Host.Assert(vectorSize > 0);
                             MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
                                 (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => slotNamesGetter(ref dst);
-                            bldr.AddGetter(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, _typeDst.VectorSize), mdGetter);
+                            bldr.AddGetter(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, vectorSize), mdGetter);
                         }
                     }
                 }

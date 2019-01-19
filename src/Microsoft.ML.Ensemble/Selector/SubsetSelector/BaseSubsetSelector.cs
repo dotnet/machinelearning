@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Ensemble.EntryPoints;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.CommandLine;
+using Microsoft.ML.Data;
+using Microsoft.ML.Ensemble.EntryPoints;
+using Microsoft.ML.Transforms;
 
-namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
+namespace Microsoft.ML.Ensemble.Selector.SubsetSelector
 {
     internal abstract class BaseSubsetSelector<TArgs> : ISubsetSelector
         where TArgs : BaseSubsetSelector<TArgs>.ArgumentsBase
