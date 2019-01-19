@@ -15,7 +15,7 @@ phases:
       timeoutInMinutes: 200
       parallel: 99
       matrix:
-        ${{ if eq(parameters.customMatrixes, '') }}:
+        ${{ if ne(parameters.customMatrixes, '') }}:
           Build_Debug:
             _configuration: Debug
             _config_short: D
@@ -35,8 +35,12 @@ phases:
     - ${{ if eq(parameters.name, 'MacOS') }}:
       - script: brew update && brew install libomp mono-libgdiplus gettext && brew link gettext --force
         displayName: Install runtime dependencies     
+    - script: $(_buildScript) -$(_configuration) -runtests -coverage=true
+      displayName: Run Tests with code coverage.
+      condition: and(eq(variables._phaseName, 'Windows_x64'), eq(variables._configuration, 'Debug'))      
     - script: $(_buildScript) -$(_configuration) -runtests
-      displayName: Run Tests
+      displayName: Run Tests without code coverage.     
+      condition: not(and(eq(variables._phaseName, 'Windows_x64'), eq(variables._configuration, 'Debug')))      
     - script: dotnet msbuild build/Codecov.proj /t:Codecov /p:UseCodecov=true
       env:
         CODECOV_TOKEN: $(CODECOV_TOKEN)
