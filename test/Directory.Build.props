@@ -37,7 +37,7 @@
 
   <PropertyGroup Condition="'$(Coverage)' == 'true'">
       <CollectCoverage>true</CollectCoverage>
-      <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+      <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> <!-- https://github.com/tonerdo/coverlet/issues/72 -->
       <CoverletOutputFormat>opencover</CoverletOutputFormat>
       <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).xml</CoverletOutput>
       <Include>[Microsoft.ML.*]*</Include>
