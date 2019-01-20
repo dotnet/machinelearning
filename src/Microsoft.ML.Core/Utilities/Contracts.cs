@@ -12,7 +12,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -832,7 +831,6 @@ namespace Microsoft.ML
         #endregion Private assert handling
 
         [Conditional("DEBUG")]
-        [ExcludeFromCodeCoverage]
         public static void Assert(bool f)
         {
             if (!f)
