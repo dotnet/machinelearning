@@ -37,6 +37,7 @@
 
   <PropertyGroup Condition="'$(Coverage)' == 'true'">
       <CollectCoverage>true</CollectCoverage>
+      <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
       <CoverletOutputFormat>opencover</CoverletOutputFormat>
       <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).xml</CoverletOutput>
       <Include>[Microsoft.ML.*]*</Include>
