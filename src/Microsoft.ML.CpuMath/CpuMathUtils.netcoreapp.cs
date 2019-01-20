@@ -108,7 +108,7 @@ namespace Microsoft.ML.Internal.CpuMath
         /// <param name="iposLimit">The position limit.</param>
         /// <param name="destination">The destination matrix.</param>
         /// <param name="stride">The column stride.</param>
-        public static void MatrixTimesSource(AlignedArray matrix, int[] rgposSrc, AlignedArray sourceValues,
+        public static void MatrixTimesSource(AlignedArray matrix, ReadOnlySpan<int> rgposSrc, AlignedArray sourceValues,
             int posMin, int iposMin, int iposLimit, AlignedArray destination, int stride)
         {
             Contracts.Assert(iposMin >= 0);
