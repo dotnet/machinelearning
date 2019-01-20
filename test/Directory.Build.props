@@ -41,6 +41,8 @@
       <CoverletOutputFormat>opencover</CoverletOutputFormat>
       <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).xml</CoverletOutput>
       <Include>[Microsoft.ML.*]*</Include>
+      <!-- Excluding for perf reasons. These classes have tests that can be run conditionally
+           but they need to be migrated. Excluding these classes should have very minimal effect on code coverage. -->
       <Exclude>[*]Microsoft.ML.*Contracts*,[*]Microsoft.ML.Internal.Utilities*,[*]Microsoft.ML.Data.VBuffer*</Exclude>
   </PropertyGroup>
 
