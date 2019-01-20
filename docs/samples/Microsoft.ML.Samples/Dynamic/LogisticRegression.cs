@@ -33,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 14. Column: capital-loss (numeric)
             // 15. Column: hours-per-week (numeric)
 
-            var reader = ml.Data.CreateTextReader(new TextLoader.Arguments
+            var reader = ml.Data.CreateTextLoader(new TextLoader.Arguments
             {
                 Separator = ",",
                 HasHeader = true,
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 .Append(ml.Transforms.Text.FeaturizeText("Text", "TextFeatures"))
                 .Append(ml.Transforms.Concatenate("Features", "TextFeatures", "age", "fnlwgt",
                     "education-num", "capital-gain", "capital-loss", "hours-per-week"))
-                .Append(ml.BinaryClassification.Trainers.LogisticRegression("Label", "Features"));
+                .Append(ml.BinaryClassification.Trainers.LogisticRegression());
 
             var model = pipeline.Fit(trainData);
 
