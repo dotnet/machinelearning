@@ -39,12 +39,12 @@ phases:
       displayName: Run Tests with code coverage.
       condition: and(eq(variables._phaseName, 'Windows_x64'), eq(variables._configuration, 'Debug'))
     - script: $(_buildScript) -$(_configuration) -runtests
-      displayName: Run Tests without code coverage.     
+      displayName: Run Tests without code coverage.
       condition: not(and(eq(variables._phaseName, 'Windows_x64'), eq(variables._configuration, 'Debug')))
     - script: dotnet msbuild build/Codecov.proj /t:Codecov /p:UseCodecov=true
       env:
         CODECOV_TOKEN: $(CODECOV_TOKEN)
-      displayName: Upload coverage to codecov.io    
+      displayName: Upload coverage to codecov.io
       condition: and(eq(variables._phaseName, 'Windows_x64'), eq(variables._configuration, 'Debug'))
     - task: PublishTestResults@2
       displayName: Publish Test Results
