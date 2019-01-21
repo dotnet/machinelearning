@@ -183,12 +183,12 @@ namespace Microsoft.ML.Trainers.SymSgd
         /// <summary>
         /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
         /// </summary>
-        internal SymSgdClassificationTrainer(IHostEnvironment env, Options args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        internal SymSgdClassificationTrainer(IHostEnvironment env, Options options)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
+                  TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
-            args.Check(Host);
-            _options = args;
+            options.Check(Host);
+            _options = options;
             Info = new TrainerInfo(supportIncrementalTrain: true);
         }
 
