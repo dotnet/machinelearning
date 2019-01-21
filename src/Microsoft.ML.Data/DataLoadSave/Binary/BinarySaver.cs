@@ -661,26 +661,19 @@ namespace Microsoft.ML.Data.IO
                 if (activeColumns.Length > 0)
                 {
                     OrderedWaiter waiter = _deterministicBlockOrder ? new OrderedWaiter() : null;
-                    Thread[] compressionThreads = new Thread[Environment.ProcessorCount];
+                    Task[] compressionThreads = new Task[Environment.ProcessorCount];
                     for (int i = 0; i < compressionThreads.Length; ++i)
                     {
-                        compressionThreads[i] = Utils.CreateBackgroundThread(
+                        compressionThreads[i] = Utils.RunOnBackgroundThread(
                             () => CompressionWorker(toCompress, toWrite, activeColumns.Length, waiter, exMarshaller));
-                        compressionThreads[i].Start();
                     }
-                    compressionTask = new Task(() =>
-                    {
-                        foreach (Thread t in compressionThreads)
-                            t.Join();
-                    });
-                    compressionTask.Start();
+                    compressionTask = Task.WhenAll(compressionThreads);
                 }
 
                 // While there is an advantage to putting the IO into a separate thread, there is not an
                 // advantage to having more than one worker.
-                Thread writeThread = Utils.CreateBackgroundThread(
+                Task writeThread = Utils.RunOnBackgroundThread(
                     () => WriteWorker(stream, toWrite, activeColumns, data.Schema, rowsPerBlock, _host, exMarshaller));
-                writeThread.Start();
                 sw.Start();
 
                 // REVIEW: For now the fetch worker just works in the main thread. If it's
@@ -698,7 +691,7 @@ namespace Microsoft.ML.Data.IO
                     compressionTask.Wait();
                 toWrite.CompleteAdding();
 
-                writeThread.Join();
+                writeThread.Wait();
                 exMarshaller.ThrowIfSet(ch);
                 if (!_silent)
                     ch.Info("Wrote {0} rows across {1} columns in {2}", _rowCount, activeColumns.Length, sw.Elapsed);

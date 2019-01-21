@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -52,7 +53,7 @@ namespace Microsoft.ML.Data
         /// disposed, so it's unclear what would actually have the job of joining against
         /// them.
         /// </summary>
-        private readonly ConcurrentBag<Thread> _cacheFillerThreads;
+        private readonly ConcurrentBag<Task> _cacheFillerThreads;
 
         /// <summary>
         /// One cache per column. If this column is not being cached or has been cached,
@@ -95,7 +96,7 @@ namespace Microsoft.ML.Data
                 throw _host.Except("The input data view has too many ({0}) rows. CacheDataView can only cache up to {1} rows", _rowCount, Utils.ArrayMaxSize);
 
             _cacheLock = new object();
-            _cacheFillerThreads = new ConcurrentBag<Thread>();
+            _cacheFillerThreads = new ConcurrentBag<Task>();
             _caches = new ColumnCache[_subsetInput.Schema.Count];
 
             if (Utils.Size(prefetch) > 0)
@@ -356,9 +357,8 @@ namespace Microsoft.ML.Data
             // They will not be caught by the big catch in the main thread, as filler is not running
             // in the main thread. Some sort of scheme by which these exceptions could be
             // cleanly handled would be more appropriate. See task 3740.
-            var fillerThread = Utils.CreateBackgroundThread(() => Filler(cursor, caches, waiter));
+            var fillerThread = Utils.RunOnBackgroundThread(() => Filler(cursor, caches, waiter));
             _cacheFillerThreads.Add(fillerThread);
-            fillerThread.Start();
         }
 
         /// <summary>
@@ -438,11 +438,7 @@ namespace Microsoft.ML.Data
         {
             if (_cacheFillerThreads != null)
             {
-                foreach (var thread in _cacheFillerThreads)
-                {
-                    if (thread.IsAlive)
-                        thread.Join();
-                }
+                Task.WaitAll(_cacheFillerThreads.ToArray());
             }
         }
 

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.ML.Data.Conversion;
 using Microsoft.ML.Internal.Utilities;
 
@@ -345,7 +346,7 @@ namespace Microsoft.ML.Data
                 const int toConsumeBound = 4;
                 var toConsume = new BlockingCollection<Batch>(toConsumeBound);
                 var batchColumnPool = new MadeObjectPool<BatchColumn[]>(() => new BatchColumn[outPipes.Length]);
-                Thread[] workers = new Thread[inputs.Length];
+                Task[] workers = new Task[inputs.Length];
                 MinWaiter waiter = new MinWaiter(workers.Length);
                 bool done = false;
 
@@ -355,7 +356,7 @@ namespace Microsoft.ML.Data
                     ch.Assert(localCursor.State == CursorState.NotStarted);
                     // Note that these all take ownership of their respective cursors,
                     // so they all handle their disposal internal to the thread.
-                    workers[t] = Utils.CreateBackgroundThread(() =>
+                    workers[t] = Utils.RunOnBackgroundThread(() =>
                     {
                             // This will be the last batch sent in the finally. If iteration procedes without
                             // error, it will remain null, and be sent as a sentinel. If iteration results in
@@ -442,7 +443,6 @@ namespace Microsoft.ML.Data
                             }
                         }
                     });
-                    workers[t].Start();
                 }
 
                 Action quitAction = () =>
@@ -457,8 +457,7 @@ namespace Microsoft.ML.Data
                         foreach (var outPipe in myOutPipes)
                             outPipe.Unset();
                     }
-                    foreach (Thread thread in workers)
-                        thread.Join();
+                    Task.WaitAll(workers);
                 };
 
                 return new Cursor(provider, schema, activeToCol, colToActive, outPipes, toConsume, quitAction);
@@ -547,7 +546,7 @@ namespace Microsoft.ML.Data
                 // Set up and start the thread that consumes the input, and utilizes the InPipe
                 // instances to compose the Batch objects. The thread takes ownership of the
                 // cursor, and so handles its disposal.
-                Thread thread = Utils.CreateBackgroundThread(
+                Task thread = Utils.RunOnBackgroundThread(
                     () =>
                     {
                         Batch lastBatch = null;
@@ -594,7 +593,6 @@ namespace Microsoft.ML.Data
                             toConsume.CompleteAdding();
                         }
                     });
-                thread.Start();
 
                 Action quitAction = () =>
                 {
@@ -615,7 +613,7 @@ namespace Microsoft.ML.Data
                             foreach (var outPipe in myOutPipes)
                                 outPipe.Unset();
                         }
-                        thread.Join();
+                        thread.Wait();
                     }
                 };
 
