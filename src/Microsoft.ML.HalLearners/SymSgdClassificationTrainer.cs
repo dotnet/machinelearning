@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
             public float PositiveInstanceWeight = 1;
 
-            public void Check(IExceptionContext ectx)
+            internal void Check(IExceptionContext ectx)
             {
                 ectx.CheckUserArg(LearningRate == null || LearningRate.Value > 0, nameof(LearningRate), "Must be positive.");
                 ectx.CheckUserArg(NumberOfIterations > 0, nameof(NumberOfIterations), "Must be positive.");
@@ -187,7 +187,9 @@ namespace Microsoft.ML.Trainers.SymSgd
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(options.FeatureColumn),
                   TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
+            Host.CheckValue(options, nameof(options));
             options.Check(Host);
+
             _options = options;
             Info = new TrainerInfo(supportIncrementalTrain: true);
         }
