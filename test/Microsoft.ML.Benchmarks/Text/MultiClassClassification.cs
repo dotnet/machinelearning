@@ -104,7 +104,7 @@ namespace Microsoft.ML.Benchmarks
             if (!File.Exists(_dataPath_Wiki))
                 throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
 
-            _modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
+            _modelPath_Wiki = Path.Combine(Path.GetDirectoryName(typeof(MultiClassClassificationTest).Assembly.Location), @"WikiModel.zip");
 
             string cmd = @"CV k=5 data=" + _dataPath_Wiki +
                 " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4}" +
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Benchmarks
         public void Test_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron()
         {
             // This benchmark is profiling bulk scoring speed and not training speed. 
-            string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
+            string modelpath = Path.Combine(Path.GetDirectoryName(typeof(MultiClassClassificationTest).Assembly.Location), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
 
             var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
