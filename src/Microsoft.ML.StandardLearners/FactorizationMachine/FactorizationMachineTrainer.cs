@@ -40,8 +40,16 @@ namespace Microsoft.ML.FactorizationMachine
         internal const string LoadName = "FieldAwareFactorizationMachine";
         internal const string ShortName = "ffm";
 
-        public sealed class Arguments : LearnerInputBaseWithLabel
+        public sealed class Arguments : LearnerInputBaseWithWeight
         {
+            /// <summary>
+            /// Columns to use for features. The i-th string in <see cref="FeatureColumn"/> stores the name of the features
+            /// form the i-th field.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Columns to use for feature vectors. The i-th specified string denotes the column containing features form the i-th field.",
+                ShortName = "feat", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+            public new string[] FeatureColumn = { DefaultColumnNames.Features };
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate", ShortName = "lr", SortOrder = 1)]
             [TlcModule.SweepableFloatParam(0.001f, 1.0f, isLogScale: true)]
             public float LearningRate = (float)0.1;
@@ -122,6 +130,14 @@ namespace Microsoft.ML.FactorizationMachine
         {
             Initialize(env, args);
             Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
+
+            FeatureColumns = new SchemaShape.Column[args.FeatureColumn.Length];
+
+            for (int i = 0; i < args.FeatureColumn.Length; i++)
+                FeatureColumns[i] = new SchemaShape.Column(args.FeatureColumn[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+
+            LabelColumn = new SchemaShape.Column(args.LabelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+            WeightColumn = args.WeightColumn.IsExplicit ? new SchemaShape.Column(args.WeightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : default;
         }
 
         /// <summary>
