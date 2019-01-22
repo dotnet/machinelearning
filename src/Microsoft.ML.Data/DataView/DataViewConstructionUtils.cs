@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
 
             protected override TRow GetCurrentRowObject()
             {
-                Host.Check(Position >= 0, "Cannot get the row object. The cursor is not active.");
+                Host.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                 return _value;
             }
         }

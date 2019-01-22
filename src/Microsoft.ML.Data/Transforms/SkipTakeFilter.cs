@@ -210,11 +210,10 @@ namespace Microsoft.ML.Transforms
             private long _rowsTaken;
             private bool _started;
 
-            public override long Batch
-            {
-                // SkipTakeFilter does not support cursor sets, so the batch number can always be zero.
-                get { return 0; }
-            }
+            /// <summary>
+            /// SkipTakeFilter does not support cursor sets, so this can always be zero.
+            /// </summary>
+            public override long Batch => 0;
 
             public Cursor(IChannelProvider provider, RowCursor input, Schema schema, bool[] active, long skip, long take)
                 : base(provider, input, schema, active)
@@ -233,8 +232,7 @@ namespace Microsoft.ML.Transforms
 
             protected override bool MoveNextCore()
             {
-                // Exit if count + _rowsTaken will overflow.
-                // Exit if we already have taken enough rows.
+                // Exit if 1 + _rowsTaken will overflow, or if we already have taken enough rows.
                 if (1 > _take - _rowsTaken)
                 {
                     _rowsTaken = _take;

@@ -1451,7 +1451,7 @@ namespace Microsoft.ML.Data
 
                 private void GetId(ref RowId id)
                 {
-                    Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
+                    Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
                     id = new RowId((ulong)_slotCursor.SlotIndex, 0);
                 }
 
@@ -1496,7 +1496,7 @@ namespace Microsoft.ML.Data
 
             private void GetId(ref RowId id)
             {
-                Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
+                Ch.Check(_slotCursor.SlotIndex >= 0, RowCursorUtils.FetchValueStateError);
                 id = new RowId((ulong)_slotCursor.SlotIndex, 0);
             }
 
