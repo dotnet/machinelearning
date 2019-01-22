@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterVecD = cursor.GetGetter<VBuffer<int>>(result.Schema["VecD"].Index);
             var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
             var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
