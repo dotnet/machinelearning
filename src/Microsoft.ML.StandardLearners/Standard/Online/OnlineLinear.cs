@@ -285,7 +285,11 @@ namespace Microsoft.ML.Trainers.Online
             }
 
             var rand = shuffle ? Host.Rand : null;
-            var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight);
+            CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
+            if (data.Schema.Weight.HasValue)
+                cursorOpt |= CursOpt.Weight;
+
+            var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
             long numBad = 0;
             while (state.Iteration < Args.NumIterations)
             {

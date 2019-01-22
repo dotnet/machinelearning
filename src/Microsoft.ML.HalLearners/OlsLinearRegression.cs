@@ -131,7 +131,11 @@ namespace Microsoft.ML.Trainers.HalLearners
                 if (typeFeat.ItemType != NumberType.Float)
                     throw ch.Except("Incompatible feature column type {0}, must be vector of {1}", typeFeat, NumberType.Float);
 
-                var cursorFactory = new FloatLabelCursor.Factory(examples, CursOpt.Label | CursOpt.Features);
+                CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
+                if (examples.Schema.Weight.HasValue)
+                    cursorOpt |= CursOpt.Weight;
+
+                var cursorFactory = new FloatLabelCursor.Factory(examples, cursorOpt);
 
                 return TrainCore(ch, cursorFactory, typeFeat.Size);
             }

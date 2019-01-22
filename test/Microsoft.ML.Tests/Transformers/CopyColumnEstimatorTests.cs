@@ -155,7 +155,7 @@ namespace Microsoft.ML.Tests
 
         private void ValidateCopyColumnTransformer(IDataView result)
         {
-            using (var cursor = result.GetRowCursor(x => true))
+            using (var cursor = result.GetRowCursorForAllColumns())
             {
                 int avalue = 0;
                 int bvalue = 0;

@@ -82,7 +82,7 @@ namespace Microsoft.ML.Data
             if (countNullable != null)
                 return countNullable.Value;
             long count = 0;
-            using (var cursor = view.GetRowCursor(col => false))
+            using (var cursor = view.GetRowCursor())
             {
                 while (cursor.MoveNext())
                     count++;
@@ -115,21 +115,20 @@ namespace Microsoft.ML.Data
         /// the target cardinality of the cursor set.
         /// </summary>
         public static bool TryCreateConsolidatingCursor(out RowCursor curs,
-            IDataView view, Func<int, bool> predicate, IHost host, Random rand)
+            IDataView view, IEnumerable<Schema.Column> columnsNeeded, IHost host, Random rand)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));
-            host.CheckValue(predicate, nameof(predicate));
 
             int cthd = GetThreadCount(host);
             host.Assert(cthd > 0);
-            if (cthd == 1 || !AllCachable(view.Schema, predicate))
+            if (cthd == 1 || !AllCacheable(columnsNeeded))
             {
                 curs = null;
                 return false;
             }
 
-            var inputs = view.GetRowCursorSet(predicate, cthd, rand);
+            var inputs = view.GetRowCursorSet(columnsNeeded, cthd, rand);
             host.Check(Utils.Size(inputs) > 0);
 
             if (inputs.Length == 1)
@@ -160,7 +159,7 @@ namespace Microsoft.ML.Data
                 return new RowCursor[1] { input };
 
             // If any active columns are not cachable, we can't split.
-            if (!AllCachable(input.Schema, input.IsColumnActive))
+            if (!AllCacheable(input.Schema, input.IsColumnActive))
                 return new RowCursor[1] { input };
 
             // REVIEW: Should we limit the cardinality to some reasonable size?
@@ -178,7 +177,7 @@ namespace Microsoft.ML.Data
         /// Return whether all the active columns, as determined by the predicate, are
         /// cachable - either primitive types or vector types.
         /// </summary>
-        public static bool AllCachable(Schema schema, Func<int, bool> predicate)
+        public static bool AllCacheable(Schema schema, Func<int, bool> predicate)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(predicate, nameof(predicate));
@@ -188,7 +187,7 @@ namespace Microsoft.ML.Data
                 if (!predicate(col))
                     continue;
                 var type = schema[col].Type;
-                if (!IsCachable(type))
+                if (!IsCacheable(type))
                     return false;
             }
 
@@ -196,12 +195,28 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
+        /// Return whether all the active columns, as determined by the predicate, are
+        /// cachable - either primitive types or vector types.
+        /// </summary>
+        public static bool AllCacheable(IEnumerable<Schema.Column> columnsNeeded)
+        {
+            Contracts.CheckValue(columnsNeeded, nameof(columnsNeeded));
+
+            if (columnsNeeded == null)
+                return false;
+
+            foreach (var col in columnsNeeded)
+                if (!IsCacheable(col.Type))
+                    return false;
+
+            return true;
+        }
+
+        /// <summary>
         /// Determine whether the given type is cachable - either a primitive type or a vector type.
         /// </summary>
-        public static bool IsCachable(this ColumnType type)
-        {
-            return type != null && (type is PrimitiveType || type is VectorType);
-        }
+        public static bool IsCacheable(this ColumnType type)
+            => type != null && (type is PrimitiveType || type is VectorType);
 
         /// <summary>
         /// Tests whether the cursors are mutually compatible for consolidation,
@@ -319,7 +334,7 @@ namespace Microsoft.ML.Data
 
                 RowCursor cursor = inputs[0];
                 var schema = cursor.Schema;
-                ch.CheckParam(AllCachable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
+                ch.CheckParam(AllCacheable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
 
                 int[] activeToCol;
                 int[] colToActive;
@@ -496,7 +511,7 @@ namespace Microsoft.ML.Data
                 ch.AssertValue(input);
                 ch.Assert(input.Schema == _schema);
                 ch.Assert(cthd >= 2);
-                ch.Assert(AllCachable(_schema, input.IsColumnActive));
+                ch.Assert(AllCacheable(_schema, input.IsColumnActive));
 
                 // REVIEW: Should the following be configurable?
                 // How would we even expose these sorts of parameters to a user?
@@ -525,7 +540,7 @@ namespace Microsoft.ML.Data
                     ch.Assert(c == 0 || activeToCol[c - 1] < activeToCol[c]);
                     ch.Assert(input.IsColumnActive(activeToCol[c]));
                     var type = input.Schema[activeToCol[c]].Type;
-                    ch.Assert(type.IsCachable());
+                    ch.Assert(type.IsCacheable());
                     arguments[1] = activeToCol[c];
                     var inPipe = inPipes[c] =
                         (InPipe)inGenMethod.MakeGenericMethod(type.RawType).Invoke(this, arguments);

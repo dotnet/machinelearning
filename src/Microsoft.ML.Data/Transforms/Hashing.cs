@@ -254,12 +254,13 @@ namespace Microsoft.ML.Transforms.Conversions
             var types = new ColumnType[_columns.Length];
             List<int> invertIinfos = null;
             List<int> invertHashMaxCounts = null;
-            HashSet<int> sourceColumnsForInvertHash = new HashSet<int>();
+            var sourceColumnsForInvertHash = new List<Schema.Column>();
             for (int i = 0; i < _columns.Length; i++)
             {
-                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
+                Schema.Column? srcCol = input.Schema.GetColumnOrNull(ColumnPairs[i].input);
+                if (srcCol == null)
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
-                CheckInputColumn(input.Schema, i, srcCol);
+                CheckInputColumn(input.Schema, i, srcCol.Value.Index);
 
                 types[i] = GetOutputType(input.Schema, _columns[i]);
                 int invertHashMaxCount;
@@ -271,12 +272,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     Utils.Add(ref invertIinfos, i);
                     Utils.Add(ref invertHashMaxCounts, invertHashMaxCount);
-                    sourceColumnsForInvertHash.Add(srcCol);
+                    sourceColumnsForInvertHash.Add(srcCol.Value);
                 }
             }
             if (Utils.Size(sourceColumnsForInvertHash) > 0)
             {
-                using (RowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash.Contains))
+                using (RowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash))
                 {
                     using (var ch = Host.Start("Invert hash building"))
                     {

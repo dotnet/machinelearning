@@ -51,7 +51,7 @@ namespace Microsoft.ML.RunTests
             var data = env.CreateStreamingDataView(inputs);
             var value = new VBuffer<T>();
             int n = 0;
-            using (var cur = data.GetRowCursor(i => true))
+            using (var cur = data.GetRowCursorForAllColumns())
             {
                 var getter = cur.GetGetter<VBuffer<T>>(0);
                 while (cur.MoveNext())
@@ -91,7 +91,7 @@ namespace Microsoft.ML.RunTests
             var data = env.CreateStreamingDataView(inputs);
             var value = new VBuffer<T>();
             int n = 0;
-            using (var cur = data.GetRowCursor(i => true))
+            using (var cur = data.GetRowCursorForAllColumns())
             {
                 var getter = cur.GetGetter<VBuffer<T>>(0);
                 while (cur.MoveNext())

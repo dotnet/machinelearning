@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Model;
 
 namespace Microsoft.ML.Data
@@ -151,16 +153,16 @@ namespace Microsoft.ML.Data
             return Source.GetRowCount();
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            Host.CheckValue(predicate, nameof(predicate));
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
+
             Host.CheckValueOrNull(rand);
             // If we aren't selecting any of the output columns, don't construct our cursor.
             // Note that because we cannot support random due to the inherently
@@ -170,7 +172,8 @@ namespace Microsoft.ML.Data
             if (!bindings.AnyNewColumnsActive(predicate))
             {
                 var activeInput = bindings.GetActiveInput(predicate);
-                var inputCursor = Source.GetRowCursor(c => activeInput[c], null);
+                var activeCols = Source.Schema.Where(x => activeInput.Length > x.Index && activeInput[x.Index]);
+                var inputCursor = Source.GetRowCursor(activeCols, null);
                 return new BindingsWrappedRowCursor(Host, inputCursor, bindings);
             }
             return GetRowCursorCore(predicate);
@@ -183,7 +186,10 @@ namespace Microsoft.ML.Data
             Contracts.Assert(active.Length == bindings.ColumnCount);
 
             var predInput = bindings.GetDependencies(predicate);
-            return new Cursor(this, Source.GetRowCursor(predInput, null), Source.GetRowCursor(predInput, null), active);
+
+            var cols = Source.Schema.Where(x => predInput(x.Index));
+
+            return new Cursor(this, Source.GetRowCursor(cols, null), Source.GetRowCursor(cols, null), active);
         }
 
         /// <summary>

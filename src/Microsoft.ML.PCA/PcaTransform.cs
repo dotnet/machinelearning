@@ -453,7 +453,8 @@ namespace Microsoft.ML.Transforms.Projections
                     activeColumns[sInfo.WeightColumnIndex] = true;
             }
 
-            using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
+            var inputCols = trainingData.Schema.Where(x => activeColumns[x.Index]);
+            using (var cursor = trainingData.GetRowCursor(inputCols))
             {
                 var weightGetters = new ValueGetter<float>[_numColumns];
                 var columnGetters = new ValueGetter<VBuffer<float>>[_numColumns];

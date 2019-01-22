@@ -73,7 +73,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Assert.NotNull(input.Channel);
                     return false;
                 }, null);
-            filter1.GetRowCursor(col => true).MoveNext();
+            filter1.GetRowCursorForAllColumns().MoveNext();
 
             // Error case: non-IChannel field marked with attribute.
             var data2 = Utils.CreateArray(10, new OneStringWithAttribute());
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 }, null);
             try
             {
-                filter2.GetRowCursor(col => true).MoveNext();
+                filter2.GetRowCursorForAllColumns().MoveNext();
                 Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
             }
             catch (InvalidOperationException ex)
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 }, null);
             try
             {
-                filter3.GetRowCursor(col => true).MoveNext();
+                filter3.GetRowCursorForAllColumns().MoveNext();
                 Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
             }
             catch (InvalidOperationException ex)
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Assert.NotNull(input.ChannelTwo);
                     return false;
                 }, null);
-            filter1.GetRowCursor(col => true).MoveNext();
+            filter1.GetRowCursorForAllColumns().MoveNext();
         }
 
         public class BreastCancerExample

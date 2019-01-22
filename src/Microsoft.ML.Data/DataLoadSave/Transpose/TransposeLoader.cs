@@ -615,21 +615,21 @@ namespace Microsoft.ML.Data.IO
             return _header.RowCount;
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, _schemaEntry.GetView().Schema);
+
             _host.CheckValueOrNull(rand);
             if (HasRowData)
-                return _schemaEntry.GetView().GetRowCursor(predicate, rand);
+                return _schemaEntry.GetView().GetRowCursor(columnsNeeded, rand);
             return new Cursor(this, predicate);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             if (HasRowData)
-                return _schemaEntry.GetView().GetRowCursorSet(predicate, n, rand);
-            return new RowCursor[] { GetRowCursor(predicate, rand) };
+                return _schemaEntry.GetView().GetRowCursorSet(columnsNeeded, n, rand);
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         SlotCursor ITransposeDataView.GetSlotCursor(int col)
@@ -645,7 +645,7 @@ namespace Microsoft.ML.Data.IO
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
             ColumnType cursorType = ((ITransposeDataView)this).GetSlotType(col).ItemType;
-            RowCursor inputCursor = view.GetRowCursor(c => true);
+            RowCursor inputCursor = view.GetRowCursorForAllColumns();
             try
             {
                 return Utils.MarshalInvoke(GetSlotCursorCore<int>, cursorType.RawType, inputCursor);
