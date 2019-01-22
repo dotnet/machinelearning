@@ -6,6 +6,7 @@
     <TargetFramework Condition="$(Configuration.EndsWith('-netfx'))">net461</TargetFramework>
     <TargetFramework Condition="'$(UseIntrinsics)' == 'true'">netcoreapp3.0</TargetFramework>
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461'">win-x64</RuntimeIdentifier>
+    <DefineConstants Condition="'$(TargetFramework)' == 'netcoreapp3.0'">NETCOREAPP30</DefineConstants>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
