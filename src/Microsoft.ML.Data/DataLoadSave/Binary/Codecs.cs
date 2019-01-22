@@ -1231,7 +1231,7 @@ namespace Microsoft.ML.Data.IO
             IValueCodec innerCodec;
             if (!TryReadCodec(definitionStream, out innerCodec))
             {
-                codec = default(IValueCodec);
+                codec = default;
                 return false;
             }
             // Construct the key type.
@@ -1271,7 +1271,7 @@ namespace Microsoft.ML.Data.IO
             IValueCodec innerCodec;
             if (!TryGetCodec(NumberType.FromKind(type.RawKind), out innerCodec))
             {
-                codec = default(IValueCodec);
+                codec = default;
                 return false;
             }
             // Next create the key codec.
@@ -1345,7 +1345,7 @@ namespace Microsoft.ML.Data.IO
             IValueCodec innerCodec;
             if (!TryReadCodec(definitionStream, out innerCodec))
             {
-                codec = default(IValueCodec);
+                codec = default;
                 return false;
             }
             // Construct the key type.
@@ -1376,7 +1376,7 @@ namespace Microsoft.ML.Data.IO
             IValueCodec innerCodec;
             if (!TryGetCodec(NumberType.FromType(type.RawType), out innerCodec))
             {
-                codec = default(IValueCodec);
+                codec = default;
                 return false;
             }
             // Next create the key codec.

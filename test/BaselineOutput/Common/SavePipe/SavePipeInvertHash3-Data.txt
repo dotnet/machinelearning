@@ -1,7 +1,7 @@
 #@ TextLoader{
 #@   header+
 #@   sep=tab
-#@   col=K:U4[0-10]:0-1
+#@   col=K:U4[10]:0-1
 #@   col=KH:R4:2-5
 #@   col=KHU:R4:6-9
 #@ }

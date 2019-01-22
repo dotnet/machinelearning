@@ -779,8 +779,10 @@ namespace Microsoft.ML.Data
                         if (ctx.Header.ModelVerWritten < 0x0001000C)
                         {
                             bool isContig = ctx.Reader.ReadBoolByte();
+                            // We no longer support non contiguous values and non zero Min for KeyType.
+                            Contracts.CheckDecode(isContig);
                             ulong min = ctx.Reader.ReadUInt64();
-                            Contracts.CheckDecode(min >= 0);
+                            Contracts.CheckDecode(min == 0);
                             int cnt = ctx.Reader.ReadInt32();
                             Contracts.CheckDecode(cnt >= 0);
                             count = (ulong)cnt;

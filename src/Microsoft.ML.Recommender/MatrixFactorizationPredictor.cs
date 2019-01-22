@@ -103,6 +103,8 @@ namespace Microsoft.ML.Trainers.Recommender
             if (ctx.Header.ModelVerWritten < 0x00010002)
             {
                 ulong mMin = ctx.Reader.ReadUInt64();
+                // We no longer support non zero Min for KeyType.
+                _host.CheckDecode(mMin == 0);
                 _host.CheckDecode((ulong)_numberOfRows <= ulong.MaxValue - mMin);
             }
             _numberofColumns = ctx.Reader.ReadInt32();
@@ -110,6 +112,8 @@ namespace Microsoft.ML.Trainers.Recommender
             if (ctx.Header.ModelVerWritten < 0x00010002)
             {
                 ulong nMin = ctx.Reader.ReadUInt64();
+                // We no longer support non zero Min for KeyType.
+                _host.CheckDecode(nMin == 0);
                 _host.CheckDecode((ulong)_numberofColumns <= ulong.MaxValue - nMin);
             }
             _approximationRank = ctx.Reader.ReadInt32();

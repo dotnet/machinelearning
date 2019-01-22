@@ -2,9 +2,9 @@
 #@   header+
 #@   sep=tab
 #@   col=RawLabel:TX:0
-#@   col=AutoLabel:U4[0-6]:1
-#@   col=StringLabel:U4[0-6]:2
-#@   col=FileLabel:U4[0-2]:3
+#@   col=AutoLabel:U4[6]:1
+#@   col=StringLabel:U4[6]:2
+#@   col=FileLabel:U4[2]:3
 #@ }
 RawLabel	AutoLabel	StringLabel	FileLabel
 Wirtschaft	0	0	0

@@ -25,7 +25,7 @@ namespace Microsoft.ML.Data
         {
             Contracts.CheckValue(str, nameof(str));
             keyRange = null;
-            dataKind = default(DataKind);
+            dataKind = default;
 
             int ich = str.IndexOf('[');
             if (ich >= 0)
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Data
             }
 
             DataKind kind;
-            if (!Enum.TryParse<DataKind>(str, true, out kind))
+            if (!Enum.TryParse(str, true, out kind))
                 return false;
             dataKind = kind;
 
@@ -105,29 +105,32 @@ namespace Microsoft.ML.Data
         private bool TryParse(string str)
         {
             Contracts.AssertValue(str);
-
-            ulong min;
-            int ich = str.IndexOf('-');
-            if (ich < 0)
-            {
-                if (!ulong.TryParse(str, out min))
-                    return false;
+            // This corresponds to the new format `[]`, with no specified Max.
+            if (str.Length == 0)
                 return true;
+
+            // For backward compatibility we check for the old format that included a Min: `[Min-Max].
+            int ich = str.IndexOf('-');
+            if (0 <= ich)
+            {
+                // Parse the first part corresponding to Min and the dash, throw if Min is not zero.
+                ulong min;
+                if (!ulong.TryParse(str.Substring(0, ich), out min))
+                    return false;
+                if (min != 0)
+                    throw Contracts.ExceptDecode("The minimum of a " + nameof(KeyRange) + " is required to be zero.");
+
+                // The Max could be non defined or it could be an `*`.
+                str = str.Substring(ich + 1);
+                if (string.IsNullOrEmpty(str) || str == "*")
+                    return true;
             }
 
-            if (!ulong.TryParse(str.Substring(0, ich), out min))
-                return false;
-
-            string rest = str.Substring(ich + 1);
-            if (string.IsNullOrEmpty(rest) || rest == "*")
-                return true;
-
+            // This is the new format.
             ulong tmp;
-            if (!ulong.TryParse(rest, out tmp))
+            if (!ulong.TryParse(str, out tmp))
                 return false;
             Max = tmp;
-
-            Contracts.Assert(min <= Max);
             return true;
         }
 
@@ -135,11 +138,9 @@ namespace Microsoft.ML.Data
         {
             Contracts.AssertValue(sb);
 
-            sb.Append((ulong)0);
+            // If Max is not defined the format is `[]`, otherwise `[Max]`.
             if (Max != null)
-                sb.Append('-').Append(Max);
-            else
-                sb.Append("-*");
+                sb.Append(Max);
             return true;
         }
     }

@@ -2,7 +2,7 @@
 #@   header+
 #@   sep=tab
 #@   col=A:TX:0
-#@   col=KS:U4[0-10]:1
+#@   col=KS:U4[10]:1
 #@   col=AH:R4:2-9
 #@   col=KH:R4:10-17
 #@ }

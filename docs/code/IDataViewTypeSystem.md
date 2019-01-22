@@ -383,7 +383,7 @@ Key types are instances of the sealed class `KeyType`, which derives from
 
 In addition to its underlying type, a key type specifies:
 
-* A count value, between `1` and `ulong.MaxValue`, inclusive
+* A count value, from `1` to `ulong.MaxValue`, inclusive
 
 Regardless of the count value, the representational value zero
 always means `NA` and the representational value one is always the first valid

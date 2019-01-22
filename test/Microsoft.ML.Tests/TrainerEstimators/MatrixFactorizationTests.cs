@@ -135,9 +135,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
-        // The variable _synthesizedMatrixFirstRowIndex indicates the integer that would be mapped to the first row index. If user data uses
-        // 0-based indices for rows, _synthesizedMatrixFirstRowIndex can be set to 0. Similarly, for 1-based indices, _synthesizedMatrixFirstRowIndex
-        // could be 1.
+        // Because in ML.NET key type's minimal value is zero, the first row index is always zero in C# data structure (e.g., MatrixColumnIndex=0
+        // and MatrixRowIndex=0 in MatrixElement below specifies the value at the upper-left corner in the training matrix). If user's row index 
+        // starts with 1, their row index 1 would be mapped to the 2nd row in matrix factorization module and their first row may contain no values.
+        // This behavior is also true to column index.
         const int _synthesizedMatrixFirstColumnIndex = 1;
         const int _synthesizedMatrixFirstRowIndex = 1;
         const int _synthesizedMatrixColumnCount = 60;
@@ -145,13 +146,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElement
         {
-            // Matrix column index starts from 1 and is at most _synthesizedMatrixColumnCount.
-            // Contieuous=true means that all values from 1 to _synthesizedMatrixColumnCount are allowed keys.
-            [KeyType(Count = _synthesizedMatrixColumnCount)]
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex.
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            // Matrix row index starts from 1 and is at most _synthesizedMatrixRowCount.
-            // Contieuous=true means that all values from 1 to _synthesizedMatrixRowCount are allowed keys.
-            [KeyType(Count = _synthesizedMatrixRowCount)]
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount + _synthesizedMatrixRowCount.
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
@@ -159,9 +158,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementForScore
         {
-            [KeyType(Count = _synthesizedMatrixColumnCount)]
+            [KeyType(Count = _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            [KeyType(Count = _synthesizedMatrixRowCount)]
+            [KeyType(Count = _synthesizedMatrixRowCount + _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -201,9 +200,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(model.MatrixColumnIndexColumnType is KeyType);
             Assert.True(model.MatrixRowIndexColumnType is KeyType);
             var matColKeyType = (KeyType)model.MatrixColumnIndexColumnType;
-            Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
+            Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount + _synthesizedMatrixFirstColumnIndex);
             var matRowKeyType = (KeyType)model.MatrixRowIndexColumnType;
-            Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
+            Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount + _synthesizedMatrixRowCount);
 
             // Apply the trained model to the training set
             var prediction = model.Transform(dataView);
@@ -230,12 +229,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementZeroBased
         {
-            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
             [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
             [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
@@ -244,12 +241,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         internal class MatrixElementZeroBasedForScore
         {
-            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount are allowed keys.
             [KeyType(Count = _synthesizedMatrixColumnCount)]
             public uint MatrixColumnIndex;
-            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
-            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount are allowed keys.
             [KeyType(Count = _synthesizedMatrixRowCount)]
             public uint MatrixRowIndex;
             public float Score;

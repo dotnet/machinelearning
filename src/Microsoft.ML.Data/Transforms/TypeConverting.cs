@@ -247,7 +247,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     byte b = (byte)_columns[i].OutputKind;
                     b |= 0x80;
                     ctx.Writer.Write(b);
-                    ctx.Writer.Write(_columns[i].OutputKeyRange.Max ?? 0);
+                    ctx.Writer.Write(_columns[i].OutputKeyRange.Max ?? _columns[i].OutputKind.ToMaxInt());
                 }
                 else
                     ctx.Writer.Write((byte)_columns[i].OutputKind);
@@ -286,12 +286,20 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     range = new KeyRange();
                     if (ctx.Header.ModelVerWritten < 0x00010004)
-                        ctx.Reader.ReadUInt64();
+                    {
+                        // We no longer support non zero Min for KeyType.
+                        ulong min = ctx.Reader.ReadUInt64();
+                        Host.CheckDecode(min == 0);
+                    }
                     ulong count = ctx.Reader.ReadUInt64();
                     if (count != 0)
                         range.Max = count;
                     if (ctx.Header.ModelVerWritten < 0x00010004)
-                        ctx.Reader.ReadBoolByte();
+                    {
+                        // We no longer support non contiguous values for KeyType.
+                        bool contiguous = ctx.Reader.ReadBoolByte();
+                        Host.CheckDecode(contiguous);
+                    }
                 }
                 _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, kind, range);
             }
