@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("TermA", out int ColA);
             result.Schema.TryGetColumnIndex("TermB", out int ColB);
             result.Schema.TryGetColumnIndex("TermC", out int ColC);
-            using (var cursor = result.GetRowCursor(x => true))
+            using (var cursor = result.GetRowCursorForAllColumns())
             {
                 uint avalue = 0;
                 uint bvalue = 0;

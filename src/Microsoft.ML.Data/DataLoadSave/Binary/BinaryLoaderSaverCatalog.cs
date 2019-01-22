@@ -15,7 +15,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="fileSource">The file source to read from. This can be a <see cref="MultiFileSource"/>, for example.</param>
-        public static IDataView ReadFromBinary(this DataOperations catalog, IMultiStreamSource fileSource)
+        public static IDataView ReadFromBinary(this DataOperationsCatalog catalog, IMultiStreamSource fileSource)
         {
             Contracts.CheckValue(fileSource, nameof(fileSource));
 
@@ -30,7 +30,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="path">The path to the file to read from.</param>
-        public static IDataView ReadFromBinary(this DataOperations catalog, string path)
+        public static IDataView ReadFromBinary(this DataOperationsCatalog catalog, string path)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
@@ -47,7 +47,7 @@ namespace Microsoft.ML
         /// <param name="data">The data view to save.</param>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="keepHidden">Whether to keep hidden columns in the dataset.</param>
-        public static void SaveAsBinary(this DataOperations catalog, IDataView data, Stream stream,
+        public static void SaveAsBinary(this DataOperationsCatalog catalog, IDataView data, Stream stream,
             bool keepHidden = false)
         {
             Contracts.CheckValue(catalog, nameof(catalog));

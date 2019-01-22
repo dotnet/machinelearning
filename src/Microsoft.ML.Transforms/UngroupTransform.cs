@@ -177,18 +177,24 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
-            var inputCursor = Source.GetRowCursor(col => activeInput[col], null);
+
+            var inputCols = Source.Schema.Where(x => activeInput[x.Index]);
+            var inputCursor = Source.GetRowCursor(inputCols, null);
             return new Cursor(Host, inputCursor, _ungroupBinding, predicate);
         }
 
-        public override RowCursor[] GetRowCursorSet(Func<int, bool> predicate,
+        public override RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded,
             int n, Random rand = null)
         {
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, OutputSchema);
             var activeInput = _ungroupBinding.GetActiveInput(predicate);
-            var inputCursors = Source.GetRowCursorSet(col => activeInput[col], n, null);
+
+            var inputCols = Source.Schema.Where(x => activeInput[x.Index]);
+            var inputCursors = Source.GetRowCursorSet(inputCols, n, null);
             return Utils.BuildArray<RowCursor>(inputCursors.Length,
                 x => new Cursor(Host, inputCursors[x], _ungroupBinding, predicate));
         }

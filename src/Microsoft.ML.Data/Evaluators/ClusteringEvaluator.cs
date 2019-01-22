@@ -82,7 +82,7 @@ namespace Microsoft.ML.Data
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             ClusteringMetrics result;
-            using (var cursor = overall.GetRowCursor(i => true))
+            using (var cursor = overall.GetRowCursorForAllColumns())
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);

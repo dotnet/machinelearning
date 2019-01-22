@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Internal.Utilities;
@@ -143,17 +144,16 @@ namespace Microsoft.ML.Data
             return sum;
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(needCol, nameof(needCol));
             if (rand == null || !_canShuffle)
-                return new Cursor(this, needCol);
-            return new RandCursor(this, needCol, rand, _counts);
+                return new Cursor(this, columnsNeeded);
+            return new RandCursor(this, columnsNeeded, rand, _counts);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            return new RowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         private abstract class CursorBase : RootCursorBase
@@ -209,19 +209,15 @@ namespace Microsoft.ML.Data
             private ValueGetter<RowId> _currentIdGetter;
             private int _currentSourceIndex;
 
-            public Cursor(AppendRowsDataView parent, Func<int, bool> needCol)
+            public Cursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded)
                 : base(parent)
             {
-                Ch.AssertValue(needCol);
-
                 _currentSourceIndex = 0;
-                _currentCursor = Sources[_currentSourceIndex].GetRowCursor(needCol);
+                _currentCursor = Sources[_currentSourceIndex].GetRowCursor(columnsNeeded);
                 _currentIdGetter = _currentCursor.GetIdGetter();
-                for (int c = 0; c < Getters.Length; c++)
-                {
-                    if (needCol(c))
-                        Getters[c] = CreateGetter(c);
-                }
+
+                foreach(var col in columnsNeeded)
+                    Getters[col.Index] = CreateGetter(col.Index);
             }
 
             public override ValueGetter<RowId> GetIdGetter()
@@ -269,7 +265,9 @@ namespace Microsoft.ML.Data
                     _currentCursor = null;
                     if (++_currentSourceIndex >= Sources.Length)
                         return false;
-                    _currentCursor = Sources[_currentSourceIndex].GetRowCursor(c => IsColumnActive(c));
+
+                    var columnsNeeded = Schema.Where(col => IsColumnActive(col.Index));
+                    _currentCursor = Sources[_currentSourceIndex].GetRowCursor(columnsNeeded);
                     _currentIdGetter = _currentCursor.GetIdGetter();
                 }
 
@@ -301,10 +299,9 @@ namespace Microsoft.ML.Data
             private readonly Random _rand;
             private int _currentSourceIndex;
 
-            public RandCursor(AppendRowsDataView parent, Func<int, bool> needCol, Random rand, int[] counts)
+            public RandCursor(AppendRowsDataView parent, IEnumerable<Schema.Column> columnsNeeded, Random rand, int[] counts)
                 : base(parent)
             {
-                Ch.AssertValue(needCol);
                 Ch.AssertValue(rand);
 
                 _rand = rand;
@@ -314,15 +311,13 @@ namespace Microsoft.ML.Data
                 for (int i = 0; i < counts.Length; i++)
                 {
                     Ch.Assert(counts[i] >= 0);
-                    _cursorSet[i] = parent._sources[i].GetRowCursor(needCol, RandomUtils.Create(_rand));
+                    _cursorSet[i] = parent._sources[i].GetRowCursor(columnsNeeded, RandomUtils.Create(_rand));
                 }
                 _sampler = new MultinomialWithoutReplacementSampler(Ch, counts, rand);
                 _currentSourceIndex = -1;
-                for (int c = 0; c < Getters.Length; c++)
-                {
-                    if (needCol(c))
-                        Getters[c] = CreateGetter(c);
-                }
+
+                foreach(var col in columnsNeeded)
+                    Getters[col.Index] = CreateGetter(col.Index);
             }
 
             public override ValueGetter<RowId> GetIdGetter()

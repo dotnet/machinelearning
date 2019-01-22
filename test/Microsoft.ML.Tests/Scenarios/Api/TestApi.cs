@@ -73,7 +73,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Assert.NotNull(input.Channel);
                     return false;
                 }, null);
-            filter1.GetRowCursor(col => true).MoveNext();
+            filter1.GetRowCursorForAllColumns().MoveNext();
 
             // Error case: non-IChannel field marked with attribute.
             var data2 = Utils.CreateArray(10, new OneStringWithAttribute());
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 }, null);
             try
             {
-                filter2.GetRowCursor(col => true).MoveNext();
+                filter2.GetRowCursorForAllColumns().MoveNext();
                 Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
             }
             catch (InvalidOperationException ex)
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 }, null);
             try
             {
-                filter3.GetRowCursor(col => true).MoveNext();
+                filter3.GetRowCursorForAllColumns().MoveNext();
                 Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
             }
             catch (InvalidOperationException ex)
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Assert.NotNull(input.ChannelTwo);
                     return false;
                 }, null);
-            filter1.GetRowCursor(col => true).MoveNext();
+            filter1.GetRowCursorForAllColumns().MoveNext();
         }
 
         public class BreastCancerExample
@@ -168,19 +168,22 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void TrainAveragedPerceptronWithCache()
         {
-            var env = new MLContext(0);
+            var mlContext = new MLContext(0);
             var dataFile = GetDataPath("breast-cancer.txt");
-            var loader = TextLoader.Create(env, new TextLoader.Arguments(), new MultiFileSource(dataFile));
+            var loader = TextLoader.Create(mlContext, new TextLoader.Arguments(), new MultiFileSource(dataFile));
             var globalCounter = 0;
-            var xf = LambdaTransform.CreateFilter<object, object>(env, loader,
+            var xf = LambdaTransform.CreateFilter<object, object>(mlContext, loader,
                 (i, s) => true,
                 s => { globalCounter++; });
 
             // The baseline result of this was generated with everything cached in memory. As auto-cache is removed,
             // an explicit step of caching is required to make this test ok.
-            var cached = env.Data.Cache(xf);
+            var cached = mlContext.Data.Cache(xf);
 
-            new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).Fit(cached).Transform(cached);
+            var estimator = mlContext.BinaryClassification.Trainers.AveragedPerceptron(
+                new AveragedPerceptronTrainer.Options { NumIterations = 2 });
+
+            estimator.Fit(cached).Transform(cached);
 
             // Make sure there were 2 cursoring events.
             Assert.Equal(1, globalCounter);

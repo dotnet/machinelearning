@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -396,7 +397,7 @@ namespace Microsoft.ML.Data
                 // The line reader can be referenced by multiple workers. This is the reference count.
                 private int _cref;
                 private BlockingCollection<LineBatch> _queue;
-                private Thread _thdRead;
+                private Task _thdRead;
                 private volatile bool _abort;
 
                 public LineReader(IMultiStreamSource files, int batchSize, int bufSize, bool hasHeader, long limit, int cref)
@@ -416,8 +417,7 @@ namespace Microsoft.ML.Data
                     _cref = cref;
 
                     _queue = new BlockingCollection<LineBatch>(bufSize);
-                    _thdRead = Utils.CreateBackgroundThread(ThreadProc);
-                    _thdRead.Start();
+                    _thdRead = Utils.RunOnBackgroundThread(ThreadProc);
                 }
 
                 public void Release()
@@ -431,7 +431,7 @@ namespace Microsoft.ML.Data
                     if (_thdRead != null)
                     {
                         _abort = true;
-                        _thdRead.Join();
+                        _thdRead.Wait();
                         _thdRead = null;
                     }
 
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Data
                 // A small capacity blocking collection that the main cursor thread consumes.
                 private readonly BlockingCollection<RowBatch> _queue;
 
-                private readonly Thread[] _threads;
+                private readonly Task[] _threads;
 
                 // Number of threads still running.
                 private int _threadsRunning;
@@ -676,13 +676,12 @@ namespace Microsoft.ML.Data
                     // a range that is being served up by the cursor.
                     _queue = new BlockingCollection<RowBatch>(2);
 
-                    _threads = new Thread[cthd];
+                    _threads = new Task[cthd];
                     _threadsRunning = cthd;
 
                     for (int tid = 0; tid < _threads.Length; tid++)
                     {
-                        var thd = _threads[tid] = Utils.CreateBackgroundThread(ThreadProc);
-                        thd.Start(tid);
+                        _threads[tid] = Utils.RunOnBackgroundThread(ThreadProc, tid);
                     }
                 }
 
@@ -690,8 +689,7 @@ namespace Microsoft.ML.Data
                 {
                     // Signal all the threads to shut down and wait for them.
                     Quit();
-                    for (int i = 0; i < _threads.Length; i++)
-                        _threads[i].Join();
+                    Task.WaitAll(_threads);
                 }
 
                 private void Quit()

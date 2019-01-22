@@ -280,15 +280,11 @@ namespace Microsoft.ML.Data
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
-        {
-            return _view.GetRowCursor(predicate, rand);
-        }
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
+            => _view.GetRowCursor(columnsNeeded, rand);
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
-        {
-            return _view.GetRowCursorSet(predicate, n, rand);
-        }
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
+            => _view.GetRowCursorSet(columnsNeeded, n, rand);
 
         public long? GetRowCount()
         {
@@ -379,7 +375,7 @@ namespace Microsoft.ML.Data
                         Ch.Check(IsGood, "Cannot get values in the cursor's current state");
                         if (!valid)
                         {
-                            using (var cursor = _view.GetRowCursor(c => c == _col))
+                            using (var cursor = _view.GetRowCursor(_view.Schema[_col]))
                             {
                                 int[] indices = null;
                                 T[] values = null;
@@ -530,7 +526,7 @@ namespace Microsoft.ML.Data
                 // is having its values loaded into _indices/_values/_counts while the current column is being
                 // served up to the consumer through _cbuff.
 
-                using (var cursor = _view.GetRowCursor(c => c == _colCurr))
+                using (var cursor = _view.GetRowCursor(_view.Schema[_colCurr]))
                 {
                     // Make sure that the buffers (and subbuffers) are all of appropriate size.
                     Utils.EnsureSize(ref _indices, vecLen);
@@ -825,21 +821,28 @@ namespace Microsoft.ML.Data
                 splitCol = _colToSplitCol[col];
             }
 
-            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
+
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
-                return new Cursor(_host, this, _input.GetRowCursor(srcPred, rand), predicate, activeSplitters);
+
+                var inputCols = _input.Schema.Where(x => srcPred(x.Index));
+                return new Cursor(_host, this, _input.GetRowCursor(inputCols, rand), predicate, activeSplitters);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
+
+                var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
+
                 bool[] activeSplitters;
                 var srcPred = CreateInputPredicate(predicate, out activeSplitters);
-                var result = _input.GetRowCursorSet(srcPred, n, rand);
+
+                var srcCols = columnsNeeded.Where( x => srcPred(x.Index));
+                var result = _input.GetRowCursorSet(srcCols, n, rand);
                 for (int i = 0; i < result.Length; ++i)
                     result[i] = new Cursor(_host, this, result[i], predicate, activeSplitters);
                 return result;
@@ -849,7 +852,7 @@ namespace Microsoft.ML.Data
             /// Given a possibly null predicate for this data view, produce the dependency predicate for the sources,
             /// as well as a list of all the splitters for which we should produce rowsets.
             /// </summary>
-            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(Func{int, bool}, Random)"/> method.</param>
+            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(IEnumerable{Schema.Column}, Random)"/> method.</param>
             /// <param name="activeSplitters">A boolean indicator array of length equal to the number of splitters,
             /// indicating whether that splitter has any active columns in its outputs or not</param>
             /// <returns>The predicate to use when constructing the row cursor from the source</returns>
@@ -1392,10 +1395,10 @@ namespace Microsoft.ML.Data
                 return valueCount;
             }
 
-            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
-                return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, predicate(0));
+                bool hasZero = columnsNeeded != null && columnsNeeded.Any(x => x.Index == 0);
+                return Utils.MarshalInvoke(GetRowCursor<int>, _type.GetItemType().RawType, hasZero);
             }
 
             private RowCursor GetRowCursor<T>(bool active)
@@ -1403,10 +1406,9 @@ namespace Microsoft.ML.Data
                 return new Cursor<T>(this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
-                return new RowCursor[] { GetRowCursor(predicate, rand) };
+                return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
             }
 
             private sealed class Cursor<T> : RootCursorBase

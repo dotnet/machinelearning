@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.ML.Internal.Utilities;
 
 namespace Microsoft.ML.Data
@@ -27,18 +28,16 @@ namespace Microsoft.ML.Data
 
         public long? GetRowCount() => 0;
 
-        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(needCol, nameof(needCol));
             _host.CheckValueOrNull(rand);
-            return new Cursor(_host, Schema, needCol);
+            return new Cursor(_host, Schema, columnsNeeded);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(needCol, nameof(needCol));
             _host.CheckValueOrNull(rand);
-            return new[] { new Cursor(_host, Schema, needCol) };
+            return new[] { new Cursor(_host, Schema, columnsNeeded) };
         }
 
         private sealed class Cursor : RootCursorBase
@@ -48,13 +47,12 @@ namespace Microsoft.ML.Data
             public override Schema Schema { get; }
             public override long Batch => 0;
 
-            public Cursor(IChannelProvider provider, Schema schema, Func<int, bool> needCol)
+            public Cursor(IChannelProvider provider, Schema schema, IEnumerable<Schema.Column> columnsNeeded)
                 : base(provider)
             {
                 Ch.AssertValue(schema);
-                Ch.AssertValue(needCol);
                 Schema = schema;
-                _active = Utils.BuildArray(Schema.Count, needCol);
+                _active = Utils.BuildArray(Schema.Count, columnsNeeded);
             }
 
             public override ValueGetter<RowId> GetIdGetter()

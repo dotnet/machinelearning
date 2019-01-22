@@ -245,7 +245,6 @@ namespace Microsoft.ML.FactorizationMachine
             int latentDimAligned, AlignedArray latentSum, int[] featureFieldBuffer, int[] featureIndexBuffer, float[] featureValueBuffer, VBuffer<float> buffer, ref long badExampleCount)
         {
             var featureColumns = data.Schema.GetColumns(RoleMappedSchema.ColumnRole.Feature);
-            Func<int, bool> pred = c => featureColumns.Select(ci => ci.Index).Contains(c) || c == data.Schema.Label.Value.Index || c == data.Schema.Weight?.Index;
             var getters = new ValueGetter<VBuffer<float>>[featureColumns.Count];
             float label = 0;
             float weight = 1;
@@ -254,7 +253,12 @@ namespace Microsoft.ML.FactorizationMachine
             long exampleCount = 0;
             badExampleCount = 0;
             int count = 0;
-            using (var cursor = data.Data.GetRowCursor(pred))
+
+            var columns = featureColumns.Append(data.Schema.Label.Value);
+            if (data.Schema.Weight != null)
+                columns.Append(data.Schema.Weight.Value);
+
+            using (var cursor = data.Data.GetRowCursor(columns))
             {
                 var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
                 var weightGetter = data.Schema.Weight?.Index is int weightIdx ? cursor.GetGetter<float>(weightIdx) : null;
@@ -354,14 +358,19 @@ namespace Microsoft.ML.FactorizationMachine
                 entry.SetProgress(0, iter, _numIterations);
                 entry.SetProgress(1, exampleCount);
             });
-            Func<int, bool> pred = c => fieldColumnIndexes.Contains(c) || c == data.Schema.Label.Value.Index || c == data.Schema.Weight?.Index;
+
+            var columns = data.Schema.Schema.Where(x => fieldColumnIndexes.Contains(x.Index)).ToList();
+            columns.Add(data.Schema.Label.Value);
+            if (data.Schema.Weight != null)
+                columns.Add(data.Schema.Weight.Value);
+
             InitializeTrainingState(fieldCount, totalFeatureCount, predictor, out float[] linearWeights,
                 out AlignedArray latentWeightsAligned, out float[] linearAccSqGrads, out AlignedArray latentAccSqGradsAligned);
 
             // refer to Algorithm 3 in https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
             while (iter++ < _numIterations)
             {
-                using (var cursor = data.Data.GetRowCursor(pred, rng))
+                using (var cursor = data.Data.GetRowCursor(columns, rng))
                 {
                     var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Value.Index);
                     var weightGetter = data.Schema.Weight?.Index is int weightIdx ? RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, weightIdx) : null;

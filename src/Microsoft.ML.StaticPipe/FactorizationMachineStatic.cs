@@ -21,7 +21,7 @@ namespace Microsoft.ML.StaticPipe
         /// <summary>
         /// Predict a target using a field-aware factorization machine.
         /// </summary>
-        /// <param name="ctx">The binary classifier context trainer object.</param>
+        /// <param name="catalog">The binary classifier catalog trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="learningRate">Initial learning rate.</param>
@@ -36,7 +36,7 @@ namespace Microsoft.ML.StaticPipe
         /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<bool> predictedLabel) FieldAwareFactorizationMachine(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static (Scalar<float> score, Scalar<bool> predictedLabel) FieldAwareFactorizationMachine(this BinaryClassificationCatalog.BinaryClassificationTrainers catalog,
             Scalar<bool> label, Vector<float>[] features,
             float learningRate = 0.1f,
             int numIterations = 5,

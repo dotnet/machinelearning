@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterD = cursor.GetGetter<int>(result.Schema["D"].Index);
             var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
             var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterD = cursor.GetGetter<VBuffer<int>>(result.Schema["D"].Index);
             var getterE = cursor.GetGetter<VBuffer<int>>(result.Schema["E"].Index);
             var getterF = cursor.GetGetter<VBuffer<int>>(result.Schema["F"].Index);
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterD = cursor.GetGetter<int>(result.Schema["D"].Index);
             var getterE = cursor.GetGetter<int>(result.Schema["E"].Index);
             var getterF = cursor.GetGetter<int>(result.Schema["F"].Index);
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterD = cursor.GetGetter<uint>(result.Schema["D"].Index);
             var getterE = cursor.GetGetter<uint>(result.Schema["E"].Index);
             var getterF = cursor.GetGetter<uint>(result.Schema["F"].Index);
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterD = cursor.GetGetter<ulong>(result.Schema["D"].Index);
             var getterE = cursor.GetGetter<ulong>(result.Schema["E"].Index);
             var getterF = cursor.GetGetter<ulong>(result.Schema["F"].Index);
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterD = cursor.GetGetter<uint>(result.Schema["D"].Index);
             var getterE = cursor.GetGetter<uint>(result.Schema["E"].Index);
             var getterF = cursor.GetGetter<uint>(result.Schema["F"].Index);
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Tests.Transformers
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
-            var cursor = result.GetRowCursor((col) => true);
+            var cursor = result.GetRowCursorForAllColumns();
             var getterD = cursor.GetGetter<ReadOnlyMemory<char>>(result.Schema["DOutput"].Index);
             cursor.MoveNext();
 

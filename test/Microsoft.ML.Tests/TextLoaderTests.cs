@@ -37,7 +37,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 "loader=Text{col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
                 }, logCurs: true);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var col1 = cursor.GetGetter<sbyte>(0);
                 var col2 = cursor.GetGetter<short>(1);
@@ -294,7 +294,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             var data = runner.GetOutput<IDataView>("data"); Assert.NotNull(data);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var IDGetter = cursor.GetGetter<float>(0);
                 var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
@@ -441,7 +441,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var data = runner.GetOutput<IDataView>("data");
             Assert.NotNull(data);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var getters = new ValueGetter<float>[]{
                         cursor.GetGetter<float>(0),
@@ -555,7 +555,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var data = runner.GetOutput<IDataView>("data");
             Assert.NotNull(data);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var IDGetter = cursor.GetGetter<float>(0);
                 var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);

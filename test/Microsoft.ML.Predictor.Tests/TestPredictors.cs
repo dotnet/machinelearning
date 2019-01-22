@@ -673,12 +673,14 @@ namespace Microsoft.ML.RunTests
             }
 
             var cursors = new RowCursor[predCount];
+            var cols = scored.Schema.Where( c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
+
             for (int i = 0; i < predCount; i++)
-                cursors[i] = scoredArray[i].GetRowCursor(c => c == scoreColArray[i] || c == probColArray[i] || c == predColArray[i]);
+                cursors[i] = scoredArray[i].GetRowCursor(cols);
 
             try
             {
-                using (var curs = scored.GetRowCursor(c => c == scoreCol || c == probCol || c == predCol))
+                using (var curs = scored.GetRowCursor(cols))
                 {
                     var scoreGetter = curs.GetGetter<float>(scoreCol);
                     var probGetter = curs.GetGetter<float>(probCol);
@@ -741,7 +743,7 @@ namespace Microsoft.ML.RunTests
                     LabelColumn = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Arguments()
+                AveragedPerceptronTrainer.TrainBinary(ML, new AveragedPerceptronTrainer.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -749,7 +751,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -757,7 +759,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainBinary(ML, new LogisticRegression.Arguments()
+                LogisticRegression.TrainBinary(ML, new LogisticRegression.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -787,7 +789,7 @@ namespace Microsoft.ML.RunTests
                     LabelColumn = DefaultColumnNames.Label,
                     TrainingData = dataView
                 }).PredictorModel,
-                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Arguments()
+                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -795,7 +797,7 @@ namespace Microsoft.ML.RunTests
                     TrainingData = dataView,
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel,
-                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Arguments()
+                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Options()
                 {
                     FeatureColumn = "Features",
                     LabelColumn = DefaultColumnNames.Label,
@@ -851,12 +853,14 @@ namespace Microsoft.ML.RunTests
             }
 
             var cursors = new RowCursor[predCount];
+            var cols = scored.Schema.Where(c => c.Name.Equals("Score") || c.Name.Equals("Probability") || c.Name.Equals("PredictedLabel"));
+
             for (int i = 0; i < predCount; i++)
-                cursors[i] = scoredArray[i].GetRowCursor(c => c == scoreColArray[i] || c == probColArray[i] || c == predColArray[i]);
+                cursors[i] = scoredArray[i].GetRowCursor(cols);
 
             try
             {
-                using (var curs = scored.GetRowCursor(c => c == scoreCol || c == probCol || c == predCol))
+                using (var curs = scored.GetRowCursor(cols))
                 {
                     var scoreGetter = predictionKind == PredictionKind.MultiClassClassification ?
                         (ref float dst) => dst = 0 :
@@ -875,7 +879,7 @@ namespace Microsoft.ML.RunTests
                     var vectorScoreGetters = new ValueGetter<VBuffer<float>>[predCount];
                     var probGetters = new ValueGetter<float>[predCount];
                     var predGetters = new ValueGetter<bool>[predCount];
-                    for (int i = 0; i< predCount; i++)
+                    for (int i = 0; i < predCount; i++)
                     {
                         scoreGetters[i] = predictionKind == PredictionKind.MultiClassClassification ?
                             (ref float dst) => dst = 0 :

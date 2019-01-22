@@ -156,7 +156,6 @@ namespace Microsoft.ML.Learners
             string featureColumn,
             SchemaShape.Column labelColumn,
             string weightColumn,
-            Action<TArgs> advancedSettings,
             float l1Weight,
             float l2Weight,
             float optimizationTolerance,
@@ -173,7 +172,7 @@ namespace Microsoft.ML.Learners
                             MemorySize = memorySize,
                             EnforceNonNegativity = enforceNoNegativity
                         },
-                  labelColumn, advancedSettings)
+                  labelColumn)
         {
         }
 
@@ -439,7 +438,11 @@ namespace Microsoft.ML.Learners
                     _weights = new float[1000];
             }
 
-            var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Features | CursOpt.Label | CursOpt.Weight);
+            CursOpt cursorOpt = CursOpt.Label | CursOpt.Features;
+            if (data.Schema.Weight.HasValue)
+                cursorOpt |= CursOpt.Weight;
+
+            var cursorFactory = new FloatLabelCursor.Factory(data, cursorOpt);
 
             long numBad;
             // REVIEW: This pass seems overly expensive for the benefit when multi-threading is off....

@@ -66,9 +66,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var transformedData = dataPipeline.Fit(data).Transform(data);
 
             // 'transformedData' is a 'promise' of data. Let's actually read it.
-            var someRows = transformedData.AsDynamic
+            var someRows = mlContext
                 // Convert to an enumerable of user-defined type. 
-                .AsEnumerable<InspectedRow>(mlContext, reuseRowObject: false)
+                .CreateEnumerable<InspectedRow>(transformedData.AsDynamic, reuseRowObject: false)
                 // Take a couple values as an array.
                 .Take(4).ToArray();
 

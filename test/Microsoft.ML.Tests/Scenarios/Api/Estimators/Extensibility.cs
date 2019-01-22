@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var engine = model.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(ml);
 
             var testLoader = ml.Data.ReadFromTextFile(dataPath, TestDatasets.irisData.GetLoaderColumns(), separatorChar: ',');
-            var testData = testLoader.AsEnumerable<IrisData>(ml, false);
+            var testData = ml.CreateEnumerable<IrisData>(testLoader, false);
             foreach (var input in testData.Take(20))
             {
                 var prediction = engine.Predict(input);

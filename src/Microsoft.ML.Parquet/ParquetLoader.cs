@@ -390,18 +390,17 @@ namespace Microsoft.ML.Data
             return _rowCount;
         }
 
-        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<ML.Data.Schema.Column> columnsNeeded, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
+            var predicate = RowCursorUtils.FromColumnsToPredicate(columnsNeeded, Schema);
             return new Cursor(this, predicate, rand);
         }
 
-        public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(IEnumerable<ML.Data.Schema.Column> columnsNeeded, int n, Random rand = null)
         {
-            _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
-            return new RowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(columnsNeeded, rand) };
         }
 
         public void Save(ModelSaveContext ctx)

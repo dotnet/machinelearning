@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.ImageAnalytics;
 using Microsoft.ML.RunTests;
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Scenarios
                                                      3.0f, 3.0f } } }));
             var trans = new TensorFlowTransformer(mlContext, modelLocation, new[] { "a", "b" }, new[] { "c" }).Transform(loader);
 
-            using (var cursor = trans.GetRowCursor(a => true))
+            using (var cursor = trans.GetRowCursorForAllColumns())
             {
                 var cgetter = cursor.GetGetter<VBuffer<float>>(2);
                 Assert.True(cursor.MoveNext());
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Scenarios
             var outputs = new string[] { "o_f64", "o_f32", "o_i64", "o_i32", "o_i16", "o_i8", "o_u64", "o_u32", "o_u16", "o_u8", "o_b" };
             var trans = new TensorFlowTransformer(mlContext, model_location, inputs, outputs).Transform(loader); ;
 
-            using (var cursor = trans.GetRowCursor(a => true))
+            using (var cursor = trans.GetRowCursorForAllColumns())
             {
                 var f64getter = cursor.GetGetter<VBuffer<double>>(11);
                 var f32getter = cursor.GetGetter<VBuffer<float>>(12);
@@ -243,7 +243,8 @@ namespace Microsoft.ML.Scenarios
             tf.Schema.TryGetColumnIndex("detection_scores", out int scores);
             tf.Schema.TryGetColumnIndex("num_detections", out int num);
             tf.Schema.TryGetColumnIndex("detection_classes", out int classes);
-            using (var curs = tf.GetRowCursor(col => col == classes || col == num || col == scores || col == boxes || col == input))
+
+            using (var curs = tf.GetRowCursor(tf.Schema["image_tensor"], tf.Schema["detection_boxes"], tf.Schema["detection_scores"], tf.Schema["detection_classes"], tf.Schema["num_detections"]))
             {
                 var getInput = curs.GetGetter<VBuffer<byte>>(input);
                 var getBoxes = curs.GetGetter<VBuffer<float>>(boxes);
@@ -278,7 +279,7 @@ namespace Microsoft.ML.Scenarios
 
             tf.Schema.TryGetColumnIndex("input", out int input);
             tf.Schema.TryGetColumnIndex("softmax2_pre_activation", out int b);
-            using (var curs = tf.GetRowCursor(col => col == b || col == input))
+            using (var curs = tf.GetRowCursor(tf.Schema["input"], tf.Schema["softmax2_pre_activation"]))
             {
                 var get = curs.GetGetter<VBuffer<float>>(b);
                 var getInput = curs.GetGetter<VBuffer<float>>(input);
@@ -460,7 +461,7 @@ namespace Microsoft.ML.Scenarios
 
 
                 var trainDataTransformed = trainedModel.Transform(trainData);
-                using (var cursor = trainDataTransformed.GetRowCursor(a => true))
+                using (var cursor = trainDataTransformed.GetRowCursorForAllColumns())
                 {
                     trainDataTransformed.Schema.TryGetColumnIndex("b", out int bias);
                     var getter = cursor.GetGetter<VBuffer<float>>(bias);
@@ -741,7 +742,7 @@ namespace Microsoft.ML.Scenarios
             IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Input", "Output").Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = trans.GetRowCursor(col => col == output))
+            using (var cursor = trans.GetRowCursor(trans.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);
@@ -782,7 +783,7 @@ namespace Microsoft.ML.Scenarios
             IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Input", "Output").Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = trans.GetRowCursor(col => col == output))
+            using (var cursor = trans.GetRowCursorForAllColumns())
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);

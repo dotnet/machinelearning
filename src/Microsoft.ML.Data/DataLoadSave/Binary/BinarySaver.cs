@@ -581,7 +581,7 @@ namespace Microsoft.ML.Data.IO
                 HashSet<int> activeSet = new HashSet<int>(activeColumns.Select(col => col.SourceIndex));
                 long blockIndex = 0;
                 int remainingInBlock = rowsPerBlock;
-                using (RowCursor cursor = data.GetRowCursor(activeSet.Contains))
+                using (RowCursor cursor = data.GetRowCursor(data.Schema.Where(c => activeSet.Contains(c.Index))))
                 {
                     WritePipe[] pipes = new WritePipe[activeColumns.Length];
                     for (int c = 0; c < activeColumns.Length; ++c)
@@ -661,26 +661,19 @@ namespace Microsoft.ML.Data.IO
                 if (activeColumns.Length > 0)
                 {
                     OrderedWaiter waiter = _deterministicBlockOrder ? new OrderedWaiter() : null;
-                    Thread[] compressionThreads = new Thread[Environment.ProcessorCount];
+                    Task[] compressionThreads = new Task[Environment.ProcessorCount];
                     for (int i = 0; i < compressionThreads.Length; ++i)
                     {
-                        compressionThreads[i] = Utils.CreateBackgroundThread(
+                        compressionThreads[i] = Utils.RunOnBackgroundThread(
                             () => CompressionWorker(toCompress, toWrite, activeColumns.Length, waiter, exMarshaller));
-                        compressionThreads[i].Start();
                     }
-                    compressionTask = new Task(() =>
-                    {
-                        foreach (Thread t in compressionThreads)
-                            t.Join();
-                    });
-                    compressionTask.Start();
+                    compressionTask = Task.WhenAll(compressionThreads);
                 }
 
                 // While there is an advantage to putting the IO into a separate thread, there is not an
                 // advantage to having more than one worker.
-                Thread writeThread = Utils.CreateBackgroundThread(
+                Task writeThread = Utils.RunOnBackgroundThread(
                     () => WriteWorker(stream, toWrite, activeColumns, data.Schema, rowsPerBlock, _host, exMarshaller));
-                writeThread.Start();
                 sw.Start();
 
                 // REVIEW: For now the fetch worker just works in the main thread. If it's
@@ -698,7 +691,7 @@ namespace Microsoft.ML.Data.IO
                     compressionTask.Wait();
                 toWrite.CompleteAdding();
 
-                writeThread.Join();
+                writeThread.Wait();
                 exMarshaller.ThrowIfSet(ch);
                 if (!_silent)
                     ch.Info("Wrote {0} rows across {1} columns in {2}", _rowCount, activeColumns.Length, sw.Elapsed);
@@ -746,7 +739,7 @@ namespace Microsoft.ML.Data.IO
             EstimatorDelegate del = EstimatorCore<int>;
             MethodInfo methInfo = del.GetMethodInfo().GetGenericMethodDefinition();
 
-            using (RowCursor cursor = data.GetRowCursor(active.Contains, rand))
+            using (RowCursor cursor = data.GetRowCursor(data.Schema.Where(x => active.Contains(x.Index)), rand))
             {
                 object[] args = new object[] { cursor, null, null, null };
                 var writers = new IValueWriter[actives.Length];
