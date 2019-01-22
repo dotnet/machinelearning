@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.ML.Internal.Utilities;
@@ -394,7 +395,7 @@ namespace Microsoft.ML.Data.Conversion
                     // Smaller dst means mapping values to NA.
                     if (keySrc.Count != keyDst.Count)
                         return false;
-                    if (keySrc.Count == 0 && keySrc.RawKind > keyDst.RawKind)
+                    if (keySrc.Count == 0 && Marshal.SizeOf(keySrc.RawType) > Marshal.SizeOf(keyDst.RawType))
                         return false;
                     // REVIEW: Should we allow contiguous to be changed when Count is zero?
                     if (keySrc.Contiguous != keyDst.Contiguous)
@@ -407,11 +408,11 @@ namespace Microsoft.ML.Data.Conversion
                     // does not allow this.
                     if (!KeyType.IsValidDataType(typeDst.RawType))
                         return false;
-                    if (keySrc.RawKind > typeDst.RawKind)
+                    if (Marshal.SizeOf(keySrc.RawType) > Marshal.SizeOf(typeDst.RawType))
                     {
                         if (keySrc.Count == 0)
                             return false;
-                        if ((ulong)keySrc.Count > typeDst.RawKind.ToMaxInt())
+                        if ((ulong)keySrc.Count > typeDst.RawType.ToMaxInt())
                             return false;
                     }
                 }
@@ -549,20 +550,19 @@ namespace Microsoft.ML.Data.Conversion
             ulong min = key.Min;
             ulong max;
 
-            ulong count = DataKindExtensions.ToMaxInt(key.RawKind);
+            ulong count = key.RawType.ToMaxInt();
             if (key.Count > 0)
                 max = min - 1 + (ulong)key.Count;
             else if (min == 0)
                 max = count - 1;
-            else if (key.RawKind == DataKind.U8)
+            else if (key.RawType == typeof(ulong))
                 max = ulong.MaxValue;
             else if (min - 1 > ulong.MaxValue - count)
                 max = ulong.MaxValue;
             else
                 max = min - 1 + count;
 
-            bool identity;
-            var fnConv = GetStandardConversion<U8, TDst>(NumberType.U8, NumberType.FromKind(key.RawKind), out identity);
+            var fnConv = GetKeyStandardConversion<TDst>();
             return
                 (in TX src, out TDst dst) =>
                 {
@@ -592,20 +592,19 @@ namespace Microsoft.ML.Data.Conversion
             ulong min = key.Min;
             ulong max;
 
-            ulong count = DataKindExtensions.ToMaxInt(key.RawKind);
+            ulong count = key.RawType.ToMaxInt();
             if (key.Count > 0)
                 max = min - 1 + (ulong)key.Count;
             else if (min == 0)
                 max = count - 1;
-            else if (key.RawKind == DataKind.U8)
+            else if (key.RawType == typeof(U8))
                 max = ulong.MaxValue;
             else if (min - 1 > ulong.MaxValue - count)
                 max = ulong.MaxValue;
             else
                 max = min - 1 + count;
 
-            bool identity;
-            var fnConv = GetStandardConversion<U8, TDst>(NumberType.U8, NumberType.FromKind(key.RawKind), out identity);
+            var fnConv = GetKeyStandardConversion<TDst>();
             return
                 (in TX src, ref TDst dst) =>
                 {
@@ -620,6 +619,14 @@ namespace Microsoft.ML.Data.Conversion
                     // Also, it would be nice to be able to assert that it doesn't overflow....
                     fnConv(in uu, ref dst);
                 };
+        }
+
+        private ValueMapper<U8, TDst> GetKeyStandardConversion<TDst>()
+        {
+            var delegatesKey = (typeof(U8), typeof(TDst));
+            if (!_delegatesStd.TryGetValue(delegatesKey, out Delegate del))
+                throw Contracts.Except("No standard conversion from '{0}' to '{1}'", typeof(U8), typeof(TDst));
+            return (ValueMapper<U8, TDst>)del;
         }
 
         private static StringBuilder ClearDst(ref StringBuilder dst)
