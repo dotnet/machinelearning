@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
                 // If the type is not supported in ML.NET then we cannot represent it as a column in an Schema.
                 // We also cannot output it with a TensorFlowTransform, so we skip it.
-                // Furthermore, 'NoOp' operator usually has 'Unknown' type.
+                // Furthermore, operator which have NumOutputs <= 0 usually has 'Unknown' type.
                 // But sometimes it can have valid type upon querying model for multiple times such as 'Float'.
                 // This behavior is inconsistent in TensorFlow runtime (https://github.com/dotnet/machinelearning/issues/2156).
                 // Therefore, filtering all operators that have no outputs.
