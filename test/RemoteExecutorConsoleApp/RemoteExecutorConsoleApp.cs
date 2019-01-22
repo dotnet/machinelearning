@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -39,7 +43,15 @@ namespace RemoteExecutorConsoleApp
             try
             {
                 // Create the test class if necessary
-                a = Assembly.Load(assemblyName);
+                try
+                {
+                    a = Assembly.Load(assemblyName);
+                }
+                catch(FileNotFoundException)
+                {
+                    a = Assembly.LoadFrom(assemblyName.Split(',')[0] + ".dll");
+                }
+
                 t = a.GetType(typeName);
                 mi = t.GetTypeInfo().GetDeclaredMethod(methodName);
                 if (!mi.IsStatic)

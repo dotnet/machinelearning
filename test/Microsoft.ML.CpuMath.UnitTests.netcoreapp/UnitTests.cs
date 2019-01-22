@@ -21,8 +21,13 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private static readonly FloatEqualityComparer _comparer;
         private static readonly FloatEqualityComparerForMatMul _matMulComparer;
         private static readonly string defaultMode = "defaultMode";
+#if NETCOREAPP3_0
+        private static Dictionary<string, string> DisableAvxEnvironmentVariables;
+        private static Dictionary<string, string> DisableAvxAndSseEnvironmentVariables;
         private static readonly string disableAvx = "COMPlus_EnableAvx";
+        private static readonly string disableSse = "COMPlus_EnableSse";
         private static readonly string disableAvxAndSse = "COMPlus_EnableHWIntrinsic";
+#endif
 
         static CpuMathUtilsUnitTests()
         {
@@ -79,11 +84,24 @@ namespace Microsoft.ML.CpuMath.UnitTests
             testDstVectorAligned2.CopyFrom(testDstVector2);
 
             _testDstVectors = new AlignedArray[] { testDstVectorAligned1, testDstVectorAligned2 };
+
+#if NETCOREAPP3_0
+            DisableAvxEnvironmentVariables = new Dictionary<string, string>()
+            {
+                { disableAvx , "0" }
+            };
+
+            DisableAvxAndSseEnvironmentVariables = new Dictionary<string, string>()
+            {
+                { disableAvx , "0" },
+                { disableSse , "0" }
+            };
+#endif
         }
 
         private static void CheckProperFlag(string mode)
         {
-#if NETCOREAPP30
+#if NETCOREAPP3_0
             if (mode == defaultMode)
             {
                 Assert.True(System.Runtime.Intrinsics.X86.Avx.IsSupported);
@@ -96,67 +114,72 @@ namespace Microsoft.ML.CpuMath.UnitTests
             }
             else if (mode == disableAvxAndSse)
             {
-                Assert.True(System.Runtime.Intrinsics.X86.Avx.IsSupported);
-                Assert.True(System.Runtime.Intrinsics.X86.Sse.IsSupported);
+                Assert.False(System.Runtime.Intrinsics.X86.Avx.IsSupported);
+                Assert.False(System.Runtime.Intrinsics.X86.Sse.IsSupported);
             }
 #endif
         }
 
-        public static TheoryData<string, string> AddData() => new TheoryData<string, string>()
+        public static TheoryData<string, string, Dictionary<string, string>> AddData() => new TheoryData<string, string, Dictionary<string, string>>()
         {
-            { "0", defaultMode },
-            { "0", disableAvx },
-            { "0", disableAvxAndSse },
+            { "0", defaultMode, null },
+            { "1", defaultMode, null },
 
-            {"1", defaultMode},
-            {"1", disableAvx},
-            {"1", disableAvxAndSse},
+#if NETCOREAPP3_0
+            { "0", disableAvx, DisableAvxEnvironmentVariables },
+            { "1", disableAvx, DisableAvxEnvironmentVariables },
+
+            { "0", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+            { "1", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+#endif
         };
 
-        public static TheoryData<string, string, string> AddScaleData() => new TheoryData<string, string, string>()
+        public static TheoryData<string, string, string, Dictionary<string, string>> AddScaleData() => new TheoryData<string, string, string, Dictionary<string, string>>()
         {
-            { "0", "1.7", defaultMode },
-            { "0", "1.7", disableAvx },
-            { "0", "1.7", disableAvxAndSse },
+            { "0", "1.7", defaultMode, null },
+            { "1", "1.7", defaultMode, null },
+            { "0", "-1.7", defaultMode, null },
+            { "1", "-1.7", defaultMode, null },
 
-            {"1", "1.7", defaultMode},
-            {"1", "1.7", disableAvx},
-            {"1", "1.7", disableAvxAndSse},
+#if NETCOREAPP3_0
+            { "0", "1.7", disableAvx, DisableAvxEnvironmentVariables },
+            { "1", "1.7", disableAvx, DisableAvxEnvironmentVariables },
+            { "0", "-1.7", disableAvx, DisableAvxEnvironmentVariables },
+            { "1", "-1.7", disableAvx, DisableAvxEnvironmentVariables },
 
-            { "0", "-1.7", defaultMode},
-            { "0", "-1.7", disableAvx},
-            { "0", "-1.7", disableAvxAndSse},
-
-            {"1", "-1.7", defaultMode},
-            {"1", "-1.7", disableAvx},
-            {"1", "-1.7", disableAvxAndSse},
+            { "0", "1.7", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+            { "1", "1.7", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+            { "0", "-1.7", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+            { "1", "-1.7", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+#endif
         };
 
-        public static TheoryData<string, string, string, string> MatMulData => new TheoryData<string, string, string, string>()
+        public static TheoryData<string, string, string, string, Dictionary<string, string>> MatMulData => new TheoryData<string, string, string, string, Dictionary<string, string>>()
         {
-            {"0", "0", "0", defaultMode},
-            {"1", "1", "0", defaultMode},
-            {"1", "0", "1", defaultMode},
+            {"0", "0", "0", defaultMode, null },
+            {"1", "1", "0", defaultMode, null },
+            {"1", "0", "1", defaultMode, null },
+#if NETCOREAPP3_0
+            {"0", "0", "0", disableAvx, DisableAvxEnvironmentVariables },
+            {"1", "1", "0", disableAvx, DisableAvxEnvironmentVariables },
+            {"1", "0", "1", disableAvx, DisableAvxEnvironmentVariables },
 
-            {"0", "0", "0", disableAvx},
-            {"1", "1", "0", disableAvx},
-            {"1", "0", "1", disableAvx},
-
-            {"0", "0", "0", disableAvxAndSse},
-            {"1", "1", "0", disableAvxAndSse},
-            {"1", "0", "1", disableAvxAndSse},
+            {"0", "0", "0", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+            {"1", "1", "0", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+            {"1", "0", "1", disableAvxAndSse, DisableAvxAndSseEnvironmentVariables },
+#endif
         };
 
         [Theory]
         [MemberData(nameof(MatMulData))]
-        public void MatMulTest(string matTest, string srcTest, string dstTest, string mode)
+        public void MatMulTest(string matTest, string srcTest, string dstTest, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2, arg3) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2, arg3) =>
             {
                 CheckProperFlag(arg0);
-                AlignedArray mat = _testMatrices[Int32.Parse(arg1)];
-                AlignedArray src = _testSrcVectors[Int32.Parse(arg2)];
-                AlignedArray dst = _testDstVectors[Int32.Parse(arg3)];
+                AlignedArray mat = _testMatrices[int.Parse(arg1)];
+                AlignedArray src = _testSrcVectors[int.Parse(arg2)];
+                AlignedArray dst = _testDstVectors[int.Parse(arg3)];
 
                 float[] expected = new float[dst.Size];
                 for (int i = 0; i < dst.Size; i++)
@@ -173,20 +196,20 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 float[] actual = new float[dst.Size];
                 dst.CopyTo(actual, 0, dst.Size);
                 Assert.Equal(expected, actual, _matMulComparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, matTest, srcTest, dstTest, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, matTest, srcTest, dstTest, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(MatMulData))]
-        public void MatMulTranTest(string matTest, string srcTest, string dstTest, string mode)
+        public void MatMulTranTest(string matTest, string srcTest, string dstTest, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2, arg3) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2, arg3) =>
             {
                 CheckProperFlag(arg0);
-                AlignedArray mat = _testMatrices[Int32.Parse(arg1)];
-                AlignedArray src = _testSrcVectors[Int32.Parse(arg2)];
-                AlignedArray dst = _testDstVectors[Int32.Parse(arg3)];
+                AlignedArray mat = _testMatrices[int.Parse(arg1)];
+                AlignedArray src = _testSrcVectors[int.Parse(arg2)];
+                AlignedArray dst = _testDstVectors[int.Parse(arg3)];
 
                 float[] expected = new float[dst.Size];
                 for (int i = 0; i < dst.Size; i++)
@@ -203,24 +226,24 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 float[] actual = new float[dst.Size];
                 dst.CopyTo(actual, 0, dst.Size);
                 Assert.Equal(expected, actual, _matMulComparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, matTest, srcTest, dstTest, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, matTest, srcTest, dstTest, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(MatMulData))]
-        public void MatTimesSrcSparseTest(string matTest, string srcTest, string dstTest, string mode)
+        public void MatTimesSrcSparseTest(string matTest, string srcTest, string dstTest, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2, arg3) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2, arg3) =>
             {
                 CheckProperFlag(arg0);
-                AlignedArray mat = _testMatrices[Int32.Parse(arg1)];
-                AlignedArray src = _testSrcVectors[Int32.Parse(arg2)];
-                AlignedArray dst = _testDstVectors[Int32.Parse(arg3)];
+                AlignedArray mat = _testMatrices[int.Parse(arg1)];
+                AlignedArray src = _testSrcVectors[int.Parse(arg2)];
+                AlignedArray dst = _testDstVectors[int.Parse(arg3)];
                 int[] idx = _testIndexArray;
 
                 float[] expected = new float[dst.Size];
-                int limit = (Int32.Parse(arg2) == 0) ? 4 : 9;
+                int limit = (int.Parse(arg2) == 0) ? 4 : 9;
                 for (int i = 0; i < dst.Size; i++)
                 {
                     float dotProduct = 0;
@@ -236,20 +259,20 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 float[] actual = new float[dst.Size];
                 dst.CopyTo(actual, 0, dst.Size);
                 Assert.Equal(expected, actual, _matMulComparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
+                return RemoteExecutor.SuccessExitCode;
 
-            }, mode, matTest, srcTest, dstTest, new RemoteInvokeOptions() { mode = mode }).Dispose();
+            }, mode, matTest, srcTest, dstTest, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void AddScalarUTest(string test, string scale, string mode)
+        public void AddScalarUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] dst = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] dst = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] expected = (float[])dst.Clone();
 
                 for (int i = 0; i < expected.Length; i++)
@@ -260,19 +283,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.Add(defaultScale, dst);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void ScaleTest(string test, string scale, string mode)
+        public void ScaleTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] dst = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] dst = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] expected = (float[])dst.Clone();
 
                 for (int i = 0; i < expected.Length; i++)
@@ -283,19 +306,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.Scale(defaultScale, dst);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void ScaleSrcUTest(string test, string scale, string mode)
+        public void ScaleSrcUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] expected = (float[])dst.Clone();
 
@@ -307,19 +330,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.Scale(defaultScale, src, dst, dst.Length);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void ScaleAddUTest(string test, string scale, string mode)
+        public void ScaleAddUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] dst = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] dst = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] expected = (float[])dst.Clone();
 
                 for (int i = 0; i < expected.Length; i++)
@@ -330,20 +353,20 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.ScaleAdd(defaultScale, defaultScale, dst);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
 
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void AddScaleUTest(string test, string scale, string mode)
+        public void AddScaleUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] expected = (float[])dst.Clone();
 
@@ -355,19 +378,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.AddScale(defaultScale, src, dst, dst.Length);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void AddScaleSUTest(string test, string scale, string mode)
+        public void AddScaleSUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 int[] idx = _testIndexArray;
                 float[] expected = (float[])dst.Clone();
@@ -380,19 +403,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 Assert.Equal(expected, dst, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void AddScaleCopyUTest(string test, string scale, string mode)
+        public void AddScaleCopyUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] result = (float[])dst.Clone();
                 float[] expected = (float[])dst.Clone();
@@ -405,18 +428,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.AddScaleCopy(defaultScale, src, dst, result, dst.Length);
                 var actual = result;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode}).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void AddUTest(string test, string mode)
+        public void AddUTest(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) => 
+            RemoteExecutor.RemoteInvoke((arg0, arg1) => 
             {
                 CheckProperFlag(arg0);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 float[] expected = (float[])src.Clone();
 
@@ -434,18 +457,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.Add(src, dst, dst.Length);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions { mode = mode}).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, new RemoteInvokeOptions (environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void AddSUTest(string test, string mode)
+        public void AddSUTest(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg0);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 int[] idx = _testIndexArray;
                 float[] expected = (float[])dst.Clone();
@@ -463,18 +486,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.Add(src, idx, dst, idx.Length);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void MulElementWiseUTest(string test, string mode)
+        public void MulElementWiseUTest(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg1);
-                float[] src1 = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src1 = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] src2 = (float[])src1.Clone();
                 float[] dst = (float[])src1.Clone();
 
@@ -494,18 +517,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.MulElementWise(src1, src2, dst, dst.Length);
                 var actual = dst;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode; 
-            }, mode, test, new RemoteInvokeOptions() { mode = mode}).Dispose();
+                return RemoteExecutor.SuccessExitCode; 
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void SumTest(string test, string mode)
+        public void SumTest(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg0);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float expected = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
@@ -514,18 +537,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
                 var actual = CpuMathUtils.Sum(src);
                 Assert.Equal(expected, actual, 2);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void SumSqUTest(string test, string mode)
+        public void SumSqUTest(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg0);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float expected = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
@@ -534,19 +557,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
                 var actual = CpuMathUtils.SumSq(src);
                 Assert.Equal(expected, actual, 2);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void SumSqDiffUTest(string test, string scale, string mode)
+        public void SumSqDiffUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.SumSq(defaultScale, src);
 
                 float expected = 0;
@@ -556,18 +579,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 Assert.Equal(expected, actual, 2);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void SumAbsUTest(string test, string mode)
+        public void SumAbsUTest(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg0);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float expected = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
@@ -576,19 +599,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
                 var actual = CpuMathUtils.SumAbs(src);
                 Assert.Equal(expected, actual, 2);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void SumAbsDiffUTest(string test, string scale, string mode)
+        public void SumAbsDiffUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.SumAbs(defaultScale, src);
 
                 float expected = 0;
@@ -598,18 +621,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 Assert.Equal(expected, actual, 2);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void MaxAbsUTest(string test, string mode)
+        public void MaxAbsUTest(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg0);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.MaxAbs(src);
 
                 float expected = 0;
@@ -623,19 +646,19 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 }
 
                 Assert.Equal(expected, actual, 2);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void MaxAbsDiffUTest(string test, string scale, string mode)
+        public void MaxAbsDiffUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 var actual = CpuMathUtils.MaxAbsDiff(defaultScale, src);
 
                 float expected = 0;
@@ -648,18 +671,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
                     }
                 }
                 Assert.Equal(expected, actual, 2);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void DotUTest(string test, string mode)
+        public void DotUTest(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg0);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
 
                 for (int i = 0; i < dst.Length; i++)
@@ -675,18 +698,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
                 var actual = CpuMathUtils.DotProductDense(src, dst, dst.Length);
                 Assert.Equal(expected, actual, 1);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void DotSUTest(string test, string mode)
+        public void DotSUTest(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg0);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
                 int[] idx = _testIndexArray;
 
@@ -705,18 +728,18 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
                 var actual = CpuMathUtils.DotProductSparse(src, dst, idx, idx.Length);
                 Assert.Equal(expected, actual, 2);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
         [MemberData(nameof(AddData))]
-        public void Dist2Test(string test, string mode)
+        public void Dist2Test(string test, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1) =>
             {
                 CheckProperFlag(arg0);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] dst = (float[])src.Clone();
 
                 // Ensures src and dst are different arrays
@@ -734,8 +757,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
                 var actual = CpuMathUtils.L2DistSquared(src, dst, dst.Length);
                 Assert.Equal(expected, actual, 0);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, new RemoteInvokeOptions(environmentVariables));
         }
 
         [Theory]
@@ -768,13 +791,13 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void SdcaL1UpdateUTest(string test, string scale, string mode)
+        public void SdcaL1UpdateUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] v = (float[])src.Clone();
                 float[] w = (float[])src.Clone();
                 float[] expected = (float[])w.Clone();
@@ -788,20 +811,20 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.SdcaL1UpdateDense(defaultScale, src.Length, src, defaultScale, v, w);
                 var actual = w;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
 
 
         [Theory]
         [MemberData(nameof(AddScaleData))]
-        public void SdcaL1UpdateSUTest(string test, string scale, string mode)
+        public void SdcaL1UpdateSUTest(string test, string scale, string mode, Dictionary<string, string> environmentVariables)
         {
-            RemoteExecutorTestBase.RemoteInvoke((arg0, arg1, arg2) =>
+            RemoteExecutor.RemoteInvoke((arg0, arg1, arg2) =>
             {
                 CheckProperFlag(arg0);
                 float defaultScale = float.Parse(arg2);
-                float[] src = (float[])_testArrays[Int32.Parse(arg1)].Clone();
+                float[] src = (float[])_testArrays[int.Parse(arg1)].Clone();
                 float[] v = (float[])src.Clone();
                 float[] w = (float[])src.Clone();
                 int[] idx = _testIndexArray;
@@ -817,8 +840,8 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 CpuMathUtils.SdcaL1UpdateSparse(defaultScale, idx.Length, src, idx, defaultScale, v, w);
                 var actual = w;
                 Assert.Equal(expected, actual, _comparer);
-                return RemoteExecutorTestBase.SuccessExitCode;
-            }, mode, test, scale, new RemoteInvokeOptions() { mode = mode }).Dispose();
+                return RemoteExecutor.SuccessExitCode;
+            }, mode, test, scale, new RemoteInvokeOptions(environmentVariables));
         }
     }
 

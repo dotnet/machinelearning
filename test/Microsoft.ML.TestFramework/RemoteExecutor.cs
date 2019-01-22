@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -14,18 +15,16 @@ using Xunit.Sdk;
 namespace Microsoft.ML.TestFramework
 {
     /// <summary>Base class used for all tests that need to spawn a remote process.</summary>
-    public abstract partial class RemoteExecutorTestBase
+    public static class RemoteExecutor
     {
         /// <summary>The name of the test console app.</summary>
-        protected static readonly string TestConsoleApp = Path.GetFullPath(@"RemoteExecutorConsoleApp.dll");
-#if NET461
-        protected static readonly string HostRunnerName = "xunit.console.exe";
-        protected static readonly string HostRunner = TestConsoleApp;
+        public static readonly string TestConsoleApp = Path.GetFullPath(@"RemoteExecutorConsoleApp.dll");
+#if NETFRAMEWORK
+        public static readonly string HostRunner = TestConsoleApp;
 
         private static readonly string ExtraParameter = "";
 #else
-        protected static readonly string HostRunnerName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "dotnet.exe" : "dotnet";
-        protected static readonly string HostRunner = Process.GetCurrentProcess().MainModule.FileName;
+        public static readonly string HostRunner = Process.GetCurrentProcess().MainModule.FileName;
         private static readonly string ExtraParameter = TestConsoleApp;
 #endif
         /// <summary>A timeout (milliseconds) after which a wait on a remote operation should be considered a failure.</summary>
@@ -39,12 +38,12 @@ namespace Microsoft.ML.TestFramework
         /// <param name="arg1">The first argument to pass to the method.</param>
         /// <param name="arg2">The second argument to pass to the method.</param>
         /// <param name="options">Options to use for the invocation.</param>
-        public static RemoteInvokeHandle RemoteInvoke(
+        public static void RemoteInvoke(
             Func<string, string, int> method,
             string arg1, string arg2,
             RemoteInvokeOptions options = null)
         {
-            return RemoteInvoke(GetMethodInfo(method), new[] { arg1, arg2 }, options);
+            RemoteInvoke(GetMethodInfo(method), new[] { arg1, arg2 }, options);
         }
 
         /// <summary>Invokes the method from this assembly in another process using the specified arguments.</summary>
@@ -53,12 +52,12 @@ namespace Microsoft.ML.TestFramework
         /// <param name="arg2">The second argument to pass to the method.</param>
         /// <param name="arg3">The third argument to pass to the method.</param>
         /// <param name="options">Options to use for the invocation.</param>
-        public static RemoteInvokeHandle RemoteInvoke(
+        public static void RemoteInvoke(
             Func<string, string, string, int> method,
             string arg1, string arg2, string arg3,
             RemoteInvokeOptions options = null)
         {
-            return RemoteInvoke(GetMethodInfo(method), new[] { arg1, arg2, arg3 }, options);
+            RemoteInvoke(GetMethodInfo(method), new[] { arg1, arg2, arg3 }, options);
         }
 
         /// <summary>Invokes the method from this assembly in another process using the specified arguments.</summary>
@@ -68,12 +67,12 @@ namespace Microsoft.ML.TestFramework
         /// <param name="arg3">The third argument to pass to the method.</param>
         /// <param name="arg4">The fourth argument to pass to the method.</param>
         /// <param name="options">Options to use for the invocation.</param>
-        public static RemoteInvokeHandle RemoteInvoke(
+        public static void RemoteInvoke(
             Func<string, string, string, string, int> method,
             string arg1, string arg2, string arg3, string arg4,
             RemoteInvokeOptions options = null)
         {
-            return RemoteInvoke(GetMethodInfo(method), new[] { arg1, arg2, arg3, arg4 }, options);
+            RemoteInvoke(GetMethodInfo(method), new[] { arg1, arg2, arg3, arg4 }, options);
         }
 
         /// <summary>Invokes the method from this assembly in another process using the specified arguments.</summary>
@@ -81,7 +80,7 @@ namespace Microsoft.ML.TestFramework
         /// <param name="args">The arguments to pass to the method.</param>
         /// <param name="options">Options to use for the invocation.</param>
         /// <param name="pasteArguments">true if this function should paste the arguments (e.g. surrounding with quotes); false if that responsibility is left up to the caller.</param>
-        private static RemoteInvokeHandle RemoteInvoke(MethodInfo method, string[] args, RemoteInvokeOptions options, bool pasteArguments = true)
+        private static void RemoteInvoke(MethodInfo method, string[] args, RemoteInvokeOptions options, bool pasteArguments = true)
         {
             options = options ?? new RemoteInvokeOptions();
 
@@ -98,8 +97,6 @@ namespace Microsoft.ML.TestFramework
             // Start the other process and return a wrapper for it to handle its lifetime and exit checking.
             ProcessStartInfo psi = options.StartInfo;
             psi.UseShellExecute = false;
-            if (options.mode != "defaultMode")
-                psi.EnvironmentVariables.Add(options.mode, "0");
 
             // If we need the host (if it exists), use it, otherwise target the console app directly.
             string metadataArgs = PasteArguments.Paste(new string[] { a.FullName, t.FullName, method.Name, options.ExceptionFile }, pasteFirstArgumentUsingArgV0Rules: false);
@@ -110,11 +107,53 @@ namespace Microsoft.ML.TestFramework
             psi.Arguments = testConsoleAppArgs;
 
             // Return the handle to the process, which may or not be started
-            return new RemoteInvokeHandle(options.Start ?
-                Process.Start(psi) :
-                new Process() { StartInfo = psi }, options,
-                a.FullName, t.FullName, method.Name
-                );
+            CheckProcess(Process.Start(psi), options);
+        }
+
+        private static void CheckProcess(Process process, RemoteInvokeOptions Options)
+        {
+            if (process != null)
+            {
+                // A bit unorthodox to do throwing operations in a Dispose, but by doing it here we avoid
+                // needing to do this in every derived test and keep each test much simpler.
+                try
+                {
+                    Assert.True(process.WaitForExit(Options.TimeOut),
+                        $"Timed out after {Options.TimeOut}ms waiting for remote process {process.Id}");
+
+                    if (File.Exists(Options.ExceptionFile))
+                    {
+                        throw new RemoteExecutionException(File.ReadAllText(Options.ExceptionFile));
+                    }
+
+                    if (Options.CheckExitCode)
+                    {
+                        int expected = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Options.ExpectedExitCode : unchecked((sbyte)Options.ExpectedExitCode);
+                        int actual = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? process.ExitCode : unchecked((sbyte)process.ExitCode);
+
+                        Assert.True(expected == actual, $"Exit code was {process.ExitCode} but it should have been {Options.ExpectedExitCode}");
+                    }
+                }
+                finally
+                {
+                    if (File.Exists(Options.ExceptionFile))
+                    {
+                        File.Delete(Options.ExceptionFile);
+                    }
+
+                    // Cleanup
+                    try { process.Kill(); }
+                    catch { } // ignore all cleanup errors
+
+                    process.Dispose();
+                    process = null;
+                }
+            }
+        }
+
+        private sealed class RemoteExecutionException : XunitException
+        {
+            internal RemoteExecutionException(string stackTrace) : base("Remote process failed with an unhandled exception.", stackTrace) { }
         }
 
         private static MethodInfo GetMethodInfo(Delegate d)
@@ -138,106 +177,26 @@ namespace Microsoft.ML.TestFramework
 
             return d.GetMethodInfo();
         }
-
-        /// <summary>A cleanup handle to the Process created for the remote invocation.</summary>
-        public sealed class RemoteInvokeHandle : IDisposable
-        {
-            public RemoteInvokeHandle(Process process, RemoteInvokeOptions options, string assemblyName = null, string className = null, string methodName = null)
-            {
-                Process = process;
-                Options = options;
-                AssemblyName = assemblyName;
-                ClassName = className;
-                MethodName = methodName;
-            }
-
-            public int ExitCode
-            {
-                get
-                {
-                    Process.WaitForExit();
-                    return Process.ExitCode;
-                }
-            }
-
-            public Process Process { get; set; }
-            public RemoteInvokeOptions Options { get; private set; }
-            public string AssemblyName { get; private set; }
-            public string ClassName { get; private set; }
-            public string MethodName { get; private set; }
-
-            public void Dispose()
-            {
-                GC.SuppressFinalize(this); // before Dispose(true) in case the Dispose call throws
-                Dispose(disposing: true);
-            }
-
-            private void Dispose(bool disposing)
-            {
-                Assert.True(disposing, $"A test {AssemblyName}!{ClassName}.{MethodName} forgot to Dispose() the result of RemoteInvoke()");
-
-                if (Process != null)
-                {
-                    // A bit unorthodox to do throwing operations in a Dispose, but by doing it here we avoid
-                    // needing to do this in every derived test and keep each test much simpler.
-                    try
-                    {
-                        Assert.True(Process.WaitForExit(Options.TimeOut),
-                            $"Timed out after {Options.TimeOut}ms waiting for remote process {Process.Id}");
-
-                        if (File.Exists(Options.ExceptionFile))
-                        {
-                            throw new RemoteExecutionException(File.ReadAllText(Options.ExceptionFile));
-                        }
-
-                        if (Options.CheckExitCode)
-                        {
-                            int expected = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Options.ExpectedExitCode : unchecked((sbyte)Options.ExpectedExitCode);
-                            int actual = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Process.ExitCode : unchecked((sbyte)Process.ExitCode);
-
-                            Assert.True(expected == actual, $"Exit code was {Process.ExitCode} but it should have been {Options.ExpectedExitCode}");
-                        }
-                    }
-                    finally
-                    {
-                        if (File.Exists(Options.ExceptionFile))
-                        {
-                            File.Delete(Options.ExceptionFile);
-                        }
-
-                        // Cleanup
-                        try { Process.Kill(); }
-                        catch { } // ignore all cleanup errors
-
-                        Process.Dispose();
-                        Process = null;
-                    }
-                }
-            }
-
-            ~RemoteInvokeHandle()
-            {
-                // Finalizer flags tests that omitted the explicit Dispose() call; they must have it, or they aren't
-                // waiting on the remote execution
-                Dispose(disposing: false);
-            }
-
-            private sealed class RemoteExecutionException : XunitException
-            {
-                internal RemoteExecutionException(string stackTrace) : base("Remote process failed with an unhandled exception.", stackTrace) { }
-            }
-        }
     }
 
     /// <summary>Options used with RemoteInvoke.</summary>
     public sealed class RemoteInvokeOptions
     {
-        public bool Start { get; set; } = true;
+        public RemoteInvokeOptions(Dictionary<string, string> environmentVariables = null)
+        {
+            if (environmentVariables != null)
+            {
+                foreach (var item in environmentVariables)
+                {
+                    StartInfo.EnvironmentVariables.Add(item.Key, item.Value);
+                }
+            }
+        }
+
         public ProcessStartInfo StartInfo { get; set; } = new ProcessStartInfo();
         public bool CheckExitCode { get; set; } = true;
-        public string mode { get; set; }
-        public int TimeOut { get; set; } = RemoteExecutorTestBase.FailWaitTimeoutMilliseconds;
-        public int ExpectedExitCode { get; set; } = RemoteExecutorTestBase.SuccessExitCode;
+        public int TimeOut { get; set; } = RemoteExecutor.FailWaitTimeoutMilliseconds;
+        public int ExpectedExitCode { get; set; } = RemoteExecutor.SuccessExitCode;
         public string ExceptionFile { get; } = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
     }
 }

@@ -4,11 +4,4 @@
     <OutputType>Exe</OutputType>
     <StartupObject>RemoteExecutorConsoleApp.Program</StartupObject>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="RemoteExecutorConsoleApp.runtimeconfig.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
 </Project>
