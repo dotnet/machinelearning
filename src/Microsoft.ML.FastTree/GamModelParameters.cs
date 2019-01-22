@@ -89,6 +89,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 // Check data validity
                 Host.CheckValue(binEffects[i], nameof(binEffects), "Array contained null entries");
                 Host.CheckParam(binUpperBounds[i].Length == binEffects[i].Length, nameof(binEffects), "Array contained wrong number of effect values");
+                Host.CheckParam(Utils.IsSorted(binUpperBounds[i]), nameof(binUpperBounds), "Array must be monotonically increasing");
 
                 // Update the value at zero
                 _valueAtAllZero += GetBinEffect(i, 0, out _binsAtAllZero[i]);
@@ -282,22 +283,16 @@ namespace Microsoft.ML.Trainers.FastTree
         /// Get the bin upper bounds for each feature.
         /// </summary>
         /// <param name="featureIndex">The index of the feature (in the training vector) to get.</param>
-        /// <returns>The bin upper bounds. May be null if this feature has no bins.</returns>
+        /// <returns>The bin upper bounds. May be zero length if this feature has no bins.</returns>
         public double[] GetBinUpperBounds(int featureIndex)
         {
             Host.Check(0 <= featureIndex && featureIndex < NumShapeFunctions, "Index out of range.");
-            double[] featureBins;
-            if (_inputFeatureToShapeFunctionMap.TryGetValue(featureIndex, out int j))
-            {
-                featureBins = new double[_binUpperBounds[j].Length];
-                _binUpperBounds[j].CopyTo(featureBins, 0);
-            }
-            else
-            {
-                featureBins = new double[0];
-            }
+            if (!_inputFeatureToShapeFunctionMap.TryGetValue(featureIndex, out int j))
+                return new double[0];
 
-            return featureBins;
+            var binUpperBounds = new double[_binUpperBounds[j].Length];
+            _binUpperBounds[j].CopyTo(binUpperBounds, 0);
+            return binUpperBounds;
         }
 
         /// <summary>
@@ -305,47 +300,57 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public double[][] GetBinUpperBounds()
         {
-            double[][] featureBins = new double[_binUpperBounds.Length][];
-            for (int i = 0; i < featureBins.Length; i++)
+            double[][] binUpperBounds = new double[NumShapeFunctions][];
+            for (int i = 0; i < NumShapeFunctions; i++)
             {
-                featureBins[i] = GetBinUpperBounds(i);
+                if (_inputFeatureToShapeFunctionMap.TryGetValue(i, out int j))
+                {
+                    binUpperBounds[i] = new double[_binUpperBounds[j].Length];
+                    _binUpperBounds[j].CopyTo(binUpperBounds[i], 0);
+                }
+                else
+                {
+                    binUpperBounds[i] = new double[0];
+                }
             }
-            return featureBins;
+            return binUpperBounds;
         }
 
         /// <summary>
         /// Get the binned weights for each feature.
         /// </summary>
         /// <param name="featureIndex">The index of the feature (in the training vector) to get.</param>
-        /// <returns>The binned weights for each feature.</returns>
+        /// <returns>The binned effects for each feature. May be zero length if this feature has no bins.</returns>
         public double[] GetBinEffects(int featureIndex)
         {
             Host.Check(0 <= featureIndex && featureIndex < NumShapeFunctions, "Index out of range.");
-            double[] featureWeights;
-            if (_inputFeatureToShapeFunctionMap.TryGetValue(featureIndex, out int j))
-            {
-                featureWeights = new double[_binEffects[j].Length];
-                _binEffects[j].CopyTo(featureWeights, 0);
-            }
-            else
-            {
-                featureWeights = new double[0];
-            }
+            if (!_inputFeatureToShapeFunctionMap.TryGetValue(featureIndex, out int j))
+                return new double[0];
 
-            return featureWeights;
+            var binEffects = new double[_binEffects[j].Length];
+            _binEffects[j].CopyTo(binEffects, 0);
+            return binEffects;
         }
 
         /// <summary>
-        /// Get all the binned weights.
+        /// Get all the binned effects.
         /// </summary>
         public double[][] GetBinEffects()
         {
-            double[][] featureWeights = new double[_binEffects.Length][];
-            for (int i = 0; i < featureWeights.Length; i++)
+            double[][] binEffects = new double[NumShapeFunctions][];
+            for (int i = 0; i < NumShapeFunctions; i++)
             {
-                featureWeights[i] = GetBinEffects(i);
+                if (_inputFeatureToShapeFunctionMap.TryGetValue(i, out int j))
+                {
+                    binEffects[i] = new double[_binEffects[j].Length];
+                    _binEffects[j].CopyTo(binEffects[i], 0);
+                }
+                else
+                {
+                    binEffects[i] = new double[0];
+                }
             }
-            return featureWeights;
+            return binEffects;
         }
 
         void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)

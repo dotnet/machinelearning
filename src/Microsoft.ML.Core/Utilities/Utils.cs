@@ -615,6 +615,11 @@ namespace Microsoft.ML.Internal.Utilities
             return Regex.Replace(value, "[^A-Za-z0-9]", "");
         }
 
+        /// <summary>
+        /// Checks that an input array is monotonically increasing
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing; false otherwise.</returns>
         public static bool IsSorted(IList<float> values)
         {
             if (Utils.Size(values) <= 1)
@@ -633,7 +638,35 @@ namespace Microsoft.ML.Internal.Utilities
             return true;
         }
 
+        /// <summary>
+        /// Checks that an input array is monotonically increasing
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing; false otherwise.</returns>
         public static bool IsSorted(int[] values)
+        {
+            if (Utils.Size(values) <= 1)
+                return true;
+
+            var prev = values[0];
+
+            for (int i = 1; i < values.Length; i++)
+            {
+                if (values[i] < prev)
+                    return false;
+
+                prev = values[i];
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks that an input array is monotonically increasing
+        /// </summary>
+        /// <param name="values">An array of values</param>
+        /// <returns>True if the array is monotonically increasing; false otherwise.</returns>
+        public static bool IsSorted(double[] values)
         {
             if (Utils.Size(values) <= 1)
                 return true;

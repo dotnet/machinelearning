@@ -21,13 +21,17 @@ namespace Microsoft.ML.RunTests
 
             double intercept = 1;
 
-            var binUpperBounds = new double[2][];
-            binUpperBounds[0] = new double[] { 1, 2, 3 };
-            binUpperBounds[1] = new double[] { 4, 5, 6 };
+            var binUpperBounds = new double[2][]
+            {
+                new double[] { 1, 2, 3 },
+                new double[] { 4, 5, 6 }
+            };
 
-            var binEffects = new double[2][];
-            binEffects[0] = new double[] { 0, 1, 2 };
-            binEffects[1] = new double[] { 2, 1, 0 };
+            var binEffects = new double[2][]
+            {
+                new double[] { 0, 1, 2 },
+                new double[] { 2, 1, 0 }
+            };
 
             var gam = new RegressionGamModelParameters(mlContext, binUpperBounds, binEffects, intercept);
 
@@ -47,14 +51,38 @@ namespace Microsoft.ML.RunTests
             for (int i = 0; i < gam.NumShapeFunctions; i++)
                 CheckArrayEquality(binEffects[i], gam.GetBinEffects(i));
 
-            // Check that the constructor handles bad input properly
+            // Check that the constructor handles null inputs properly
             Assert.Throws<System.ArgumentNullException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, null, intercept));
             Assert.Throws<System.ArgumentNullException>(() => new RegressionGamModelParameters(mlContext, null, binEffects, intercept));
             Assert.Throws<System.ArgumentNullException>(() => new RegressionGamModelParameters(mlContext, null, null, intercept));
+
+            // Check that the constructor handles mismatches in length between bin upper bounds and bin effects
             var misMatchArray = new double[1][];
             misMatchArray[0] = new double[] { 0 };
             Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, misMatchArray, intercept));
             Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, misMatchArray, binEffects, intercept));
+
+            // Check that the constructor handles a mismatch in bin upper bounds and bin effects for a feature
+            var fewerBinEffects = new double[2][]
+            {
+                new double[] { 0, 1 },
+                new double[] { 2, 1, 0 }
+            };
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, fewerBinEffects, intercept));
+            var moreBinEffects = new double[2][]
+            {
+                new double[] { 0, 1, 2, 3 },
+                new double[] { 2, 1, 0 }
+            };
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, binUpperBounds, moreBinEffects, intercept));
+
+            // Check that the constructor handles bin upper bounds that are not sorted
+            var unsortedUpperBounds = new double[2][]
+            {
+                new double[] { 1, 3, 2 },
+                new double[] { 4, 5, 6 }
+            };
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new RegressionGamModelParameters(mlContext, unsortedUpperBounds, binEffects, intercept));
         }
 
         private void CheckArrayOfArrayEquality(double[][] array1, double[][] array2)
@@ -68,7 +96,7 @@ namespace Microsoft.ML.RunTests
         {
             Assert.Equal(array1.Length, array2.Length);
             for (int i = 0; i < array1.Length; i++)
-                Assert.Equal(array1[i], array2[i], 6);
+                Assert.Equal(array1[i], array2[i], precision: 6);
         }
     }
 }
