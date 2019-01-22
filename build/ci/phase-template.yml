@@ -4,6 +4,7 @@ parameters:
   buildScript: ''
   queue: {}
   customMatrixes: ''
+  codeCoverage: false
 
 phases:
   - phase: ${{ parameters.name }}
@@ -11,6 +12,7 @@ phases:
       _buildScript: ${{ parameters.buildScript }}
       _phaseName: ${{ parameters.name }}
       _arch: ${{ parameters.architecture }}
+      _codeCoverage: ${{ parameters.codeCoverage }}
     queue:
       timeoutInMinutes: 45
       parallel: 99
@@ -37,15 +39,15 @@ phases:
         displayName: Install runtime dependencies     
     - script: $(_buildScript) -$(_configuration) -runtests -coverage=true
       displayName: Run Tests with code coverage.
-      condition: and(eq(variables._phaseName, 'Windows_x64'), eq(variables._configuration, 'Debug'))
+      condition: eq(variables._codeCoverage, 'true')
     - script: $(_buildScript) -$(_configuration) -runtests
       displayName: Run Tests without code coverage.
-      condition: not(and(eq(variables._phaseName, 'Windows_x64'), eq(variables._configuration, 'Debug')))
-    - script: dotnet msbuild build/Codecov.proj /t:Codecov /p:UseCodecov=true
+      condition: eq(variables._codeCoverage, 'false')
+    - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet msbuild build/Codecov.proj /t:Codecov /p:UseCodecov=true
       env:
         CODECOV_TOKEN: $(CODECOV_TOKEN)
       displayName: Upload coverage to codecov.io
-      condition: and(eq(variables._phaseName, 'Windows_x64'), eq(variables._configuration, 'Debug'))
+      condition: eq(variables._codeCoverage, 'true')
     - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()
