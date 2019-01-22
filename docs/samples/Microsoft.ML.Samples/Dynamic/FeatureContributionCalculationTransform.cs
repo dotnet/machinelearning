@@ -3,9 +3,9 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class FeatureContributionCalculationTransform_RegressionExample
+    public class FeatureContributionCalculationTransformRegressionExample
     {
-        public static void FeatureContributionCalculationTransform_Regression()
+        public static void FeatureContributionCalculationTransformRegression()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a housing.txt file in the filesystem.

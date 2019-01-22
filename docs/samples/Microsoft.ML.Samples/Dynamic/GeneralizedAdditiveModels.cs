@@ -4,7 +4,7 @@ using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class GeneralizedAdditiveModels_RegressionExample
+    public class GeneralizedAdditiveModelsRegressionExample
     {
         public static void RunExample()
         {

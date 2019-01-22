@@ -33,8 +33,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var twoCharsPipeline = charsPipeline.Append(ngramTwpPipeline);
 
             // The transformed data for pipelines.
-            var transformedData_onechars = oneCharsPipeline.Fit(trainData).Transform(trainData);
-            var transformedData_twochars = twoCharsPipeline.Fit(trainData).Transform(trainData);
+            var transformedDataOnechars = oneCharsPipeline.Fit(trainData).Transform(trainData);
+            var transformedDataTwochars = twoCharsPipeline.Fit(trainData).Transform(trainData);
 
             // Small helper to print the text inside the columns, in the console. 
             Action<string, IEnumerable<VBuffer<float>>, VBuffer<ReadOnlyMemory<char>>> printHelper = (columnName, column, names) =>
@@ -52,8 +52,8 @@ namespace Microsoft.ML.Samples.Dynamic
            };
             // Preview of the CharsUnigrams column obtained after processing the input.
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            transformedData_onechars.Schema["CharsUnigrams"].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
-            var charsOneGramColumn = transformedData_onechars.GetColumn<VBuffer<float>>(ml, "CharsUnigrams");
+            transformedDataOnechars.Schema["CharsUnigrams"].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
+            var charsOneGramColumn = transformedDataOnechars.GetColumn<VBuffer<float>>(ml, "CharsUnigrams");
             printHelper("CharsUnigrams", charsOneGramColumn, slotNames);
 
             // CharsUnigrams column obtained post-transformation.
@@ -61,8 +61,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // 'e' - 1 '<?>' - 2 'd' - 1 '=' - 4 'R' - 1 'U' - 1 'D' - 2 'E' - 1 'u' - 1 ',' - 1 '2' - 1
             // 'B' - 0 'e' - 6 's' - 3 't' - 6 '<?>' - 9 'g' - 2 'a' - 2 'm' - 2 'I' - 0 ''' - 0 'v' - 0 ...
             // Preview of the CharsTwoGrams column obtained after processing the input.
-            var charsTwoGramColumn = transformedData_twochars.GetColumn<VBuffer<float>>(ml, "CharsTwograms");
-            transformedData_twochars.Schema["CharsTwograms"].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
+            var charsTwoGramColumn = transformedDataTwochars.GetColumn<VBuffer<float>>(ml, "CharsTwograms");
+            transformedDataTwochars.Schema["CharsTwograms"].Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref slotNames);
             printHelper("CharsTwograms", charsTwoGramColumn, slotNames);
 
             // CharsTwograms column obtained post-transformation.

@@ -10,10 +10,10 @@ namespace Microsoft.ML.Samples.Dynamic
         // The variable _synthesizedMatrixFirstRowIndex indicates the integer that would be mapped to the first row index. If user data uses
         // 0-based indices for rows, _synthesizedMatrixFirstRowIndex can be set to 0. Similarly, for 1-based indices, _synthesizedMatrixFirstRowIndex
         // could be 1.
-        const int _synthesizedMatrixFirstColumnIndex = 1;
-        const int _synthesizedMatrixFirstRowIndex = 1;
-        const int _synthesizedMatrixColumnCount = 60;
-        const int _synthesizedMatrixRowCount = 100;
+        const int SynthesizedMatrixFirstColumnIndex = 1;
+        const int SynthesizedMatrixFirstRowIndex = 1;
+        const int SynthesizedMatrixColumnCount = 60;
+        const int SynthesizedMatrixRowCount = 100;
 
         // A data structure used to encode a single value in matrix
         internal class MatrixElement
@@ -21,12 +21,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // Matrix column index starts from _synthesizedMatrixFirstColumnIndex and is at most
             // _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount - 1.
             // Contieuous=true means that all values between the min and max indexes are all allowed.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(Contiguous = true, Count = SynthesizedMatrixColumnCount, Min = SynthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from _synthesizedMatrixFirstRowIndex and is at most
             // _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount - 1.
             // Contieuous=true means that all values between the min and max indexes are all allowed.
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            [KeyType(Contiguous = true, Count = SynthesizedMatrixRowCount, Min = SynthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
             // The value at the column MatrixColumnIndex and row MatrixRowIndex.
             public float Value;
@@ -36,9 +36,9 @@ namespace Microsoft.ML.Samples.Dynamic
         // renamed to Score because Score is the default name of matrix factorization's output.
         internal class MatrixElementForScore
         {
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            [KeyType(Contiguous = true, Count = SynthesizedMatrixColumnCount, Min = SynthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
-            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            [KeyType(Contiguous = true, Count = SynthesizedMatrixRowCount, Min = SynthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
             public float Score;
         }
@@ -48,8 +48,8 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
             var dataMatrix = new List<MatrixElement>();
-            for (uint i = _synthesizedMatrixFirstColumnIndex; i < _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount; ++i)
-                for (uint j = _synthesizedMatrixFirstRowIndex; j < _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount; ++j)
+            for (uint i = SynthesizedMatrixFirstColumnIndex; i < SynthesizedMatrixFirstColumnIndex + SynthesizedMatrixColumnCount; ++i)
+                for (uint j = SynthesizedMatrixFirstRowIndex; j < SynthesizedMatrixFirstRowIndex + SynthesizedMatrixRowCount; ++j)
                     dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
