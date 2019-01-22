@@ -14,7 +14,7 @@ using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Training;
 
 [assembly: LoadableClass(RegressionGamTrainer.Summary,
-    typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Arguments),
+    typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Options),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     RegressionGamTrainer.UserNameValue,
     RegressionGamTrainer.LoadNameValue,
@@ -26,9 +26,9 @@ using Microsoft.ML.Training;
 
 namespace Microsoft.ML.Trainers.FastTree
 {
-    public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Arguments, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
+    public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Options, RegressionPredictionTransformer<RegressionGamModelParameters>, RegressionGamModelParameters>
     {
-        public partial class Arguments : ArgumentsBase
+        public partial class Options : ArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)", ShortName = "pmetric")]
             [TGUI(Description = "Metric for pruning. (For regression, 1: L1, 2:L2; default L2")]
@@ -41,8 +41,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        internal RegressionGamTrainer(IHostEnvironment env, Arguments args)
-             : base(env, args, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(args.LabelColumn)) { }
+        internal RegressionGamTrainer(IHostEnvironment env, Options options)
+             : base(env, options, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(options.LabelColumn)) { }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/>
@@ -54,16 +54,14 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="numIterations">The number of iterations to use in learning the features.</param>
         /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
         /// <param name="maxBins">The maximum number of bins to use to approximate features</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public RegressionGamTrainer(IHostEnvironment env,
+        internal RegressionGamTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             int numIterations = GamDefaults.NumIterations,
             double learningRate = GamDefaults.LearningRates,
-            int maxBins = GamDefaults.MaxBins,
-            Action<Arguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, numIterations, learningRate, maxBins, advancedSettings)
+            int maxBins = GamDefaults.MaxBins)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarColumn(labelColumn), featureColumn, weightColumn, numIterations, learningRate, maxBins)
         {
         }
 
