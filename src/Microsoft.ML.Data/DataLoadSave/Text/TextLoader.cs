@@ -1404,19 +1404,17 @@ namespace Microsoft.ML.Data
 
             public Schema Schema => _reader._bindings.OutputSchema;
 
-            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, predicate);
+                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.Create(_reader, _files, active);
             }
 
-            public RowCursor[] GetRowCursorSet(Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
             {
-                _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, predicate);
+                var active = Utils.BuildArray(_reader._bindings.OutputSchema.Count, columnsNeeded);
                 return Cursor.CreateSet(_reader, _files, active, n);
             }
 

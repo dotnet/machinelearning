@@ -51,9 +51,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var transformedData = dynamicPipeline.Fit(data).Transform(data);
 
             // 'transformedData' is a 'promise' of data. Let's actually read it.
-            var someRows = transformedData
+            var someRows = mlContext
                 // Convert to an enumerable of user-defined type. 
-                .AsEnumerable<InspectedRowWithAllFeatures>(mlContext, reuseRowObject: false)
+                .CreateEnumerable<InspectedRowWithAllFeatures>(transformedData, reuseRowObject: false)
                 // Take a couple values as an array.
                 .Take(4).ToArray();
 
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(new[] 
+            var reader = mlContext.Data.CreateTextLoader(new[] 
                 {
                     new TextLoader.Column("IsToxic", DataKind.BL, 0),
                     new TextLoader.Column("Message", DataKind.TX, 1),
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.CreateTextReader(new[] 
+            var reader = mlContext.Data.CreateTextLoader(new[] 
                 {
                     new TextLoader.Column("Label", DataKind.BL, 0),
                     // We will load all the categorical features into one vector column of size 8.

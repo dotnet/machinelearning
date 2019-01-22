@@ -179,7 +179,11 @@ namespace Microsoft.ML.Trainers.PCA
 
             var omega = GaussianMatrix(oversampledRank, dimension, _seed);
 
-            var cursorFactory = new FeatureFloatVectorCursor.Factory(data, CursOpt.Features | CursOpt.Weight);
+            CursOpt cursorOpt = CursOpt.Features;
+            if (data.Schema.Weight.HasValue)
+                cursorOpt |= CursOpt.Weight;
+
+            var cursorFactory = new FeatureFloatVectorCursor.Factory(data, cursorOpt);
             long numBad;
             Project(Host, cursorFactory, ref mean, omega, y, out numBad);
             if (numBad > 0)

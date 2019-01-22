@@ -391,7 +391,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(data, nameof(data));
             env.CheckValue(columns, nameof(columns));
 
-            bool[] activeInput = new bool[data.Schema.Count];
+            var activeCols = new List<Schema.Column>();
 
             var srcCols = new int[columns.Length];
             var srcTypes = new ColumnType[columns.Length];
@@ -402,14 +402,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                 if (!success)
                     throw env.ExceptSchemaMismatch(nameof(data), "input", info.Input);
                 srcTypes[i] = data.Schema[srcCols[i]].Type;
-                activeInput[srcCols[i]] = true;
+                activeCols.Add(data.Schema[srcCols[i]]);
 
                 var supervisedBinColumn = info as NormalizingEstimator.SupervisedBinningColumn;
                 if(supervisedBinColumn != null)
-                {
-                    var labelColumnId = SupervisedBinUtils.GetLabelColumnId(env, data.Schema, supervisedBinColumn.LabelColumn);
-                    activeInput[labelColumnId] = true;
-                }
+                    activeCols.Add(data.Schema[supervisedBinColumn.LabelColumn]);
             }
 
             var functionBuilders = new IColumnFunctionBuilder[columns.Length];
@@ -421,7 +418,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 long numRows = 0;
 
                 pch.SetHeader(new ProgressHeader("examples"), e => e.SetProgress(0, numRows));
-                using (var cursor = data.GetRowCursor(col => activeInput[col]))
+                using (var cursor = data.GetRowCursor(activeCols))
                 {
                     for (int i = 0; i < columns.Length; i++)
                     {

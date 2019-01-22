@@ -70,8 +70,8 @@ namespace Microsoft.ML.Trainers.Recommender
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.Assert(matrixColumnIndexType.RawKind == DataKind.U4);
-            _host.Assert(matrixRowIndexType.RawKind == DataKind.U4);
+            _host.Assert(matrixColumnIndexType.RawType == typeof(uint));
+            _host.Assert(matrixRowIndexType.RawType == typeof(uint));
             _host.CheckValue(buffer, nameof(buffer));
             _host.CheckValue(matrixColumnIndexType, nameof(matrixColumnIndexType));
             _host.CheckValue(matrixRowIndexType, nameof(matrixRowIndexType));

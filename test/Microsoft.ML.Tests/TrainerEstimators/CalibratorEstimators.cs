@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         CalibratorTestData GetCalibratorTestData()
         {
             var (pipeline, data) = GetBinaryClassificationPipeline();
-            var binaryTrainer = new AveragedPerceptronTrainer(Env);
+            var binaryTrainer = ML.BinaryClassification.Trainers.AveragedPerceptron();
 
             pipeline = pipeline.Append(binaryTrainer);
 

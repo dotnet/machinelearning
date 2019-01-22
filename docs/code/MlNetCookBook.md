@@ -385,9 +385,9 @@ var data = reader.Read(dataPath);
 var transformedData = dataPipeline.Fit(data).Transform(data);
 
 // 'transformedData' is a 'promise' of data. Let's actually read it.
-var someRows = transformedData.AsDynamic
+var someRows = mlContext
     // Convert to an enumerable of user-defined type. 
-    .AsEnumerable<InspectedRowWithAllFeatures>(mlContext, reuseRowObject: false)
+    .CreateEnumerable<InspectedRow>(transformedData.AsDynamic, reuseRowObject: false)
     // Take a couple values as an array.
     .Take(4).ToArray();
 
@@ -424,9 +424,9 @@ var dynamicPipeline = mlContext.Transforms.Concatenate("AllFeatures", "Education
 var transformedData = dynamicPipeline.Fit(data).Transform(data);
 
 // 'transformedData' is a 'promise' of data. Let's actually read it.
-var someRows = transformedData
+var someRows = mlContext
     // Convert to an enumerable of user-defined type. 
-    .AsEnumerable<InspectedRowWithAllFeatures>(mlContext, reuseRowObject: false)
+    .CreateEnumerable<InspectedRowWithAllFeatures>(transformedData, reuseRowObject: false)
     // Take a couple values as an array.
     .Take(4).ToArray();
 

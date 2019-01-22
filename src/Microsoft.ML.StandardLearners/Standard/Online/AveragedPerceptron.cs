@@ -15,7 +15,7 @@ using Microsoft.ML.Numeric;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Arguments),
+[assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     AveragedPerceptronTrainer.UserNameValue,
     AveragedPerceptronTrainer.LoadNameValue, "avgper", AveragedPerceptronTrainer.ShortName)]
@@ -37,9 +37,9 @@ namespace Microsoft.ML.Trainers.Online
         internal const string ShortName = "ap";
         internal const string Summary = "Averaged Perceptron Binary Classifier.";
 
-        private readonly Arguments _args;
+        private readonly Options _args;
 
-        public sealed class Arguments : AveragedLinearArguments
+        public sealed class Options : AveragedLinearArguments
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new HingeLoss.Arguments();
@@ -83,10 +83,10 @@ namespace Microsoft.ML.Trainers.Online
             }
         }
 
-        internal AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        internal AveragedPerceptronTrainer(IHostEnvironment env, Options options)
+            : base(options, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
-            _args = args;
+            _args = options;
             LossFunction = _args.LossFunction.CreateComponent(env);
         }
 
@@ -103,18 +103,16 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="decreaseLearningRate">Wheather to decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
         /// <param name="numIterations">The number of training iteraitons.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
-        public AveragedPerceptronTrainer(IHostEnvironment env,
+        internal AveragedPerceptronTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             IClassificationLoss lossFunction = null,
-            float learningRate = Arguments.AveragedDefaultArgs.LearningRate,
-            bool decreaseLearningRate = Arguments.AveragedDefaultArgs.DecreaseLearningRate,
-            float l2RegularizerWeight = Arguments.AveragedDefaultArgs.L2RegularizerWeight,
-            int numIterations = Arguments.AveragedDefaultArgs.NumIterations,
-            Action<Arguments> advancedSettings = null)
-            : this(env, InvokeAdvanced(advancedSettings, new Arguments
+            float learningRate = Options.AveragedDefaultArgs.LearningRate,
+            bool decreaseLearningRate = Options.AveragedDefaultArgs.DecreaseLearningRate,
+            float l2RegularizerWeight = Options.AveragedDefaultArgs.L2RegularizerWeight,
+            int numIterations = Options.AveragedDefaultArgs.NumIterations)
+            : this(env, new Options
             {
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
@@ -124,7 +122,7 @@ namespace Microsoft.ML.Trainers.Online
                 L2RegularizerWeight = l2RegularizerWeight,
                 NumIterations = numIterations,
                 LossFunction = new TrivialFactory(lossFunction ?? new HingeLoss())
-            }))
+            })
         {
         }
 
@@ -191,14 +189,14 @@ namespace Microsoft.ML.Trainers.Online
              ShortName = ShortName,
              XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""AP""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name=""AP""]/*' />"})]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainAP");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new AveragedPerceptronTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);

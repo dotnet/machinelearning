@@ -16,7 +16,7 @@ using Microsoft.ML.Learners;
 using Microsoft.ML.Numeric;
 using Microsoft.ML.Training;
 
-[assembly: LoadableClass(LogisticRegression.Summary, typeof(LogisticRegression), typeof(LogisticRegression.Arguments),
+[assembly: LoadableClass(LogisticRegression.Summary, typeof(LogisticRegression), typeof(LogisticRegression.Options),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
     LogisticRegression.UserNameValue,
     LogisticRegression.LoadNameValue,
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Learners
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
-    public sealed partial class LogisticRegression : LbfgsTrainerBase<LogisticRegression.Arguments, BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>, ParameterMixingCalibratedPredictor>
+    public sealed partial class LogisticRegression : LbfgsTrainerBase<LogisticRegression.Options, BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>, ParameterMixingCalibratedPredictor>
     {
         public const string LoadNameValue = "LogisticRegression";
         internal const string UserNameValue = "Logistic Regression";
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Learners
         internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can "
             + "be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.";
 
-        public sealed class Arguments : ArgumentsBase
+        public sealed class Options : ArgumentsBase
         {
             /// <summary>
             /// If set to <value>true</value>training statistics will be generated at the end of training.
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Learners
             /// <summary>
             /// The instance of <see cref="ComputeLRTrainingStd"/> that computes the std of the training statistics, at the end of training.
             /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-            /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Arguments.StdComputer"/>.
+            /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Options.StdComputer"/>.
             /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HalLearners package.
             /// </summary>
             public ComputeLRTrainingStd StdComputer;
@@ -74,18 +74,16 @@ namespace Microsoft.ML.Learners
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
         /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Low=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public LogisticRegression(IHostEnvironment env,
+        internal LogisticRegression(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            float l1Weight = Arguments.Defaults.L1Weight,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            float optimizationTolerance = Arguments.Defaults.OptTol,
-            int memorySize = Arguments.Defaults.MemorySize,
-            bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
-            Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights, advancedSettings,
+            float l1Weight = Options.Defaults.L1Weight,
+            float l2Weight = Options.Defaults.L2Weight,
+            float optimizationTolerance = Options.Defaults.OptTol,
+            int memorySize = Options.Defaults.MemorySize,
+            bool enforceNoNegativity = Options.Defaults.EnforceNonNegativity)
+            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights,
                   l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -98,8 +96,8 @@ namespace Microsoft.ML.Learners
         /// <summary>
         /// Initializes a new instance of <see cref="LogisticRegression"/>
         /// </summary>
-        internal LogisticRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        internal LogisticRegression(IHostEnvironment env, Options options)
+            : base(env, options, TrainerUtils.MakeBoolScalarLabel(options.LabelColumn))
         {
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
@@ -410,14 +408,14 @@ namespace Microsoft.ML.Learners
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionBinaryClassifier""]/*' />"})]
 
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Options input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLRBinary");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+            return LearnerEntryPointsUtils.Train<Options, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new LogisticRegression(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
@@ -437,7 +435,7 @@ namespace Microsoft.ML.Learners
         /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
         /// p-value and z-Score.
         /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
-        /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Arguments.StdComputer"/>
+        /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Options.StdComputer"/>
         /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HalLearners package.
         /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
         /// </summary>

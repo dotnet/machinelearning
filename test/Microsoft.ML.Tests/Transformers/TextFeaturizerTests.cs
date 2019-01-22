@@ -189,7 +189,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new StopWordsRemovingTransformer.Column() { Name = "Text", Source = "Text" }
                 });
 
-            using (var cursor = xf.GetRowCursor(col => true))
+            using (var cursor = xf.GetRowCursorForAllColumns())
             {
                 VBuffer<ReadOnlyMemory<char>> text = default;
                 var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(cursor.Schema["Text"].Index);

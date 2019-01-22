@@ -675,7 +675,7 @@ namespace Microsoft.ML.Data
             var colCount = fold.Schema.Count;
             var vBufferGetters = new ValueGetter<VBuffer<double>>[colCount];
 
-            using (var cursor = fold.GetRowCursor(col => true))
+            using (var cursor = fold.GetRowCursorForAllColumns())
             {
                 bool isWeighted = false;
                 ValueGetter<bool> isWeightedGetter;

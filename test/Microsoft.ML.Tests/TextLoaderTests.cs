@@ -37,7 +37,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 "loader=Text{col=DvInt1:I1:0 col=DvInt2:I2:1 col=DvInt4:I4:2 col=DvInt8:I8:3 sep=comma}",
                 }, logCurs: true);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var col1 = cursor.GetGetter<sbyte>(0);
                 var col2 = cursor.GetGetter<short>(1);
@@ -294,7 +294,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
             var data = runner.GetOutput<IDataView>("data"); Assert.NotNull(data);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var IDGetter = cursor.GetGetter<float>(0);
                 var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
@@ -441,7 +441,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var data = runner.GetOutput<IDataView>("data");
             Assert.NotNull(data);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var getters = new ValueGetter<float>[]{
                         cursor.GetGetter<float>(0),
@@ -555,7 +555,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             var data = runner.GetOutput<IDataView>("data");
             Assert.NotNull(data);
 
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var cursor = data.GetRowCursorForAllColumns())
             {
                 var IDGetter = cursor.GetGetter<float>(0);
                 var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
@@ -720,7 +720,7 @@ namespace Microsoft.ML.EntryPoints.Tests
            var irisFirstRowValues = irisFirstRow.Values.GetEnumerator();
 
             // Simple load
-            var dataIris = mlContext.Data.CreateTextReader<Iris>(separatorChar: ',').Read(dataPath);
+            var dataIris = mlContext.Data.CreateTextLoader<Iris>(separatorChar: ',').Read(dataPath);
             var previewIris = dataIris.Preview(1);
 
             Assert.Equal(5, previewIris.ColumnView.Length);
@@ -736,7 +736,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal("Iris-setosa", previewIris.RowView[0].Values[index].Value.ToString());
 
             // Load with start and end indexes
-            var dataIrisStartEnd = mlContext.Data.CreateTextReader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
+            var dataIrisStartEnd = mlContext.Data.CreateTextLoader<IrisStartEnd>(separatorChar: ',').Read(dataPath);
             var previewIrisStartEnd = dataIrisStartEnd.Preview(1);
 
             Assert.Equal(2, previewIrisStartEnd.ColumnView.Length);
@@ -753,7 +753,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
 
             // load setting the distinct columns. Loading column 0 and 2
-            var dataIrisColumnIndices = mlContext.Data.CreateTextReader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
+            var dataIrisColumnIndices = mlContext.Data.CreateTextLoader<IrisColumnIndices>(separatorChar: ',').Read(dataPath);
             var previewIrisColumnIndices = dataIrisColumnIndices.Preview(1);
 
             Assert.Equal(2, previewIrisColumnIndices.ColumnView.Length);

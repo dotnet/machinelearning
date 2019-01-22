@@ -134,7 +134,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             if (col.IsKey)
             {
-                Type physType = StaticKind(col.ItemType.RawKind);
+                Type physType = GetPhysicalType(col.ItemType);
                 Contracts.Assert(physType == typeof(byte) || physType == typeof(ushort)
                     || physType == typeof(uint) || physType == typeof(ulong));
                 var keyType = typeof(Key<>).MakeGenericType(physType);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             if (col.ItemType is PrimitiveType pt)
             {
-                Type physType = StaticKind(pt.RawKind);
+                Type physType = GetPhysicalType(pt);
                 // Though I am unaware of any existing instances, it is theoretically possible for a
                 // primitive type to exist, have the same data kind as one of the existing types, and yet
                 // not be one of the built in types. (For example, an outside analogy to the key types.) For this
@@ -266,7 +266,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             if (t is KeyType kt)
             {
-                Type physType = StaticKind(kt.RawKind);
+                Type physType = GetPhysicalType(kt);
                 Contracts.Assert(physType == typeof(byte) || physType == typeof(ushort)
                     || physType == typeof(uint) || physType == typeof(ulong));
                 var keyType = kt.Count > 0 ? typeof(Key<>) : typeof(VarKey<>);
@@ -302,7 +302,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             if (t is PrimitiveType pt)
             {
-                Type physType = StaticKind(pt.RawKind);
+                Type physType = GetPhysicalType(pt);
                 // Though I am unaware of any existing instances, it is theoretically possible for a
                 // primitive type to exist, have the same data kind as one of the existing types, and yet
                 // not be one of the built in types. (For example, an outside analogy to the key types.) For this
@@ -327,34 +327,22 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// type for communicating text.
         /// </summary>
         /// <returns>The basic type used to represent an item type in the static pipeline</returns>
-        private static Type StaticKind(DataKind kind)
+        private static Type GetPhysicalType(ColumnType columnType)
         {
-            switch (kind)
+            switch (columnType)
             {
-                // The default kind is reserved for unknown types.
-                case default(DataKind): return null;
-                case DataKind.I1: return typeof(sbyte);
-                case DataKind.I2: return typeof(short);
-                case DataKind.I4: return typeof(int);
-                case DataKind.I8: return typeof(long);
-
-                case DataKind.U1: return typeof(byte);
-                case DataKind.U2: return typeof(ushort);
-                case DataKind.U4: return typeof(uint);
-                case DataKind.U8: return typeof(ulong);
-                case DataKind.U16: return typeof(RowId);
-
-                case DataKind.R4: return typeof(float);
-                case DataKind.R8: return typeof(double);
-                case DataKind.BL: return typeof(bool);
-
-                case DataKind.Text: return typeof(string);
-                case DataKind.TimeSpan: return typeof(TimeSpan);
-                case DataKind.DateTime: return typeof(DateTime);
-                case DataKind.DateTimeZone: return typeof(DateTimeOffset);
+                case NumberType numberType:
+                case KeyType keyType:
+                case TimeSpanType timeSpanType:
+                case DateTimeType dateTimeType:
+                case DateTimeOffsetType dateTimeOffsetType:
+                case BoolType boolType:
+                    return columnType.RawType;
+                case TextType textType:
+                    return typeof(string);
 
                 default:
-                    throw Contracts.ExceptParam(nameof(kind), $"Unrecognized type '{kind}'");
+                    return null;
             }
         }
     }

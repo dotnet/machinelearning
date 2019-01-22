@@ -399,7 +399,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var keyType = dataView.Schema[keyIdx].Type;
             var valueType = dataView.Schema[valueIdx].Type;
             var valueMap = ValueMap.Create(keyType, valueType, _valueMetadata);
-            using (var cursor = dataView.GetRowCursor(c => c == keyIdx || c == valueIdx))
+            using (var cursor = dataView.GetRowCursor(dataView.Schema[keyIdx], dataView.Schema[valueIdx]))
                 valueMap.Train(Host, cursor);
             return valueMap;
         }
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Transforms.Conversions
             ulong keyMax = ulong.MinValue;
 
             // scan the input to create convert the values as key types
-            using (var cursor = loader.GetRowCursor(c => true))
+            using (var cursor = loader.GetRowCursorForAllColumns())
             {
                 using (var ch = env.Start($"Processing key values from file {fileName}"))
                 {
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             idv.Schema.TryGetColumnIndex(keyColumnName, out int keyIdx);
             idv.Schema.TryGetColumnIndex(valueColumnName, out int valueIdx);
-            using (var cursor = idv.GetRowCursor(c => true))
+            using (var cursor = idv.GetRowCursorForAllColumns())
             {
                 using (var ch = env.Start("Processing key values"))
                 {
