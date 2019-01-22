@@ -9,5 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.DotNet.BuildTools" Version="$(BuildToolsPackageVersion)" />
     <PackageReference Include="$(PublishSymbolsPackage)" Version="$(PublishSymbolsPackageVersion)" />
+    <PackageReference Update="Codecov" Version="$(CodecovVersion)" />
   </ItemGroup>
 </Project>
