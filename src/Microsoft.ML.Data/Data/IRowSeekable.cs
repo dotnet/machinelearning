@@ -24,7 +24,8 @@ namespace Microsoft.ML.Data
     /// For <see cref="RowSeeker"/>, when the state is valid (that is when <see cref="MoveTo(long)"/>
     /// returns <see langword="true"/>), it returns the current row index. Otherwise it's -1.
     /// </summary>
-    public abstract class RowSeeker : Row
+    [BestFriend]
+    internal abstract class RowSeeker : Row
     {
         /// <summary>
         /// Moves the seeker to a row at a specific row index.
