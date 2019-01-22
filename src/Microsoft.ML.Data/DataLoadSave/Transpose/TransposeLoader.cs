@@ -645,7 +645,7 @@ namespace Microsoft.ML.Data.IO
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
             ColumnType cursorType = ((ITransposeDataView)this).GetSlotType(col).ItemType;
-            RowCursor inputCursor = view.GetRowCursorForAllColumns(view.Schema);
+            RowCursor inputCursor = view.GetRowCursorForAllColumns();
             try
             {
                 return Utils.MarshalInvoke(GetSlotCursorCore<int>, cursorType.RawType, inputCursor);

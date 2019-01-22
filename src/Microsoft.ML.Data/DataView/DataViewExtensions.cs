@@ -30,24 +30,24 @@ namespace Microsoft.ML.Data
         }
 
         /// <summary>
-        /// Get a row cursor. The <paramref name="colNeeded"/> is the active column.
+        /// Get a row cursor. The <paramref name="columnNeeded"/> is the active column.
         /// The schema of the returned cursor will be the same as the schema of the IDataView, but getting
         /// a getter for the other, inactive columns will throw.
         /// </summary>
-        /// <param name="colNeeded">The column requested by this <see cref="RowCursor"/>, or as otherwise called, the active column.</param>
-        /// <param name="dv">The <see cref="IDataView"/> containing the <paramref name="colNeeded"/>.</param>
-        public static RowCursor GetRowCursor(this IDataView dv, Schema.Column colNeeded)
+        /// <param name="columnNeeded">The column requested by this <see cref="RowCursor"/>, or as otherwise called, the active column.</param>
+        /// <param name="dv">The <see cref="IDataView"/> containing the <paramref name="columnNeeded"/>.</param>
+        public static RowCursor GetRowCursor(this IDataView dv, Schema.Column columnNeeded)
         {
-            Contracts.Assert(dv.Schema[colNeeded.Index].Equals(colNeeded), $"The requested column named: {colNeeded.Name}, with index: {colNeeded.Index} and type: {colNeeded.Type}" +
+            Contracts.Assert(dv.Schema[columnNeeded.Index].Equals(columnNeeded), $"The requested column named: {columnNeeded.Name}, with index: {columnNeeded.Index} and type: {columnNeeded.Type}" +
                    $" is not present in the {nameof(IDataView)} where the {nameof(RowCursor)} is being requested.");
 
-            return dv.GetRowCursor(Enumerable.Repeat(colNeeded,1));
+            return dv.GetRowCursor(Enumerable.Repeat(columnNeeded,1));
         }
 
         /// <summary>
         /// Get a row cursor. No colums are needed by this <see cref="RowCursor"/>.
         /// </summary>
-        public static RowCursor GetRowCursor(this IDataView dv) =>  dv.GetRowCursor(new HashSet<Schema.Column>());
+        public static RowCursor GetRowCursor(this IDataView dv) =>  dv.GetRowCursor(Enumerable.Empty<Schema.Column>());
 
         /// <summary>
         /// Get a row cursor including all the columns of the <see cref="IDataView"/> it is called upon..

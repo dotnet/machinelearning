@@ -742,7 +742,7 @@ namespace Microsoft.ML.Scenarios
             IDataView trans = new TensorFlowTransformer(mlContext, tensorFlowModel, "Input", "Output").Transform(pixels);
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
-            using (var cursor = trans.GetRowCursorForAllColumns())
+            using (var cursor = trans.GetRowCursor(trans.Schema["Output"]))
             {
                 var buffer = default(VBuffer<float>);
                 var getter = cursor.GetGetter<VBuffer<float>>(output);

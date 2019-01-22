@@ -515,17 +515,17 @@ namespace Microsoft.ML.Data
                 _row = row;
             }
 
-            public RowCursor GetRowCursor(IEnumerable<Schema.Column> colNeeded, Random rand = null)
+            public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnNeeded, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
-                bool[] active = Utils.BuildArray(Schema.Count, colNeeded);
+                bool[] active = Utils.BuildArray(Schema.Count, columnNeeded);
                 return new Cursor(_host, this, active);
             }
 
-            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> colNeeded, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnNeeded, int n, Random rand = null)
             {
                 _host.CheckValueOrNull(rand);
-                return new RowCursor[] { GetRowCursor(colNeeded, rand) };
+                return new RowCursor[] { GetRowCursor(columnNeeded, rand) };
             }
 
             public long? GetRowCount()

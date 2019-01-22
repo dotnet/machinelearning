@@ -563,15 +563,19 @@ namespace Microsoft.ML.Data
 
         public Schema Schema => View.Schema;
 
-        public RowCursor GetRowCursor(IEnumerable<Schema.Column> colsNeeded, Random rand = null)
+        public RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
+            _host.AssertValue(columnsNeeded);
+
             return View.GetRowCursor(columnsNeeded, rand);
         }
 
         public RowCursor[] GetRowCursorSet(IEnumerable<Schema.Column> columnsNeeded, int n, Random rand = null)
         {
             _host.CheckValueOrNull(rand);
+            _host.AssertValue(columnsNeeded);
+
             return View.GetRowCursorSet(columnsNeeded, n, rand);
         }
 
