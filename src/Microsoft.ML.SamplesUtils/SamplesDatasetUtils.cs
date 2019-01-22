@@ -257,7 +257,7 @@ namespace Microsoft.ML.SamplesUtils
                 // Initialize an example with a random label and an empty feature vector.
                 var sample = new BinaryLabelFloatFeatureVectorSample() { Label = rnd.Next() % 2 == 0, Features = new float[_simpleBinaryClassSampleFeatureLength] };
                 // Fill feature vector according the assigned label.
-                for (int j = 0; j < 10; ++j)
+                for (int j = 0; j < _simpleBinaryClassSampleFeatureLength; ++j)
                 {
                     var value = (float)rnd.NextDouble();
                     // Positive class gets larger feature value.
