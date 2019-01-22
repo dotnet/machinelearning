@@ -489,7 +489,6 @@ namespace Microsoft.ML.Data
 
             public RowCursorImplementation(TypedCursor cursor) => _cursor = cursor;
 
-            public override CursorState State => _cursor.State;
             public override long Position => _cursor.Position;
             public override long Batch => _cursor.Batch;
             public override Schema Schema => _cursor.Schema;
@@ -507,9 +506,7 @@ namespace Microsoft.ML.Data
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
             public override ValueGetter<RowId> GetIdGetter() => _cursor.GetIdGetter();
-            public override RowCursor GetRootCursor() => _cursor.GetRootCursor();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
-            public override bool MoveMany(long count) => _cursor.MoveMany(count);
             public override bool MoveNext() => _cursor.MoveNext();
         }
 
@@ -525,15 +522,11 @@ namespace Microsoft.ML.Data
 
             public override void FillValues(TRow row)
             {
-                Ch.Check(_input.State == CursorState.Good, "Can't fill values: the cursor is not active.");
+                Ch.Check(Position >= 0, "Cannot fill values. The cursor is not active.");
                 base.FillValues(row);
             }
 
-            public CursorState State => _input.State;
-
             public bool MoveNext() => _input.MoveNext();
-            public bool MoveMany(long count) => _input.MoveMany(count);
-            public RowCursor GetRootCursor() => _input.GetRootCursor();
         }
     }
 

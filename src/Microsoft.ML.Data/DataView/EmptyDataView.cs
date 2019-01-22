@@ -57,12 +57,7 @@ namespace Microsoft.ML.Data
 
             public override ValueGetter<RowId> GetIdGetter()
             {
-                return
-                    (ref RowId val) =>
-                    {
-                        Ch.Assert(!IsGood);
-                        throw Ch.Except("Cannot call ID getter in current state");
-                    };
+                return (ref RowId val) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
             }
 
             protected override bool MoveNextCore() => false;
@@ -71,13 +66,8 @@ namespace Microsoft.ML.Data
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                Ch.Check(IsColumnActive(col), "Can't get getter for inactive column");
-                return
-                    (ref TValue value) =>
-                    {
-                        Ch.Assert(State != CursorState.Good);
-                        throw Ch.Except("Cannot use getter with cursor in this state");
-                    };
+                Ch.Check(IsColumnActive(col), "Cannot get getter for inactive column");
+                return (ref TValue value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
             }
         }
     }

@@ -117,7 +117,7 @@ namespace Microsoft.ML.Data
 
             protected override TRow GetCurrentRowObject()
             {
-                Host.Check(Position >= 0, "Can't call a getter on an inactive cursor.");
+                Host.Check(Position >= 0, RowCursorUtils.FetchValueStateError);
                 return _value;
             }
         }
@@ -410,7 +410,6 @@ namespace Microsoft.ML.Data
 
                 public WrappedCursor(DataViewCursorBase toWrap) => _toWrap = toWrap;
 
-                public override CursorState State => _toWrap.State;
                 public override long Position => _toWrap.Position;
                 public override long Batch => _toWrap.Batch;
                 public override Schema Schema => _toWrap.Schema;
@@ -424,9 +423,7 @@ namespace Microsoft.ML.Data
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     => _toWrap.GetGetter<TValue>(col);
                 public override ValueGetter<RowId> GetIdGetter() => _toWrap.GetIdGetter();
-                public override RowCursor GetRootCursor() => this;
                 public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
-                public override bool MoveMany(long count) => _toWrap.MoveMany(count);
                 public override bool MoveNext() => _toWrap.MoveNext();
             }
 
@@ -439,6 +436,7 @@ namespace Microsoft.ML.Data
                 protected readonly DataViewBase<TRow> DataView;
                 protected readonly IChannel Ch;
                 private long _position;
+                private bool _disposed;
 
                 /// <summary>
                 /// Zero-based position of the cursor.
@@ -456,62 +454,35 @@ namespace Microsoft.ML.Data
 
                     DataView = dataView;
                     _position = -1;
-                    State = CursorState.NotStarted;
                 }
 
-                public CursorState State { get; private set; }
-
                 /// <summary>
-                /// Convenience property for checking whether the current state of the cursor is <see cref="CursorState.Good"/>.
+                /// Convenience property for checking whether the cursor is in a good state where values
+                /// can be retrieved, that is, whenever <see cref="Position"/> is non-negative.
                 /// </summary>
-                protected bool IsGood => State == CursorState.Good;
+                protected bool IsGood => Position >= 0;
 
                 protected sealed override void Dispose(bool disposing)
                 {
-                    if (State == CursorState.Done)
+                    if (_disposed)
                         return;
-                    Ch.Dispose();
-                    _position = -1;
+                    if (disposing)
+                    {
+                        Ch.Dispose();
+                        _position = -1;
+                    }
+                    _disposed = true;
                     base.Dispose(disposing);
-                    State = CursorState.Done;
                 }
 
                 public bool MoveNext()
                 {
-                    if (State == CursorState.Done)
+                    if (_disposed)
                         return false;
 
-                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
                     if (MoveNextCore())
                     {
-                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
                         _position++;
-                        State = CursorState.Good;
-                        return true;
-                    }
-
-                    Dispose();
-                    return false;
-                }
-
-                public bool MoveMany(long count)
-                {
-                    // Note: If we decide to allow count == 0, then we need to special case
-                    // that MoveNext() has never been called. It's not entirely clear what the return
-                    // result would be in that case.
-                    Ch.CheckParam(count > 0, nameof(count));
-
-                    if (State == CursorState.Done)
-                        return false;
-
-                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                    if (MoveManyCore(count))
-                    {
-                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-
-                        _position += count;
-                        State = CursorState.Good;
                         return true;
                     }
 
@@ -520,29 +491,8 @@ namespace Microsoft.ML.Data
                 }
 
                 /// <summary>
-                /// Default implementation is to simply call MoveNextCore repeatedly. Derived classes should
-                /// override if they can do better.
-                /// </summary>
-                /// <param name="count">The number of rows to move forward.</param>
-                /// <returns>Whether the move forward is on a valid row</returns>
-                protected virtual bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                    Ch.Assert(count > 0);
-
-                    while (MoveNextCore())
-                    {
-                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
-                        if (--count <= 0)
-                            return true;
-                    }
-
-                    return false;
-                }
-
-                /// <summary>
-                /// Core implementation of <see cref="MoveNext"/>, called if the cursor state is not
-                /// <see cref="CursorState.Done"/>.
+                /// Core implementation of <see cref="MoveNext"/>, called if no prior call to this method
+                /// has returned <see langword="false"/>.
                 /// </summary>
                 protected abstract bool MoveNextCore();
             }
@@ -564,10 +514,7 @@ namespace Microsoft.ML.Data
                 _data = data;
             }
 
-            public override bool CanShuffle
-            {
-                get { return true; }
-            }
+            public override bool CanShuffle => true;
 
             public override long? GetRowCount()
             {
@@ -607,7 +554,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)Position, 0);
                             };
                     }
@@ -616,7 +563,7 @@ namespace Microsoft.ML.Data
                         return
                             (ref RowId val) =>
                             {
-                                Ch.Check(IsGood, "Cannot call ID getter in current state");
+                                Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                                 val = new RowId((ulong)Index, 0);
                             };
                     }
@@ -624,22 +571,14 @@ namespace Microsoft.ML.Data
 
                 protected override TRow GetCurrentRowObject()
                 {
-                    Ch.Check(0 <= Position && Position < _data.Count, "Can't call a getter on an inactive cursor.");
+                    Ch.Check(0 <= Position && Position < _data.Count, RowCursorUtils.FetchValueStateError);
                     return _data[Index];
                 }
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(State != CursorState.Done);
                     Ch.Assert(Position < _data.Count);
                     return Position + 1 < _data.Count;
-                }
-
-                protected override bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    Ch.Assert(Position < _data.Count);
-                    return count < _data.Count - Position;
                 }
             }
         }
@@ -660,15 +599,10 @@ namespace Microsoft.ML.Data
                 _data = data;
             }
 
-            public override bool CanShuffle
-            {
-                get { return false; }
-            }
+            public override bool CanShuffle => false;
 
             public override long? GetRowCount()
-            {
-                return (_data as ICollection<TRow>)?.Count;
-            }
+                => (_data as ICollection<TRow>)?.Count;
 
             public override RowCursor GetRowCursor(IEnumerable<Schema.Column> columnsNeeded, Random rand = null)
             {
@@ -693,7 +627,7 @@ namespace Microsoft.ML.Data
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
@@ -705,7 +639,6 @@ namespace Microsoft.ML.Data
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(State != CursorState.Done);
                     var result = _enumerator.MoveNext();
                     _currentRow = result ? _enumerator.Current : null;
                     if (result && _currentRow == null)
@@ -762,24 +695,14 @@ namespace Microsoft.ML.Data
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
 
                 protected override TRow GetCurrentRowObject() => _currentRow;
 
-                protected override bool MoveNextCore()
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    return true;
-                }
-
-                protected override bool MoveManyCore(long count)
-                {
-                    Ch.Assert(State != CursorState.Done);
-                    return true;
-                }
+                protected override bool MoveNextCore() => true;
             }
         }
 
