@@ -38,7 +38,7 @@
       <CollectCoverage>true</CollectCoverage>
       <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> <!-- https://github.com/tonerdo/coverlet/issues/72 -->
       <CoverletOutputFormat>opencover</CoverletOutputFormat>
-      <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).xml</CoverletOutput>
+      <CoverletOutput>$(BaseOutputPath)$(PlatformConfig)\coverage\$(MSBuildProjectName).coverage</CoverletOutput>
       <Include>[Microsoft.ML.*]*</Include>
       <!-- Excluding for perf reasons. These classes have tests that can be run conditionally
            but they need to be migrated. Excluding these classes should have very minimal effect on code coverage.

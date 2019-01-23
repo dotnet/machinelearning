@@ -17,7 +17,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <_CoverageReports Include="$(BaseOutputPath)$(PlatformConfig)\coverage\*.xml" />
+      <_CoverageReports Include="$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage" />
 
       <_CodecovArgs Include="-f;@(_CoverageReports)" />
       <_CodecovArgs Include="-r;$(BUILD_REPOSITORY_NAME)" Condition="'$(BUILD_REPOSITORY_NAME)' != ''" />
