@@ -104,7 +104,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
         [Fact]
         [TestCategory("Utilities")]
-        public void CheckIsAreEqualInt()
+        public void CheckAreEqualInt()
         {
             // A sorted (increasing) array
             int[] x = Enumerable.Range(0, 10).ToArray();
@@ -116,11 +116,31 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             x[1] = x[0];
             Assert.False(Utils.AreEqual(x, y));
             x[1] = x1Temp;
+
+            // Beginning is different
+            var x0Temp = x[0];
+            x[0] = x[x.Length - 1];
+            Assert.False(Utils.AreEqual(x, y));
+            x[0] = x0Temp;
+
+            // End is different
+            var xLengthTemp = x[x.Length - 1];
+            x[x.Length - 1] = x[0];
+            Assert.False(Utils.AreEqual(x, y));
+            x[x.Length - 1] = xLengthTemp;
+
+            // Different Array Lengths
+            int[] xOfDifferentLength = Enumerable.Range(0, 9).ToArray();
+            Assert.False(Utils.AreEqual(xOfDifferentLength, y));
+
+            // Nulls
+            Assert.False(Utils.AreEqual(null, y));
+            Assert.False(Utils.AreEqual(x, null));
         }
 
         [Fact]
         [TestCategory("Utilities")]
-        public void CheckIsAreEqualBool()
+        public void CheckAreEqualBool()
         {
             // A sorted (increasing) array
             bool[] x = new bool[] { true, true, false, false };
@@ -132,11 +152,31 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             x[1] = x[2];
             Assert.False(Utils.AreEqual(x, y));
             x[1] = x1Temp;
+
+            // Beginning is different
+            var x0Temp = x[0];
+            x[0] = x[x.Length - 1];
+            Assert.False(Utils.AreEqual(x, y));
+            x[0] = x0Temp;
+
+            // End is different
+            var xLengthTemp = x[x.Length - 1];
+            x[x.Length - 1] = x[0];
+            Assert.False(Utils.AreEqual(x, y));
+            x[x.Length - 1] = xLengthTemp;
+
+            // Different Array Lengths
+            bool[] xOfDifferentLength = new bool[] { true, true, false };
+            Assert.False(Utils.AreEqual(xOfDifferentLength, y));
+
+            // Nulls
+            Assert.False(Utils.AreEqual(null, y));
+            Assert.False(Utils.AreEqual(x, null));
         }
 
         [Fact]
         [TestCategory("Utilities")]
-        public void CheckIsAreEqualFloat()
+        public void CheckAreEqualFloat()
         {
             // A sorted (increasing) array
             float[] x = Enumerable.Range(0, 10).Select(i => (float) i).ToArray();
@@ -148,11 +188,31 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             x[1] = x[0];
             Assert.False(Utils.AreEqual(x, y));
             x[1] = x1Temp;
+
+            // Beginning is different
+            var x0Temp = x[0];
+            x[0] = x[x.Length - 1];
+            Assert.False(Utils.AreEqual(x, y));
+            x[0] = x0Temp;
+
+            // End is different
+            var xLengthTemp = x[x.Length - 1];
+            x[x.Length - 1] = x[0];
+            Assert.False(Utils.AreEqual(x, y));
+            x[x.Length - 1] = xLengthTemp;
+
+            // Different Array Lengths
+            float[] xOfDifferentLength = Enumerable.Range(0, 9).Select(i => (float)i).ToArray();
+            Assert.False(Utils.AreEqual(xOfDifferentLength, y));
+
+            // Nulls
+            Assert.False(Utils.AreEqual(null, y));
+            Assert.False(Utils.AreEqual(x, null));
         }
 
         [Fact]
         [TestCategory("Utilities")]
-        public void CheckIsAreEqualDouble()
+        public void CheckAreEqualDouble()
         {
             // A sorted (increasing) array
             double[] x = Enumerable.Range(0, 10).Select(i => (double)i).ToArray();
@@ -164,6 +224,26 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             x[1] = x[0];
             Assert.False(Utils.AreEqual(x, y));
             x[1] = x1Temp;
+
+            // Beginning is different
+            var x0Temp = x[0];
+            x[0] = x[x.Length - 1];
+            Assert.False(Utils.AreEqual(x, y));
+            x[0] = x0Temp;
+
+            // End is different
+            var xLengthTemp = x[x.Length - 1];
+            x[x.Length - 1] = x[0];
+            Assert.False(Utils.AreEqual(x, y));
+            x[x.Length - 1] = xLengthTemp;
+
+            // Different Array Lengths
+            double[] xOfDifferentLength = Enumerable.Range(0, 9).Select(i => (double)i).ToArray();
+            Assert.False(Utils.AreEqual(xOfDifferentLength, y));
+
+            // Nulls
+            Assert.False(Utils.AreEqual(null, y));
+            Assert.False(Utils.AreEqual(x, null));
         }
     }
 }
