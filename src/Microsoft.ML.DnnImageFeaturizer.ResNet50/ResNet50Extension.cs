@@ -35,13 +35,13 @@ namespace Microsoft.ML.Transforms
         {
             var modelChain = new EstimatorChain<ColumnCopyingTransformer>();
 
-            var inputRename = new ColumnCopyingEstimator(env, new[] { (source, "OriginalInput") });
+            var inputRename = new ColumnCopyingEstimator(env, new[] { ("OriginalInput", source) });
             var midRename = new ColumnCopyingEstimator(env, new[] { ("Input750", "PreprocessedInput") });
-            var endRename = new ColumnCopyingEstimator(env, new[] { ("Pooling1096_Output_0", name) });
+            var endRename = new ColumnCopyingEstimator(env, new[] { (name, "Pooling1096_Output_0") });
 
             // There are two estimators created below. The first one is for image preprocessing and the second one is the actual DNN model.
-            var prepEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "ResNetPrepOnnx", "ResNetPreprocess.onnx"), new[] { "OriginalInput" }, new[] { "PreprocessedInput" });
-            var mainEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "ResNet50Onnx", "ResNet50.onnx"), new[] { "Input750" }, new[] { "Pooling1096_Output_0" });
+            var prepEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "ResNetPrepOnnx", "ResNetPreprocess.onnx"), new[] { "PreprocessedInput" }, new[] { "OriginalInput" });
+            var mainEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "ResNet50Onnx", "ResNet50.onnx"), new[] { "Pooling1096_Output_0" }, new[] { "Input750" });
             modelChain = modelChain.Append(inputRename);
             var modelChain2 = modelChain.Append(prepEstimator);
             modelChain = modelChain2.Append(midRename);

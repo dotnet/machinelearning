@@ -173,7 +173,7 @@ namespace Microsoft.ML.EntryPoints
                         if (keyType.Count > 0)
                         {
                             var colName = GetUniqueName();
-                            concatNames.Add(new KeyValuePair<string, string>(colName, col.Name));
+                            concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
                             Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(colName, col.Name));
                             continue;
                         }
@@ -184,7 +184,7 @@ namespace Microsoft.ML.EntryPoints
                         // The reason is that at scoring time, the column might have a slightly different type (R8 for example).
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
-                        concatNames.Add(new KeyValuePair<string, string>(colName, col.Name));
+                        concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
                         Utils.Add(ref cvt, new TypeConvertingTransformer.ColumnInfo(colName, col.Name, DataKind.R4));
                         continue;
                     }

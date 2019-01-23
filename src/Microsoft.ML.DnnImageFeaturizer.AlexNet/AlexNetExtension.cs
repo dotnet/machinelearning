@@ -35,13 +35,13 @@ namespace Microsoft.ML.Transforms
         {
             var modelChain = new EstimatorChain<ColumnCopyingTransformer>();
 
-            var inputRename = new ColumnCopyingEstimator(env, new[] { (source, "OriginalInput") });
+            var inputRename = new ColumnCopyingEstimator(env, new[] { ("OriginalInput", source) });
             var midRename = new ColumnCopyingEstimator(env, new[] { ("Input140", "PreprocessedInput") });
-            var endRename = new ColumnCopyingEstimator(env, new[] { ("Dropout234_Output_0", name) });
+            var endRename = new ColumnCopyingEstimator(env, new[] { (name, "Dropout234_Output_0") });
 
             // There are two estimators created below. The first one is for image preprocessing and the second one is the actual DNN model.
-            var prepEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "AlexNetPrepOnnx", "AlexNetPreprocess.onnx"), new[] { "OriginalInput" }, new[] { "PreprocessedInput" });
-            var mainEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "AlexNetOnnx", "AlexNet.onnx"), new[] { "Input140" }, new[] { "Dropout234_Output_0" });
+            var prepEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "AlexNetPrepOnnx", "AlexNetPreprocess.onnx"), new[] { "PreprocessedInput" }, new[] { "OriginalInput" });
+            var mainEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "AlexNetOnnx", "AlexNet.onnx"), new[] { "Dropout234_Output_0" }, new[] { "Input140" });
             modelChain = modelChain.Append(inputRename);
             var modelChain2 = modelChain.Append(prepEstimator);
             modelChain = modelChain2.Append(midRename);

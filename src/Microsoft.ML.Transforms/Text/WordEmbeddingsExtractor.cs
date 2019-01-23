@@ -350,11 +350,11 @@ namespace Microsoft.ML.Transforms.Text
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                foreach (var (input, output) in _parent.Columns)
+                foreach (var (name, source) in _parent.Columns)
                 {
-                    var srcVariableName = ctx.GetVariableName(input);
+                    var srcVariableName = ctx.GetVariableName(source);
                     var schema = _parent.GetOutputSchema(InputSchema);
-                    var dstVariableName = ctx.AddIntermediateVariable(schema[output].Type, output);
+                    var dstVariableName = ctx.AddIntermediateVariable(schema[name].Type, name);
                     SaveAsOnnxCore(ctx, srcVariableName, dstVariableName);
                 }
             }

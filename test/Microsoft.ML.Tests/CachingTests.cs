@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests
         {
             var trainData = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
 
-            var pipe = ML.Transforms.CopyColumns("Features", "F1")
+            var pipe = ML.Transforms.CopyColumns("F1", "Features")
                 .Append(ML.Transforms.Normalize("Norm1", "F1"))
                 .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
 
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Tests
             Assert.True(trainData.All(x => x.AccessCount == 2));
 
             trainData = Enumerable.Range(0, 100).Select(c => new MyData()).ToArray();
-            pipe = ML.Transforms.CopyColumns("Features", "F1")
+            pipe = ML.Transforms.CopyColumns("F1", "Features")
                 .AppendCacheCheckpoint(ML)
                 .Append(ML.Transforms.Normalize("Norm1", "F1"))
                 .Append(ML.Transforms.Normalize("Norm2", "F1", Transforms.Normalizers.NormalizingEstimator.NormalizerMode.MeanVariance));
