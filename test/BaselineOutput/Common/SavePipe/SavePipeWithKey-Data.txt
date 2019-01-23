@@ -1,15 +1,15 @@
 #@ TextLoader{
 #@   header+
 #@   sep=tab
-#@   col=Label:U1[1]:0
+#@   col=Label:U1[2]:0
 #@   col=Features:U2:1-9
-#@   col=A:U1[5]:10
-#@   col=B:U1[8]:11
-#@   col=C:U8[5]:12
-#@   col=D:U1[254]:13
-#@   col=E:U8[18446744073709551614]:14
-#@   col=F:U1[254]:15
-#@   col=Label2:U2[1]:16
+#@   col=A:U1[6]:10
+#@   col=B:U1[9]:11
+#@   col=C:U8[6]:12
+#@   col=D:U1[255]:13
+#@   col=E:U8[18446744073709551615]:14
+#@   col=F:U1[255]:15
+#@   col=Label2:U2[2]:16
 #@   col=Features2:R4:17-25
 #@ }
 Label	thickness	uniform_size	uniform_shape	adhesion	epit_size	bare_nuclei	bland_chromatin	normal_nucleoli	mitoses	A	B	C	D	E	F	Label2	thickness	uniform_size	uniform_shape	adhesion	epit_size	bare_nuclei	bland_chromatin	normal_nucleoli	mitoses

@@ -128,8 +128,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Column = new[]
                 {
                     new TextLoader.Column(labelColumnName, DataKind.R4, new [] { new TextLoader.Range(0) }),
-                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyRange(19)),
-                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyRange(39)),
+                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyCount(20)),
+                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyCount(40)),
                 }
             };
         }

@@ -2,8 +2,8 @@
 #@   header+
 #@   sep=tab
 #@   col=A:TX:0
-#@   col=K:U4[10]:1-2
-#@   col=KH:U4[3]:3-4
+#@   col=K:U4[11]:1-2
+#@   col=KH:U4[4]:3-4
 #@   col=N3:R4:5-12
 #@   col=N10:R4:13-1036
 #@ }

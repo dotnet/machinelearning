@@ -185,7 +185,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Number1',
                                         'Type': 'R4',
@@ -198,7 +198,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': false,
@@ -257,7 +257,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                        'ForceVector':false
                                     }
                                  ],
-                                 'KeyRange':null
+                                 'KeyCount':null
                               },
                               {  
                                  'Name':'Text',
@@ -272,7 +272,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                        'ForceVector':false
                                     }
                                  ],
-                                 'KeyRange':null
+                                 'KeyCount':null
                               }
                            ],
                            'TrimWhitespace':false,
@@ -366,7 +366,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'C2',
                                         'Type': 'R4',
@@ -379,7 +379,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'C3',
                                         'Type': 'R4',
@@ -392,7 +392,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'C4',
                                         'Type': 'R4',
@@ -405,7 +405,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'C5',
                                         'Type': 'R4',
@@ -418,7 +418,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': false,
@@ -519,7 +519,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }, {
                                         'Name': 'Text',
                                         'Type': 'TX',
@@ -532,7 +532,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                                                 'ForceVector': false
                                             }
                                         ],
-                                        'KeyRange': null
+                                        'KeyCount': null
                                     }
                                 ],
                                 'TrimWhitespace': true,

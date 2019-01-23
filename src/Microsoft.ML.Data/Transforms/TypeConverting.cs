@@ -63,8 +63,8 @@ namespace Microsoft.ML.Transforms.Conversions
             [Argument(ArgumentType.AtMostOnce, HelpText = "The result type", ShortName = "type")]
             public DataKind? ResultType;
 
-            [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public KeyRange KeyRange;
+            [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the cardinality/count of valid key values", ShortName = "key", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
+            public KeyCount KeyCount;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "For a key column, this defines the range of values", ShortName = "key", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public string Range;
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 if (extra == null)
                     return true;
 
-                if (!TypeParsingUtils.TryParseDataKind(extra, out DataKind kind, out KeyRange))
+                if (!TypeParsingUtils.TryParseDataKind(extra, out DataKind kind, out KeyCount))
                     return false;
                 ResultType = kind == default ? default(DataKind?) : kind;
                 return true;
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (ResultType == null && KeyRange == null)
+                if (ResultType == null && KeyCount == null)
                     return TryUnparseCore(sb);
 
                 if (!TrySanitize())
@@ -110,10 +110,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 sb.Append(':');
                 if (ResultType != null)
                     sb.Append(ResultType.Value.GetString());
-                if (KeyRange != null)
+                if (KeyCount != null)
                 {
                     sb.Append('[');
-                    if (!KeyRange.TryUnparse(sb))
+                    if (!KeyCount.TryUnparse(sb))
                     {
                         sb.Length = ich;
                         return false;
@@ -137,9 +137,8 @@ namespace Microsoft.ML.Transforms.Conversions
             public DataKind? ResultType;
 
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key", Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public KeyRange KeyRange;
+            public KeyCount KeyCount;
 
-            // REVIEW: Consider supporting KeyRange type in entrypoints. This may require moving the KeyRange class to MLCore.
             [Argument(ArgumentType.AtMostOnce, HelpText = "For a key column, this defines the range of values", ShortName = "key", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public string Range;
         }
@@ -157,7 +156,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 // verWrittenCur: 0x00010001, // Initial
                 // verWrittenCur: 0x00010002, // Added support for keyRange
                 //verWrittenCur: 0x00010003, // Change to transformer leads to change of saving objects.
-                verWrittenCur: 0x00010004, // Removed Min and Contiguous from KeyRange.
+                verWrittenCur: 0x00010004, // Removed Min and Contiguous from KeyCount.
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
                 loaderSignature: LoaderSignature,
@@ -177,7 +176,7 @@ namespace Microsoft.ML.Transforms.Conversions
             public readonly string Input;
             public readonly string Output;
             public readonly DataKind OutputKind;
-            public readonly KeyRange OutputKeyRange;
+            public readonly KeyCount OutputKeyCount;
 
             /// <summary>
             /// Describes how the transformer handles one column pair.
@@ -185,13 +184,13 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="input">Name of input column.</param>
             /// <param name="output">Name of output column.</param>
             /// <param name="outputKind">The expected kind of the converted column.</param>
-            /// <param name="outputKeyRange">New key range, if we work with key type.</param>
-            public ColumnInfo(string input, string output, DataKind outputKind, KeyRange outputKeyRange = null)
+            /// <param name="outputKeyCount">New key count, if we work with key type.</param>
+            public ColumnInfo(string input, string output, DataKind outputKind, KeyCount outputKeyCount = null)
             {
                 Input = input;
                 Output = output;
                 OutputKind = outputKind;
-                OutputKeyRange = outputKeyRange;
+                OutputKeyCount = outputKeyCount;
             }
         }
 
@@ -210,9 +209,9 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="inputColumn">Name of the output column.</param>
         /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="outputKind">The expected type of the converted column.</param>
-        /// <param name="outputKeyRange">New key range if we work with key type.</param>
-        public TypeConvertingTransformer(IHostEnvironment env, string inputColumn, string outputColumn, DataKind outputKind, KeyRange outputKeyRange = null)
-            : this(env, new ColumnInfo(inputColumn, outputColumn, outputKind, outputKeyRange))
+        /// <param name="outputKeyCount">New key count if we work with key type.</param>
+        public TypeConvertingTransformer(IHostEnvironment env, string inputColumn, string outputColumn, DataKind outputKind, KeyCount outputKeyCount = null)
+            : this(env, new ColumnInfo(inputColumn, outputColumn, outputKind, outputKeyCount))
         {
         }
 
@@ -234,20 +233,20 @@ namespace Microsoft.ML.Transforms.Conversions
             // *** Binary format ***
             // <base>
             // for each added column
-            //   byte: data kind, with high bit set if there is a key range
-            //   if there is a key range
-            //     ulong: max (0 for unspecified)
+            //   byte: data kind, with high bit set if there is a keyCout
+            //   if there is a keyCount
+            //     ulong: keyCount (0 for unspecified)
             SaveColumns(ctx);
 
             for (int i = 0; i < _columns.Length; i++)
             {
                 Host.Assert((DataKind)(byte)_columns[i].OutputKind == _columns[i].OutputKind);
-                if (_columns[i].OutputKeyRange != null)
+                if (_columns[i].OutputKeyCount != null)
                 {
                     byte b = (byte)_columns[i].OutputKind;
                     b |= 0x80;
                     ctx.Writer.Write(b);
-                    ctx.Writer.Write(_columns[i].OutputKeyRange.Max ?? _columns[i].OutputKind.ToMaxInt());
+                    ctx.Writer.Write(_columns[i].OutputKeyCount.Count ?? _columns[i].OutputKind.ToMaxInt());
                 }
                 else
                     ctx.Writer.Write((byte)_columns[i].OutputKind);
@@ -271,9 +270,9 @@ namespace Microsoft.ML.Transforms.Conversions
             // *** Binary format ***
             // <base>
             // for each added column
-            //   byte: data kind, with high bit set if there is a key range
-            //   if there is a key range
-            //     ulong: max (0 for unspecified)
+            //   byte: data kind, with high bit set if there is a keyCount
+            //   if there is a keyCount
+            //     ulong: keyCount (0 for unspecified)
 
             _columns = new ColumnInfo[columnsLength];
             for (int i = 0; i < columnsLength; i++)
@@ -281,10 +280,9 @@ namespace Microsoft.ML.Transforms.Conversions
                 byte b = ctx.Reader.ReadByte();
                 var kind = (DataKind)(b & 0x7F);
                 Host.CheckDecode(Enum.IsDefined(typeof(DataKind), kind));
-                KeyRange range = null;
+                KeyCount keyCount = null;
                 if ((b & 0x80) != 0)
                 {
-                    range = new KeyRange();
                     if (ctx.Header.ModelVerWritten < 0x00010004)
                     {
                         // We no longer support non zero Min for KeyType.
@@ -292,8 +290,8 @@ namespace Microsoft.ML.Transforms.Conversions
                         Host.CheckDecode(min == 0);
                     }
                     ulong count = ctx.Reader.ReadUInt64();
-                    if (count != 0)
-                        range.Max = count;
+                    Host.CheckDecode(0 < count);
+                    keyCount = new KeyCount(count);
                     if (ctx.Header.ModelVerWritten < 0x00010004)
                     {
                         // We no longer support non contiguous values for KeyType.
@@ -301,7 +299,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         Host.CheckDecode(contiguous);
                     }
                 }
-                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, kind, range);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, kind, keyCount);
             }
         }
 
@@ -318,26 +316,26 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 var item = args.Column[i];
                 var tempResultType = item.ResultType ?? args.ResultType;
-                KeyRange range = null;
-                // If KeyRange or Range are defined on this column, set range to the appropriate value.
-                if (item.KeyRange != null)
-                    range = item.KeyRange;
+                KeyCount keyCount = null;
+                // If KeyCount or Range are defined on this column, set keyCount to the appropriate value.
+                if (item.KeyCount != null)
+                    keyCount = item.KeyCount;
                 else if (item.Range != null)
-                    range = KeyRange.Parse(item.Range);
-                // If KeyRange and Range are not defined for this column, we set range to the value
+                    keyCount = KeyCount.Parse(item.Range);
+                // If KeyCount and Range are not defined for this column, we set keyCount to the value
                 // defined in the Arguments object only in case the ResultType is not defined on the column.
                 else if (item.ResultType == null)
                 {
-                    if (args.KeyRange != null)
-                        range = args.KeyRange;
+                    if (args.KeyCount != null)
+                        keyCount = args.KeyCount;
                     else if (args.Range != null)
-                        range = KeyRange.Parse(args.Range);
+                        keyCount = KeyCount.Parse(args.Range);
                 }
 
                 DataKind kind;
                 if (tempResultType == null)
                 {
-                    if (range == null)
+                    if (keyCount == null)
                         kind = DataKind.Num;
                     else
                     {
@@ -349,7 +347,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     kind = tempResultType.Value;
                 }
-                cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name, kind, range);
+
+                cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name, kind, keyCount);
             };
             return new TypeConvertingTransformer(env, cols).MakeDataTransform(input);
         }
@@ -364,11 +363,11 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        internal static bool GetNewType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyRange range, out PrimitiveType itemType)
+        internal static bool GetNewType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyCount keyCount, out PrimitiveType itemType)
         {
-            if (range != null)
+            if (keyCount != null)
             {
-                itemType = TypeParsingUtils.ConstructKeyType(kind, range);
+                itemType = TypeParsingUtils.ConstructKeyType(kind, keyCount);
                 ColumnType srcItemType = srcType.GetItemType();
                 if (!(srcItemType is KeyType) && !(srcItemType is TextType))
                     return false;
@@ -413,7 +412,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
-                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputKind, _parent._columns[i].OutputKeyRange, out PrimitiveType itemType, out _types[i]))
+                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputKind, _parent._columns[i].OutputKeyCount, out PrimitiveType itemType, out _types[i]))
                     {
                         throw Host.ExceptParam(nameof(inputSchema),
                         "source column '{0}' with item type '{1}' is not compatible with destination type '{2}'",
@@ -422,14 +421,14 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            private static bool CanConvertToType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyRange range,
+            private static bool CanConvertToType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyCount keyCount,
                 out PrimitiveType itemType, out ColumnType typeDst)
             {
                 ectx.AssertValue(srcType);
                 ectx.Assert(Enum.IsDefined(typeof(DataKind), kind));
 
                 typeDst = null;
-                if (!GetNewType(ectx, srcType, kind, range, out itemType))
+                if (!GetNewType(ectx, srcType, kind, keyCount, out itemType))
                     return false;
 
                 // Ensure that the conversion is legal. We don't actually cache the delegate here. It will get
@@ -514,7 +513,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                 node.AddAttribute("type", LoaderSignature);
                 node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputKind);
-                if (_parent._columns[iinfo].OutputKeyRange != null)
+                if (_parent._columns[iinfo].OutputKeyCount != null)
                 {
                     var key = (KeyType)_types[iinfo].GetItemType();
                     node.AddAttribute("max", key.Count);
@@ -564,7 +563,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind, colInfo.OutputKeyRange, out PrimitiveType newType))
+                if (!TypeConvertingTransformer.GetNewType(Host, col.ItemType, colInfo.OutputKind, colInfo.OutputKeyCount, out PrimitiveType newType))
                     throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.Input} into {newType.ToString()}");
                 if (!Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.Input} into {newType.ToString()}");

@@ -252,7 +252,7 @@ namespace Microsoft.ML.StaticPipe
                     {
                         Type = _kind,
                         Source = new[] { new TextLoader.Range(_oridinal) },
-                        KeyRange = new KeyRange(_maxKeyValue)
+                        KeyCount = new KeyCount(_maxKeyValue + 1)
                     };
                 }
             }

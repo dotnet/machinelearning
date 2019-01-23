@@ -487,13 +487,12 @@ namespace Microsoft.ML.Data.IO
 
         private TextLoader.Column GetColumn(string name, ColumnType type, int? start)
         {
-            KeyRange keyRange = null;
+            KeyCount keyCount = null;
             VectorType vectorType = type as VectorType;
             ColumnType itemType = vectorType?.ItemType ?? type;
             if (itemType is KeyType key)
             {
-                keyRange = new KeyRange(key.Count - 1);
-                kind = key.RawKind;
+                keyCount = new KeyCount(key.Count);
             }
 
             DataKind kind = itemType.GetRawKind();
@@ -509,7 +508,7 @@ namespace Microsoft.ML.Data.IO
             else
                 range = new TextLoader.Range { Min = minValue };
             source = new TextLoader.Range[1] { range };
-            return new TextLoader.Column() { Name = name, KeyRange = keyRange, Source = source, Type = kind };
+            return new TextLoader.Column() { Name = name, KeyCount = keyCount, Source = source, Type = kind };
         }
 
         private sealed class State

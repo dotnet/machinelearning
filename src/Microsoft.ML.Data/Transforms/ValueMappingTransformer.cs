@@ -506,17 +506,13 @@ namespace Microsoft.ML.Transforms.Conversions
 
             TextLoader.Column valueColumn = new TextLoader.Column(valueColumnName, DataKind.U4, 1);
             if (keyMax < int.MaxValue)
-            {
-                valueColumn.KeyRange = new KeyRange(keyMax);
-            }
+                valueColumn.KeyCount = new KeyCount(keyMax + 1);
             else if (keyMax < uint.MaxValue)
-            {
-                valueColumn.KeyRange = new KeyRange();
-            }
+                valueColumn.KeyCount = new KeyCount();
             else
             {
                 valueColumn.Type = DataKind.U8;
-                valueColumn.KeyRange = new KeyRange();
+                valueColumn.KeyCount = new KeyCount();
             }
 
             return valueColumn;

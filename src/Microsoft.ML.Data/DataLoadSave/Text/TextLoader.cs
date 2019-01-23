@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data
         ///     col=ColumnName:I4:1,3-10
         ///
         /// Key range column of KeyType with underlying storage type U4 that contains values from columns 1, 3 to 10, that can go from 1 to 100 (0 reserved for out of range)
-        ///     col=ColumnName:U4[1-100]:1,3-10
+        ///     col=ColumnName:U4[100]:1,3-10
         /// </example>
         public sealed class Column
         {
@@ -50,16 +50,15 @@ namespace Microsoft.ML.Data
             {
             }
 
-            public Column(string name, DataKind? type, Range[] source, KeyRange keyRange = null)
+            public Column(string name, DataKind? type, Range[] source, KeyCount keyCount = null)
             {
                 Contracts.CheckValue(name, nameof(name));
                 Contracts.CheckValue(source, nameof(source));
-                Contracts.CheckValueOrNull(keyRange);
 
                 Name = name;
                 Type = type;
                 Source = source;
-                KeyRange = keyRange;
+                KeyCount = keyCount;
             }
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the column")]
@@ -72,7 +71,7 @@ namespace Microsoft.ML.Data
             public Range[] Source;
 
             [Argument(ArgumentType.Multiple, HelpText = "For a key column, this defines the range of values", ShortName = "key")]
-            public KeyRange KeyRange;
+            public KeyCount KeyCount;
 
             public static Column Parse(string str)
             {
@@ -99,9 +98,9 @@ namespace Microsoft.ML.Data
                 if (rgstr.Length == 3)
                 {
                     DataKind kind;
-                    if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyRange))
+                    if (!TypeParsingUtils.TryParseDataKind(rgstr[istr++], out kind, out KeyCount))
                         return false;
-                    Type = kind == default(DataKind) ? default(DataKind?) : kind;
+                    Type = kind == default ? default(DataKind?) : kind;
                 }
 
                 return TryParseSource(rgstr[istr++]);
@@ -139,14 +138,14 @@ namespace Microsoft.ML.Data
                 int ich = sb.Length;
                 sb.Append(Name);
                 sb.Append(':');
-                if (Type != null || KeyRange != null)
+                if (Type != null || KeyCount != null)
                 {
                     if (Type != null)
                         sb.Append(Type.Value.GetString());
-                    if (KeyRange != null)
+                    if (KeyCount != null)
                     {
                         sb.Append('[');
-                        if (!KeyRange.TryUnparse(sb))
+                        if (!KeyCount.TryUnparse(sb))
                         {
                             sb.Length = ich;
                             return false;
@@ -605,9 +604,9 @@ namespace Microsoft.ML.Data
 
                         PrimitiveType itemType;
                         DataKind kind;
-                        if (col.KeyRange != null)
+                        if (col.KeyCount != null)
                         {
-                            itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyRange);
+                            itemType = TypeParsingUtils.ConstructKeyType(col.Type, col.KeyCount);
                         }
                         else
                         {

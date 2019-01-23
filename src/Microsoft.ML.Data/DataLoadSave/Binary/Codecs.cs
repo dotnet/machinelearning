@@ -1245,7 +1245,7 @@ namespace Microsoft.ML.Data.IO
                 ulong min = reader.ReadUInt64();
                 int count = reader.ReadInt32();
 
-                Contracts.CheckDecode(min >= 0);
+                Contracts.CheckDecode(min == 0);
                 Contracts.CheckDecode(0 <= count);
                 Contracts.CheckDecode((ulong)count <= ulong.MaxValue - min);
                 Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());

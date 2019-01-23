@@ -280,12 +280,12 @@
                         "Default": null
                       },
                       {
-                        "Name": "KeyRange",
+                        "Name": "KeyCount",
                         "Type": {
                           "Kind": "Struct",
                           "Fields": [
                             {
-                              "Name": "Max",
+                              "Name": "Count",
                               "Type": "UInt",
                               "Desc": "Last index in the range",
                               "Required": false,

@@ -434,7 +434,7 @@ namespace Microsoft.ML.RunTests
 
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{col=Text:TX:0-2 col=CatU1:U1[0-2]:0-2 col=CatU2:U2[4]:0-2 col=CatU8:U8[]:0-2 col=OneU1:U1[]:0 col=OneU2:U2[]:1 col=OneU4:U4[]:1 col=OneU8:U8[]:2 col=Single:TX:0 col=VarU1:U1[]:3-** col=VarU2:U2[]:3-** col=VarU4:U4[]:3-** col=VarU8:U8[]:3-** col=Variable:TX:3-**}",
+                    "loader=Text{col=Text:TX:0-2 col=CatU1:U1[0-2]:0-2 col=CatU2:U2[0-4]:0-2 col=CatU8:U8[]:0-2 col=OneU1:U1[]:0 col=OneU2:U2[]:1 col=OneU4:U4[]:1 col=OneU8:U8[]:2 col=Single:TX:0 col=VarU1:U1[]:3-** col=VarU2:U2[]:3-** col=VarU4:U4[]:3-** col=VarU8:U8[]:3-** col=Variable:TX:3-**}",
                     "xf=Cat{col=Cat:Key:Text col=VarCat:Key:Variable}",
                     "xf=Hash{bits=6 ordered+ col={name=Hash0 src=Text bits=4} col={name=Hash1 src=Text ord- bits=4} col={name=Hash2 src=Cat} col=Hash3:CatU8}",
                     "xf=Hash{col={name=Hash4 bits=5 src=CatU1} col={name=Hash5 src=CatU2 bits=6 ord+} col={name=Hash6 src=CatU2 bits=6} col={name=Hash7 src=CatU8 bits=6} col={name=Hash8 src=Cat bits=6}}",
@@ -660,7 +660,7 @@ namespace Microsoft.ML.RunTests
                     "an angry ant\t3\t3\t\tbob bowled badly",
                     "\t10\t\t\t\"\""
                 });
-            const string loader = "loader=Text{col=A:TX:0 col=K:U4[10]:1-2 col=KS:U4[10]:2 col=B:TX:4 col=E:TX:3}";
+            const string loader = "loader=Text{col=A:TX:0 col=K:U4[11]:1-2 col=KS:U4[11]:2 col=B:TX:4 col=E:TX:3}";
             TestCore(pathData, true,
                 new[] {
                     loader,
@@ -808,9 +808,9 @@ namespace Microsoft.ML.RunTests
                     "  col=Features:U2:1-*",
                     "  col=A:U1[0-5]:1",
                     "  col=B:U1[0-8]:2",
-                    "  col=C:U8[5]:3",
+                    "  col=C:U8[6]:3",
                     "  col=D:U1[]:4",
-                    "  col=E:[]:5",
+                    "  col=E:U8[]:5",
                     "  col=F:U1[]:6",
                     "}",
                     "xf=Convert{col=Label2:U2[0-1]:Label col=Features2:Features type=Num}",
@@ -839,9 +839,9 @@ namespace Microsoft.ML.RunTests
                         " col=Features:U2:Features" +
                         " col=A:U1[0-5]:A" +
                         " col=B:U1[0-8]:B" +
-                        " col=C:[5]:C" +
+                        " col=C:U8[6]:C" +
                         " col=D:U1[]:D" +
-                        " col=E:[]:E" +
+                        " col=E:U8[]:E" +
                         " col=F:U1[]:F",
                         argsConv);
                     Check(tmp, "Parsing argsConv failed!");
