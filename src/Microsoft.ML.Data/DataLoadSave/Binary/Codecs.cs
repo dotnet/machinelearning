@@ -1252,7 +1252,7 @@ namespace Microsoft.ML.Data.IO
                 Contracts.CheckDecode(min >= 0);
                 Contracts.CheckDecode(0 <= count);
                 Contracts.CheckDecode((ulong)count <= ulong.MaxValue - min);
-                Contracts.CheckDecode((ulong)count <= itemType.RawKind.ToMaxInt());
+                Contracts.CheckDecode((ulong)count <= itemType.GetRawKind().ToMaxInt());
                 Contracts.CheckDecode(contiguous || count == 0);
 
                 type = new KeyType(itemType.RawType, min, count, contiguous);
