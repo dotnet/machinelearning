@@ -25,10 +25,16 @@ namespace Microsoft.ML.Auto
 
         public static IDataView Take(this IDataView data, int count)
         {
-            // REVIEW: This should take an env as a parameter, not create one.
-            var env = new MLContext();
-            var take = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeArguments { Count = count }, data);
-            return new CacheDataView(env, data, Enumerable.Range(0, data.Schema.Count).ToArray());
+            var context = new MLContext();
+            var filter = SkipTakeFilter.Create(context, new SkipTakeFilter.TakeArguments { Count = count }, data);
+            return new CacheDataView(context, filter, Enumerable.Range(0, data.Schema.Count).ToArray());
+        }
+
+        public static IDataView Skip(this IDataView data, int count)
+        {
+            var context = new MLContext();
+            var filter = SkipTakeFilter.Create(context, new SkipTakeFilter.SkipArguments { Count  = count }, data);
+            return new CacheDataView(context, filter, Enumerable.Range(0, data.Schema.Count).ToArray());
         }
 
         public static (string, ColumnType, ColumnPurpose, ColumnDimensions)[] GetColumnInfoTuples(MLContext context,

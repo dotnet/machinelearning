@@ -22,7 +22,7 @@ namespace Microsoft.ML.Auto.Test
         }
 
         // downloads the UCI Adult dataset from the ML.Net repo
-        private static string DownloadUciAdultDataset() =>
+        public static string DownloadUciAdultDataset() =>
             DownloadIfNotExists("https://raw.githubusercontent.com/dotnet/machinelearning/f0e639af5ffdc839aae8e65d19b5a9a1f0db634a/test/data/adult.tiny.with-schema.txt", "uciadult.dataset");
 
         private static string DownloadIfNotExists(string baseGitPath, string dataFile)
