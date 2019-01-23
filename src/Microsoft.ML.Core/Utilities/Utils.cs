@@ -616,30 +616,32 @@ namespace Microsoft.ML.Internal.Utilities
         }
 
         /// <summary>
-        /// Checks that an input array is monotonically increasing
+        /// Checks that an input IList is monotonically increasing.
         /// </summary>
         /// <param name="values">An array of values</param>
-        /// <returns>True if the array is monotonically increasing; false otherwise.</returns>
+        /// <returns>True if the array is monotonically increasing; false otherwise.
+        /// ILists containing NaN values are considered to be not monotonically increasing.</returns>
         public static bool IsSorted(IList<float> values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
-            var prev = values[0];
-
-            for (int i = 1; i < values.Count; i++)
+            var previousValue = values[0];
+            var listLength = values.Count;
+            for (int i = 1; i < listLength; i++)
             {
-                if (!(values[i] >= prev))
+                var currentValue = values[i];
+                if (currentValue < previousValue)
                     return false;
 
-                prev = values[i];
+                previousValue = currentValue;
             }
 
             return true;
         }
 
         /// <summary>
-        /// Checks that an input array is monotonically increasing
+        /// Checks that an input array is monotonically increasing.
         /// </summary>
         /// <param name="values">An array of values</param>
         /// <returns>True if the array is monotonically increasing; false otherwise.</returns>
@@ -648,37 +650,38 @@ namespace Microsoft.ML.Internal.Utilities
             if (Utils.Size(values) <= 1)
                 return true;
 
-            var prev = values[0];
-
+            var previousValue = values[0];
             for (int i = 1; i < values.Length; i++)
             {
-                if (values[i] < prev)
+                var currentValue = values[i];
+                if (currentValue < previousValue)
                     return false;
 
-                prev = values[i];
+                previousValue = currentValue;
             }
 
             return true;
         }
 
         /// <summary>
-        /// Checks that an input array is monotonically increasing
+        /// Checks that an input array is monotonically increasing.
         /// </summary>
         /// <param name="values">An array of values</param>
-        /// <returns>True if the array is monotonically increasing; false otherwise.</returns>
+        /// <returns>True if the array is monotonically increasing; false otherwise.
+        /// Arrays containing NaN values are considered to be not monotonically increasing.</returns>
         public static bool IsSorted(double[] values)
         {
             if (Utils.Size(values) <= 1)
                 return true;
 
-            var prev = values[0];
-
+            var previousValue = values[0];
             for (int i = 1; i < values.Length; i++)
             {
-                if (values[i] < prev)
+                var currentValue = values[i];
+                if (currentValue < previousValue)
                     return false;
 
-                prev = values[i];
+                previousValue = currentValue;
             }
 
             return true;
