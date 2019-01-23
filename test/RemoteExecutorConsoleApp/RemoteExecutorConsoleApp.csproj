@@ -2,6 +2,6 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <StartupObject>RemoteExecutorConsoleApp.Program</StartupObject>
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 </Project>
