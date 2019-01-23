@@ -120,6 +120,22 @@ namespace Microsoft.ML.Data
                 return DateTimeOffsetType.Instance;
             return NumberType.FromKind(kind);
         }
+
+        [BestFriend]
+        internal static PrimitiveType FromType(Type type)
+        {
+            if (type == typeof(ReadOnlyMemory<char>))
+                return TextType.Instance;
+            if (type == typeof(bool))
+                return BoolType.Instance;
+            if (type == typeof(TimeSpan))
+                return TimeSpanType.Instance;
+            if (type == typeof(DateTime))
+                return DateTimeType.Instance;
+            if (type == typeof(DateTimeOffset))
+                return DateTimeOffsetType.Instance;
+            return NumberType.FromType(type);
+        }
     }
 
     /// <summary>
@@ -325,7 +341,7 @@ namespace Microsoft.ML.Data
         }
 
         [BestFriend]
-        internal static NumberType FromType(Type type)
+        internal static new NumberType FromType(Type type)
         {
             DataKind kind;
             if (type.TryGetDataKind(out kind))
@@ -339,7 +355,7 @@ namespace Microsoft.ML.Data
         {
             if (other == this)
                 return true;
-            Contracts.Assert(other == null || !(other is NumberType) || other.RawKind != RawKind);
+            Contracts.Assert(other == null || !(other is NumberType) || other.RawType != RawType);
             return false;
         }
 
@@ -589,9 +605,8 @@ namespace Microsoft.ML.Data
 
             if (!(other is KeyType tmp))
                 return false;
-            if (RawKind != tmp.RawKind)
+            if (RawType != tmp.RawType)
                 return false;
-            Contracts.Assert(RawType == tmp.RawType);
             if (Contiguous != tmp.Contiguous)
                 return false;
             if (Min != tmp.Min)

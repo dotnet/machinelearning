@@ -204,12 +204,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 // Key Values are treated in one of two ways:
                 // If the values are of type uint or ulong, these values are used directly as the keys types and no new keys are created.
                 // If the values are not of uint or ulong, then key values are generated as uints starting from 1, since 0 is missing key.
-                if (valueType.RawKind == DataKind.U4)
+                if (valueType.RawType == typeof(uint))
                 {
                     uint[] indices = values.Select((x) => Convert.ToUInt32(x)).ToArray();
                     dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);
                 }
-                else if (valueType.RawKind == DataKind.U8)
+                else if (valueType.RawType == typeof(ulong))
                 {
                     ulong[] indices = values.Select((x) => Convert.ToUInt64(x)).ToArray();
                     dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);

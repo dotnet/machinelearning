@@ -771,14 +771,14 @@ namespace Microsoft.ML.Data
         {
             Contracts.Assert(value != null);
             bool isVector;
-            DataKind dataKind;
-            InternalSchemaDefinition.GetVectorAndKind(typeof(T), "metadata value", out isVector, out dataKind);
+            Type itemType;
+            InternalSchemaDefinition.GetVectorAndItemType(typeof(T), "metadata value", out isVector, out itemType);
 
             if (metadataType == null)
             {
                 // Infer a type as best we can.
-                var itemType = PrimitiveType.FromKind(dataKind);
-                metadataType = isVector ? new VectorType(itemType) : (ColumnType)itemType;
+                var primitiveItemType = PrimitiveType.FromType(itemType);
+                metadataType = isVector ? new VectorType(primitiveItemType) : (ColumnType)primitiveItemType;
             }
             else
             {
@@ -792,11 +792,11 @@ namespace Microsoft.ML.Data
                 }
 
                 ColumnType metadataItemType = metadataVectorType?.ItemType ?? metadataType;
-                if (dataKind != metadataItemType.RawKind)
+                if (itemType != metadataItemType.RawType)
                 {
                     throw Contracts.Except(
-                        "Value inputted is supposed to have dataKind {0}, but type of Metadatainfo has {1}",
-                        dataKind.ToString(), metadataItemType.RawKind.ToString());
+                        "Value inputted is supposed to have Type {0}, but type of Metadatainfo has {1}",
+                        itemType.ToString(), metadataItemType.RawType.ToString());
                 }
             }
             MetadataType = metadataType;

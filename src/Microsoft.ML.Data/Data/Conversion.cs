@@ -436,7 +436,7 @@ namespace Microsoft.ML.Data.Conversion
                     // Technically there is no standard conversion from a key type to an unsigned integer type,
                     // but it's very convenient for client code, so we allow it here. Note that ConvertTransform
                     // does not allow this.
-                    if (!KeyType.IsValidDataKind(typeDst.RawKind))
+                    if (!KeyType.IsValidDataType(typeDst.RawType))
                         return false;
                     if (keySrc.RawKind > typeDst.RawKind)
                     {

@@ -137,11 +137,11 @@ namespace Microsoft.ML.Data
         /// </summary>
         private static bool IsCompatibleType(ColumnType colType, MemberInfo memberInfo)
         {
-            InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
+            InternalSchemaDefinition.GetVectorAndItemType(memberInfo, out bool isVector, out Type itemType);
             if (isVector)
-                return colType is VectorType vectorType && vectorType.ItemType.RawKind == kind;
+                return colType is VectorType vectorType && vectorType.ItemType.RawType == itemType;
             else
-                return !(colType is VectorType) && colType.RawKind == kind;
+                return !(colType is VectorType) && colType.RawType == itemType;
         }
 
         /// <summary>
