@@ -192,7 +192,7 @@ namespace Microsoft.ML.Tests
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
-            var modelFile = "squeezenet/00000001/model.onnx";
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "squeezenet", "00000001", "model.onnx");
 
             var env = new MLContext(conc: 1);
             var imageHeight = 224;
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Tests
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
-            var modelFile = @"twoinput\twoinput.onnx";
+            var modelFile = Path.Combine(Directory.GetCurrentDirectory(), "twoinput", "twoinput.onnx");
             using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 var samplevector = GetSampleArrayData();
