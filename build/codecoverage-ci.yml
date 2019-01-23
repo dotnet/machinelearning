@@ -12,7 +12,6 @@ phases:
         _configuration: Debug
         _config_short: D
         _includeBenchmarkData: false
-        _enableCodeCoverage: true
-    codeCoverage: $(_enableCodeCoverage)
+    codeCoverage: true
     queue:
       name: Hosted VS2017
