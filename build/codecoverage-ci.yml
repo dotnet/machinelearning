@@ -1,11 +1,6 @@
 ################################################################################
-# ML.NET's PR validation build
+# ML.NET's Code Coverage validation build
 ################################################################################
-
-resources:
-  containers:
-  - container: LinuxContainer
-    image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
 
 phases:
 - template: /build/ci/phase-template.yml
