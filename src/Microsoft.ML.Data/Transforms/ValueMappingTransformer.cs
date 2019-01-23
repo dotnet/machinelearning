@@ -34,8 +34,8 @@ namespace Microsoft.ML.Transforms.Conversions
 {
     /// <summary>
     /// The ValueMappingEstimator is a 1-1 mapping from a key to value. The key type and value type are specified
-    /// through TKey and TValue. TKey is always an scalar. TValue can be either scalar or array (array is only possible when input is scalar).
-    /// The mapping is specified, not trained by providiing a list of keys and a list of values.
+    /// through TKey and TValue. TKey is always a scalar. TValue can be either a scalar or an array (array is only possible when input is scalar).
+    /// The mapping is specified, not trained by providing a list of keys and a list of values.
     /// </summary>
     /// <typeparam name="TKey">Specifies the key type.</typeparam>
     /// <typeparam name="TValue">Specifies the value type.</typeparam>
@@ -1027,7 +1027,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         throw _parent.Host.ExceptNotSupp("Column '{0}' cannot be mapped to values when both input and values are of vector type.", _columns[i].Source);
                     var colType = _valueMap.ValueType;
                     if (_inputSchema[_columns[i].Source].Type is VectorType)
-                        colType = new VectorType(PrimitiveType.FromKind(_valueMap.ValueType.GetItemType().RawKind));
+                        colType = new VectorType(PrimitiveType.FromType(_valueMap.ValueType.GetItemType().RawType));
                     result[i] = new Schema.DetachedColumn(_columns[i].Name, colType, _valueMetadata);
                 }
                 return result;
