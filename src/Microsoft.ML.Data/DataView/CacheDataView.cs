@@ -24,7 +24,8 @@ namespace Microsoft.ML.Data
     /// dataview will block when moved to a row until such time as all requested columns
     /// have that row in cache.
     /// </summary>
-    public sealed class CacheDataView : IDataView, IRowSeekable
+    [BestFriend]
+    internal sealed class CacheDataView : IDataView, IRowSeekable
     {
         private readonly IHost _host;
         private readonly IDataView _subsetInput;
