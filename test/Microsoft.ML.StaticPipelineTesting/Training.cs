@@ -722,9 +722,9 @@ namespace Microsoft.ML.StaticPipelineTesting
                                 r.features,
                                 preds: env.Clustering.Trainers.KMeans
                                 (
-                                    r.features, 
+                                    r.features,
                                     null,
-                                    options : new KMeansPlusPlusTrainer.Options
+                                    options: new KMeansPlusPlusTrainer.Options
                                     {
                                         ClustersCount = 3,
                                         NumThreads = 1

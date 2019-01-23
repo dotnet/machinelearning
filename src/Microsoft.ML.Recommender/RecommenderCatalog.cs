@@ -64,9 +64,9 @@ namespace Microsoft.ML
             /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
             /// </summary>
             /// <remarks>
-            /// <para>The basic idea of matrix factorization is finding two low-rank factor marcies to apporimate the training matrix.</para>
+            /// <para>The basic idea of matrix factorization is finding two low-rank factor matrcies to apporimate the training matrix.</para>
             /// <para>In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
-            /// and the value at the location specified by the two indexes.
+            /// and the value at the location specified by the two indexes. The training configuration is encoded in <see cref="MatrixFactorizationTrainer.Options"/>.
             /// </para>
             /// </remarks>
             /// <param name="options">Advanced arguments to the algorithm.</param>
