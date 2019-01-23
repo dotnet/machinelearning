@@ -78,6 +78,12 @@
       "values": [],
       "defaultValue": ""
     },
+    "Coverage": {
+      "description": "Turn on code coverge.",
+      "valueType": "property",
+      "values": ["false", "true"],
+      "defaultValue": "false"
+    },
     "CleanAllProjects": {
       "description": "MsBuild target that deletes the binary output directory.",
       "valueType": "target",

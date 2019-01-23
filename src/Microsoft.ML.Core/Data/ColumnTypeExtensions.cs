@@ -47,6 +47,17 @@ namespace Microsoft.ML.Data
         public static bool IsKnownSizeVector(this ColumnType columnType) => columnType.GetVectorSize() > 0;
 
         /// <summary>
+        /// Gets the equivalent <see cref="DataKind"/> for the <paramref name="columnType"/>'s RawType.
+        /// This can return default(<see cref="DataKind"/>) if the RawType doesn't have a corresponding
+        /// <see cref="DataKind"/>.
+        /// </summary>
+        public static DataKind GetRawKind(this ColumnType columnType)
+        {
+            columnType.RawType.TryGetDataKind(out DataKind result);
+            return result;
+        }
+
+        /// <summary>
         /// Equivalent to calling Equals(ColumnType) for non-vector types. For vector type,
         /// returns true if current and other vector types have the same size and item type.
         /// </summary>

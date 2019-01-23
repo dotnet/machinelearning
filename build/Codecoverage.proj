@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Codecov">
+
+  <PropertyGroup>
+    <!-- We need to specify a framework in order for the Restore target to work -->
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <PackageReference Include="Codecov" Version="$(CodecovVersion)" />
+  </ItemGroup>
+  <Target Name="Codecov" DependsOnTargets="Restore">
+    <PropertyGroup>
+      <_CodecovPath>$(RestorePackagesPath)codecov\$(CodecovVersion)\tools\Codecov.exe</_CodecovPath>
+
+      <_BranchName Condition="'$(_BranchName)' == ''">$(SYSTEM_PULLREQUEST_TARGETBRANCH)</_BranchName>
+      <_BranchName Condition="'$(_BranchName)' == ''">$(BUILD_SOURCEBRANCHNAME)</_BranchName>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_CoverageReports Include="$(BaseOutputPath)$(PlatformConfig)\coverage\*.coverage" />
+
+      <_CodecovArgs Include="-f;@(_CoverageReports)" />
+      <_CodecovArgs Include="-r;$(BUILD_REPOSITORY_NAME)" Condition="'$(BUILD_REPOSITORY_NAME)' != ''" />
+      <_CodecovArgs Include="--pr;$(SYSTEM_PULLREQUEST_PULLREQUESTNUMBER)" Condition="'$(SYSTEM_PULLREQUEST_PULLREQUESTNUMBER)' != ''" />
+      <_CodecovArgs Include="-b;$(BUILD_BUILDNUMBER)" Condition="'$(BUILD_BUILDNUMBER)' != ''" />
+      <_CodecovArgs Include="--branch;$(_BranchName)" Condition="'$(_BranchName)' != ''" />
+      <_CodecovArgs Include="-c;$(BUILD_SOURCEVERSION)" Condition="'$(BUILD_SOURCEVERSION)' != ''" />
+      <_CodecovArgs Include="-n;$(BUILD_DEFINITIONNAME)" Condition="'$(BUILD_DEFINITIONNAME)' != ''" />
+      <_CodecovArgs Include="--flag;$(Configuration)" Condition="'$(Configuration)' != ''" />
+      <_CodecovArgs Include="-t;$(CodeCovToken)" Condition="'$(CodeCovToken)' != ''" />
+    </ItemGroup>
+
+    <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
+    <Exec Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
+  </Target>
+
+</Project>

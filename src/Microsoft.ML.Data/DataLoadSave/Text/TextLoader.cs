@@ -461,7 +461,7 @@ namespace Microsoft.ML.Data
                 Contracts.Assert(isegVar >= -1);
 
                 Name = name;
-                Kind = colType.GetItemType().RawKind;
+                Kind = colType.GetItemType().GetRawKind();
                 Contracts.Assert(Kind != 0);
                 ColType = colType;
                 Segments = segs;
@@ -850,8 +850,9 @@ namespace Microsoft.ML.Data
                     var info = Infos[iinfo];
                     ctx.SaveNonEmptyString(info.Name);
                     var type = info.ColType.GetItemType();
-                    Contracts.Assert((DataKind)(byte)type.RawKind == type.RawKind);
-                    ctx.Writer.Write((byte)type.RawKind);
+                    DataKind rawKind = type.GetRawKind();
+                    Contracts.Assert((DataKind)(byte)rawKind == rawKind);
+                    ctx.Writer.Write((byte)rawKind);
                     ctx.Writer.WriteBoolByte(type is KeyType);
                     if (type is KeyType key)
                     {

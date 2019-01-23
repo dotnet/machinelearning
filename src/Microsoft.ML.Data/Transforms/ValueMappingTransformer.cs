@@ -158,6 +158,37 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         /// <summary>
+        /// Helper function to add a column to an ArrayDataViewBuilder. This handles the case if the type is a string.
+        /// </summary>
+        internal static void AddColumnWrapper<T>(ArrayDataViewBuilder builder, string columnName, PrimitiveType primitiveType, T[] values)
+        {
+            if (typeof(T) == typeof(string))
+                builder.AddColumn(columnName, values.Select(x=>x.ToString()).ToArray());
+            else
+                builder.AddColumn(columnName, primitiveType, values);
+        }
+
+        /// <summary>
+        /// Helper function to add a column to an ArrayDataViewBuilder. This handles the case if the type is an array of strings.
+        /// </summary>
+        internal static void AddColumnWrapper<T>(ArrayDataViewBuilder builder, string columnName, PrimitiveType primitiveType, T[][] values)
+        {
+            if (typeof(T) == typeof(string))
+            {
+                var convertedValues = new List<ReadOnlyMemory<char>[]>();
+                foreach(var value in values)
+                {
+                    var converted = value.Select(x => x.ToString().AsMemory());
+                    convertedValues.Add(converted.ToArray());
+                }
+
+                builder.AddColumn(columnName, primitiveType, convertedValues.ToArray());
+            }
+            else
+                builder.AddColumn(columnName, primitiveType, values);
+        }
+
+        /// <summary>
         /// Helper function to create an IDataView given a list of key and vector-based values
         /// </summary>
         internal static IDataView CreateDataView<TKey, TValue>(IHostEnvironment env,
@@ -169,8 +200,8 @@ namespace Microsoft.ML.Transforms.Conversions
             var keyType = GetPrimitiveType(typeof(TKey), out bool isKeyVectorType);
             var valueType = GetPrimitiveType(typeof(TValue), out bool isValueVectorType);
             var dataViewBuilder = new ArrayDataViewBuilder(env);
-            dataViewBuilder.AddColumn(keyColumnName, keyType, keys.ToArray());
-            dataViewBuilder.AddColumn(valueColumnName, valueType, values.ToArray());
+            AddColumnWrapper(dataViewBuilder, keyColumnName, keyType, keys.ToArray());
+            AddColumnWrapper(dataViewBuilder, valueColumnName, valueType, values.ToArray());
             return dataViewBuilder.GetDataView();
         }
 
@@ -188,7 +219,7 @@ namespace Microsoft.ML.Transforms.Conversions
             var valueType = GetPrimitiveType(typeof(TValue), out bool isValueVectorType);
 
             var dataViewBuilder = new ArrayDataViewBuilder(env);
-            dataViewBuilder.AddColumn(keyColumnName, keyType, keys.ToArray());
+            AddColumnWrapper(dataViewBuilder, keyColumnName, keyType, keys.ToArray());
             if (treatValuesAsKeyTypes)
             {
                 // When treating the values as KeyTypes, generate the unique
@@ -207,12 +238,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 // Key Values are treated in one of two ways:
                 // If the values are of type uint or ulong, these values are used directly as the keys types and no new keys are created.
                 // If the values are not of uint or ulong, then key values are generated as uints starting from 1, since 0 is missing key.
-                if (valueType.RawKind == DataKind.U4)
+                if (valueType.RawType == typeof(uint))
                 {
                     uint[] indices = values.Select((x) => Convert.ToUInt32(x)).ToArray();
                     dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);
                 }
-                else if (valueType.RawKind == DataKind.U8)
+                else if (valueType.RawType == typeof(ulong))
                 {
                     ulong[] indices = values.Select((x) => Convert.ToUInt64(x)).ToArray();
                     dataViewBuilder.AddColumn(valueColumnName, GetKeyValueGetter(metaKeys), 0, metaKeys.Length, indices);
@@ -243,7 +274,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
             else
-                dataViewBuilder.AddColumn(valueColumnName, valueType, values.ToArray());
+                AddColumnWrapper(dataViewBuilder, valueColumnName, valueType, values.ToArray());
 
             return dataViewBuilder.GetDataView();
         }

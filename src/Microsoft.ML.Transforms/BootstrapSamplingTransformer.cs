@@ -222,7 +222,6 @@ namespace Microsoft.ML.Transforms
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(State != CursorState.Done);
                 Ch.Assert(_remaining >= 0);
                 while (_remaining == 0 && Input.MoveNext())
                 {

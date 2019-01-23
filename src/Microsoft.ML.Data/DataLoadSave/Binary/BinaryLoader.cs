@@ -1239,8 +1239,6 @@ namespace Microsoft.ML.Data.IO
 
         private sealed class Cursor : RootCursorBase
         {
-            private const string _badCursorState = "cursor is either not started or is ended, and cannot get values";
-
             private readonly BinaryLoader _parent;
             private readonly int[] _colToActivesIndex;
             private readonly TableOfContentsEntry[] _actives;
@@ -1686,7 +1684,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Ectx.Check(_curr != null, _badCursorState);
+                    Ectx.Check(_curr != null, RowCursorUtils.FetchValueStateError);
                     long src = _curr.RowIndexLim - _remaining - 1;
                     _mapper(in src, ref value);
                 }
@@ -1975,7 +1973,7 @@ namespace Microsoft.ML.Data.IO
 
                 private void Get(ref T value)
                 {
-                    Contracts.Check(_curr != null, _badCursorState);
+                    Contracts.Check(_curr != null, RowCursorUtils.FetchValueStateError);
                     _curr.Reader.Get(ref value);
                 }
 
@@ -2068,11 +2066,7 @@ namespace Microsoft.ML.Data.IO
 
             private Delegate NoRowGetter<T>()
             {
-                ValueGetter<T> del =
-                    (ref T value) =>
-                    {
-                        throw Ch.Except(_badCursorState);
-                    };
+                ValueGetter<T> del = (ref T value) => throw Ch.Except(RowCursorUtils.FetchValueStateError);
                 return del;
             }
 
@@ -2083,7 +2077,7 @@ namespace Microsoft.ML.Data.IO
                     return
                         (ref RowId val) =>
                         {
-                            Ch.Check(IsGood, "Cannot call ID getter in current state");
+                            Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                             val = new RowId((ulong)Position, 0);
                         };
                 }
@@ -2102,7 +2096,7 @@ namespace Microsoft.ML.Data.IO
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
+                        Ch.Check(IsGood, RowCursorUtils.FetchValueStateError);
                         long pos = Position;
                         if (pos >= firstPositionToCorrect)
                             pos += correction;

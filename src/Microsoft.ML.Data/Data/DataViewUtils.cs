@@ -368,7 +368,7 @@ namespace Microsoft.ML.Data
                 for (int t = 0; t < workers.Length; ++t)
                 {
                     var localCursor = inputs[t];
-                    ch.Assert(localCursor.State == CursorState.NotStarted);
+                    ch.Assert(localCursor.Position < 0);
                     // Note that these all take ownership of their respective cursors,
                     // so they all handle their disposal internal to the thread.
                     workers[t] = Utils.RunOnBackgroundThread(() =>
@@ -1071,7 +1071,7 @@ namespace Microsoft.ML.Data
 
                 protected override bool MoveNextCore()
                 {
-                    Ch.Assert(!_disposed && State != CursorState.Done);
+                    Ch.Assert(!_disposed);
                     if (--_remaining > 0)
                     {
                         // We are still consuming the current output pipes.
@@ -1192,7 +1192,7 @@ namespace Microsoft.ML.Data
                 for (int i = 0; i < _cursors.Length; ++i)
                 {
                     RowCursor cursor = _cursors[i];
-                    Ch.Assert(cursor.State == CursorState.NotStarted);
+                    Ch.Assert(cursor.Position < 0);
                     if (cursor.MoveNext())
                         _mins.Add(new CursorStats(cursor.Batch, i));
                 }
@@ -1223,7 +1223,7 @@ namespace Microsoft.ML.Data
                 return
                     (ref RowId val) =>
                     {
-                        Ch.Check(_icursor >= 0, "Cannot call ID getter in current state");
+                        Ch.Check(_icursor >= 0, RowCursorUtils.FetchValueStateError);
                         idGetters[_icursor](ref val);
                     };
             }
@@ -1250,7 +1250,7 @@ namespace Microsoft.ML.Data
                 ValueGetter<T> mine =
                     (ref T value) =>
                     {
-                        Ch.Check(_icursor >= 0, "Cannot get value as the cursor is not in a good state");
+                        Ch.Check(_icursor >= 0, RowCursorUtils.FetchValueStateError);
                         getters[_icursor](ref value);
                     };
                 return mine;
@@ -1258,8 +1258,8 @@ namespace Microsoft.ML.Data
 
             protected override bool MoveNextCore()
             {
-                Ch.Assert(!_disposed && State != CursorState.Done);
-                if (State == CursorState.Good && _currentCursor.MoveNext())
+                Ch.Assert(!_disposed);
+                if (Position >= 0 && _currentCursor.MoveNext())
                 {
                     // If we're still in this batch, no need to do anything, yet.
                     if (_currentCursor.Batch == _batch)
@@ -1277,7 +1277,7 @@ namespace Microsoft.ML.Data
                 // some batch with some cursors with more rows. Because we only know the
                 // batch ID once we've moved into a row, we do not need to, at this time.
                 var stats = _mins.Pop();
-                Ch.Assert(State == CursorState.NotStarted || stats.Batch > _batch);
+                Ch.Assert(Position < 0 || stats.Batch > _batch);
                 _icursor = stats.CursorIdx;
                 _currentCursor = _cursors[stats.CursorIdx];
                 _batch = _currentCursor.Batch;
