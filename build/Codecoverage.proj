@@ -27,7 +27,7 @@
       <_CodecovArgs Include="-c;$(BUILD_SOURCEVERSION)" Condition="'$(BUILD_SOURCEVERSION)' != ''" />
       <_CodecovArgs Include="-n;$(BUILD_DEFINITIONNAME)" Condition="'$(BUILD_DEFINITIONNAME)' != ''" />
       <_CodecovArgs Include="--flag;$(Configuration)" Condition="'$(Configuration)' != ''" />
-      <_CodecovArgs Include="-t;$(CODECOV_TOKEN)" Condition="'$(CodeCovToken)' != ''" />
+      <_CodecovArgs Include="-t;$(CodeCovToken)" Condition="'$(CodeCovToken)' != ''" />
     </ItemGroup>
 
     <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
