@@ -40,10 +40,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
                 // If the type is not supported in ML.NET then we cannot represent it as a column in an Schema.
                 // We also cannot output it with a TensorFlowTransform, so we skip it.
-                // Furthermore, operators which have NumOutputs <= 0 usually have 'Unknown' type.
-                // But sometimes these operators can have valid type upon querying model for multiple times such as 'Float'.
-                // This behavior is inconsistent in TensorFlow runtime (https://github.com/dotnet/machinelearning/issues/2156).
-                // Therefore, filtering all operators that have no outputs.
+                // Furthermore, operators which have NumOutputs <= 0 needs to be filtered.
+                // The 'GetTensorShape' method crashes TensorFlow runtime
+                // (https://github.com/dotnet/machinelearning/issues/2156) when the operator has no outputs.
                 if (mlType == null || op.NumOutputs <= 0)
                     continue;
 
