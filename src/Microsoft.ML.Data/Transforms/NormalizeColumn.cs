@@ -42,7 +42,12 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Transforms.Normalizers
 {
-    public sealed partial class NormalizeTransform
+    /// <summary>
+    /// The normalize transform for support of normalization via the <see cref="IDataTransform"/> mechanism.
+    /// More contemporaneous API usage of normalization ought to use <see cref="NormalizingEstimator"/>
+    /// and <see cref="NormalizingTransformer"/> rather than this structure.
+    /// </summary>
+    internal sealed partial class NormalizeTransform
     {
         public abstract class ColumnBase : OneToOneColumn
         {
@@ -1128,7 +1133,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public static partial class AffineNormSerializationUtils
+    internal static partial class AffineNormSerializationUtils
     {
         public const string LoaderSignature = "AffineNormExec";
 
@@ -1146,7 +1151,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public static partial class BinNormSerializationUtils
+    internal static partial class BinNormSerializationUtils
     {
         public const string LoaderSignature = "BinNormExec";
 
