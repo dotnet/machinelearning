@@ -1,14 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Codecov">
 
   <PropertyGroup>
     <!-- We need to specify a framework in order for the Restore target to work -->
-    <TargetFramework Condition="'$(TargetFramework)' == ''">netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
       <PackageReference Include="Codecov" Version="$(CodecovVersion)" />
   </ItemGroup>
-  <Target Name="Codecov" DependsOnTargets="Restore" Condition="'$(UseCodecov)' == 'true'">
+  <Target Name="Codecov" DependsOnTargets="Restore">
     <PropertyGroup>
       <_CodecovPath>$(RestorePackagesPath)codecov\$(CodecovVersion)\tools\Codecov.exe</_CodecovPath>
 
@@ -27,12 +27,11 @@
       <_CodecovArgs Include="-c;$(BUILD_SOURCEVERSION)" Condition="'$(BUILD_SOURCEVERSION)' != ''" />
       <_CodecovArgs Include="-n;$(BUILD_DEFINITIONNAME)" Condition="'$(BUILD_DEFINITIONNAME)' != ''" />
       <_CodecovArgs Include="--flag;$(Configuration)" Condition="'$(Configuration)' != ''" />
-      <_CodecovArgs Include="-t;$(CODECOV_TOKEN)" Condition="'$(CODECOV_TOKEN)' != ''" />
+      <_CodecovArgs Include="-t;$(CODECOV_TOKEN)" Condition="'$(CodeCovToken)' != ''" />
     </ItemGroup>
 
     <Message Importance="high" Text="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
-    <Exec Condition="'$(UseCodecov)' == 'true'"
-          Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
+    <Exec Command="&quot;$(_CodecovPath)&quot; @(_CodecovArgs, ' ')" />
   </Target>
 
 </Project>

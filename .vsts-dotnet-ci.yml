@@ -82,11 +82,6 @@ phases:
           _config_short: D
           _includeBenchmarkData: false
           _enableCodeCoverage: true
-        Build_Release:
-          _configuration: Release
-          _config_short: R
-          _includeBenchmarkData: true
-          _enableCodeCoverage: false
       codeCoverage: $(_enableCodeCoverage)
       queue:
         name: Hosted VS2017
